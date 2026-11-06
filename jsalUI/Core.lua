@@ -197,7 +197,7 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal guild, /jsal settings, /jsal install.")
+        ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal chess, /jsal guild, /jsal settings, /jsal install.")
     end
 end
 
