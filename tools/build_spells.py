@@ -50,6 +50,12 @@ def Trainable(abilities, names, ranks, levels):
     return sorted(chosen.values())
 
 
+def RankNumber(ranks, spell):
+    """3 for a spell whose rank reads "Rank 3"; 0 for one with no rank."""
+    text = ranks.get(spell, "").replace("Rank ", "")
+    return int(text) if text.isdigit() else 0
+
+
 def rows(folder, name):
     with open(folder / f"{name}.csv", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
@@ -151,6 +157,27 @@ def main():
         if class_id in BEAST_FOR:
             taught = Trainable(by_line[PET_TRAINING], names, ranks, levels)
             lines.append("        beast = { " + ", ".join(f"{{ {s}, {l} }}" for l, s in taught) + " },")
+            # What each pet family can learn: the pet's own spell, the Beast
+            # Training spell that teaches it, the pet level it needs and its rank.
+            # "*" is what every family can learn.
+            beast_by_key = {(names[s], ranks.get(s, "")): s for _, s in taught}
+            # Some families have more than one skill line, so they're merged.
+            families = defaultdict(dict)
+            for line_id, line in skills.items():
+                label = line["DisplayName_lang"]
+                if line["CategoryID"] != CLASS_SCHOOLS or not label.startswith("Pet - ") or line_id in DEMON_LINES:
+                    continue
+                family = "*" if label == "Pet - Generic" else label.replace("Pet - ", "")
+                for level, spell in Trainable(by_line[line_id], names, ranks, levels):
+                    beast = beast_by_key.get((names[spell], ranks.get(spell, "")))
+                    if beast:
+                        families[family][spell] = (level, beast)
+            lines.append("        families = {")
+            for family in sorted(families):
+                learn = sorted((level, spell, beast) for spell, (level, beast) in families[family].items())
+                lines.append(f'            ["{family}"] = {{ ' +
+                             ", ".join(f"{{ {s}, {b}, {l}, {RankNumber(ranks, s)} }}" for l, s, b in learn) + " },")
+            lines.append("        },")
         lines.append("    },")
         report.append(f"class {class_id}: {len(spells)} spells, {len(weapon_spells)} weapon skills, schools {school_names}")
     lines += ["}", ""]
