@@ -22,6 +22,19 @@ local function Stop(level)
     return level + level % 2
 end
 
+-- Where a spell no class trainer sells comes from: its words on a card, the
+-- letter on its road icon, and its tooltip line.
+local VIA = {
+    quest = { card = "Class quest", tag = "Quest", hint = "Learned from a class quest, not a trainer." },
+    book = { card = "Book", tag = "Book", hint = "Learned from a book that drops, not a trainer." },
+    portal = { card = "Portal trainer", tag = "Portal", hint = "Taught by a mage portal trainer, in a capital city." },
+}
+
+-- Quest and book spells cost no gold, so they stay out of the totals.
+local function Free(spell)
+    return spell.via == "quest" or spell.via == "book"
+end
+
 local function Price(spell)
     return spell.cost and Compat.Money(spell.cost) or nil
 end
@@ -247,6 +260,14 @@ Window.Page("training", function(page)
         c.rank = Style.Text(c.badge, 10, "text", nil, true)
         c.rank:SetPoint("CENTER", 0, 0)
         c.rank:SetJustifyH("CENTER")
+        c.tag = CreateFrame("Frame", nil, c)
+        c.tag:SetSize(12, 12)
+        c.tag:SetPoint("TOPLEFT", -2, 2)
+        c.tag:SetFrameLevel(c:GetFrameLevel() + 2)
+        Style.Fill(c.tag, "gold")
+        c.tagText = Style.Text(c.tag, 9, "onGold", nil, true)
+        c.tagText:SetPoint("CENTER", 0, 0)
+        c.tagText:SetJustifyH("CENTER")
         Tooltip(c)
         c:SetScript("OnClick", function(self)
             if self.spell then
@@ -308,11 +329,18 @@ Window.Page("training", function(page)
             local c = Take("chips", MakeChip)
             c.spell, c.spellID = spell, spell.id
             c.hint = (spell.group and (spell.source == "demon" and spell.group .. "'s Grimoire. " or spell.group .. ". ") or "")
+                .. (spell.via and (VIA[spell.via].hint .. " ") or "")
                 .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
             c.icon:SetTexture(spell.icon)
             local rank = RankNumber(spell.rank)
             c.rank:SetText(rank or "")
             c.badge:SetShown(rank ~= nil)
+            -- A quest or book spell has its letter in the top corner, and a
+            -- quest's frame is gold.
+            local via = spell.via and VIA[spell.via]
+            c.tagText:SetText(via and via.tag:sub(1, 1) or "")
+            c.tag:SetShown(via ~= nil)
+            Style.SetBorder(c.edges, spell.via == "quest" and "gold" or "lineStrong")
             if x > 0 and x + CHIP_H > maxW then
                 x, y = 0, y + CHIP_H + CHIP_GAP
             end
@@ -342,7 +370,7 @@ Window.Page("training", function(page)
             if not spell.known then
                 if spell.level <= level then
                     now[#now + 1] = spell
-                    if not spell.skipped then
+                    if not spell.skipped and not Free(spell) then
                         if spell.cost then cost = cost + spell.cost else unknown = unknown + 1 end
                     end
                 else
@@ -379,10 +407,14 @@ Window.Page("training", function(page)
             c.name:SetText(spell.name)
             local detail = spell.rank or ("Level " .. spell.level)
             if spell.source == "demon" then detail = spell.group .. " · Grimoire · " .. detail
-            elseif spell.group then detail = spell.group .. " · " .. detail end
+            elseif spell.group then detail = spell.group .. " · " .. detail
+            elseif spell.via then detail = VIA[spell.via].card .. " · " .. detail end
             c.sub:SetText(spell.skipped and "Skipped" or detail)
+            c.hint = spell.via and VIA[spell.via].hint or nil
             if spell.source == "beast" then
                 c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
+            elseif Free(spell) then
+                c.cost:SetText("|cff9a9688" .. VIA[spell.via].tag .. "|r")
             else
                 c.cost:SetText(Price(spell) or "|cff9a9688?|r")
             end
@@ -435,7 +467,7 @@ Window.Page("training", function(page)
             s.level:SetText(stop)
             local stopCost, missing = 0, false
             for _, spell in ipairs(spells) do
-                if not spell.skipped then
+                if not spell.skipped and not Free(spell) then
                     if spell.cost then stopCost = stopCost + spell.cost else missing = true end
                 end
             end

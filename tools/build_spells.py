@@ -104,6 +104,56 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
     return len(spell_ids & set(spells))
 
 
+# Class spells no trainer sells, and where they come from instead. Quests are
+# the class quests players know from Classic, kept only where Forever's
+# trainers don't sell the spell either; books are the Dire Maul books. Any
+# other level 60 rank no trainer sells, of a spell trainers do sell, is a
+# book too. A mage's teleports and portals come from a portal trainer.
+QUESTS = {
+    1: ["Defensive Stance", "Taunt", "Sunder Armor|Rank 1", "Berserker Stance", "Intercept|Rank 1"],
+    2: ["Redemption|Rank 1"],
+    3: ["Tame Beast", "Call Pet", "Dismiss Pet", "Feed Pet", "Revive Pet"],
+    7: ["Stoneskin Totem|Rank 1", "Searing Totem|Rank 1", "Healing Stream Totem|Rank 1"],
+    9: ["Summon Voidwalker", "Summon Succubus", "Summon Felhunter", "Inferno"],
+    11: ["Bear Form", "Growl", "Maul|Rank 1", "Cure Poison", "Aquatic Form"],
+}
+BOOKS = {
+    5: ["Prayer of Shadow Protection"],
+    8: ["Arcane Brilliance"],
+    11: ["Gift of the Wild|Rank 1"],
+}
+
+
+def Elsewhere(class_id, spells, names, ranks, taught_by_trainer):
+    """{spell: "quest" | "book" | "portal"} for this class's spells that
+    come from somewhere other than its class trainer."""
+    out = {}
+    if not taught_by_trainer:
+        return out
+    sold_names = {names.get(s) for s in taught_by_trainer}
+
+    def Key(spell):
+        return names.get(spell, ""), ranks.get(spell, "")
+
+    def Listed(entries, spell):
+        name, rank = Key(spell)
+        return name in entries or f"{name}|{rank}" in entries
+
+    for level, spell, _, _ in spells:
+        if spell in taught_by_trainer:
+            continue
+        name, rank = Key(spell)
+        if Listed(QUESTS.get(class_id, []), spell):
+            out[spell] = "quest"
+        elif Listed(BOOKS.get(class_id, []), spell):
+            out[spell] = "book"
+        elif level >= 60 and name in sold_names and "Passive" not in rank:
+            out[spell] = "book"
+        elif class_id == 8 and (name.startswith("Teleport: ") or name.startswith("Portal: ")) and "Dalaran" not in name:
+            out[spell] = "portal"
+    return out
+
+
 def RankNumber(ranks, spell):
     """3 for a spell whose rank reads "Rank 3"; 0 for one with no rank."""
     text = ranks.get(spell, "").replace("Rank ", "")
@@ -236,6 +286,15 @@ def main():
                              ", ".join(f"{{ {s}, {b}, {l}, {RankNumber(ranks, s)} }}" for l, s, b in learn) + " },")
             lines.append("        },")
         priced = ShippedPrices(lines, class_id, {s for _, s, _, _ in spells}, set(weapon_spells), pet_to_beast)
+        spell_ids = {s for _, s, _, _ in spells}
+        taught = set()
+        for trainer in SAVED["trainers"]:
+            ids = {r["spell"] for r in trainer["rows"] if r.get("spell")}
+            if trainer["class"] == class_id and ids & spell_ids:
+                taught |= ids
+        elsewhere = Elsewhere(class_id, spells, names, ranks, taught)
+        if elsewhere:
+            lines.append("        elsewhere = { " + ", ".join(f'[{s}] = "{k}"' for s, k in sorted(elsewhere.items())) + " },")
         lines.append("    },")
         report.append(f"class {class_id}: {len(spells)} spells ({priced} priced), {len(weapon_spells)} weapon skills, schools {school_names}")
     lines += ["}", ""]
