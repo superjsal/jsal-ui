@@ -11,7 +11,7 @@ local CARD_H, CARD_GAP = 62, 10
 local CHIP_H, CHIP_GAP = 32, 8   -- a road spell's icon, square
 local LEVEL_W, NODE_W, COST_W = 34, 16, 64
 local ROAD_H = 300   -- the road's own scrolling box: about six stops
-local ROW_H = 30     -- a pet or weapon row
+local ROW_H = 34     -- a pet or weapon row: a name, and a detail under it
 local STATE_W = 84   -- a row's price or state column ("Pet level 30")
 local SKIP_W = 52
 
@@ -292,16 +292,28 @@ Window.Page("training", function(page)
         r.icon:SetPoint("LEFT", 2, 0)
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
         r.skip = Style.Button(r, "Skip", "plain", SKIP_W)
         r.skip:SetHeight(20)
         r.skip:SetPoint("RIGHT", 0, 0)
         r.state = Style.Text(r, 12, "text", nil, true)
         r.state:SetPoint("RIGHT", -(SKIP_W + 12), 0)
         r.state:SetJustifyH("RIGHT")
+        -- A detail (its rank, what it's waiting on) goes on a second line
+        -- under the name, up to the state column.
         r.where = Style.Text(r, 11, "muted")
-        r.where:SetPoint("RIGHT", -(SKIP_W + 12 + STATE_W + 12), 0)
-        r.where:SetJustifyH("RIGHT")
+        r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -2)
+        r.where:SetWidth(roadW - 16 - 34 - SKIP_W - 12 - STATE_W - 12)
+        r.where:SetWordWrap(false)
+        function r:SetDetail(text)
+            self.where:SetText(text or "")
+            self.name:ClearAllPoints()
+            if text and text ~= "" then
+                self.name:SetPoint("BOTTOMLEFT", self.icon, "RIGHT", 10, 1)
+            else
+                self.name:SetPoint("LEFT", self.icon, "RIGHT", 10, 0)
+            end
+        end
+        r:SetDetail(nil)
         r:EnableMouse(true)
         Tooltip(r)
         return r
@@ -499,7 +511,7 @@ Window.Page("training", function(page)
                 r.spellID, r.hint = nil, nil
                 r.icon:SetTexture(select(2, Compat.SpellInfo(883)))
                 r.name:SetText("Call your pet to see what it can learn")
-                r.where:SetText("")
+                r:SetDetail(nil)
                 r.state:SetText("")
                 SkipButton(r, nil)
                 r:SetAlpha(1)
@@ -528,7 +540,7 @@ Window.Page("training", function(page)
                         state = "Pet level " .. row.spell.level
                         r.hint = "In your Beast Training. Your pet needs level " .. row.spell.level .. "."
                     elseif row.state == "tame" then
-                        where = (rank and (rank .. " · ") or "") .. "tame a beast that knows it"
+                        where = (rank and (rank .. " · ") or "") .. "tame one that has it"
                         state = "Pet level " .. row.spell.level
                         r.hint = "Not in your Beast Training yet: tame a beast that has it, and you learn it."
                     else
@@ -537,7 +549,7 @@ Window.Page("training", function(page)
                         r.hint = "Open Beast Training once so jsal.ui can see what's in it."
                     end
                     if row.skipped then state, color = "Skipped", "muted" end
-                    r.where:SetText(where)
+                    r:SetDetail(where)
                     r.state:SetText(state)
                     r.state:SetTextColor(Style.Color(color))
                     SkipButton(r, row.state ~= "known" and row.spell.pet or nil, row.skipped)
@@ -569,7 +581,7 @@ Window.Page("training", function(page)
             r.spellID, r.hint = w.id, not w.known and "Any weapon master teaches it, at the same price." or nil
             r.icon:SetTexture(w.icon)
             r.name:SetText(w.name)
-            r.where:SetText("")
+            r:SetDetail(nil)
             if w.known then
                 r.state:SetText("Known")
                 r.state:SetTextColor(Style.Color("muted"))

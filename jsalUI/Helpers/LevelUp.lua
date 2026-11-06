@@ -33,7 +33,7 @@ local function OnTrainer()
     if not (GetNumTrainerServices and GetTrainerServiceInfo and GetTrainerServiceCost) then return end
     local count, cost = 0, 0
     for i = 1, GetNumTrainerServices() do
-        local _, _, category = GetTrainerServiceInfo(i)
+        local _, category = Compat.TrainerService(i)
         if category == "available" then
             count = count + 1
             cost = cost + (GetTrainerServiceCost(i) or 0)
@@ -49,12 +49,19 @@ function LevelUp:OnEnable()
     local events = CreateFrame("Frame")
     events:RegisterEvent("PLAYER_LEVEL_UP")
     events:RegisterEvent("TRAINER_SHOW")
+    events:RegisterEvent("TRAINER_CLOSED")
+    -- The trainer window can open several times in one visit; its line
+    -- shows once a visit.
+    local told = false
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, level)
         if not LevelUp.running then return end
         if event == "PLAYER_LEVEL_UP" then
             -- The new talent point lands a moment after the level.
             Compat.After(2, function() OnLevel(level) end)
-        else
+        elseif event == "TRAINER_CLOSED" then
+            told = false
+        elseif not told and UnitExists("npc") then
+            told = true
             OnTrainer()
         end
     end))
