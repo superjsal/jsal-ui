@@ -169,7 +169,7 @@ end
 
 -- A recipe's name: the item it makes, or the spell for an enchant.
 local function RecipeName(recipe)
-    return (recipe.item and Compat.ItemName(recipe.item)) or (Compat.SpellInfo(recipe.spell)) or "..."
+    return recipe.label or (recipe.item and Compat.ItemName(recipe.item)) or (Compat.SpellInfo(recipe.spell)) or "..."
 end
 
 local function RecipeIcon(recipe)
@@ -215,7 +215,8 @@ local function Paint()
     for _, step in ipairs(road) do crafts = crafts + step.crafts end
     panel.roadHead:SetText(skill >= cap and "AT THE CAP" or ("YOUR WAY TO %d"):format(target))
     Place(panel.roadHead, y + 2)
-    panel.roadNote:SetText(crafts > 0 and ("about %d craft%s"):format(crafts, crafts == 1 and "" or "s") or "")
+    local unit = Professions.IsGathering(line) and "vein" or "craft"
+    panel.roadNote:SetText(crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or "")
     PlaceRight(panel.roadNote, y)
     y = y + 24
 
@@ -229,7 +230,11 @@ local function Paint()
         s.levels:SetText(("%d → %d"):format(step.from, step.to))
         s.icon:SetTexture(RecipeIcon(step.recipe))
         s.name:SetText(("%s ×%d"):format(RecipeName(step.recipe), step.crafts))
-        if step.learn then
+        if step.recipe.vein then
+            s.detail:SetText(("Mine them: a sure point each until %d"):format(step.recipe.yellow))
+        elseif step.buy then
+            s.detail:SetText(("Buy the pattern from a vendor, from %d"):format(step.recipe.learn))
+        elseif step.learn then
             s.detail:SetText(("Learn it at the trainer, from %d"):format(step.recipe.learn))
         elseif i == 1 then
             local can = Professions.CanMake(step.recipe)
@@ -251,7 +256,7 @@ local function Paint()
         note = ("Then %d more step%s."):format(#road - MAX_STEPS, #road - MAX_STEPS == 1 and "" or "s")
     end
     if stuck then
-        note = (note and (note .. " ") or "") .. ("Past %d, no recipe you know or can train gives skill: look for patterns."):format(stuck)
+        note = (note and (note .. " ") or "") .. ("Past %d, only dropped or quest patterns give skill."):format(stuck)
     elseif skill >= cap then
         note = rank.at and ("Learn %s at the trainer, at level %d, to go on."):format(rank.next, rank.level) or "That's as far as it goes."
     end

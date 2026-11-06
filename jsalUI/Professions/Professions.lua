@@ -158,26 +158,52 @@ function Professions.CanMake(recipe)
     return most or 0
 end
 
+-- Mining's skill comes from mining ore, not from smelting, so its road is
+-- the veins to mine: each from the skill classic WoW sets, a sure point for
+-- its first 25 skill, then fewer until it's grey 100 past it. Only the
+-- common veins; the ore names the icon. Each is shaped like a recipe.
+local MINING = 186
+local VEINS = {
+    { "Copper Vein", 1, 2770 }, { "Tin Vein", 65, 2771 }, { "Iron Deposit", 125, 2772 },
+    { "Mithril Deposit", 175, 3858 }, { "Small Thorium Vein", 245, 10620 }, { "Rich Thorium Vein", 275, 10620 },
+}
+local veins
+local function Veins()
+    if not veins then
+        veins = {}
+        for i, v in ipairs(VEINS) do
+            veins[i] = { label = v[1], learn = v[2], yellow = v[2] + 25, grey = v[2] + 100, item = v[3], reagents = {}, how = 1, vein = true }
+        end
+    end
+    return veins
+end
+
+function Professions.IsGathering(line) return line == MINING end
+
 -- The road from skill to target. known(spell) says whether a recipe is
--- learned; trainer recipes can be learned along the way, patterns only once
--- you have them. Returns the steps ({ from, to, recipe, crafts, learn }),
+-- learned; trainer recipes can be learned along the way, and a pattern a
+-- vendor sells can be bought (it counts as half again as costly, so it's
+-- picked only when it's clearly better or nothing else gives a point).
+-- Dropped and quest patterns count only once you have them. Returns the
+-- steps ({ from, to, recipe, crafts, learn, buy }),
 -- each reagent's total, the skill where it stopped short if it did, and
 -- the materials added for bolts and bars you're short of.
 function Professions.Plan(line, skill, target, known)
-    local recipes = Professions.Recipes(line) or {}
+    local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
     local steps, totals = {}, {}
     local s = skill
     while s < target do
         local best, bestCost
         for _, recipe in ipairs(recipes) do
-            local mine = known(recipe.spell)
+            local mine = recipe.vein or known(recipe.spell)
             -- A recipe you know counts whatever skill the data says it's
             -- learned at (some are taught earlier than that); one from a
             -- trainer counts once your skill reaches it.
-            if mine or (recipe.how == 1 and recipe.learn <= s) then
+            if mine or ((recipe.how == 1 or recipe.how == 2) and recipe.learn <= s) then
                 local chance = Chance(recipe, s)
                 if chance > 0 then
                     local cost = Weight(line, recipe) / chance + (mine and 0 or 0.01)
+                    if not mine and recipe.how == 2 then cost = cost * 1.5 end
                     if not best or cost < bestCost then best, bestCost = recipe, cost end
                 end
             end
@@ -188,7 +214,8 @@ function Professions.Plan(line, skill, target, known)
         if last and last.recipe == best then
             last.to, last.exact = s + 1, last.exact + crafts
         else
-            steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, learn = not known(best.spell) }
+            local learn = not best.vein and not known(best.spell)
+            steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, learn = learn, buy = learn and best.how == 2 }
         end
         s = s + 1
     end
