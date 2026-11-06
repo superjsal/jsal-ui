@@ -1,7 +1,8 @@
 -- The Chess page: on the left your record, your games (each saying whose
--- move it is) and the guildmates online with jsal.ui to challenge; on the
--- right the board, what's happening, the game's buttons and its moves.
--- Click one of your pieces, then a marked square, to move.
+-- move it is), guildmates' games you can watch, and the guildmates online
+-- with jsal.ui to challenge; on the right the board, what's happening, the
+-- game's buttons and its moves. Click one of your pieces, then a marked
+-- square, to move; a watched game is only to look at.
 local addonName, ns = ...
 local Style, Window, Rules = ns.Style, ns.Window, ns.ChessRules
 
@@ -88,8 +89,8 @@ Window.Page("chess", function(page)
     noGames:SetWidth(LIST_W - 8)
     noGames:SetText("None yet. Challenge a guildmate below.")
 
-    local rows = {}
-    local function GameRow(i)
+    local rows, watchRows = {}, {}
+    local function GameRow(i, pool)
         local row = CreateFrame("Button", nil, page)
         row:SetSize(LIST_W, ROW_H - 2)
         row.bg = Style.Fill(row, "well")
@@ -110,9 +111,14 @@ Window.Page("chess", function(page)
             selectedID, from, promo, status = self.game.id, nil, nil, nil
             Paint()
         end)
-        rows[i] = row
+        pool[i] = row
         return row
     end
+
+    -- Guildmates' games being watched, a few at most.
+    local MAX_WATCH = 3
+    local watchHead = Section(page, LIST_W)
+    watchHead.title:SetText("WATCHING")
 
     local mateHead = Section(page, LIST_W)
     mateHead.title:SetText("CHALLENGE")
@@ -416,9 +422,31 @@ Window.Page("chess", function(page)
         if game.status ~= "play" or promo or game.drawOffer == "them" then primary:SetKind("primary") end
     end
 
+    -- A guildmates' game, to look at only: white at the bottom.
+    local function PaintWatch(w)
+        from, promo = nil, nil
+        head.title:SetText((w.white .. " vs " .. w.black):upper())
+        head.note:SetText("watching")
+        head.note:SetTextColor(Style.Color("muted"))
+        PaintBoard(w)
+        movesText:SetText(MovesLine(w))
+        for _, b in ipairs(promoButtons) do b:Hide() end
+        stateText:SetTextColor(Style.Color("text"))
+        if w.over then
+            local who = w.winner == "w" and w.white or w.black
+            stateText:SetText((w.winner == "d" and "Drawn" or (who .. " won")) .. " " .. (HOW_TEXT[w.how] or "") .. ".")
+        else
+            local state = Chess.Position(w)
+            local check = Rules.InCheck(state) and " · check" or ""
+            stateText:SetText(((#w.moves % 2 == 0) and w.white or w.black) .. "'s move" .. check)
+        end
+        SetButton(primary, nil)
+        SetButton(second, "Stop watching")
+    end
+
     Paint = function()
         if not Chess.running then
-            for _, f in ipairs({ board, stateText, primary, second, movesHead, movesText, gamesHead, mateHead, recordHead, noGames, noMates }) do f:Hide() end
+            for _, f in ipairs({ board, stateText, primary, second, movesHead, movesText, gamesHead, watchHead, mateHead, recordHead, noGames, noMates }) do f:Hide() end
             empty:SetText("Chess is turned off in Settings.")
             empty:Show()
             return
@@ -430,12 +458,13 @@ Window.Page("chess", function(page)
         stats[3]:SetText(d)
         recordHead.note:SetText(("%d game%s"):format(w + l + d, w + l + d == 1 and "" or "s"))
 
-        -- The games.
-        local games = Chess.Games()
-        local selected
+        -- The games: your own, or one you're watching.
+        local games, watching = Chess.Games(), Chess.Watching()
+        local selected, seeing
         for _, g in ipairs(games) do if g.id == selectedID then selected = g end end
-        selected = selected or games[1]
-        selectedID = selected and selected.id or nil
+        for i, w in ipairs(watching) do if w.id == selectedID and i <= MAX_WATCH then seeing = w end end
+        if not (selected or seeing) then selected, seeing = games[1], (not games[1]) and watching[1] or nil end
+        selectedID = (selected or seeing) and (selected or seeing).id or nil
         gamesHead.count:SetText(#games)
         local y = BODY_TOP + 86 + 24
         noGames:SetShown(#games == 0)
@@ -446,7 +475,7 @@ Window.Page("chess", function(page)
         end
         local openWith = {}
         for i, g in ipairs(games) do
-            local row = rows[i] or GameRow(i)
+            local row = rows[i] or GameRow(i, rows)
             row.game = g
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", 0, -y)
@@ -469,6 +498,40 @@ Window.Page("chess", function(page)
             if g.status ~= "over" then openWith[g.opp] = true end
         end
         for i = #games + 1, #rows do rows[i]:Hide() end
+
+        -- Games you're watching: who's playing and where it's got to.
+        local shownWatch = math.min(#watching, MAX_WATCH)
+        watchHead:SetShown(shownWatch > 0)
+        if shownWatch > 0 then
+            y = y + 12
+            watchHead:ClearAllPoints()
+            watchHead:SetPoint("TOPLEFT", 0, -y)
+            watchHead.count:SetText(#watching)
+            y = y + 24
+        end
+        for i = 1, shownWatch do
+            local wg = watching[i]
+            local row = watchRows[i] or GameRow(i, watchRows)
+            row.game = wg
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 0, -y)
+            y = y + ROW_H
+            row.name:SetText(wg.white .. " vs " .. wg.black)
+            local sub
+            if wg.over then
+                sub = wg.winner == "d" and "Drawn" or ((wg.winner == "w" and wg.white or wg.black) .. " won")
+            else
+                sub = ("Move %d · %s to move"):format(math.floor(#wg.moves / 2) + 1, #wg.moves % 2 == 0 and wg.white or wg.black)
+            end
+            row.sub:SetText(sub)
+            row.sub:SetTextColor(Style.Color("muted"))
+            local on = wg == seeing
+            row.bg:SetShown(on)
+            row.mark:SetShown(on)
+            row.name:SetTextColor(Style.Color(on and "text" or "muted"))
+            row:Show()
+        end
+        for i = shownWatch + 1, #watchRows do watchRows[i]:Hide() end
 
         -- Who to challenge: as many as fit, then a count of the rest.
         y = y + 12
@@ -510,18 +573,19 @@ Window.Page("chess", function(page)
         gamesHead:Show()
 
         -- The game.
-        local show = selected ~= nil
+        local show = selected ~= nil or seeing ~= nil
         for _, f in ipairs({ board, stateText, movesHead, movesText }) do f:SetShown(show) end
         empty:SetShown(not show)
         if not show then
             head.title:SetText("NO GAME")
             head.note:SetText("")
-            empty:SetText("Pick a guildmate under Challenge to start a game. They need jsal.ui and to be online to answer; after that, moves wait for whoever's turn it is.")
+            empty:SetText("Pick a guildmate under Challenge to start a game. They need jsal.ui and to be online to answer; after that, moves wait for whoever's turn it is. Guildmates' games show under Watching as they're played.")
             primary:Hide()
             second:Hide()
             for _, b in ipairs(promoButtons) do b:Hide() end
             return
         end
+        if seeing then return PaintWatch(seeing) end
         PaintGame(selected)
     end
 
@@ -543,7 +607,15 @@ Window.Page("chess", function(page)
     end)
     second:SetScript("OnClick", function()
         local game = Chess.Game(selectedID or "")
-        if not game then return end
+        if not game then
+            local w = Chess.Watched(selectedID)
+            if w then
+                Chess.StopWatching(w)
+                selectedID = nil
+                Paint()
+            end
+            return
+        end
         if game.status == "asked" or game.status == "invited" then
             Chess.Decline(game)
             selectedID = nil
