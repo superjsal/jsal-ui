@@ -72,8 +72,29 @@ local function Status()
     }, ";")
 end
 
+-- Whether version a ("0.3.1") is newer than version b, part by part.
+local function Newer(a, b)
+    local pa, pb = { strsplit(".", a or "") }, { strsplit(".", b or "") }
+    for i = 1, math.max(#pa, #pb) do
+        local x, y = tonumber(pa[i]) or 0, tonumber(pb[i]) or 0
+        if x ~= y then return x > y end
+    end
+    return false
+end
+
+-- Addons can't look online, but guildmates' copies say which version they
+-- run: when one is newer than yours, you hear about it once a session.
+local toldNewer
+local function CheckVersion(version, name)
+    if not version or name == Compat.MyName() or not Newer(version, ns.version) then return end
+    if toldNewer and not Newer(version, toldNewer) then return end
+    toldNewer = version
+    ns.Print(("A newer jsal.ui is out: %s has %s, you have %s. Get it at jsal.io/jsal-ui."):format(name, version, ns.version))
+end
+
 local function Store(payload, name)
     local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved = strsplit(";", payload or "")
+    CheckVersion(version, name)
     members[name] = {
         average = tonumber(average),
         solved = tonumber(solved),
@@ -110,9 +131,7 @@ function Guild.SetWord(word)
     word = strtrim(word or ""):lower()
     if not Compat.IsOfficer() then return false, "Only officers can set the Guild Word." end
     if not (word:match("^%a+$") and #word >= 5 and #word <= 8) then return false, "Five to eight letters, please." end
-    -- The word list has five-letter words only; a longer word is the
-    -- officer's call.
-    if #word == 5 and not ns.DailyWord.IsWord(word) then return false, "That one isn't in the word list." end
+    if not ns.DailyWord.IsWord(word) then return false, "That one isn't in the word list." end
     local id = Compat.ServerTime()
     SaveWord(id, Shift(word, id, 1), Compat.MyName())
     Comms.Send("GW", WordPayload())
