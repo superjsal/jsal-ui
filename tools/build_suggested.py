@@ -62,7 +62,7 @@ def split_code(code):
     changes, then a letter per talent taken, a capital taking it to full
     rank). The ranks come after a short tag and may carry extra flags after
     "_t0" (like "_r95"); the order comes after the last "/"."""
-    m = re.match(r"([a-z]+)([\d-]*)_t\d+(?:_[a-z]\d+)*/(\w+)$", code)
+    m = re.match(r"([a-z]+)([\d-]*)_t\d+(?:_[a-z]\d+)*/(\S+)$", code)
     if not m:
         raise ValueError(f"can't read the code {code!r}")
     return m.group(1), m.group(2), m.group(3)
@@ -89,32 +89,35 @@ def tokens_of(order_part):
     """The order as (tree, letter) pairs."""
     tokens, tree = [], 0
     for c in order_part:
-        if c.isdigit():
+        if c in "012":
             tree = int(c)
         else:
             tokens.append((tree, c))
     return tokens
 
 
+# Wowhead's order characters, from its talent calculator's own code: a
+# talent's place in its tree, counted top to bottom and left to right as in
+# TalentData, one set for a single point and one for "to full rank".
+ONE_POINT = "abcdefghjkmnpqrstvwzxyilou468-~!"
+FULL_RANK = "ABCDEFGHJKMNPQRSTVWZXYILOU579_^."
+
+
 def order_from(tokens, ranks, trees):
-    """Wowhead numbers a tree's talents with a few gaps that TalentData doesn't
-    have, so a letter isn't simply the talent's place. But both run in the
-    same order, top to bottom and left to right, so the letters a build uses,
-    sorted, are the talents it has ranks in, in order. Returns the point order
-    as node IDs, or None if the letters and ranks don't line up."""
+    """The point order as node IDs, each character the talent at that place
+    in its tree, one point or to full rank; None if a character isn't a
+    talent or the order doesn't end on the ranks the code gives."""
     order, taken = [], {}
-    for t, tree in enumerate(trees):
-        letters = sorted({c.lower() for tt, c in tokens if tt == t})
-        ranked = [tal for tal, r in zip(tree["talents"], ranks[t]) if r > 0]
-        if len(letters) != len(ranked):
-            return None
-        tree["_map"] = dict(zip(letters, ranked))
     for t, c in tokens:
-        talent = trees[t]["_map"][c.lower()]
+        full = c in FULL_RANK
+        place = FULL_RANK.find(c) if full else ONE_POINT.find(c)
+        if t >= len(trees) or place < 0 or place >= len(trees[t]["talents"]):
+            return None
+        talent = trees[t]["talents"][place]
         while True:
             order.append(talent["id"])
             taken[talent["id"]] = taken.get(talent["id"], 0) + 1
-            if not c.isupper() or taken[talent["id"]] >= talent["max"]:
+            if not full or taken[talent["id"]] >= talent["max"]:
                 break
     # Every talent ends at the ranks the code gives it.
     for t, tree in enumerate(trees):

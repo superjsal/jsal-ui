@@ -218,12 +218,15 @@ end
 -- class, a fixed tag (Wowhead's own; it may change if Wowhead updates its
 -- calculator), each tree's ranks as digits (trees joined by "-", trailing
 -- zeros dropped), then "_t0", sometimes a flag or two ("_r95"), and after a
--- "/" the order: a tree's number whenever the tree changes, then a letter
--- per point, counted left to right, top to bottom (a capital takes it to
--- full rank). Links made here letter the talents by their place in
--- TalentData.
+-- "/" the order: a tree's number (0 to 2) whenever the tree changes, then a
+-- character per point for the talent's place, counted left to right, top
+-- to bottom as in TalentData. Wowhead's calculator has two sets of
+-- characters, one for a single point and one for "to full rank", taken
+-- from its own code.
 local WOWHEAD = "https://www.wowhead.com/forever/talent-calc/"
 local WOWHEAD_TAG = "vkndmh"
+local ONE_POINT = "abcdefghjkmnpqrstvwzxyilou468-~!"
+local FULL_RANK = "ABCDEFGHJKMNPQRSTVWZXYILOU579_^."
 
 local function Slug(classID)
     local _, token = GetClassInfo(classID)
@@ -248,7 +251,7 @@ function Tree.WowheadLink(build)
                 order[#order + 1] = tostring(p[1] - 1)
                 current = p[1]
             end
-            order[#order + 1] = string.char(96 + p[2])
+            order[#order + 1] = ONE_POINT:sub(p[2], p[2])
         end
     end
     if #order == 0 then return WOWHEAD .. slug end
@@ -284,41 +287,25 @@ local function WowheadRanks(source, digits)
     return ranks
 end
 
--- The order from a link's letters. Wowhead's letters skip a few places that
--- TalentData doesn't have, so a letter isn't simply a talent's place; but
--- both count top to bottom, left to right, so the letters a tree uses,
--- sorted, are the talents the ranks give points to, in order. A capital
--- takes its talent to full rank. Nil if the letters and ranks disagree.
+-- The order from a link's characters: each the talent at that place in its
+-- tree, one point or to full rank. Nil if a character isn't a talent, or
+-- the order doesn't end on the ranks the link gives.
 local function WowheadOrder(source, ranks, letters)
-    local tokens, tree = {}, 1
+    local order, taken, tree = {}, {}, 1
     for c in letters:gmatch(".") do
-        if c:match("%d") then tree = tonumber(c) + 1 else tokens[#tokens + 1] = { tree, c } end
-    end
-    local map = {}
-    for t, data in ipairs(source) do
-        local used, seen = {}, {}
-        for _, token in ipairs(tokens) do
-            local c = token[2]:lower()
-            if token[1] == t and not seen[c] then seen[c] = true; used[#used + 1] = c end
+        if c == "0" or c == "1" or c == "2" then
+            tree = tonumber(c) + 1
+        else
+            local one = ONE_POINT:find(c, 1, true)
+            local full = FULL_RANK:find(c, 1, true)
+            local talent = (one or full) and source[tree] and source[tree].talents[one or full]
+            if not talent then return nil end
+            local id, max = talent[1], talent[4]
+            repeat
+                order[#order + 1] = id
+                taken[id] = (taken[id] or 0) + 1
+            until not full or taken[id] >= max
         end
-        table.sort(used)
-        local ranked = {}
-        for i, talent in ipairs(data.talents) do
-            if ranks[t][i] > 0 then ranked[#ranked + 1] = talent end
-        end
-        if #used ~= #ranked then return nil end
-        map[t] = {}
-        for i, c in ipairs(used) do map[t][c] = ranked[i] end
-    end
-    local order, taken = {}, {}
-    for _, token in ipairs(tokens) do
-        local talent = map[token[1]] and map[token[1]][token[2]:lower()]
-        if not talent then return nil end
-        local id, max = talent[1], talent[4]
-        repeat
-            order[#order + 1] = id
-            taken[id] = (taken[id] or 0) + 1
-        until not token[2]:match("%u") or taken[id] >= max
     end
     for t, data in ipairs(source) do
         for i, talent in ipairs(data.talents) do
@@ -343,7 +330,7 @@ function Tree.FromWowhead(text)
     local source = ns.TalentData[classID]
     local tag, digits, tail = rest:match("^(%a*)([%d%-]*)_t%d+(.*)$")
     if not tag then return nil, "That Wowhead link is damaged." end
-    local letters = tail:match("/(%w+)$")
+    local letters = tail:match("/(%S+)$")
     local readings = { digits }
     if tag == "v" and digits:match("^%d") then readings[2] = digits:sub(2) end
     local order

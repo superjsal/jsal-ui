@@ -77,9 +77,10 @@ name and order the trees. Talents parked far off the 7-by-4 grid are hidden ones
 `data\talents\suggested.json` holds one Wowhead Forever talent calculator link per class, copied
 from Wowhead's Forever leveling guides. `python -I tools\build_suggested.py` turns them into
 `jsalUI\Talents\SuggestedBuilds.lua`, checking every point against `TalentData.lua` with the
-game's rules; a link that doesn't fit Forever's trees stops it. Wowhead's order letters skip a few
-places TalentData doesn't have, so the letters a tree uses, sorted, are matched in order to the
-talents its ranks give points to.
+game's rules; a link that doesn't fit Forever's trees stops it. A link's order is one character
+per point for the talent's place in its tree (in TalentData's order), from two tables in Wowhead's
+calculator code: `abcdefghjkmnpqrstvwzxyilou468-~!` for one point and
+`ABCDEFGHJKMNPQRSTVWZXYILOU579_^.` for "to full rank". Export and Import use the same tables.
 
 ## Trainer spells
 
