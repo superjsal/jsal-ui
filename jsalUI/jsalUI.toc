@@ -76,6 +76,7 @@ Helpers\Vendor.lua
 Helpers\LevelUp.lua
 Helpers\Warnings.lua
 Helpers\MinimapButton.lua
+Helpers\Launcher.lua
 
 # Dashboard pages.
 Home.lua
