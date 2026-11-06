@@ -37,8 +37,10 @@ Games\FlightData.lua
 Games\Flight.lua
 Guild.lua
 
-# Talents: the trees and plan rules, the Build Planner page and the helper.
+# Talents: the trees, ready-made leveling builds, the plan rules, the Build
+# Planner page and the helper.
 Talents\TalentData.lua
+Talents\SuggestedBuilds.lua
 Talents\Tree.lua
 Talents\Share.lua
 Talents\Glow.lua

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "wowhead-warrior-arms", "class": "warrior", "name": "Arms leveling", "spec": "Arms",
+    "source": "Wowhead's Arms Warrior leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/warrior/arms/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/warrior/vkndmh05323213032215201-05500105_t0_r95/0CbbFEHgdKMNpqqrqqqrt1BChhhfhh0dbbb"
+  },
+  {
+    "id": "wowhead-paladin-retribution", "class": "paladin", "name": "Retribution leveling", "spec": "Retribution",
+    "source": "Wowhead's Retribution Paladin leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/paladin/retribution/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/paladin/vkndmh050250002-501-05233011201301351_t0/2BCEhJddmNdRqgSt0BE1Ac0JD"
+  },
+  {
+    "id": "wowhead-hunter-beast-mastery", "class": "hunter", "name": "Beast Mastery leveling", "spec": "Beast Mastery",
+    "source": "Wowhead's Beast Mastery Hunter leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/hunter/beast-mastery/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/hunter/v25320001505101251-0053052001-4_t0_r4/0ACbbbghhhhmhkkkpQkkRs1CFDGk2aaaa"
+  },
+  {
+    "id": "wowhead-priest-shadow", "class": "priest", "name": "Shadow leveling", "spec": "Shadow",
+    "source": "Wowhead's Shadow Priest leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/priest/shadow/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/priest/vkndmh02330500003-3-30542201201312051_t0/0B2CEFahJaaNmdQdddSt0cccDffM1A2p0fff"
+  },
+  {
+    "id": "wowhead-shaman-enhancement", "class": "shaman", "name": "Enhancement leveling", "spec": "Enhancement",
+    "source": "Wowhead's Enhancement Shaman leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/shaman/enhancement/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/shaman/vkndmh05330310201-0520303110212122-053_t0_r2/1BEcchGjpnpmmSRq2BC0BFccgcdddJm"
+  },
+  {
+    "id": "wowhead-mage-frost", "class": "mage", "name": "Frost leveling", "spec": "Frost",
+    "source": "Wowhead's Frost Mage leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/mage/frost/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/mage/vkndmh2032050030003--053500031100331251_t0/2BDcckjcPhhSrQttttvth0ACDFJP"
+  },
+  {
+    "id": "wowhead-warlock-demonology", "class": "warlock", "name": "Demonology leveling", "spec": "Demonology",
+    "source": "Wowhead's Demonology Warlock leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/warlock/demonology/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/warlock/vkndmh25500300131-0015003231201301351_t0/1DHGMJQkpsTcVw0CABFKjm"
+  },
+  {
+    "id": "wowhead-druid-feral", "class": "druid", "name": "Feral leveling", "spec": "Feral",
+    "source": "Wowhead's Feral Druid leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/druid/feral/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/druid/vkndmh050022-53200002123112125011-055_t0/1AbbbCjHKpQnmrSmmTwz2BC0BFE"
+  }
+]
