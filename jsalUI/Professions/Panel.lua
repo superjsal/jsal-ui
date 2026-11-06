@@ -328,6 +328,12 @@ end
 ---------------------------------------------------------------------------
 -- Opening beside the profession window.
 ---------------------------------------------------------------------------
+-- Whether the panel belongs on screen: its window is open and the panel
+-- wasn't closed there.
+local function Wanted()
+    return Panel.running and anchor ~= nil and anchor:IsShown() and dismissed ~= anchor
+end
+
 local function OpenBeside(frame)
     if not Panel.running or dismissed == frame or not frame:IsShown() then return end
     if not panel then Build() end
@@ -357,6 +363,15 @@ local function OpenBeside(frame)
     panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6 + reach, 0)
     panel:Show()
     xpcall(Paint, ns.Report)
+    -- If the profession's details weren't in yet, try once more shortly.
+    if not panel:IsShown() then
+        Compat.After(1, function()
+            if anchor == frame and Wanted() and not panel:IsShown() then
+                panel:Show()
+                xpcall(Paint, ns.Report)
+            end
+        end)
+    end
 end
 
 local function Hook()
@@ -388,15 +403,21 @@ function Panel:OnEnable()
                              "BAG_UPDATE_DELAYED", "ITEM_DATA_LOAD_RESULT", "NEW_RECIPE_LEARNED" }) do
         pcall(events.RegisterEvent, events, event)
     end
-    -- A burst of updates (crafting, item names arriving) repaints once.
+    -- A burst of updates (crafting, item names arriving) repaints once. On
+    -- the first open after a reload the profession's details arrive after
+    -- the window shows, so an update also brings back a panel that hid
+    -- for lack of them, unless it was closed.
     local queued = false
     events:SetScript("OnEvent", function(_, event)
         if event == "ADDON_LOADED" then return Hook() end
-        if not (panel and panel:IsShown()) or queued then return end
+        if not (panel and Wanted()) or queued then return end
         queued = true
         Compat.After(0.3, function()
             queued = false
-            if panel:IsShown() then xpcall(Paint, ns.Report) end
+            if Wanted() then
+                panel:Show()
+                xpcall(Paint, ns.Report)
+            end
         end)
     end)
     self.events = events
