@@ -154,8 +154,13 @@ local function Build()
     panel.fill:SetPoint("TOPLEFT")
     panel.fill:SetPoint("BOTTOMLEFT")
     panel.fill:SetColorTexture(Style.Color("gold"))
+    -- Your gold and what's left after the visit, each a label and an amount.
     panel.have = Style.Text(panel, 11, "muted")
-    panel.spare = Style.Text(panel, 11, "muted")
+    panel.have:SetText("You have")
+    panel.haveAmount = Style.Text(panel, 11, "text")
+    panel.haveAmount:SetJustifyH("RIGHT")
+    panel.spareLabel = Style.Text(panel, 11, "muted")
+    panel.spare = Style.Text(panel, 11, "text")
     panel.spare:SetJustifyH("RIGHT")
 
     panel.rule1 = panel:CreateTexture(nil, "BORDER")
@@ -349,6 +354,8 @@ local function Paint()
         y = y + 22
         panel.track:Hide()
         panel.have:Hide()
+        panel.haveAmount:Hide()
+        panel.spareLabel:Hide()
         panel.spare:Hide()
     else
         panel.empty:Hide()
@@ -363,17 +370,23 @@ local function Paint()
         Place(panel.track, y)
         panel.fill:SetWidth(math.max(1, (WIDTH - PAD * 2) * (nowCost > 0 and math.min(1, money / nowCost) or 1)))
         y = y + 11
-        panel.have:SetText("You have " .. Compat.Money(money))
         Place(panel.have, y)
-        if nowCost == 0 then
-            panel.spare:SetText("")
-        elseif money >= nowCost then
-            panel.spare:SetText(Compat.Money(money - nowCost) .. " to spare")
-        else
-            panel.spare:SetText("|cffe3b04b" .. Compat.Money(nowCost - money) .. " short|r")
-        end
-        PlaceRight(panel.spare, y)
+        panel.haveAmount:SetText(Compat.Money(money))
+        PlaceRight(panel.haveAmount, y)
         y = y + 18
+        if nowCost == 0 then
+            panel.spareLabel:Hide()
+            panel.spare:Hide()
+        else
+            local short = money < nowCost
+            panel.spareLabel:SetText(short and "Short by" or "Left after")
+            panel.spareLabel:SetTextColor(Style.Color(short and "gold" or "muted"))
+            panel.spare:SetText(Compat.Money(math.abs(money - nowCost)))
+            panel.spare:SetTextColor(Style.Color(short and "gold" or "text"))
+            Place(panel.spareLabel, y)
+            PlaceRight(panel.spare, y)
+            y = y + 18
+        end
     end
 
     -- Next.
