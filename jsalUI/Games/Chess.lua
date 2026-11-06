@@ -1,9 +1,11 @@
--- Chess against guildmates who have jsal.ui: challenges, games and the
--- win-loss record. Each game is saved on the character as its moves; the
--- moves go to the opponent by whisper through the addon channel, and only
--- while they're online. When either player comes back, both sides compare
--- how far they've got and send what the other missed, so a move, a
--- resignation or an accepted challenge made while one was away still lands.
+-- Chess against guildmates who have jsal.ui: challenges, games, the
+-- win-loss record, and watching others play. Each game is saved on the
+-- character as its moves. Moves and endings go out on the guild's addon
+-- channel (hidden, never chat), so the opponent and any watcher hear them;
+-- everything else is a whisper to the opponent, only while they're online.
+-- When either player comes back, both sides compare how far they've got and
+-- send what the other missed, so a move, a resignation or an accepted
+-- challenge made while one was away still lands.
 local _, ns = ...
 local Compat, Comms, Rules = ns.Compat, ns.Comms, ns.ChessRules
 
@@ -147,6 +149,20 @@ local function Send(game, kind, payload)
     Comms.Send(kind, game.id .. ";" .. (payload or ""), "WHISPER", game.target or TargetOf(game.opp))
 end
 
+-- Who plays white and black, by name.
+local function Sides(game)
+    local me = Compat.MyName()
+    if game.color == "w" then return me, game.opp end
+    return game.opp, me
+end
+
+-- Moves and endings go to the whole guild's addon channel (never chat), so
+-- the opponent gets them and any guildmate with jsal.ui can watch.
+local function Broadcast(game, kind, payload)
+    local white, black = Sides(game)
+    Comms.Send(kind, table.concat({ game.id, payload, white, black }, ";"), "GUILD")
+end
+
 local listeners = {}
 function Chess.OnChange(fn) listeners[#listeners + 1] = fn end
 local function Changed()
@@ -173,6 +189,10 @@ local function Finish(game, result, how)
     Saved().record[game.opp] = r
     local words = result == "win" and "You beat %s" or result == "loss" and "%s beat you" or "Your game with %s was drawn"
     ns.Print((words .. " by %s."):format(game.opp, HOW[how] or how))
+    -- Watchers hear how it ended: the winner's colour, or "d" for a draw.
+    local other = game.color == "w" and "b" or "w"
+    local winner = result == "win" and game.color or result == "loss" and other or "d"
+    Broadcast(game, "CE", winner .. ";" .. how)
 end
 
 -- After a move: has the board ended the game?
@@ -236,7 +256,7 @@ function Chess.Move(game, uci)
     game.moves[#game.moves + 1] = uci
     game.drawOffer = nil
     Touch(game)
-    Send(game, "CM", #game.moves .. ";" .. uci)
+    Broadcast(game, "CM", #game.moves .. ";" .. uci)
     CheckEnd(game)
     Changed()
     return true
@@ -315,9 +335,11 @@ handlers.CD = function(id, name)
     end
 end
 
-handlers.CM = function(id, name, _, ply, uci)
+local Watch
+
+handlers.CM = function(id, name, sender, ply, uci, white, black)
     local game = Their(id, name)
-    if not game then return end
+    if not game then return Watch(id, name, sender, ply, uci, white, black) end
     -- A move to a game we'd invited them to means they took it up.
     if game.status == "invited" then game.status = "play" end
     if game.status ~= "play" then return end
@@ -382,6 +404,109 @@ handlers.CQ = function(id, name, _, count, flag)
     if game.agreed then Send(game, "CX") end
 end
 
+---------------------------------------------------------------------------
+-- Watching: guildmates' games heard on the guild's addon channel, kept for
+-- this session only. Someone who starts watching part-way through asks one
+-- of the players for the moves so far, which come back in a few whispers.
+---------------------------------------------------------------------------
+local watched, asked, answered = {}, {}, {}
+local WATCH_FOR = 3600     -- a game with no move for an hour drops off
+local ENDED_FOR = 600      -- a finished one stays ten minutes
+local CHUNK = 36           -- moves per catch-up whisper, well inside its limit
+
+local function Watched(id, white, black)
+    if Saved().games[id] or not (white and black) or white == "" or black == "" then return nil end
+    local me = Compat.MyName()
+    if white == me or black == me then return nil end
+    local w = watched[id]
+    if not w then
+        w = { id = id, white = white, black = black, moves = {}, color = "w", watching = true }
+        watched[id] = w
+    end
+    w.seen = GetTime()
+    return w
+end
+
+-- Adds moves from "ply" on, if they follow on from what's here.
+local function AddMoves(w, ply, list)
+    if ply ~= #w.moves + 1 then return false end
+    for _, uci in ipairs(list) do
+        local state = Chess.Position(w)
+        if not Rules.FindMove(state, uci) then return false end
+        w.moves[#w.moves + 1] = uci
+    end
+    return true
+end
+
+Watch = function(id, name, sender, ply, uci, white, black)
+    if name == Compat.MyName() then return end
+    local w = Watched(id, white, black)
+    if not w or w.over then return end
+    ply = tonumber(ply)
+    if not ply or ply <= #w.moves then return end
+    if ply == #w.moves + 1 then
+        AddMoves(w, ply, { uci })
+    elseif (asked[id] or 0) + 10 < GetTime() then
+        -- Joined part-way: ask the player who just moved for the rest.
+        asked[id] = GetTime()
+        Comms.Send("CV", id .. ";" .. #w.moves, "WHISPER", sender)
+    end
+end
+
+handlers.CE = function(id, name, _, winner, how, white, black)
+    if name == Compat.MyName() or Saved().games[id] then return end
+    local w = watched[id] or Watched(id, white, black)
+    if w and not w.over then
+        w.over, w.winner, w.how, w.seen = true, winner, how, GetTime()
+    end
+end
+
+-- A watcher asks a player for the moves after the ones they have.
+handlers.CV = function(id, name, sender, have)
+    local game = Saved().games[id or ""]
+    if not game or game.status == "asked" or game.status == "invited" then return end
+    local key = id .. name
+    if (answered[key] or 0) + 30 > GetTime() then return end
+    answered[key] = GetTime()
+    local white, black = Sides(game)
+    local from = (tonumber(have) or 0) + 1
+    while from <= #game.moves do
+        local last = math.min(#game.moves, from + CHUNK - 1)
+        local list = table.concat(game.moves, " ", from, last)
+        Comms.Send("CW", table.concat({ id, white, black, from, list }, ";"), "WHISPER", sender)
+        from = last + 1
+    end
+end
+
+handlers.CW = function(id, name, _, white, black, from, list)
+    local w = Watched(id, white, black)
+    if not w or (w.white ~= name and w.black ~= name) then return end
+    local moves = {}
+    for uci in (list or ""):gmatch("%S+") do moves[#moves + 1] = uci end
+    AddMoves(w, tonumber(from) or 0, moves)
+end
+
+-- Games being watched, the latest first.
+function Chess.Watching()
+    local list, now = {}, GetTime()
+    for id, w in pairs(watched) do
+        if (w.over and w.seen + ENDED_FOR < now) or w.seen + WATCH_FOR < now then
+            watched[id] = nil
+        elseif #w.moves > 0 and not w.hidden then
+            list[#list + 1] = w
+        end
+    end
+    table.sort(list, function(a, b) return a.seen > b.seen end)
+    return list
+end
+
+function Chess.Watched(id) return watched[id or ""] end
+
+function Chess.StopWatching(w)
+    w.hidden = true
+    Changed()
+end
+
 local lastSync = {}
 local function CatchUp(name)
     if (lastSync[name] or 0) + SYNC_GAP > GetTime() then return end
@@ -406,8 +531,8 @@ ns.Command("chess", function() ns.Window.Open("chess") end)
 function Chess:OnEnable()
     for kind, fn in pairs(handlers) do
         Comms.On(kind, function(payload, name, _, sender)
-            local id, a, b = strsplit(";", payload or "")
-            fn(id, name, sender, a, b)
+            local fields = { strsplit(";", payload or "") }
+            fn(fields[1], name, sender, unpack(fields, 2))
             Changed()
         end)
     end
