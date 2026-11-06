@@ -6,9 +6,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local Games = {}
 ns.Games = Games
 
--- Puzzle #1 is the daily reset of 6 November 2026. The number turns over at
+-- Puzzle #1 is the daily reset of 7 November 2026. The number turns over at
 -- the region's daily reset, so everyone on a region shares each puzzle.
-local FIRST_DAY = 20763
+local FIRST_DAY = 20764
 local DAY = 86400
 
 function Games.Today()

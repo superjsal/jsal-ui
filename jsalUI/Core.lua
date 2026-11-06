@@ -167,6 +167,17 @@ events:SetScript("OnEvent", function(self, event, arg1)
             for _, key in ipairs({ "word", "wordStats", "guildGame", "guildWords" }) do ns.db[key] = nil end
             ns.db.wordsFresh = true
         end
+        -- The daily puzzles count from one day later than they first did,
+        -- with the same word and round each day; today's Daily Word and Icon
+        -- Guess, if saved under the old (one higher) number, move down too,
+        -- so neither can be played twice.
+        if not ns.db.renumbered then
+            for _, key in ipairs({ "word", "icons" }) do
+                local game = ns.db[key]
+                if type(game) == "table" and type(game.day) == "number" then game.day = game.day - 1 end
+            end
+            ns.db.renumbered = true
+        end
         RunAll(onLoad)
         ns.timings.setup = debugprofilestop() - started
         self:UnregisterEvent("ADDON_LOADED")
