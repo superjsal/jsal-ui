@@ -326,9 +326,12 @@ local function Reveal()
     concealed = nil
 end
 
--- The panel's width: 330 beside a window, a little wider standing in for
--- the trainer, where each row also holds Train and Skip.
-local STAND_W = 360
+-- The panel's width: 330 beside a window, and wider standing in for the
+-- trainer, where each row also holds Train and Skip: wide enough for the
+-- longest trainer spell's name (Improved Demoralizing Shout, about 167px)
+-- beside its rank and a price in gold and silver.
+local STAND_W = 452
+local NAME_W = 172
 local inner = WIDTH - PAD * 2
 local function SetWidths(w)
     inner = w - PAD * 2
@@ -628,7 +631,7 @@ local function TrainerRow(spell, y, later)
     r.icon:SetTexture(spell.icon)
     r.name:SetWidth(0)
     r.name:SetText(spell.name)
-    r.name:SetWidth(math.min(r.name:GetStringWidth() + 2, 124))
+    r.name:SetWidth(math.min(r.name:GetStringWidth() + 2, NAME_W))
     r.rank:SetText(spell.rank or "")
     r.price:SetText(PriceText(spell))
     r.price:ClearAllPoints()
