@@ -244,10 +244,16 @@ end
 local function NotePet(source)
     local family = UnitExists("pet") and UnitCreatureFamily("pet")
     if not family then return end
+    -- The pet's spellbook shows each ability once, at the rank it knows.
+    local book = Compat.PetSpellbook()
     local known = {}
     for _, list in ipairs({ source.families[family] or {}, source.families["*"] or {} }) do
         for _, entry in ipairs(list) do
-            if IsSpellKnown(entry[1], true) then known[entry[1]] = true end
+            local name = Compat.SpellInfo(entry[1])
+            local rank = entry[4] > 0 and ("Rank " .. entry[4]) or ""
+            if IsSpellKnown(entry[1], true) or book[entry[1]] or (name and book[name .. "|" .. rank]) then
+                known[entry[1]] = true
+            end
         end
     end
     ns.char.pet = { family = family, name = UnitName("pet"), level = UnitLevel("pet"), known = known }

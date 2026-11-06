@@ -20,8 +20,6 @@ local function SpellOf(index)
     return nil
 end
 
-local KINDS = { header = true, available = true, unavailable = true, used = true }
-
 local function RankOf(spellID)
     local text = spellID and C_Spell and C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(spellID)
     return text and text ~= "" and text or nil
@@ -30,13 +28,9 @@ end
 local function Rows()
     local rows, highest = {}, 0
     for i = 1, GetNumTrainerServices() do
-        -- Older clients give name, rank, kind; newer ones name, kind, icon,
-        -- with the rank only on the spell itself.
-        local name, rank, category = GetTrainerServiceInfo(i)
+        local name, category, rank = Compat.TrainerService(i)
         local spell = SpellOf(i)
-        if KINDS[rank] then
-            category, rank = rank, RankOf(spell)
-        end
+        rank = rank or RankOf(spell)
         if name and category ~= "header" then
             local level = GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(i) or 0
             -- category: "available", "unavailable" (level too low) or "used" (learned).
@@ -102,8 +96,10 @@ local function Record()
     -- the list has changed.
     local before = ns.db.trainers[key]
     local same = type(before) == "table" and type(before.rows) == "table" and #before.rows == #rows and before.highest == highest
+    -- Where the trainer stands, for a map pin: the player is next to them.
+    local map, x, y = Compat.PlayerPosition()
     ns.db.trainers[key] = {
-        class = classID, classFile = classFile, npc = npc, zone = zone,
+        class = classID, classFile = classFile, npc = npc, zone = zone, map = map, x = x, y = y,
         build = (select(2, GetBuildInfo())), seen = Compat.ServerTime(), highest = highest, rows = rows,
     }
     if not same then

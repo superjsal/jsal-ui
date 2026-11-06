@@ -43,11 +43,13 @@ Talents\Planner.lua
 Talents\Helper.lua
 
 # Training: trainer prices (saved whenever a class trainer opens), the
-# spell lists from the game's files, and the Training Planner page.
+# spell lists from the game's files, the Training Planner page, and the
+# panel beside the spellbook and trainers.
 Training\Prices.lua
 Training\SpellData.lua
 Training\Training.lua
 Training\Planner.lua
+Training\Panel.lua
 
 # Everyday helpers.
 Helpers\Quests.lua

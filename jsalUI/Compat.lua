@@ -196,6 +196,60 @@ function Compat.SellPrice(item)
     return select(11, get(item))
 end
 
+-- A trainer row's name and kind ("header", "available", "unavailable" or
+-- "used"). Older clients give name, rank, kind; Forever gives name, kind,
+-- icon, with the rank only on the spell itself.
+local TRAINER_KINDS = { header = true, available = true, unavailable = true, used = true }
+function Compat.TrainerService(index)
+    local name, second, third = GetTrainerServiceInfo(index)
+    if TRAINER_KINDS[second] then return name, second end
+    return name, third, second ~= "" and second or nil
+end
+
+-- What the pet out now knows, from its spellbook: each spell by ID and by
+-- name and rank ("Bite|Rank 3").
+function Compat.PetSpellbook()
+    local known = {}
+    local function Add(id, name, sub)
+        if id then known[id] = true end
+        if name then known[name .. "|" .. (sub or "")] = true end
+    end
+    if C_SpellBook and C_SpellBook.HasPetSpells and C_SpellBook.GetSpellBookItemInfo and Enum and Enum.SpellBookSpellBank then
+        for i = 1, C_SpellBook.HasPetSpells() or 0 do
+            local info = C_SpellBook.GetSpellBookItemInfo(i, Enum.SpellBookSpellBank.Pet)
+            if info then Add(info.spellID or info.actionID, info.name, info.subName) end
+        end
+    elseif HasPetSpells and GetSpellBookItemName then
+        for i = 1, HasPetSpells() or 0 do
+            local name, sub, id = GetSpellBookItemName(i, BOOKTYPE_PET or "pet")
+            Add(id, name, sub)
+        end
+    end
+    return known
+end
+
+-- Where the player stands: the map and the spot on it, from 0 to 1 across.
+function Compat.PlayerPosition()
+    if not (C_Map and C_Map.GetBestMapForUnit) then return nil end
+    local map = C_Map.GetBestMapForUnit("player")
+    local pos = map and C_Map.GetPlayerMapPosition(map, "player")
+    if not pos then return nil end
+    local x, y = pos:GetXY()
+    return map, x, y
+end
+
+-- Puts the game's own map pin on a spot and tracks it. False when the
+-- client has no map pins.
+function Compat.SetWaypoint(map, x, y)
+    if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and C_Map.CanSetUserWaypointOnMap) then return false end
+    if not C_Map.CanSetUserWaypointOnMap(map) then return false end
+    C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(map, x, y))
+    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+    end
+    return true
+end
+
 -- What a vendor sells: how many items, and each one's name and price.
 function Compat.MerchantCount()
     return GetMerchantNumItems and GetMerchantNumItems() or 0
