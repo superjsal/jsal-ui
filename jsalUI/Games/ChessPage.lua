@@ -634,7 +634,12 @@ Window.Page("chess", function(page)
         Paint()
     end)
 
-    page.Refresh = Paint
+    -- Opening the page also says hello to the guild (at most once a minute),
+    -- so guildmates to challenge turn up.
+    page.Refresh = function()
+        if ns.Guild and ns.Guild.Hello then ns.Guild.Hello() end
+        Paint()
+    end
     Chess.OnChange(function()
         if page:IsVisible() then Paint() end
     end)
