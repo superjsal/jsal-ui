@@ -191,6 +191,24 @@ function Professions.IsGathering(line) return line == MINING end
 function Professions.Plan(line, skill, target, known)
     local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
     local steps, totals = {}, {}
+    -- What's in your bags and bank counts as nearly free until the road has
+    -- used it up, so a pile of leather or cloth you already have gets spent
+    -- before anything is made or bought.
+    local stock = setmetatable({}, { __index = function(t, item)
+        local n = Compat.ItemCount(item, true) or 0
+        rawset(t, item, n)
+        return n
+    end })
+    local function Cost(recipe)
+        local w = Weight(line, recipe)
+        for _, reagent in ipairs(recipe.reagents) do
+            local owned = math.min(stock[reagent.item], reagent.count)
+            if owned > 0 and not Data.vendor[reagent.item] then
+                w = w - owned * (ItemWeight(line, reagent.item) - 0.1)
+            end
+        end
+        return w
+    end
     local s = skill
     while s < target do
         local best, bestCost
@@ -202,7 +220,7 @@ function Professions.Plan(line, skill, target, known)
             if mine or ((recipe.how == 1 or recipe.how == 2) and recipe.learn <= s) then
                 local chance = Chance(recipe, s)
                 if chance > 0 then
-                    local cost = Weight(line, recipe) / chance + (mine and 0 or 0.01)
+                    local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
                     if not mine and recipe.how == 2 then cost = cost * 1.5 end
                     if not best or cost < bestCost then best, bestCost = recipe, cost end
                 end
@@ -210,6 +228,9 @@ function Professions.Plan(line, skill, target, known)
         end
         if not best then break end
         local crafts = 1 / Chance(best, s)
+        for _, reagent in ipairs(best.reagents) do
+            stock[reagent.item] = math.max(0, stock[reagent.item] - reagent.count * crafts)
+        end
         local last = steps[#steps]
         if last and last.recipe == best then
             last.to, last.exact = s + 1, last.exact + crafts
