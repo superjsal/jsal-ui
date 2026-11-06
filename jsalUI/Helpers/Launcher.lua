@@ -13,7 +13,7 @@ local Launcher = ns.NewModule("launcher", {
 })
 ns.Launcher = Launcher
 
-local ICONS = "Interface\\Icons\\"
+local OWN = "Interface\\AddOns\\" .. addonName .. "\\Media\\Icons\\"
 local SIZE, GAP, GRIP = 32, 4, 12
 
 -- The places: what each opens, its icon, whether it's there to use, and
@@ -44,22 +44,22 @@ end
 local PLACES = {
     { key = "dashboard", label = "Dashboard", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Logo",
       open = function() ns.Window.Toggle() end },
-    { key = "word", label = "Daily Word", icon = ICONS .. "INV_Misc_Note_01",
+    { key = "word", label = "Daily Word", icon = OWN .. "word",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
       open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),
       waiting = function() return not ns.DailyWord.DailyDone() and ("Puzzle #%d is waiting"):format(ns.Games.Today()) or nil end },
-    { key = "icons", label = "Icon Guess", icon = ICONS .. "INV_Misc_QuestionMark",
+    { key = "icons", label = "Icon Guess", icon = OWN .. "icons",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
-    { key = "chess", label = "Chess", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\icon", zoom = 0.1,
+    { key = "chess", label = "Chess", icon = OWN .. "chess",
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
-    { key = "shop", label = "Shopping list", icon = ICONS .. "INV_Misc_Bag_08",
+    { key = "shop", label = "Shopping list", icon = OWN .. "shop",
       ready = function() return ns.Shopping and ns.Shopping.running end,
       open = function() ns.Shopping.Toggle() end },
-    { key = "build", label = "Build Planner", icon = ICONS .. "Ability_Marksmanship",
+    { key = "build", label = "Build Planner", icon = OWN .. "build",
       open = Page("build") },
 }
 
@@ -186,10 +186,6 @@ local function Button(place)
     b.icon:SetPoint("TOPLEFT", 2, -2)
     b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
     b.icon:SetTexture(place.icon)
-    -- The game's icons lose their baked-in border; the knight, drawn with
-    -- room around it, is cropped a little so it reads as large as the rest.
-    local zoom = place.zoom or (place.icon:find("\\Icons\\", 1, true) and 0.08)
-    if zoom then b.icon:SetTexCoord(zoom, 1 - zoom, zoom, 1 - zoom) end
     b.dot = b:CreateTexture(nil, "OVERLAY")
     b.dot:SetTexture("Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\dot")
     b.dot:SetVertexColor(Style.Color("gold"))

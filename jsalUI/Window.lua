@@ -13,19 +13,21 @@ Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
 -- The side menu, in order, in its groups; Settings sits at the bottom. Each
--- entry has a game icon (or a full path to one of jsal.ui's own). An entry
--- nothing has claimed yet says it's on the way.
+-- entry has one of jsal.ui's own icons (gold on a slate tile, in
+-- Media\Icons), or a game icon by name. An entry nothing has claimed yet
+-- says it's on the way.
 local ICONS = "Interface\\Icons\\"
+local OWN = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local PAGES = {
-    { key = "home", label = "Home", icon = "INV_Misc_Map_01" },
-    { key = "install", label = "Install", icon = "Trade_Engineering" },
-    { key = "build", label = "Build Planner", icon = "Ability_Marksmanship", group = "PLAN" },
-    { key = "training", label = "Training Planner", icon = "INV_Misc_Book_09" },
-    { key = "professions", label = "Professions", icon = "Trade_BlackSmithing" },
-    { key = "games", label = "Games", icon = "INV_Misc_Dice_02", group = "PLAY" },
-    { key = "chess", label = "Chess", icon = "Interface\\AddOns\\jsalUI\\Media\\Chess\\icon" },
-    { key = "guild", label = "Guild", icon = "INV_Shirt_GuildTabard_01" },
-    { key = "settings", label = "Settings", icon = "INV_Misc_Gear_01", bottom = true },
+    { key = "home", label = "Home", icon = OWN .. "home" },
+    { key = "install", label = "Install", icon = OWN .. "install" },
+    { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
+    { key = "training", label = "Training Planner", icon = OWN .. "training" },
+    { key = "professions", label = "Professions", icon = OWN .. "professions" },
+    { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
+    { key = "chess", label = "Chess", icon = OWN .. "chess" },
+    { key = "guild", label = "Guild", icon = OWN .. "guild" },
+    { key = "settings", label = "Settings", icon = OWN .. "settings", bottom = true },
 }
 local byKey = {}
 for _, page in ipairs(PAGES) do byKey[page.key] = page end
@@ -88,13 +90,19 @@ local function MenuButton(menu, page)
     local frameIcon = CreateFrame("Frame", nil, b)
     frameIcon:SetSize(22, 22)
     frameIcon:SetPoint("LEFT", 10, 0)
-    Style.Border(frameIcon, "lineStrong")
     local icon = frameIcon:CreateTexture(nil, "ARTWORK")
-    icon:SetPoint("TOPLEFT", 1, -1)
-    icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    -- jsal.ui's own icons bring their tile and edge; a game icon gets a line
+    -- around it, with its baked-in border trimmed.
     local own = page.icon:find("\\", 1, true) ~= nil
+    if own then
+        icon:SetAllPoints()
+    else
+        Style.Border(frameIcon, "lineStrong")
+        icon:SetPoint("TOPLEFT", 1, -1)
+        icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    end
     icon:SetTexture(own and page.icon or (ICONS .. page.icon))
-    if not own then icon:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
     b.label = Style.Text(b, 13, "muted")
     b.label:SetPoint("LEFT", frameIcon, "RIGHT", 10, 0)
     b.label:SetText(page.label)
