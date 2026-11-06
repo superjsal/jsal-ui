@@ -19,7 +19,9 @@ local TARGETS = {
 
 local panel, anchor, dismissed
 local hooked = {}
-local steps, items = {}, {}
+local steps, items, unlearned = {}, {}, {}
+local MAX_UNLEARNED, showAllUnlearned = 4, false
+local SOURCE = { [1] = "Trainer", [2] = "Vendor pattern", [3] = "Drop", [4] = "Quest" }
 
 local function Line(name)
     if not name then return nil end
@@ -97,6 +99,65 @@ local function Build()
     panel.where:SetWidth(WIDTH - PAD * 2)
     panel.pin = Style.Button(panel, "Show trainer on map", "primary", WIDTH - PAD * 2)
     panel.pin:SetHeight(28)
+
+    -- Recipes not learned yet: a rule, a heading with the count, and a
+    -- "Show all" line under the first few.
+    panel.rule2 = panel:CreateTexture(nil, "BORDER")
+    panel.rule2:SetColorTexture(Style.Color("line"))
+    panel.rule2:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
+    panel.unlearnedHead = Style.Text(panel, 11, "gold", nil, true)
+    panel.unlearnedHead:SetText("NOT LEARNED YET")
+    panel.unlearnedCount = Style.Text(panel, 11, "muted")
+    panel.unlearnedCount:SetJustifyH("RIGHT")
+    panel.showAll = CreateFrame("Button", nil, panel)
+    panel.showAll:SetSize(WIDTH - PAD * 2, 18)
+    panel.showAll.text = Style.Text(panel.showAll, 11, "muted")
+    panel.showAll.text:SetPoint("LEFT")
+end
+
+-- The star beside a recipe: the game's favourite star, gold when on; a
+-- plain dot where this client doesn't have that art.
+local function SetStar(tex, on)
+    local ok = tex.SetAtlas and pcall(tex.SetAtlas, tex, on and "auctionhouse-icon-favorite" or "auctionhouse-icon-favorite-off")
+    if ok and tex.GetAtlas and tex:GetAtlas() then
+        tex:SetVertexColor(1, 1, 1)
+    else
+        tex:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Chess\\dot")
+        tex:SetVertexColor(Style.Color(on and "gold" or "lineStrong"))
+    end
+end
+
+local function UnlearnedRow(i)
+    local r = unlearned[i]
+    if r then return r end
+    r = CreateFrame("Frame", nil, panel)
+    r:SetSize(WIDTH - PAD * 2, ROW_H)
+    r.star = CreateFrame("Button", nil, r)
+    r.star:SetSize(16, 16)
+    r.star:SetPoint("LEFT")
+    r.star.tex = r.star:CreateTexture(nil, "ARTWORK")
+    r.star.tex:SetAllPoints()
+    r.icon = r:CreateTexture(nil, "ARTWORK")
+    r.icon:SetSize(20, 20)
+    r.icon:SetPoint("LEFT", 24, 0)
+    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r.source = Style.Text(r, 11, "muted")
+    r.source:SetPoint("RIGHT")
+    r.source:SetJustifyH("RIGHT")
+    r.name = Style.Text(r, 12, "text")
+    r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+    r.name:SetPoint("RIGHT", r.source, "LEFT", -8, 0)
+    r.name:SetWordWrap(false)
+    r:EnableMouse(true)
+    r:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
+        GameTooltip:AddLine("Click the star to keep it in your favourites.", 0.6, 0.59, 0.53)
+        GameTooltip:Show()
+    end)
+    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    unlearned[i] = r
+    return r
 end
 
 local function Tooltip(frame)
@@ -307,6 +368,70 @@ local function Paint()
         panel.needNote:Hide()
     end
     for i = count + 1, #items do items[i]:Hide() end
+
+    -- Recipes not learned yet, with where each comes from: starred ones
+    -- first, then by the skill they're learned at.
+    local missing = {}
+    local favourites = ns.ProfFavorites
+    local wanted = ns.ProfWindow and ns.ProfWindow.On("unlearned") and favourites and not Professions.IsGathering(line)
+    if wanted then
+        for _, recipe in ipairs(Professions.Recipes(line)) do
+            if not known[recipe.spell] then missing[#missing + 1] = recipe end
+        end
+        table.sort(missing, function(a, b)
+            local fa, fb = favourites.Has(a.spell), favourites.Has(b.spell)
+            if fa ~= fb then return fa end
+            if a.learn ~= b.learn then return a.learn < b.learn end
+            return a.spell < b.spell
+        end)
+    end
+    local listed = 0
+    if #missing > 0 then
+        y = y + 8
+        Place(panel.rule2, y)
+        y = y + 12
+        Place(panel.unlearnedHead, y + 2)
+        panel.unlearnedCount:SetText(#missing)
+        PlaceRight(panel.unlearnedCount, y + 2)
+        y = y + 22
+        local limit = showAllUnlearned and 14 or MAX_UNLEARNED
+        for i, recipe in ipairs(missing) do
+            if i > limit then break end
+            listed = i
+            local r = UnlearnedRow(i)
+            Place(r, y)
+            r.item, r.spell = recipe.item, recipe.spell
+            r.icon:SetTexture(RecipeIcon(recipe))
+            r.name:SetText(RecipeName(recipe))
+            r.source:SetText(("%s · %d"):format(SOURCE[recipe.how] or "Other", recipe.learn))
+            SetStar(r.star.tex, favourites.Has(recipe.spell))
+            r.star:SetScript("OnClick", function()
+                favourites.Toggle(recipe.spell)
+                xpcall(Paint, ns.Report)
+            end)
+            y = y + ROW_H
+        end
+        if #missing > MAX_UNLEARNED then
+            local rest = #missing - listed
+            panel.showAll.text:SetText(showAllUnlearned
+                and (rest > 0 and ("%d more · Show fewer"):format(rest) or "Show fewer")
+                or ("%d more · Show all"):format(rest))
+            panel.showAll:SetScript("OnClick", function()
+                showAllUnlearned = not showAllUnlearned
+                xpcall(Paint, ns.Report)
+            end)
+            Place(panel.showAll, y + 2)
+            y = y + 22
+        else
+            panel.showAll:Hide()
+        end
+    else
+        panel.rule2:Hide()
+        panel.unlearnedHead:Hide()
+        panel.unlearnedCount:Hide()
+        panel.showAll:Hide()
+    end
+    for i = listed + 1, #unlearned do unlearned[i]:Hide() end
 
     -- The nearest trainer who teaches your rank, or the next one once
     -- you're ready for it, with a map pin.

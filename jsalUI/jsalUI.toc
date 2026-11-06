@@ -60,11 +60,14 @@ Training\Planner.lua
 Training\Panel.lua
 
 # Professions: every recipe from the game's files, the road to the next rank,
-# and the panel beside the profession window.
+# the panel beside the profession window, additions to the window itself,
+# and favourite recipes at trainers.
 Professions\ProfessionData.lua
 Professions\Professions.lua
 Professions\Panel.lua
 Professions\Page.lua
+Professions\Window.lua
+Professions\Favorites.lua
 
 # Everyday helpers.
 Helpers\Quests.lua
