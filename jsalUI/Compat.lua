@@ -105,6 +105,25 @@ function Compat.IsOfficer()
     return CanEditOfficerNote and CanEditOfficerNote() and true or false
 end
 
+-- Whether the player leads the guild.
+function Compat.IsGuildMaster()
+    return IsInGuild() and IsGuildLeader and IsGuildLeader() and true or false
+end
+
+-- Whether a guildmate (by name, as messages give it) leads the guild, from
+-- the roster: true, false, or nil when the roster hasn't loaded yet.
+function Compat.IsGuildMasterName(name)
+    local count = GetNumGuildMembers and GetNumGuildMembers() or 0
+    if count == 0 then return nil end
+    for i = 1, count do
+        local full, _, rankIndex = GetGuildRosterInfo(i)
+        if full and rankIndex == 0 then
+            return Ambiguate(full, "none") == name
+        end
+    end
+    return false
+end
+
 function Compat.GuildName()
     return IsInGuild() and GetGuildInfo("player") or nil
 end
