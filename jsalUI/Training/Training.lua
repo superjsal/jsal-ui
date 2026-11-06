@@ -1,7 +1,8 @@
 -- Your class's trainer spells: from the game's files (SpellData.lua) for
--- what each level brings, and from the trainer prices jsal.ui saved for
--- what it costs. Once a trainer's list is saved, only spells that trainer
--- teaches are shown, so anything in the files a trainer doesn't offer drops out.
+-- what each level brings, and from the trainers jsal.ui saved for what it
+-- costs. A class trainer's list also says which spells are really taught:
+-- once one is saved, anything in the files it doesn't offer drops out. A
+-- weapon master's list gives each weapon skill's price and who teaches it.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -16,43 +17,82 @@ local function Rank(spellID)
     return text and text ~= "" and text or nil
 end
 
--- Prices and the list of what trainers teach, from every class trainer saved
--- for this class: by spell, and by name and rank as a fallback.
-local function Prices(classID)
-    local bySpell, byName, listed, seen = {}, {}, {}, false
-    for _, trainer in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
+-- Who a saved trainer is and where, from the record or, for older saves,
+-- from its "Name @ Zone" key.
+local function Where(key, trainer)
+    local npc, zone = trainer.npc, trainer.zone
+    if not npc then npc, zone = key:match("^(.-) @ ([^(]+)") end
+    zone = zone and strtrim(zone) or nil
+    return npc and zone and (npc .. ", " .. zone) or npc or key
+end
+
+-- Sorts the saved trainers for this class into class trainers and weapon
+-- masters, by what their lists teach, and gathers the prices from each.
+local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames)
+    local prices = { bySpell = {}, byName = {}, listed = {}, haveTrainer = false, weapons = {} }
+    for key, trainer in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
         if trainer.class == classID and type(trainer.rows) == "table" then
-            seen = true
+            local teachesClass = false
             for _, row in ipairs(trainer.rows) do
-                if row.spell then
-                    bySpell[row.spell] = row.cost
-                    listed[row.spell] = true
+                if (row.spell and classSpells[row.spell]) or classNames[row.name or ""] then
+                    teachesClass = true
+                    break
                 end
-                byName[(row.name or "") .. "|" .. (row.rank or "")] = row.cost
+            end
+            if teachesClass then
+                prices.haveTrainer = true
+                for _, row in ipairs(trainer.rows) do
+                    if row.spell then
+                        prices.bySpell[row.spell] = row.cost
+                        prices.listed[row.spell] = true
+                    end
+                    prices.byName[(row.name or "") .. "|" .. (row.rank or "")] = row.cost
+                end
+            else
+                for _, row in ipairs(trainer.rows) do
+                    local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
+                    if id then
+                        prices.weapons[id] = { cost = row.cost, where = Where(key, trainer) }
+                    end
+                end
             end
         end
     end
-    return bySpell, byName, listed, seen
+    return prices
 end
 
 -- Everything the page needs: each spell with its level, school, name, rank,
 -- icon, price (nil when no trainer has shown it yet), whether you know it,
--- and whether you've chosen to skip it.
+-- and whether you've chosen to skip it; and each weapon skill with its price
+-- and who teaches it, once a weapon master has been opened.
 function Training.Read()
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID]
     if not source then return nil end
-    local bySpell, byName, listed, haveTrainer = Prices(classID)
+
+    local classSpells, classNames, weaponIDs, weaponNames = {}, {}, {}, {}
+    for _, entry in ipairs(source.spells) do
+        classSpells[entry[1]] = true
+        local name = Compat.SpellInfo(entry[1])
+        if name then classNames[name] = true end
+    end
+    for _, id in ipairs(source.weapons) do
+        weaponIDs[id] = true
+        local name = Compat.SpellInfo(id)
+        if name then weaponNames[name] = id end
+    end
+    local prices = Trainers(classID, classSpells, classNames, weaponIDs, weaponNames)
+
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
-    local data = { classID = classID, schools = source.schools, spells = {}, weapons = {}, haveTrainer = haveTrainer }
+    local data = { classID = classID, schools = source.schools, spells = {}, weapons = {}, haveTrainer = prices.haveTrainer }
     for _, entry in ipairs(source.spells) do
         local id, level, school = entry[1], entry[2], entry[3]
         local name, icon = Compat.SpellInfo(id)
-        if name and (not haveTrainer or listed[id] or IsPlayerSpell(id)) then
+        if name and (not prices.haveTrainer or prices.listed[id] or IsPlayerSpell(id)) then
             local rank = Rank(id)
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
-                cost = bySpell[id] or byName[name .. "|" .. (rank or "")],
+                cost = prices.bySpell[id] or prices.byName[name .. "|" .. (rank or "")],
                 known = IsPlayerSpell(id), skipped = skips[id] == true,
             }
         end
@@ -60,7 +100,11 @@ function Training.Read()
     for _, id in ipairs(source.weapons) do
         local name, icon = Compat.SpellInfo(id)
         if name then
-            data.weapons[#data.weapons + 1] = { id = id, name = name, icon = icon, known = IsPlayerSpell(id) }
+            local taught = prices.weapons[id]
+            data.weapons[#data.weapons + 1] = {
+                id = id, name = name, icon = icon, known = IsPlayerSpell(id),
+                cost = taught and taught.cost, where = taught and taught.where,
+            }
         end
     end
     return data
