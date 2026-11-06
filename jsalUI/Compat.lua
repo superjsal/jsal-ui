@@ -93,6 +93,19 @@ function Compat.MyName()
     return Ambiguate(whole, "none")
 end
 
+-- Whether the player is one of the guild's officers.
+function Compat.IsOfficer()
+    if not IsInGuild() then return false end
+    local info = C_GuildInfo
+    if info and info.IsGuildOfficer then return info.IsGuildOfficer() and true or false end
+    if info and info.CanEditOfficerNote then return info.CanEditOfficerNote() and true or false end
+    return CanEditOfficerNote and CanEditOfficerNote() and true or false
+end
+
+function Compat.GuildName()
+    return IsInGuild() and GetGuildInfo("player") or nil
+end
+
 function Compat.OnTaxi()
     return UnitOnTaxi("player") and true or false
 end

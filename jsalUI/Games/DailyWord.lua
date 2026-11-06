@@ -116,6 +116,13 @@ end
 
 local function Finish(game, won)
     game.finished, game.won = true, won
+    -- A Guild Word game tells the guild its score; only Daily Word games
+    -- count toward your record and streak.
+    if game.guild then
+        if ns.Guild and ns.Guild.WordResult then ns.Guild.WordResult(game.guild, won and #game.guesses or "X") end
+        ns.Window.Refresh()
+        return
+    end
     local s = Stats()
     s.played = s.played + 1
     if won then
@@ -136,16 +143,34 @@ end
 -- the yellow star, and a cross for a miss.
 local MARKS = { right = "{rt4}", near = "{rt1}", miss = "{rt7}" }
 
-local function ShareLine(game)
-    local answer = Answer(game.day)
+local function ShareLine(game, answer, title)
     local rows = {}
     for i, guess in ipairs(game.guesses) do
         local scored, row = Score(guess, answer), {}
         for c = 1, LENGTH do row[c] = MARKS[scored[c]] end
         rows[i] = table.concat(row)
     end
-    return ("Daily Word #%d %s/6 %s"):format(game.day, game.won and #game.guesses or "X", table.concat(rows, " "))
+    return ("%s %s/6 %s"):format(title, game.won and #game.guesses or "X", table.concat(rows, " "))
 end
+
+-- The window plays either today's Daily Word or the guild's Guild Word: the
+-- game in play, its answer, and its title.
+local guildWord   -- { id, answer, setter } while a Guild Word is open
+
+local function Current()
+    if guildWord then
+        local game = ns.char.guildGame
+        if type(game) ~= "table" or game.guild ~= guildWord.id then
+            game = { guild = guildWord.id, guesses = {} }
+            ns.char.guildGame = game
+        end
+        return game, guildWord.answer, "Guild Word · set by " .. guildWord.setter
+    end
+    local game = Game()
+    return game, Answer(game.day), "Daily Word #" .. game.day
+end
+
+DailyWord.IsWord = function(word) return IsWord(word) end
 
 -- The window.
 local TILE, GAP, KEY_W, KEY_H, WIDE_KEY = 48, 6, 30, 38, 48
@@ -184,9 +209,8 @@ local function PaintCell(cell, letter, tone, typed, tones)
 end
 
 local function Paint()
-    local game = Game()
-    frame.title:SetText("Daily Word #" .. game.day)
-    local answer = Answer(game.day)
+    local game, answer, title = Current()
+    frame.title:SetText(title)
     local keyTone = {}
     for row = 1, TRIES do
         local guess = game.guesses[row]
@@ -209,11 +233,12 @@ local function Paint()
     keyboard:SetShown(not game.finished)
     result:SetShown(game.finished)
     if game.finished then
-        recordText:SetText(DailyWord.Record())
+        recordText:SetText(game.guild and "Your score is on the Guild tab, next to your guildmates'." or DailyWord.Record())
+        local after = game.guild and "" or " A new word comes with the daily reset."
         if game.won then
-            message:SetText(("Solved in %d. A new word comes with the daily reset."):format(#game.guesses))
+            message:SetText(("Solved in %d.%s"):format(#game.guesses, game.guild and "" or after))
         else
-            message:SetText(("The word was %s. A new one comes with the daily reset."):format(answer:upper()))
+            message:SetText(("The word was %s.%s"):format(answer:upper(), after))
         end
     else
         message:SetText(notice or "Type a word and press Enter.")
@@ -226,7 +251,7 @@ local function Say(text)
 end
 
 local function Submit()
-    local game = Game()
+    local game, answer = Current()
     if game.finished then return end
     if #current < LENGTH then return Say("Five letters, please.") end
     if not IsWord(current) then return Say("That one isn't in the word list.") end
@@ -234,7 +259,7 @@ local function Submit()
     game.guesses[#game.guesses + 1] = guess
     current, notice = "", nil
     input:SetText("")
-    if guess == Answer(game.day) then
+    if guess == answer then
         Finish(game, true)
     elseif #game.guesses >= TRIES then
         Finish(game, false)
@@ -255,7 +280,7 @@ local function Cell(parent, width, height, size)
 end
 
 local function TypeKey(letter)
-    if Game().finished then return end
+    if (Current()).finished then return end
     input:SetText(input:GetText() .. letter)
     input:SetFocus()
 end
@@ -327,7 +352,7 @@ local function Build()
     shareButton:SetPoint("TOPRIGHT", result, "TOP", -4, -32)
     shareButton:SetScript("OnClick", function()
         if not IsInGuild() then return Say("Join a guild to share.") end
-        Compat.SendChat(ShareLine(Game()), "GUILD")
+        Compat.SendChat(ShareLine(Current()), "GUILD")
         shareButton:SetEnabled(false)
     end)
     local icons = Style.Button(result, "Play Icon Guess", "plain", 150)
@@ -353,7 +378,7 @@ local function Build()
             self:SetText(clean)
             return
         end
-        if Game().finished then return end
+        if (Current()).finished then return end
         current, notice = clean, nil
         Paint()
     end)
@@ -365,7 +390,7 @@ local function Build()
     frame:SetScript("OnMouseDown", function() input:SetFocus() end)
 end
 
-function DailyWord.Open()
+local function Show(word)
     if not DailyWord.running then
         return ns.Print("Daily Word is turned off. /jsal settings turns it on.")
     end
@@ -373,11 +398,25 @@ function DailyWord.Open()
         return ns.Print("Daily Word opens once combat ends.")
     end
     if not frame then Build() end
+    guildWord = word
     current, notice = "", nil
     input:SetText("")
     shareButton:SetEnabled(true)
     Paint()
     frame:Show()
+end
+
+function DailyWord.Open() Show(nil) end
+
+-- word: { id = the word's ID, answer = the word, setter = who set it }.
+function DailyWord.OpenGuild(word) Show(word) end
+
+-- Whether this character has finished a given Guild Word, and its score.
+function DailyWord.GuildResult(id)
+    local game = ns.char.guildGame
+    if type(game) == "table" and game.guild == id and game.finished then
+        return game.won and tostring(#game.guesses) or "X"
+    end
 end
 
 function DailyWord:OnEnable()

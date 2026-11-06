@@ -5,6 +5,7 @@
 ## Version: 0.2.0
 ## Category: User Interface
 ## X-Website: https://jsal.io
+## IconTexture: Interface\AddOns\jsalUI\Media\Logo
 ## OptionalDeps: EllesmereUI
 ## SavedVariables: jsalUIDB
 ## SavedVariablesPerCharacter: jsalUICharDB
