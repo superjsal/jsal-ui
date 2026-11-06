@@ -217,10 +217,11 @@ local function Paint()
     local level = UnitLevel("player")
     local money = GetMoney()
 
-    -- Which spells belong beside this window: everything beside the
-    -- spellbook; at a trainer, only what that trainer teaches.
+    -- Which spells belong beside this window: your own spells beside the
+    -- spellbook (a pet's or demon's abilities have their own trainers); at a
+    -- trainer, only what that trainer teaches.
     local function Belongs(spell)
-        if context == "book" then return true end
+        if context == "book" then return spell.source == nil end
         if context == "pet" then return spell.source == "pet" end
         if context == "class" then return spell.source == nil and spell.via == nil end
         return false
@@ -256,9 +257,9 @@ local function Paint()
             end
         end
     end
-    -- A hunter's pet abilities ready to teach, in training points; at Beast
-    -- Training, the ones waiting on the pet's next level too.
-    if context == "book" or context == "beast" then
+    -- At Beast Training: a hunter's pet abilities ready to teach, in
+    -- training points, and the ones waiting on the pet's next level.
+    if context == "beast" then
         local pet = Training.Pet()
         local function Entry(row)
             return {
@@ -270,7 +271,7 @@ local function Paint()
         for _, row in ipairs(pet and pet.rows or {}) do
             if row.state == "ready" and not row.skipped then now[#now + 1] = Entry(row) end
         end
-        if context == "beast" and pet and not pet.none then
+        if pet and not pet.none then
             nowHead = ("READY NOW · %s, LEVEL %d"):format((pet.name or "PET"):upper(), pet.level or 0)
             nextHead = "NEXT · PET LEVEL %d"
             for _, row in ipairs(pet.rows) do
