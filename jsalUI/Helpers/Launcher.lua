@@ -52,7 +52,7 @@ local PLACES = {
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
-    { key = "chess", label = "Chess", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\icon",
+    { key = "chess", label = "Chess", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\icon", zoom = 0.1,
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
@@ -186,7 +186,10 @@ local function Button(place)
     b.icon:SetPoint("TOPLEFT", 2, -2)
     b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
     b.icon:SetTexture(place.icon)
-    if place.icon:find("\\Icons\\", 1, true) then b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
+    -- The game's icons lose their baked-in border; the knight, drawn with
+    -- room around it, is cropped a little so it reads as large as the rest.
+    local zoom = place.zoom or (place.icon:find("\\Icons\\", 1, true) and 0.08)
+    if zoom then b.icon:SetTexCoord(zoom, 1 - zoom, zoom, 1 - zoom) end
     b.dot = b:CreateTexture(nil, "OVERLAY")
     b.dot:SetTexture("Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\dot")
     b.dot:SetVertexColor(Style.Color("gold"))
