@@ -14,7 +14,8 @@ Made for casual players: every part is small, on by default, and has one switch.
 | Guild tab | Guildmates who run jsal.ui, their version and today's scores, and the Guild Word the guild master sets. |
 | Build Planner | Any class's three Forever trees in the dashboard, with a ready-made leveling build for each class (Rogue to come) from Wowhead's Forever leveling guides, to follow or copy. A build shows level by level, with what's taken and what's next; Learn next points spends waiting points in its order; Edit opens the trees. Builds are saved for the whole account and shared as Wowhead talent calculator links or short codes. |
 | Training Planner | Your next trainer visit and its cost, your road to 60, and every spell: ready now, coming soon, later, skipped, plus weapon skills. Spells come from the game's files; prices from class trainers you've opened. A panel beside the spellbook and trainers shows what's ready, with the nearest trainer and a map pin. |
-| Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. |
+| Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. In the game's profession window: where each recipe turns yellow, green and grey, reagents in bags and bank, a timer while you craft several, recipes you haven't learned (star the ones you want, and a profession trainer offers them), and a heads-up when you can train the next rank. |
+| Shopping list | What you mean to craft and other items you want, and what's left to buy once your bags and bank are counted, with vendor prices and auction prices from your own searches. A vendor who sells something on it offers to buy it for you. |
 | Minimap button | Opens the dashboard; sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
 | Quests on autopilot | Accepts and turns in quests. Hold Shift to do it yourself; reward choices stay yours. |
@@ -37,6 +38,7 @@ Made for casual players: every part is small, on by default, and has one switch.
 | `/jsal word` | Today's Daily Word |
 | `/jsal icons` | Today's Icon Guess round |
 | `/jsal chess` | Your chess games |
+| `/jsal shop` | Opens or closes the shopping list |
 | `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
 | `/jsal version` | Prints the version |
 | `/jsal perf` | How long jsal.ui took to load |

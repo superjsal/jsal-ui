@@ -184,12 +184,16 @@ local function Step(i)
     s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     s.name = Style.Text(s, 12, "text")
     s.name:SetPoint("BOTTOMLEFT", s.icon, "RIGHT", 10, 1)
-    s.name:SetWidth(WIDTH - PAD * 2 - 102)
+    s.name:SetWidth(WIDTH - PAD * 2 - 128)
     s.name:SetWordWrap(false)
     s.detail = Style.Text(s, 11, "muted")
     s.detail:SetPoint("TOPLEFT", s.name, "BOTTOMLEFT", 0, -2)
-    s.detail:SetWidth(WIDTH - PAD * 2 - 102)
+    s.detail:SetWidth(WIDTH - PAD * 2 - 128)
     s.detail:SetWordWrap(false)
+    -- A + puts the step's crafts on the shopping list.
+    s.add = Style.Button(s, "+", "plain", 20)
+    s.add:SetHeight(20)
+    s.add:SetPoint("RIGHT")
     Tooltip(s)
     steps[i] = s
     return s
@@ -288,6 +292,9 @@ local function Paint()
         local s = Step(i)
         Place(s, y)
         s.item, s.spell = step.recipe.item, step.recipe.spell
+        local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
+        s.add:SetShown(shop and true or false)
+        s.add:SetScript("OnClick", function() ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end)
         s.levels:SetText(("%d → %d"):format(step.from, step.to))
         s.icon:SetTexture(RecipeIcon(step.recipe))
         s.name:SetText(("%s ×%d"):format(RecipeName(step.recipe), step.crafts))
@@ -327,6 +334,25 @@ local function Paint()
         y = y + panel.note:GetStringHeight() + 8
     else
         panel.note:Hide()
+    end
+
+    -- The whole road onto the shopping list at once.
+    local crafting = {}
+    for _, step in ipairs(road) do
+        if not step.recipe.vein then crafting[#crafting + 1] = step end
+    end
+    if ns.Shopping and ns.Shopping.running and #crafting > 0 then
+        if not panel.addRoad then
+            panel.addRoad = Style.Button(panel, "Add the whole road to my shopping list", "plain", WIDTH - PAD * 2)
+            panel.addRoad:SetHeight(24)
+        end
+        panel.addRoad:SetScript("OnClick", function()
+            for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
+        end)
+        Place(panel.addRoad, y + 4)
+        y = y + 32
+    elseif panel.addRoad then
+        panel.addRoad:Hide()
     end
 
     -- Everything the road needs, the biggest shortfall first.

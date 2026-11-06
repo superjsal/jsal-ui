@@ -61,13 +61,14 @@ Training\Panel.lua
 
 # Professions: every recipe from the game's files, the road to the next rank,
 # the panel beside the profession window, additions to the window itself,
-# and favourite recipes at trainers.
+# favourite recipes at trainers, and the shopping list.
 Professions\ProfessionData.lua
 Professions\Professions.lua
 Professions\Panel.lua
 Professions\Page.lua
 Professions\Window.lua
 Professions\Favorites.lua
+Professions\Shopping.lua
 
 # Everyday helpers.
 Helpers\Quests.lua
