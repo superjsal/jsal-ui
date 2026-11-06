@@ -122,6 +122,15 @@ events:SetScript("OnEvent", function(self, event, arg1)
         jsalUIDB = Fill(type(jsalUIDB) == "table" and jsalUIDB or {}, DEFAULTS)
         jsalUICharDB = Fill(type(jsalUICharDB) == "table" and jsalUICharDB or {}, CHAR_DEFAULTS)
         ns.db, ns.char = jsalUIDB, jsalUICharDB
+        -- The daily games used to be saved per character. A character's
+        -- saved games move to the account once, and only where the
+        -- account has none yet.
+        for _, key in ipairs({ "word", "wordStats", "icons", "iconBest", "guildGame" }) do
+            if ns.char[key] ~= nil then
+                if ns.db[key] == nil then ns.db[key] = ns.char[key] end
+                ns.char[key] = nil
+            end
+        end
         RunAll(onLoad)
         self:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_LOGIN" then

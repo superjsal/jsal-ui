@@ -73,26 +73,26 @@ local function DailyRound()
     return NewRound(Games.Random(Games.Today() * 7919 + 101))
 end
 
--- Today's daily round, saved per character, so closing the window midway
--- picks up where it stopped.
+-- Today's daily round, saved for the whole account, so closing the window
+-- midway picks up where it stopped, and an alt can't replay it.
 local function Daily()
     local today = Games.Today()
-    local state = ns.char.icons
+    local state = ns.db.icons
     if type(state) ~= "table" or state.day ~= today then
         state = { day = today, index = 1, score = 0, marks = {} }
-        ns.char.icons = state
+        ns.db.icons = state
     end
     return state
 end
 
 function IconGuess.DailyDone()
-    local state = ns.char.icons
+    local state = ns.db.icons
     return type(state) == "table" and state.day == Games.Today() and state.done or false
 end
 
 function IconGuess.Result()
     if not IconGuess.DailyDone() then return nil end
-    return ns.char.icons.day, tostring(ns.char.icons.score)
+    return ns.db.icons.day, tostring(ns.db.icons.score)
 end
 
 function IconGuess.Status()
@@ -104,7 +104,7 @@ function IconGuess.Status()
 end
 
 function IconGuess.Record()
-    local best = ns.char.iconBest
+    local best = ns.db.iconBest
     if not best then return "Icon Guess: no practice rounds yet." end
     return ("Icon Guess: best practice round %d of %d."):format(best, ROUND)
 end
@@ -170,7 +170,7 @@ local function Finish()
         if ns.Guild then ns.Guild.Announce() end
         if ns.Flight then ns.Flight.Refresh() end
     else
-        ns.char.iconBest = math.max(ns.char.iconBest or 0, score)
+        ns.db.iconBest = math.max(ns.db.iconBest or 0, score)
     end
     ns.Window.Refresh()
 end
