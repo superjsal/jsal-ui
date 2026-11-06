@@ -185,17 +185,34 @@ function Training.Read()
     return data
 end
 
--- Demon abilities are the demon's, not yours, so the game only says what the
--- demon out right now knows. Each time one is summoned, what it knows is
--- noted for this character.
+-- A hunter's pet as last seen: its family, level and the abilities it knows.
+local function NotePet(source)
+    local family = UnitExists("pet") and UnitCreatureFamily("pet")
+    if not family then return end
+    local known = {}
+    for _, list in ipairs({ source.families[family] or {}, source.families["*"] or {} }) do
+        for _, entry in ipairs(list) do
+            if IsSpellKnown(entry[1], true) then known[entry[1]] = true end
+        end
+    end
+    ns.char.pet = { family = family, name = UnitName("pet"), level = UnitLevel("pet"), known = known }
+end
+
+-- Pet abilities are the pet's, not yours, so the game only says what the pet
+-- out right now knows. Each time one is out, what it knows is noted for this
+-- character: every demon's abilities for a warlock, the pet itself for a hunter.
 local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PET_BAR_UPDATE")
 watcher:RegisterEvent("UNIT_PET")
+watcher:RegisterEvent("UNIT_LEVEL")
 watcher:SetScript("OnEvent", function(_, event, unit)
     if event == "UNIT_PET" and unit ~= "player" then return end
+    if event == "UNIT_LEVEL" and unit ~= "pet" then return end
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData and ns.SpellData[classID]
-    if not (source and source.demons and ns.char) then return end
+    if not (source and ns.char) then return end
+    if source.families then NotePet(source) end
+    if not source.demons then return end
     ns.char.petKnown = type(ns.char.petKnown) == "table" and ns.char.petKnown or {}
     for _, demon in ipairs(source.demons) do
         for _, entry in ipairs(demon.spells) do
@@ -203,6 +220,90 @@ watcher:SetScript("OnEvent", function(_, event, unit)
         end
     end
 end)
+
+-- What a hunter's pet can learn, one row per ability: the next rank to teach
+-- and where it stands. Ready (in Beast Training, the pet is high enough),
+-- waiting on the pet's level, still to be tamed, or all ranks known. Nil for
+-- other classes, or before a pet has been seen.
+function Training.Pet()
+    local _, _, classID = UnitClass("player")
+    local source = ns.SpellData[classID]
+    if not (source and source.families) then return nil end
+    NotePet(source)
+    local pet = type(ns.char.pet) == "table" and ns.char.pet or nil
+    if not pet then return { none = true } end
+    local here = UnitExists("pet") and UnitCreatureFamily("pet") == pet.family
+    local beast = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
+    local listed = beast and beast.rows or {}
+    local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
+    local free
+    if here and GetPetTrainingPoints then
+        local total, spent = GetPetTrainingPoints()
+        free = total and (total - (spent or 0)) or nil
+    end
+
+    -- Each ability's ranks, lowest first.
+    local abilities, order = {}, {}
+    for _, list in ipairs({ source.families[pet.family] or {}, source.families["*"] or {} }) do
+        for _, entry in ipairs(list) do
+            local name, icon = Compat.SpellInfo(entry[1])
+            if name then
+                if not abilities[name] then
+                    abilities[name] = { name = name, icon = icon, ranks = {} }
+                    order[#order + 1] = name
+                end
+                local ranks = abilities[name].ranks
+                ranks[#ranks + 1] = { pet = entry[1], beast = entry[2], level = entry[3], rank = entry[4] }
+            end
+        end
+    end
+
+    local rows = {}
+    for _, name in ipairs(order) do
+        local a = abilities[name]
+        table.sort(a.ranks, function(x, y) return x.level < y.level end)
+        local knownAt = 0
+        for i, r in ipairs(a.ranks) do
+            if pet.known[r.pet] then knownAt = i end
+        end
+        -- The best rank to teach now, else the next one up.
+        local row = { name = name, icon = a.icon }
+        for i = #a.ranks, knownAt + 1, -1 do
+            local r = a.ranks[i]
+            local entry = listed[name .. "|" .. (r.rank > 0 and ("Rank " .. r.rank) or "")]
+            local have = entry or IsPlayerSpell(r.beast)
+            if have and (pet.level or 0) >= r.level then
+                row.state, row.spell, row.points = "ready", r, entry and entry.points
+                break
+            end
+        end
+        if not row.state then
+            local r = a.ranks[knownAt + 1]
+            if not r then
+                row.state, row.spell = "known", a.ranks[#a.ranks]
+            else
+                local entry = listed[name .. "|" .. (r.rank > 0 and ("Rank " .. r.rank) or "")]
+                row.spell, row.points = r, entry and entry.points
+                if entry or IsPlayerSpell(r.beast) then
+                    row.state = "level"
+                else
+                    row.state = beast and "tame" or "unchecked"
+                end
+            end
+        end
+        row.skipped = skips[row.spell.pet] == true
+        rows[#rows + 1] = row
+    end
+    -- Ready first, then by the level each needs, the known ones last.
+    local rank = { ready = 1, level = 2, tame = 2, unchecked = 2, known = 3 }
+    table.sort(rows, function(x, y)
+        if rank[x.state] ~= rank[y.state] then return rank[x.state] < rank[y.state] end
+        if x.spell.level ~= y.spell.level then return x.spell.level < y.spell.level end
+        return x.name < y.name
+    end)
+    return { family = pet.family, name = pet.name, level = pet.level, here = here, free = free,
+             seenBeast = beast ~= nil, rows = rows }
+end
 
 function Training.Skip(spellID, on)
     ns.char.trainingSkips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}

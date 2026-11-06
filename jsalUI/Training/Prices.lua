@@ -94,12 +94,36 @@ local function RecordGrimoires()
     ns.Print(("Saved %d Grimoires and prices from %s in %s."):format(#books, npc, zone))
 end
 
+-- A hunter's Beast Training window lists the pet abilities the hunter can
+-- teach, each with the pet level it needs and its cost in training points.
+-- What's listed is saved for this character; anything not listed is still
+-- to be learned by taming a beast that has it.
+local function RecordBeastTraining()
+    local _, classFile = UnitClass("player")
+    if classFile ~= "HUNTER" or not (GetNumCrafts and GetCraftInfo) then return end
+    local beastTraining = Compat.SpellInfo(5149)
+    if GetCraftDisplaySkillLine and GetCraftDisplaySkillLine() ~= beastTraining then return end
+    local rows = {}
+    for i = 1, GetNumCrafts() do
+        local name, rank, kind, _, _, points, level = GetCraftInfo(i)
+        if name and kind ~= "header" then
+            rows[name .. "|" .. (rank or "")] = { points = points, level = level }
+        end
+    end
+    if not next(rows) then return end
+    ns.char.beastTraining = { seen = Compat.ServerTime(), rows = rows }
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("TRAINER_SHOW")
 events:RegisterEvent("MERCHANT_SHOW")
+-- Not every client has the Beast Training window, and registering an event
+-- the client doesn't know is an error.
+pcall(events.RegisterEvent, events, "CRAFT_SHOW")
+local RECORD = { TRAINER_SHOW = Record, MERCHANT_SHOW = RecordGrimoires, CRAFT_SHOW = RecordBeastTraining }
 events:SetScript("OnEvent", function(_, event)
     -- The list fills in a moment after the window opens.
     Compat.After(0.3, function()
-        xpcall(event == "MERCHANT_SHOW" and RecordGrimoires or Record, ns.Report)
+        xpcall(RECORD[event], ns.Report)
     end)
 end)

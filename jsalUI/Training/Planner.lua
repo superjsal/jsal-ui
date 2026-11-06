@@ -1,7 +1,7 @@
 -- The Training Planner page. On the left, what you can train now: a card for
 -- each spell with its price and a Skip button, and the visit's total against
 -- your gold. On the right, the road to 60: a stop for each trainer visit to
--- come, its spells and its cost, then the weapon skills.
+-- come, its spells and its cost, then a hunter's pet and the weapon skills.
 local _, ns = ...
 local Style, Compat, Window, Training = ns.Style, ns.Compat, ns.Window, ns.Training
 
@@ -9,6 +9,7 @@ local CART_W, GAP = 300, 20
 local CARD_H, CARD_GAP = 58, 8
 local CHIP_H, CHIP_GAP = 32, 6   -- a road spell's icon, square
 local LEVEL_W, NODE_W, COST_W = 34, 16, 64
+local STATE_W = 84   -- the right-hand column of a weapon or pet row ("Pet level 30")
 
 -- Spells at an odd level are trained on the next even one, so each stop is
 -- level 1 or an even level.
@@ -256,7 +257,7 @@ Window.Page("training", function(page)
         r.state:SetPoint("RIGHT", -4, 0)
         r.state:SetJustifyH("RIGHT")
         r.where = Style.Text(r, 11, "muted")
-        r.where:SetPoint("RIGHT", -COST_W - 12, 0)
+        r.where:SetPoint("RIGHT", -STATE_W - 12, 0)
         r.where:SetJustifyH("RIGHT")
         r:EnableMouse(true)
         Tooltip(r)
@@ -320,6 +321,19 @@ Window.Page("training", function(page)
             end
         end
 
+        -- A hunter's pet abilities ready to teach join the list; they cost
+        -- training points, not gold, so they stay out of the visit's total.
+        local pet = Training.Pet()
+        for _, row in ipairs(pet and pet.rows or {}) do
+            if row.state == "ready" then
+                now[#now + 1] = {
+                    id = row.spell.pet, name = row.name, icon = row.icon, level = row.spell.level,
+                    rank = row.spell.rank > 0 and ("Rank " .. row.spell.rank) or nil,
+                    skipped = row.skipped, source = "beast", group = "Your pet", points = row.points,
+                }
+            end
+        end
+
         -- Ready now.
         local count = 0
         for _, spell in ipairs(now) do if not spell.skipped then count = count + 1 end end
@@ -334,7 +348,11 @@ Window.Page("training", function(page)
             if spell.source == "demon" then detail = spell.group .. " · Grimoire · " .. detail
             elseif spell.group then detail = spell.group .. " · " .. detail end
             c.sub:SetText(spell.skipped and "Skipped" or detail)
-            c.cost:SetText(Price(spell) or "|cff9a9688?|r")
+            if spell.source == "beast" then
+                c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
+            else
+                c.cost:SetText(Price(spell) or "|cff9a9688?|r")
+            end
             c.skip:SetLabel(spell.skipped and "Unskip" or "Skip")
             c.skip:SetScript("OnClick", function()
                 Training.Skip(spell.id, not spell.skipped)
@@ -403,6 +421,68 @@ Window.Page("training", function(page)
             y = y + 34
         end
 
+        -- A hunter's pet: each ability's next rank and what it's waiting on.
+        if pet then
+            y = y + 12
+            local petHead = Take("heads", MakeHead)
+            petHead:ClearAllPoints()
+            petHead:SetPoint("TOPLEFT", 0, -y)
+            petHead.title:SetText("YOUR PET")
+            y = y + 28
+            if pet.none then
+                petHead.note:SetText("")
+                local r = Take("weapons", MakeWeapon)
+                r:ClearAllPoints()
+                r:SetPoint("TOPLEFT", 0, -y)
+                r.spellID, r.hint = nil, nil
+                r.icon:SetTexture(select(2, Compat.SpellInfo(883)))
+                r.name:SetText("Call your pet to see what it can learn")
+                r.where:SetText("")
+                r.state:SetText("")
+                r:SetAlpha(1)
+                y = y + 26
+            else
+                local note = ("%s · %s · level %d"):format(pet.name or "Pet", pet.family, pet.level or 0)
+                if pet.free then note = note .. (" · %d training points free"):format(pet.free) end
+                petHead.note:SetText(note)
+                for _, row in ipairs(pet.rows) do
+                    local r = Take("weapons", MakeWeapon)
+                    r:ClearAllPoints()
+                    r:SetPoint("TOPLEFT", 0, -y)
+                    local rank = row.spell.rank > 0 and ("Rank " .. row.spell.rank) or nil
+                    r.spellID = row.spell.pet
+                    r.icon:SetTexture(row.icon)
+                    r.name:SetText(row.name)
+                    local where, state, color = rank or "", "", "muted"
+                    if row.state == "known" then
+                        where, state = rank and ("Knows " .. rank) or "", "Known"
+                        r.hint = nil
+                    elseif row.state == "ready" then
+                        where = (rank and (rank .. " · ") or "") .. (row.points and (row.points .. " training points") or "in Beast Training")
+                        state, color = "Ready", "gold"
+                        r.hint = "Teach it from your Beast Training."
+                    elseif row.state == "level" then
+                        state = "Pet level " .. row.spell.level
+                        r.hint = "In your Beast Training. Your pet needs level " .. row.spell.level .. "."
+                    elseif row.state == "tame" then
+                        where = (rank and (rank .. " · ") or "") .. "tame a beast that knows it"
+                        state = "Pet level " .. row.spell.level
+                        r.hint = "Not in your Beast Training yet: tame a beast that has it, and you learn it."
+                    else
+                        where = (rank and (rank .. " · ") or "") .. "open Beast Training to check"
+                        state = "Pet level " .. row.spell.level
+                        r.hint = "Open Beast Training once so jsal.ui can see what's in it."
+                    end
+                    if row.skipped then state, color = "Skipped", "muted" end
+                    r.where:SetText(where)
+                    r.state:SetText(state)
+                    r.state:SetTextColor(Style.Color(color))
+                    r:SetAlpha((row.state == "known" or row.skipped) and 0.6 or 1)
+                    y = y + 26
+                end
+            end
+        end
+
         y = y + 12
         local head = Take("heads", MakeHead)
         head:ClearAllPoints()
@@ -446,10 +526,13 @@ Window.Page("training", function(page)
 
     page.Refresh = Paint
     local events = CreateFrame("Frame")
-    for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED", "MERCHANT_CLOSED", "UNIT_PET" }) do
-        events:RegisterEvent(event)
+    for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED", "MERCHANT_CLOSED",
+                             "UNIT_PET", "UNIT_LEVEL", "CRAFT_CLOSE" }) do
+        -- pcall: not every client has the Beast Training window's events.
+        pcall(events.RegisterEvent, events, event)
     end
-    events:SetScript("OnEvent", function()
+    events:SetScript("OnEvent", function(_, event, unit)
+        if event == "UNIT_LEVEL" and unit ~= "pet" then return end
         if page:IsVisible() then Compat.After(0.3, function() xpcall(Paint, ns.Report) end) end
     end)
 end)
