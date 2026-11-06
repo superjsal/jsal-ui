@@ -80,6 +80,27 @@ function ns.ModuleWanted(module)
     return choice
 end
 
+-- A module's own on/off options (module.options: { key, title, note,
+-- default }), shown under its switch in Settings. They apply at once.
+local function OptionDefault(moduleKey, key)
+    local module = ns.modules[moduleKey]
+    for _, option in ipairs(module and module.options or {}) do
+        if option.key == key then return option.default and true or false end
+    end
+    return false
+end
+
+function ns.OptionOn(moduleKey, key)
+    local saved = type(ns.db.options) == "table" and ns.db.options[moduleKey .. "." .. key]
+    if saved == nil then return OptionDefault(moduleKey, key) end
+    return saved
+end
+
+function ns.SetOption(moduleKey, key, on)
+    ns.db.options = type(ns.db.options) == "table" and ns.db.options or {}
+    ns.db.options[moduleKey .. "." .. key] = on and true or false
+end
+
 local function Stop(module, err)
     if module.failed then return end
     module.failed = err
