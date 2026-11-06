@@ -55,23 +55,28 @@ local function WordPayload()
 end
 
 -- What a player tells the guild: "version;wordDay;wordScore;iconDay;iconScore;
--- guildWordID;guildWordScore".
+-- guildWordID;guildWordScore;wordAverage;wordsSolved". Older versions send
+-- the first seven, and the rest read as missing.
 local function Status()
     local wordDay, wordScore = ns.DailyWord.Result()
     local iconDay, iconScore = ns.IconGuess.Result()
     local word = Guild.Word()
     local guildScore = word and ns.DailyWord.GuildResult(word.id)
+    local average, solved = ns.DailyWord.Average()
     return table.concat({
         ns.version,
         wordDay or 0, wordScore or "",
         iconDay or 0, iconScore or "",
         word and guildScore and word.id or 0, guildScore or "",
+        average and ("%.2f"):format(average) or "", solved or 0,
     }, ";")
 end
 
 local function Store(payload, name)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved = strsplit(";", payload or "")
     members[name] = {
+        average = tonumber(average),
+        solved = tonumber(solved),
         version = version,
         wordDay = tonumber(wordDay),
         wordScore = wordScore ~= "" and wordScore or nil,
@@ -156,7 +161,7 @@ local function Sorted(wordID)
     local list = {}
     for name, m in pairs(members) do
         list[#list + 1] = {
-            name = name, version = m.version,
+            name = name, version = m.version, average = m.average, solved = m.solved,
             word = m.wordDay == today and m.wordScore or nil,
             icons = m.iconDay == today and m.iconScore or nil,
             guild = wordID and m.guildID == wordID and m.guildScore or nil,
@@ -233,7 +238,8 @@ Window.Page("guild", function(page)
     box:SetScript("OnEnterPressed", SetWord)
     box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
-    local COLUMNS = { { "Name", 0 }, { "Daily Word", 260 }, { "Icon Guess", 380 }, { "Guild Word", 500 }, { "Version", 630 } }
+    local COLUMNS = { { "Name", 0 }, { "Daily Word", 200 }, { "Word average", 310 }, { "Icon Guess", 440 },
+        { "Guild Word", 550 }, { "Version", 660 } }
     local header = CreateFrame("Frame", nil, page)
     header:SetSize(width, 24)
     header:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 0, -16)
@@ -309,9 +315,11 @@ Window.Page("guild", function(page)
             if e then
                 row.cells[1]:SetText(e.name)
                 row.cells[2]:SetText(Tries(e.word))
-                row.cells[3]:SetText(e.icons and (e.icons .. " of 10") or "Not yet")
-                row.cells[4]:SetText(word and Tries(e.guild) or "")
-                row.cells[5]:SetText(e.version or "")
+                -- Average tries over every word solved, and how many.
+                row.cells[3]:SetText(e.average and ("%.1f |cff9a9688(%d)|r"):format(e.average, e.solved or 0) or "-")
+                row.cells[4]:SetText(e.icons and (e.icons .. " of 10") or "Not yet")
+                row.cells[5]:SetText(word and Tries(e.guild) or "")
+                row.cells[6]:SetText(e.version or "")
             end
         end
         more:SetText(#list > MAX_ROWS and ("and %d more"):format(#list - MAX_ROWS) or "")

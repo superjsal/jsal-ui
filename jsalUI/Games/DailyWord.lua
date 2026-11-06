@@ -109,11 +109,25 @@ function DailyWord.Status()
     return ("#%d is ready"):format(game.day)
 end
 
+-- The average number of tries over every game solved, and how many games
+-- that is; nil before the first win. Missed games aren't in the average.
+function DailyWord.Average()
+    local s = Stats()
+    local tries, won = 0, 0
+    for i, count in ipairs(s.dist or {}) do
+        tries, won = tries + i * count, won + count
+    end
+    if won == 0 then return nil end
+    return tries / won, won
+end
+
 function DailyWord.Record()
     local s = Stats()
     if s.played == 0 then return "Daily Word: no games yet." end
-    return ("Daily Word: %d played, %d%% won, streak %d, best %d."):format(
-        s.played, math.floor(s.won / s.played * 100 + 0.5), s.streak, s.best)
+    local average = DailyWord.Average()
+    return ("Daily Word: %d played, %d%% won, %sstreak %d, best %d."):format(
+        s.played, math.floor(s.won / s.played * 100 + 0.5),
+        average and ("average %.1f tries, "):format(average) or "", s.streak, s.best)
 end
 
 local function Finish(game, won)
