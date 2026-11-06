@@ -2194,6 +2194,49 @@
    ]
   },
   {
+   "class": 7,
+   "npc": "Buliwyf Stonehand",
+   "zone": "Ironforge",
+   "seen": 1793983575,
+   "rows": [
+    {
+     "spell": 198,
+     "name": "One-Handed Maces",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 15590,
+     "name": "Fist Weapons",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 196,
+     "name": "One-Handed Axes",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 197,
+     "name": "Two-Handed Axes",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 199,
+     "name": "Two-Handed Maces",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
    "class": 3,
    "npc": "Claude Erksine",
    "zone": "Farstrider Lodge",
@@ -3387,6 +3430,1169 @@
      "spell": 14268,
      "name": "Wing Clip",
      "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 7,
+   "npc": "Eldrun Stormbreaker",
+   "zone": "Ironforge",
+   "seen": 1793983690,
+   "rows": [
+    {
+     "spell": 8017,
+     "name": "Rockbiter Weapon",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 8042,
+     "name": "Earth Shock",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2484,
+     "name": "Earthbind Totem",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 332,
+     "name": "Healing Wave",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8044,
+     "name": "Earth Shock",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 529,
+     "name": "Lightning Bolt",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 324,
+     "name": "Lightning Shield",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8018,
+     "name": "Rockbiter Weapon",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5730,
+     "name": "Stoneclaw Totem",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8050,
+     "name": "Flame Shock",
+     "cost": 400,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8024,
+     "name": "Flametongue Weapon",
+     "cost": 400,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8075,
+     "name": "Strength of Earth Totem",
+     "cost": 400,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2008,
+     "name": "Ancestral Spirit",
+     "cost": 700,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408341,
+     "name": "Fire Nova",
+     "cost": 700,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 547,
+     "name": "Healing Wave",
+     "cost": 700,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 370,
+     "name": "Purge",
+     "cost": 700,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8045,
+     "name": "Earth Shock",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 548,
+     "name": "Lightning Bolt",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8154,
+     "name": "Stoneskin Totem",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 526,
+     "name": "Cure Poison",
+     "cost": 1100,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 325,
+     "name": "Lightning Shield",
+     "cost": 1100,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8019,
+     "name": "Rockbiter Weapon",
+     "cost": 1100,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8052,
+     "name": "Flame Shock",
+     "cost": 1200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8027,
+     "name": "Flametongue Weapon",
+     "cost": 1200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 913,
+     "name": "Healing Wave",
+     "cost": 1200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6390,
+     "name": "Stoneclaw Totem",
+     "cost": 1200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8143,
+     "name": "Tremor Totem",
+     "cost": 1200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 66842,
+     "name": "Call of the Elements",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8056,
+     "name": "Frost Shock",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8033,
+     "name": "Frostbrand Weapon",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2645,
+     "name": "Ghost Wolf",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8004,
+     "name": "Lesser Healing Wave",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 915,
+     "name": "Lightning Bolt",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6363,
+     "name": "Searing Totem",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 36936,
+     "name": "Totemic Recall",
+     "cost": 2300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2870,
+     "name": "Cure Disease",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408342,
+     "name": "Fire Nova",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8166,
+     "name": "Poison Cleansing Totem",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 437009,
+     "name": "Totemic Call",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 131,
+     "name": "Water Breathing",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20609,
+     "name": "Ancestral Spirit",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8046,
+     "name": "Earth Shock",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8181,
+     "name": "Frost Resistance Totem",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 939,
+     "name": "Healing Wave",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 905,
+     "name": "Lightning Shield",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10399,
+     "name": "Rockbiter Weapon",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8155,
+     "name": "Stoneskin Totem",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8160,
+     "name": "Strength of Earth Totem",
+     "cost": 3400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6196,
+     "name": "Far Sight",
+     "cost": 4300,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8030,
+     "name": "Flametongue Weapon",
+     "cost": 4300,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 943,
+     "name": "Lightning Bolt",
+     "cost": 4300,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8190,
+     "name": "Magma Totem",
+     "cost": 4300,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5675,
+     "name": "Mana Spring Totem",
+     "cost": 4300,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8184,
+     "name": "Fire Resistance Totem",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8053,
+     "name": "Flame Shock",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8227,
+     "name": "Flametongue Totem",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8038,
+     "name": "Frostbrand Weapon",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8008,
+     "name": "Lesser Healing Wave",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6391,
+     "name": "Stoneclaw Totem",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 546,
+     "name": "Water Walking",
+     "cost": 5000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 556,
+     "name": "Astral Recall",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 66843,
+     "name": "Call of the Ancestors",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8177,
+     "name": "Grounding Totem",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6375,
+     "name": "Healing Stream Totem",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10595,
+     "name": "Nature Resistance Totem",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20608,
+     "name": "Reincarnation",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6364,
+     "name": "Searing Totem",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8232,
+     "name": "Windfury Weapon",
+     "cost": 5700,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 421,
+     "name": "Chain Lightning",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408343,
+     "name": "Fire Nova",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 959,
+     "name": "Healing Wave",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6041,
+     "name": "Lightning Bolt",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 945,
+     "name": "Lightning Shield",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8012,
+     "name": "Purge",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8512,
+     "name": "Windfury Totem",
+     "cost": 7000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8058,
+     "name": "Frost Shock",
+     "cost": 8000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16314,
+     "name": "Rockbiter Weapon",
+     "cost": 8000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6495,
+     "name": "Sentry Totem",
+     "cost": 8000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10406,
+     "name": "Stoneskin Totem",
+     "cost": 8000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20610,
+     "name": "Ancestral Spirit",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10412,
+     "name": "Earth Shock",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16339,
+     "name": "Flametongue Weapon",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8010,
+     "name": "Lesser Healing Wave",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10585,
+     "name": "Magma Totem",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10495,
+     "name": "Mana Spring Totem",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15107,
+     "name": "Windwall Totem",
+     "cost": 9000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8170,
+     "name": "Disease Cleansing Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8249,
+     "name": "Flametongue Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10478,
+     "name": "Frost Resistance Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10456,
+     "name": "Frostbrand Weapon",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10391,
+     "name": "Lightning Bolt",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17354,
+     "name": "Mana Tide Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6392,
+     "name": "Stoneclaw Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8161,
+     "name": "Strength of Earth Totem",
+     "cost": 10000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 66844,
+     "name": "Call of the Spirits",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1064,
+     "name": "Chain Heal",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 930,
+     "name": "Chain Lightning",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10447,
+     "name": "Flame Shock",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6377,
+     "name": "Healing Stream Totem",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8005,
+     "name": "Healing Wave",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8134,
+     "name": "Lightning Shield",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8737,
+     "name": "Mail",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6365,
+     "name": "Searing Totem",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8235,
+     "name": "Windfury Weapon",
+     "cost": 12000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408344,
+     "name": "Fire Nova",
+     "cost": 18000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10537,
+     "name": "Fire Resistance Totem",
+     "cost": 18000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8835,
+     "name": "Grace of Air Totem",
+     "cost": 18000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10613,
+     "name": "Windfury Totem",
+     "cost": 18000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10466,
+     "name": "Lesser Healing Wave",
+     "cost": 19000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10392,
+     "name": "Lightning Bolt",
+     "cost": 19000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10600,
+     "name": "Nature Resistance Totem",
+     "cost": 19000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16315,
+     "name": "Rockbiter Weapon",
+     "cost": 19000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10407,
+     "name": "Stoneskin Totem",
+     "cost": 19000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10622,
+     "name": "Chain Heal",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16341,
+     "name": "Flametongue Weapon",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10472,
+     "name": "Frost Shock",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10586,
+     "name": "Magma Totem",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10496,
+     "name": "Mana Spring Totem",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15111,
+     "name": "Windwall Totem",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20776,
+     "name": "Ancestral Spirit",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2860,
+     "name": "Chain Lightning",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10413,
+     "name": "Earth Shock",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10526,
+     "name": "Flametongue Totem",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16355,
+     "name": "Frostbrand Weapon",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10395,
+     "name": "Healing Wave",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10431,
+     "name": "Lightning Shield",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17359,
+     "name": "Mana Tide Totem",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10427,
+     "name": "Stoneclaw Totem",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10462,
+     "name": "Healing Stream Totem",
+     "cost": 25000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15207,
+     "name": "Lightning Bolt",
+     "cost": 25000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239242,
+     "name": "Riptide",
+     "cost": 25000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10437,
+     "name": "Searing Totem",
+     "cost": 25000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10486,
+     "name": "Windfury Weapon",
+     "cost": 25000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408345,
+     "name": "Fire Nova",
+     "cost": 26000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10448,
+     "name": "Flame Shock",
+     "cost": 26000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10467,
+     "name": "Lesser Healing Wave",
+     "cost": 26000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10442,
+     "name": "Strength of Earth Totem",
+     "cost": 26000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10614,
+     "name": "Windfury Totem",
+     "cost": 26000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10623,
+     "name": "Chain Heal",
+     "cost": 27000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10479,
+     "name": "Frost Resistance Totem",
+     "cost": 27000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16316,
+     "name": "Rockbiter Weapon",
+     "cost": 27000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10408,
+     "name": "Stoneskin Totem",
+     "cost": 27000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10605,
+     "name": "Chain Lightning",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16342,
+     "name": "Flametongue Weapon",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10627,
+     "name": "Grace of Air Totem",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10396,
+     "name": "Healing Wave",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15208,
+     "name": "Lightning Bolt",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10432,
+     "name": "Lightning Shield",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10587,
+     "name": "Magma Totem",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10497,
+     "name": "Mana Spring Totem",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15112,
+     "name": "Windwall Totem",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10538,
+     "name": "Fire Resistance Totem",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16387,
+     "name": "Flametongue Totem",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10473,
+     "name": "Frost Shock",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16356,
+     "name": "Frostbrand Weapon",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1325256,
+     "name": "Mana Tide Totem",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10428,
+     "name": "Stoneclaw Totem",
+     "cost": 32000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20777,
+     "name": "Ancestral Spirit",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10414,
+     "name": "Earth Shock",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10463,
+     "name": "Healing Stream Totem",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10468,
+     "name": "Lesser Healing Wave",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10601,
+     "name": "Nature Resistance Totem",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239243,
+     "name": "Riptide",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10438,
+     "name": "Searing Totem",
+     "cost": 33000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16362,
+     "name": "Windfury Weapon",
+     "cost": 33000,
      "level": 60,
      "kind": "unavailable"
     }
