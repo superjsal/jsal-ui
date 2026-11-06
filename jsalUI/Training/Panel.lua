@@ -177,6 +177,56 @@ local function Build()
     panel.open = Style.Button(panel, "Open planner", "primary", 100)
     panel.open:SetHeight(28)
     panel.open:SetScript("OnClick", function() Window.Open("training") end)
+    panel.train = Style.Button(panel, "Train all", "primary", 100)
+    panel.train:SetHeight(28)
+end
+
+-- Buys everything the trainer offers now that isn't skipped. The list shows
+-- only what can be learned while it runs, and goes from the last row up:
+-- buying one renumbers the rows after it. Gold is counted down here, as the
+-- game's own count only drops once the trainer answers.
+local function TrainAll(skippedIDs, skippedNames)
+    local saved = {}
+    for _, kind in ipairs({ "available", "unavailable", "used" }) do
+        saved[kind] = GetTrainerServiceTypeFilter(kind) and true or false
+    end
+    SetTrainerServiceTypeFilter("available", true)
+    SetTrainerServiceTypeFilter("unavailable", false)
+    SetTrainerServiceTypeFilter("used", false)
+    local budget, bought, spent, short = GetMoney(), 0, 0, 0
+    local ok, err = pcall(function()
+        for i = GetNumTrainerServices(), 1, -1 do
+            local name, kind, rank = Compat.TrainerService(i)
+            if name and kind == "available" then
+                local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
+                local id = info and info.id
+                if not rank and id and C_Spell and C_Spell.GetSpellSubtext then
+                    rank = C_Spell.GetSpellSubtext(id)
+                    if rank == "" then rank = nil end
+                end
+                if not ((id and skippedIDs[id]) or skippedNames[name .. "|" .. (rank or "")]) then
+                    local cost = GetTrainerServiceCost(i) or 0
+                    if cost <= budget then
+                        BuyTrainerService(i)
+                        budget, spent, bought = budget - cost, spent + cost, bought + 1
+                    else
+                        short = short + 1
+                    end
+                end
+            end
+        end
+    end)
+    for kind, on in pairs(saved) do SetTrainerServiceTypeFilter(kind, on) end
+    if not ok then return ns.Report(err) end
+    if bought == 0 and short == 0 then
+        ns.Print("Nothing here to train that you haven't skipped.")
+    else
+        local line = ("Trained %d for %s."):format(bought, Compat.Money(spent))
+        if short > 0 then
+            line = line .. (" %d more need more gold than you have."):format(short)
+        end
+        ns.Print(line)
+    end
 end
 
 -- Places a line of the panel y down from its top, at the left margin or x.
@@ -344,10 +394,44 @@ local function Paint()
     end
     if #now <= MAX_ROWS then panel.more:Hide() end
 
-    -- Where you trained last, a map pin to them, and the planner.
     y = y + 8
     Place(panel.rule2, y)
     y = y + 12
+    local half = (WIDTH - PAD * 2 - 8) / 2
+
+    -- At a class, pet or weapon trainer: train everything not skipped, and
+    -- the planner.
+    if context == "class" or context == "pet" or context == "weapons" then
+        local skippedIDs, skippedNames = {}, {}
+        for _, list in ipairs({ data.spells, data.weapons }) do
+            for _, spell in ipairs(list) do
+                if spell.skipped then
+                    skippedIDs[spell.id] = true
+                    skippedNames[spell.name .. "|" .. (spell.rank or "")] = true
+                end
+            end
+        end
+        panel.where:SetText("Train all buys everything here you haven't skipped.")
+        Place(panel.where, y)
+        y = y + 26
+        panel.map:Hide()
+        panel.train:SetLabel(nowCost > 0 and ("Train all · " .. Compat.Money(nowCost)) or "Train all")
+        panel.train:SetEnabled(#now > 0)
+        panel.train:SetScript("OnClick", function() TrainAll(skippedIDs, skippedNames) end)
+        panel.train:SetWidth(WIDTH - PAD * 2 - 8 - 110)
+        panel.open:SetWidth(110)
+        panel.open:SetKind("plain")
+        Place(panel.train, y)
+        Place(panel.open, y, WIDTH - PAD - 110)
+        y = y + 28 + PAD
+        for i = used + 1, #rows do rows[i]:Hide() end
+        panel:SetHeight(y)
+        return
+    end
+    panel.train:Hide()
+    panel.open:SetKind("primary")
+
+    -- Elsewhere: where you trained last, a map pin to them, and the planner.
     local _, _, classID = UnitClass("player")
     local trainer, npc, zone = LastTrainer(classID)
     if trainer then
@@ -361,7 +445,6 @@ local function Paint()
     local canPin = trainer and trainer.map and trainer.x
     panel.map:SetShown(canPin and true or false)
     if canPin then
-        local half = (WIDTH - PAD * 2 - 8) / 2
         panel.map:SetWidth(half)
         panel.open:SetWidth(half)
         Place(panel.map, y)
