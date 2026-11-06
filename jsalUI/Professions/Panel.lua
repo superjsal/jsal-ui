@@ -334,8 +334,27 @@ local function OpenBeside(frame)
     anchor = frame
     panel:SetFrameStrata(frame:GetFrameStrata())
     panel:SetFrameLevel(frame:GetFrameLevel() + 10)
+    -- The game's own window can have tabs sticking out of its right edge (one
+    -- per profession); the panel starts after them, measured on screen and
+    -- put in its own scale. A reach of more than a tab's width is something
+    -- else (an open menu), so it's ignored.
+    local reach, right = 0, frame:GetRight()
+    if right then
+        local scale = frame:GetEffectiveScale()
+        local edges = { frame:GetChildren() }
+        edges[#edges + 1] = frame.ProfessionsOverviewTab
+        for _, tab in ipairs(frame.rightProfessionTabs or {}) do edges[#edges + 1] = tab end
+        for _, child in ipairs(edges) do
+            local edge = child ~= panel and child:IsShown() and child:GetRight()
+            if edge then
+                local past = edge * child:GetEffectiveScale() - right * scale
+                if past > reach and past <= 100 * scale then reach = past end
+            end
+        end
+        reach = reach / panel:GetEffectiveScale()
+    end
     panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6, 0)
+    panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6 + reach, 0)
     panel:Show()
     xpcall(Paint, ns.Report)
 end
