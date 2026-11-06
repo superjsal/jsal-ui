@@ -7,7 +7,7 @@ local Style, Compat, Window, Training = ns.Style, ns.Compat, ns.Window, ns.Train
 
 local CART_W, GAP = 300, 20
 local CARD_H, CARD_GAP = 58, 8
-local CHIP_H, CHIP_GAP = 28, 6
+local CHIP_H, CHIP_GAP = 32, 6   -- a road spell's icon, square
 local LEVEL_W, NODE_W, COST_W = 34, 16, 64
 
 -- Spells at an odd level are trained on the next even one, so each stop is
@@ -149,7 +149,7 @@ Window.Page("training", function(page)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         c.name = Style.Text(c, 13, "text", nil, true)
         c.name:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 10, -1)
-        c.name:SetWidth(CART_W - 24 - 54 - 70)
+        c.name:SetWidth(CART_W - 24 - 54 - 52)
         c.name:SetWordWrap(false)
         c.sub = Style.Text(c, 11, "muted")
         c.sub:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -4)
@@ -170,7 +170,7 @@ Window.Page("training", function(page)
     local roadHead = Section(page, roadW)
     roadHead:SetPoint("TOPLEFT", CART_W + GAP, -top)
     roadHead.title:SetText("YOUR ROAD TO 60")
-    roadHead.note:SetText("Each stop is a trainer visit · right-click a spell to skip it")
+    roadHead.note:SetText("Right-click an icon to skip it")
     local roadScroll, road = Scroller(page, roadW - 8, height - top - 30)
     roadScroll:SetPoint("TOPLEFT", CART_W + GAP, -(top + 30))
 
@@ -210,20 +210,25 @@ Window.Page("training", function(page)
         return s
     end
 
+    -- A spell on the road is just its icon, with its rank in the corner; the
+    -- name and the rest are in its tooltip, so a busy level stays one row.
     local function MakeChip()
         local c = CreateFrame("Button", nil, road)
-        c:SetHeight(CHIP_H)
+        c:SetSize(CHIP_H, CHIP_H)
         c:RegisterForClicks("RightButtonUp")
-        c.bg = Style.Fill(c, "well")
-        c.edges = Style.Border(c, "line")
+        c.edges = Style.Border(c, "lineStrong")
         c.icon = c:CreateTexture(nil, "ARTWORK")
-        c.icon:SetSize(22, 22)
-        c.icon:SetPoint("LEFT", 3, 0)
+        c.icon:SetPoint("TOPLEFT", 1, -1)
+        c.icon:SetPoint("BOTTOMRIGHT", -1, 1)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        c.name = Style.Text(c, 12, "text")
-        c.name:SetPoint("LEFT", c.icon, "RIGHT", 6, 0)
-        c.rank = Style.Text(c, 11, "muted")
-        c.rank:SetPoint("LEFT", c.name, "RIGHT", 4, 0)
+        c.badge = CreateFrame("Frame", nil, c)
+        c.badge:SetSize(14, 12)
+        c.badge:SetPoint("BOTTOMRIGHT", 2, -2)
+        c.badge:SetFrameLevel(c:GetFrameLevel() + 2)
+        Style.Fill(c.badge, "window")
+        c.rank = Style.Text(c.badge, 10, "text", nil, true)
+        c.rank:SetPoint("CENTER", 0, 0)
+        c.rank:SetJustifyH("CENTER")
         Tooltip(c)
         c:SetScript("OnClick", function(self)
             if self.spell then
@@ -258,9 +263,9 @@ Window.Page("training", function(page)
         return r
     end
 
-    -- The short rank number on a chip ("Serpent Sting 3").
+    -- The rank number in a spell's corner ("Rank 3" -> 3); none for one-rank spells.
     local function RankNumber(rank)
-        return rank and rank:match("(%d+)") or ""
+        return rank and rank:match("(%d+)") or nil
     end
 
     local function Chips(spells, x0, y0, maxW)
@@ -270,17 +275,17 @@ Window.Page("training", function(page)
             c.spell, c.spellID = spell, spell.id
             c.hint = spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it"
             c.icon:SetTexture(spell.icon)
-            c.name:SetText(spell.name)
-            c.rank:SetText(RankNumber(spell.rank))
-            local w = 3 + 22 + 6 + c.name:GetStringWidth() + 4 + c.rank:GetStringWidth() + 8
-            if x > 0 and x + w > maxW then
+            local rank = RankNumber(spell.rank)
+            c.rank:SetText(rank or "")
+            c.badge:SetShown(rank ~= nil)
+            if x > 0 and x + CHIP_H > maxW then
                 x, y = 0, y + CHIP_H + CHIP_GAP
             end
-            c:SetWidth(w)
             c:ClearAllPoints()
             c:SetPoint("TOPLEFT", x0 + x, -(y0 + y))
+            c.icon:SetDesaturated(spell.skipped)
             c:SetAlpha(spell.skipped and 0.4 or 1)
-            x = x + w + CHIP_GAP
+            x = x + CHIP_H + CHIP_GAP
         end
         return y + CHIP_H
     end
