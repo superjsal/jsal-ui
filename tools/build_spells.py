@@ -65,6 +65,12 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
     spell that teaches each) and a warlock's Grimoires. Returns how many of
     the class's spells have a price."""
     spells, extra, weapons, pet = {}, {}, {}, {}
+    # Weapon skills cost the same at every weapon master, for every class,
+    # so any class's visit prices them.
+    for trainer in SAVED["trainers"]:
+        for r in trainer["rows"]:
+            if r.get("spell") in weapon_ids:
+                weapons[r["spell"]] = r["cost"]
     for trainer in SAVED["trainers"]:
         if trainer["class"] != class_id:
             continue
@@ -76,9 +82,7 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
                     extra[r["spell"]] = r.get("level") or 1
         else:
             for r in rows:
-                if r["spell"] in weapon_ids:
-                    weapons[r["spell"]] = r["cost"]
-                elif r["spell"] in pet_to_beast:
+                if r["spell"] in pet_to_beast:
                     pet[pet_to_beast[r["spell"]]] = (r["cost"], r.get("level") or 1)
     if extra:
         lines.append("        extra = { " + ", ".join(f"{{ {s}, {l} }}" for s, l in sorted(extra.items(), key=lambda kv: (kv[1], kv[0]))) + " },")
