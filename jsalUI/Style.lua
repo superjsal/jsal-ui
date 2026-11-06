@@ -36,11 +36,12 @@ function Style.Color(key)
     return c[1], c[2], c[3]
 end
 
--- M PLUS 1p, in Regular and Bold, trimmed to Latin and shipped in Media. If
--- the game can't load it, text falls back to the game's own font.
+-- Outfit, in Regular and SemiBold (its bold here), trimmed to Latin and
+-- shipped in Media. If the game can't load it, text falls back to the game's
+-- own font.
 local FONTS = "Interface\\AddOns\\" .. addonName .. "\\Media\\Fonts\\"
-Style.font = FONTS .. "MPLUS1p-Regular.ttf"
-Style.boldFont = FONTS .. "MPLUS1p-Bold.ttf"
+Style.font = FONTS .. "Outfit-Regular.ttf"
+Style.boldFont = FONTS .. "Outfit-SemiBold.ttf"
 -- The wordmark keeps jsal.io's own: Inter Bold.
 Style.brandFont = FONTS .. "Inter-Bold.ttf"
 
