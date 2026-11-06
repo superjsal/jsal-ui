@@ -92,9 +92,42 @@ local function CheckVersion(version, name)
     ns.Print(("A newer jsal.ui is out: %s has %s, you have %s. Get it at jsal.io/jsal-ui."):format(name, version, ns.version))
 end
 
+-- Every guildmate ever heard with jsal.ui, kept per guild: when first and
+-- last, and their version. Someone heard for the first time gets a line in
+-- chat; for the list's first two minutes everyone already using it is
+-- noted quietly, so starting the list doesn't announce the whole guild.
+local QUIET = 120
+local function SeenList()
+    local guild = Compat.GuildName()
+    if not guild then return nil end
+    ns.db.guildSeen = type(ns.db.guildSeen) == "table" and ns.db.guildSeen or {}
+    local list = ns.db.guildSeen[guild]
+    if type(list) ~= "table" then
+        list = { started = Compat.ServerTime(), names = {} }
+        ns.db.guildSeen[guild] = list
+    end
+    return list
+end
+
+local function NoteSeen(name, version)
+    local list = name ~= Compat.MyName() and SeenList()
+    if not list then return end
+    local now = Compat.ServerTime()
+    local entry = list.names[name]
+    if not entry then
+        entry = { first = now }
+        list.names[name] = entry
+        if now > (list.started or 0) + QUIET then
+            ns.Print(("%s started using jsal.ui%s."):format(name, version and version ~= "" and (" (" .. version .. ")") or ""))
+        end
+    end
+    entry.last, entry.version = now, version
+end
+
 local function Store(payload, name, sender)
     local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved = strsplit(";", payload or "")
     CheckVersion(version, name)
+    NoteSeen(name, version)
     members[name] = {
         target = sender or name,   -- the name to whisper them by
         average = tonumber(average),
@@ -227,7 +260,25 @@ local function Sorted(wordID)
         if ia ~= ib then return ia > ib end
         return a.name < b.name
     end)
+    -- Then those not heard this session, the most recently seen first.
+    local away = {}
+    local seen = SeenList()
+    for name, entry in pairs(seen and seen.names or {}) do
+        if not members[name] and type(entry) == "table" then
+            away[#away + 1] = { name = name, version = entry.version, last = entry.last or 0, away = true }
+        end
+    end
+    table.sort(away, function(a, b) return a.last > b.last end)
+    for _, e in ipairs(away) do list[#list + 1] = e end
     return list
+end
+
+-- "today", "yesterday", or how many days ago.
+local function Ago(t)
+    local days = math.floor((Compat.ServerTime() - (t or 0)) / 86400)
+    if days <= 0 then return "today" end
+    if days == 1 then return "yesterday" end
+    return days .. " days ago"
 end
 
 local function Tries(score)
@@ -240,7 +291,7 @@ Window.Page("guild", function(page)
     local lead = Style.Text(page, 13, "muted")
     lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
     lead:SetWidth(width)
-    lead:SetText("Guildmates who run jsal.ui, and how they did today. Only guildies with jsal.ui show up.")
+    lead:SetText("Guildmates who run jsal.ui, and how they did today. Those not online now are greyed, with when they were last seen.")
 
     -- The Guild Word card: what's set and a Play button; the guild master gets a
     -- box to set a new one.
@@ -362,7 +413,15 @@ Window.Page("guild", function(page)
         for i, row in ipairs(rows) do
             local e = Guild.running and list[i]
             row:SetShown(e and true or false)
-            if e then
+            if e and e.away then
+                -- Not online now: greyed, with when they were last seen.
+                row:SetAlpha(0.5)
+                row.cells[1]:SetText(e.name)
+                row.cells[2]:SetText("Last seen " .. Ago(e.last))
+                for c = 3, 5 do row.cells[c]:SetText("") end
+                row.cells[6]:SetText(e.version or "")
+            elseif e then
+                row:SetAlpha(1)
                 row.cells[1]:SetText(e.name)
                 row.cells[2]:SetText(Tries(e.word))
                 -- Average tries over every word solved, and how many.
