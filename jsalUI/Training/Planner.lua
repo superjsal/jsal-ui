@@ -273,7 +273,8 @@ Window.Page("training", function(page)
         for _, spell in ipairs(spells) do
             local c = Take("chips", MakeChip)
             c.spell, c.spellID = spell, spell.id
-            c.hint = spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it"
+            c.hint = (spell.group and (spell.source == "demon" and spell.group .. "'s Grimoire. " or spell.group .. ". ") or "")
+                .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
             c.icon:SetTexture(spell.icon)
             local rank = RankNumber(spell.rank)
             c.rank:SetText(rank or "")
@@ -329,7 +330,10 @@ Window.Page("training", function(page)
             c.spellID = spell.id
             c.icon:SetTexture(spell.icon)
             c.name:SetText(spell.name)
-            c.sub:SetText(spell.skipped and "Skipped" or (spell.rank or ("Level " .. spell.level)))
+            local detail = spell.rank or ("Level " .. spell.level)
+            if spell.source == "demon" then detail = spell.group .. " · Grimoire · " .. detail
+            elseif spell.group then detail = spell.group .. " · " .. detail end
+            c.sub:SetText(spell.skipped and "Skipped" or detail)
             c.cost:SetText(Price(spell) or "|cff9a9688?|r")
             c.skip:SetLabel(spell.skipped and "Unskip" or "Skip")
             c.skip:SetScript("OnClick", function()
@@ -442,7 +446,7 @@ Window.Page("training", function(page)
 
     page.Refresh = Paint
     local events = CreateFrame("Frame")
-    for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED" }) do
+    for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED", "MERCHANT_CLOSED", "UNIT_PET" }) do
         events:RegisterEvent(event)
     end
     events:SetScript("OnEvent", function()

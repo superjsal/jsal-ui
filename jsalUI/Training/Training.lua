@@ -3,6 +3,7 @@
 -- costs. A class trainer's list also says which spells are really taught:
 -- once one is saved, anything in the files it doesn't offer drops out. A
 -- weapon master's list gives each weapon skill's price and who teaches it.
+-- A warlock's demons and a hunter's pet trainer add their own abilities.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -26,10 +27,12 @@ local function Where(key, trainer)
     return npc and zone and (npc .. ", " .. zone) or npc or key
 end
 
--- Sorts the saved trainers for this class into class trainers and weapon
--- masters, by what their lists teach, and gathers the prices from each.
-local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames)
-    local prices = { bySpell = {}, byName = {}, listed = {}, haveTrainer = false, weapons = {} }
+-- Sorts the saved trainers for this class into class trainers, pet trainers
+-- and weapon masters, by what their lists teach, and gathers each one's
+-- prices. A pet trainer opens the same window as a class trainer, but what
+-- it lists are pet abilities.
+local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, beastByName)
+    local prices = { bySpell = {}, byName = {}, listed = {}, haveTrainer = false, weapons = {}, pet = {} }
     for key, trainer in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
         if trainer.class == classID and type(trainer.rows) == "table" then
             local teachesClass = false
@@ -54,11 +57,31 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                     if id then
                         prices.weapons[id] = { cost = row.cost, where = Where(key, trainer) }
                     end
+                    local pet = beastByName[(row.name or "") .. "|" .. (row.rank or "")]
+                    if pet then
+                        prices.pet[pet] = { cost = row.cost, level = row.level, learned = row.category == "used" }
+                    end
                 end
             end
         end
     end
     return prices
+end
+
+-- Grimoire prices by the ability and rank they teach, from every demon
+-- trainer saved for this class ("Grimoire of Firebolt (Rank 2)").
+local function Grimoires(classID)
+    local out = {}
+    for _, shop in pairs(type(ns.db.grimoires) == "table" and ns.db.grimoires or {}) do
+        if shop.class == classID and type(shop.rows) == "table" then
+            for _, row in ipairs(shop.rows) do
+                local spell, rank = (row.name or ""):match("^Grimoire of (.-) %(Rank (%d+)%)$")
+                spell = spell or (row.name or ""):match("^Grimoire of (.+)$")
+                if spell then out[spell .. "|" .. (rank or "")] = row.cost end
+            end
+        end
+    end
+    return out
 end
 
 -- Everything the page needs: each spell with its level, school, name, rank,
@@ -81,7 +104,13 @@ function Training.Read()
         local name = Compat.SpellInfo(id)
         if name then weaponNames[name] = id end
     end
-    local prices = Trainers(classID, classSpells, classNames, weaponIDs, weaponNames)
+    -- A hunter's pet abilities by name and rank, as a pet trainer lists them.
+    local beastByName = {}
+    for _, entry in ipairs(source.beast or {}) do
+        local name = Compat.SpellInfo(entry[1])
+        if name then beastByName[name .. "|" .. (Rank(entry[1]) or "")] = entry[1] end
+    end
+    local prices = Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, beastByName)
 
     -- Race-only spells show only for that race. Races past the first 31 have
     -- no bit to check, so they get only the spells every race learns.
@@ -115,8 +144,65 @@ function Training.Read()
             }
         end
     end
+
+    -- A hunter's pet trainer: only what a pet trainer has listed, as most
+    -- pet abilities come from taming instead.
+    for id, taught in pairs(prices.pet) do
+        local name, icon = Compat.SpellInfo(id)
+        if name then
+            data.spells[#data.spells + 1] = {
+                id = id, level = taught.level or 1, name = name, icon = icon, rank = Rank(id),
+                cost = taught.cost, known = IsPlayerSpell(id) or taught.learned,
+                skipped = skips[id] == true, source = "pet", group = "Pet trainer",
+            }
+        end
+    end
+
+    -- A warlock's demons: every Grimoire ability, priced from the demon
+    -- trainers saved. One counts as known once that demon has been seen to
+    -- know it.
+    local grimoires = Grimoires(classID)
+    local petKnown = type(ns.char.petKnown) == "table" and ns.char.petKnown or {}
+    for _, demon in ipairs(source.demons or {}) do
+        for _, entry in ipairs(demon.spells) do
+            local id, level = entry[1], entry[2]
+            local name, icon = Compat.SpellInfo(id)
+            if name then
+                local rank = Rank(id)
+                data.spells[#data.spells + 1] = {
+                    id = id, level = level, name = name, icon = icon, rank = rank,
+                    cost = grimoires[name .. "|" .. (rank and rank:match("%d+") or "")],
+                    known = petKnown[id] or IsSpellKnown(id, true), skipped = skips[id] == true,
+                    source = "demon", group = demon.name,
+                }
+            end
+        end
+    end
+    table.sort(data.spells, function(a, b)
+        if a.level ~= b.level then return a.level < b.level end
+        return a.name < b.name
+    end)
     return data
 end
+
+-- Demon abilities are the demon's, not yours, so the game only says what the
+-- demon out right now knows. Each time one is summoned, what it knows is
+-- noted for this character.
+local watcher = CreateFrame("Frame")
+watcher:RegisterEvent("PET_BAR_UPDATE")
+watcher:RegisterEvent("UNIT_PET")
+watcher:SetScript("OnEvent", function(_, event, unit)
+    if event == "UNIT_PET" and unit ~= "player" then return end
+    local _, _, classID = UnitClass("player")
+    local source = ns.SpellData and ns.SpellData[classID]
+    if not (source and source.demons and ns.char) then return end
+    ns.char.petKnown = type(ns.char.petKnown) == "table" and ns.char.petKnown or {}
+    for _, demon in ipairs(source.demons) do
+        for _, entry in ipairs(demon.spells) do
+            if IsSpellKnown(entry[1], true) then ns.char.petKnown[entry[1]] = true end
+        end
+    end
+end)
 
 function Training.Skip(spellID, on)
     ns.char.trainingSkips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}

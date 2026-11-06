@@ -196,6 +196,21 @@ function Compat.SellPrice(item)
     return select(11, get(item))
 end
 
+-- What a vendor sells: how many items, and each one's name and price.
+function Compat.MerchantCount()
+    return GetMerchantNumItems and GetMerchantNumItems() or 0
+end
+
+function Compat.MerchantItem(index)
+    if C_MerchantFrame and C_MerchantFrame.GetItemInfo then
+        local info = C_MerchantFrame.GetItemInfo(index)
+        if info then return info.name, info.price end
+        return nil
+    end
+    local name, _, price = GetMerchantItemInfo(index)
+    return name, price
+end
+
 -- Quest givers that open on the gossip window.
 local Gossip = C_GossipInfo
 

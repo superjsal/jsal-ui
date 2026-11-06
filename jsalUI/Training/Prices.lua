@@ -26,9 +26,10 @@ local function Rows()
         local name, rank, category = GetTrainerServiceInfo(i)
         if name and category ~= "header" then
             local level = GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(i) or 0
+            -- category: "available", "unavailable" (level too low) or "used" (learned).
             rows[#rows + 1] = {
                 spell = SpellOf(i), name = name, rank = rank ~= "" and rank or nil,
-                level = level, cost = GetTrainerServiceCost(i) or 0,
+                level = level, cost = GetTrainerServiceCost(i) or 0, category = category,
             }
             highest = math.max(highest, level or 0)
         end
@@ -71,9 +72,34 @@ local function Record()
     ns.Print(("Saved %d spells and prices from %s in %s, up to level %d."):format(#rows, npc, zone, highest))
 end
 
+-- A warlock's demon trainer sells Grimoires, books that teach a demon an
+-- ability, from a vendor window. Their names say what they teach
+-- ("Grimoire of Firebolt (Rank 2)"), so the list and prices are saved too.
+local function RecordGrimoires()
+    local _, classFile, classID = UnitClass("player")
+    if classFile ~= "WARLOCK" then return end
+    local books = {}
+    for i = 1, Compat.MerchantCount() do
+        local name, price = Compat.MerchantItem(i)
+        if name and name:find("^Grimoire of ") then
+            books[#books + 1] = { name = name, cost = price or 0 }
+        end
+    end
+    if #books == 0 then return end
+    ns.db.grimoires = type(ns.db.grimoires) == "table" and ns.db.grimoires or {}
+    local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
+    ns.db.grimoires[npc .. " @ " .. zone] = {
+        class = classID, npc = npc, zone = zone, seen = Compat.ServerTime(), rows = books,
+    }
+    ns.Print(("Saved %d Grimoires and prices from %s in %s."):format(#books, npc, zone))
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("TRAINER_SHOW")
-events:SetScript("OnEvent", function()
+events:RegisterEvent("MERCHANT_SHOW")
+events:SetScript("OnEvent", function(_, event)
     -- The list fills in a moment after the window opens.
-    Compat.After(0.3, function() xpcall(Record, ns.Report) end)
+    Compat.After(0.3, function()
+        xpcall(event == "MERCHANT_SHOW" and RecordGrimoires or Record, ns.Report)
+    end)
 end)
