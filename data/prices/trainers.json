@@ -1,0 +1,7444 @@
+{
+ "trainers": [
+  {
+   "class": 2,
+   "npc": "Arthur the Faithful",
+   "zone": "Stormwind City",
+   "seen": 1793983004,
+   "rows": [
+    {
+     "spell": 465,
+     "name": "Devotion Aura",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 19740,
+     "name": "Blessing of Might",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20271,
+     "name": "Judgement",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 498,
+     "name": "Divine Protection",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 639,
+     "name": "Holy Light",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 679,
+     "name": "Holy Strike",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21082,
+     "name": "Seal of the Crusader",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 853,
+     "name": "Hammer of Justice",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1152,
+     "name": "Purify",
+     "cost": 100,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1022,
+     "name": "Blessing of Protection",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10290,
+     "name": "Devotion Aura",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 633,
+     "name": "Lay on Hands",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25780,
+     "name": "Righteous Fury",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311649,
+     "name": "Seal of Fury",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20287,
+     "name": "Seal of Righteousness",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19834,
+     "name": "Blessing of Might",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 678,
+     "name": "Holy Strike",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20162,
+     "name": "Seal of the Crusader",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19742,
+     "name": "Blessing of Wisdom",
+     "cost": 1400,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 647,
+     "name": "Holy Light",
+     "cost": 1400,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7294,
+     "name": "Retribution Aura",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1044,
+     "name": "Blessing of Freedom",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5573,
+     "name": "Divine Protection",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311656,
+     "name": "Seal of Fury",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20288,
+     "name": "Seal of Righteousness",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20217,
+     "name": "Blessing of Kings",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 26573,
+     "name": "Consecration",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 643,
+     "name": "Devotion Aura",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 879,
+     "name": "Exorcism",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19750,
+     "name": "Flash of Light",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1866,
+     "name": "Holy Strike",
+     "cost": 3100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19835,
+     "name": "Blessing of Might",
+     "cost": 3400,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19746,
+     "name": "Concentration Aura",
+     "cost": 3400,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1026,
+     "name": "Holy Light",
+     "cost": 3400,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20164,
+     "name": "Seal of Justice",
+     "cost": 3400,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20305,
+     "name": "Seal of the Crusader",
+     "cost": 3400,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5599,
+     "name": "Blessing of Protection",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19850,
+     "name": "Blessing of Wisdom",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5588,
+     "name": "Hammer of Justice",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10322,
+     "name": "Redemption",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2878,
+     "name": "Turn Undead",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19939,
+     "name": "Flash of Light",
+     "cost": 6100,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10298,
+     "name": "Retribution Aura",
+     "cost": 6100,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20163,
+     "name": "Seal of Fury",
+     "cost": 6100,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20289,
+     "name": "Seal of Righteousness",
+     "cost": 6100,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5614,
+     "name": "Exorcism",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 680,
+     "name": "Holy Strike",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19876,
+     "name": "Shadow Resistance Aura",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20116,
+     "name": "Consecration",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10291,
+     "name": "Devotion Aura",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19752,
+     "name": "Divine Intervention",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1042,
+     "name": "Holy Light",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2800,
+     "name": "Lay on Hands",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20915,
+     "name": "Seal of Command",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20165,
+     "name": "Seal of Light",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19836,
+     "name": "Blessing of Might",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19888,
+     "name": "Frost Resistance Aura",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20306,
+     "name": "Seal of the Crusader",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19852,
+     "name": "Blessing of Wisdom",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 642,
+     "name": "Divine Shield",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19940,
+     "name": "Flash of Light",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20419,
+     "name": "Seal of Fury",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20290,
+     "name": "Seal of Righteousness",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5615,
+     "name": "Exorcism",
+     "cost": 12000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19891,
+     "name": "Fire Resistance Aura",
+     "cost": 12000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2495,
+     "name": "Holy Strike",
+     "cost": 12000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10324,
+     "name": "Redemption",
+     "cost": 12000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10299,
+     "name": "Retribution Aura",
+     "cost": 12000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10278,
+     "name": "Blessing of Protection",
+     "cost": 13000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3472,
+     "name": "Holy Light",
+     "cost": 13000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20166,
+     "name": "Seal of Wisdom",
+     "cost": 13000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5627,
+     "name": "Turn Undead",
+     "cost": 13000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20922,
+     "name": "Consecration",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1032,
+     "name": "Devotion Aura",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5589,
+     "name": "Hammer of Justice",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20927,
+     "name": "Holy Shield",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20473,
+     "name": "Holy Shock",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 750,
+     "name": "Plate Mail",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20918,
+     "name": "Seal of Command",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20347,
+     "name": "Seal of Light",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19895,
+     "name": "Shadow Resistance Aura",
+     "cost": 15000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19837,
+     "name": "Blessing of Might",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4987,
+     "name": "Cleanse",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19941,
+     "name": "Flash of Light",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20421,
+     "name": "Seal of Fury",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20291,
+     "name": "Seal of Righteousness",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20307,
+     "name": "Seal of the Crusader",
+     "cost": 16000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19853,
+     "name": "Blessing of Wisdom",
+     "cost": 17000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10312,
+     "name": "Exorcism",
+     "cost": 17000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19897,
+     "name": "Frost Resistance Aura",
+     "cost": 17000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24275,
+     "name": "Hammer of Wrath",
+     "cost": 17000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5569,
+     "name": "Holy Strike",
+     "cost": 17000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6940,
+     "name": "Blessing of Sacrifice",
+     "cost": 21000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10328,
+     "name": "Holy Light",
+     "cost": 21000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10300,
+     "name": "Retribution Aura",
+     "cost": 21000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19899,
+     "name": "Fire Resistance Aura",
+     "cost": 22000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20929,
+     "name": "Holy Shock",
+     "cost": 22000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20772,
+     "name": "Redemption",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20356,
+     "name": "Seal of Wisdom",
+     "cost": 22000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20923,
+     "name": "Consecration",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10292,
+     "name": "Devotion Aura",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1020,
+     "name": "Divine Shield",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19942,
+     "name": "Flash of Light",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20928,
+     "name": "Holy Shield",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2812,
+     "name": "Holy Wrath",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10310,
+     "name": "Lay on Hands",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311590,
+     "name": "Light's Vigil",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20919,
+     "name": "Seal of Command",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20422,
+     "name": "Seal of Fury",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20348,
+     "name": "Seal of Light",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20292,
+     "name": "Seal of Righteousness",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19838,
+     "name": "Blessing of Might",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10313,
+     "name": "Exorcism",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25782,
+     "name": "Greater Blessing of Might",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24274,
+     "name": "Hammer of Wrath",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10332,
+     "name": "Holy Strike",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20308,
+     "name": "Seal of the Crusader",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19896,
+     "name": "Shadow Resistance Aura",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10326,
+     "name": "Turn Undead",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20729,
+     "name": "Blessing of Sacrifice",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19854,
+     "name": "Blessing of Wisdom",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25894,
+     "name": "Greater Blessing of Wisdom",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10308,
+     "name": "Hammer of Justice",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10329,
+     "name": "Holy Light",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19898,
+     "name": "Frost Resistance Aura",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20930,
+     "name": "Holy Shock",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10301,
+     "name": "Retribution Aura",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19943,
+     "name": "Flash of Light",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20423,
+     "name": "Seal of Fury",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20293,
+     "name": "Seal of Righteousness",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20357,
+     "name": "Seal of Wisdom",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20924,
+     "name": "Consecration",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10293,
+     "name": "Devotion Aura",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10314,
+     "name": "Exorcism",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19900,
+     "name": "Fire Resistance Aura",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25898,
+     "name": "Greater Blessing of Kings",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25916,
+     "name": "Greater Blessing of Might",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 25918,
+     "name": "Greater Blessing of Wisdom",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24239,
+     "name": "Hammer of Wrath",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239570,
+     "name": "Holy Shield",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10333,
+     "name": "Holy Strike",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10318,
+     "name": "Holy Wrath",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311595,
+     "name": "Light's Vigil",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20773,
+     "name": "Redemption",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20920,
+     "name": "Seal of Command",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20349,
+     "name": "Seal of Light",
+     "cost": 29000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 5,
+   "npc": "Brother Joshua",
+   "zone": "Stormwind City",
+   "seen": 1793981967,
+   "rows": [
+    {
+     "spell": 1243,
+     "name": "Power Word: Fortitude",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 2052,
+     "name": "Lesser Heal",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 589,
+     "name": "Shadow Word: Pain",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17,
+     "name": "Power Word: Shield",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 591,
+     "name": "Smite",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 586,
+     "name": "Fade",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 139,
+     "name": "Renew",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2053,
+     "name": "Lesser Heal",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8092,
+     "name": "Mind Blast",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2006,
+     "name": "Resurrection",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 594,
+     "name": "Shadow Word: Pain",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 588,
+     "name": "Inner Fire",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1244,
+     "name": "Power Word: Fortitude",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 592,
+     "name": "Power Word: Shield",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 528,
+     "name": "Cure Disease",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8122,
+     "name": "Psychic Scream",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6074,
+     "name": "Renew",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 598,
+     "name": "Smite",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2054,
+     "name": "Heal",
+     "cost": 1400,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8102,
+     "name": "Mind Blast",
+     "cost": 1400,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 527,
+     "name": "Dispel Magic",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277371,
+     "name": "Divine Grace",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 600,
+     "name": "Power Word: Shield",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 970,
+     "name": "Shadow Word: Pain",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2944,
+     "name": "Devouring Plague",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9578,
+     "name": "Fade",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6346,
+     "name": "Fear Ward",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2061,
+     "name": "Flash Heal",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14914,
+     "name": "Holy Fire",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7128,
+     "name": "Inner Fire",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 453,
+     "name": "Mind Soothe",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6075,
+     "name": "Renew",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9484,
+     "name": "Shackle Undead",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2055,
+     "name": "Heal",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8103,
+     "name": "Mind Blast",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2096,
+     "name": "Mind Vision",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2010,
+     "name": "Resurrection",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 984,
+     "name": "Smite",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15262,
+     "name": "Holy Fire",
+     "cost": 5000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8129,
+     "name": "Mana Burn",
+     "cost": 5000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1245,
+     "name": "Power Word: Fortitude",
+     "cost": 5000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3747,
+     "name": "Power Word: Shield",
+     "cost": 5000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277372,
+     "name": "Divine Grace",
+     "cost": 5200,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9472,
+     "name": "Flash Heal",
+     "cost": 5200,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6076,
+     "name": "Renew",
+     "cost": 5200,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 992,
+     "name": "Shadow Word: Pain",
+     "cost": 5200,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19276,
+     "name": "Devouring Plague",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6063,
+     "name": "Heal",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15430,
+     "name": "Holy Nova",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8104,
+     "name": "Mind Blast",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17311,
+     "name": "Mind Flay",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8124,
+     "name": "Psychic Scream",
+     "cost": 5300,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14752,
+     "name": "Divine Spirit",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9579,
+     "name": "Fade",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19271,
+     "name": "Feedback",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15263,
+     "name": "Holy Fire",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 602,
+     "name": "Inner Fire",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 605,
+     "name": "Mind Control",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6065,
+     "name": "Power Word: Shield",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 596,
+     "name": "Prayer of Healing",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 976,
+     "name": "Shadow Protection",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1004,
+     "name": "Smite",
+     "cost": 5600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 552,
+     "name": "Abolish Disease",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9473,
+     "name": "Flash Heal",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8131,
+     "name": "Mana Burn",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6077,
+     "name": "Renew",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1309595,
+     "name": "Shadow Word: Death",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277374,
+     "name": "Divine Grace",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6064,
+     "name": "Heal",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1706,
+     "name": "Levitate",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8105,
+     "name": "Mind Blast",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10880,
+     "name": "Resurrection",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2767,
+     "name": "Shadow Word: Pain",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19277,
+     "name": "Devouring Plague",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 988,
+     "name": "Dispel Magic",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15264,
+     "name": "Holy Fire",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15431,
+     "name": "Holy Nova",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17312,
+     "name": "Mind Flay",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8192,
+     "name": "Mind Soothe",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2791,
+     "name": "Power Word: Fortitude",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6066,
+     "name": "Power Word: Shield",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9474,
+     "name": "Flash Heal",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6078,
+     "name": "Renew",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6060,
+     "name": "Smite",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14818,
+     "name": "Divine Spirit",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9592,
+     "name": "Fade",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19273,
+     "name": "Feedback",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2060,
+     "name": "Greater Heal",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1006,
+     "name": "Inner Fire",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10874,
+     "name": "Mana Burn",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8106,
+     "name": "Mind Blast",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240720,
+     "name": "Penance",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 996,
+     "name": "Prayer of Healing",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9485,
+     "name": "Shackle Undead",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1309633,
+     "name": "Shadow Word: Death",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277376,
+     "name": "Divine Grace",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15265,
+     "name": "Holy Fire",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10898,
+     "name": "Power Word: Shield",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10888,
+     "name": "Psychic Scream",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10957,
+     "name": "Shadow Protection",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10892,
+     "name": "Shadow Word: Pain",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19278,
+     "name": "Devouring Plague",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10915,
+     "name": "Flash Heal",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 27799,
+     "name": "Holy Nova",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10911,
+     "name": "Mind Control",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17313,
+     "name": "Mind Flay",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10909,
+     "name": "Mind Vision",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10927,
+     "name": "Renew",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10963,
+     "name": "Greater Heal",
+     "cost": 17000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10945,
+     "name": "Mind Blast",
+     "cost": 17000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10881,
+     "name": "Resurrection",
+     "cost": 17000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10933,
+     "name": "Smite",
+     "cost": 17000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15266,
+     "name": "Holy Fire",
+     "cost": 18000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10875,
+     "name": "Mana Burn",
+     "cost": 18000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10937,
+     "name": "Power Word: Fortitude",
+     "cost": 18000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10899,
+     "name": "Power Word: Shield",
+     "cost": 18000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1309635,
+     "name": "Shadow Word: Death",
+     "cost": 18000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277377,
+     "name": "Divine Grace",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14819,
+     "name": "Divine Spirit",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10941,
+     "name": "Fade",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19274,
+     "name": "Feedback",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10916,
+     "name": "Flash Heal",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10951,
+     "name": "Inner Fire",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240721,
+     "name": "Penance",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10960,
+     "name": "Prayer of Healing",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240826,
+     "name": "Prayer of Mending",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10928,
+     "name": "Renew",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10893,
+     "name": "Shadow Word: Pain",
+     "cost": 20000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19279,
+     "name": "Devouring Plague",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10964,
+     "name": "Greater Heal",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 27800,
+     "name": "Holy Nova",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10946,
+     "name": "Mind Blast",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17314,
+     "name": "Mind Flay",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10953,
+     "name": "Mind Soothe",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15267,
+     "name": "Holy Fire",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10900,
+     "name": "Power Word: Shield",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10934,
+     "name": "Smite",
+     "cost": 25000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10917,
+     "name": "Flash Heal",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10876,
+     "name": "Mana Burn",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10890,
+     "name": "Psychic Scream",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10929,
+     "name": "Renew",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10958,
+     "name": "Shadow Protection",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1309636,
+     "name": "Shadow Word: Death",
+     "cost": 26000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1277378,
+     "name": "Divine Grace",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10965,
+     "name": "Greater Heal",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10947,
+     "name": "Mind Blast",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10912,
+     "name": "Mind Control",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20770,
+     "name": "Resurrection",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10894,
+     "name": "Shadow Word: Pain",
+     "cost": 27000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19280,
+     "name": "Devouring Plague",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 27841,
+     "name": "Divine Spirit",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10942,
+     "name": "Fade",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19275,
+     "name": "Feedback",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15261,
+     "name": "Holy Fire",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 27801,
+     "name": "Holy Nova",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10952,
+     "name": "Inner Fire",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18807,
+     "name": "Mind Flay",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1316995,
+     "name": "Penance",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10938,
+     "name": "Power Word: Fortitude",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10901,
+     "name": "Power Word: Shield",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10961,
+     "name": "Prayer of Healing",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240827,
+     "name": "Prayer of Mending",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 27681,
+     "name": "Prayer of Spirit",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10955,
+     "name": "Shackle Undead",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 3,
+   "npc": "Claude Erksine",
+   "zone": "Farstrider Lodge",
+   "seen": 1793976710,
+   "rows": [
+    {
+     "spell": 4187,
+     "name": "Great Stamina",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4188,
+     "name": "Great Stamina",
+     "cost": 120,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24545,
+     "name": "Natural Armor",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24549,
+     "name": "Natural Armor",
+     "cost": 120,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4189,
+     "name": "Great Stamina",
+     "cost": 400,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24550,
+     "name": "Natural Armor",
+     "cost": 400,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24493,
+     "name": "Arcane Resistance",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23992,
+     "name": "Fire Resistance",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24446,
+     "name": "Frost Resistance",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14917,
+     "name": "Growl",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24492,
+     "name": "Nature Resistance",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24488,
+     "name": "Shadow Resistance",
+     "cost": 440,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4190,
+     "name": "Great Stamina",
+     "cost": 1400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24551,
+     "name": "Natural Armor",
+     "cost": 1400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24497,
+     "name": "Arcane Resistance",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24439,
+     "name": "Fire Resistance",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24447,
+     "name": "Frost Resistance",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4191,
+     "name": "Great Stamina",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14918,
+     "name": "Growl",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24552,
+     "name": "Natural Armor",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24502,
+     "name": "Nature Resistance",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24505,
+     "name": "Shadow Resistance",
+     "cost": 1600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4192,
+     "name": "Great Stamina",
+     "cost": 2800,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24553,
+     "name": "Natural Armor",
+     "cost": 2800,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24500,
+     "name": "Arcane Resistance",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24444,
+     "name": "Fire Resistance",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24448,
+     "name": "Frost Resistance",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14919,
+     "name": "Growl",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24503,
+     "name": "Nature Resistance",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24506,
+     "name": "Shadow Resistance",
+     "cost": 3600,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4193,
+     "name": "Great Stamina",
+     "cost": 4800,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24554,
+     "name": "Natural Armor",
+     "cost": 4800,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4194,
+     "name": "Great Stamina",
+     "cost": 6400,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24555,
+     "name": "Natural Armor",
+     "cost": 6400,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24501,
+     "name": "Arcane Resistance",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24445,
+     "name": "Fire Resistance",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24449,
+     "name": "Frost Resistance",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14920,
+     "name": "Growl",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24504,
+     "name": "Nature Resistance",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24507,
+     "name": "Shadow Resistance",
+     "cost": 7200,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5041,
+     "name": "Great Stamina",
+     "cost": 8400,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24629,
+     "name": "Natural Armor",
+     "cost": 8400,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5042,
+     "name": "Great Stamina",
+     "cost": 10000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14921,
+     "name": "Growl",
+     "cost": 10000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24630,
+     "name": "Natural Armor",
+     "cost": 10000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 3,
+   "npc": "Dargh Trueaim",
+   "zone": "Farstrider Lodge",
+   "seen": 1793976713,
+   "rows": [
+    {
+     "spell": 3044,
+     "name": "Arcane Shot",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14281,
+     "name": "Arcane Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13165,
+     "name": "Aspect of the Hawk",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13163,
+     "name": "Aspect of the Monkey",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5116,
+     "name": "Concussive Shot",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1130,
+     "name": "Hunter's Mark",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13795,
+     "name": "Immolation Trap",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 136,
+     "name": "Mend Pet",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1495,
+     "name": "Mongoose Bite",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14260,
+     "name": "Raptor Strike",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14261,
+     "name": "Raptor Strike",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1513,
+     "name": "Scare Beast",
+     "cost": 1200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1978,
+     "name": "Serpent Sting",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13549,
+     "name": "Serpent Sting",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1494,
+     "name": "Track Beasts",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19883,
+     "name": "Track Humanoids",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2974,
+     "name": "Wing Clip",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 200,
+     "level": 8,
+     "kind": "used"
+    },
+    {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 600,
+     "level": 12,
+     "kind": "available"
+    },
+    {
+     "spell": 6197,
+     "name": "Eagle Eye",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 1002,
+     "name": "Eyes of the Beast",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19434,
+     "name": "Aimed Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14274,
+     "name": "Distracting Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14323,
+     "name": "Hunter's Mark",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3043,
+     "name": "Scorpid Sting",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1462,
+     "name": "Beast Lore",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14262,
+     "name": "Raptor Strike",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19885,
+     "name": "Track Hidden",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14302,
+     "name": "Immolation Trap",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3045,
+     "name": "Rapid Fire",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13551,
+     "name": "Serpent Sting",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19880,
+     "name": "Track Elementals",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20900,
+     "name": "Aimed Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14283,
+     "name": "Arcane Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14319,
+     "name": "Aspect of the Hawk",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13809,
+     "name": "Frost Trap",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3661,
+     "name": "Mend Pet",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13161,
+     "name": "Aspect of the Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1242634,
+     "name": "Counterattack",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15629,
+     "name": "Distracting Shot",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5384,
+     "name": "Feign Death",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14269,
+     "name": "Mongoose Bite",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14326,
+     "name": "Scare Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1543,
+     "name": "Flare",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14263,
+     "name": "Raptor Strike",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19878,
+     "name": "Track Demons",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299348,
+     "name": "Trueshot Aura",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14272,
+     "name": "Disengage",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13813,
+     "name": "Explosive Trap",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13552,
+     "name": "Serpent Sting",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20901,
+     "name": "Aimed Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14284,
+     "name": "Arcane Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14303,
+     "name": "Immolation Trap",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3662,
+     "name": "Mend Pet",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293525,
+     "name": "Summon Hawk",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3034,
+     "name": "Viper Sting",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14320,
+     "name": "Aspect of the Hawk",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14267,
+     "name": "Wing Clip",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299445,
+     "name": "Aspect of the Beast",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13159,
+     "name": "Aspect of the Pack",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15630,
+     "name": "Distracting Shot",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14310,
+     "name": "Freezing Trap",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14324,
+     "name": "Hunter's Mark",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8737,
+     "name": "Mail",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14264,
+     "name": "Raptor Strike",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19882,
+     "name": "Track Giants",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19506,
+     "name": "Trueshot Aura",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1510,
+     "name": "Volley",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20909,
+     "name": "Counterattack",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13553,
+     "name": "Serpent Sting",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20902,
+     "name": "Aimed Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14285,
+     "name": "Arcane Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14316,
+     "name": "Explosive Trap",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13542,
+     "name": "Mend Pet",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14270,
+     "name": "Mongoose Bite",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20043,
+     "name": "Aspect of the Wild",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14304,
+     "name": "Immolation Trap",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14327,
+     "name": "Scare Beast",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14279,
+     "name": "Viper Sting",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14321,
+     "name": "Aspect of the Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14273,
+     "name": "Disengage",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14265,
+     "name": "Raptor Strike",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310785,
+     "name": "Sniper Shot",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293526,
+     "name": "Summon Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299446,
+     "name": "Aspect of the Beast",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15631,
+     "name": "Distracting Shot",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13554,
+     "name": "Serpent Sting",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19879,
+     "name": "Track Dragonkin",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20905,
+     "name": "Trueshot Aura",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14294,
+     "name": "Volley",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20903,
+     "name": "Aimed Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14286,
+     "name": "Arcane Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13543,
+     "name": "Mend Pet",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20910,
+     "name": "Counterattack",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14317,
+     "name": "Explosive Trap",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20190,
+     "name": "Aspect of the Wild",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14305,
+     "name": "Immolation Trap",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14266,
+     "name": "Raptor Strike",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14280,
+     "name": "Viper Sting",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14322,
+     "name": "Aspect of the Hawk",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14325,
+     "name": "Hunter's Mark",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14271,
+     "name": "Mongoose Bite",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13555,
+     "name": "Serpent Sting",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310786,
+     "name": "Sniper Shot",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14295,
+     "name": "Volley",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20904,
+     "name": "Aimed Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14287,
+     "name": "Arcane Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299447,
+     "name": "Aspect of the Beast",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15632,
+     "name": "Distracting Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14311,
+     "name": "Freezing Trap",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13544,
+     "name": "Mend Pet",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293527,
+     "name": "Summon Hawk",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20906,
+     "name": "Trueshot Aura",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14268,
+     "name": "Wing Clip",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 8,
+   "npc": "Elsharin",
+   "zone": "Stormwind City",
+   "seen": 1793980825,
+   "rows": [
+    {
+     "spell": 1459,
+     "name": "Arcane Intellect",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 5504,
+     "name": "Conjure Water",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 116,
+     "name": "Frostbolt",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1296017,
+     "name": "Comprehend Scroll",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 587,
+     "name": "Conjure Food",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2136,
+     "name": "Fire Blast",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 143,
+     "name": "Fireball",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5143,
+     "name": "Arcane Missiles",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 205,
+     "name": "Frostbolt",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 118,
+     "name": "Polymorph",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5505,
+     "name": "Conjure Water",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7300,
+     "name": "Frost Armor",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 122,
+     "name": "Frost Nova",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 597,
+     "name": "Conjure Food",
+     "cost": 600,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 604,
+     "name": "Dampen Magic",
+     "cost": 600,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 145,
+     "name": "Fireball",
+     "cost": 600,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 130,
+     "name": "Slow Fall",
+     "cost": 600,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1449,
+     "name": "Arcane Explosion",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1460,
+     "name": "Arcane Intellect",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2137,
+     "name": "Fire Blast",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 837,
+     "name": "Frostbolt",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5144,
+     "name": "Arcane Missiles",
+     "cost": 1700,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2120,
+     "name": "Flamestrike",
+     "cost": 1700,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1008,
+     "name": "Amplify Magic",
+     "cost": 1800,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3140,
+     "name": "Fireball",
+     "cost": 1800,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 475,
+     "name": "Remove Lesser Curse",
+     "cost": 1800,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1953,
+     "name": "Blink",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10,
+     "name": "Blizzard",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5506,
+     "name": "Conjure Water",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12051,
+     "name": "Evocation",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 543,
+     "name": "Fire Ward",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7301,
+     "name": "Frost Armor",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7322,
+     "name": "Frostbolt",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1463,
+     "name": "Mana Shield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12824,
+     "name": "Polymorph",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8437,
+     "name": "Arcane Explosion",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 990,
+     "name": "Conjure Food",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2138,
+     "name": "Fire Blast",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6143,
+     "name": "Frost Ward",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2948,
+     "name": "Scorch",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5145,
+     "name": "Arcane Missiles",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2139,
+     "name": "Counterspell",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8450,
+     "name": "Dampen Magic",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8400,
+     "name": "Fireball",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2121,
+     "name": "Flamestrike",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12505,
+     "name": "Pyroblast",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 120,
+     "name": "Cone of Cold",
+     "cost": 4800,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 865,
+     "name": "Frost Nova",
+     "cost": 4800,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8406,
+     "name": "Frostbolt",
+     "cost": 4800,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1461,
+     "name": "Arcane Intellect",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6141,
+     "name": "Blizzard",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 759,
+     "name": "Conjure Mana Agate",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 400640,
+     "name": "Ice Lance",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8494,
+     "name": "Mana Shield",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8444,
+     "name": "Scorch",
+     "cost": 5500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8455,
+     "name": "Amplify Magic",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239696,
+     "name": "Arcane Blast",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8438,
+     "name": "Arcane Explosion",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6127,
+     "name": "Conjure Water",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8412,
+     "name": "Fire Blast",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8457,
+     "name": "Fire Ward",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8401,
+     "name": "Fireball",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7302,
+     "name": "Ice Armor",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12522,
+     "name": "Pyroblast",
+     "cost": 6200,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8416,
+     "name": "Arcane Missiles",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6129,
+     "name": "Conjure Food",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8422,
+     "name": "Flamestrike",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8461,
+     "name": "Frost Ward",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8407,
+     "name": "Frostbolt",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8492,
+     "name": "Cone of Cold",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240044,
+     "name": "Ice Lance",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6117,
+     "name": "Mage Armor",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8445,
+     "name": "Scorch",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1326080,
+     "name": "Arcane Wrath",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13018,
+     "name": "Blast Wave",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8427,
+     "name": "Blizzard",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8451,
+     "name": "Dampen Magic",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8402,
+     "name": "Fireball",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8495,
+     "name": "Mana Shield",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12523,
+     "name": "Pyroblast",
+     "cost": 11000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8439,
+     "name": "Arcane Explosion",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3552,
+     "name": "Conjure Mana Jade",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8413,
+     "name": "Fire Blast",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8408,
+     "name": "Frostbolt",
+     "cost": 12000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239697,
+     "name": "Arcane Blast",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8417,
+     "name": "Arcane Missiles",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10138,
+     "name": "Conjure Water",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8458,
+     "name": "Fire Ward",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8423,
+     "name": "Flamestrike",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6131,
+     "name": "Frost Nova",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 401502,
+     "name": "Frostfire Bolt",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7320,
+     "name": "Ice Armor",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12825,
+     "name": "Polymorph",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8446,
+     "name": "Scorch",
+     "cost": 13000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10169,
+     "name": "Amplify Magic",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10156,
+     "name": "Arcane Intellect",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10159,
+     "name": "Cone of Cold",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10144,
+     "name": "Conjure Food",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10148,
+     "name": "Fireball",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8462,
+     "name": "Frost Ward",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240045,
+     "name": "Ice Lance",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12524,
+     "name": "Pyroblast",
+     "cost": 14000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13019,
+     "name": "Blast Wave",
+     "cost": 15000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10185,
+     "name": "Blizzard",
+     "cost": 15000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10179,
+     "name": "Frostbolt",
+     "cost": 15000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10191,
+     "name": "Mana Shield",
+     "cost": 15000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10201,
+     "name": "Arcane Explosion",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10197,
+     "name": "Fire Blast",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13031,
+     "name": "Ice Barrier",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22782,
+     "name": "Mage Armor",
+     "cost": 21000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10205,
+     "name": "Scorch",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10211,
+     "name": "Arcane Missiles",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1326081,
+     "name": "Arcane Wrath",
+     "cost": 22000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10053,
+     "name": "Conjure Mana Citrine",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10173,
+     "name": "Dampen Magic",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10149,
+     "name": "Fireball",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10215,
+     "name": "Flamestrike",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240046,
+     "name": "Ice Lance",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12525,
+     "name": "Pyroblast",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239699,
+     "name": "Arcane Blast",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10160,
+     "name": "Cone of Cold",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10139,
+     "name": "Conjure Water",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10223,
+     "name": "Fire Ward",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10180,
+     "name": "Frostbolt",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237312,
+     "name": "Frostfire Bolt",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10219,
+     "name": "Ice Armor",
+     "cost": 23000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13020,
+     "name": "Blast Wave",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10186,
+     "name": "Blizzard",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10145,
+     "name": "Conjure Food",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10177,
+     "name": "Frost Ward",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13032,
+     "name": "Ice Barrier",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10192,
+     "name": "Mana Shield",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10206,
+     "name": "Scorch",
+     "cost": 24000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10170,
+     "name": "Amplify Magic",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10202,
+     "name": "Arcane Explosion",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10199,
+     "name": "Fire Blast",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10150,
+     "name": "Fireball",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10230,
+     "name": "Frost Nova",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12526,
+     "name": "Pyroblast",
+     "cost": 26000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10157,
+     "name": "Arcane Intellect",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10212,
+     "name": "Arcane Missiles",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10216,
+     "name": "Flamestrike",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10181,
+     "name": "Frostbolt",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240047,
+     "name": "Ice Lance",
+     "cost": 28000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10161,
+     "name": "Cone of Cold",
+     "cost": 29000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10054,
+     "name": "Conjure Mana Ruby",
+     "cost": 29000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13033,
+     "name": "Ice Barrier",
+     "cost": 29000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22783,
+     "name": "Mage Armor",
+     "cost": 29000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10207,
+     "name": "Scorch",
+     "cost": 29000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1239700,
+     "name": "Arcane Blast",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1326082,
+     "name": "Arcane Wrath",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13021,
+     "name": "Blast Wave",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10187,
+     "name": "Blizzard",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10174,
+     "name": "Dampen Magic",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10225,
+     "name": "Fire Ward",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10151,
+     "name": "Fireball",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237313,
+     "name": "Frostfire Bolt",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10220,
+     "name": "Ice Armor",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 10193,
+     "name": "Mana Shield",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 12826,
+     "name": "Polymorph",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18809,
+     "name": "Pyroblast",
+     "cost": 30000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 4,
+   "npc": "Lord Tony Romano",
+   "zone": "Stormwind City",
+   "seen": 1793981381,
+   "rows": [
+    {
+     "spell": 1784,
+     "name": "Stealth",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 53,
+     "name": "Backstab",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 921,
+     "name": "Pick Pocket",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1776,
+     "name": "Gouge",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1757,
+     "name": "Sinister Strike",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5277,
+     "name": "Evasion",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6760,
+     "name": "Eviscerate",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6770,
+     "name": "Sap",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5171,
+     "name": "Slice and Dice",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2983,
+     "name": "Sprint",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2589,
+     "name": "Backstab",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1766,
+     "name": "Kick",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8647,
+     "name": "Expose Armor",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 703,
+     "name": "Garrote",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1758,
+     "name": "Sinister Strike",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6761,
+     "name": "Eviscerate",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1966,
+     "name": "Feint",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1804,
+     "name": "Pick Lock",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8676,
+     "name": "Ambush",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1777,
+     "name": "Gouge",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1328825,
+     "name": "Poised",
+     "cost": 2200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2590,
+     "name": "Backstab",
+     "cost": 4300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3420,
+     "name": "Crippling Poison",
+     "cost": 4300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1943,
+     "name": "Rupture",
+     "cost": 4300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1785,
+     "name": "Stealth",
+     "cost": 4300,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1725,
+     "name": "Distract",
+     "cost": 4500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8631,
+     "name": "Garrote",
+     "cost": 4500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1759,
+     "name": "Sinister Strike",
+     "cost": 4500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1856,
+     "name": "Vanish",
+     "cost": 4500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2836,
+     "name": "Detect Traps",
+     "cost": 6000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6762,
+     "name": "Eviscerate",
+     "cost": 6000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5763,
+     "name": "Mind-numbing Poison",
+     "cost": 6000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1329283,
+     "name": "Shank",
+     "cost": 6000,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8724,
+     "name": "Ambush",
+     "cost": 7000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1833,
+     "name": "Cheap Shot",
+     "cost": 7000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8649,
+     "name": "Expose Armor",
+     "cost": 7000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1767,
+     "name": "Kick",
+     "cost": 7000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2591,
+     "name": "Backstab",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6768,
+     "name": "Feint",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8687,
+     "name": "Instant Poison II",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8639,
+     "name": "Rupture",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2070,
+     "name": "Sap",
+     "cost": 8000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2835,
+     "name": "Deadly Poison",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1842,
+     "name": "Disarm Trap",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8632,
+     "name": "Garrote",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 408,
+     "name": "Kidney Shot",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1760,
+     "name": "Sinister Strike",
+     "cost": 9000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8623,
+     "name": "Eviscerate",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8629,
+     "name": "Gouge",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13220,
+     "name": "Wound Poison",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8725,
+     "name": "Ambush",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2094,
+     "name": "Blind",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6510,
+     "name": "Blinding Powder",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8696,
+     "name": "Sprint",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8721,
+     "name": "Backstab",
+     "cost": 15000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8650,
+     "name": "Expose Armor",
+     "cost": 15000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8691,
+     "name": "Instant Poison III",
+     "cost": 15000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8640,
+     "name": "Rupture",
+     "cost": 15000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2837,
+     "name": "Deadly Poison II",
+     "cost": 16000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8633,
+     "name": "Garrote",
+     "cost": 16000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8694,
+     "name": "Mind-numbing Poison II",
+     "cost": 16000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8621,
+     "name": "Sinister Strike",
+     "cost": 16000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8624,
+     "name": "Eviscerate",
+     "cost": 19000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8637,
+     "name": "Feint",
+     "cost": 19000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1860,
+     "name": "Safe Fall",
+     "cost": 19000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1786,
+     "name": "Stealth",
+     "cost": 19000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13228,
+     "name": "Wound Poison II",
+     "cost": 19000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11267,
+     "name": "Ambush",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1768,
+     "name": "Kick",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6774,
+     "name": "Slice and Dice",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1857,
+     "name": "Vanish",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11279,
+     "name": "Backstab",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11341,
+     "name": "Instant Poison IV",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11273,
+     "name": "Rupture",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1329549,
+     "name": "Shank",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11357,
+     "name": "Deadly Poison III",
+     "cost": 25000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11197,
+     "name": "Expose Armor",
+     "cost": 25000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11289,
+     "name": "Garrote",
+     "cost": 25000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11285,
+     "name": "Gouge",
+     "cost": 25000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11293,
+     "name": "Sinister Strike",
+     "cost": 25000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1325756,
+     "name": "Death Mark",
+     "cost": 43000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11299,
+     "name": "Eviscerate",
+     "cost": 43000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11297,
+     "name": "Sap",
+     "cost": 43000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13229,
+     "name": "Wound Poison III",
+     "cost": 43000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11268,
+     "name": "Ambush",
+     "cost": 44000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3421,
+     "name": "Crippling Poison II",
+     "cost": 44000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8643,
+     "name": "Kidney Shot",
+     "cost": 44000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1241582,
+     "name": "Mutilate",
+     "cost": 44000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11280,
+     "name": "Backstab",
+     "cost": 45000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11303,
+     "name": "Feint",
+     "cost": 45000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11342,
+     "name": "Instant Poison V",
+     "cost": 45000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11400,
+     "name": "Mind-numbing Poison III",
+     "cost": 45000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11274,
+     "name": "Rupture",
+     "cost": 45000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11358,
+     "name": "Deadly Poison IV",
+     "cost": 46000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11290,
+     "name": "Garrote",
+     "cost": 46000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11294,
+     "name": "Sinister Strike",
+     "cost": 46000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1325757,
+     "name": "Death Mark",
+     "cost": 48000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11300,
+     "name": "Eviscerate",
+     "cost": 48000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11198,
+     "name": "Expose Armor",
+     "cost": 48000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13230,
+     "name": "Wound Poison IV",
+     "cost": 48000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11269,
+     "name": "Ambush",
+     "cost": 50000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1769,
+     "name": "Kick",
+     "cost": 50000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11305,
+     "name": "Sprint",
+     "cost": 50000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11281,
+     "name": "Backstab",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1325758,
+     "name": "Death Mark",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11286,
+     "name": "Gouge",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11343,
+     "name": "Instant Poison VI",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1241584,
+     "name": "Mutilate",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11275,
+     "name": "Rupture",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1787,
+     "name": "Stealth",
+     "cost": 51000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 1,
+   "npc": "Thran Khorman",
+   "zone": "Anvilmar",
+   "seen": 1793980032,
+   "rows": [
+    {
+     "spell": 6673,
+     "name": "Battle Shout",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 100,
+     "name": "Charge",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 772,
+     "name": "Rend",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6343,
+     "name": "Thunder Clap",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 9,
+   "npc": "Ursula Deline",
+   "zone": "Stormwind City",
+   "seen": 1793982266,
+   "rows": [
+    {
+     "spell": 348,
+     "name": "Immolate",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 172,
+     "name": "Corruption",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 702,
+     "name": "Curse of Weakness",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1454,
+     "name": "Life Tap",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 695,
+     "name": "Shadow Bolt",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 980,
+     "name": "Bane of Agony",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5782,
+     "name": "Fear",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6201,
+     "name": "Create Healthstone",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 696,
+     "name": "Demon Skin",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1120,
+     "name": "Drain Soul",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 707,
+     "name": "Immolate",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1108,
+     "name": "Curse of Weakness",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 755,
+     "name": "Health Funnel",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 705,
+     "name": "Shadow Bolt",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6222,
+     "name": "Corruption",
+     "cost": 1000,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 704,
+     "name": "Curse of Recklessness",
+     "cost": 1000,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 689,
+     "name": "Drain Life",
+     "cost": 1000,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1455,
+     "name": "Life Tap",
+     "cost": 1600,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5697,
+     "name": "Unending Breath",
+     "cost": 1600,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1014,
+     "name": "Bane of Agony",
+     "cost": 1700,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 693,
+     "name": "Create Soulstone",
+     "cost": 1700,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5676,
+     "name": "Searing Pain",
+     "cost": 1700,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 440892,
+     "name": "Curse of the Elements",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 706,
+     "name": "Demon Armor",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3698,
+     "name": "Health Funnel",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1094,
+     "name": "Immolate",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5740,
+     "name": "Rain of Fire",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 698,
+     "name": "Ritual of Summoning",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1088,
+     "name": "Shadow Bolt",
+     "cost": 2500,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6202,
+     "name": "Create Healthstone",
+     "cost": 3800,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6205,
+     "name": "Curse of Weakness",
+     "cost": 3800,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 699,
+     "name": "Drain Life",
+     "cost": 3800,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 126,
+     "name": "Eye of Kilrogg",
+     "cost": 3800,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6223,
+     "name": "Corruption",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5138,
+     "name": "Drain Mana",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8288,
+     "name": "Drain Soul",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5500,
+     "name": "Sense Demons",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18867,
+     "name": "Shadowburn",
+     "cost": 4800,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1714,
+     "name": "Curse of Tongues",
+     "cost": 5000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 132,
+     "name": "Detect Invisibility",
+     "cost": 5000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1456,
+     "name": "Life Tap",
+     "cost": 5000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17919,
+     "name": "Searing Pain",
+     "cost": 5000,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6217,
+     "name": "Bane of Agony",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 710,
+     "name": "Banish",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6366,
+     "name": "Create Firestone",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7658,
+     "name": "Curse of Recklessness",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3699,
+     "name": "Health Funnel",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1106,
+     "name": "Shadow Bolt",
+     "cost": 6000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20752,
+     "name": "Create Soulstone",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311676,
+     "name": "Curse of the Elements",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1086,
+     "name": "Demon Armor",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 709,
+     "name": "Drain Life",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1949,
+     "name": "Hellfire",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2941,
+     "name": "Immolate",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1098,
+     "name": "Subjugate Demon",
+     "cost": 7000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293818,
+     "name": "Conflagrate",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7646,
+     "name": "Curse of Weakness",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6213,
+     "name": "Fear",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6229,
+     "name": "Shadow Ward",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18868,
+     "name": "Shadowburn",
+     "cost": 8000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7648,
+     "name": "Corruption",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5699,
+     "name": "Create Healthstone",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6226,
+     "name": "Drain Mana",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6219,
+     "name": "Rain of Fire",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17920,
+     "name": "Searing Pain",
+     "cost": 9000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17951,
+     "name": "Create Firestone",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2362,
+     "name": "Create Spellstone",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3700,
+     "name": "Health Funnel",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11687,
+     "name": "Life Tap",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7641,
+     "name": "Shadow Bolt",
+     "cost": 10000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11711,
+     "name": "Bane of Agony",
+     "cost": 11000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2970,
+     "name": "Detect Invisibility",
+     "cost": 11000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7651,
+     "name": "Drain Life",
+     "cost": 11000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8289,
+     "name": "Drain Soul",
+     "cost": 11000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18879,
+     "name": "Siphon Life",
+     "cost": 11000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17962,
+     "name": "Conflagrate",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20755,
+     "name": "Create Soulstone",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311677,
+     "name": "Curse of the Elements",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11733,
+     "name": "Demon Armor",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5484,
+     "name": "Howl of Terror",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11665,
+     "name": "Immolate",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18869,
+     "name": "Shadowburn",
+     "cost": 14000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7659,
+     "name": "Curse of Recklessness",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11707,
+     "name": "Curse of Weakness",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6789,
+     "name": "Death Coil",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11683,
+     "name": "Hellfire",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17921,
+     "name": "Searing Pain",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11739,
+     "name": "Shadow Ward",
+     "cost": 15000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11671,
+     "name": "Corruption",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11703,
+     "name": "Drain Mana",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11693,
+     "name": "Health Funnel",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11659,
+     "name": "Shadow Bolt",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11725,
+     "name": "Subjugate Demon",
+     "cost": 16000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17952,
+     "name": "Create Firestone",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11729,
+     "name": "Create Healthstone",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11699,
+     "name": "Drain Life",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11688,
+     "name": "Life Tap",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11677,
+     "name": "Rain of Fire",
+     "cost": 20000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11712,
+     "name": "Bane of Agony",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18647,
+     "name": "Banish",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18930,
+     "name": "Conflagrate",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17727,
+     "name": "Create Spellstone",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18870,
+     "name": "Shadowburn",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18880,
+     "name": "Siphon Life",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6353,
+     "name": "Soul Fire",
+     "cost": 21000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20756,
+     "name": "Create Soulstone",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1311680,
+     "name": "Curse of the Elements",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11719,
+     "name": "Curse of Tongues",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17925,
+     "name": "Death Coil",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11734,
+     "name": "Demon Armor",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11743,
+     "name": "Detect Invisibility",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11667,
+     "name": "Immolate",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293812,
+     "name": "Incinerate",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17922,
+     "name": "Searing Pain",
+     "cost": 22000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11708,
+     "name": "Curse of Weakness",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11675,
+     "name": "Drain Soul",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11694,
+     "name": "Health Funnel",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11660,
+     "name": "Shadow Bolt",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11740,
+     "name": "Shadow Ward",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18931,
+     "name": "Conflagrate",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11672,
+     "name": "Corruption",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11700,
+     "name": "Drain Life",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11704,
+     "name": "Drain Mana",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11684,
+     "name": "Hellfire",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17928,
+     "name": "Howl of Terror",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17953,
+     "name": "Create Firestone",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11717,
+     "name": "Curse of Recklessness",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6215,
+     "name": "Fear",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11689,
+     "name": "Life Tap",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18871,
+     "name": "Shadowburn",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17924,
+     "name": "Soul Fire",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11713,
+     "name": "Bane of Agony",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11730,
+     "name": "Create Healthstone",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17926,
+     "name": "Death Coil",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11678,
+     "name": "Rain of Fire",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17923,
+     "name": "Searing Pain",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18881,
+     "name": "Siphon Life",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11726,
+     "name": "Subjugate Demon",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 603,
+     "name": "Bane of Doom",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18932,
+     "name": "Conflagrate",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20757,
+     "name": "Create Soulstone",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17728,
+     "name": "Create Spellstone",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11735,
+     "name": "Demon Armor",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11695,
+     "name": "Health Funnel",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11668,
+     "name": "Immolate",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293813,
+     "name": "Incinerate",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11661,
+     "name": "Shadow Bolt",
+     "cost": 27000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 2,
+   "npc": "Woo Ping",
+   "zone": "Stormwind City",
+   "seen": 1793982935,
+   "rows": [
+    {
+     "spell": 201,
+     "name": "One-Handed Swords",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 202,
+     "name": "Two-Handed Swords",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 200,
+     "name": "Polearms",
+     "cost": 10000,
+     "level": 20,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 5,
+   "npc": "Woo Ping",
+   "zone": "Stormwind City",
+   "seen": 1793981653,
+   "rows": [
+    {
+     "spell": 1180,
+     "name": "Daggers",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 227,
+     "name": "Staves",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
+   "class": 9,
+   "npc": "Woo Ping",
+   "zone": "Stormwind City",
+   "seen": 1793982173,
+   "rows": [
+    {
+     "spell": 1180,
+     "name": "Daggers",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 201,
+     "name": "One-Handed Swords",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 227,
+     "name": "Staves",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
+   "class": 1,
+   "npc": "Wu Shen",
+   "zone": "Stormwind City",
+   "seen": 1793980393,
+   "rows": [
+    {
+     "spell": 6673,
+     "name": "Battle Shout",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 100,
+     "name": "Charge",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 772,
+     "name": "Rend",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6343,
+     "name": "Thunder Clap",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1715,
+     "name": "Hamstring",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 284,
+     "name": "Heroic Strike",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2687,
+     "name": "Bloodrage",
+     "cost": 700,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6546,
+     "name": "Rend",
+     "cost": 700,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5242,
+     "name": "Battle Shout",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7384,
+     "name": "Overpower",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 72,
+     "name": "Shield Bash",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1160,
+     "name": "Demoralizing Shout",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6572,
+     "name": "Revenge",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310185,
+     "name": "Tactical Mastery",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 285,
+     "name": "Heroic Strike",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 694,
+     "name": "Mocking Blow",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2565,
+     "name": "Shield Block",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 676,
+     "name": "Disarm",
+     "cost": 3200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8198,
+     "name": "Thunder Clap",
+     "cost": 3200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 845,
+     "name": "Cleave",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6547,
+     "name": "Rend",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20230,
+     "name": "Retaliation",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240193,
+     "name": "Slam",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 402927,
+     "name": "Victory Rush",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6192,
+     "name": "Battle Shout",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5246,
+     "name": "Intimidating Shout",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7405,
+     "name": "Sunder Armor",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6190,
+     "name": "Demoralizing Shout",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5308,
+     "name": "Execute",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1608,
+     "name": "Heroic Strike",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6574,
+     "name": "Revenge",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1161,
+     "name": "Challenging Shout",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6178,
+     "name": "Charge",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7400,
+     "name": "Mocking Blow",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7887,
+     "name": "Overpower",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 871,
+     "name": "Shield Wall",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8204,
+     "name": "Thunder Clap",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18499,
+     "name": "Berserker Rage",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7369,
+     "name": "Cleave",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6548,
+     "name": "Rend",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1464,
+     "name": "Slam",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11549,
+     "name": "Battle Shout",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20658,
+     "name": "Execute",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7372,
+     "name": "Hamstring",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11564,
+     "name": "Heroic Strike",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1671,
+     "name": "Shield Bash",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11554,
+     "name": "Demoralizing Shout",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7379,
+     "name": "Revenge",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8380,
+     "name": "Sunder Armor",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7402,
+     "name": "Mocking Blow",
+     "cost": 18000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1680,
+     "name": "Whirlwind",
+     "cost": 18000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6552,
+     "name": "Pummel",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8820,
+     "name": "Slam",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8205,
+     "name": "Thunder Clap",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11608,
+     "name": "Cleave",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20660,
+     "name": "Execute",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11565,
+     "name": "Heroic Strike",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 750,
+     "name": "Plate Mail",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11572,
+     "name": "Rend",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11550,
+     "name": "Battle Shout",
+     "cost": 30000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20616,
+     "name": "Intercept",
+     "cost": 30000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11555,
+     "name": "Demoralizing Shout",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11584,
+     "name": "Overpower",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11600,
+     "name": "Revenge",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11578,
+     "name": "Charge",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20559,
+     "name": "Mocking Blow",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11604,
+     "name": "Slam",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11596,
+     "name": "Sunder Armor",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23892,
+     "name": "Bloodthirst",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20661,
+     "name": "Execute",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11566,
+     "name": "Heroic Strike",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21551,
+     "name": "Mortal Strike",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23923,
+     "name": "Shield Slam",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11580,
+     "name": "Thunder Clap",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11609,
+     "name": "Cleave",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1719,
+     "name": "Recklessness",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11573,
+     "name": "Rend",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11551,
+     "name": "Battle Shout",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20617,
+     "name": "Intercept",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1672,
+     "name": "Shield Bash",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23893,
+     "name": "Bloodthirst",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11556,
+     "name": "Demoralizing Shout",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7373,
+     "name": "Hamstring",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21552,
+     "name": "Mortal Strike",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11601,
+     "name": "Revenge",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23924,
+     "name": "Shield Slam",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11605,
+     "name": "Slam",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20662,
+     "name": "Execute",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11567,
+     "name": "Heroic Strike",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20560,
+     "name": "Mocking Blow",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6554,
+     "name": "Pummel",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11597,
+     "name": "Sunder Armor",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11581,
+     "name": "Thunder Clap",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23894,
+     "name": "Bloodthirst",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20569,
+     "name": "Cleave",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21553,
+     "name": "Mortal Strike",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11585,
+     "name": "Overpower",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11574,
+     "name": "Rend",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23925,
+     "name": "Shield Slam",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  }
+ ],
+ "grimoires": [
+  {
+   "class": 9,
+   "npc": "Spackle Thornberry",
+   "zone": "Stormwind City",
+   "seen": 1793982631,
+   "rows": [
+    {
+     "name": "Grimoire of Firebolt (Rank 2)",
+     "cost": 100
+    },
+    {
+     "name": "Grimoire of Firebolt (Rank 3)",
+     "cost": 1500
+    },
+    {
+     "name": "Grimoire of Firebolt (Rank 4)",
+     "cost": 5000
+    },
+    {
+     "name": "Grimoire of Firebolt (Rank 5)",
+     "cost": 10000
+    },
+    {
+     "name": "Grimoire of Firebolt (Rank 6)",
+     "cost": 14000
+    },
+    {
+     "name": "Grimoire of Firebolt (Rank 7)",
+     "cost": 24000
+    },
+    {
+     "name": "Grimoire of Blood Pact (Rank 1)",
+     "cost": 100
+    },
+    {
+     "name": "Grimoire of Blood Pact (Rank 2)",
+     "cost": 900
+    },
+    {
+     "name": "Grimoire of Blood Pact (Rank 3)",
+     "cost": 4000
+    },
+    {
+     "name": "Grimoire of Blood Pact (Rank 4)",
+     "cost": 10000
+    },
+    {
+     "name": "Grimoire of Blood Pact (Rank 5)",
+     "cost": 15000
+    },
+    {
+     "name": "Grimoire of Fire Shield (Rank 1)",
+     "cost": 900
+    },
+    {
+     "name": "Grimoire of Fire Shield (Rank 2)",
+     "cost": 3000
+    },
+    {
+     "name": "Grimoire of Fire Shield (Rank 3)",
+     "cost": 8000
+    },
+    {
+     "name": "Grimoire of Fire Shield (Rank 4)",
+     "cost": 12000
+    },
+    {
+     "name": "Grimoire of Fire Shield (Rank 5)",
+     "cost": 20000
+    },
+    {
+     "name": "Grimoire of Phase Shift",
+     "cost": 600
+    },
+    {
+     "name": "Grimoire of Torment (Rank 2)",
+     "cost": 2000
+    },
+    {
+     "name": "Grimoire of Torment (Rank 3)",
+     "cost": 6000
+    },
+    {
+     "name": "Grimoire of Torment (Rank 4)",
+     "cost": 11000
+    },
+    {
+     "name": "Grimoire of Torment (Rank 5)",
+     "cost": 15000
+    },
+    {
+     "name": "Grimoire of Torment (Rank 6)",
+     "cost": 26000
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 1)",
+     "cost": 1200
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 2)",
+     "cost": 3000
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 3)",
+     "cost": 7000
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 4)",
+     "cost": 11000
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 5)",
+     "cost": 14000
+    },
+    {
+     "name": "Grimoire of Sacrifice (Rank 6)",
+     "cost": 22000
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 1)",
+     "cost": 1500
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 2)",
+     "cost": 4000
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 3)",
+     "cost": 8000
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 4)",
+     "cost": 11000
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 5)",
+     "cost": 15000
+    },
+    {
+     "name": "Grimoire of Consume Shadows (Rank 6)",
+     "cost": 24000
+    },
+    {
+     "name": "Grimoire of Suffering (Rank 1)",
+     "cost": 3000
+    },
+    {
+     "name": "Grimoire of Suffering (Rank 2)",
+     "cost": 9000
+    },
+    {
+     "name": "Grimoire of Suffering (Rank 3)",
+     "cost": 14000
+    },
+    {
+     "name": "Grimoire of Suffering (Rank 4)",
+     "cost": 26000
+    },
+    {
+     "name": "Grimoire of Lash of Pain (Rank 2)",
+     "cost": 5000
+    },
+    {
+     "name": "Grimoire of Lash of Pain (Rank 3)",
+     "cost": 9000
+    },
+    {
+     "name": "Grimoire of Lash of Pain (Rank 4)",
+     "cost": 12000
+    },
+    {
+     "name": "Grimoire of Lash of Pain (Rank 5)",
+     "cost": 18000
+    },
+    {
+     "name": "Grimoire of Lash of Pain (Rank 6)",
+     "cost": 26000
+    },
+    {
+     "name": "Grimoire of Soothing Kiss (Rank 1)",
+     "cost": 2500
+    },
+    {
+     "name": "Grimoire of Soothing Kiss (Rank 2)",
+     "cost": 8000
+    },
+    {
+     "name": "Grimoire of Soothing Kiss (Rank 3)",
+     "cost": 13000
+    },
+    {
+     "name": "Grimoire of Soothing Kiss (Rank 4)",
+     "cost": 24000
+    },
+    {
+     "name": "Grimoire of Seduction",
+     "cost": 4000
+    },
+    {
+     "name": "Grimoire of Lesser Invisibility",
+     "cost": 7000
+    },
+    {
+     "name": "Grimoire of Devour Magic (Rank 2)",
+     "cost": 10000
+    },
+    {
+     "name": "Grimoire of Devour Magic (Rank 3)",
+     "cost": 13000
+    },
+    {
+     "name": "Grimoire of Devour Magic (Rank 4)",
+     "cost": 20000
+    },
+    {
+     "name": "Grimoire of Tainted Blood (Rank 1)",
+     "cost": 7000
+    },
+    {
+     "name": "Grimoire of Tainted Blood (Rank 2)",
+     "cost": 11000
+    },
+    {
+     "name": "Grimoire of Tainted Blood (Rank 3)",
+     "cost": 14000
+    },
+    {
+     "name": "Grimoire of Tainted Blood (Rank 4)",
+     "cost": 22000
+    },
+    {
+     "name": "Grimoire of Spell Lock (Rank 1)",
+     "cost": 9000
+    },
+    {
+     "name": "Grimoire of Spell Lock (Rank 2)",
+     "cost": 18000
+    },
+    {
+     "name": "Grimoire of Paranoia",
+     "cost": 11000
+    }
+   ]
+  }
+ ]
+}

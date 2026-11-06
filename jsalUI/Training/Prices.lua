@@ -20,15 +20,28 @@ local function SpellOf(index)
     return nil
 end
 
+local KINDS = { header = true, available = true, unavailable = true, used = true }
+
+local function RankOf(spellID)
+    local text = spellID and C_Spell and C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(spellID)
+    return text and text ~= "" and text or nil
+end
+
 local function Rows()
     local rows, highest = {}, 0
     for i = 1, GetNumTrainerServices() do
+        -- Older clients give name, rank, kind; newer ones name, kind, icon,
+        -- with the rank only on the spell itself.
         local name, rank, category = GetTrainerServiceInfo(i)
+        local spell = SpellOf(i)
+        if KINDS[rank] then
+            category, rank = rank, RankOf(spell)
+        end
         if name and category ~= "header" then
             local level = GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(i) or 0
             -- category: "available", "unavailable" (level too low) or "used" (learned).
             rows[#rows + 1] = {
-                spell = SpellOf(i), name = name, rank = rank ~= "" and rank or nil,
+                spell = spell, name = name, rank = rank ~= "" and rank or nil,
                 level = level, cost = GetTrainerServiceCost(i) or 0, category = category,
             }
             highest = math.max(highest, level or 0)
