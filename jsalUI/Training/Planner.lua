@@ -1,15 +1,19 @@
 -- The Training Planner page. On the left, what you can train now: a card for
 -- each spell with its price and a Skip button, and the visit's total against
--- your gold. On the right, the road to 60: a stop for each trainer visit to
--- come, its spells and its cost, then a hunter's pet and the weapon skills.
+-- your gold. On the right, the road to 60 in a short box of its own: a stop
+-- for each trainer visit to come, its spells and its cost. Under it, a
+-- hunter's pet and the weapon skills.
 local _, ns = ...
 local Style, Compat, Window, Training = ns.Style, ns.Compat, ns.Window, ns.Training
 
-local CART_W, GAP = 300, 20
-local CARD_H, CARD_GAP = 58, 8
-local CHIP_H, CHIP_GAP = 32, 6   -- a road spell's icon, square
+local CART_W, CART_PAD, GAP = 312, 16, 26
+local CARD_H, CARD_GAP = 62, 10
+local CHIP_H, CHIP_GAP = 32, 8   -- a road spell's icon, square
 local LEVEL_W, NODE_W, COST_W = 34, 16, 64
-local STATE_W = 84   -- the right-hand column of a weapon or pet row ("Pet level 30")
+local ROAD_H = 300   -- the road's own scrolling box: about six stops
+local ROW_H = 30     -- a pet or weapon row
+local STATE_W = 84   -- a row's price or state column ("Pet level 30")
+local SKIP_W = 52
 
 -- Spells at an odd level are trained on the next even one, so each stop is
 -- level 1 or an even level.
@@ -80,6 +84,11 @@ Window.Page("training", function(page)
     local top = 34
     local Paint
 
+    local lead = Style.Text(page, 13, "muted")
+    lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
+    lead:SetWidth(width)
+    lead:SetText("What to buy on your next trainer visit, and what each level after it brings.")
+
     ---------------------------------------------------------------------------
     -- Left: ready now.
     ---------------------------------------------------------------------------
@@ -89,22 +98,22 @@ Window.Page("training", function(page)
     Style.Fill(cart, "titleBar")
     Style.Border(cart, "line")
     local cartTitle = Style.Text(cart, 15, "text", nil, true)
-    cartTitle:SetPoint("TOPLEFT", 12, -12)
+    cartTitle:SetPoint("TOPLEFT", CART_PAD, -CART_PAD)
     cartTitle:SetText("Ready now")
     local cartSub = Style.Text(cart, 11, "muted")
-    cartSub:SetPoint("TOPRIGHT", -12, -15)
+    cartSub:SetPoint("TOPRIGHT", -CART_PAD, -(CART_PAD + 3))
     cartSub:SetJustifyH("RIGHT")
 
-    local TOTALS_H = 118
-    local cardScroll, cardList = Scroller(cart, CART_W - 24, height - top - 44 - TOTALS_H - 12)
-    cardScroll:SetPoint("TOPLEFT", 12, -40)
+    local TOTALS_H = 130
+    local cardScroll, cardList = Scroller(cart, CART_W - CART_PAD * 2, height - top - 48 - TOTALS_H - CART_PAD)
+    cardScroll:SetPoint("TOPLEFT", CART_PAD, -48)
     local empty = Style.Text(cardList, 13, "muted")
     empty:SetPoint("TOPLEFT", 0, -4)
-    empty:SetWidth(CART_W - 24)
+    empty:SetWidth(CART_W - CART_PAD * 2)
 
     local totals = CreateFrame("Frame", nil, cart)
-    totals:SetPoint("BOTTOMLEFT", 12, 12)
-    totals:SetPoint("BOTTOMRIGHT", -12, 12)
+    totals:SetPoint("BOTTOMLEFT", CART_PAD, CART_PAD)
+    totals:SetPoint("BOTTOMRIGHT", -CART_PAD, CART_PAD)
     totals:SetHeight(TOTALS_H)
     Style.Rule(totals, "TOP", "line")
     local visitLabel = Style.Text(totals, 12, "muted")
@@ -114,8 +123,8 @@ Window.Page("training", function(page)
     visitCost:SetPoint("TOPRIGHT", 0, -10)
     visitCost:SetJustifyH("RIGHT")
     local track = CreateFrame("Frame", nil, totals)
-    track:SetPoint("TOPLEFT", 0, -36)
-    track:SetPoint("TOPRIGHT", 0, -36)
+    track:SetPoint("TOPLEFT", 0, -40)
+    track:SetPoint("TOPRIGHT", 0, -40)
     track:SetHeight(6)
     Style.Fill(track, "line")
     local fill = track:CreateTexture(nil, "ARTWORK")
@@ -123,34 +132,34 @@ Window.Page("training", function(page)
     fill:SetPoint("BOTTOMLEFT")
     fill:SetColorTexture(Style.Color("gold"))
     local haveText = Style.Text(totals, 12, "muted")
-    haveText:SetPoint("TOPLEFT", 0, -52)
+    haveText:SetPoint("TOPLEFT", 0, -58)
     local spareText = Style.Text(totals, 12, "text")
-    spareText:SetPoint("TOPRIGHT", 0, -52)
+    spareText:SetPoint("TOPRIGHT", 0, -58)
     spareText:SetJustifyH("RIGHT")
     local restLabel = Style.Text(totals, 12, "muted")
-    restLabel:SetPoint("TOPLEFT", 0, -74)
+    restLabel:SetPoint("TOPLEFT", 0, -82)
     restLabel:SetText("Left to 60")
     local restText = Style.Text(totals, 12, "text")
-    restText:SetPoint("TOPRIGHT", 0, -74)
+    restText:SetPoint("TOPRIGHT", 0, -82)
     restText:SetJustifyH("RIGHT")
     local priceNote = Style.Text(totals, 11, "muted")
-    priceNote:SetPoint("TOPLEFT", 0, -96)
-    priceNote:SetWidth(CART_W - 24)
+    priceNote:SetPoint("TOPLEFT", 0, -106)
+    priceNote:SetWidth(CART_W - CART_PAD * 2)
 
     local cards = {}
     local function Card(i)
         local c = CreateFrame("Frame", nil, cardList)
-        c:SetSize(CART_W - 24, CARD_H)
+        c:SetSize(CART_W - CART_PAD * 2, CARD_H)
         c:SetPoint("TOPLEFT", 0, -(i - 1) * (CARD_H + CARD_GAP))
         Style.Fill(c, "well")
         Style.Border(c, "line")
         c.icon = c:CreateTexture(nil, "ARTWORK")
         c.icon:SetSize(34, 34)
-        c.icon:SetPoint("LEFT", 10, 0)
+        c.icon:SetPoint("LEFT", 12, 0)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         c.name = Style.Text(c, 13, "text", nil, true)
-        c.name:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 10, -1)
-        c.name:SetWidth(CART_W - 24 - 54 - 52)
+        c.name:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 12, -1)
+        c.name:SetWidth(CART_W - CART_PAD * 2 - 58 - 56)
         c.name:SetWordWrap(false)
         c.sub = Style.Text(c, 11, "muted")
         c.sub:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -4)
@@ -172,8 +181,16 @@ Window.Page("training", function(page)
     roadHead:SetPoint("TOPLEFT", CART_W + GAP, -top)
     roadHead.title:SetText("YOUR ROAD TO 60")
     roadHead.note:SetText("Right-click an icon to skip it")
-    local roadScroll, road = Scroller(page, roadW - 8, height - top - 30)
-    roadScroll:SetPoint("TOPLEFT", CART_W + GAP, -(top + 30))
+    -- The road scrolls in a short box of its own; a hunter's pet and the
+    -- weapon skills share the space under it.
+    local roadScroll, road = Scroller(page, roadW - 8, ROAD_H)
+    roadScroll:SetPoint("TOPLEFT", CART_W + GAP, -(top + 34))
+    local roadEmpty = Style.Text(road, 13, "muted")
+    roadEmpty:SetPoint("TOPLEFT", 0, -4)
+    roadEmpty:SetText("Nothing left to learn on the way to 60.")
+    local lowerTop = top + 34 + ROAD_H + 24
+    local lowerScroll, lower = Scroller(page, roadW - 8, height - lowerTop)
+    lowerScroll:SetPoint("TOPLEFT", CART_W + GAP, -lowerTop)
 
     local stops, chips, heads, weaponRows = {}, {}, {}, {}
     local used
@@ -241,27 +258,43 @@ Window.Page("training", function(page)
     end
 
     local function MakeHead()
-        return Section(road, roadW - 8)
+        return Section(lower, roadW - 16)
     end
 
+    -- A pet or weapon row: icon and name, a detail, its price or state, and
+    -- a Skip button for anything not learned yet.
     local function MakeWeapon()
-        local r = CreateFrame("Frame", nil, road)
-        r:SetSize(roadW - 8, 26)
+        local r = CreateFrame("Frame", nil, lower)
+        r:SetSize(roadW - 16, ROW_H)
         r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(20, 20)
+        r.icon:SetSize(22, 22)
         r.icon:SetPoint("LEFT", 2, 0)
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+        r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
+        r.skip = Style.Button(r, "Skip", "plain", SKIP_W)
+        r.skip:SetHeight(20)
+        r.skip:SetPoint("RIGHT", 0, 0)
         r.state = Style.Text(r, 12, "text", nil, true)
-        r.state:SetPoint("RIGHT", -4, 0)
+        r.state:SetPoint("RIGHT", -(SKIP_W + 12), 0)
         r.state:SetJustifyH("RIGHT")
         r.where = Style.Text(r, 11, "muted")
-        r.where:SetPoint("RIGHT", -STATE_W - 12, 0)
+        r.where:SetPoint("RIGHT", -(SKIP_W + 12 + STATE_W + 12), 0)
         r.where:SetJustifyH("RIGHT")
         r:EnableMouse(true)
         Tooltip(r)
         return r
+    end
+
+    -- Shows a row's Skip button for the spell it would skip, or hides it.
+    local function SkipButton(r, spellID, skipped)
+        r.skip:SetShown(spellID ~= nil)
+        if not spellID then return end
+        r.skip:SetLabel(skipped and "Unskip" or "Skip")
+        r.skip:SetScript("OnClick", function()
+            Training.Skip(spellID, not skipped)
+            Paint()
+        end)
     end
 
     -- The rank number in a spell's corner ("Rank 3" -> 3); none for one-rank spells.
@@ -412,18 +445,15 @@ Window.Page("training", function(page)
             s.level:SetTextColor(Style.Color(first and "text" or "muted"))
             y = y + h
         end
-        if #levels == 0 then
-            local head = Take("heads", MakeHead)
-            head:ClearAllPoints()
-            head:SetPoint("TOPLEFT", 0, -y)
-            head.title:SetText("ALL TRAINED")
-            head.note:SetText("Nothing left to learn on the way to 60")
-            y = y + 34
-        end
+        roadEmpty:SetShown(#levels == 0)
+        road:SetHeight(math.max(1, y))
+        roadScroll:UpdateScrollChildRect()
+        roadScroll:Place()
 
-        -- A hunter's pet: each ability's next rank and what it's waiting on.
+        -- Under the road: a hunter's pet, each ability's next rank and what
+        -- it's waiting on; then the weapon skills.
+        y = 0
         if pet then
-            y = y + 12
             local petHead = Take("heads", MakeHead)
             petHead:ClearAllPoints()
             petHead:SetPoint("TOPLEFT", 0, -y)
@@ -439,8 +469,9 @@ Window.Page("training", function(page)
                 r.name:SetText("Call your pet to see what it can learn")
                 r.where:SetText("")
                 r.state:SetText("")
+                SkipButton(r, nil)
                 r:SetAlpha(1)
-                y = y + 26
+                y = y + ROW_H
             else
                 local note = ("%s · %s · level %d"):format(pet.name or "Pet", pet.family, pet.level or 0)
                 if pet.free then note = note .. (" · %d training points free"):format(pet.free) end
@@ -477,24 +508,26 @@ Window.Page("training", function(page)
                     r.where:SetText(where)
                     r.state:SetText(state)
                     r.state:SetTextColor(Style.Color(color))
+                    SkipButton(r, row.state ~= "known" and row.spell.pet or nil, row.skipped)
                     r:SetAlpha((row.state == "known" or row.skipped) and 0.6 or 1)
-                    y = y + 26
+                    y = y + ROW_H
                 end
             end
+            y = y + 22
         end
 
-        y = y + 12
         local head = Take("heads", MakeHead)
         head:ClearAllPoints()
         head:SetPoint("TOPLEFT", 0, -y)
         head.title:SetText("WEAPON SKILLS")
-        head.note:SetText("Prices fill in when you open a weapon master")
-        y = y + 28
-        -- Ones to learn first, then the ones you know.
+        head.note:SetText("Any weapon master, same price")
+        y = y + 34
+        -- Ones to learn first, then skipped ones, then the ones you know.
         local weapons = {}
         for _, w in ipairs(data.weapons) do weapons[#weapons + 1] = w end
+        local function Order(w) return w.known and 3 or (w.skipped and 2 or 1) end
         table.sort(weapons, function(a, b)
-            if a.known ~= b.known then return not a.known end
+            if Order(a) ~= Order(b) then return Order(a) < Order(b) end
             return a.name < b.name
         end)
         for _, w in ipairs(weapons) do
@@ -508,20 +541,24 @@ Window.Page("training", function(page)
             if w.known then
                 r.state:SetText("Known")
                 r.state:SetTextColor(Style.Color("muted"))
+            elseif w.skipped then
+                r.state:SetText("Skipped")
+                r.state:SetTextColor(Style.Color("muted"))
             else
                 r.state:SetText(w.cost and Compat.Money(w.cost) or "?")
                 r.state:SetTextColor(Style.Color(w.cost and "text" or "muted"))
             end
-            r:SetAlpha(w.known and 0.6 or 1)
-            y = y + 26
+            SkipButton(r, not w.known and w.id or nil, w.skipped)
+            r:SetAlpha((w.known or w.skipped) and 0.6 or 1)
+            y = y + ROW_H
         end
 
         for pool, list in pairs({ stops = stops, chips = chips, heads = heads, weapons = weaponRows }) do
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
         end
-        road:SetHeight(math.max(1, y))
-        roadScroll:UpdateScrollChildRect()
-        roadScroll:Place()
+        lower:SetHeight(math.max(1, y))
+        lowerScroll:UpdateScrollChildRect()
+        lowerScroll:Place()
     end
 
     page.Refresh = Paint

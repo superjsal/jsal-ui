@@ -184,6 +184,7 @@ function Training.Read()
         if name then
             data.weapons[#data.weapons + 1] = {
                 id = id, name = name, icon = icon, known = IsPlayerSpell(id), cost = prices.weapons[id],
+                skipped = skips[id] == true,
             }
         end
     end
