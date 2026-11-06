@@ -12,8 +12,20 @@ local Compat, Comms, Rules = ns.Compat, ns.Comms, ns.ChessRules
 local Chess = ns.NewModule("chess", {
     title = "Chess",
     note = "Play chess with guildmates who have jsal.ui. /jsal chess",
+    options = {
+        { key = "sound", title = "A sound when it's your move", default = true,
+          note = "Also when a guildmate challenges you, offers a draw or resigns." },
+    },
 })
 ns.Chess = Chess
+
+-- The game's own sounds, so nothing new ships: the map ping for a move or
+-- an answer, the party invite chime for a challenge. Off with the switch.
+local function Chime(kind)
+    if not ns.OptionOn("chess", "sound") then return end
+    local kit = SOUNDKIT and SOUNDKIT[kind == "challenge" and "IG_PLAYER_INVITE" or "MAP_PING"]
+    if kit then pcall(PlaySound, kit, "SFX") end
+end
 
 local MAX_GAMES = 8
 local FIRST_VERSION = "0.3.0"   -- the first jsal.ui with chess
@@ -316,6 +328,7 @@ handlers.CI = function(id, name, sender, color)
     Touch(game)
     Saved().games[id] = game
     Notify(("%s challenged you to chess. /jsal chess to answer."):format(name))
+    Chime("challenge")
 end
 
 handlers.CA = function(id, name)
@@ -360,12 +373,14 @@ handlers.CM = function(id, name, sender, ply, uci, white, black)
     Touch(game)
     CheckEnd(game)
     if game.status == "play" then Notify(("%s played %s. Your move: /jsal chess"):format(name, san)) end
+    Chime("move")
 end
 
 handlers.CR = function(id, name)
     local game = Their(id, name)
     if game and game.status == "play" then
         game.resigned = "them"
+        Chime("move")
         Finish(game, "win", "resigned")
     end
 end
@@ -376,6 +391,7 @@ handlers.CO = function(id, name)
         game.drawOffer = "them"
         Touch(game)
         Notify(("%s offers a draw. /jsal chess to answer."):format(name))
+        Chime("move")
     end
 end
 
