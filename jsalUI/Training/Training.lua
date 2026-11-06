@@ -266,9 +266,11 @@ local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PET_BAR_UPDATE")
 watcher:RegisterEvent("UNIT_PET")
 watcher:RegisterEvent("UNIT_LEVEL")
-watcher:SetScript("OnEvent", function(_, event, unit)
-    if event == "UNIT_PET" and unit ~= "player" then return end
-    if event == "UNIT_LEVEL" and unit ~= "pet" then return end
+-- The pet bar updates many times while the game loads and in a fight, so a
+-- burst of updates is noted once, a second after the last.
+local noting = false
+local function NoteAll()
+    noting = false
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData and ns.SpellData[classID]
     if not (source and ns.char) then return end
@@ -280,6 +282,16 @@ watcher:SetScript("OnEvent", function(_, event, unit)
             if IsSpellKnown(entry[1], true) then ns.char.petKnown[entry[1]] = true end
         end
     end
+end
+
+watcher:SetScript("OnEvent", function(_, event, unit)
+    if event == "UNIT_PET" and unit ~= "player" then return end
+    if event == "UNIT_LEVEL" and unit ~= "pet" then return end
+    local _, classFile = UnitClass("player")
+    if classFile ~= "HUNTER" and classFile ~= "WARLOCK" then return end
+    if noting then return end
+    noting = true
+    Compat.After(1, function() xpcall(NoteAll, ns.Report) end)
 end)
 
 -- What a hunter's pet can learn, one row per ability: the next rank to teach

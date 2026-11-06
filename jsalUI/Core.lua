@@ -113,12 +113,18 @@ local function StartModules()
     end
 end
 
+-- How long jsal.ui's own loading took, in milliseconds, for /jsal perf:
+-- reading its files, its setup once settings exist, and its start at login.
+ns.timings = {}
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
+        local started = debugprofilestop()
+        ns.timings.files = started - (ns.loadStarted or started)
         jsalUIDB = Fill(type(jsalUIDB) == "table" and jsalUIDB or {}, DEFAULTS)
         jsalUICharDB = Fill(type(jsalUICharDB) == "table" and jsalUICharDB or {}, CHAR_DEFAULTS)
         ns.db, ns.char = jsalUIDB, jsalUICharDB
@@ -132,10 +138,13 @@ events:SetScript("OnEvent", function(self, event, arg1)
             end
         end
         RunAll(onLoad)
+        ns.timings.setup = debugprofilestop() - started
         self:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_LOGIN" then
+        local started = debugprofilestop()
         StartModules()
         RunAll(onLogin)
+        ns.timings.login = debugprofilestop() - started
     elseif event == "PLAYER_REGEN_ENABLED" and #waiting > 0 then
         local now = waiting
         waiting = {}
@@ -161,6 +170,36 @@ SlashCmdList.JSALUI = function(message)
         ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal guild, /jsal settings, /jsal install.")
     end
 end
+
+-- /jsal perf: how long jsal.ui took to load, and, where the game keeps
+-- addon timings, the addons that have cost the most since the last reload.
+ns.Command("perf", function()
+    local t = ns.timings
+    ns.Print(("Loading took %.0f ms to read the files, %.0f ms to set up and %.0f ms to start at login.")
+        :format(t.files or 0, t.setup or 0, t.login or 0))
+    local profiler = C_AddOnProfiler
+    local metric = Enum and Enum.AddOnProfilerMetric
+    if not (profiler and profiler.GetAddOnMetric and metric and metric.SessionAverageTime) then
+        ns.Print("This client doesn't keep timings for each addon.")
+        return
+    end
+    local count = (C_AddOns and C_AddOns.GetNumAddOns or GetNumAddOns)()
+    local rows = {}
+    for i = 1, count do
+        local name = (C_AddOns and C_AddOns.GetAddOnInfo or GetAddOnInfo)(i)
+        if name and Compat.IsAddOnLoaded(name) then
+            local ok, average = pcall(profiler.GetAddOnMetric, name, metric.SessionAverageTime)
+            local _, peak = pcall(profiler.GetAddOnMetric, name, metric.PeakTime)
+            if ok and average then rows[#rows + 1] = { name = name, average = average, peak = tonumber(peak) or 0 } end
+        end
+    end
+    table.sort(rows, function(a, b) return a.average > b.average end)
+    ns.Print("Average time each frame, and the longest single frame, since the last reload:")
+    for i = 1, math.min(10, #rows) do
+        local r = rows[i]
+        print(("  %s: %.3f ms average, %.1f ms longest"):format(r.name, r.average, r.peak))
+    end
+end)
 
 for _, page in ipairs({ "home", "install", "games", "guild", "settings" }) do
     ns.Command(page, function() ns.Window.Open(page) end)

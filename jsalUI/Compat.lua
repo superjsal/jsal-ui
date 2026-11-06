@@ -3,6 +3,9 @@
 -- uses the newer name when the client has it and falls back to the older one.
 local _, ns = ...
 
+-- The moment jsal.ui starts loading, for /jsal perf.
+ns.loadStarted = debugprofilestop()
+
 local Compat = {}
 ns.Compat = Compat
 
