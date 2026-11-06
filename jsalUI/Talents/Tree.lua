@@ -217,10 +217,11 @@ end
 -- Wowhead's Forever talent calculator links carry a whole build: after the
 -- class, a fixed tag (Wowhead's own; it may change if Wowhead updates its
 -- calculator), each tree's ranks as digits (trees joined by "-", trailing
--- zeros dropped), then "_t0/" and the order: a tree's number whenever the
--- tree changes, then a letter per point ("a" is that tree's first talent,
--- counted left to right, top to bottom, as in TalentData; a capital takes
--- it to full rank).
+-- zeros dropped), then "_t0", sometimes a flag or two ("_r95"), and after a
+-- "/" the order: a tree's number whenever the tree changes, then a letter
+-- per point, counted left to right, top to bottom (a capital takes it to
+-- full rank). Links made here letter the talents by their place in
+-- TalentData.
 local WOWHEAD = "https://www.wowhead.com/forever/talent-calc/"
 local WOWHEAD_TAG = "vkndmh"
 
@@ -261,8 +262,76 @@ function Tree.WowheadLink(build)
     return WOWHEAD .. slug .. "/" .. WOWHEAD_TAG .. joined .. "_t0/" .. table.concat(order)
 end
 
--- Reads a Wowhead link back into a build. A link without the order part
--- fills each tree top to bottom, which the plan's rules then check.
+-- Each tree's ranks from a link's digits, in TalentData's order, or nil if
+-- they don't fit the trees.
+local function WowheadRanks(source, digits)
+    local ranks, t = {}, 0
+    for part in (digits .. "-"):gmatch("([%d]*)%-") do
+        t = t + 1
+        local tree = source[t]
+        if not tree or #part > #tree.talents then return nil end
+        ranks[t] = {}
+        for i, talent in ipairs(tree.talents) do
+            local r = tonumber(part:sub(i, i)) or 0
+            if r > talent[4] then return nil end
+            ranks[t][i] = r
+        end
+    end
+    for i = t + 1, #source do
+        ranks[i] = {}
+        for j = 1, #source[i].talents do ranks[i][j] = 0 end
+    end
+    return ranks
+end
+
+-- The order from a link's letters. Wowhead's letters skip a few places that
+-- TalentData doesn't have, so a letter isn't simply a talent's place; but
+-- both count top to bottom, left to right, so the letters a tree uses,
+-- sorted, are the talents the ranks give points to, in order. A capital
+-- takes its talent to full rank. Nil if the letters and ranks disagree.
+local function WowheadOrder(source, ranks, letters)
+    local tokens, tree = {}, 1
+    for c in letters:gmatch(".") do
+        if c:match("%d") then tree = tonumber(c) + 1 else tokens[#tokens + 1] = { tree, c } end
+    end
+    local map = {}
+    for t, data in ipairs(source) do
+        local used, seen = {}, {}
+        for _, token in ipairs(tokens) do
+            local c = token[2]:lower()
+            if token[1] == t and not seen[c] then seen[c] = true; used[#used + 1] = c end
+        end
+        table.sort(used)
+        local ranked = {}
+        for i, talent in ipairs(data.talents) do
+            if ranks[t][i] > 0 then ranked[#ranked + 1] = talent end
+        end
+        if #used ~= #ranked then return nil end
+        map[t] = {}
+        for i, c in ipairs(used) do map[t][c] = ranked[i] end
+    end
+    local order, taken = {}, {}
+    for _, token in ipairs(tokens) do
+        local talent = map[token[1]] and map[token[1]][token[2]:lower()]
+        if not talent then return nil end
+        local id, max = talent[1], talent[4]
+        repeat
+            order[#order + 1] = id
+            taken[id] = (taken[id] or 0) + 1
+        until not token[2]:match("%u") or taken[id] >= max
+    end
+    for t, data in ipairs(source) do
+        for i, talent in ipairs(data.talents) do
+            if (taken[talent[1]] or 0) ~= ranks[t][i] then return nil end
+        end
+    end
+    return order
+end
+
+-- Reads a Wowhead link back into a build. Its tag is letters, or in older
+-- links "v" and a version digit, so both readings are tried. A link without
+-- the order part fills each tree top to bottom, which the plan's rules then
+-- check.
 function Tree.FromWowhead(text)
     local slug, rest = (text or ""):match("talent%-calc/(%a+)/(%S*)")
     if not slug then return nil end
@@ -272,38 +341,27 @@ function Tree.FromWowhead(text)
     end
     if not classID then return nil, "That Wowhead link isn't for a class jsal.ui knows." end
     local source = ns.TalentData[classID]
-    local ranksPart, orderPart = rest:match("^%a*([%d%-]*)_t%d+/?(%w*)")
-    local order = {}
-    if orderPart and orderPart ~= "" then
-        -- A capital letter is Wowhead's short form: that talent taken all
-        -- the way to full rank in a row.
-        local tree, taken = 1, {}
-        for c in orderPart:gmatch(".") do
-            if c:match("%d") then
-                tree = tonumber(c) + 1
-            else
-                local upper = c:match("%u") ~= nil
-                local talent = source[tree] and source[tree].talents[c:lower():byte() - 96]
-                if not talent then return nil, "That Wowhead link is damaged." end
-                local id, max = talent[1], talent[4]
-                repeat
-                    order[#order + 1] = id
-                    taken[id] = (taken[id] or 0) + 1
-                until not upper or taken[id] >= max
-            end
-        end
-    elseif ranksPart and ranksPart ~= "" then
-        local t = 0
-        for digits in (ranksPart .. "-"):gmatch("([%d]*)%-") do
-            t = t + 1
-            for i = 1, #digits do
-                local talent = source[t] and source[t].talents[i]
-                for _ = 1, tonumber(digits:sub(i, i)) do
-                    if talent then order[#order + 1] = talent[1] end
+    local tag, digits, tail = rest:match("^(%a*)([%d%-]*)_t%d+(.*)$")
+    if not tag then return nil, "That Wowhead link is damaged." end
+    local letters = tail:match("/(%w+)$")
+    local readings = { digits }
+    if tag == "v" and digits:match("^%d") then readings[2] = digits:sub(2) end
+    local order
+    for _, reading in ipairs(readings) do
+        local ranks = WowheadRanks(source, reading)
+        if ranks and letters then
+            order = WowheadOrder(source, ranks, letters)
+        elseif ranks and not order then
+            order = {}
+            for t, data in ipairs(source) do
+                for i, talent in ipairs(data.talents) do
+                    for _ = 1, ranks[t][i] do order[#order + 1] = talent[1] end
                 end
             end
         end
+        if order and letters then break end
     end
+    if not order then return nil, "That Wowhead link is from an older calculator or a different set of talents." end
     return { id = Tree.NewID(), class = classID, name = "Wowhead build", order = order }
 end
 
@@ -373,15 +431,48 @@ function Tree.NewBuild(classID)
     return build
 end
 
-function Tree.Selected(classID)
-    local builds = Tree.ClassBuilds(classID)
-    local wanted = ns.db.selectedBuild[classID]
-    for _, build in ipairs(builds) do
-        if build.id == wanted then return build end
+-- The ready-made leveling builds for a class, from SuggestedBuilds.lua. They
+-- aren't saved with your builds, so they're never changed or deleted: Copy
+-- makes one of your own from one.
+function Tree.Suggested(classID)
+    local list = {}
+    for _, build in ipairs(ns.SuggestedBuilds or {}) do
+        if build.class == classID then
+            build.builtin = true
+            list[#list + 1] = build
+        end
     end
-    if builds[1] then
-        ns.db.selectedBuild[classID] = builds[1].id
-        return builds[1]
+    return list
+end
+
+function Tree.Copy(build)
+    local order = {}
+    for i, id in ipairs(build.order or {}) do order[i] = id end
+    local copy = { id = Tree.NewID(), class = build.class, name = ("Copy of " .. build.name):sub(1, 24), order = order }
+    Tree.Add(copy)
+    return copy
+end
+
+-- A class's build by its ID, your own or suggested.
+local function Find(classID, id)
+    if not id then return nil end
+    for _, build in ipairs(Tree.ClassBuilds(classID)) do
+        if build.id == id then return build end
+    end
+    for _, build in ipairs(Tree.Suggested(classID)) do
+        if build.id == id then return build end
+    end
+end
+
+-- The build selected for a class: the one last picked, or else your first
+-- own build, or else the first suggested one. A class with neither gets a
+-- new, empty build.
+function Tree.Selected(classID)
+    local build = Find(classID, ns.db.selectedBuild[classID])
+        or Tree.ClassBuilds(classID)[1] or Tree.Suggested(classID)[1]
+    if build then
+        ns.db.selectedBuild[classID] = build.id
+        return build
     end
     return Tree.NewBuild(classID)
 end
@@ -406,8 +497,5 @@ end
 
 function Tree.Active()
     local classID = Tree.PlayerClass()
-    for _, build in ipairs(Tree.ClassBuilds(classID)) do
-        if build.id == ns.char.follow then return build end
-    end
-    return Tree.Selected(classID)
+    return Find(classID, ns.char.follow) or Tree.Selected(classID)
 end

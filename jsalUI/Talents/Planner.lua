@@ -1,5 +1,6 @@
 -- The Build Planner page: a class picker across the top and that class's
--- saved builds on the left. On the right, a build shows as its plan, level
+-- saved builds on the left, with ready-made leveling builds under them to
+-- follow or copy. On the right, a build shows as its plan, level
 -- by level, with what's taken and what's next; Edit opens the three trees,
 -- where clicking talents in the order you'd take them builds the plan.
 local _, ns = ...
@@ -12,6 +13,8 @@ local CLASSES_TOP = 32
 local BODY_TOP = 74                 -- the builds list and the build's header
 local MAIN_TOP = 140                -- the plan list, or the editor's trees
 local STEP_H = 30                   -- one row of the plan list
+local SOURCE_H = 22                 -- a suggested build's source line
+local ROW_H = 46                    -- one build in the builds list
 
 -- A small section heading with a count, a note on the right, and a rule.
 local function Section(parent, width)
@@ -100,16 +103,20 @@ Window.Page("build", function(page)
         classButtons[i] = b
     end
 
-    -- The builds list.
+    -- The builds list: your own builds, then the class's suggested ones.
     local listHead = Section(page, LIST_W)
     listHead:SetPoint("TOPLEFT", 0, -BODY_TOP)
     listHead.title:SetText("BUILDS")
+    local ownEmpty = Style.Text(page, 11, "muted")
+    ownEmpty:SetWidth(LIST_W - 12)
+    ownEmpty:SetText("None yet. Start a new build, or copy a suggested one.")
+    local suggestHead = Section(page, LIST_W)
+    suggestHead.title:SetText("SUGGESTED")
     local rows = {}
 
-    local function BuildRow(i)
+    local function BuildRow()
         local row = CreateFrame("Button", nil, page)
         row:SetSize(LIST_W, 44)
-        row:SetPoint("TOPLEFT", 0, -(BODY_TOP + 24) - (i - 1) * 46)
         row.bg = Style.Fill(row, "well")
         row.mark = row:CreateTexture(nil, "ARTWORK")
         row.mark:SetColorTexture(Style.Color("gold"))
@@ -157,7 +164,8 @@ Window.Page("build", function(page)
     local viewHead = Section(view, rightW)
     viewHead:SetPoint("TOPLEFT")
 
-    -- Six buttons in one row; the widths add up to the column's width.
+    -- Six buttons in one row; the widths add up to the column's width. A
+    -- suggested build swaps Edit, Rename and Delete for Copy to my builds.
     local learn = Small(view, "Learn next points", "primary", 128)
     learn:SetPoint("TOPLEFT", 0, -30)
     local follow = Small(view, "Follow this build", "plain", 118)
@@ -166,10 +174,14 @@ Window.Page("build", function(page)
     local rename = Small(view, "Rename", "plain", 70)
     local export = Small(view, "Export", "plain", 64)
     local delete = Small(view, "Delete", "plain", 64)
+    local copy = Small(view, "Copy to my builds", "plain", 136)
     edit:SetPoint("LEFT", follow, "RIGHT", 6, 0)
     rename:SetPoint("LEFT", edit, "RIGHT", 6, 0)
-    export:SetPoint("LEFT", rename, "RIGHT", 6, 0)
     delete:SetPoint("LEFT", export, "RIGHT", 6, 0)
+    local source = Style.Text(view, 11, "muted")
+    source:SetPoint("TOPLEFT", 0, -64)
+    source:SetWidth(rightW)
+    source:SetWordWrap(false)
 
     local nameBox = CreateFrame("EditBox", nil, view)
     nameBox:SetSize(220, 24)
@@ -266,17 +278,34 @@ Window.Page("build", function(page)
         end
 
         local renaming = nameBox:IsShown()
-        for _, b in ipairs({ learn, follow, edit, rename, export, delete }) do b:SetShown(not renaming) end
+        local builtin = build.builtin
+        for _, b in ipairs({ learn, follow, edit, rename, export, delete, copy }) do b:SetShown(not renaming) end
         learn:SetShown(not renaming and data.own)
         follow:SetShown(not renaming and data.own)
-        -- Another class has nothing to learn or follow, so Edit leads the row.
-        edit:ClearAllPoints()
-        if data.own then edit:SetPoint("LEFT", follow, "RIGHT", 6, 0) else edit:SetPoint("TOPLEFT", 0, -30) end
+        edit:SetShown(not renaming and not builtin)
+        rename:SetShown(not renaming and not builtin)
+        delete:SetShown(not renaming and not builtin)
+        copy:SetShown(not renaming and builtin)
+        -- Another class has nothing to learn or follow, so Edit (or Copy)
+        -- leads the row.
+        local first = builtin and copy or edit
+        first:ClearAllPoints()
+        if data.own then first:SetPoint("LEFT", follow, "RIGHT", 6, 0) else first:SetPoint("TOPLEFT", 0, -30) end
+        export:ClearAllPoints()
+        export:SetPoint("LEFT", builtin and copy or rename, "RIGHT", 6, 0)
         learn:SetEnabled(nextIndex ~= nil and waiting > 0)
         local following = data.own and Tree.Active() == build
         follow:SetLabel(following and "Following" or "Follow this build")
         follow:SetEnabled(not following)
-        delete:SetEnabled(#Tree.ClassBuilds(classID) > 1)
+        delete:SetEnabled(#Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0)
+
+        -- A suggested build says where it's from, above its plan.
+        local shift = builtin and SOURCE_H or 0
+        source:SetShown(builtin)
+        source:SetText(builtin and ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source) or "")
+        scroll:ClearAllPoints()
+        scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
+        scroll:SetHeight(height - MAIN_TOP - shift)
 
         local steps = Tree.Steps(kept)
         empty:SetShown(#steps == 0)
@@ -553,11 +582,17 @@ Window.Page("build", function(page)
         if not data then return end
         kept, ranks, spent = Tree.Replay(data, build.order or {})
 
-        local builds = Tree.ClassBuilds(classID)
+        local builds, suggested = Tree.ClassBuilds(classID), Tree.Suggested(classID)
         listHead.count:SetText(#builds)
-        for i, b in ipairs(builds) do
-            rows[i] = rows[i] or BuildRow(i)
-            local row = rows[i]
+        suggestHead.count:SetText(#suggested)
+        local used, y = 0, BODY_TOP + 24
+        local function Place(b)
+            used = used + 1
+            rows[used] = rows[used] or BuildRow()
+            local row = rows[used]
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 0, -y)
+            y = y + ROW_H
             row.build = b
             row.name:SetText(b.name)
             row.sub:SetText(Summary(b))
@@ -567,7 +602,19 @@ Window.Page("build", function(page)
             row.name:SetTextColor(Style.Color(selected and "text" or "muted"))
             row:Show()
         end
-        for i = #builds + 1, #rows do rows[i]:Hide() end
+        for _, b in ipairs(builds) do Place(b) end
+        ownEmpty:SetShown(#builds == 0)
+        if #builds == 0 then
+            ownEmpty:ClearAllPoints()
+            ownEmpty:SetPoint("TOPLEFT", 0, -(y + 2))
+            y = y + 36
+        end
+        suggestHead:SetShown(#suggested > 0)
+        suggestHead:ClearAllPoints()
+        suggestHead:SetPoint("TOPLEFT", 0, -(y + 12))
+        y = y + 36
+        for _, b in ipairs(suggested) do Place(b) end
+        for i = used + 1, #rows do rows[i]:Hide() end
 
         view:SetShown(not editing)
         editor:SetShown(editing)
@@ -592,6 +639,7 @@ Window.Page("build", function(page)
         Say("The talent helper now follows " .. build.name .. ".")
     end)
     edit:SetScript("OnClick", function()
+        if build.builtin then return end
         editing, status = true, nil
         Paint()
     end)
@@ -614,11 +662,15 @@ Window.Page("build", function(page)
     nameBox:SetScript("OnEnterPressed", function() EndRename(true) end)
     nameBox:SetScript("OnEscapePressed", function() EndRename(false) end)
     export:SetScript("OnClick", function() ns.TalentShare.Export(build) end)
+    copy:SetScript("OnClick", function()
+        local mine = Tree.Copy(build)
+        Say("Copied to your builds as " .. mine.name .. ". Edit it as you like.")
+    end)
 
     -- Deleting asks once: the first click arms it for a few seconds.
     local armed = 0
     delete:SetScript("OnClick", function()
-        if #Tree.ClassBuilds(classID) <= 1 then return end
+        if build.builtin or (#Tree.ClassBuilds(classID) <= 1 and #Tree.Suggested(classID) == 0) then return end
         if GetTime() > armed then
             armed = GetTime() + 3
             delete:SetLabel("Sure?")
