@@ -109,8 +109,10 @@ end
 function Guild.SetWord(word)
     word = strtrim(word or ""):lower()
     if not Compat.IsOfficer() then return false, "Only officers can set the Guild Word." end
-    if not word:match("^%a%a%a%a%a$") then return false, "Five letters, please." end
-    if not ns.DailyWord.IsWord(word) then return false, "That one isn't in the word list." end
+    if not (word:match("^%a+$") and #word >= 5 and #word <= 8) then return false, "Five to eight letters, please." end
+    -- The word list has five-letter words only; a longer word is the
+    -- officer's call.
+    if #word == 5 and not ns.DailyWord.IsWord(word) then return false, "That one isn't in the word list." end
     local id = Compat.ServerTime()
     SaveWord(id, Shift(word, id, 1), Compat.MyName())
     Comms.Send("GW", WordPayload())
@@ -120,7 +122,7 @@ end
 local function HeardWord(payload, name)
     local id, code, setter = strsplit(";", payload or "")
     id = tonumber(id)
-    if not (id and code and code:match("^%l%l%l%l%l$")) then return end
+    if not (id and code and code:match("^%l+$") and #code >= 5 and #code <= 8) then return end
     if SaveWord(id, code, setter ~= "" and setter or name) then
         if setter ~= Compat.MyName() then
             ns.Print(("New Guild Word from %s. /jsal guild to play it."):format(setter ~= "" and setter or name))
@@ -211,7 +213,7 @@ Window.Page("guild", function(page)
     box:SetSize(120, 24)
     box:SetPoint("BOTTOMLEFT", 12, 10)
     box:SetAutoFocus(false)
-    box:SetMaxLetters(5)
+    box:SetMaxLetters(8)
     box:SetFont(Style.font, 12, "")
     box:SetTextColor(Style.Color("text"))
     box:SetTextInsets(8, 8, 0, 0)
@@ -222,7 +224,7 @@ Window.Page("guild", function(page)
     set:SetPoint("LEFT", box, "RIGHT", 6, 0)
     local setNote = Style.Text(card, 11, "muted")
     setNote:SetPoint("LEFT", set, "RIGHT", 10, 0)
-    setNote:SetText("Officers: a five-letter word for the whole guild.")
+    setNote:SetText("Officers: a word of 5 to 8 letters for the whole guild.")
     local function SetWord()
         local ok, why = Guild.SetWord(box:GetText())
         if ok then
@@ -295,7 +297,7 @@ Window.Page("guild", function(page)
             local played = 0
             for _, e in ipairs(list) do if e.guild then played = played + 1 end end
             local mine = ns.DailyWord.GuildResult(word.id)
-            wordText:SetText(("Set by %s. %d of you have played it%s."):format(word.setter, played,
+            wordText:SetText(("%d letters, set by %s. %d of you have played it%s."):format(#word.answer, word.setter, played,
                 mine and (", you " .. (mine == "X" and "missed it" or ("got it in " .. mine))) or ""))
             play:Show()
             play:SetLabel(mine and "See result" or "Play")
