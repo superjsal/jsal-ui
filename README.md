@@ -57,14 +57,6 @@ Made for casual players: every part is small, on by default, and has one switch.
 
 Nothing runs during combat, and jsal.ui reads no combat data.
 
-## Usage counts
-
-If you use the Wago app and turned on its data sharing, jsal.ui sends Wago a few anonymous
-counts: which parts and options are switched on, daily games and chess games finished, builds
-copied, things added to the shopping list, and which quick buttons get used. Never a name, guild
-or realm. Without the Wago app nothing is sent, and Settings has a switch ("Usage counts") to
-stop it either way.
-
 ## Flight times
 
 `data\taxi\` holds the game's `TaxiPath` and `TaxiPathNode` tables as CSV, for the build in

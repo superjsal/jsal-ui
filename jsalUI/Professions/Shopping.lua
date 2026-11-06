@@ -37,7 +37,6 @@ function Shopping.AddCraft(spell, count)
     count = math.max(1, math.floor(tonumber(count) or 1))
     local crafts = List().crafts
     crafts[spell] = (crafts[spell] or 0) + count
-    ns.Count("shopping.added")
     Shopping.Open()
 end
 
@@ -45,7 +44,6 @@ function Shopping.AddItem(item, count)
     count = math.max(1, math.floor(tonumber(count) or 1))
     local items = List().items
     items[item] = (items[item] or 0) + count
-    ns.Count("shopping.added")
     Shopping.Open()
 end
 

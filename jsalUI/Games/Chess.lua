@@ -195,7 +195,6 @@ local HOW = {
 local function Finish(game, result, how)
     if game.status == "over" then return end
     game.status, game.result, game.how, game.drawOffer = "over", result, how, nil
-    ns.Count("chess.finished")
     Touch(game)
     local r = Saved().record[game.opp] or { w = 0, l = 0, d = 0 }
     if result == "win" then r.w = r.w + 1 elseif result == "loss" then r.l = r.l + 1 else r.d = r.d + 1 end

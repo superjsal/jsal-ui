@@ -166,7 +166,6 @@ local function ShowQuestion()
 end
 
 local function Finish()
-    ns.Count(mode == "daily" and "games.iconGuess" or "games.iconPractice")
     if mode == "daily" then
         local state = Daily()
         state.done = true
