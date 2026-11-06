@@ -278,6 +278,59 @@ function Compat.SetWaypoint(map, x, y)
     return true
 end
 
+-- Items by ID: how many you have (in your bags, or bags and bank), name and
+-- icon. A name the game hasn't loaded yet comes back nil and is asked for;
+-- ITEM_DATA_LOAD_RESULT says when it's in.
+function Compat.ItemCount(item, bank)
+    local get = (C_Item and C_Item.GetItemCount) or GetItemCount
+    return get(item, bank) or 0
+end
+
+function Compat.ItemName(item)
+    local name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(item)
+    if not name and GetItemInfo then name = GetItemInfo(item) end
+    if not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(item) end
+    return name
+end
+
+function Compat.ItemIcon(item)
+    if C_Item and C_Item.GetItemIconByID then return C_Item.GetItemIconByID(item) end
+    return GetItemIcon and GetItemIcon(item)
+end
+
+-- The profession window open now: its name, your skill and its cap. Nil
+-- when it shows someone else's linked profession.
+function Compat.OpenProfession()
+    local ui = C_TradeSkillUI
+    if ui and ui.IsTradeSkillLinked and ui.IsTradeSkillLinked() then return nil end
+    if ui and ui.GetChildProfessionInfo then
+        local info = ui.GetChildProfessionInfo()
+        if info and info.professionName and (info.maxSkillLevel or 0) > 0 then
+            return info.parentProfessionName or info.professionName, info.skillLevel, info.maxSkillLevel
+        end
+    end
+    if ui and ui.GetBaseProfessionInfo then
+        local info = ui.GetBaseProfessionInfo()
+        if info and info.professionName and (info.maxSkillLevel or 0) > 0 then
+            return info.professionName, info.skillLevel, info.maxSkillLevel
+        end
+    end
+    if GetTradeSkillLine then
+        local name, rank, max = GetTradeSkillLine()
+        if name and max and max > 0 then return name, rank, max end
+    end
+end
+
+-- Whether you know a recipe, by its spell.
+function Compat.KnowsRecipe(spell)
+    local ui = C_TradeSkillUI
+    if ui and ui.GetRecipeInfo then
+        local info = ui.GetRecipeInfo(spell)
+        if info then return info.learned and true or false end
+    end
+    return IsPlayerSpell(spell)
+end
+
 -- What a vendor sells: how many items, and each one's name and price.
 function Compat.MerchantCount()
     return GetMerchantNumItems and GetMerchantNumItems() or 0
