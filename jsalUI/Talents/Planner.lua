@@ -65,6 +65,11 @@ Window.Page("build", function(page)
         end
     end
 
+    local lead = Style.Text(page, 13, "muted")
+    lead:SetPoint("TOPLEFT", 0, -4)
+    lead:SetWidth(width - 220)
+    lead:SetText("Plan a build for any class, then follow it one point at a time.")
+
     -- Top right: bring in a build from a code, or start a new one.
     local newBuild = Small(page, "New build", "plain", 100)
     newBuild:SetPoint("TOPRIGHT", 0, 0)

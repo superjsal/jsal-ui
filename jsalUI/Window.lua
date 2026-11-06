@@ -6,21 +6,23 @@ local Style, Compat = ns.Style, ns.Compat
 local Window = {}
 ns.Window = Window
 
-local WIDTH, HEIGHT = 940, 850
-local TITLE_HEIGHT, MENU_WIDTH, PAD, ITEM_HEIGHT = 32, 172, 20, 32
-Window.contentWidth = WIDTH - MENU_WIDTH - PAD * 2
-Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD * 2
+local WIDTH, HEIGHT = 1000, 920
+local TITLE_HEIGHT, MENU_WIDTH, ITEM_HEIGHT = 44, 210, 36
+local PAD_X, PAD_Y, MENU_PAD = 30, 26, 12
+Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
+Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
--- The side menu, in order. An entry nothing has claimed yet says it's on
--- the way.
+-- The side menu, in order, in its groups; Settings sits at the bottom. Each
+-- entry has a game icon. An entry nothing has claimed yet says it's on the way.
+local ICONS = "Interface\\Icons\\"
 local PAGES = {
-    { key = "home", label = "Home" },
-    { key = "install", label = "Install" },
-    { key = "build", label = "Build Planner" },
-    { key = "training", label = "Training Planner" },
-    { key = "games", label = "Games" },
-    { key = "guild", label = "Guild" },
-    { key = "settings", label = "Settings" },
+    { key = "home", label = "Home", icon = "INV_Misc_Map_01" },
+    { key = "install", label = "Install", icon = "Trade_Engineering" },
+    { key = "build", label = "Build Planner", icon = "Ability_Marksmanship", group = "PLAN" },
+    { key = "training", label = "Training Planner", icon = "INV_Misc_Book_09" },
+    { key = "games", label = "Games", icon = "INV_Misc_Dice_02", group = "PLAY" },
+    { key = "guild", label = "Guild", icon = "INV_Shirt_GuildTabard_01" },
+    { key = "settings", label = "Settings", icon = "INV_Misc_Gear_01", bottom = true },
 }
 local byKey = {}
 for _, page in ipairs(PAGES) do byKey[page.key] = page end
@@ -32,7 +34,7 @@ function Window.Page(key, build)
     byKey[key].build = build
 end
 
-local frame, content, current
+local frame, content, current, crumb
 
 -- Addons can't reload the game themselves on Forever, but the game's own
 -- secure button can run the /reload command when the player clicks it.
@@ -43,7 +45,7 @@ local function ReloadButton(parent)
     b:SetAttribute("type", "macro")
     b:SetAttribute("macrotext", "/reload")
     b:RegisterForClicks("AnyUp", "AnyDown")
-    b:SetSize(64, 22)
+    b:SetSize(72, 26)
     Style.Fill(b, "well")
     local edges = Style.Border(b, "lineStrong")
     local label = Style.Text(b, 11, "text", nil, true)
@@ -69,20 +71,28 @@ local function PaintMenu()
     end
 end
 
-local function MenuButton(menu, page, index)
+-- One menu entry: its icon in a thin frame, then its name. The open page's
+-- entry is filled, with a gold mark down its left edge.
+local function MenuButton(menu, page)
     local b = CreateFrame("Button", nil, menu)
-    local top = -(8 + (index - 1) * ITEM_HEIGHT)
     b:SetHeight(ITEM_HEIGHT)
-    b:SetPoint("TOPLEFT", 0, top)
-    b:SetPoint("TOPRIGHT", 0, top)
     b.bg = Style.Fill(b, "well")
     b.mark = b:CreateTexture(nil, "ARTWORK")
     b.mark:SetColorTexture(Style.Color("gold"))
     b.mark:SetPoint("TOPLEFT")
     b.mark:SetPoint("BOTTOMLEFT")
     b.mark:SetWidth(2)
+    local frameIcon = CreateFrame("Frame", nil, b)
+    frameIcon:SetSize(22, 22)
+    frameIcon:SetPoint("LEFT", 10, 0)
+    Style.Border(frameIcon, "lineStrong")
+    local icon = frameIcon:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 1, -1)
+    icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    icon:SetTexture(ICONS .. page.icon)
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     b.label = Style.Text(b, 13, "muted")
-    b.label:SetPoint("LEFT", 16, 0)
+    b.label:SetPoint("LEFT", frameIcon, "RIGHT", 10, 0)
     b.label:SetText(page.label)
     b:SetScript("OnClick", function() Window.Open(page.key) end)
     b:SetScript("OnEnter", function() b.label:SetTextColor(Style.Color("text")) end)
@@ -90,7 +100,7 @@ local function MenuButton(menu, page, index)
     page.button = b
 end
 
--- The hub keeps one size, 940 by 850 at full scale, so its text stays the
+-- The hub keeps one size, 1000 by 920 at full scale, so its text stays the
 -- size it was drawn at. Only when the screen is too small to hold it does it
 -- shrink, evenly, to fit with a little room around it.
 local function FitScale()
@@ -136,34 +146,62 @@ local function Build()
         SavePosition()
     end)
 
-    -- jsal.io's mark, then the wordmark, as in the site's top bar.
+    -- jsal.io's mark, then the wordmark, as in the site's top bar, then the
+    -- open page's name after a thin divider.
     local mark = bar:CreateTexture(nil, "ARTWORK")
     mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
-    mark:SetSize(20, 20)
-    mark:SetPoint("LEFT", 12, 0)
-    local name = Style.Wordmark(bar, 18)
-    name:SetPoint("LEFT", mark, "RIGHT", 8, 0)
+    mark:SetSize(24, 24)
+    mark:SetPoint("LEFT", 16, 0)
+    local name = Style.Wordmark(bar, 20)
+    name:SetPoint("LEFT", mark, "RIGHT", 10, 0)
     name:SetJustifyV("MIDDLE")
-    local version = Style.Text(bar, 11, "muted")
-    version:SetPoint("LEFT", name, "RIGHT", 8, -1)
-    version:SetText(ns.version)
+    local divider = bar:CreateTexture(nil, "ARTWORK")
+    divider:SetColorTexture(Style.Color("lineStrong"))
+    divider:SetSize(Compat.OnePixel(bar), 20)
+    divider:SetPoint("LEFT", name, "RIGHT", 16, 0)
+    Compat.Crisp(divider)
+    crumb = Style.Text(bar, 13, "text", nil, true)
+    crumb:SetPoint("LEFT", divider, "RIGHT", 16, 0)
+    crumb:SetJustifyV("MIDDLE")
     local close = Style.CloseButton(bar, TITLE_HEIGHT, function() frame:Hide() end)
     close:SetPoint("TOPRIGHT")
-    ReloadButton(bar):SetPoint("RIGHT", close, "LEFT", -4, 0)
+    ReloadButton(bar):SetPoint("RIGHT", close, "LEFT", -6, 0)
 
+    -- The menu: entries in their groups from the top, Settings and the
+    -- version at the bottom.
     local menu = CreateFrame("Frame", nil, frame)
     menu:SetPoint("TOPLEFT", 0, -TITLE_HEIGHT)
     menu:SetPoint("BOTTOMLEFT")
     menu:SetWidth(MENU_WIDTH)
     Style.Fill(menu, "titleBar")
     Style.Rule(menu, "RIGHT", "line")
-    for index, page in ipairs(PAGES) do
-        MenuButton(menu, page, index)
+    local y = 18
+    for _, page in ipairs(PAGES) do
+        MenuButton(menu, page)
+        local b = page.button
+        if page.bottom then
+            b:SetPoint("BOTTOMLEFT", MENU_PAD, 40)
+            b:SetPoint("BOTTOMRIGHT", -MENU_PAD, 40)
+        else
+            if page.group then
+                local group = Style.Text(menu, 10, "muted", nil, true)
+                group:SetPoint("TOPLEFT", MENU_PAD + 10, -(y + 18))
+                group:SetText(page.group)
+                group:SetAlpha(0.8)
+                y = y + 18 + 18
+            end
+            b:SetPoint("TOPLEFT", MENU_PAD, -y)
+            b:SetPoint("TOPRIGHT", -MENU_PAD, -y)
+            y = y + ITEM_HEIGHT + 2
+        end
     end
+    local version = Style.Text(menu, 11, "muted")
+    version:SetPoint("BOTTOMLEFT", MENU_PAD + 10, 16)
+    version:SetText("jsal.ui " .. (ns.version or ""))
 
     content = CreateFrame("Frame", nil, frame)
-    content:SetPoint("TOPLEFT", MENU_WIDTH + PAD, -(TITLE_HEIGHT + PAD))
-    content:SetPoint("BOTTOMRIGHT", -PAD, PAD)
+    content:SetPoint("TOPLEFT", MENU_WIDTH + PAD_X, -(TITLE_HEIGHT + PAD_Y))
+    content:SetPoint("BOTTOMRIGHT", -PAD_X, PAD_Y)
 end
 
 local function Refresh(page)
@@ -175,9 +213,12 @@ end
 local function BuildPage(page)
     local f = CreateFrame("Frame", nil, content)
     f:SetAllPoints()
-    f.heading = Style.Text(f, 18, "text", nil, true)
-    f.heading:SetPoint("TOPLEFT")
-    f.heading:SetText(page.label)
+    -- The page's name is in the title bar. Pages place their first line
+    -- 8px under this anchor, which sits just above the top, so that line
+    -- starts at the very top.
+    f.heading = CreateFrame("Frame", nil, f)
+    f.heading:SetSize(1, 1)
+    f.heading:SetPoint("BOTTOMLEFT", f, "TOPLEFT", 0, 8)
     page.frame = f
     local note
     if page.build then
@@ -188,7 +229,7 @@ local function BuildPage(page)
     end
     if note then
         local text = Style.Text(f, 13, "muted")
-        text:SetPoint("TOPLEFT", f.heading, "BOTTOMLEFT", 0, -10)
+        text:SetPoint("TOPLEFT", f.heading, "BOTTOMLEFT", 0, -8)
         text:SetWidth(Window.contentWidth)
         text:SetText(note)
     end
@@ -205,6 +246,7 @@ function Window.Open(key)
         if other.frame then other.frame:SetShown(other == page) end
     end
     current = page.key
+    crumb:SetText(page.label)
     PaintMenu()
     Refresh(page)
     frame:Show()
