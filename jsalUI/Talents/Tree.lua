@@ -468,6 +468,9 @@ end
 -- own build, or else the first suggested one. A class with neither gets a
 -- new, empty build.
 function Tree.Selected(classID)
+    -- Sets up the saved lists first: a player who has never made a build
+    -- has none yet.
+    Tree.AllBuilds()
     local build = Find(classID, ns.db.selectedBuild[classID])
         or Tree.ClassBuilds(classID)[1] or Tree.Suggested(classID)[1]
     if build then
@@ -478,6 +481,7 @@ function Tree.Selected(classID)
 end
 
 function Tree.Select(classID, build)
+    Tree.AllBuilds()
     ns.db.selectedBuild[classID] = build.id
 end
 
