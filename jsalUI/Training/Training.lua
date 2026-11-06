@@ -83,12 +83,20 @@ function Training.Read()
     end
     local prices = Trainers(classID, classSpells, classNames, weaponIDs, weaponNames)
 
+    -- Race-only spells show only for that race. Races past the first 31 have
+    -- no bit to check, so they get only the spells every race learns.
+    local _, _, raceID = UnitRace("player")
+    local raceBit = raceID and raceID <= 31 and bit.lshift(1, raceID - 1) or 0
+    local function ForMyRace(mask)
+        return not mask or mask == 0 or bit.band(mask, raceBit) ~= 0
+    end
+
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     local data = { classID = classID, schools = source.schools, spells = {}, weapons = {}, haveTrainer = prices.haveTrainer }
     for _, entry in ipairs(source.spells) do
-        local id, level, school = entry[1], entry[2], entry[3]
+        local id, level, school, race = entry[1], entry[2], entry[3], entry[4]
         local name, icon = Compat.SpellInfo(id)
-        if name and (not prices.haveTrainer or prices.listed[id] or IsPlayerSpell(id)) then
+        if name and ForMyRace(race) and (not prices.haveTrainer or prices.listed[id] or IsPlayerSpell(id)) then
             local rank = Rank(id)
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
