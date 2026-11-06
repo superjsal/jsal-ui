@@ -1,0 +1,26 @@
+# Pushing a version tag (v0.3.7) builds jsal.ui's zip and publishes it as a
+# GitHub release and to CurseForge and Wago, with the commits since the last
+# tag as its changelog. The toc's X-Curse-Project-ID and X-Wago-ID say where.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_KEY }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: BigWigsMods/packager@v2
