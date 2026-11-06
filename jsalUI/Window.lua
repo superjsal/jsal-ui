@@ -6,7 +6,7 @@ local Style, Compat = ns.Style, ns.Compat
 local Window = {}
 ns.Window = Window
 
-local WIDTH, HEIGHT = 960, 680
+local WIDTH, HEIGHT = 940, 850
 local TITLE_HEIGHT, MENU_WIDTH, PAD, ITEM_HEIGHT = 32, 172, 20, 32
 Window.contentWidth = WIDTH - MENU_WIDTH - PAD * 2
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD * 2
@@ -90,9 +90,21 @@ local function MenuButton(menu, page, index)
     page.button = b
 end
 
+-- The hub keeps one size, 940 by 850 at full scale, so its text stays the
+-- size it was drawn at. Only when the screen is too small to hold it does it
+-- shrink, evenly, to fit with a little room around it.
+local function FitScale()
+    local w, h = UIParent:GetWidth(), UIParent:GetHeight()
+    return math.min(1, (w - 40) / WIDTH, (h - 40) / HEIGHT)
+end
+
 local function Build()
     frame = CreateFrame("Frame", "jsalUIWindow", UIParent)
+    -- Scaled before anything is drawn on it, so its 1px lines start crisp.
+    frame:SetScale(FitScale())
     frame:SetSize(WIDTH, HEIGHT)
+    -- A size saved by the old corner handle no longer applies.
+    ns.db.window.scale = nil
     local saved = ns.db.window.point
     if saved then
         frame:SetPoint(saved[1], UIParent, saved[2], saved[3], saved[4])

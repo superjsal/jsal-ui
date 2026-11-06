@@ -60,12 +60,15 @@ local function Record()
     if #rows == 0 then return end
     local _, classFile, classID = UnitClass("player")
     ns.db.trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
-    local key = ("%s @ %s"):format(UnitName("npc") or "?", GetZoneText() or "?")
+    -- Saved per trainer and class: a weapon master shows each class the
+    -- weapons it can learn, so one class's visit doesn't replace another's.
+    local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
+    local key = ("%s @ %s (%s)"):format(npc, zone, classFile or "?")
     ns.db.trainers[key] = {
-        class = classID, classFile = classFile, build = (select(2, GetBuildInfo())),
-        seen = Compat.ServerTime(), highest = highest, rows = rows,
+        class = classID, classFile = classFile, npc = npc, zone = zone,
+        build = (select(2, GetBuildInfo())), seen = Compat.ServerTime(), highest = highest, rows = rows,
     }
-    ns.Print(("Saved %d spells and prices from %s, up to level %d."):format(#rows, key, highest))
+    ns.Print(("Saved %d spells and prices from %s in %s, up to level %d."):format(#rows, npc, zone, highest))
 end
 
 local events = CreateFrame("Frame")
