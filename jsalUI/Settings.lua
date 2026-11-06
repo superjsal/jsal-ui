@@ -12,25 +12,55 @@ Window.Page("settings", function(page)
     intro:SetWidth(Window.contentWidth)
     intro:SetText("Turn parts of jsal.ui on or off. Changes apply after you type /reload.")
 
+    -- The switches scroll with the mouse wheel once there are more than fit;
+    -- a thin bar shows where. The footer stays put below them.
+    local width = Window.contentWidth - 8
+    local scroll = CreateFrame("ScrollFrame", nil, page)
+    scroll:SetPoint("TOPLEFT", intro, "BOTTOMLEFT", 0, -14)
+    scroll:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -8, 24)
+    local list = CreateFrame("Frame", nil, scroll)
+    list:SetSize(width, 1)
+    scroll:SetScrollChild(list)
+    local thumb = page:CreateTexture(nil, "ARTWORK")
+    thumb:SetColorTexture(Style.Color("lineStrong"))
+    thumb:SetWidth(3)
+    local function PlaceThumb()
+        local range = scroll:GetVerticalScrollRange()
+        local h = scroll:GetHeight()
+        thumb:SetShown(range > 0)
+        if range <= 0 then return end
+        local size = math.max(24, h * h / (h + range))
+        thumb:SetHeight(size)
+        thumb:ClearAllPoints()
+        thumb:SetPoint("TOPRIGHT", scroll, "TOPRIGHT", 7, -(h - size) * scroll:GetVerticalScroll() / range)
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local target = self:GetVerticalScroll() - delta * ROW_HEIGHT * 2
+        self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), target)))
+        PlaceThumb()
+    end)
+
     -- Shown once a switch changes, until the reload.
-    local pending = Style.Text(page, 13, "gold", nil, true)
+    local pending = Style.Text(list, 13, "gold", nil, true)
     pending:SetText("Type /reload to apply your changes.")
     pending:Hide()
 
-    local last, gap = intro, -14
+    local last, gap, used = nil, 0, 0
     if #ns.moduleOrder == 0 then
-        local none = Style.Text(page, 13, "text")
-        none:SetPoint("TOPLEFT", intro, "BOTTOMLEFT", 0, -14)
-        none:SetWidth(Window.contentWidth)
+        local none = Style.Text(list, 13, "text")
+        none:SetPoint("TOPLEFT")
+        none:SetWidth(width)
         none:SetText("The games, the Guild tab and the planners will be listed here as they arrive.")
-        last = none
+        last, used = none, ROW_HEIGHT
     end
 
     local rows = {}
     for _, module in ipairs(ns.moduleOrder) do
-        local row = CreateFrame("Frame", nil, page)
-        row:SetSize(Window.contentWidth, ROW_HEIGHT)
-        row:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, gap)
+        local row = CreateFrame("Frame", nil, list)
+        row:SetSize(width, ROW_HEIGHT)
+        if last then row:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, gap) else row:SetPoint("TOPLEFT") end
+        used = used + ROW_HEIGHT
         Style.Rule(row, "BOTTOM", "line")
         row.name = Style.Text(row, 13, "text")
         row.name:SetPoint("TOPLEFT", 0, -5)
@@ -47,8 +77,9 @@ Window.Page("settings", function(page)
         last, gap = row, 0
         -- The module's own options, indented under it. These apply at once.
         for _, option in ipairs(module.options or {}) do
-            local sub = CreateFrame("Frame", nil, page)
-            sub:SetSize(Window.contentWidth - 24, ROW_HEIGHT)
+            local sub = CreateFrame("Frame", nil, list)
+            sub:SetSize(width - 24, ROW_HEIGHT)
+            used = used + ROW_HEIGHT
             sub:SetPoint("TOPLEFT", last, "BOTTOMLEFT", last == row and 24 or 0, 0)
             Style.Rule(sub, "BOTTOM", "line")
             sub.name = Style.Text(sub, 12, "text")
@@ -65,13 +96,14 @@ Window.Page("settings", function(page)
         end
         if last ~= row then
             -- The next module lines up with the page edge again.
-            local spacer = CreateFrame("Frame", nil, page)
+            local spacer = CreateFrame("Frame", nil, list)
             spacer:SetSize(1, 1)
             spacer:SetPoint("TOPLEFT", row, "BOTTOMLEFT", 0, -(ROW_HEIGHT * #module.options) + 1)
             last = spacer
         end
     end
-    pending:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -16)
+    if last then pending:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -16) else pending:SetPoint("TOPLEFT") end
+    list:SetHeight(used + 40)
 
     local footer = Style.Text(page, 11, "muted")
     footer:SetPoint("BOTTOMLEFT")
@@ -91,5 +123,7 @@ Window.Page("settings", function(page)
                 end
             end
         end
+        scroll:UpdateScrollChildRect()
+        PlaceThumb()
     end
 end)
