@@ -32,6 +32,24 @@ PET_TRAINING = 261        # a hunter's pet abilities, taught by pet trainers
 NOT_WEAPONS = {95, 118, 162}   # Defense, Dual Wield, Unarmed: not weapons to learn
 
 
+DEMONS_FOR, DEMON_LINES = {9}, [188, 204, 205, 189, 2887]   # Imp, Voidwalker, Succubus, Felhunter, Felguard
+BEAST_FOR = {3}
+
+
+def Trainable(abilities, names, ranks, levels):
+    """A skill line's spells taught at a trainer, one per name and rank (the
+    lowest ID), as (level, spell) pairs in level order."""
+    chosen = {}
+    for r in sorted(abilities, key=lambda r: int(r["Spell"])):
+        spell = int(r["Spell"])
+        if r["AcquireMethod"] != FROM_TRAINER or not names.get(spell) or levels.get(spell, 0) < 1:
+            continue
+        key = (names[spell], ranks.get(spell, ""))
+        if key not in chosen:
+            chosen[key] = (levels[spell], spell)
+    return sorted(chosen.values())
+
+
 def rows(folder, name):
     with open(folder / f"{name}.csv", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
@@ -117,6 +135,22 @@ def main():
             lines.append(f"            {{ {spell}, {level}, {school}, {race} }},")
         lines.append("        },")
         lines.append(f"        weapons = {{ {', '.join(str(w) for w in weapon_spells)} }},")
+        # A warlock's demons: each one's trainable abilities, rank by rank,
+        # taught by Grimoires from a demon trainer.
+        if class_id in DEMONS_FOR:
+            lines.append("        demons = {")
+            for line_id in DEMON_LINES:
+                taught = Trainable(by_line[line_id], names, ranks, levels)
+                if taught:
+                    demon = skills[line_id]["DisplayName_lang"].replace("Pet - ", "")
+                    lines.append(f'            {{ name = "{demon}", spells = {{ ' +
+                                 ", ".join(f"{{ {s}, {l} }}" for l, s in taught) + " } },")
+            lines.append("        },")
+        # A hunter's Beast Training: every pet ability and rank. Most come from
+        # taming, so only those a pet trainer lists are shown; this names them.
+        if class_id in BEAST_FOR:
+            taught = Trainable(by_line[PET_TRAINING], names, ranks, levels)
+            lines.append("        beast = { " + ", ".join(f"{{ {s}, {l} }}" for l, s in taught) + " },")
         lines.append("    },")
         report.append(f"class {class_id}: {len(spells)} spells, {len(weapon_spells)} weapon skills, schools {school_names}")
     lines += ["}", ""]
