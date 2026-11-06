@@ -67,6 +67,17 @@ local function ReadTrainer()
     return rows, highest
 end
 
+-- A hunter's Beast Training list, saved for this character: each pet
+-- ability by name and rank, the pet level it needs and its cost in training
+-- points. Anything not listed is still to be learned by taming.
+local function SaveBeastTraining(rows)
+    local list = {}
+    for _, row in ipairs(rows) do
+        list[row.name .. "|" .. (row.rank or "")] = { points = row.cost, level = row.level, kind = row.category }
+    end
+    if next(list) then ns.char.beastTraining = { seen = Compat.ServerTime(), rows = list } end
+end
+
 local function Record()
     if not (GetNumTrainerServices and GetTrainerServiceTypeFilter) then return end
     if IsTradeskillTrainer and IsTradeskillTrainer() then return end
@@ -74,15 +85,30 @@ local function Record()
     if #rows == 0 then return end
     local _, classFile, classID = UnitClass("player")
     ns.db.trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
+    -- Beast Training opens in this same window, with no one on the other
+    -- side. Visits saved that way before are dropped.
+    if not UnitExists("npc") then
+        for key in pairs(ns.db.trainers) do
+            if key:find("^%? @ ") then ns.db.trainers[key] = nil end
+        end
+        if classFile == "HUNTER" then SaveBeastTraining(rows) end
+        return
+    end
     -- Saved per trainer and class: a weapon master shows each class the
     -- weapons it can learn, so one class's visit doesn't replace another's.
     local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
     local key = ("%s @ %s (%s)"):format(npc, zone, classFile or "?")
+    -- The window can open several times in one visit; it's only news when
+    -- the list has changed.
+    local before = ns.db.trainers[key]
+    local same = type(before) == "table" and type(before.rows) == "table" and #before.rows == #rows and before.highest == highest
     ns.db.trainers[key] = {
         class = classID, classFile = classFile, npc = npc, zone = zone,
         build = (select(2, GetBuildInfo())), seen = Compat.ServerTime(), highest = highest, rows = rows,
     }
-    ns.Print(("Saved %d spells and prices from %s in %s, up to level %d."):format(#rows, npc, zone, highest))
+    if not same then
+        ns.Print(("Saved %d spells and prices from %s in %s, up to level %d."):format(#rows, npc, zone, highest))
+    end
 end
 
 -- A warlock's demon trainer sells Grimoires, books that teach a demon an
@@ -120,11 +146,10 @@ local function RecordBeastTraining()
     for i = 1, GetNumCrafts() do
         local name, rank, kind, _, _, points, level = GetCraftInfo(i)
         if name and kind ~= "header" then
-            rows[name .. "|" .. (rank or "")] = { points = points, level = level }
+            rows[#rows + 1] = { name = name, rank = rank ~= "" and rank or nil, cost = points, level = level, category = kind }
         end
     end
-    if not next(rows) then return end
-    ns.char.beastTraining = { seen = Compat.ServerTime(), rows = rows }
+    SaveBeastTraining(rows)
 end
 
 local events = CreateFrame("Frame")

@@ -80,6 +80,9 @@ def main():
     out = []
     for key in sorted(trainers):
         t = trainers[key]
+        # "?" is Beast Training, saved as a trainer before that was caught.
+        if key.startswith("? @ "):
+            continue
         npc, zone = t.get("npc"), t.get("zone")
         if not npc:
             m = re.match(r"^(.*?) @ ([^(]+)", key)

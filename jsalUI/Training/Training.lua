@@ -29,6 +29,10 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     local trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
     -- Weapon skills cost the same at every weapon master, for every class,
     -- so any character's visit prices them.
+    -- "?" is Beast Training, saved as a trainer before that was caught.
+    for key, trainer in pairs(trainers) do
+        if key:find("^%? @ ") then trainers[key] = nil end
+    end
     for _, trainer in pairs(trainers) do
         for _, row in ipairs(type(trainer.rows) == "table" and trainer.rows or {}) do
             local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
