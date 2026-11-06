@@ -156,15 +156,19 @@ function Training.Read()
 
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     local data = { classID = classID, schools = source.schools, spells = {}, weapons = {}, haveTrainer = prices.haveTrainer }
+    -- Spells no class trainer sells come from a class quest, a book or (for
+    -- a mage's teleports) a portal trainer, and say so.
+    local elsewhere = source.elsewhere or {}
     for _, entry in ipairs(source.spells) do
         local id, level, school, race = entry[1], entry[2], entry[3], entry[4]
         local name, icon = Compat.SpellInfo(id)
-        if name and ForMyRace(race) and (not prices.haveTrainer or prices.listed[id] or IsPlayerSpell(id)) then
+        local via = elsewhere[id]
+        if name and ForMyRace(race) and (not prices.haveTrainer or prices.listed[id] or via or IsPlayerSpell(id)) then
             local rank = Rank(id)
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
                 cost = prices.bySpell[id] or prices.byName[name .. "|" .. (rank or "")],
-                known = IsPlayerSpell(id), skipped = skips[id] == true,
+                known = IsPlayerSpell(id), skipped = skips[id] == true, via = via,
             }
         end
     end
