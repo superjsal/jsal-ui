@@ -2,14 +2,19 @@
 -- talk to a quest giver. Holding Shift skips it, a reward choice is left to
 -- you, and grey (trivial) quests and quests that cost gold are left alone.
 -- In a group it leaves taking quests from quest givers to you, so an escort
--- doesn't set off before everyone's ready; quests a groupmate shares, and
--- joining an escort a groupmate starts, are still taken.
+-- doesn't set off before everyone's ready, unless the player switches that
+-- off in Settings; quests a groupmate shares, and joining an escort a
+-- groupmate starts, are still taken.
 local _, ns = ...
 local Compat = ns.Compat
 
 local Quests = ns.NewModule("quests", {
     title = "Quests on autopilot",
     note = "Accepts and turns in quests for you. Hold Shift to do it yourself.",
+    options = {
+        { key = "grouped", title = "Take quests in a group too", default = false,
+          note = "Off: in a group, you accept quests yourself, so an escort waits for everyone." },
+    },
 })
 
 -- Each quest is tried once every few seconds at most, so a quest the game
@@ -26,7 +31,9 @@ local function Paused()
     return IsShiftKeyDown()
 end
 
+-- In a group, unless the player chose to take quests in a group too.
 local function Grouped()
+    if ns.OptionOn("quests", "grouped") then return false end
     return IsInGroup and IsInGroup() or (GetNumGroupMembers and GetNumGroupMembers() > 0)
 end
 
