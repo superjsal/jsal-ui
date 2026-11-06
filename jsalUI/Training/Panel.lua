@@ -1,7 +1,8 @@
--- A small Training panel that opens beside the spellbook, a class or pet
--- trainer and Beast Training: what you can train now and what it costs
--- against your gold, what the next even level brings, and where you trained
--- last, with a map pin and a way into the Training Planner.
+-- A small Training panel that opens beside the spellbook, a class, pet or
+-- weapon trainer and Beast Training: what you can train now and what it
+-- costs against your gold, what the next level brings, and where you trained
+-- last, with a map pin and a way into the Training Planner. Beside a trainer
+-- it shows only what that trainer teaches.
 local _, ns = ...
 local Style, Compat, Training, Window = ns.Style, ns.Compat, ns.Training, ns.Window
 
@@ -11,12 +12,19 @@ local Panel = ns.NewModule("trainingpanel", {
 })
 
 local WIDTH, PAD, ROW_H, MAX_ROWS = 330, 14, 30, 8
--- The windows it opens beside: the spellbook (old and new) and the trainer
--- window, which Beast Training uses too in Forever.
-local FRAMES = { "SpellBookFrame", "PlayerSpellsFrame", "ClassTrainerFrame", "CraftFrame" }
+-- The windows it opens beside. Forever's spellbook is the book inside
+-- PlayerSpellsFrame, which loads on demand; older clients' is SpellBookFrame.
+-- Class, pet and weapon trainers share the trainer window, and so does
+-- Beast Training in Forever.
+local TARGETS = {
+    function() return PlayerSpellsFrame and PlayerSpellsFrame.SpellBookFrame end,
+    function() return not PlayerSpellsFrame and SpellBookFrame end,
+    function() return ClassTrainerFrame end,
+    function() return CraftFrame end,
+}
 local TAG = { quest = "Quest", book = "Book", portal = "Portal" }
 
-local panel, anchor, dismissed
+local panel, anchor, dismissed, context
 local hooked = {}
 
 -- Spells at an odd level are trained on the next even one.
@@ -209,11 +217,21 @@ local function Paint()
     local level = UnitLevel("player")
     local money = GetMoney()
 
+    -- Which spells belong beside this window: everything beside the
+    -- spellbook; at a trainer, only what that trainer teaches.
+    local function Belongs(spell)
+        if context == "book" then return true end
+        if context == "pet" then return spell.source == "pet" end
+        if context == "class" then return spell.source == nil and spell.via == nil end
+        return false
+    end
+
     -- Ready now, and the spells of the next even level.
     local now, nextLevel, nextList = {}, nil, {}
     local nowCost, nextCost = 0, 0
+    local nowHead, nextHead = ("READY NOW · LEVEL %d"):format(level), "NEXT · LEVEL %d"
     for _, spell in ipairs(data.spells) do
-        if not spell.known and not spell.skipped then
+        if not spell.known and not spell.skipped and Belongs(spell) then
             if spell.level <= level then
                 now[#now + 1] = spell
                 if not Free(spell) and spell.cost then nowCost = nowCost + spell.cost end
@@ -224,25 +242,52 @@ local function Paint()
         end
     end
     for _, spell in ipairs(data.spells) do
-        if not spell.known and not spell.skipped and spell.level > level and Stop(spell.level) == nextLevel then
+        if not spell.known and not spell.skipped and Belongs(spell) and spell.level > level and Stop(spell.level) == nextLevel then
             nextList[#nextList + 1] = spell
             if not Free(spell) and spell.cost then nextCost = nextCost + spell.cost end
         end
     end
-    -- A hunter's pet abilities ready to teach, in training points.
-    local pet = Training.Pet()
-    for _, row in ipairs(pet and pet.rows or {}) do
-        if row.state == "ready" and not row.skipped then
-            now[#now + 1] = {
+    -- A weapon master: the weapon skills still to learn.
+    if context == "weapons" then
+        for _, w in ipairs(data.weapons) do
+            if not w.known and not w.skipped then
+                now[#now + 1] = w
+                if w.cost then nowCost = nowCost + w.cost end
+            end
+        end
+    end
+    -- A hunter's pet abilities ready to teach, in training points; at Beast
+    -- Training, the ones waiting on the pet's next level too.
+    if context == "book" or context == "beast" then
+        local pet = Training.Pet()
+        local function Entry(row)
+            return {
                 id = row.spell.pet, name = row.name, icon = row.icon,
                 rank = row.spell.rank > 0 and ("Rank " .. row.spell.rank) or nil,
                 source = "beast", points = row.points,
             }
         end
+        for _, row in ipairs(pet and pet.rows or {}) do
+            if row.state == "ready" and not row.skipped then now[#now + 1] = Entry(row) end
+        end
+        if context == "beast" and pet and not pet.none then
+            nowHead = ("READY NOW · %s, LEVEL %d"):format((pet.name or "PET"):upper(), pet.level or 0)
+            nextHead = "NEXT · PET LEVEL %d"
+            for _, row in ipairs(pet.rows) do
+                if row.state == "level" and not row.skipped and (not nextLevel or row.spell.level < nextLevel) then
+                    nextLevel = row.spell.level
+                end
+            end
+            for _, row in ipairs(pet.rows) do
+                if row.state == "level" and not row.skipped and row.spell.level == nextLevel then
+                    nextList[#nextList + 1] = Entry(row)
+                end
+            end
+        end
     end
 
     local y = 36 + 12
-    panel.nowHead:SetText(("READY NOW · LEVEL %d"):format(level))
+    panel.nowHead:SetText(nowHead)
     Place(panel.nowHead, y + 2)
     panel.nowCost:SetText(nowCost > 0 and Compat.Money(nowCost) or "")
     PlaceRight(panel.nowCost, y)
@@ -285,7 +330,7 @@ local function Paint()
         y = y + 8
         Place(panel.rule1, y)
         y = y + 12
-        panel.nextHead:SetText(("NEXT · LEVEL %d"):format(nextLevel))
+        panel.nextHead:SetText(nextHead:format(nextLevel))
         Place(panel.nextHead, y + 2)
         panel.nextCost:SetText(nextCost > 0 and Compat.Money(nextCost) or "")
         PlaceRight(panel.nextCost, y)
@@ -338,12 +383,41 @@ end
 ---------------------------------------------------------------------------
 -- Opening beside the spellbook and trainers.
 ---------------------------------------------------------------------------
+-- What the trainer window open now teaches, from the spells its rows are:
+-- "beast" (Beast Training, with no one on the other side), "pet" (a pet
+-- trainer), "weapons" (a weapon master) or "class".
+local function TrainerKind()
+    if not UnitExists("npc") then return "beast" end
+    local _, _, classID = UnitClass("player")
+    local source = ns.SpellData[classID] or {}
+    local pets, weapons = {}, {}
+    for _, list in pairs(source.families or {}) do
+        for _, entry in ipairs(list) do pets[entry[1]] = true end
+    end
+    for _, id in ipairs(source.weapons or {}) do weapons[id] = true end
+    for i = 1, GetNumTrainerServices() do
+        local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
+        local id = info and info.id
+        if id and pets[id] then return "pet" end
+        if id and weapons[id] then return "weapons" end
+    end
+    return "class"
+end
+
 local function OpenBeside(frame)
-    if not Panel.running or dismissed == frame then return end
+    if not Panel.running or dismissed == frame or not frame:IsShown() then return end
     -- A profession trainer teaches crafts, not class spells.
     if frame == ClassTrainerFrame and IsTradeskillTrainer and IsTradeskillTrainer() then return end
     if not panel then Build() end
     anchor = frame
+    if frame == ClassTrainerFrame then
+        local ok, kind = pcall(TrainerKind)
+        context = ok and kind or "class"
+    elseif frame == CraftFrame then
+        context = "beast"
+    else
+        context = "book"
+    end
     panel:SetFrameStrata(frame:GetFrameStrata())
     panel:SetFrameLevel(frame:GetFrameLevel() + 10)
     panel:ClearAllPoints()
@@ -353,11 +427,16 @@ local function OpenBeside(frame)
 end
 
 local function Hook()
-    for _, name in ipairs(FRAMES) do
-        local frame = _G[name]
+    if Compat.GamepadUI() then return end
+    for _, find in ipairs(TARGETS) do
+        local frame = find()
         if frame and not hooked[frame] then
             hooked[frame] = true
-            frame:HookScript("OnShow", function() OpenBeside(frame) end)
+            -- Drawn a moment later, outside the game's own showing of the
+            -- window, so nothing of ours runs inside it.
+            frame:HookScript("OnShow", function()
+                Compat.After(0, function() OpenBeside(frame) end)
+            end)
             frame:HookScript("OnHide", function()
                 if dismissed == frame then dismissed = nil end
                 if anchor == frame and panel then
