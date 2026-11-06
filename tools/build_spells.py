@@ -104,29 +104,42 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
     return len(spell_ids & set(spells))
 
 
-# Class spells no trainer sells, and where they come from instead. Quests are
-# the class quests players know from Classic, kept only where Forever's
-# trainers don't sell the spell either; books are the Dire Maul books. Any
-# other level 60 rank no trainer sells, of a spell trainers do sell, is a
-# book too. A mage's teleports and portals come from a portal trainer.
+# Class spells no trainer sells, and where they come from instead, as
+# Wowhead's Forever database gives them (each spell's "Reward from" quests
+# and "Taught by" items), kept only where Forever's trainers don't sell the
+# spell either. Spells that come with a quest's (Growl and Maul with Bear
+# Form, a cat's abilities with Cat Form) count as that quest's. Any other
+# level 60 rank no trainer sells, of a spell trainers do sell, is a book too.
+# A mage's teleports and portals come from a portal trainer.
 QUESTS = {
     1: ["Defensive Stance", "Taunt", "Sunder Armor|Rank 1", "Berserker Stance", "Intercept|Rank 1"],
-    2: ["Redemption|Rank 1"],
+    2: ["Holy Light|Rank 1", "Redemption|Rank 1"],
     3: ["Tame Beast", "Call Pet", "Dismiss Pet", "Feed Pet", "Revive Pet"],
+    # A priest's racial spells: the first rank from a quest at 10 or 20.
+    5: ["Touch of Weakness|Rank 1", "Hex of Weakness|Rank 1", "Starshards|Rank 1", "Desperate Prayer|Rank 1",
+        "Elune's Grace", "Feedback|Rank 1", "Shadowguard|Rank 1", "Dark Sacrifice|Rank 1", "Chastise|Rank 1",
+        "Contingency Plan|Rank 1", "Divine Grace|Rank 1", "Confounding Flash"],
     7: ["Stoneskin Totem|Rank 1", "Searing Totem|Rank 1", "Healing Stream Totem|Rank 1"],
-    9: ["Summon Voidwalker", "Summon Succubus", "Summon Felhunter", "Inferno"],
-    11: ["Bear Form", "Growl", "Maul|Rank 1", "Cure Poison", "Aquatic Form"],
+    8: ["Conjure Water|Rank 7"],
+    9: ["Summon Voidwalker", "Summon Succubus", "Summon Incubus", "Summon Felhunter", "Inferno", "Ritual of Doom"],
+    11: ["Bear Form", "Growl", "Maul|Rank 1", "Cure Poison", "Aquatic Form",
+         "Cat Form", "Claw|Rank 1", "Rip|Rank 1", "Prowl|Rank 1"],
 }
 BOOKS = {
-    5: ["Prayer of Shadow Protection"],
-    8: ["Arcane Brilliance"],
-    11: ["Gift of the Wild|Rank 1"],
+    3: ["Tranquilizing Shot", "Enchanted Flare"],
+    5: ["Prayer of Shadow Protection", "Prayer of Fortitude"],
+    8: ["Arcane Brilliance", "Arcane Missiles|Rank 8", "Polymorph: Cow"],
+    11: ["Gift of the Wild"],
 }
+# A priest's racial spells past the first rank are sold by trainers, to
+# that race only; one priest's trainer visit shows only its own race's.
+RACIAL_TRAINER = {5}
 
 
 def Elsewhere(class_id, spells, names, ranks, taught_by_trainer):
-    """{spell: "quest" | "book" | "portal"} for this class's spells that
-    come from somewhere other than its class trainer."""
+    """{spell: "quest" | "book" | "portal" | "trainer"} for this class's
+    spells that come from somewhere other than the class trainer seen, or
+    ("trainer") from another race's."""
     out = {}
     if not taught_by_trainer:
         return out
@@ -139,7 +152,7 @@ def Elsewhere(class_id, spells, names, ranks, taught_by_trainer):
         name, rank = Key(spell)
         return name in entries or f"{name}|{rank}" in entries
 
-    for level, spell, _, _ in spells:
+    for level, spell, _, race in spells:
         if spell in taught_by_trainer:
             continue
         name, rank = Key(spell)
@@ -151,6 +164,8 @@ def Elsewhere(class_id, spells, names, ranks, taught_by_trainer):
             out[spell] = "book"
         elif class_id == 8 and (name.startswith("Teleport: ") or name.startswith("Portal: ")) and "Dalaran" not in name:
             out[spell] = "portal"
+        elif class_id in RACIAL_TRAINER and race and rank.startswith("Rank ") and rank != "Rank 1":
+            out[spell] = "trainer"
     return out
 
 
