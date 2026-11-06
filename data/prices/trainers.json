@@ -5734,6 +5734,1331 @@
    ]
   },
   {
+   "class": 11,
+   "npc": "Fylerian Nightwing",
+   "zone": "Darnassus",
+   "seen": 1793984201,
+   "rows": [
+    {
+     "spell": 1126,
+     "name": "Mark of the Wild",
+     "cost": 10,
+     "level": 1,
+     "kind": "available"
+    },
+    {
+     "spell": 8921,
+     "name": "Moonfire",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 774,
+     "name": "Rejuvenation",
+     "cost": 100,
+     "level": 4,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 467,
+     "name": "Thorns",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5177,
+     "name": "Wrath",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 339,
+     "name": "Entangling Roots",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5186,
+     "name": "Healing Touch",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 99,
+     "name": "Demoralizing Roar",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5232,
+     "name": "Mark of the Wild",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8924,
+     "name": "Moonfire",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16689,
+     "name": "Nature's Grasp",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1058,
+     "name": "Rejuvenation",
+     "cost": 300,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5229,
+     "name": "Enrage",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8936,
+     "name": "Regrowth",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 437138,
+     "name": "Revive",
+     "cost": 800,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5211,
+     "name": "Bash",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5187,
+     "name": "Healing Touch",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 782,
+     "name": "Thorns",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5178,
+     "name": "Wrath",
+     "cost": 900,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8925,
+     "name": "Moonfire",
+     "cost": 1400,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1430,
+     "name": "Rejuvenation",
+     "cost": 1400,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 779,
+     "name": "Swipe",
+     "cost": 1400,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1062,
+     "name": "Entangling Roots",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 770,
+     "name": "Faerie Fire",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2637,
+     "name": "Hibernate",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6808,
+     "name": "Maul",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16810,
+     "name": "Nature's Grasp",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8938,
+     "name": "Regrowth",
+     "cost": 1500,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1735,
+     "name": "Demoralizing Roar",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5188,
+     "name": "Healing Touch",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6756,
+     "name": "Mark of the Wild",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16864,
+     "name": "Omen of Clarity",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20484,
+     "name": "Rebirth",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5221,
+     "name": "Shred",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2912,
+     "name": "Starfire",
+     "cost": 2400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8926,
+     "name": "Moonfire",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2090,
+     "name": "Rejuvenation",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2908,
+     "name": "Soothe Animal",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5179,
+     "name": "Wrath",
+     "cost": 3300,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1328618,
+     "name": "Ferocious Bite",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1822,
+     "name": "Rake",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8939,
+     "name": "Regrowth",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2782,
+     "name": "Remove Curse",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237948,
+     "name": "Revive",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 780,
+     "name": "Swipe",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1075,
+     "name": "Thorns",
+     "cost": 4300,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2893,
+     "name": "Abolish Poison",
+     "cost": 4400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1850,
+     "name": "Dash",
+     "cost": 4400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5189,
+     "name": "Healing Touch",
+     "cost": 4400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6809,
+     "name": "Maul",
+     "cost": 4400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8949,
+     "name": "Starfire",
+     "cost": 4400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5209,
+     "name": "Challenging Roar",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3029,
+     "name": "Claw",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8998,
+     "name": "Cower",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5195,
+     "name": "Entangling Roots",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8927,
+     "name": "Moonfire",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16811,
+     "name": "Nature's Grasp",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2091,
+     "name": "Rejuvenation",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9492,
+     "name": "Rip",
+     "cost": 4500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6798,
+     "name": "Bash",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 778,
+     "name": "Faerie Fire",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24974,
+     "name": "Insect Swarm",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5234,
+     "name": "Mark of the Wild",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20739,
+     "name": "Rebirth",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8940,
+     "name": "Regrowth",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6800,
+     "name": "Shred",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 740,
+     "name": "Tranquility",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 783,
+     "name": "Travel Form",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5180,
+     "name": "Wrath",
+     "cost": 4600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9490,
+     "name": "Demoralizing Roar",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22568,
+     "name": "Ferocious Bite",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6778,
+     "name": "Healing Touch",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1328829,
+     "name": "Poised",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6785,
+     "name": "Ravage",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5225,
+     "name": "Track Humanoids",
+     "cost": 6000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1328616,
+     "name": "Lacerate",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8972,
+     "name": "Maul",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8928,
+     "name": "Moonfire",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1823,
+     "name": "Rake",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3627,
+     "name": "Rejuvenation",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8950,
+     "name": "Starfire",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 769,
+     "name": "Swipe",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8914,
+     "name": "Thorns",
+     "cost": 7000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22842,
+     "name": "Frenzied Regeneration",
+     "cost": 8000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9005,
+     "name": "Pounce",
+     "cost": 8000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8941,
+     "name": "Regrowth",
+     "cost": 8000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237949,
+     "name": "Revive",
+     "cost": 8000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9493,
+     "name": "Rip",
+     "cost": 8000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5201,
+     "name": "Claw",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5196,
+     "name": "Entangling Roots",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8903,
+     "name": "Healing Touch",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18657,
+     "name": "Hibernate",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16812,
+     "name": "Nature's Grasp",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8992,
+     "name": "Shred",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8955,
+     "name": "Soothe Animal",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6780,
+     "name": "Wrath",
+     "cost": 9000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9000,
+     "name": "Cower",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9634,
+     "name": "Dire Bear Form",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20719,
+     "name": "Feline Grace",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22827,
+     "name": "Ferocious Bite",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16914,
+     "name": "Hurricane",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 29166,
+     "name": "Innervate",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24975,
+     "name": "Insect Swarm",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8907,
+     "name": "Mark of the Wild",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8929,
+     "name": "Moonfire",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6783,
+     "name": "Prowl",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20742,
+     "name": "Rebirth",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8910,
+     "name": "Rejuvenation",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8918,
+     "name": "Tranquility",
+     "cost": 10000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9747,
+     "name": "Demoralizing Roar",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9749,
+     "name": "Faerie Fire",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 414644,
+     "name": "Lacerate",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9745,
+     "name": "Maul",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6787,
+     "name": "Ravage",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9750,
+     "name": "Regrowth",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8951,
+     "name": "Starfire",
+     "cost": 11000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22812,
+     "name": "Barkskin",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9758,
+     "name": "Healing Touch",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1824,
+     "name": "Rake",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9752,
+     "name": "Rip",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9754,
+     "name": "Swipe",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9756,
+     "name": "Thorns",
+     "cost": 14000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8983,
+     "name": "Bash",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9821,
+     "name": "Dash",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9833,
+     "name": "Moonfire",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9823,
+     "name": "Pounce",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9839,
+     "name": "Rejuvenation",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9829,
+     "name": "Shred",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8905,
+     "name": "Wrath",
+     "cost": 16000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9849,
+     "name": "Claw",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9852,
+     "name": "Entangling Roots",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22828,
+     "name": "Ferocious Bite",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 16813,
+     "name": "Nature's Grasp",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9856,
+     "name": "Regrowth",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237950,
+     "name": "Revive",
+     "cost": 17000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9888,
+     "name": "Healing Touch",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17401,
+     "name": "Hurricane",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24976,
+     "name": "Insect Swarm",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1235826,
+     "name": "Lacerate",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9884,
+     "name": "Mark of the Wild",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9880,
+     "name": "Maul",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1238069,
+     "name": "Primal Bite",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9866,
+     "name": "Ravage",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20747,
+     "name": "Rebirth",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9875,
+     "name": "Starfire",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9862,
+     "name": "Tranquility",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1238214,
+     "name": "Wild Growth",
+     "cost": 18000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9892,
+     "name": "Cower",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9898,
+     "name": "Demoralizing Roar",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9834,
+     "name": "Moonfire",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9840,
+     "name": "Rejuvenation",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9894,
+     "name": "Rip",
+     "cost": 23000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9907,
+     "name": "Faerie Fire",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9904,
+     "name": "Rake",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9857,
+     "name": "Regrowth",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9830,
+     "name": "Shred",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9901,
+     "name": "Soothe Animal",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9908,
+     "name": "Swipe",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9910,
+     "name": "Thorns",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9912,
+     "name": "Wrath",
+     "cost": 24000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 22829,
+     "name": "Ferocious Bite",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9889,
+     "name": "Healing Touch",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9827,
+     "name": "Pounce",
+     "cost": 25000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9850,
+     "name": "Claw",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9853,
+     "name": "Entangling Roots",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18658,
+     "name": "Hibernate",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1235827,
+     "name": "Lacerate",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9881,
+     "name": "Maul",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9835,
+     "name": "Moonfire",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17329,
+     "name": "Nature's Grasp",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9867,
+     "name": "Ravage",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9841,
+     "name": "Rejuvenation",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9876,
+     "name": "Starfire",
+     "cost": 26000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 17402,
+     "name": "Hurricane",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24977,
+     "name": "Insect Swarm",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9885,
+     "name": "Mark of the Wild",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1238070,
+     "name": "Primal Bite",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9913,
+     "name": "Prowl",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20748,
+     "name": "Rebirth",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9858,
+     "name": "Regrowth",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1237951,
+     "name": "Revive",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9896,
+     "name": "Rip",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 9863,
+     "name": "Tranquility",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1238215,
+     "name": "Wild Growth",
+     "cost": 28000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 11,
+   "npc": "Ilyenia Moonfire",
+   "zone": "Darnassus",
+   "seen": 1793984111,
+   "rows": [
+    {
+     "spell": 1180,
+     "name": "Daggers",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 227,
+     "name": "Staves",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 15590,
+     "name": "Fist Weapons",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
    "class": 4,
    "npc": "Lord Tony Romano",
    "zone": "Stormwind City",
