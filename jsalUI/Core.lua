@@ -137,6 +137,15 @@ events:SetScript("OnEvent", function(self, event, arg1)
                 ns.char[key] = nil
             end
         end
+        -- Daily Word and the Guild Word start fresh once, with the first
+        -- version past 0.2.0 (the first the guild plays), so games played to
+        -- try it out, and a Guild Word set to test it, don't carry over:
+        -- today's game, the Daily Word record, and the saved and played Guild
+        -- Word.
+        if not ns.db.wordsFresh and ns.version ~= "0.2.0" then
+            for _, key in ipairs({ "word", "wordStats", "guildGame", "guildWords" }) do ns.db[key] = nil end
+            ns.db.wordsFresh = true
+        end
         RunAll(onLoad)
         ns.timings.setup = debugprofilestop() - started
         self:UnregisterEvent("ADDON_LOADED")
