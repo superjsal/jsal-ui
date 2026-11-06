@@ -27,26 +27,40 @@ local function ChessWaiting()
     end
 end
 
+-- Every button opens its place, and closes it when it's already open.
+local function Page(key)
+    return function()
+        if ns.Window.IsOpen(key) then ns.Window.Toggle() else ns.Window.Open(key) end
+    end
+end
+
+local function Game(window, open)
+    return function()
+        local f = window()
+        if f and f:IsShown() then f:Hide() else open() end
+    end
+end
+
 local PLACES = {
     { key = "dashboard", label = "Dashboard", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Logo",
       open = function() ns.Window.Toggle() end },
     { key = "word", label = "Daily Word", icon = ICONS .. "INV_Misc_Note_01",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
-      open = function() ns.DailyWord.Open() end,
+      open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),
       waiting = function() return not ns.DailyWord.DailyDone() and ("Puzzle #%d is waiting"):format(ns.Games.Today()) or nil end },
     { key = "icons", label = "Icon Guess", icon = ICONS .. "INV_Misc_QuestionMark",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
-      open = function() ns.IconGuess.Open() end,
+      open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
     { key = "chess", label = "Chess", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\icon",
       ready = function() return ns.Chess and ns.Chess.running end,
-      open = function() ns.Window.Open("chess") end,
+      open = Page("chess"),
       waiting = ChessWaiting },
     { key = "shop", label = "Shopping list", icon = ICONS .. "INV_Misc_Bag_08",
       ready = function() return ns.Shopping and ns.Shopping.running end,
       open = function() ns.Shopping.Toggle() end },
     { key = "build", label = "Build Planner", icon = ICONS .. "Ability_Marksmanship",
-      open = function() ns.Window.Open("build") end },
+      open = Page("build") },
 }
 
 local function Ready(place)
