@@ -39,6 +39,22 @@ local function IsWord(word)
     return words[word] == true
 end
 
+-- A longer Guild Word's guesses: each length's words are sorted and run
+-- together, so a word is found by halving the list.
+local function IsLongWord(word)
+    local n = #word
+    local list = Data.long and Data.long[n]
+    if not list then return false end
+    local lo, hi = 1, #list / n
+    while lo <= hi do
+        local mid = math.floor((lo + hi) / 2)
+        local here = list:sub((mid - 1) * n + 1, mid * n)
+        if here == word then return true end
+        if here < word then lo = mid + 1 else hi = mid - 1 end
+    end
+    return false
+end
+
 -- Green first, then yellow, so a doubled letter is only marked as often as
 -- the answer has it.
 local function Score(guess, answer)
@@ -188,7 +204,10 @@ local function Current()
     return game, Answer(game.day), "Daily Word #" .. game.day
 end
 
-DailyWord.IsWord = function(word) return IsWord(word) end
+DailyWord.IsWord = function(word)
+    if #word == LENGTH then return IsWord(word) end
+    return IsLongWord(word)
+end
 
 -- The window.
 local TILE, GAP, KEY_W, KEY_H, WIDE_KEY = 48, 6, 30, 38, 48
@@ -296,9 +315,10 @@ local function Submit()
     local game, answer = Current()
     if game.finished then return end
     if #current < #answer then return Say(("%d letters, please."):format(#answer)) end
-    -- The word list has five-letter words only, so longer Guild Words take
-    -- any letters.
-    if #answer == LENGTH and not IsWord(current) then return Say("That one isn't in the word list.") end
+    -- The answer itself always counts, even when an officer picked a word
+    -- the lists don't have.
+    local listed = current == answer or (#answer == LENGTH and IsWord(current)) or (#answer > LENGTH and IsLongWord(current))
+    if not listed then return Say("That one isn't in the word list.") end
     local guess = current
     game.guesses[#game.guesses + 1] = guess
     current, notice = "", nil
