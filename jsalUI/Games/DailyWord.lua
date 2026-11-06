@@ -150,6 +150,7 @@ end
 
 local function Finish(game, won)
     game.finished, game.won = true, won
+    ns.Count(game.guild and "games.guildWord" or "games.dailyWord")
     -- A Guild Word game tells the guild its score; only Daily Word games
     -- count toward your record and streak.
     if game.guild then

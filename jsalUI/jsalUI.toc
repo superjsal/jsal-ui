@@ -6,7 +6,7 @@
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## IconTexture: Interface\AddOns\jsalUI\Media\Logo
-## OptionalDeps: EllesmereUI
+## OptionalDeps: EllesmereUI, WagoAnalytics
 ## SavedVariables: jsalUIDB
 ## SavedVariablesPerCharacter: jsalUICharDB
 ## AddonCompartmentFunc: jsalUI_OnCompartmentClick
@@ -16,6 +16,7 @@
 # Every moved or renamed Blizzard call goes through Compat, so it loads first.
 Compat.lua
 Core.lua
+Analytics.lua
 Comms.lua
 Style.lua
 Window.lua
