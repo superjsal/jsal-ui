@@ -117,7 +117,7 @@ Window.Page("training", function(page)
     cartSub:SetPoint("TOPRIGHT", -CART_PAD, -(CART_PAD + 3))
     cartSub:SetJustifyH("RIGHT")
 
-    local TOTALS_H = 130
+    local TOTALS_H = 138
     local cardScroll, cardList = Scroller(cart, CART_W - CART_PAD * 2, height - top - 48 - TOTALS_H - CART_PAD)
     cardScroll:SetPoint("TOPLEFT", CART_PAD, -48)
     local empty = Style.Text(cardList, 13, "muted")
@@ -144,19 +144,27 @@ Window.Page("training", function(page)
     fill:SetPoint("TOPLEFT")
     fill:SetPoint("BOTTOMLEFT")
     fill:SetColorTexture(Style.Color("gold"))
-    local haveText = Style.Text(totals, 12, "muted")
-    haveText:SetPoint("TOPLEFT", 0, -58)
+    -- Your gold, what's left after the visit, and the cost to 60: each a
+    -- label and an amount.
+    local haveLabel = Style.Text(totals, 12, "muted")
+    haveLabel:SetPoint("TOPLEFT", 0, -56)
+    haveLabel:SetText("You have")
+    local haveText = Style.Text(totals, 12, "text")
+    haveText:SetPoint("TOPRIGHT", 0, -56)
+    haveText:SetJustifyH("RIGHT")
+    local spareLabel = Style.Text(totals, 12, "muted")
+    spareLabel:SetPoint("TOPLEFT", 0, -76)
     local spareText = Style.Text(totals, 12, "text")
-    spareText:SetPoint("TOPRIGHT", 0, -58)
+    spareText:SetPoint("TOPRIGHT", 0, -76)
     spareText:SetJustifyH("RIGHT")
     local restLabel = Style.Text(totals, 12, "muted")
-    restLabel:SetPoint("TOPLEFT", 0, -82)
+    restLabel:SetPoint("TOPLEFT", 0, -96)
     restLabel:SetText("Left to 60")
     local restText = Style.Text(totals, 12, "text")
-    restText:SetPoint("TOPRIGHT", 0, -82)
+    restText:SetPoint("TOPRIGHT", 0, -96)
     restText:SetJustifyH("RIGHT")
     local priceNote = Style.Text(totals, 11, "muted")
-    priceNote:SetPoint("TOPLEFT", 0, -106)
+    priceNote:SetPoint("TOPLEFT", 0, -118)
     priceNote:SetWidth(CART_W - CART_PAD * 2)
 
     local cards = {}
@@ -448,14 +456,14 @@ Window.Page("training", function(page)
         -- The visit's total against your gold.
         visitCost:SetText(cost > 0 and Compat.Money(cost) or (unknown > 0 and "?" or "Nothing"))
         fill:SetWidth(math.max(1, track:GetWidth() * (cost > 0 and math.min(1, money / cost) or 1)))
-        haveText:SetText("You have " .. Compat.Money(money))
-        if cost == 0 then
-            spareText:SetText("")
-        elseif money >= cost then
-            spareText:SetText(Compat.Money(money - cost) .. " to spare")
-        else
-            spareText:SetText("|cffe3b04b" .. Compat.Money(cost - money) .. " short|r")
-        end
+        haveText:SetText(Compat.Money(money))
+        local short = money < cost
+        spareLabel:SetText(short and "Short by" or "Left after")
+        spareLabel:SetTextColor(Style.Color(short and "gold" or "muted"))
+        spareText:SetText(Compat.Money(math.abs(money - cost)))
+        spareText:SetTextColor(Style.Color(short and "gold" or "text"))
+        spareLabel:SetShown(cost > 0)
+        spareText:SetShown(cost > 0)
         restText:SetText(rest > 0 and Compat.Money(rest) or "?")
         priceNote:SetText(data.haveTrainer
             and (unknown > 0 and ("%d price%s not seen at a trainer yet."):format(unknown, unknown == 1 and "" or "s") or "")
