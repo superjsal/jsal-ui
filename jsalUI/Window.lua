@@ -13,7 +13,8 @@ Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
 -- The side menu, in order, in its groups; Settings sits at the bottom. Each
--- entry has a game icon. An entry nothing has claimed yet says it's on the way.
+-- entry has a game icon (or a full path to one of jsal.ui's own). An entry
+-- nothing has claimed yet says it's on the way.
 local ICONS = "Interface\\Icons\\"
 local PAGES = {
     { key = "home", label = "Home", icon = "INV_Misc_Map_01" },
@@ -22,6 +23,7 @@ local PAGES = {
     { key = "training", label = "Training Planner", icon = "INV_Misc_Book_09" },
     { key = "professions", label = "Professions", icon = "Trade_BlackSmithing" },
     { key = "games", label = "Games", icon = "INV_Misc_Dice_02", group = "PLAY" },
+    { key = "chess", label = "Chess", icon = "Interface\\AddOns\\jsalUI\\Media\\Chess\\icon" },
     { key = "guild", label = "Guild", icon = "INV_Shirt_GuildTabard_01" },
     { key = "settings", label = "Settings", icon = "INV_Misc_Gear_01", bottom = true },
 }
@@ -90,8 +92,9 @@ local function MenuButton(menu, page)
     local icon = frameIcon:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("TOPLEFT", 1, -1)
     icon:SetPoint("BOTTOMRIGHT", -1, 1)
-    icon:SetTexture(ICONS .. page.icon)
-    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    local own = page.icon:find("\\", 1, true) ~= nil
+    icon:SetTexture(own and page.icon or (ICONS .. page.icon))
+    if not own then icon:SetTexCoord(0.08, 0.92, 0.08, 0.92) end
     b.label = Style.Text(b, 13, "muted")
     b.label:SetPoint("LEFT", frameIcon, "RIGHT", 10, 0)
     b.label:SetText(page.label)
@@ -268,6 +271,11 @@ combat:RegisterEvent("PLAYER_REGEN_DISABLED")
 combat:SetScript("OnEvent", function()
     if frame and frame:IsShown() then frame:Hide() end
 end)
+
+-- Whether a page is the one on screen.
+function Window.IsOpen(key)
+    return frame ~= nil and frame:IsShown() and current == key
+end
 
 -- Repaints the page on screen after something it shows has changed.
 function Window.Refresh()

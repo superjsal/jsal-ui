@@ -92,10 +92,11 @@ local function CheckVersion(version, name)
     ns.Print(("A newer jsal.ui is out: %s has %s, you have %s. Get it at jsal.io/jsal-ui."):format(name, version, ns.version))
 end
 
-local function Store(payload, name)
+local function Store(payload, name, sender)
     local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved = strsplit(";", payload or "")
     CheckVersion(version, name)
     members[name] = {
+        target = sender or name,   -- the name to whisper them by
         average = tonumber(average),
         solved = tonumber(solved),
         version = version,
@@ -109,9 +110,21 @@ local function Store(payload, name)
     }
 end
 
-local function Record(payload, name)
-    Store(payload, name)
+local function Record(payload, name, _, sender)
+    Store(payload, name, sender)
     Window.Refresh()
+end
+
+-- An answer to a hello is also how chess learns an opponent is back.
+local function Answer(payload, name, channel, sender)
+    Record(payload, name, channel, sender)
+    if ns.Chess then ns.Chess.Heard(name) end
+end
+
+-- Guildmates heard from with jsal.ui this session, by name: their version,
+-- the name to whisper them by, and when. Chess finds its players here.
+function Guild.Members()
+    return members
 end
 
 -- Tells the guild a game was finished, so the scores update for everyone.
@@ -158,8 +171,9 @@ function Guild:OnEnable()
     -- "HI" comes from someone logging in: note them and answer once, by
     -- whisper, with your scores and the Guild Word you have. "ME" is an
     -- answer or a score update; "GW" is a Guild Word.
-    Comms.On("HI", function(payload, name, _, sender)
-        Record(payload, name)
+    Comms.On("HI", function(payload, name, channel, sender)
+        Record(payload, name, channel, sender)
+        if ns.Chess then ns.Chess.Heard(name) end
         if name ~= Compat.MyName() and not answered[name] then
             answered[name] = true
             Comms.Send("ME", Status(), "WHISPER", sender)
@@ -167,7 +181,7 @@ function Guild:OnEnable()
             if word then Comms.Send("GW", word, "WHISPER", sender) end
         end
     end)
-    Comms.On("ME", Record)
+    Comms.On("ME", Answer)
     Comms.On("GW", HeardWord)
     Compat.After(8, function()
         if IsInGuild() then Comms.Send("HI", Status()) end
