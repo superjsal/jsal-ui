@@ -1,0 +1,59 @@
+## Interface: 16001
+## Title: |cffe3b04bjsal|r.ui
+## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
+## Author: John Salvador
+## Version: 0.2.0
+## Category: User Interface
+## X-Website: https://jsal.io
+## OptionalDeps: EllesmereUI
+## SavedVariables: jsalUIDB
+## SavedVariablesPerCharacter: jsalUICharDB
+## AddonCompartmentFunc: jsalUI_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: jsalUI_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: jsalUI_OnCompartmentLeave
+
+# Every moved or renamed Blizzard call goes through Compat, so it loads first.
+Compat.lua
+Core.lua
+Comms.lua
+Style.lua
+Window.lua
+
+# The look and its installer.
+Profile.lua
+Installer.lua
+
+# Games. Each one registers as a module, in the order Settings lists them.
+Games\Games.lua
+Games\DailyWordData.lua
+Games\DailyWord.lua
+Games\IconGuessData.lua
+Games\IconGuess.lua
+Games\FlightData.lua
+Games\Flight.lua
+Guild.lua
+
+# Talents: the trees and plan rules, the Build Planner page and the helper.
+Talents\TalentData.lua
+Talents\Tree.lua
+Talents\Share.lua
+Talents\Glow.lua
+Talents\Planner.lua
+Talents\Helper.lua
+
+# Training: trainer prices (saved whenever a class trainer opens), the
+# spell lists from the game's files, and the Training Planner page.
+Training\Prices.lua
+Training\SpellData.lua
+Training\Training.lua
+Training\Planner.lua
+
+# Everyday helpers.
+Helpers\Quests.lua
+Helpers\Vendor.lua
+Helpers\LevelUp.lua
+Helpers\Warnings.lua
+
+# Dashboard pages.
+Home.lua
+Settings.lua

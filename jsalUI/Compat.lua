@@ -1,0 +1,232 @@
+-- Every Blizzard call that has moved or been renamed between game versions
+-- goes through here, so a patch that moves one is fixed in one place. Each
+-- uses the newer name when the client has it and falls back to the older one.
+local _, ns = ...
+
+local Compat = {}
+ns.Compat = Compat
+
+local AddOns = C_AddOns
+
+function Compat.AddOnExists(name)
+    if AddOns and AddOns.DoesAddOnExist then
+        return AddOns.DoesAddOnExist(name) and true or false
+    end
+    local getInfo = (AddOns and AddOns.GetAddOnInfo) or GetAddOnInfo
+    if not getInfo then return false end
+    local ok, _, _, _, _, reason = pcall(getInfo, name)
+    return ok and reason ~= "MISSING"
+end
+
+function Compat.IsAddOnLoaded(name)
+    local isLoaded = (AddOns and AddOns.IsAddOnLoaded) or IsAddOnLoaded
+    return isLoaded and isLoaded(name) and true or false
+end
+
+function Compat.Metadata(name, field)
+    local get = (AddOns and AddOns.GetAddOnMetadata) or GetAddOnMetadata
+    return get and get(name, field) or nil
+end
+
+function Compat.InCombat()
+    return InCombatLockdown()
+end
+
+function Compat.ServerTime()
+    return GetServerTime()
+end
+
+-- A clock to a fraction of a second, for timing things. It keeps counting
+-- through a /reload.
+function Compat.Now()
+    return GetTime()
+end
+
+function Compat.SecondsUntilDailyReset()
+    if C_DateAndTime and C_DateAndTime.GetSecondsUntilDailyReset then
+        return C_DateAndTime.GetSecondsUntilDailyReset()
+    end
+    return GetQuestResetTime and GetQuestResetTime() or 0
+end
+
+function Compat.After(seconds, fn)
+    C_Timer.After(seconds, fn)
+end
+
+-- One physical screen pixel in a frame's own units, for crisp 1px lines at
+-- any UI scale.
+function Compat.OnePixel(frame)
+    if PixelUtil and PixelUtil.GetPixelToUIUnitFactor then
+        return PixelUtil.GetPixelToUIUnitFactor() / frame:GetEffectiveScale()
+    end
+    return 1
+end
+
+-- Stops the game nudging a thin texture onto the pixel grid, which can
+-- double or drop a 1px line.
+function Compat.Crisp(texture)
+    if texture.SetSnapToPixelGrid then
+        texture:SetSnapToPixelGrid(false)
+        texture:SetTexelSnappingBias(0)
+    end
+end
+
+function Compat.Money(copper)
+    if GetMoneyString then return GetMoneyString(copper, true) end
+    return GetCoinTextureString(copper)
+end
+
+function Compat.SendChat(text, channel)
+    if C_ChatInfo and C_ChatInfo.SendChatMessage then
+        C_ChatInfo.SendChatMessage(text, channel)
+    else
+        SendChatMessage(text, channel)
+    end
+end
+
+-- A player's name the way the guild channel gives it. Forever names have a
+-- first name and a surname ("Chicago Illinois"); UnitName returns only the
+-- first, so the whole name comes from GetUnitName, then the realm is dropped
+-- for players on this realm, as Ambiguate does for message senders.
+function Compat.MyName()
+    local whole = GetUnitName and GetUnitName("player", true) or UnitName("player")
+    return Ambiguate(whole, "none")
+end
+
+function Compat.OnTaxi()
+    return UnitOnTaxi("player") and true or false
+end
+
+-- The flight master's map: each slot's node ID (when the client gives one)
+-- and name, which slot is where the player stands, and the map's ID.
+function Compat.TaxiNodes()
+    local mapID = GetTaxiMapID and GetTaxiMapID() or nil
+    local nodes, here = {}, nil
+    local currentState = Enum and Enum.FlightPathState and Enum.FlightPathState.Current or 0
+    if C_TaxiMap and C_TaxiMap.GetAllTaxiNodes and mapID then
+        for _, node in ipairs(C_TaxiMap.GetAllTaxiNodes(mapID) or {}) do
+            if node.slotIndex then
+                nodes[node.slotIndex] = { id = node.nodeID, name = node.name }
+                if node.state == currentState then here = node.slotIndex end
+            end
+        end
+    end
+    if not next(nodes) then
+        for slot = 1, NumTaxiNodes() do
+            nodes[slot] = { name = TaxiNodeName(slot) }
+            if TaxiNodeGetType(slot) == "CURRENT" then here = slot end
+        end
+    end
+    return nodes, here, mapID
+end
+
+-- A flight's hops, as pairs of flight map slots: where each leg starts and ends.
+function Compat.TaxiHops(slot)
+    local hops = {}
+    for hop = 1, (GetNumRoutes(slot) or 0) do
+        hops[hop] = { TaxiGetNodeSlot(slot, hop, true), TaxiGetNodeSlot(slot, hop, false) }
+    end
+    return hops
+end
+
+-- Frequent Flier, in the Adventure Legacy talent tree, makes flights 20%
+-- faster. 1 when it isn't learned or the tree can't be read.
+local ADVENTURE_LEGACY_TREE, FREQUENT_FLIER_NODE, FREQUENT_FLIER = 1188, 110300, 1.2
+function Compat.FlightSpeedBonus()
+    if not (C_Traits and C_Traits.GetConfigIDByTreeID) then return 1 end
+    local config = C_Traits.GetConfigIDByTreeID(ADVENTURE_LEGACY_TREE)
+    local node = config and C_Traits.GetNodeInfo(config, FREQUENT_FLIER_NODE)
+    return node and (node.activeRank or 0) > 0 and FREQUENT_FLIER or 1
+end
+
+-- Spells: a name and an icon file ID, or nil when the client has no such spell.
+function Compat.SpellInfo(spellID)
+    if C_Spell and C_Spell.GetSpellInfo then
+        local info = C_Spell.GetSpellInfo(spellID)
+        if info then return info.name, info.iconID end
+        return nil
+    end
+    local name, _, icon = GetSpellInfo(spellID)
+    return name, icon
+end
+
+-- Bags: slot counts, free space and what's in a slot, as one table.
+local Container = C_Container
+Compat.LAST_BAG = NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4
+
+function Compat.BagSize(bag)
+    local get = (Container and Container.GetContainerNumSlots) or GetContainerNumSlots
+    return get(bag) or 0
+end
+
+function Compat.BagFree(bag)
+    local get = (Container and Container.GetContainerNumFreeSlots) or GetContainerNumFreeSlots
+    return get(bag)
+end
+
+function Compat.BagItem(bag, slot)
+    if Container and Container.GetContainerItemInfo then
+        return Container.GetContainerItemInfo(bag, slot)
+    end
+    local icon, count, locked, quality, _, _, link, _, noValue, itemID = GetContainerItemInfo(bag, slot)
+    if not icon then return nil end
+    return { stackCount = count, isLocked = locked, quality = quality, hyperlink = link, hasNoValue = noValue, itemID = itemID }
+end
+
+function Compat.UseBagItem(bag, slot)
+    local use = (Container and Container.UseContainerItem) or UseContainerItem
+    use(bag, slot)
+end
+
+function Compat.SellPrice(item)
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    return select(11, get(item))
+end
+
+-- Quest givers that open on the gossip window.
+local Gossip = C_GossipInfo
+
+function Compat.GossipAvailable()
+    return Gossip and Gossip.GetAvailableQuests() or {}
+end
+
+function Compat.GossipActive()
+    return Gossip and Gossip.GetActiveQuests() or {}
+end
+
+function Compat.GossipTakeAvailable(questID)
+    Gossip.SelectAvailableQuest(questID)
+end
+
+function Compat.GossipTakeActive(questID)
+    Gossip.SelectActiveQuest(questID)
+end
+
+-- Talent points not spent yet, from the talent tree's own currency.
+function Compat.UnspentTalentPoints()
+    if C_ClassTalents and C_Traits then
+        local configID = C_ClassTalents.GetActiveConfigID()
+        local config = configID and C_Traits.GetConfigInfo(configID)
+        local treeID = config and config.treeIDs and config.treeIDs[1]
+        if not treeID then return 0 end
+        local total = 0
+        for _, currency in ipairs(C_Traits.GetTreeCurrencyInfo(configID, treeID, false) or {}) do
+            total = total + (currency.quantity or 0)
+        end
+        return total
+    end
+    return UnitCharacterPoints and UnitCharacterPoints("player") or 0
+end
+
+-- Addon messages: the hidden channel jsal.ui players use to talk.
+function Compat.RegisterPrefix(prefix)
+    C_ChatInfo.RegisterAddonMessagePrefix(prefix)
+end
+
+function Compat.SendAddon(prefix, text, channel, target)
+    return C_ChatInfo.SendAddonMessage(prefix, text, channel, target)
+end
+
+function Compat.ChatLockdown()
+    return C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() or false
+end
