@@ -501,10 +501,10 @@ Window.Page("training", function(page)
             local r = Take("weapons", MakeWeapon)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -y)
-            r.spellID, r.hint = w.id, w.where and ("Taught by " .. w.where) or nil
+            r.spellID, r.hint = w.id, not w.known and "Any weapon master teaches it, at the same price." or nil
             r.icon:SetTexture(w.icon)
             r.name:SetText(w.name)
-            r.where:SetText(not w.known and (w.where or "At a weapon master") or "")
+            r.where:SetText("")
             if w.known then
                 r.state:SetText("Known")
                 r.state:SetTextColor(Style.Color("muted"))

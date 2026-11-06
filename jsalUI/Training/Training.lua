@@ -18,15 +18,6 @@ local function Rank(spellID)
     return text and text ~= "" and text or nil
 end
 
--- Who a saved trainer is and where, from the record or, for older saves,
--- from its "Name @ Zone" key.
-local function Where(key, trainer)
-    local npc, zone = trainer.npc, trainer.zone
-    if not npc then npc, zone = key:match("^(.-) @ ([^(]+)") end
-    zone = zone and strtrim(zone) or nil
-    return npc and zone and (npc .. ", " .. zone) or npc or key
-end
-
 -- Sorts the saved trainers for this class into class trainers, pet trainers
 -- and weapon masters, by what their lists teach, and gathers each one's
 -- prices. A pet trainer opens the same window as a class trainer, but what
@@ -35,7 +26,16 @@ local KINDS = { available = true, unavailable = true, used = true }
 
 local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, petToBeast, beastByName)
     local prices = { bySpell = {}, byName = {}, listed = {}, extra = {}, haveTrainer = false, weapons = {}, pet = {} }
-    for key, trainer in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
+    local trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
+    -- Weapon skills cost the same at every weapon master, for every class,
+    -- so any character's visit prices them.
+    for _, trainer in pairs(trainers) do
+        for _, row in ipairs(type(trainer.rows) == "table" and trainer.rows or {}) do
+            local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
+            if id then prices.weapons[id] = row.cost end
+        end
+    end
+    for _, trainer in pairs(trainers) do
         if trainer.class == classID and type(trainer.rows) == "table" then
             -- Visits saved before Forever's order was known hold the row's
             -- kind where its rank should be.
@@ -63,10 +63,6 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                 end
             else
                 for _, row in ipairs(trainer.rows) do
-                    local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
-                    if id then
-                        prices.weapons[id] = { cost = row.cost, where = Where(key, trainer) }
-                    end
                     -- A pet trainer lists the pet's spell; the price is kept
                     -- under the Beast Training spell that teaches it.
                     local pet = (row.spell and petToBeast[row.spell]) or beastByName[(row.name or "") .. "|" .. (row.rank or "")]
@@ -92,7 +88,7 @@ local function Shipped(prices, source)
         if prices.extra[entry[1]] == nil then prices.extra[entry[1]] = entry[2] end
     end
     for id, cost in pairs(source.weaponPrices or {}) do
-        if not prices.weapons[id] then prices.weapons[id] = { cost = cost } end
+        if not prices.weapons[id] then prices.weapons[id] = cost end
     end
     for id, entry in pairs(source.petTrainer or {}) do
         if not prices.pet[id] then prices.pet[id] = { cost = entry[1], level = entry[2] } end
@@ -186,10 +182,8 @@ function Training.Read()
     for _, id in ipairs(source.weapons) do
         local name, icon = Compat.SpellInfo(id)
         if name then
-            local taught = prices.weapons[id]
             data.weapons[#data.weapons + 1] = {
-                id = id, name = name, icon = icon, known = IsPlayerSpell(id),
-                cost = taught and taught.cost, where = taught and taught.where,
+                id = id, name = name, icon = icon, known = IsPlayerSpell(id), cost = prices.weapons[id],
             }
         end
     end
