@@ -63,35 +63,37 @@ local function Score(guess, answer)
     return result
 end
 
--- Today's game and the running record, saved per character.
+-- Today's game and the running record, saved for the whole account: a word
+-- played on one character counts as played on all of them, so an alt can't
+-- be used to see the word first.
 local function Game()
     local today = Games.Today()
-    local game = ns.char.word
+    local game = ns.db.word
     if type(game) ~= "table" or game.day ~= today then
         game = { day = today, guesses = {} }
-        ns.char.word = game
+        ns.db.word = game
     end
     return game
 end
 
 local function Stats()
-    local stats = ns.char.wordStats
+    local stats = ns.db.wordStats
     if type(stats) ~= "table" then
         stats = { played = 0, won = 0, streak = 0, best = 0, dist = { 0, 0, 0, 0, 0, 0 } }
-        ns.char.wordStats = stats
+        ns.db.wordStats = stats
     end
     return stats
 end
 
 function DailyWord.DailyDone()
-    local game = ns.char.word
+    local game = ns.db.word
     return type(game) == "table" and game.day == Games.Today() and game.finished or false
 end
 
 -- Today's day and score ("1" to "6", or "X"), once today's game is over.
 function DailyWord.Result()
     if not DailyWord.DailyDone() then return nil end
-    local game = ns.char.word
+    local game = ns.db.word
     return game.day, game.won and tostring(#game.guesses) or "X"
 end
 
@@ -159,10 +161,10 @@ local guildWord   -- { id, answer, setter } while a Guild Word is open
 
 local function Current()
     if guildWord then
-        local game = ns.char.guildGame
+        local game = ns.db.guildGame
         if type(game) ~= "table" or game.guild ~= guildWord.id then
             game = { guild = guildWord.id, guesses = {} }
-            ns.char.guildGame = game
+            ns.db.guildGame = game
         end
         return game, guildWord.answer, "Guild Word · set by " .. guildWord.setter
     end
@@ -411,9 +413,9 @@ function DailyWord.Open() Show(nil) end
 -- word: { id = the word's ID, answer = the word, setter = who set it }.
 function DailyWord.OpenGuild(word) Show(word) end
 
--- Whether this character has finished a given Guild Word, and its score.
+-- Whether this account has finished a given Guild Word, and its score.
 function DailyWord.GuildResult(id)
-    local game = ns.char.guildGame
+    local game = ns.db.guildGame
     if type(game) == "table" and game.guild == id and game.finished then
         return game.won and tostring(#game.guesses) or "X"
     end
