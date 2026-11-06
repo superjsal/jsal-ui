@@ -5,6 +5,8 @@
 ## Version: 0.3.6
 ## Category: User Interface
 ## X-Website: https://jsal.io
+## X-Curse-Project-ID: 1788011
+## X-Wago-ID: aND9B96o
 ## IconTexture: Interface\AddOns\jsalUI\Media\Logo
 ## OptionalDeps: EllesmereUI
 ## SavedVariables: jsalUIDB

@@ -1,0 +1,13 @@
+# How the release zip is built (BigWigs packager). The addon lives in the
+# jsalUI folder, so it's moved up to be the zip's only folder; the data and
+# tools used to regenerate its tables stay out.
+package-as: jsalUI
+
+move-folders:
+  jsalUI/jsalUI: jsalUI
+
+ignore:
+  - data
+  - tools
+  - notes
+  - README.md
