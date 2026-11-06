@@ -512,8 +512,19 @@ local function OpenBeside(frame)
     end
     panel:SetFrameStrata(frame:GetFrameStrata())
     panel:SetFrameLevel(frame:GetFrameLevel() + 10)
+    -- The spellbook is a page inside the spells window, starting below the
+    -- window's title bar, so the panel lifts to line up with the window's top
+    -- (measured on screen, then put in the panel's own scale).
+    local lift = 0
+    local window = PlayerSpellsFrame
+    if window and frame == window.SpellBookFrame then
+        local outer, inner = window:GetTop(), frame:GetTop()
+        if outer and inner then
+            lift = math.max(0, outer * window:GetEffectiveScale() - inner * frame:GetEffectiveScale()) / panel:GetEffectiveScale()
+        end
+    end
     panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6, 0)
+    panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6, lift)
     xpcall(Paint, ns.Report)
     panel:Show()
 end
