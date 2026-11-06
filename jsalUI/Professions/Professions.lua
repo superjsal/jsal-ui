@@ -171,7 +171,10 @@ function Professions.Plan(line, skill, target, known)
         local best, bestCost
         for _, recipe in ipairs(recipes) do
             local mine = known(recipe.spell)
-            if (mine or recipe.how == 1) and recipe.learn <= s then
+            -- A recipe you know counts whatever skill the data says it's
+            -- learned at (some are taught earlier than that); one from a
+            -- trainer counts once your skill reaches it.
+            if mine or (recipe.how == 1 and recipe.learn <= s) then
                 local chance = Chance(recipe, s)
                 if chance > 0 then
                     local cost = Weight(line, recipe) / chance + (mine and 0 or 0.01)
