@@ -69,8 +69,10 @@ local function NewRound(random)
     return questions
 end
 
+-- Each day's round is dealt from the day number plus one, so the rounds
+-- run on from the first ones played.
 local function DailyRound()
-    return NewRound(Games.Random(Games.Today() * 7919 + 101))
+    return NewRound(Games.Random((Games.Today() + 1) * 7919 + 101))
 end
 
 -- Today's daily round, saved for the whole account, so closing the window
