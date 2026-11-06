@@ -167,15 +167,27 @@ local function HeardWord(payload, name)
     end
 end
 
+-- Says hello to the guild: everyone with jsal.ui answers, so the list fills
+-- in. Sent at login and again, at most once a minute, when the Guild tab or
+-- Chess page opens, so a guildmate missed along the way turns up.
+local lastHello = -60
+function Guild.Hello()
+    if not (Guild.running and IsInGuild()) or GetTime() < lastHello + 60 then return end
+    lastHello = GetTime()
+    Comms.Send("HI", Status())
+end
+
 function Guild:OnEnable()
-    -- "HI" comes from someone logging in: note them and answer once, by
-    -- whisper, with your scores and the Guild Word you have. "ME" is an
-    -- answer or a score update; "GW" is a Guild Word.
+    -- "HI" comes from someone logging in or reloading: note them and
+    -- answer by whisper with your scores and the Guild Word you have. Every
+    -- hello is answered (at most every 30 seconds each), since their reload
+    -- forgets who they'd heard. "ME" is an answer or a score update; "GW"
+    -- is a Guild Word.
     Comms.On("HI", function(payload, name, channel, sender)
         Record(payload, name, channel, sender)
         if ns.Chess then ns.Chess.Heard(name) end
-        if name ~= Compat.MyName() and not answered[name] then
-            answered[name] = true
+        if name ~= Compat.MyName() and (answered[name] or -30) + 30 < GetTime() then
+            answered[name] = GetTime()
             Comms.Send("ME", Status(), "WHISPER", sender)
             local word = WordPayload()
             if word then Comms.Send("GW", word, "WHISPER", sender) end
@@ -183,9 +195,7 @@ function Guild:OnEnable()
     end)
     Comms.On("ME", Answer)
     Comms.On("GW", HeardWord)
-    Compat.After(8, function()
-        if IsInGuild() then Comms.Send("HI", Status()) end
-    end)
+    Compat.After(8, Guild.Hello)
 end
 
 function Guild:OnDisable()
@@ -311,6 +321,7 @@ Window.Page("guild", function(page)
     more:SetPoint("TOPLEFT", rows[MAX_ROWS], "BOTTOMLEFT", 0, -8)
 
     page.Refresh = function()
+        Guild.Hello()
         local inGuild = IsInGuild()
         if Guild.running and inGuild then
             Store(Status(), Compat.MyName())
