@@ -35,6 +35,9 @@ Games\IconGuessData.lua
 Games\IconGuess.lua
 Games\FlightData.lua
 Games\Flight.lua
+Games\ChessRules.lua
+Games\Chess.lua
+Games\ChessPage.lua
 Guild.lua
 
 # Talents: the trees, ready-made leveling builds, the plan rules, the Build
