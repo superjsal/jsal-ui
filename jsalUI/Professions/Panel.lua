@@ -334,16 +334,11 @@ local function Wanted()
     return Panel.running and anchor ~= nil and anchor:IsShown() and dismissed ~= anchor
 end
 
-local function OpenBeside(frame)
-    if not Panel.running or dismissed == frame or not frame:IsShown() then return end
-    if not panel then Build() end
-    anchor = frame
-    panel:SetFrameStrata(frame:GetFrameStrata())
-    panel:SetFrameLevel(frame:GetFrameLevel() + 10)
-    -- The game's own window can have tabs sticking out of its right edge (one
-    -- per profession); the panel starts after them, measured on screen and
-    -- put in its own scale. A reach of more than a tab's width is something
-    -- else (an open menu), so it's ignored.
+-- The game's own window can have tabs sticking out of its right edge (one
+-- per profession); the panel starts after them, measured on screen and put
+-- in its own scale. A reach of more than a tab's width is something else (an
+-- open menu), so it's ignored.
+local function PlaceBeside(frame)
     local reach, right = 0, frame:GetRight()
     if right then
         local scale = frame:GetEffectiveScale()
@@ -361,17 +356,33 @@ local function OpenBeside(frame)
     end
     panel:ClearAllPoints()
     panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6 + reach, 0)
+end
+
+local function OpenBeside(frame)
+    if not Panel.running or dismissed == frame or not frame:IsShown() then return end
+    if not panel then Build() end
+    anchor = frame
+    panel:SetFrameStrata(frame:GetFrameStrata())
+    panel:SetFrameLevel(frame:GetFrameLevel() + 10)
+    PlaceBeside(frame)
     panel:Show()
     xpcall(Paint, ns.Report)
-    -- If the profession's details weren't in yet, try once more shortly.
-    if not panel:IsShown() then
-        Compat.After(1, function()
-            if anchor == frame and Wanted() and not panel:IsShown() then
-                panel:Show()
-                xpcall(Paint, ns.Report)
-            end
-        end)
+    -- The panel opens a frame after the window, when the tabs may not have
+    -- settled yet, so it measures them again a moment later.
+    Compat.After(0.1, function()
+        if anchor == frame and frame:IsShown() then PlaceBeside(frame) end
+    end)
+    -- If the profession's details weren't in yet, look again every tenth of
+    -- a second for up to a second.
+    local tries = 0
+    local function Retry()
+        tries = tries + 1
+        if anchor ~= frame or not Wanted() or panel:IsShown() or tries > 10 then return end
+        panel:Show()
+        xpcall(Paint, ns.Report)
+        if not panel:IsShown() then Compat.After(0.1, Retry) end
     end
+    if not panel:IsShown() then Compat.After(0.1, Retry) end
 end
 
 local function Hook()
@@ -380,9 +391,9 @@ local function Hook()
         local frame = find()
         if frame and not hooked[frame] then
             hooked[frame] = true
-            -- Drawn a moment later, outside the game's own showing of it.
+            -- Drawn a frame later, outside the game's own showing of it.
             frame:HookScript("OnShow", function()
-                Compat.After(0.1, function() OpenBeside(frame) end)
+                Compat.After(0, function() OpenBeside(frame) end)
             end)
             frame:HookScript("OnHide", function()
                 if dismissed == frame then dismissed = nil end
@@ -406,13 +417,13 @@ function Panel:OnEnable()
     -- A burst of updates (crafting, item names arriving) repaints once. On
     -- the first open after a reload the profession's details arrive after
     -- the window shows, so an update also brings back a panel that hid
-    -- for lack of them, unless it was closed.
+    -- for lack of them, unless it was closed, and does it on the next frame.
     local queued = false
     events:SetScript("OnEvent", function(_, event)
         if event == "ADDON_LOADED" then return Hook() end
         if not (panel and Wanted()) or queued then return end
         queued = true
-        Compat.After(0.3, function()
+        Compat.After(panel:IsShown() and 0.3 or 0, function()
             queued = false
             if Wanted() then
                 panel:Show()
