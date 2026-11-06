@@ -200,11 +200,14 @@ local function Paint()
     panel.marker:SetPoint("CENTER", panel.track, "LEFT", width * target / cap, 0)
     panel.marker:SetShown(target < cap)
 
-    -- What you know, asked once for the whole list.
-    local known = {}
+    -- What you know, asked once for the whole list, and kept for the
+    -- Professions page, which can't ask while this window is closed.
+    local known, saved = {}, {}
     for _, recipe in ipairs(Professions.Recipes(line)) do
         known[recipe.spell] = Compat.KnowsRecipe(recipe.spell)
+        if known[recipe.spell] then saved[#saved + 1] = recipe.spell end
     end
+    Professions.Remember(line, skill, cap, saved)
     local road, totals, stuck, made = Professions.Plan(line, skill, target, function(spell) return known[spell] end)
 
     local y = 36 + 52

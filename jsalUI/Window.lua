@@ -20,6 +20,7 @@ local PAGES = {
     { key = "install", label = "Install", icon = "Trade_Engineering" },
     { key = "build", label = "Build Planner", icon = "Ability_Marksmanship", group = "PLAN" },
     { key = "training", label = "Training Planner", icon = "INV_Misc_Book_09" },
+    { key = "professions", label = "Professions", icon = "Trade_BlackSmithing" },
     { key = "games", label = "Games", icon = "INV_Misc_Dice_02", group = "PLAY" },
     { key = "guild", label = "Guild", icon = "INV_Shirt_GuildTabard_01" },
     { key = "settings", label = "Settings", icon = "INV_Misc_Gear_01", bottom = true },

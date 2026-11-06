@@ -59,6 +59,7 @@ Training\Panel.lua
 Professions\ProfessionData.lua
 Professions\Professions.lua
 Professions\Panel.lua
+Professions\Page.lua
 
 # Everyday helpers.
 Helpers\Quests.lua

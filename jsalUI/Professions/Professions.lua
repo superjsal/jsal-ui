@@ -58,6 +58,44 @@ function Professions.Rank(cap)
     return RANKS[#RANKS]
 end
 
+-- What this character knows in a profession, as last seen in its window:
+-- { skill, cap, known = { [spell] = true }, seen }.
+function Professions.Remember(line, skill, cap, spells)
+    ns.char.professions = type(ns.char.professions) == "table" and ns.char.professions or {}
+    local known = {}
+    for _, spell in ipairs(spells) do known[spell] = true end
+    ns.char.professions[line] = { skill = skill, cap = cap, known = known, seen = Compat.ServerTime() }
+end
+
+function Professions.Remembered(line)
+    local all = type(ns.char.professions) == "table" and ns.char.professions or {}
+    return all[line]
+end
+
+-- Your professions, from the game's own list: each one's skill line, name,
+-- icon, skill and cap, for the ones jsal.ui has recipes for.
+function Professions.Mine()
+    local out = {}
+    if not GetProfessions then return out end
+    for _, index in ipairs({ GetProfessions() }) do
+        if index then
+            local name, icon, skill, cap, _, _, line = GetProfessionInfo(index)
+            line = (line and Data[line] and line) or Professions.LineByName(name)
+            if line then
+                out[#out + 1] = { line = line, name = Data[line].name, icon = icon, skill = skill or 0, cap = cap or 0 }
+            end
+        end
+    end
+    return out
+end
+
+-- Where a road goes from a skill: the skill the next rank is learned at
+-- while you're below it, else the rank's cap.
+function Professions.Target(skill, cap)
+    local rank = Professions.Rank(cap)
+    return (rank.at and skill < rank.at) and rank.at or cap, rank
+end
+
 -- The chance a craft at this skill gives a point: always while orange, then
 -- falling to nothing at grey.
 local function Chance(recipe, skill)
