@@ -37,17 +37,21 @@ local function LastTrainer(classID)
     if not source then return nil end
     local classSpells = {}
     for _, entry in ipairs(source.spells) do classSpells[entry[1]] = true end
-    local best
+    local best, bestKey
     for key, t in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
         if t.class == classID and type(t.rows) == "table" and not key:find("^%? @ ") then
             local teaches = false
             for _, row in ipairs(t.rows) do
                 if row.spell and classSpells[row.spell] then teaches = true break end
             end
-            if teaches and (not best or (t.seen or 0) > (best.seen or 0)) then best = t end
+            if teaches and (not best or (t.seen or 0) > (best.seen or 0)) then best, bestKey = t, key end
         end
     end
-    return best
+    if not best then return nil end
+    -- The first visits saved only the "Name @ Zone" label, not the name.
+    local npc, zone = best.npc, best.zone
+    if not npc then npc, zone = bestKey:match("^(.-) @ ([^(]+)") end
+    return best, npc or bestKey, zone and strtrim(zone) or nil
 end
 
 local function PriceText(spell)
@@ -299,9 +303,10 @@ local function Paint()
     Place(panel.rule2, y)
     y = y + 12
     local _, _, classID = UnitClass("player")
-    local trainer = LastTrainer(classID)
+    local trainer, npc, zone = LastTrainer(classID)
     if trainer then
-        panel.where:SetText(("Trained last at |cffece6d6%s|r, %s"):format(trainer.npc, trainer.zone or "?"))
+        panel.where:SetText(zone and ("Trained last at |cffece6d6%s|r, %s"):format(npc, zone)
+            or ("Trained last at |cffece6d6%s|r"):format(npc))
     else
         panel.where:SetText("Prices fill in when you open a class trainer.")
     end
@@ -317,7 +322,7 @@ local function Paint()
         Place(panel.open, y, PAD + half + 8)
         panel.map:SetScript("OnClick", function()
             if not Compat.SetWaypoint(trainer.map, trainer.x, trainer.y) then
-                ns.Print(("%s is at %.0f, %.0f in %s."):format(trainer.npc, trainer.x * 100, trainer.y * 100, trainer.zone or "?"))
+                ns.Print(("%s is at %.0f, %.0f in %s."):format(npc, trainer.x * 100, trainer.y * 100, zone or "?"))
             end
         end)
     else
