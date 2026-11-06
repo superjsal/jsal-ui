@@ -1,6 +1,7 @@
 -- Daily Word: one five-letter word a day, the same for everyone, six tries.
 -- A letter in the right spot turns green; a letter that's in the word but in
--- another spot turns yellow; a letter not in the word turns grey.
+-- another spot turns yellow; a letter not in the word turns grey. The same
+-- board plays the Guild Word, which can be five to eight letters long.
 local _, ns = ...
 local Style, Compat, Games = ns.Style, ns.Compat, ns.Games
 
@@ -12,6 +13,7 @@ ns.DailyWord = DailyWord
 
 local Data = ns.DailyWordData
 local LENGTH, TRIES = 5, 6
+local MAX_LENGTH = 8   -- the longest Guild Word
 
 -- The answers are stored scrambled: each letter shifted by its place in the
 -- list, undone here one word at a time.
@@ -41,7 +43,7 @@ end
 -- the answer has it.
 local function Score(guess, answer)
     local result, left = {}, {}
-    for i = 1, LENGTH do
+    for i = 1, #answer do
         local g, a = guess:sub(i, i), answer:sub(i, i)
         if g == a then
             result[i] = "right"
@@ -49,7 +51,7 @@ local function Score(guess, answer)
             left[a] = (left[a] or 0) + 1
         end
     end
-    for i = 1, LENGTH do
+    for i = 1, #answer do
         if not result[i] then
             local g = guess:sub(i, i)
             if (left[g] or 0) > 0 then
@@ -163,7 +165,7 @@ local function ShareLine(game, answer, title)
     local rows = {}
     for i, guess in ipairs(game.guesses) do
         local scored, row = Score(guess, answer), {}
-        for c = 1, LENGTH do row[c] = MARKS[scored[c]] end
+        for c = 1, #answer do row[c] = MARKS[scored[c]] end
         rows[i] = table.concat(row)
     end
     return ("%s %s/6 %s"):format(title, game.won and #game.guesses or "X", table.concat(rows, " "))
@@ -224,15 +226,39 @@ local function PaintCell(cell, letter, tone, typed, tones)
     end
 end
 
+-- Lays the board out for a word of n letters: as many columns, the tiles
+-- smaller when a long word wouldn't fit, the grid centred in its space.
+local laidOut
+local function Layout(n)
+    if laidOut == n then return end
+    laidOut = n
+    local size = math.min(TILE, math.floor((WIDTH - 32 - (n - 1) * GAP) / n))
+    local full = TRIES * TILE + (TRIES - 1) * GAP
+    local top = 32 + 16 + (full - (TRIES * size + (TRIES - 1) * GAP)) / 2
+    local left = (WIDTH - (n * size + (n - 1) * GAP)) / 2
+    for row = 1, TRIES do
+        for col = 1, MAX_LENGTH do
+            local tile = tiles[row][col]
+            tile:SetShown(col <= n)
+            tile:SetSize(size, size)
+            tile:ClearAllPoints()
+            tile:SetPoint("TOPLEFT", left + (col - 1) * (size + GAP), -(top + (row - 1) * (size + GAP)))
+            tile.letter:SetFont(Style.boldFont, size >= TILE and 22 or 18, "")
+        end
+    end
+end
+
 local function Paint()
     local game, answer, title = Current()
     frame.title:SetText(title)
+    local n = #answer
+    Layout(n)
     local keyTone = {}
     for row = 1, TRIES do
         local guess = game.guesses[row]
         local scored = guess and Score(guess, answer)
         local typing = not guess and not game.finished and row == #game.guesses + 1
-        for col = 1, LENGTH do
+        for col = 1, n do
             local letter = guess and guess:sub(col, col) or (typing and current:sub(col, col)) or ""
             if letter == "" then letter = nil end
             local tone = scored and scored[col]
@@ -269,8 +295,10 @@ end
 local function Submit()
     local game, answer = Current()
     if game.finished then return end
-    if #current < LENGTH then return Say("Five letters, please.") end
-    if not IsWord(current) then return Say("That one isn't in the word list.") end
+    if #current < #answer then return Say(("%d letters, please."):format(#answer)) end
+    -- The word list has five-letter words only, so longer Guild Words take
+    -- any letters.
+    if #answer == LENGTH and not IsWord(current) then return Say("That one isn't in the word list.") end
     local guess = current
     game.guesses[#game.guesses + 1] = guess
     current, notice = "", nil
@@ -304,17 +332,16 @@ end
 local function Build()
     frame = Style.Panel("jsalUIDailyWord", WIDTH, HEIGHT, "Daily Word")
 
-    local gridWidth = LENGTH * TILE + (LENGTH - 1) * GAP
-    local left = (WIDTH - gridWidth) / 2
+    -- Tiles for the longest word; Layout places the ones a word needs.
     for row = 1, TRIES do
         tiles[row] = {}
-        for col = 1, LENGTH do
+        for col = 1, MAX_LENGTH do
             local tile = Cell(frame, TILE, TILE, 22)
             tile:EnableMouse(false)
-            tile:SetPoint("TOPLEFT", left + (col - 1) * (TILE + GAP), -(32 + 16 + (row - 1) * (TILE + GAP)))
             tiles[row][col] = tile
         end
     end
+    Layout(LENGTH)
 
     local gridBottom = 32 + 16 + TRIES * TILE + (TRIES - 1) * GAP
     message = Style.Text(frame, 13, "text")
@@ -383,13 +410,14 @@ local function Build()
     input = CreateFrame("EditBox", nil, frame)
     input:SetFontObject(ChatFontNormal)
     input:SetAutoFocus(false)
-    input:SetMaxLetters(LENGTH)
+    input:SetMaxLetters(MAX_LENGTH)
     input:SetSize(1, 1)
     input:SetPoint("TOPLEFT")
     input:SetAlpha(0)
     input:SetScript("OnTextChanged", function(self)
         local text = self:GetText()
-        local clean = (text:lower():gsub("[^a-z]", "")):sub(1, LENGTH)
+        local _, answer = Current()
+        local clean = (text:lower():gsub("[^a-z]", "")):sub(1, #answer)
         if clean ~= text then
             self:SetText(clean)
             return
