@@ -433,7 +433,6 @@ function Tree.Suggested(classID)
 end
 
 function Tree.Copy(build)
-    ns.Count("build.copied")
     local order = {}
     for i, id in ipairs(build.order or {}) do order[i] = id end
     local copy = { id = Tree.NewID(), class = build.class, name = ("Copy of " .. build.name):sub(1, 24), order = order }

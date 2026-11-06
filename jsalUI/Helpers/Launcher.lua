@@ -144,10 +144,7 @@ function Launcher.PlacesMenu(anchor)
     for _, place in ipairs(PLACES) do
         if Ready(place) then
             local waiting = Waiting(place)
-            items[#items + 1] = { place.label, waiting and "|cffe3b04bwaiting|r" or nil, function()
-                ns.Count("minimapMenu." .. place.key)
-                place.open()
-            end }
+            items[#items + 1] = { place.label, waiting and "|cffe3b04bwaiting|r" or nil, place.open }
         end
     end
     Launcher.ShowMenu(anchor, items)
@@ -182,10 +179,7 @@ local function Button(place)
     b.dot:SetSize(10, 10)
     b.dot:SetPoint("TOPRIGHT", 3, 3)
     b.dot:Hide()
-    b:SetScript("OnClick", function()
-        ns.Count("quickButtons." .. place.key)
-        place.open()
-    end)
+    b:SetScript("OnClick", function() place.open() end)
     b:SetScript("OnEnter", function(self)
         Style.SetBorder(self.edges, "gold")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
