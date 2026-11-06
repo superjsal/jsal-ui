@@ -431,29 +431,37 @@ local function Paint()
     panel.train:Hide()
     panel.open:SetKind("primary")
 
-    -- Elsewhere: where you trained last, a map pin to them, and the planner.
+    -- Elsewhere: your nearest class trainer with a map pin to them, or where
+    -- you trained last, and the planner.
     local _, _, classID = UnitClass("player")
+    local nearest = ns.Trainers and ns.Trainers.Nearest("class" .. classID)
     local trainer, npc, zone = LastTrainer(classID)
-    if trainer then
+    local pin
+    if nearest then
+        local place = ns.Trainers.Zone(nearest)
+        panel.where:SetText(place and ("Nearest trainer: |cffece6d6%s|r, %s"):format(nearest.name, place)
+            or ("Nearest trainer: |cffece6d6%s|r"):format(nearest.name))
+        pin = function() ns.Trainers.Pin(nearest) end
+    elseif trainer then
         panel.where:SetText(zone and ("Trained last at |cffece6d6%s|r, %s"):format(npc, zone)
             or ("Trained last at |cffece6d6%s|r"):format(npc))
+        if trainer.map and trainer.x then
+            pin = function()
+                ns.Trainers.Pin({ name = npc, map = trainer.map, x = trainer.x, y = trainer.y })
+            end
+        end
     else
         panel.where:SetText("Prices fill in when you open a class trainer.")
     end
     Place(panel.where, y)
     y = y + 26
-    local canPin = trainer and trainer.map and trainer.x
-    panel.map:SetShown(canPin and true or false)
-    if canPin then
+    panel.map:SetShown(pin and true or false)
+    if pin then
         panel.map:SetWidth(half)
         panel.open:SetWidth(half)
         Place(panel.map, y)
         Place(panel.open, y, PAD + half + 8)
-        panel.map:SetScript("OnClick", function()
-            if not Compat.SetWaypoint(trainer.map, trainer.x, trainer.y) then
-                ns.Print(("%s is at %.0f, %.0f in %s."):format(npc, trainer.x * 100, trainer.y * 100, zone or "?"))
-            end
-        end)
+        panel.map:SetScript("OnClick", pin)
     else
         panel.open:SetWidth(WIDTH - PAD * 2)
         Place(panel.open, y)

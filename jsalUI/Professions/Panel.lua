@@ -93,6 +93,10 @@ local function Build()
     panel.needNote = Style.Text(panel, 11, "muted")
     panel.needNote:SetJustifyH("RIGHT")
     panel.needNote:SetText("bags and bank / need")
+    panel.where = Style.Text(panel, 11, "muted")
+    panel.where:SetWidth(WIDTH - PAD * 2)
+    panel.pin = Style.Button(panel, "Show trainer on map", "primary", WIDTH - PAD * 2)
+    panel.pin:SetHeight(28)
 end
 
 local function Tooltip(frame)
@@ -295,6 +299,26 @@ local function Paint()
         panel.needNote:Hide()
     end
     for i = count + 1, #items do items[i]:Hide() end
+
+    -- The nearest trainer who teaches your rank, or the next one once
+    -- you're ready for it, with a map pin.
+    local rankIndex = 1
+    for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
+    local needed = (rank.at and skill >= rank.at) and rankIndex + 1 or rankIndex
+    local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+    if trainer then
+        y = y + 10
+        local place = ns.Trainers.Zone(trainer)
+        panel.where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or ""))
+        Place(panel.where, y)
+        y = y + 22
+        panel.pin:SetScript("OnClick", function() ns.Trainers.Pin(trainer) end)
+        Place(panel.pin, y)
+        y = y + 28
+    else
+        panel.where:Hide()
+        panel.pin:Hide()
+    end
     panel:SetHeight(y + PAD)
 end
 

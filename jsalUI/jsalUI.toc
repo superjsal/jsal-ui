@@ -19,6 +19,9 @@ Core.lua
 Comms.lua
 Style.lua
 Window.lua
+# Where trainers stand, and the nearest one.
+TrainerData.lua
+Trainers.lua
 
 # The look and its installer.
 Profile.lua
