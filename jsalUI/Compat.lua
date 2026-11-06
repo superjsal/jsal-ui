@@ -228,6 +228,12 @@ function Compat.PetSpellbook()
     return known
 end
 
+-- Whether the game's gamepad interface style is on. It opens the spellbook
+-- and trainers from secure code, so nothing may hook them then.
+function Compat.GamepadUI()
+    return InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled() and true or false
+end
+
 -- Where the player stands: the map and the spot on it, from 0 to 1 across.
 function Compat.PlayerPosition()
     if not (C_Map and C_Map.GetBestMapForUnit) then return nil end
