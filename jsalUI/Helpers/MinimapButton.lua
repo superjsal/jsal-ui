@@ -53,7 +53,14 @@ local function Build()
     border:SetSize(53, 53)
     border:SetPoint("TOPLEFT")
 
-    button:SetScript("OnClick", function() ns.Window.Toggle() end)
+    -- A right-click lists jsal.ui's places: the games, chess and the rest.
+    button:SetScript("OnClick", function(self, mouse)
+        if mouse == "RightButton" and ns.Launcher then
+            ns.Launcher.PlacesMenu(self)
+        else
+            ns.Window.Toggle()
+        end
+    end)
     button:SetScript("OnDragStart", function(self)
         self:SetScript("OnUpdate", Follow)
         GameTooltip:Hide()
@@ -63,6 +70,7 @@ local function Build()
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:SetText(ns.title)
         GameTooltip:AddLine("Click to open the dashboard.", 1, 1, 1)
+        GameTooltip:AddLine("Right-click for the games, chess and more.", 1, 1, 1)
         GameTooltip:AddLine("Drag to move it around the minimap.", 0.6, 0.59, 0.53)
         GameTooltip:Show()
     end)
