@@ -10,9 +10,12 @@ Made for casual players: every part is small, on by default, and has one switch.
 | Daily Word | One five-letter word a day, the same for everyone, six tries. Share your grid to guild chat. |
 | Icon Guess | Name the spell from its icon. A daily round of ten, the same for everyone, plus practice rounds. |
 | Flight bar | While you fly: the route, the time left and today's games. Times come from the game's own flight tables. |
-| Guild tab | Guildmates who run jsal.ui, their version and today's scores. |
-| Build Planner | Any class's three Forever trees in the dashboard. A build shows level by level, with what's taken and what's next; Learn next points spends waiting points in its order; Edit opens the trees. Builds are saved for the whole account and shared as Wowhead talent calculator links or short codes. |
-| Training Planner | Your next trainer visit and its cost, your road to 60, and every spell: ready now, coming soon, later, skipped, plus weapon skills. Spells come from the game's files; prices from class trainers you've opened. |
+| Chess | Play guildmates who have jsal.ui, a few games at once, with a win-loss record against each. Moves wait for whoever's turn it is, even across logouts. Guildmates' games show under Watching, to follow as they're played. No computer opponent, to keep jsal.ui light. |
+| Guild tab | Guildmates who run jsal.ui, their version and today's scores, and the Guild Word the guild master sets. |
+| Build Planner | Any class's three Forever trees in the dashboard, with a ready-made leveling build for each class (Rogue to come) from Wowhead's Forever leveling guides, to follow or copy. A build shows level by level, with what's taken and what's next; Learn next points spends waiting points in its order; Edit opens the trees. Builds are saved for the whole account and shared as Wowhead talent calculator links or short codes. |
+| Training Planner | Your next trainer visit and its cost, your road to 60, and every spell: ready now, coming soon, later, skipped, plus weapon skills. Spells come from the game's files; prices from class trainers you've opened. A panel beside the spellbook and trainers shows what's ready, with the nearest trainer and a map pin. |
+| Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. |
+| Minimap button | Opens the dashboard; sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
 | Quests on autopilot | Accepts and turns in quests. Hold Shift to do it yourself; reward choices stay yours. |
 | Vendor run | Repairs and sells grey items at any vendor, and says what it spent and earned. |
@@ -33,8 +36,10 @@ Made for casual players: every part is small, on by default, and has one switch.
 | `/jsal` | Opens or closes the dashboard |
 | `/jsal word` | Today's Daily Word |
 | `/jsal icons` | Today's Icon Guess round |
+| `/jsal chess` | Your chess games |
 | `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
 | `/jsal version` | Prints the version |
+| `/jsal perf` | How long jsal.ui took to load |
 
 ## How it's built
 
@@ -43,8 +48,9 @@ Made for casual players: every part is small, on by default, and has one switch.
 - `Comms.lua`: addon messages between jsal.ui players, rate-limited, held in combat.
 - `Style.lua`, `Window.lua`: the shared look and the dashboard.
 - `Profile.lua`, `Installer.lua`: the EllesmereUI profile and its one-click install.
-- `Games\`: Daily Word, Icon Guess and the flight offer. `Guild.lua`: the Guild tab.
-- `Helpers\`: quests, vendor, level-up and warnings.
+- `Games\`: Daily Word, Icon Guess, the flight offer and chess (its rules, games and page). `Guild.lua`: the Guild tab.
+- `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads. `Trainers.lua`: where trainers stand.
+- `Helpers\`: quests, vendor, level-up, warnings and the minimap button.
 
 Nothing runs during combat, and jsal.ui reads no combat data.
 
@@ -65,6 +71,15 @@ TraitNodeGroup, TraitNodeGroupXTraitNode, SkillLineXTraitTree, Talent, TalentTab
 patch, fetch them again from wago.tools and run `python -I tools\build_talents.py <version>`.
 Forever runs on the TraitNode tables, which are the source; the classic Talent tables only
 name and order the trees. Talents parked far off the 7-by-4 grid are hidden ones and are left out.
+
+## Leveling builds
+
+`data\talents\suggested.json` holds one Wowhead Forever talent calculator link per class, copied
+from Wowhead's Forever leveling guides. `python -I tools\build_suggested.py` turns them into
+`jsalUI\Talents\SuggestedBuilds.lua`, checking every point against `TalentData.lua` with the
+game's rules; a link that doesn't fit Forever's trees stops it. Wowhead's order letters skip a few
+places TalentData doesn't have, so the letters a tree uses, sorted, are matched in order to the
+talents its ranks give points to.
 
 ## Trainer spells
 
