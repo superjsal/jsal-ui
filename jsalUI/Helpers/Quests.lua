@@ -1,6 +1,9 @@
 -- Quests on autopilot: accepts quests and turns in finished ones when you
 -- talk to a quest giver. Holding Shift skips it, a reward choice is left to
 -- you, and grey (trivial) quests and quests that cost gold are left alone.
+-- In a group it leaves taking quests from quest givers to you, so an escort
+-- doesn't set off before everyone's ready; quests a groupmate shares, and
+-- joining an escort a groupmate starts, are still taken.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -23,6 +26,19 @@ local function Paused()
     return IsShiftKeyDown()
 end
 
+local function Grouped()
+    return IsInGroup and IsInGroup() or (GetNumGroupMembers and GetNumGroupMembers() > 0)
+end
+
+-- Whether the quest window open now is a quest a player shared, not a
+-- quest giver's.
+local function Shared()
+    for _, unit in ipairs({ "questnpc", "npc" }) do
+        if UnitExists(unit) then return UnitIsPlayer(unit) end
+    end
+    return false
+end
+
 local handlers = {}
 
 function handlers.GOSSIP_SHOW()
@@ -31,6 +47,7 @@ function handlers.GOSSIP_SHOW()
             return Compat.GossipTakeActive(quest.questID)
         end
     end
+    if Grouped() then return end
     for _, quest in ipairs(Compat.GossipAvailable()) do
         if not quest.isTrivial and Fresh("new" .. quest.questID) then
             return Compat.GossipTakeAvailable(quest.questID)
@@ -46,6 +63,7 @@ function handlers.QUEST_GREETING()
             return SelectActiveQuest(i)
         end
     end
+    if Grouped() then return end
     for i = 1, GetNumAvailableQuests() do
         local trivial = GetAvailableQuestInfo and GetAvailableQuestInfo(i)
         if not trivial and Fresh("new" .. tostring(GetAvailableTitle(i))) then
@@ -56,7 +74,16 @@ end
 
 function handlers.QUEST_DETAIL()
     if QuestGetAutoAccept and QuestGetAutoAccept() then return end
+    if Grouped() and not Shared() then return end
     AcceptQuest()
+end
+
+-- A groupmate started an escort: join it, as the game's own popup asks.
+function handlers.QUEST_ACCEPT_CONFIRM()
+    if ConfirmAcceptQuest then
+        ConfirmAcceptQuest()
+        if StaticPopup_Hide then StaticPopup_Hide("QUEST_ACCEPT") end
+    end
 end
 
 function handlers.QUEST_PROGRESS()
@@ -71,7 +98,8 @@ end
 
 function Quests:OnEnable()
     local events = CreateFrame("Frame")
-    for event in pairs(handlers) do events:RegisterEvent(event) end
+    -- pcall: an event this client doesn't have is an error to register.
+    for event in pairs(handlers) do pcall(events.RegisterEvent, events, event) end
     events:SetScript("OnEvent", ns.Safe(self, function(_, event)
         if Quests.running and not Paused() then handlers[event]() end
     end))
