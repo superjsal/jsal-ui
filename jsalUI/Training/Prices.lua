@@ -88,6 +88,15 @@ local function Record()
         if classFile == "HUNTER" then SaveBeastTraining(rows) end
         return
     end
+    -- The rows the trainer marks as learned, kept for this character: the
+    -- trainer's own word that you know them, whatever the spell's ID.
+    ns.char.trainedSpells = type(ns.char.trainedSpells) == "table" and ns.char.trainedSpells or {}
+    for _, row in ipairs(rows) do
+        if row.category == "used" then
+            if row.spell then ns.char.trainedSpells[row.spell] = true end
+            ns.char.trainedSpells[row.name .. "|" .. (row.rank or "")] = true
+        end
+    end
     -- Saved per trainer and class: a weapon master shows each class the
     -- weapons it can learn, so one class's visit doesn't replace another's.
     local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
