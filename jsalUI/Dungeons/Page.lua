@@ -42,6 +42,15 @@ end
 local QUALITY_HEX ={ [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
 local GREEN = "|cff56944f"
 
+-- The side of the world its entrance is on, in that faction's colour; a
+-- dungeon only one faction can enter says so. Contested ones say nothing.
+local SIDE_COLOR = { Horde = "|cffd65151", Alliance = "|cff5b9be6" }
+local function SideText(d)
+    local side = d.faction or d.side
+    if not side then return nil end
+    return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
+end
+
 -- An item's details, asking the game to load them when it hasn't yet.
 local function ItemInfo(id)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
@@ -411,7 +420,8 @@ Window.Page("dungeons", function(page)
             r.name:SetText(d.name)
             local levelText = ("Level %d+"):format(d.level)
             if Fits(d, level) then levelText = GREEN .. levelText .. "|r" end
-            r.meta:SetText(levelText .. " · " .. d.zone)
+            local side = SideText(d)
+            r.meta:SetText(levelText .. " · " .. d.zone .. (side and (" · " .. side) or ""))
             r.count:SetText(("%d/%d"):format(killed, #d.bosses))
             local on = d == chosen
             if on then chosenY = y end
@@ -445,7 +455,7 @@ Window.Page("dungeons", function(page)
             if D.KillCount(b[2], game) > 0 then killed = killed + 1 end
         end
         local bits = { (d.raid and "Raid · level %d+" or "Level %d+"):format(d.level), d.zone }
-        if d.faction then bits[#bits + 1] = d.faction end
+        if SideText(d) then bits[#bits + 1] = SideText(d) end
         bits[#bits + 1] = ("%d of %d bosses killed"):format(killed, #d.bosses)
         meta:SetText(table.concat(bits, " · "))
 
