@@ -1,6 +1,5 @@
-# jsal.ui 0.3.13
+# jsal.ui 0.3.14
 
-- **Change layers with your guild (new):** click the Layer button on the quick bar to see guildmates in your zone who are on another layer, and join one. Their jsal.ui invites you and yours accepts, so you move to their layer and keep it while you're in their group. No other addon needed.
-  - The menu also asks in General for you (typed in, ready to send), tells your guild which layer you're on, and leaves the group when you're done.
-  - jsal.ui invites guildmates who ask to join your layer only when you're out of combat, outside dungeons and have room in your group, and never the same guildmate twice in a minute. Turn it off under Layers in Settings.
-  - Changing layers needs guildmates on 0.3.13 in the same zone. Tell us how it goes with Report a problem.
+- **Fixed:** the "jsalUI has been blocked from an action only available to the Blizzard UI" message at login. The Journal asked the game for its combat log, which WoW Forever keeps from addons.
+  - The Journal now counts your kills from the game's own statistics, notes a rare's first kill when a rare you're targeting dies, and shows Dungeon bosses and Flights taken where Damage dealt and Healing done were (Forever doesn't give addons those). A death is noted without its cause.
+- **Updates tell you what they need:** after updating, a /reload is enough for this one. From now on, when an update adds files and needs a full restart, jsal.ui says so after your /reload, and the guild's "newer version" notice says which one it needs.

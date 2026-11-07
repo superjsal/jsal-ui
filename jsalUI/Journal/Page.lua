@@ -177,22 +177,22 @@ Window.Page("journal", function(page)
         -- rest is counted from the day the Journal began.
         local day = (date("%d %B %Y", book.since or Compat.ServerTime()):gsub("^0", ""))
         local extras = {}
-        for _, e in ipairs({ { "flights", "flight", "flights" }, { "hearths", "hearth", "hearths" }, { "camped", "campfire", "campfires" } }) do
+        for _, e in ipairs({ { "hearths", "hearth", "hearths" }, { "camped", "campfire", "campfires" } }) do
             local n = J.Total(e[1])
             if n > 0 then extras[#extras + 1] = ("%s %s"):format(Count(n), n == 1 and e[2] or e[3]) end
         end
         since:SetText((#extras > 0 and (table.concat(extras, ", ") .. ". ") or "")
-            .. ("Distance, jumps and damage counted since %s."):format(day))
+            .. ("Distance and jumps counted since %s."):format(day))
         local killers = J.Top(book.killers, 1)
         local source = J.MoneySource()
         local bosses = J.Bosses()
         local duelsWon, duelsLost = J.Total("duelsWon"), J.Total("duelsLost")
         local data = {
-            { Count(J.Total("foes")), "Foes defeated", bosses > 0 and (Count(bosses) .. (bosses == 1 and " boss" or " bosses")) or "" },
+            { Count(J.Total("foes")), "Foes defeated", "" },
             { Miles(J.Stat("yards")), "Travelled", "" },
             { Count(J.Total("quests")), "Quests done", "" },
-            { Count(J.Total("damage")), "Damage dealt", "" },
-            { Count(J.Total("healing")), "Healing done", "" },
+            { Count(bosses), bosses == 1 and "Dungeon boss" or "Dungeon bosses", "" },
+            { Count(J.Total("flights")), "Flights taken", "" },
             { Count(J.Total("deaths")), "Deaths", killers[1] and ("most to " .. killers[1].key) or "" },
             { Gold(J.Total("earned")), "Gold earned", source and ("most from " .. source) or "" },
             { ("%d-%d"):format(duelsWon, duelsLost), "Duels won and lost", "" },
