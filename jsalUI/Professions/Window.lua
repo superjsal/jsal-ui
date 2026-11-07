@@ -280,51 +280,12 @@ end
 -- Next rank alert: once per profession and rank, when your skill and level
 -- are enough to train the next one, with the nearest trainer.
 ---------------------------------------------------------------------------
--- A banner of its own, lower than the game's error line and below where the
--- flight bar sits, so it stands out: the news in gold, the nearest trainer
--- under it. A click pins the trainer on the map; it goes after a while.
-local banner
-local BANNER_SHOW, BANNER_FADE = 10, 1
-
+-- jsal.ui's banner, high in the middle of the screen: the news in gold,
+-- the nearest trainer under it. A click pins the trainer on the map.
 local function Banner(title, line, trainer)
-    if not banner then
-        banner = CreateFrame("Button", "jsalUIRankBanner", UIParent)
-        banner:SetSize(440, 64)
-        banner:SetPoint("TOP", UIParent, "TOP", 0, -290)
-        banner:SetFrameStrata("HIGH")
-        Style.Fill(banner, "window")
-        Style.Border(banner, "gold")
-        local mark = banner:CreateTexture(nil, "ARTWORK")
-        mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
-        mark:SetSize(36, 36)
-        mark:SetPoint("LEFT", 14, 0)
-        banner.title = Style.Text(banner, 16, "gold", nil, true)
-        banner.title:SetPoint("TOPLEFT", mark, "TOPRIGHT", 12, 0)
-        banner.title:SetPoint("RIGHT", -14, 0)
-        banner.title:SetWordWrap(false)
-        banner.line = Style.Text(banner, 12, "text")
-        banner.line:SetPoint("BOTTOMLEFT", mark, "BOTTOMRIGHT", 12, 0)
-        banner.line:SetPoint("RIGHT", -14, 0)
-        banner.line:SetWordWrap(false)
-        banner:SetScript("OnUpdate", function(self, elapsed)
-            self.age = (self.age or 0) + elapsed
-            if self.age >= BANNER_SHOW + BANNER_FADE then
-                self:Hide()
-            elseif self.age > BANNER_SHOW then
-                self:SetAlpha(1 - (self.age - BANNER_SHOW) / BANNER_FADE)
-            end
-        end)
-    end
-    banner.title:SetText(title)
-    banner.line:SetText(line)
-    banner:SetScript("OnClick", function(self)
-        if self.trainer and ns.Trainers then ns.Trainers.Pin(self.trainer) end
-        self:Hide()
+    Style.Banner(title, line, function()
+        if trainer and ns.Trainers then ns.Trainers.Pin(trainer) end
     end)
-    banner.trainer = trainer
-    banner.age = 0
-    banner:SetAlpha(1)
-    banner:Show()
 end
 
 local function CheckRanks()

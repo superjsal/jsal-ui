@@ -3,6 +3,8 @@
 -- the best upgrade near your level for your spec; a green dot marks the
 -- slots that have one. Click a slot to see its options beside them: what
 -- each adds, where it comes from, its level, and a star to keep it on top.
+-- Under them, a box adds an item the plan doesn't list, starred, in the
+-- slot it goes in.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -162,6 +164,53 @@ Window.Page("gear", function(page)
         return r
     end
 
+    -- Adding an item the plan doesn't list: its ID, a shift-clicked link
+    -- or its Wowhead address. One the game hasn't loaded yet is tried again
+    -- when it arrives.
+    local ADD_H = 58
+    local box = Style.Field(list, listW - 14 - 96 - 8)
+    box.well:SetPoint("BOTTOMLEFT", list, "BOTTOMLEFT", 14, 22)
+    box.hint = Style.Text(box.well, 12, "muted")
+    box.hint:SetPoint("LEFT", 8, 0)
+    box.hint:SetText("Item ID, link or Wowhead URL")
+    box:SetScript("OnTextChanged", function(self) box.hint:SetShown(self:GetText() == "" and not self:HasFocus()) end)
+    box:SetScript("OnEditFocusGained", function() box.hint:Hide() end)
+    box:SetScript("OnEditFocusLost", function(self) box.hint:SetShown(self:GetText() == "") end)
+    local addButton = Style.Button(list, "Add", "plain", 96)
+    addButton:SetHeight(26)
+    addButton:SetPoint("LEFT", box.well, "RIGHT", 8, 0)
+    local said = Style.Text(list, 12, "gold")
+    said:SetPoint("TOPLEFT", box.well, "BOTTOMLEFT", 0, -6)
+    said:SetWidth(listW - 28)
+    said:SetJustifyH("LEFT")
+    said:SetWordWrap(false)
+    local pending
+    local function Add()
+        local message, ok, slot = G.Add(box:GetText())
+        if message == "waiting" then
+            pending = box:GetText()
+            said:SetText("Looking that item up...")
+            return
+        end
+        pending = nil
+        said:SetText(message)
+        if ok then
+            box:SetText("")
+            box:ClearFocus()
+            chosen = slot.key
+            Paint()
+        end
+    end
+    addButton:SetScript("OnClick", Add)
+    box:SetScript("OnEnterPressed", Add)
+    page.AddBox = box
+    -- Shift-clicking an item while the box has the cursor puts its link there.
+    if ChatEdit_InsertLink and hooksecurefunc then
+        hooksecurefunc("ChatEdit_InsertLink", function(link)
+            if box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
+        end)
+    end
+
     local note = Style.Text(page, 12, "muted")
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
     note:SetWidth(width)
@@ -240,7 +289,7 @@ Window.Page("gear", function(page)
         betterHead:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
         betterHead:SetText("BETTER FOR YOU")
         local y = 18 + ROW_H + 16 + 20
-        local maxRows = math.floor((height - top - 60 - y) / ROW_H)
+        local maxRows = math.floor((height - top - 60 - y - ADD_H) / ROW_H)
         local shown = 0
         for i, o in ipairs(plan.options) do
             if i > maxRows then break end
@@ -277,6 +326,12 @@ Window.Page("gear", function(page)
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     page:SetScript("OnEvent", function()
+        if pending and page:IsVisible() then
+            local text = pending
+            pending = nil
+            box:SetText(text)
+            Add()
+        end
         if waiting or not page:IsVisible() then return end
         waiting = true
         Compat.After(0.3, function()

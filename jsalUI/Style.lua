@@ -217,6 +217,74 @@ function Style.CloseButton(parent, size, onClick)
     return b
 end
 
+-- A text box in a well: click anywhere on the well to type, Escape to stop.
+-- The box is returned; its well (to place it) is box.well.
+function Style.Field(parent, width, numeric)
+    local well = CreateFrame("Frame", nil, parent)
+    well:SetSize(width, 26)
+    Style.Fill(well, "well")
+    Style.Border(well, "lineStrong")
+    local e = CreateFrame("EditBox", nil, well)
+    e:SetPoint("TOPLEFT", 8, 0)
+    e:SetPoint("BOTTOMRIGHT", -8, 0)
+    e:SetAutoFocus(false)
+    e:SetFont(Style.font, 12, "")
+    e:SetTextColor(Style.Color("text"))
+    if numeric then e:SetNumeric(true); e:SetMaxLetters(3); e:SetJustifyH("CENTER") end
+    e:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    well:EnableMouse(true)
+    well:SetScript("OnMouseDown", function() e:SetFocus() end)
+    e.well = well
+    return e
+end
+
+-- A gold-edged banner high in the middle of the screen for news worth
+-- stopping for (a profession rank to train, a starred item dropping): the
+-- news in gold, a line under it. A click runs onClick and closes it; it
+-- fades after a while.
+local banner
+local BANNER_SHOW, BANNER_FADE = 10, 1
+function Style.Banner(title, line, onClick)
+    if not banner then
+        banner = CreateFrame("Button", "jsalUIBanner", UIParent)
+        banner:SetSize(440, 64)
+        banner:SetPoint("TOP", UIParent, "TOP", 0, -290)
+        banner:SetFrameStrata("HIGH")
+        Style.Fill(banner, "window")
+        Style.Border(banner, "gold")
+        local mark = banner:CreateTexture(nil, "ARTWORK")
+        mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
+        mark:SetSize(36, 36)
+        mark:SetPoint("LEFT", 14, 0)
+        banner.title = Style.Text(banner, 16, "gold", nil, true)
+        banner.title:SetPoint("TOPLEFT", mark, "TOPRIGHT", 12, 0)
+        banner.title:SetPoint("RIGHT", -14, 0)
+        banner.title:SetWordWrap(false)
+        banner.line = Style.Text(banner, 12, "text")
+        banner.line:SetPoint("BOTTOMLEFT", mark, "BOTTOMRIGHT", 12, 0)
+        banner.line:SetPoint("RIGHT", -14, 0)
+        banner.line:SetWordWrap(false)
+        banner:SetScript("OnUpdate", function(self, elapsed)
+            self.age = (self.age or 0) + elapsed
+            if self.age >= BANNER_SHOW + BANNER_FADE then
+                self:Hide()
+            elseif self.age > BANNER_SHOW then
+                self:SetAlpha(1 - (self.age - BANNER_SHOW) / BANNER_FADE)
+            end
+        end)
+    end
+    banner.title:SetText(title)
+    banner.line:SetText(line)
+    banner:SetScript("OnClick", function(self)
+        if onClick then onClick() end
+        self:Hide()
+    end)
+    banner.age = 0
+    banner:SetAlpha(1)
+    banner:Show()
+    return banner
+end
+
 -- A window of its own: a title bar to drag it by, a close cross, and Escape
 -- closes it like the game's own windows.
 function Style.Panel(name, width, height, title)

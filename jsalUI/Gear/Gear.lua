@@ -94,7 +94,43 @@ Gear.SLOTS = {
 
 -- How far below and above your level an item may be: below, it's likely
 -- outgrown; just above, it's coming soon (its level shows in red).
-Gear.BELOW, Gear.ABOVE = 12, 3
+Gear.BELOW, Gear.ABOVE = 12, 5
+
+-- The level an item belongs to: its required level, or for one with none
+-- (some world drops) its item level less five, so it isn't taken as level 1.
+function Gear.LevelOf(req, ilvl)
+    if req and req > 0 then return req end
+    return math.max(1, (ilvl or 1) - 5)
+end
+
+-- The game's slot names (an item's equip location) as inventory types.
+Gear.INVTYPE = {
+    INVTYPE_HEAD = 1, INVTYPE_NECK = 2, INVTYPE_SHOULDER = 3, INVTYPE_CHEST = 5, INVTYPE_ROBE = 20,
+    INVTYPE_WAIST = 6, INVTYPE_LEGS = 7, INVTYPE_FEET = 8, INVTYPE_WRIST = 9, INVTYPE_HAND = 10,
+    INVTYPE_FINGER = 11, INVTYPE_TRINKET = 12, INVTYPE_WEAPON = 13, INVTYPE_SHIELD = 14,
+    INVTYPE_RANGED = 15, INVTYPE_CLOAK = 16, INVTYPE_2HWEAPON = 17, INVTYPE_WEAPONMAINHAND = 21,
+    INVTYPE_WEAPONOFFHAND = 22, INVTYPE_HOLDABLE = 23, INVTYPE_THROWN = 25, INVTYPE_RANGEDRIGHT = 26,
+}
+
+-- The slot an item of an inventory type goes in (a one-handed weapon: the
+-- main hand).
+function Gear.SlotOf(invType)
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, t in ipairs(slot.types) do
+            if t == invType then return slot end
+        end
+    end
+end
+
+-- Whether an item of an inventory type fits a slot, a one-handed weapon in
+-- the off hand once you dual wield included.
+local function Fits(slot, invType, classFile, level)
+    for _, t in ipairs(slot.types) do
+        if t == invType then return true end
+    end
+    return slot.key == "off" and invType == 13 and Gear.DualWields(classFile, level)
+end
+Gear.Fits = Fits
 
 ---------------------------------------------------------------------------
 -- Your spec: chosen on the page, else the talent tree with the most points.
@@ -204,6 +240,31 @@ end
 -- The items that fit a slot for you, from GearData's text: your class and
 -- side, near your level.
 ---------------------------------------------------------------------------
+-- One of GearData's items as the plan uses it. A drop with no one place
+-- to get it is a world drop.
+function Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
+    local e = { id = tonumber(id), req = tonumber(req), ilvl = tonumber(ilvl), slotType = invType,
+                quality = tonumber(q), kind = data.kinds[tonumber(kind)] or "",
+                place = data.places[tonumber(place)] or "" }
+    if e.kind == "Drop" and e.place == "" then e.kind = "World drop" end
+    return e
+end
+
+-- One item from GearData by its ID, wherever it fits; nil when it isn't there.
+function Gear.Lookup(id)
+    local data = ns.GearData
+    if not (data and id) then return nil end
+    local pattern = "^" .. id .. ",(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
+    for invType, line in pairs(data.items) do
+        if line:find(id .. ",", 1, true) then
+            for entry in line:gmatch("[^;]+") do
+                local req, ilvl, _, _, _, _, q, kind, place = entry:match(pattern)
+                if req then return Gear.Entry(data, id, req, ilvl, invType, q, kind, place) end
+            end
+        end
+    end
+end
+
 function Gear.Candidates(slot, level, classFile, classID, side)
     local data = ns.GearData
     local out = {}
@@ -219,13 +280,12 @@ function Gear.Candidates(slot, level, classFile, classID, side)
         for entry in (line or ""):gmatch("[^;]+") do
             local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match("^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$")
             req, reqclass, s = tonumber(req), tonumber(reqclass), tonumber(s)
-            if id and req >= level - Gear.BELOW and req <= level + Gear.ABOVE
+            local at = id and Gear.LevelOf(req, tonumber(ilvl))
+            if id and at >= level - Gear.BELOW and at <= level + Gear.ABOVE
                 and (s == 0 or s == side)
                 and (reqclass == 0 or math.floor(reqclass / bit) % 2 == 1)
                 and Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType) then
-                out[#out + 1] = { id = tonumber(id), req = req, ilvl = tonumber(ilvl), slotType = invType,
-                                  quality = tonumber(q), kind = data.kinds[tonumber(kind)] or "",
-                                  place = data.places[tonumber(place)] or "" }
+                out[#out + 1] = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
             end
         end
     end
@@ -256,20 +316,32 @@ function Gear.Plan(slot, spec)
         if not worn or score < worn.score then worn = { link = link, equip = equip, stats = stats, score = score or 0 } end
     end
     local wornID = worn.link and tonumber(worn.link:match("item:(%d+)"))
-    local stars = ns.char and type(ns.char.gearStars) == "table" and ns.char.gearStars or {}
-    local options, waiting = {}, 0
-    for _, c in ipairs(Gear.Candidates(slot, level, classFile, classID, SideNumber())) do
-        if c.id ~= wornID then
+    local stars, added = Gear.Starred(), Gear.Added()
+    local options, waiting, seen = {}, 0, {}
+    local candidates = Gear.Candidates(slot, level, classFile, classID, SideNumber())
+    -- Items you added by hand come in wherever they fit, at any level, even
+    -- when they aren't better for this spec.
+    for id, a in pairs(added) do
+        if Fits(slot, a.t, classFile, level) then
+            local c = Gear.Lookup(id) or { id = id, req = a.req or 0, kind = "", place = "" }
+            c.added = true
+            candidates[#candidates + 1] = c
+        end
+    end
+    for _, c in ipairs(candidates) do
+        if c.id ~= wornID and not seen[c.id] then
+            seen[c.id] = true
             local stats = Stats(c.id)
             if not stats then
                 waiting = waiting + 1
             else
                 local score = Gear.Score(stats, weights, slot.dps) or 0
-                if score > worn.score + 0.01 then
+                if c.added or score > worn.score + 0.01 then
                     c.score, c.stats = score, stats
                     c.gains = Gear.Gains(stats, worn.stats, weights, slot.dps)
-                    c.soon = c.req > level
+                    c.soon = (c.req or 0) > level
                     c.starred = stars[c.id] == true
+                    if c.added and c.kind == "" then c.kind = "Added by you" end
                     options[#options + 1] = c
                 end
             end
@@ -293,10 +365,40 @@ function Gear.Plan(slot, spec)
     return { worn = worn, options = options, waiting = waiting }
 end
 
+---------------------------------------------------------------------------
+-- Stars: the items you want, kept per character. Items you add by hand are
+-- starred too, and kept with their slot: { [item ID] = { t = inventory
+-- type, req = required level } }. Unstarring one you added removes it.
+---------------------------------------------------------------------------
+function Gear.Starred()
+    if not ns.char then return {} end
+    ns.char.gearStars = type(ns.char.gearStars) == "table" and ns.char.gearStars or {}
+    return ns.char.gearStars
+end
+
+function Gear.Added()
+    if not ns.char then return {} end
+    ns.char.gearAdded = type(ns.char.gearAdded) == "table" and ns.char.gearAdded or {}
+    return ns.char.gearAdded
+end
+
+-- Repaints whatever shows stars (the gear plan, the dungeon guide).
+local function StarsChanged()
+    if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
+end
+
 function Gear.ToggleStar(id)
     if not ns.char then return end
-    ns.char.gearStars = type(ns.char.gearStars) == "table" and ns.char.gearStars or {}
-    ns.char.gearStars[id] = (not ns.char.gearStars[id]) or nil
+    local stars = Gear.Starred()
+    stars[id] = (not stars[id]) or nil
+    if not stars[id] then Gear.Added()[id] = nil end
+    StarsChanged()
+end
+
+function Gear.Unstar(id)
+    Gear.Starred()[id] = nil
+    Gear.Added()[id] = nil
+    StarsChanged()
 end
 
 ns.Command("gear", function() if ns.Window then ns.Window.Open("gear") end end)
@@ -339,8 +441,10 @@ Gear.CharacterButton = Button
 function Gear:OnEnable()
     local b = Button()
     if b then b:Show() end
+    if Gear.StartStars then Gear.StartStars(self) end
 end
 
 function Gear:OnDisable()
     if button then button:Hide() end
+    if Gear.StopStars then Gear.StopStars(self) end
 end

@@ -4,6 +4,8 @@
 -- the game's order, ticked once you've killed it, with its loot listed on
 -- it (Wowhead's list with drop chances, and what you and the guild have seen it drop).
 -- Quests: the dungeon's quests for your faction, ticked once done.
+-- Loot starred in the gear plan has a gold star and edge, and the picker
+-- counts each dungeon's starred loot.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -334,6 +336,15 @@ Window.Page("dungeons", function(page)
         it.slot:SetWidth(itemW - 40)
         it.slot:SetJustifyH("LEFT")
         it.slot:SetWordWrap(false)
+        it.star = it:CreateTexture(nil, "OVERLAY")
+        it.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
+        it.star:SetSize(16, 16)
+        it.star:SetPoint("RIGHT", 0, 0)
+        it.edge = it:CreateTexture(nil, "OVERLAY")
+        it.edge:SetColorTexture(Style.Color("gold"))
+        it.edge:SetWidth(2)
+        it.edge:SetPoint("TOPLEFT", -8, 2)
+        it.edge:SetPoint("BOTTOMLEFT", -8, -2)
         it:EnableMouse(true)
         it:SetScript("OnEnter", function(self)
             if not self.item then return end
@@ -413,6 +424,11 @@ Window.Page("dungeons", function(page)
                 parts[#parts + 1] = entry.item.seen > 1 and ("you've seen it %d×"):format(entry.item.seen) or "you've seen it"
             end
             it.slot:SetText(table.concat(parts, " · "))
+            local starred = ns.Gear and ns.Gear.Starred()[entry.id] == true
+            it.star:SetShown(starred)
+            it.edge:SetShown(starred)
+            it.name:SetWidth(itemW - (starred and 62 or 40))
+            if starred then it:SetAlpha(1) end
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
@@ -479,7 +495,9 @@ Window.Page("dungeons", function(page)
             if Fits(d, level) then levelText = GREEN .. levelText .. "|r" end
             local side = SideText(d)
             r.meta:SetText(levelText .. " · " .. d.zone .. (side and (" · " .. side) or ""))
-            r.count:SetText(("%d/%d"):format(killed, #d.bosses))
+            local starredHere = ns.Gear and ns.Gear.StarsIn and #ns.Gear.StarsIn(d) or 0
+            r.count:SetText((starredHere > 0 and (ns.Gear.STAR .. " |cffe3b04b" .. starredHere .. "|r   ") or "")
+                .. ("%d/%d"):format(killed, #d.bosses))
             local on = d == chosen
             if on then chosenY = y end
             r.bg:SetShown(on)

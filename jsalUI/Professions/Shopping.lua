@@ -175,24 +175,7 @@ local function ItemFromText(text)
     end
 end
 
-local function Field(parent, width, numeric)
-    local well = CreateFrame("Frame", nil, parent)
-    well:SetSize(width, 26)
-    Style.Fill(well, "well")
-    Style.Border(well, "lineStrong")
-    local e = CreateFrame("EditBox", nil, well)
-    e:SetPoint("TOPLEFT", 8, 0)
-    e:SetPoint("BOTTOMRIGHT", -8, 0)
-    e:SetAutoFocus(false)
-    e:SetFont(Style.font, 12, "")
-    e:SetTextColor(Style.Color("text"))
-    if numeric then e:SetNumeric(true); e:SetMaxLetters(3); e:SetJustifyH("CENTER") end
-    e:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    well:EnableMouse(true)
-    well:SetScript("OnMouseDown", function() e:SetFocus() end)
-    e.well = well
-    return e
-end
+local function Field(parent, width, numeric) return Style.Field(parent, width, numeric) end
 
 local function Build()
     frame = CreateFrame("Frame", "jsalUIShoppingList", UIParent)
