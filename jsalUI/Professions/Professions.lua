@@ -65,6 +65,8 @@ function Professions.Remember(line, skill, cap, spells)
     local known = {}
     for _, spell in ipairs(spells) do known[spell] = true end
     ns.char.professions[line] = { skill = skill, cap = cap, known = known, seen = Compat.ServerTime() }
+    -- Guild crafters tells the guild when what you can make has changed.
+    if ns.Crafters and ns.Crafters.Changed then ns.Crafters.Changed() end
 end
 
 function Professions.Remembered(line)

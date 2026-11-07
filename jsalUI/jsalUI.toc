@@ -66,6 +66,7 @@ Training\Panel.lua
 # favourite recipes at trainers, and the shopping list.
 Professions\ProfessionData.lua
 Professions\Professions.lua
+Professions\Crafters.lua
 Professions\Panel.lua
 Professions\Page.lua
 Professions\Window.lua
