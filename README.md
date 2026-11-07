@@ -17,6 +17,7 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. In the game's profession window: where each recipe turns yellow, green and grey, reagents in bags and bank, a timer while you craft several, recipes you haven't learned (star the ones you want, and a profession trainer offers them), and a heads-up when you can train the next rank. |
 | Shopping list | What you mean to craft and other items you want, and what's left to buy once your bags and bank are counted, with vendor prices and auction prices from your own searches. A vendor who sells something on it offers to buy it for you. |
 | Journal | Your character's story from the day you install it, in four tabs. Summary: your character, favourite move and totals (foes, quests, deaths, gold and where it came from, distance, damage, healing, duels, jumps), with kills, quests, deaths and gold from the game's own statistics so they cover the whole life of the character. Story: levels, first kills of rares, dungeon bosses, blue and epic loot, deaths and their cause, profession ranks. By level: time, XP, XP per hour, gold in and out, kills, quests and deaths for each level. Characters: every character on the account with level, zone, gold, professions and rested XP. A screenshot at each level-up, and a recap of your session as you log out. |
+| Gear plan | Your gear slots around your character, like the game's character pane. Each slot shows what you wear and the best upgrade near your level for your spec, from every piece of gear Wowhead Forever lists: dungeon and world drops, quest rewards, vendors and crafting. Click a slot for its options, where each comes from and the stats it adds; star the ones you want. "Better" is each stat times what a point of it is worth for your spec, from WoWSims. |
 | Dungeons | Every dungeon and raid on Forever, from the game's own files, in a picker grouped by level (10-20 up to 50-60, and raids), the ones right for your level in green, with where each entrance is and which side that is (Horde side, Alliance side, or neither when contested). The chosen one shows its bosses in order, ticked once you've killed them (with the game's own Boss Kills statistics, so it covers kills from before jsal.ui), and under each boss its loot: Wowhead Forever's list with drop chances, plus anything you've seen it drop (from the bosses you loot and the rolls after a boss dies, kept for every character on the account), and what guildmates with jsal.ui have seen it drop, with how often in the guild's kills ("guild 3 of 8"; a switch in Settings turns sharing off). A Quests tab lists the dungeon's quests for your faction, ticked once done. |
 | Guild crafters | On the Professions page, search for what you need and see which guildmates can make it, online first, with a button to whisper them. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
 | Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to John in game; your version, class, level, zone and any jsal.ui error are added for you. Outside John's guild, copy it to email instead. |
@@ -53,6 +54,7 @@ New parts that need longer testing come out as betas first (versions like `0.3.1
 | `/jsal journal` | Your Journal |
 | `/jsal recap` | This session's recap |
 | `/jsal dungeons` | The dungeon guide |
+| `/jsal gear` | The gear plan |
 | `/jsal bug` | Report a problem |
 | `/jsal layer` | Which layer you're in |
 | `/jsal waypoint` | Why the waypoint label is or isn't showing; `/jsal waypoint clear` removes the map's pin |
@@ -126,6 +128,17 @@ few seconds, since Wowhead turns away scripted downloads. A drop is kept when it
 and has dropped in at least 2% of 10 or more kills, or when the zone's own Drops tab names the boss.
 The same build writes `DungeonLoot.lua` from it. Wowhead's numbers grow as more people play, so the
 higher dungeons' lists fill in over time; read them again now and then.
+
+## Gear plan
+
+`data\gear\wowhead-items.json` holds every uncommon and better armor piece, jewel, cloak and weapon on
+Wowhead Forever's gear lists, read slot by slot in a browser (Wowhead turns away scripted downloads), with
+where each comes from. `data\gear\zones.json` names the zones (the game's AreaTable), and
+`data\gear\wowsims\` holds each spec's simulation file from [WoWSims](https://github.com/wowsims/classic)
+(MIT licence, `LICENSE` beside them), whose stat weights say what a point of each stat is worth.
+`python -I tools\build_gear.py` writes `jsalUI\Gear\GearData.lua`: the items as one line of text per slot,
+so they cost little memory until the gear plan opens, and the weights, with Stamina raised a little for
+leveling. Item names and stats come from the game while you play.
 
 ## Daily Word's words
 

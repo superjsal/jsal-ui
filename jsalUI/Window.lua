@@ -25,6 +25,7 @@ local PAGES = {
     { key = "install", label = "Install", icon = OWN .. "install" },
     { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
+    { key = "gear", label = "Gear plan", icon = OWN .. "gear" },
     { key = "professions", label = "Professions", icon = OWN .. "professions" },
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
