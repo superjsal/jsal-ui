@@ -245,23 +245,21 @@ function Style.Panel(name, width, height, title)
     bar:SetScript("OnDragStop", function() f:StopMovingOrSizing() end)
     f.bar = bar
 
-    -- jsal.io's mark and the wordmark, as on the dashboard, then the
-    -- window's name after a thin divider.
+    -- Windows outside the dashboard: jsal.io's j mark, then the window's
+    -- name after a thin divider. Only the dashboard spells out jsal.ui.
     local mark = bar:CreateTexture(nil, "ARTWORK")
     mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
     mark:SetSize(18, 18)
     mark:SetPoint("LEFT", 12, 0)
-    local word = Style.Wordmark(bar, 15)
-    word:SetPoint("LEFT", mark, "RIGHT", 8, 0)
     local divider = bar:CreateTexture(nil, "ARTWORK")
     divider:SetColorTexture(Style.Color("lineStrong"))
     divider:SetSize(Compat.OnePixel(bar), 16)
-    divider:SetPoint("LEFT", word, "RIGHT", 12, 0)
+    divider:SetPoint("LEFT", mark, "RIGHT", 10, 0)
     Compat.Crisp(divider)
     f.title = Style.Text(bar, 13, "text", nil, true)
     f.title:SetPoint("TOP", bar, "TOP", 0, 0)
     f.title:SetPoint("BOTTOM", bar, "BOTTOM", 0, 0)
-    f.title:SetPoint("LEFT", divider, "RIGHT", 12, 0)
+    f.title:SetPoint("LEFT", divider, "RIGHT", 10, 0)
     f.title:SetPoint("RIGHT", bar, "RIGHT", -40, 0)
     f.title:SetJustifyV("MIDDLE")
     f.title:SetText(title)
