@@ -4,10 +4,10 @@ local _, ns = ...
 
 -- By encounter ID: { item ID, drop chance in percent (none when Wowhead hasn't counted it) }.
 ns.DungeonLoot = {
-    [3493] = { { 270227 }, { 271096 }, { 271097 } }, -- Faldrim Anvilmar
-    [3495] = { { 270230 }, { 270231 }, { 271095 } }, -- Infurnus
-    [3494] = { { 270228 }, { 270229 }, { 271098 } }, -- Plunder
-    [3496] = { { 270256 }, { 270260 }, { 270261 } }, -- Durgen Dirgehammer
+    [3493] = { { 271097, 35 }, { 270227, 33 }, { 271096, 32 } }, -- Faldrim Anvilmar
+    [3495] = { { 271095, 36 }, { 270230, 34 }, { 270231, 30 } }, -- Infurnus
+    [3494] = { { 271098, 34 }, { 270228, 33 }, { 270229, 33 } }, -- Plunder
+    [3496] = { { 270256, 28 }, { 270260, 26 }, { 270261, 24 } }, -- Durgen Dirgehammer
     [2732] = { { 272996, 10 }, { 272998, 10 }, { 272999, 9 } }, -- Oggleflint
     [2733] = { { 14149, 32 }, { 14148, 30 }, { 14145, 18 } }, -- Taragaman the Hungerer
     [2734] = { { 14150, 36 }, { 14147, 33 }, { 14151, 18 } }, -- Jergosh the Invoker
