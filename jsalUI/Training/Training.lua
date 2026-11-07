@@ -371,6 +371,9 @@ function Training.Pet()
                 row.spell, row.points = r, entry and entry.points
                 if entry or IsPlayerSpell(r.beast) then
                     row.state = "level"
+                elseif (source.petTrainer or {})[r.beast] then
+                    -- Sold by a pet trainer (Great Stamina, Growl...), not tamed.
+                    row.state = "trainer"
                 else
                     row.state = beast and "tame" or "unchecked"
                 end
@@ -380,7 +383,7 @@ function Training.Pet()
         rows[#rows + 1] = row
     end
     -- Ready first, then by the level each needs, the known ones last.
-    local rank = { ready = 1, level = 2, tame = 2, unchecked = 2, known = 3 }
+    local rank = { ready = 1, level = 2, trainer = 2, tame = 2, unchecked = 2, known = 3 }
     table.sort(rows, function(x, y)
         if rank[x.state] ~= rank[y.state] then return rank[x.state] < rank[y.state] end
         if x.spell.level ~= y.spell.level then return x.spell.level < y.spell.level end

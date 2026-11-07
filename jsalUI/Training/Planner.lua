@@ -568,6 +568,10 @@ Window.Page("training", function(page)
                     elseif row.state == "level" then
                         state = "Pet level " .. row.spell.level
                         r.hint = "In your Beast Training. Your pet needs level " .. row.spell.level .. "."
+                    elseif row.state == "trainer" then
+                        where = (rank and (rank .. " · ") or "") .. "from a pet trainer"
+                        state = "Pet level " .. row.spell.level
+                        r.hint = "Buy it from a pet trainer, then teach it from your Beast Training."
                     elseif row.state == "tame" then
                         where = (rank and (rank .. " · ") or "") .. "tame one that has it"
                         state = "Pet level " .. row.spell.level
