@@ -31,9 +31,14 @@ Made for casual players: every part is small, has one switch, and is on by defau
 
 ## Install
 
-1. Install [EllesmereUI](https://www.curseforge.com/wow/addons/ellesmereui), which is free.
-2. Copy the `jsalUI` folder into `World of Warcraft\_forever_\Interface\AddOns`.
-3. Log in, or type `/reload`, then type `/jsal`.
+1. Copy the `jsalUI` folder into `World of Warcraft\_forever_\Interface\AddOns`, or install it from CurseForge or Wago.
+2. Log in, or restart the game if it was running, then type `/jsal`.
+
+jsal.ui works on its own. [EllesmereUI](https://www.curseforge.com/wow/addons/ellesmereui), which is free, is only needed for the jsal.ui look.
+
+## Betas
+
+New parts that need longer testing come out as betas first (versions like `0.3.14-beta.1`), on the `beta` branch. To get them, set jsal.ui's release type to **Beta** in the CurseForge app or WowUp; everyone else only ever gets stable versions. A beta shows its version on the dashboard and in `/jsal version`, and Report a problem sends it with your report.
 
 ## Commands
 
