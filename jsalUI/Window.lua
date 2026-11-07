@@ -331,6 +331,16 @@ function Window.IsOpen(key)
     return frame ~= nil and frame:IsShown() and current == key
 end
 
+-- Closes a page: its own window, or the dashboard it's showing in.
+function Window.Close(key)
+    local page = byKey[key]
+    if page and page.own then
+        if page.own.frame then page.own.frame:Hide() end
+    elseif frame and frame:IsShown() and current == key then
+        frame:Hide()
+    end
+end
+
 -- Repaints the pages on screen after something they show has changed.
 function Window.Refresh()
     if frame and frame:IsShown() and current then
