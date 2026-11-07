@@ -315,6 +315,26 @@ local function Dead()
     Journal.Note("death", killer and ("Died to %s"):format(killer) or "Died")
 end
 
+-- Guild changes. The guild's name loads a little after login, so while
+-- you're in a guild whose name isn't in yet nothing changes; the first
+-- guild the Journal learns is noted quietly, not as a join.
+function Journal.GuildChanged()
+    local j = Book()
+    local guild = Compat.GuildName()
+    if IsInGuild() and not guild then return end
+    if not j.guildKnown then
+        j.guild, j.guildKnown = guild, true
+        return
+    end
+    if guild == j.guild then return end
+    if guild then
+        Journal.Note("guild", ("Joined %s"):format(guild))
+    else
+        Journal.Note("guild", ("Left %s"):format(j.guild))
+    end
+    j.guild = guild
+end
+
 local function LevelUp(level)
     local photo = ns.OptionOn("journal", "photo")
     Journal.Note("level", ("Reached level %d"):format(level), { photo = photo or nil })
@@ -355,6 +375,19 @@ function Journal:OnEnable()
     playerGUID = UnitGUID("player")
     -- A one-off reading of the Statistics window, no longer needed.
     ns.db.statsRead = nil
+    -- A "Joined" noted in the first minutes of a journal came from the
+    -- guild's name loading late, not from joining: it's taken out once.
+    local j = Book()
+    if not j.guildKnown then
+        for i = #j.events, 1, -1 do
+            local e = j.events[i]
+            if e.k == "guild" and (e.t or 0) - (j.since or 0) < 600 and (e.s or ""):find("^Joined ") then
+                table.remove(j.events, i)
+                -- The newest such line names the guild you're in.
+                if not j.guildKnown then j.guild, j.guildKnown = e.s:sub(8), true end
+            end
+        end
+    end
     -- Hidden effects counted before only known spells were: their names are
     -- in capitals with no spaces, like LOGINEFFECT.
     for name in pairs(Book().spells) do
@@ -424,12 +457,7 @@ function Journal:OnEnable()
         elseif event == "SKILL_LINES_CHANGED" then
             CheckRanks()
         elseif event == "PLAYER_GUILD_UPDATE" then
-            local guild = Compat.GuildName()
-            local j = Book()
-            if guild ~= j.guild then
-                if guild then Journal.Note("guild", ("Joined %s"):format(guild)) elseif j.guild then Journal.Note("guild", ("Left %s"):format(j.guild)) end
-                j.guild = guild
-            end
+            Journal.GuildChanged()
         elseif windows[event] then
             window = windows[event]
         elseif closes[event] then
@@ -443,7 +471,7 @@ function Journal:OnEnable()
     if hooksecurefunc and JumpOrAscendStart then
         hooksecurefunc("JumpOrAscendStart", function() if Journal.running then Add("jumps") end end)
     end
-    Book().guild = Book().guild or Compat.GuildName()
+    Journal.GuildChanged()
     Compat.After(5, function()
         xpcall(Journal.SaveCharacter, ns.Report)
         xpcall(CheckRanks, ns.Report)
