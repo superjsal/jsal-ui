@@ -265,6 +265,50 @@ function Gear.Lookup(id)
     end
 end
 
+-- Where else an item comes from, from jsal.ui's own data: the profession
+-- that makes it, and the dungeon boss that drops it. Built once, when first
+-- asked.
+local madeBy, droppedBy
+local function OtherSources()
+    if madeBy then return end
+    madeBy, droppedBy = {}, {}
+    for _, source in pairs(ns.ProfessionData or {}) do
+        if type(source) == "table" and type(source.recipes) == "table" then
+            for _, r in ipairs(source.recipes) do
+                if r[6] and not madeBy[r[6]] then madeBy[r[6]] = source.name end
+            end
+        end
+    end
+    for _, d in ipairs(ns.DungeonData or {}) do
+        for _, b in ipairs(d.bosses or {}) do
+            for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
+                if not droppedBy[drop[1]] then droppedBy[drop[1]] = (b[3] or b[2]) .. " · " .. d.name end
+            end
+        end
+    end
+end
+
+-- How an item's source reads: "Leatherworking · Crafted, or Gelihast ·
+-- Blackfathom Deeps"; a drop says only where; "" when nothing is known.
+function Gear.Source(o)
+    OtherSources()
+    local parts = {}
+    local crafted = o.kind == "Crafted" or madeBy[o.id] ~= nil
+    if crafted then parts[#parts + 1] = (madeBy[o.id] and (madeBy[o.id] .. " · ") or "") .. "Crafted" end
+    local boss = droppedBy[o.id]
+    if boss then
+        parts[#parts + 1] = boss
+    elseif not crafted then
+        local kind, place = o.kind or "", o.place or ""
+        if kind == "Drop" and place ~= "" then kind = "" end
+        local bits = {}
+        if kind ~= "" then bits[#bits + 1] = kind end
+        if place ~= "" then bits[#bits + 1] = place end
+        if #bits > 0 then parts[#parts + 1] = table.concat(bits, " · ") end
+    end
+    return table.concat(parts, ", or ")
+end
+
 function Gear.Candidates(slot, level, classFile, classID, side)
     local data = ns.GearData
     local out = {}
@@ -347,13 +391,19 @@ function Gear.Plan(slot, spec)
             end
         end
     end
-    -- Items worth less than a quarter of the best one aren't worth listing
-    -- (a caster's piece on an empty hunter slot), unless starred.
-    local best = 0
-    for _, o in ipairs(options) do best = math.max(best, o.score - worn.score) end
+    -- Items worth less than a quarter of the best one aren't worth listing,
+    -- and nor, once anything adds what your spec wants most, are items that
+    -- only win on Stamina (a caster's hood for a hunter); starred ones stay.
+    local staWeight = weights and weights.stats.ITEM_MOD_STAMINA_SHORT or 0
+    local function Main(o) return o.score - (o.stats.ITEM_MOD_STAMINA_SHORT or 0) * staWeight > 0.01 end
+    local best, anyMain = 0, false
+    for _, o in ipairs(options) do
+        best = math.max(best, o.score - worn.score)
+        anyMain = anyMain or Main(o)
+    end
     local kept = {}
     for _, o in ipairs(options) do
-        if o.starred or (o.score - worn.score) >= best * 0.25 then kept[#kept + 1] = o end
+        if o.starred or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
     end
     options = kept
     table.sort(options, function(a, b)
