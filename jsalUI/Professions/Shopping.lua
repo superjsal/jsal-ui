@@ -482,8 +482,10 @@ local function HookDetails()
     count:SetText("1")
     detailButton = Style.Button(form, "Add to shopping list", "plain", 150)
     detailButton:SetHeight(24)
-    detailButton:SetPoint("TOPRIGHT", form, "TOPRIGHT", -10, -10)
-    count.well:SetPoint("RIGHT", detailButton, "LEFT", -6, 0)
+    -- Along the form's bottom edge, across from Track Recipe: the top right
+    -- holds the recipe's name and the game's favourite star.
+    count.well:SetPoint("BOTTOMLEFT", form, "BOTTOMLEFT", 12, 8)
+    detailButton:SetPoint("LEFT", count.well, "RIGHT", 6, 0)
     detailButton:SetScript("OnClick", function()
         if detailRecipe then Shopping.AddCraft(detailRecipe, count:GetText()) end
     end)
