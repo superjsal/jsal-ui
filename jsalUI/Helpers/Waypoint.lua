@@ -97,7 +97,9 @@ local function FollowGuide()
     end
     if not Ours() then return end
     local spot = { map = map, x = x, y = y }
-    if ours and ours.source == "guide" and Same(ours, spot) then return end
+    -- Already there, unless the game took the pin away itself (a loading
+    -- screen can): then it's put back.
+    if ours and ours.source == "guide" and Same(ours, spot) and Same(Current(), ours) then return end
     if Same(cleared, spot) then return end
     Waypoint.Set(map, x, y, "Guide destination", "guide")
 end
@@ -199,6 +201,40 @@ function Waypoint:OnEnable()
         end
     end))
 end
+
+---------------------------------------------------------------------------
+-- /jsal waypoint: why the label is or isn't showing, for a bug report.
+---------------------------------------------------------------------------
+local function Spot(s)
+    return s and ("%s %.1f, %.1f"):format(tostring(s.map), s.x * 100, s.y * 100) or "none"
+end
+
+function Waypoint.Status()
+    local lines = {}
+    local function Add(text) lines[#lines + 1] = text end
+    Add(("Waypoint label: %s; follow the guide: %s"):format(Waypoint.running and "on" or "off",
+        ns.OptionOn("waypoint", "guide") and "on" or "off"))
+    local map, x, y = Waypoint.GuideTarget()
+    local guide = map and { map = map, x = x, y = y }
+    Add("RestedXP's next spot: " .. (RXP and Spot(guide) or "RestedXP isn't running"))
+    if guide and C_Map and C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(map) then
+        Add("That map takes no pins, so there's nothing to point at.")
+    end
+    if guide and Same(cleared, guide) then Add("You cleared or reached that spot; the next step brings a new one.") end
+    local now = Current()
+    Add("The map's pin: " .. Spot(now) .. (now and (Same(now, ours) and " (jsal.ui's)" or " (set by you or another addon, so it's left alone)") or ""))
+    local tracking = C_SuperTrack and C_SuperTrack.IsSuperTrackingUserWaypoint and C_SuperTrack.IsSuperTrackingUserWaypoint()
+    Add("The game is tracking it: " .. (tracking and "yes" or "no"))
+    local frame = C_Navigation and C_Navigation.GetFrame and C_Navigation.GetFrame()
+    local yards = C_Navigation and C_Navigation.GetDistance and C_Navigation.GetDistance()
+    Add(("The game's marker: %s%s"):format(frame and (frame:IsVisible() and "showing" or "hidden") or "none",
+        yards and ("; %d yd away"):format(math.floor(yards)) or ""))
+    return lines
+end
+
+ns.Command("waypoint", function()
+    for _, line in ipairs(Waypoint.Status()) do ns.Print(line) end
+end)
 
 function Waypoint:OnDisable()
     if self.driver then self.driver:SetScript("OnUpdate", nil) end
