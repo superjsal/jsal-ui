@@ -4,6 +4,26 @@ local _, ns = ...
 
 -- By encounter ID: { item ID, drop chance in percent (none when Wowhead hasn't counted it) }.
 ns.DungeonLoot = {
+    [3493] = { { 270227 }, { 271096 }, { 271097 } }, -- Faldrim Anvilmar
+    [3494] = { { 270228 }, { 270229 }, { 271098 } }, -- Plunder
+    [3496] = { { 270256 }, { 270260 }, { 270261 } }, -- Durgen Dirgehammer
+    [2732] = { { 272996 }, { 272998 }, { 272999 } }, -- Oggleflint
+    [2733] = { { 14145 }, { 14148 }, { 14149 } }, -- Taragaman the Hungerer
+    [2734] = { { 14147 }, { 14150 }, { 14151 } }, -- Jergosh the Invoker
+    [2735] = { { 273003 }, { 273005 }, { 273007 } }, -- Bazzalan
+    [3353] = { { 271201 }, { 271202 }, { 271203 } }, -- Witherfang
+    [3357] = { { 271207 }, { 271208 }, { 271216 } }, -- The Abandoned
+    [3411] = { { 271211 }, { 271212 }, { 271218 } }, -- Viktor the Vile
+    [3412] = { { 271209 }, { 271210 }, { 271217 } }, -- Bjork
+    [3354] = { { 271213 }, { 271214 }, { 271215 }, { 273085 } }, -- Rath'mael
+    [2741] = { { 872 }, { 5187 }, { 273289 } }, -- Rhahk'Zor
+    [2742] = { { 1937 }, { 2169 }, { 5194 }, { 5195 }, { 273092 }, { 273293 }, { 285292 } }, -- Sneed
+    [3676] = { { 5443 }, { 5444 } }, -- Miner Johnson
+    [2743] = { { 1156 }, { 5199 }, { 273086 }, { 273297 } }, -- Gilnid
+    [2744] = { { 5200 }, { 5201 }, { 10403 } }, -- Captain Greenskin
+    [2745] = { { 5192 }, { 5196 }, { 7230 }, { 284715 } }, -- Mr. Smite
+    [2746] = { { 5197 }, { 5198 }, { 273102 }, { 273298 } }, -- Cookie
+    [2747] = { { 5191 }, { 5193 }, { 5202 }, { 10399 }, { 251345 } }, -- Edwin VanCleef
     [585] = { { 5404, 40 }, { 14159, 22 }, { 10412, 13 }, { 6446, 5 }, { 273088, 4 }, { 273098, 1 } }, -- Lady Anacondra
     [586] = { { 6465, 51 }, { 6460, 20 }, { 10410, 20 } }, -- Lord Cobrahn
     [587] = { { 6447, 60 }, { 13245, 19 }, { 273084, 2 } }, -- Kresh
@@ -43,6 +63,9 @@ ns.DungeonLoot = {
     [2770] = { { 9448, 40 }, { 9447, 32 }, { 9446, 17 } }, -- Electrocutioner 6000
     [2771] = { { 9450, 64 }, { 9449, 33 }, { 274049, 1 }, { 274068, 1 } }, -- Crowd Pummeler 9-60
     [2772] = { { 9461, 33 }, { 9458, 32 }, { 9459, 18 }, { 9492, 10 }, { 4411, 1 }, { 4413, 1 }, { 6672, 1 }, { 7192, 1 } }, -- Mekgineer Thermaplugg
+    [3480] = { { 273022 }, { 273023 }, { 273024 } }, -- Saltspine
+    [3481] = { { 273025 }, { 273026 }, { 273027 }, { 273106 } }, -- Shadetooth
+    [3482] = { { 273028 }, { 273029 }, { 273030 }, { 273097 } }, -- Relic Guardian
     [444] = { { 7683, 51 }, { 7682, 8 }, { 274290, 1 } }, -- Interrogator Vishas
     [2779] = { { 7685, 50 }, { 7684, 48 }, { 274291, 1 } }, -- Bloodmage Thalnos
     [446] = { { 7756, 56 }, { 3456, 25 }, { 7710, 14 }, { 273109, 1 }, { 274292, 1 } }, -- Houndmaster Loksey
@@ -56,10 +79,114 @@ ns.DungeonLoot = {
     [2783] = { { 10767, 40 }, { 10768, 38 }, { 10758, 20 } }, -- Ragglesnout
     [2784] = { { 10772, 50 }, { 10774, 48 } }, -- Glutton
     [2785] = { { 10762, 39 }, { 10763, 37 }, { 10764, 29 }, { 10765, 27 }, { 10761, 19 } }, -- Amnennar the Coldbringer
+    [547] = { { 9387 }, { 9388 }, { 9389 }, { 9390 } }, -- Revelosh
+    [548] = { { 9394 }, { 9398 }, { 9399 }, { 9400 }, { 9401 }, { 9403 }, { 9404 } }, -- The Lost Dwarves
+    [549] = { { 9407 }, { 9408 }, { 9409 } }, -- Ironaya
+    [551] = { { 9410 }, { 9411 } }, -- Ancient Stone Keeper
+    [552] = { { 9412 }, { 9419 }, { 11310 }, { 11311 } }, -- Galgann Firehammer
+    [553] = { { 9414 }, { 9415 }, { 9416 } }, -- Grimlok
+    [554] = { { 9413 }, { 9418 }, { 11118 } }, -- Archaedas
+    [429] = { { 17713 }, { 17766 } }, -- Princess Theradras
+    [597] = { { 18082 } }, -- Witch Doctor Zum'rah
+    [599] = { { 9470 } }, -- Shadowpriest Sezz'ziz
+    [600] = { { 9477 } }, -- Chief Ukorz Sandscalp
+    [228] = { { 11813 } }, -- Lord Roccor
+    [230] = { { 11610 } }, -- Ring of Law
+    [231] = { { 11207 } }, -- Pyromancer Loregrain
+    [240] = { { 11612 } }, -- Ribbly Screwspigot
+    [241] = { { 18653 } }, -- Plugger Spazzring
+    [267] = { { 12336 }, { 16670 } }, -- Highlord Omokk
+    [268] = { { 16712 } }, -- Shadow Hunter Vosh'gajin
+    [269] = { { 12335 }, { 16676 } }, -- War Master Voone
+    [270] = { { 16715 } }, -- Mother Smolderweb
+    [271] = { { 18784 } }, -- Urok Doomhowl
+    [272] = { { 12835 }, { 13247 } }, -- Quartermaster Zigris
+    [273] = { { 16718 } }, -- Gizrul the Slavener
+    [275] = { { 12337 }, { 16679 } }, -- Overlord Wyrmthalak
+    [3062] = { { 16672 }, { 23320 } }, -- Pyroguard Emberseer
+    [3063] = { { 13522 }, { 16669 }, { 16733 } }, -- Warchief Rend Blackhand
+    [3068] = { { 16729 }, { 19227 }, { 24101 } }, -- The Beast
+    [3069] = { { 13519 }, { 15730 }, { 16666 }, { 16674 }, { 16688 }, { 16690 }, { 16700 }, { 16706 }, { 16721 }, { 16726 }, { 16730 } }, -- General Drakkisath
+    [2792] = { { 18267 } }, -- Pusillin
+    [368] = { { 18780 }, { 19258 } }, -- King Gordok
+    [348] = { { 22309 } }, -- Magister Kalendris
+    [473] = { { 16682 } }, -- Hearthsinger Forresten
+    [475] = { { 12839 }, { 16708 } }, -- Cannon Master Willey
+    [477] = { { 16692 }, { 22897 } }, -- Archivist Galford
+    [479] = { { 16704 } }, -- Baroness Anastari
+    [480] = { { 16675 } }, -- Nerub'enkan
+    [481] = { { 12833 }, { 13509 }, { 16691 } }, -- Maleki the Pallid
+    [482] = { { 12382 } }, -- Magistrate Barthilas
+    [483] = { { 16737 } }, -- Ramstein the Gorger
+    [484] = { { 16668 }, { 16678 }, { 16687 }, { 16694 }, { 16699 }, { 16709 }, { 16719 }, { 16728 }, { 16732 } }, -- Baron Rivendare
+    [2795] = { { 18783 } }, -- Black Guard Swordsmith
+    [2796] = { { 18781 } }, -- Crimson Hammersmith
+    [2805] = { { 16734 } }, -- Kirtonos
+    [2804] = { { 16701 } }, -- Jandice Barov
+    [2811] = { { 16711 }, { 18782 } }, -- Rattlegore
+    [2810] = { { 13521 }, { 16689 } }, -- Ras Frostwhisperer
+    [2801] = { { 13501 }, { 14514 }, { 16667 }, { 16677 }, { 16686 }, { 16693 }, { 16698 }, { 16707 }, { 16720 }, { 16727 }, { 16731 }, { 19276 } }, -- Darkmaster Gandling
+    [610] = { { 19336 }, { 19337 } }, -- Razorgore the Untamed
+    [611] = { { 19339 }, { 19340 }, { 19371 } }, -- Vaelastrasz the Corrupt
+    [612] = { { 19341 }, { 19342 }, { 20383 } }, -- Broodlord Lashlayer
+    [613] = { { 19343 }, { 19344 } }, -- Firemaw
+    [614] = { { 19345 }, { 19403 }, { 19406 } }, -- Ebonroc
+    [615] = { { 19431 }, { 19432 } }, -- Flamegor
+    [616] = { { 19392 } }, -- Chromaggus
+    [617] = { { 19002 }, { 19003 }, { 19376 }, { 19377 }, { 19379 }, { 19382 }, { 21138 } }, -- Nefarian
+    [664] = { { 17073 } }, -- Magmadar
+    [666] = { { 18564 } }, -- Garr
+    [668] = { { 18563 } }, -- Baron Geddon
+    [670] = { { 17203 } }, -- Golemagg the Incinerator
+    [672] = { { 17204 }, { 18814 }, { 18815 }, { 19138 }, { 21110 } }, -- Ragnaros
+    [787] = { { 19872 } }, -- Bloodlord Mandokir
+    [788] = { { 19939 }, { 19940 }, { 19941 }, { 19942 } }, -- Edge of Madness
+    [789] = { { 19902 } }, -- High Priest Thekal
+    [790] = { { 22739 } }, -- Gahz'ranka
+    [791] = { { 19914 } }, -- High Priestess Arlokk
+    [792] = { { 19884 } }, -- Jin'do the Hexxer
+    [793] = { { 19802 } }, -- Hakkar
 }
 
 -- By dungeon: { quest ID, name, level, the level it's offered from, side (1 Alliance, 2 Horde, 3 both) }.
 ns.DungeonQuests = {
+    [3273] = { -- Hall of Thanes
+        { 96395, "An Ancient Grudge", 15, 10, 3 },
+        { 96403, "Important Heirlooms", 15, 10, 1 },
+        { 96394, "The Restless Dead", 15, 10, 1 },
+        { 96393, "Old Ironforge Incursion", 16, 9, 1 },
+    },
+    [3] = { -- Ragefire Chasm
+        { 5723, "Testing an Enemy's Strength", 15, 9, 2 },
+        { 5728, "Hidden Enemies", 16, 9, 2 },
+        { 5724, "Returning the Lost Satchel", 16, 9, 2 },
+        { 5722, "Searching for the Lost Satchel", 16, 9, 2 },
+        { 5761, "Slaying the Beast", 16, 9, 2 },
+        { 5725, "The Power to Destroy...", 16, 9, 2 },
+    },
+    [3272] = { -- Ruins of Lordaeron
+        { 95250, "Abominable Creatures", 21, 15, 1 },
+        { 97288, "Unending Torment", 21, 15, 2 },
+        { 92401, "A Frightened Request", 22, 15, 2 },
+        { 95195, "Bloodied Insignia", 22, 15, 1 },
+        { 95189, "Crest of Lordaeron", 22, 15, 1 },
+        { 95204, "Crest of Lordaeron", 22, 15, 2 },
+        { 92421, "Light's Justice", 22, 15, 2 },
+        { 92415, "Remember That I Love You", 22, 15, 1 },
+        { 95216, "The New Plague", 22, 15, 2 },
+        { 92422, "The Wrath of Rath'mael", 22, 15, 2 },
+        { 92459, "Friend of the Kirin Tor", 33, 24, 1 },
+        { 97287, "Shrewd Negotiations", 33, 24, 2 },
+    },
+    [5] = { -- The Deadmines
+        { 214, "Red Silk Bandanas", 17, 14, 1 },
+        { 168, "Collecting Memories", 18, 14, 1 },
+        { 92753, "Destruction in Deadmines", 18, 9, 1 },
+        { 167, "Oh Brother...", 20, 15, 1 },
+        { 2040, "Underground Assault", 20, 15, 1 },
+        { 166, "The Defias Brotherhood", 22, 14, 1 },
+        { 373, "The Unsent Letter", 22, 16, 1 },
+    },
     [1] = { -- Wailing Caverns
         { 1489, "Hamuul Runetotem", 16, 10, 2 },
         { 1490, "Nara Wildmane", 16, 10, 2 },
@@ -132,6 +259,32 @@ ns.DungeonQuests = {
         { 2841, "Rig Wars", 35, 25, 2 },
         { 2929, "The Grand Betrayal", 35, 25, 1 },
     },
+    [3274] = { -- Excavation Site: Wetlands
+        { 98815, "Highland Hides", 28, 24, 1 },
+        { 95697, "Changing Tastes", 31, 24, 2 },
+        { 95663, "Dragonmaw Rumors", 31, 24, 2 },
+        { 98823, "Earthen Echo", 31, 24, 2 },
+        { 95664, "Elder Knowledge", 31, 24, 2 },
+        { 95795, "Fallen in the Fen", 31, 24, 1 },
+        { 95809, "Heartwoven", 31, 24, 1 },
+        { 95646, "Horrors in the Highland", 31, 24, 1 },
+        { 95810, "Lost Relic Carry", 31, 24, 1 },
+        { 95647, "Lost in the Thicket Things", 31, 24, 1 },
+        { 95682, "Open the Maw", 31, 24, 2 },
+        { 98824, "Prehistoric Prism", 31, 24, 1 },
+        { 95737, "Seeking Caitlin", 31, 24, 1 },
+        { 95772, "Songblade Search", 31, 24, 1 },
+    },
+    [3271] = { -- City of Dalaran
+        { 92456, "A Green Sample", 33, 24, 1 },
+        { 92458, "Heart of Disruption", 33, 24, 1 },
+        { 96984, "Heart of Disruption", 33, 24, 2 },
+        { 96987, "Opportunistic Education", 33, 24, 2 },
+        { 92489, "Power Overwhelming", 33, 24, 1 },
+        { 96988, "Source of Power", 33, 24, 2 },
+        { 92457, "Starving Arcane", 33, 24, 1 },
+        { 96986, "The Grave Knight", 33, 24, 2 },
+    },
     [17] = { -- Scarlet Monastery
         { 1113, "Hearts of Zeal", 33, 30, 2 },
         { 1051, "Vorrel's Revenge", 33, 25, 2 },
@@ -151,5 +304,475 @@ ns.DungeonQuests = {
         { 97196, "The Coldbringer's Eye", 41, 34, 2 },
         { 3341, "Bring the End", 42, 37, 2 },
         { 3636, "Bring the Light", 42, 39, 1 },
+    },
+    [21] = { -- Uldaman
+        { 721, "A Sign of Hope", 35, 35, 1 },
+        { 2418, "Power Stones", 36, 30, 3 },
+        { 704, "Agmond's Fate", 38, 30, 1 },
+        { 722, "Amulet of Secrets", 40, 35, 1 },
+        { 709, "Solution to Doom", 40, 30, 3 },
+        { 2240, "The Hidden Chamber", 40, 35, 1 },
+        { 2398, "The Lost Dwarves", 40, 35, 1 },
+        { 2199, "Lore for a Price", 41, 37, 1 },
+        { 2283, "Necklace Recovery", 41, 37, 2 },
+        { 2284, "Necklace Recovery, Take 2", 41, 37, 2 },
+        { 2198, "The Shattered Necklace", 41, 37, 1 },
+        { 2200, "Back to Uldaman", 42, 37, 1 },
+        { 3375, "Replacement Phial", 42, 37, 1 },
+        { 2318, "Translating the Journal", 42, 37, 2 },
+        { 17, "Uldaman Reagent Run", 42, 38, 1 },
+        { 2202, "Uldaman Reagent Run", 42, 36, 2 },
+        { 2201, "Find the Gems", 43, 37, 1 },
+        { 1360, "Reclaimed Treasures", 43, 33, 1 },
+        { 2342, "Reclaimed Treasures", 43, 33, 2 },
+        { 2340, "Deliver the Gems", 44, 37, 2 },
+        { 2339, "Find the Gems and Power Source", 44, 37, 2 },
+        { 2341, "Necklace Recovery, Take 3", 44, 37, 2 },
+        { 2204, "Restoring the Necklace", 44, 37, 1 },
+        { 1139, "The Lost Tablets of Will", 45, 35, 1 },
+        { 2278, "The Platinum Discs", 47, 40, 3 },
+        { 2279, "The Platinum Discs", 47, 40, 1 },
+        { 2280, "The Platinum Discs", 47, 40, 2 },
+    },
+    [25] = { -- Maraudon
+        { 7068, "Shadowshard Fragments", 42, 39, 2 },
+        { 7070, "Shadowshard Fragments", 42, 39, 1 },
+        { 7028, "Twisted Evils", 47, 41, 3 },
+        { 7029, "Vyletongue Corruption", 47, 41, 2 },
+        { 7041, "Vyletongue Corruption", 47, 41, 1 },
+        { 7067, "The Pariah's Instructions", 48, 39, 3 },
+        { 7044, "Legends of Maraudon", 49, 41, 3 },
+        { 93404, "Rot and Regret", 49, 35, 3 },
+        { 7046, "The Scepter of Celebras", 49, 41, 3 },
+        { 7064, "Corruption of Earth and Seed", 51, 45, 2 },
+        { 7065, "Corruption of Earth and Seed", 51, 45, 1 },
+        { 7066, "Seed of Life", 51, 39, 3 },
+    },
+    [23] = { -- Zul'Farrak
+        { 2865, "Scarab Shells", 45, 40, 3 },
+        { 2936, "The Spider God", 45, 40, 2 },
+        { 2864, "Tran'rek", 45, 40, 3 },
+        { 3042, "Troll Temper", 45, 40, 3 },
+        { 2861, "Tabetha's Task", 46, 40, 3 },
+        { 96770, "The Witch Doctor's Head", 46, 39, 1 },
+        { 2846, "Tiara of the Deep", 46, 40, 3 },
+        { 96775, "Zum'rah's Head", 46, 42, 2 },
+        { 2768, "Divino-matic Rod", 47, 40, 3 },
+        { 2991, "Nekrum's Medallion", 47, 40, 1 },
+        { 3527, "The Prophecy of Mosh'aru", 47, 40, 3 },
+        { 2770, "Gahz'rilla", 50, 40, 3 },
+    },
+    [27] = { -- Sunken Temple
+        { 1475, "Into The Temple of Atal'Hakkar", 50, 38, 1 },
+        { 1445, "The Temple of Atal'Hakkar", 50, 38, 2 },
+        { 3446, "Into the Depths", 51, 46, 3 },
+        { 3447, "Secret of the Circle", 51, 46, 3 },
+        { 3380, "The Sunken Temple", 51, 46, 2 },
+        { 1446, "Jammal'an the Prophet", 53, 38, 3 },
+        { 3528, "The God Hakkar", 53, 40, 3 },
+        { 3373, "The Essence of Eranikus", 55, 48, 3 },
+        { 8733, "Eranikus, Tyrant of the Dream", 60, 60, 3 },
+    },
+    [29] = { -- Blackrock Depths
+        { 4295, "Rocknot's Ale", 1, 1, 3 },
+        { 3981, "Commander Gor'shak", 52, 48, 2 },
+        { 3801, "Dark Iron Legacy", 52, 48, 3 },
+        { 4081, "KILL ON SIGHT: Dark Iron Dwarves", 52, 48, 2 },
+        { 4136, "Ribbly Screwspigot", 53, 48, 3 },
+        { 4324, "Yuka Screwspigot", 53, 48, 3 },
+        { 4242, "Abandoned Hope", 54, 48, 1 },
+        { 4082, "KILL ON SIGHT: High Ranking Dark Iron Officials", 54, 50, 2 },
+        { 4241, "Marshal Windsor", 54, 48, 1 },
+        { 4002, "The Eastern Kingdoms", 54, 48, 2 },
+        { 3911, "The Last Element", 54, 48, 3 },
+        { 7201, "The Last Element", 54, 48, 2 },
+        { 4201, "The Love Potion", 54, 50, 3 },
+        { 3982, "What Is Going On?", 54, 48, 2 },
+        { 97197, "Fragment of the Firelands", 55, 46, 2 },
+        { 4126, "Hurley Blackbreath", 55, 50, 1 },
+        { 4134, "Lost Thunderbrew Recipe", 55, 50, 2 },
+        { 4128, "Ragnar Thunderbrew", 55, 50, 1 },
+        { 4123, "The Heart of the Mountain", 55, 50, 3 },
+        { 4083, "The Spectral Chalice", 55, 40, 3 },
+        { 4133, "Vivian Lagrave", 55, 50, 2 },
+        { 3907, "Disharmony of Fire", 56, 48, 2 },
+        { 4263, "Incendius!", 56, 48, 1 },
+        { 4286, "The Good Stuff", 56, 50, 1 },
+        { 4264, "A Crumpled Up Note", 58, 50, 1 },
+        { 4282, "A Shred of Hope", 58, 50, 1 },
+        { 4024, "A Taste of Flame", 58, 52, 3 },
+        { 4122, "Grark Lorkrub", 58, 52, 2 },
+        { 4322, "Jail Break!", 58, 50, 1 },
+        { 4132, "Operation: Death to Angerforge", 58, 52, 2 },
+        { 4121, "Precarious Predicament", 58, 52, 2 },
+        { 4063, "The Rise of the Machines", 58, 52, 2 },
+        { 4341, "Kharan Mighthammer", 59, 50, 1 },
+        { 4342, "Kharan's Tale", 59, 50, 1 },
+        { 4361, "The Bearer of Bad News", 59, 50, 1 },
+        { 4362, "The Fate of the Kingdom", 59, 50, 1 },
+        { 4363, "The Princess's Surprise", 59, 50, 1 },
+        { 4003, "The Royal Rescue", 59, 48, 3 },
+        { 7604, "A Binding Contract", 60, 60, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 6646, "Favor Amongst the Brotherhood, Blood of the Mountain", 60, 60, 3 },
+        { 6645, "Favor Amongst the Brotherhood, Core Leather", 60, 60, 3 },
+        { 6642, "Favor Amongst the Brotherhood, Dark Iron Ore", 60, 60, 3 },
+        { 6643, "Favor Amongst the Brotherhood, Fiery Core", 60, 60, 3 },
+        { 6644, "Favor Amongst the Brotherhood, Lava Core", 60, 60, 3 },
+        { 9015, "The Challenge", 60, 58, 3 },
+        { 4004, "The Princess Saved?", 60, 48, 3 },
+    },
+    [31] = { -- Lower Blackrock Spire
+        { 4788, "The Final Tablets", 58, 40, 3 },
+        { 4982, "Bijou's Belongings", 59, 55, 2 },
+        { 5001, "Bijou's Belongings", 59, 55, 1 },
+        { 4983, "Bijou's Reconnaissance Report", 59, 55, 2 },
+        { 4862, "En-Ay-Es-Tee-Why", 59, 55, 3 },
+        { 4729, "Kibler's Exotic Pets", 59, 55, 3 },
+        { 5002, "Message to Maxwell", 59, 55, 1 },
+        { 4981, "Operative Bijou", 59, 55, 2 },
+        { 4701, "Put Her Down", 59, 55, 1 },
+        { 4724, "The Pack Mistress", 59, 55, 2 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 7761, "Blackhand's Command", 60, 55, 3 },
+        { 6602, "Blood of the Black Dragon Champion", 60, 55, 2 },
+        { 4765, "Delivery to Ridgewell", 60, 57, 1 },
+        { 4764, "Doomrigger's Clasp", 60, 57, 1 },
+        { 6502, "Drakefire Amulet", 60, 50, 1 },
+        { 4735, "Egg Collection", 60, 57, 3 },
+        { 4734, "Egg Freezing", 60, 57, 3 },
+        { 5047, "Finkle Einhorn, At Your Service!", 60, 57, 3 },
+        { 4974, "For The Horde!", 60, 55, 2 },
+        { 5089, "General Drakkisath's Command", 60, 55, 1 },
+        { 5102, "General Drakkisath's Demise", 60, 55, 1 },
+        { 5103, "Hot Fiery Death", 60, 55, 3 },
+        { 5081, "Maxwell's Mission", 60, 55, 1 },
+        { 4766, "Mayara Brightwing", 60, 57, 1 },
+        { 8995, "Mea Culpa, Lord Valthalak", 60, 58, 3 },
+        { 4866, "Mother's Milk", 60, 55, 3 },
+        { 6569, "Oculus Illusions", 60, 55, 2 },
+        { 8996, "Return to Bodley", 60, 58, 3 },
+        { 4742, "Seal of Ascension", 60, 57, 3 },
+        { 4768, "The Darkstone Tablet", 60, 57, 2 },
+        { 5127, "The Demon Forge", 60, 55, 3 },
+        { 8966, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 5160, "The Matron Protectorate", 60, 57, 3 },
+        { 8989, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 4907, "Tinkee Steamboil", 60, 57, 3 },
+        { 4867, "Urok Doomhowl", 60, 55, 3 },
+        { 4769, "Vivian Lagrave and the Darkstone Tablet", 60, 57, 2 },
+        { 4903, "Warlord's Command", 60, 55, 2 },
+    },
+    [43] = { -- Upper Blackrock Spire
+        { 4788, "The Final Tablets", 58, 40, 3 },
+        { 4982, "Bijou's Belongings", 59, 55, 2 },
+        { 5001, "Bijou's Belongings", 59, 55, 1 },
+        { 4983, "Bijou's Reconnaissance Report", 59, 55, 2 },
+        { 4862, "En-Ay-Es-Tee-Why", 59, 55, 3 },
+        { 4729, "Kibler's Exotic Pets", 59, 55, 3 },
+        { 5002, "Message to Maxwell", 59, 55, 1 },
+        { 4981, "Operative Bijou", 59, 55, 2 },
+        { 4701, "Put Her Down", 59, 55, 1 },
+        { 4724, "The Pack Mistress", 59, 55, 2 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 7761, "Blackhand's Command", 60, 55, 3 },
+        { 6602, "Blood of the Black Dragon Champion", 60, 55, 2 },
+        { 4765, "Delivery to Ridgewell", 60, 57, 1 },
+        { 4764, "Doomrigger's Clasp", 60, 57, 1 },
+        { 6502, "Drakefire Amulet", 60, 50, 1 },
+        { 4735, "Egg Collection", 60, 57, 3 },
+        { 4734, "Egg Freezing", 60, 57, 3 },
+        { 5047, "Finkle Einhorn, At Your Service!", 60, 57, 3 },
+        { 4974, "For The Horde!", 60, 55, 2 },
+        { 5089, "General Drakkisath's Command", 60, 55, 1 },
+        { 5102, "General Drakkisath's Demise", 60, 55, 1 },
+        { 5103, "Hot Fiery Death", 60, 55, 3 },
+        { 5081, "Maxwell's Mission", 60, 55, 1 },
+        { 4766, "Mayara Brightwing", 60, 57, 1 },
+        { 8995, "Mea Culpa, Lord Valthalak", 60, 58, 3 },
+        { 4866, "Mother's Milk", 60, 55, 3 },
+        { 6569, "Oculus Illusions", 60, 55, 2 },
+        { 8996, "Return to Bodley", 60, 58, 3 },
+        { 4742, "Seal of Ascension", 60, 57, 3 },
+        { 4768, "The Darkstone Tablet", 60, 57, 2 },
+        { 5127, "The Demon Forge", 60, 55, 3 },
+        { 8966, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 5160, "The Matron Protectorate", 60, 57, 3 },
+        { 8989, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 4907, "Tinkee Steamboil", 60, 57, 3 },
+        { 4867, "Urok Doomhowl", 60, 55, 3 },
+        { 4769, "Vivian Lagrave and the Darkstone Tablet", 60, 57, 2 },
+        { 4903, "Warlord's Command", 60, 55, 2 },
+    },
+    [33] = { -- Dire Maul: East
+        { 7492, "Camp Mojache", 57, 54, 2 },
+        { 7494, "Feathermoon Stronghold", 57, 54, 1 },
+        { 7488, "Lethtendris's Web", 57, 54, 1 },
+        { 7489, "Lethtendris's Web", 57, 54, 2 },
+        { 7441, "Pusillin and the Elder Azj'Tordin", 58, 54, 3 },
+        { 1193, "A Broken Trap", 60, 56, 3 },
+        { 7643, "Ancient Equine Spirit", 60, 60, 1 },
+        { 8948, "Anthion's Old Friend", 60, 58, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 7463, "Arcane Refreshment", 60, 60, 3 },
+        { 7644, "Blessed Arcanite Barding", 60, 60, 1 },
+        { 7499, "Codex of Defense", 60, 54, 3 },
+        { 7631, "Dreadsteed of Xoroth", 60, 60, 3 },
+        { 7481, "Elven Legends", 60, 54, 2 },
+        { 7482, "Elven Legends", 60, 54, 1 },
+        { 7649, "Enchanted Thorium Platemail: Volume I", 60, 50, 3 },
+        { 7650, "Enchanted Thorium Platemail: Volume II", 60, 50, 3 },
+        { 7651, "Enchanted Thorium Platemail: Volume III", 60, 50, 3 },
+        { 8949, "Falrin's Vendetta", 60, 58, 3 },
+        { 7507, "Foror's Compendium", 60, 60, 3 },
+        { 5525, "Free Knot!", 60, 56, 3 },
+        { 7505, "Frost Shock and You", 60, 54, 2 },
+        { 7498, "Garona: A Study on Stealth and Treachery", 60, 54, 3 },
+        { 7502, "Harnessing Shadows", 60, 54, 3 },
+        { 7504, "Holy Bologna: What the Light Won't Tell You", 60, 54, 3 },
+        { 7484, "Libram of Focus", 60, 54, 3 },
+        { 7485, "Libram of Protection", 60, 54, 3 },
+        { 7483, "Libram of Rapidity", 60, 54, 3 },
+        { 7500, "The Arcanist's Cookbook", 60, 54, 3 },
+        { 9015, "The Challenge", 60, 58, 3 },
+        { 7506, "The Emerald Dream...", 60, 54, 3 },
+        { 7508, "The Forging of Quel'Serrar", 60, 60, 3 },
+        { 5518, "The Gordok Ogre Suit", 60, 56, 3 },
+        { 5528, "The Gordok Taste Test", 60, 56, 3 },
+        { 7503, "The Greatest Race of Hunters", 60, 54, 3 },
+        { 8950, "The Instigator's Enchantment", 60, 58, 3 },
+        { 8967, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7501, "The Light and How To Swing It", 60, 54, 1 },
+        { 7461, "The Madness Within", 60, 56, 3 },
+        { 8990, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7462, "The Treasure of the Shen'dralar", 60, 56, 3 },
+        { 1318, "Unfinished Gordok Business", 60, 56, 3 },
+    },
+    [37] = { -- Dire Maul: North
+        { 7492, "Camp Mojache", 57, 54, 2 },
+        { 7494, "Feathermoon Stronghold", 57, 54, 1 },
+        { 7488, "Lethtendris's Web", 57, 54, 1 },
+        { 7489, "Lethtendris's Web", 57, 54, 2 },
+        { 7441, "Pusillin and the Elder Azj'Tordin", 58, 54, 3 },
+        { 1193, "A Broken Trap", 60, 56, 3 },
+        { 7643, "Ancient Equine Spirit", 60, 60, 1 },
+        { 8948, "Anthion's Old Friend", 60, 58, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 7463, "Arcane Refreshment", 60, 60, 3 },
+        { 7644, "Blessed Arcanite Barding", 60, 60, 1 },
+        { 7499, "Codex of Defense", 60, 54, 3 },
+        { 7631, "Dreadsteed of Xoroth", 60, 60, 3 },
+        { 7481, "Elven Legends", 60, 54, 2 },
+        { 7482, "Elven Legends", 60, 54, 1 },
+        { 7649, "Enchanted Thorium Platemail: Volume I", 60, 50, 3 },
+        { 7650, "Enchanted Thorium Platemail: Volume II", 60, 50, 3 },
+        { 7651, "Enchanted Thorium Platemail: Volume III", 60, 50, 3 },
+        { 8949, "Falrin's Vendetta", 60, 58, 3 },
+        { 7507, "Foror's Compendium", 60, 60, 3 },
+        { 5525, "Free Knot!", 60, 56, 3 },
+        { 7505, "Frost Shock and You", 60, 54, 2 },
+        { 7498, "Garona: A Study on Stealth and Treachery", 60, 54, 3 },
+        { 7502, "Harnessing Shadows", 60, 54, 3 },
+        { 7504, "Holy Bologna: What the Light Won't Tell You", 60, 54, 3 },
+        { 7484, "Libram of Focus", 60, 54, 3 },
+        { 7485, "Libram of Protection", 60, 54, 3 },
+        { 7483, "Libram of Rapidity", 60, 54, 3 },
+        { 7500, "The Arcanist's Cookbook", 60, 54, 3 },
+        { 9015, "The Challenge", 60, 58, 3 },
+        { 7506, "The Emerald Dream...", 60, 54, 3 },
+        { 7508, "The Forging of Quel'Serrar", 60, 60, 3 },
+        { 5518, "The Gordok Ogre Suit", 60, 56, 3 },
+        { 5528, "The Gordok Taste Test", 60, 56, 3 },
+        { 7503, "The Greatest Race of Hunters", 60, 54, 3 },
+        { 8950, "The Instigator's Enchantment", 60, 58, 3 },
+        { 8967, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7501, "The Light and How To Swing It", 60, 54, 1 },
+        { 7461, "The Madness Within", 60, 56, 3 },
+        { 8990, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7462, "The Treasure of the Shen'dralar", 60, 56, 3 },
+        { 1318, "Unfinished Gordok Business", 60, 56, 3 },
+    },
+    [35] = { -- Dire Maul: West
+        { 7492, "Camp Mojache", 57, 54, 2 },
+        { 7494, "Feathermoon Stronghold", 57, 54, 1 },
+        { 7488, "Lethtendris's Web", 57, 54, 1 },
+        { 7489, "Lethtendris's Web", 57, 54, 2 },
+        { 7441, "Pusillin and the Elder Azj'Tordin", 58, 54, 3 },
+        { 1193, "A Broken Trap", 60, 56, 3 },
+        { 7643, "Ancient Equine Spirit", 60, 60, 1 },
+        { 8948, "Anthion's Old Friend", 60, 58, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 7463, "Arcane Refreshment", 60, 60, 3 },
+        { 7644, "Blessed Arcanite Barding", 60, 60, 1 },
+        { 7499, "Codex of Defense", 60, 54, 3 },
+        { 7631, "Dreadsteed of Xoroth", 60, 60, 3 },
+        { 7481, "Elven Legends", 60, 54, 2 },
+        { 7482, "Elven Legends", 60, 54, 1 },
+        { 7649, "Enchanted Thorium Platemail: Volume I", 60, 50, 3 },
+        { 7650, "Enchanted Thorium Platemail: Volume II", 60, 50, 3 },
+        { 7651, "Enchanted Thorium Platemail: Volume III", 60, 50, 3 },
+        { 8949, "Falrin's Vendetta", 60, 58, 3 },
+        { 7507, "Foror's Compendium", 60, 60, 3 },
+        { 5525, "Free Knot!", 60, 56, 3 },
+        { 7505, "Frost Shock and You", 60, 54, 2 },
+        { 7498, "Garona: A Study on Stealth and Treachery", 60, 54, 3 },
+        { 7502, "Harnessing Shadows", 60, 54, 3 },
+        { 7504, "Holy Bologna: What the Light Won't Tell You", 60, 54, 3 },
+        { 7484, "Libram of Focus", 60, 54, 3 },
+        { 7485, "Libram of Protection", 60, 54, 3 },
+        { 7483, "Libram of Rapidity", 60, 54, 3 },
+        { 7500, "The Arcanist's Cookbook", 60, 54, 3 },
+        { 9015, "The Challenge", 60, 58, 3 },
+        { 7506, "The Emerald Dream...", 60, 54, 3 },
+        { 7508, "The Forging of Quel'Serrar", 60, 60, 3 },
+        { 5518, "The Gordok Ogre Suit", 60, 56, 3 },
+        { 5528, "The Gordok Taste Test", 60, 56, 3 },
+        { 7503, "The Greatest Race of Hunters", 60, 54, 3 },
+        { 8950, "The Instigator's Enchantment", 60, 58, 3 },
+        { 8967, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7501, "The Light and How To Swing It", 60, 54, 1 },
+        { 7461, "The Madness Within", 60, 56, 3 },
+        { 8990, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 7462, "The Treasure of the Shen'dralar", 60, 56, 3 },
+        { 1318, "Unfinished Gordok Business", 60, 56, 3 },
+    },
+    [39] = { -- Stratholme
+        { 5263, "Above and Beyond", 60, 55, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 5125, "Aurius' Reckoning", 60, 55, 3 },
+        { 8945, "Dead Man's Plea", 60, 58, 3 },
+        { 5243, "Houses of the Holy", 60, 55, 3 },
+        { 8970, "I See Alcaz Island In Your Future...", 60, 58, 3 },
+        { 5463, "Menethil's Gift", 60, 57, 3 },
+        { 5848, "Of Love and Family", 60, 52, 3 },
+        { 8946, "Proof of Life", 60, 58, 3 },
+        { 6163, "Ramstein", 60, 56, 2 },
+        { 5213, "The Active Agent", 60, 55, 3 },
+        { 5251, "The Archivist", 60, 55, 3 },
+        { 5212, "The Flesh Does Not Lie", 60, 55, 3 },
+        { 5214, "The Great Fras Siabi", 60, 55, 3 },
+        { 8968, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 5122, "The Medallion of Faith", 60, 55, 3 },
+        { 5282, "The Restless Souls", 60, 55, 3 },
+        { 8991, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 5262, "The Truth Comes Crashing Down", 60, 55, 3 },
+    },
+    [2] = { -- Scholomance
+        { 5582, "Healthy Dragon Scale", 58, 55, 3 },
+        { 5529, "Plagued Hatchlings", 58, 55, 3 },
+        { 8951, "Anthion's Parting Words", 60, 58, 1 },
+        { 8953, "Anthion's Parting Words", 60, 58, 3 },
+        { 8957, "Anthion's Parting Words", 60, 58, 2 },
+        { 5341, "Barov Family Fortune", 60, 52, 2 },
+        { 5343, "Barov Family Fortune", 60, 52, 1 },
+        { 5531, "Betina Bigglezink", 60, 57, 3 },
+        { 4771, "Dawn's Gambit", 60, 57, 3 },
+        { 5382, "Doctor Theolen Krastinov, the Butcher", 60, 55, 3 },
+        { 7647, "Judgment and Redemption", 60, 60, 1 },
+        { 5384, "Kirtonos the Herald", 60, 55, 3 },
+        { 5515, "Krastinov's Bag of Horrors", 60, 55, 3 },
+        { 8969, "The Left Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+        { 5466, "The Lich, Ras Frostwhisper", 60, 57, 3 },
+        { 8992, "The Right Piece of Lord Valthalak's Amulet", 60, 58, 3 },
+    },
+    [49] = { -- Blackwing Lair
+        { 8730, "Nefarius's Corruption", 60, 60, 3 },
+        { 8288, "Only One May Rise", 60, 60, 3 },
+        { 7781, "The Lord of Blackrock", 60, 60, 1 },
+        { 7783, "The Lord of Blackrock", 60, 60, 2 },
+    },
+    [47] = { -- Molten Core
+        { 7487, "Attunement to the Core", 60, 55, 3 },
+        { 6646, "Favor Amongst the Brotherhood, Blood of the Mountain", 60, 60, 3 },
+        { 6645, "Favor Amongst the Brotherhood, Core Leather", 60, 60, 3 },
+        { 6642, "Favor Amongst the Brotherhood, Dark Iron Ore", 60, 60, 3 },
+        { 6643, "Favor Amongst the Brotherhood, Fiery Core", 60, 60, 3 },
+        { 6644, "Favor Amongst the Brotherhood, Lava Core", 60, 60, 3 },
+        { 8578, "Scrying Goggles? No Problem!", 60, 60, 3 },
+        { 7632, "The Ancient Leaf", 60, 60, 3 },
+    },
+    [41] = { -- Zul'Gurub
+        { 8181, "Confront Yeh'kinya", 58, 40, 3 },
+        { 8240, "A Bijou for Zanza", 60, 58, 3 },
+        { 8201, "A Collection of Heads", 60, 58, 3 },
+        { 8192, "Animist's Caress", 60, 58, 3 },
+        { 8186, "Death's Embrace", 60, 58, 3 },
+        { 8110, "Enchanted South Seas Kelp", 60, 58, 3 },
+        { 8196, "Essence Mangoes", 60, 58, 3 },
+        { 8187, "Falcon's Call", 60, 58, 3 },
+        { 8238, "Gurubashi, Vilebranch, and Witherbark Coins", 60, 58, 3 },
+        { 8190, "Hoodoo Hex", 60, 58, 3 },
+        { 8106, "Kezan's Taint", 60, 58, 3 },
+        { 8109, "Kezan's Unstoppable Taint", 60, 58, 3 },
+        { 8148, "Maelstrom's Wrath", 60, 58, 3 },
+        { 8227, "Nat's Measuring Tape", 60, 58, 3 },
+        { 8074, "Paragons of Power: The Augur's Belt", 60, 58, 2 },
+        { 8056, "Paragons of Power: The Augur's Bracers", 60, 58, 2 },
+        { 8075, "Paragons of Power: The Augur's Hauberk", 60, 58, 2 },
+        { 8070, "Paragons of Power: The Confessor's Bindings", 60, 58, 3 },
+        { 8071, "Paragons of Power: The Confessor's Mantle", 60, 58, 3 },
+        { 8061, "Paragons of Power: The Confessor's Wraps", 60, 58, 3 },
+        { 8076, "Paragons of Power: The Demoniac's Mantle", 60, 58, 3 },
+        { 8077, "Paragons of Power: The Demoniac's Robes", 60, 58, 3 },
+        { 8059, "Paragons of Power: The Demoniac's Wraps", 60, 58, 3 },
+        { 8053, "Paragons of Power: The Freethinker's Armguards", 60, 58, 1 },
+        { 8054, "Paragons of Power: The Freethinker's Belt", 60, 58, 1 },
+        { 8055, "Paragons of Power: The Freethinker's Breastplate", 60, 58, 1 },
+        { 8064, "Paragons of Power: The Haruspex's Belt", 60, 58, 3 },
+        { 8057, "Paragons of Power: The Haruspex's Bracers", 60, 58, 3 },
+        { 8065, "Paragons of Power: The Haruspex's Tunic", 60, 58, 3 },
+        { 8068, "Paragons of Power: The Illusionist's Mantle", 60, 58, 3 },
+        { 8069, "Paragons of Power: The Illusionist's Robes", 60, 58, 3 },
+        { 8060, "Paragons of Power: The Illusionist's Wraps", 60, 58, 3 },
+        { 8063, "Paragons of Power: The Madcap's Bracers", 60, 58, 3 },
+        { 8072, "Paragons of Power: The Madcap's Mantle", 60, 58, 3 },
+        { 8073, "Paragons of Power: The Madcap's Tunic", 60, 58, 3 },
+        { 8066, "Paragons of Power: The Predator's Belt", 60, 58, 3 },
+        { 8062, "Paragons of Power: The Predator's Bracers", 60, 58, 3 },
+        { 8067, "Paragons of Power: The Predator's Mantle", 60, 58, 3 },
+        { 8058, "Paragons of Power: The Vindicator's Armguards", 60, 58, 3 },
+        { 8078, "Paragons of Power: The Vindicator's Belt", 60, 58, 3 },
+        { 8079, "Paragons of Power: The Vindicator's Breastplate", 60, 58, 3 },
+        { 8184, "Presence of Might", 60, 58, 3 },
+        { 8189, "Presence of Sight", 60, 58, 3 },
+        { 8113, "Pristine Enchanted South Seas Kelp", 60, 58, 3 },
+        { 8191, "Prophetic Aura", 60, 58, 3 },
+        { 8239, "Sandfury, Skullsplitter, and Bloodscalp Coins", 60, 58, 3 },
+        { 8246, "Signets of the Zandalar", 60, 58, 3 },
+        { 8041, "Strength of Mount Mugamba", 60, 58, 3 },
+        { 8185, "Syncretist's Sigil", 60, 58, 1 },
+        { 8052, "The All-Seeing Eye of Zuldazar", 60, 58, 3 },
+        { 8049, "The Eye of Zuldazar", 60, 58, 3 },
+        { 8183, "The Heart of Hakkar", 60, 58, 3 },
+        { 8045, "The Heathen's Brand", 60, 58, 1 },
+        { 8048, "The Hero's Brand", 60, 58, 1 },
+        { 8104, "The Jewel of Kajaro", 60, 58, 3 },
+        { 8145, "The Maelstrom's Tendril", 60, 58, 3 },
+        { 8101, "The Pebble of Kajaro", 60, 58, 3 },
+        { 8044, "The Rage of Mugamba", 60, 58, 3 },
+        { 9210, "The Savage Guard - Arcanum of Focus", 60, 58, 3 },
+        { 9208, "The Savage Guard - Arcanum of Protection", 60, 58, 3 },
+        { 9209, "The Savage Guard - Arcanum of Rapidity", 60, 58, 3 },
+        { 8119, "The Unmarred Vision of Voodress", 60, 58, 2 },
+        { 8116, "Vision of Voodress", 60, 58, 2 },
+        { 8188, "Vodouisant's Vigilant Embrace", 60, 58, 2 },
+        { 8144, "Zandalarian Shadow Mastery Talisman", 60, 58, 3 },
+        { 8141, "Zandalarian Shadow Talisman", 60, 58, 3 },
+        { 8243, "Zanza's Potent Potables", 60, 58, 3 },
+        { 8195, "Zulian, Razzashi, and Hakkari Coins", 60, 58, 3 },
     },
 }
