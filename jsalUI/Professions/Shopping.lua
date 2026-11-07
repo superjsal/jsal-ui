@@ -37,7 +37,7 @@ function Shopping.AddCraft(spell, count)
     count = math.max(1, math.floor(tonumber(count) or 1))
     local crafts = List().crafts
     crafts[spell] = (crafts[spell] or 0) + count
-    Shopping.Open()
+    Shopping.Open(true)
 end
 
 function Shopping.AddItem(item, count)
@@ -207,6 +207,7 @@ local function Build()
         self:StopMovingOrSizing()
         local point, _, relative, x, y = self:GetPoint(1)
         ns.db.shoppingAt = { point, relative, x, y }
+        self.beside = nil
     end)
     frame:Hide()
     Style.Fill(frame, "window")
@@ -297,12 +298,34 @@ local function Build()
         ns.char.shopping = nil
         Paint()
     end)
+end
+
+-- Where the list was last dragged to, or a little right of centre.
+local function PlaceSaved()
+    frame:ClearAllPoints()
+    frame:SetFrameStrata("MEDIUM")
     local at = ns.db.shoppingAt
     if type(at) == "table" and at[1] then
         frame:SetPoint(at[1], UIParent, at[2], at[3], at[4])
     else
         frame:SetPoint("CENTER", UIParent, "CENTER", 300, 60)
     end
+    frame.beside = nil
+end
+
+-- Something added from a profession window opens the list right beside it
+-- (beside jsal.ui's profession panel when that's showing), on the same
+-- layer, so it never opens hidden behind them.
+local function PlaceBeside()
+    local panel, game = jsalUIProfessionPanel, ProfessionsFrame
+    local next = (panel and panel:IsShown() and panel) or (game and game:IsShown() and game)
+    if not next then return false end
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT", next, "TOPRIGHT", 6, 0)
+    frame:SetFrameStrata(next:GetFrameStrata())
+    frame:Raise()
+    frame.beside = true
+    return true
 end
 
 local function Place(region, y)
@@ -458,9 +481,20 @@ Paint = function()
     frame:SetHeight(y + 26 + PAD)
 end
 
-function Shopping.Open()
+-- beside: opened by adding from a profession window. A list that's
+-- already open stays where the player has it and just comes to the front.
+function Shopping.Open(beside)
     if not Shopping.running then return end
-    if not frame then Build() end
+    if not frame then
+        Build()
+        PlaceSaved()
+        frame:Hide()
+    end
+    if frame:IsShown() then
+        frame:Raise()
+    elseif not (beside and PlaceBeside()) and frame.beside then
+        PlaceSaved()
+    end
     frame:Show()
     xpcall(Paint, ns.Report)
 end
