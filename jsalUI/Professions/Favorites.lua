@@ -88,17 +88,34 @@ local function Row(i)
     return r
 end
 
+-- The starred recipes' names, to pick out the trainer's rows worth a closer
+-- look; nil when a name can't be had, and then every row is looked at.
+local function StarredNames()
+    local names = {}
+    for id in pairs(Saved()) do
+        local name = Compat.SpellInfo(id)
+        if not name then return nil end
+        names[name] = true
+    end
+    return names
+end
+
 -- The trainer's rows for starred recipes it can teach now: index, name,
 -- icon, cost. Read as the trainer's list stands: changing its filters here
--- would set off another update, and another read.
+-- would set off another update, and another read. Only rows named like a
+-- starred recipe are looked up by spell, since each lookup can make the
+-- trainer redraw its list.
 local function Offered()
     local list = {}
+    if not next(Saved()) then return list end
+    local names = StarredNames()
     local ok, err = pcall(function()
         for i = 1, GetNumTrainerServices() do
             local name, kind = Compat.TrainerService(i)
-            local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
+            local info = name and kind == "available" and (not names or names[name])
+                and C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
             local id = info and info.id
-            if name and kind == "available" and id and Favorites.Has(id) then
+            if id and Favorites.Has(id) then
                 list[#list + 1] = { index = i, id = id, name = name, icon = GetTrainerServiceIcon and GetTrainerServiceIcon(i), cost = GetTrainerServiceCost(i) or 0 }
             end
         end
@@ -134,6 +151,17 @@ local function Learn(ids)
     for kind, on in pairs(saved) do SetTrainerServiceTypeFilter(kind, on) end
     if not ok then return ns.Report(err) end
     if bought < #ids then ns.Print("Some favourites need more gold than you have.") end
+end
+
+-- The trainer fits each name against its price when it draws a row; a
+-- redraw set off by the lookups above can fit them before the rows have
+-- their full width, so the names are fitted again once it's settled.
+local function RefitTrainerNames()
+    local box = ClassTrainerFrame and ClassTrainerFrame:IsShown() and ClassTrainerFrame.ScrollBox
+    if not (box and box.ForEachFrame) then return end
+    box:ForEachFrame(function(button)
+        if type(button.UpdateNameWidth) == "function" then pcall(button.UpdateNameWidth, button) end
+    end)
 end
 
 local Paint
@@ -184,7 +212,7 @@ Paint = function()
 end
 
 local events = CreateFrame("Frame")
-for _, event in ipairs({ "TRAINER_SHOW", "TRAINER_UPDATE", "TRAINER_CLOSED", "PLAYER_MONEY" }) do
+for _, event in ipairs({ "TRAINER_SHOW", "TRAINER_UPDATE", "TRAINER_CLOSED", "PLAYER_MONEY", "TRAINER_SERVICE_INFO_NAME_UPDATE" }) do
     pcall(events.RegisterEvent, events, event)
 end
 local queued = false
@@ -193,11 +221,18 @@ events:SetScript("OnEvent", function(_, event)
         if frame then frame:Hide() end
         return
     end
+    -- The trainer redraws its list as names arrive: only the names are
+    -- fitted again (reading the list here would ask for more names).
+    if event == "TRAINER_SERVICE_INFO_NAME_UPDATE" then
+        if On() then Compat.After(0.05, function() xpcall(RefitTrainerNames, ns.Report) end) end
+        return
+    end
     if queued then return end
     queued = true
     -- A moment later, so the trainer's own window is up and filled.
     Compat.After(0.2, function()
         queued = false
         xpcall(Paint, ns.Report)
+        Compat.After(0.1, function() xpcall(RefitTrainerNames, ns.Report) end)
     end)
 end)
