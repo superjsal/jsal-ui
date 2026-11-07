@@ -2,7 +2,7 @@
 -- groups, the ones right for your level in green; the chosen one fills the
 -- page below in two tabs. Bosses and loot: a card per boss, two to a row in
 -- the game's order, ticked once you've killed it, with its loot listed on
--- it (Wowhead's list with drop chances, and anything you've seen it drop).
+-- it (Wowhead's list with drop chances, and what you and the guild have seen it drop).
 -- Quests: the dungeon's quests for your faction, ticked once done.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
@@ -323,30 +323,45 @@ Window.Page("dungeons", function(page)
     end
 
     -- A boss's loot on its card: Wowhead's list with each item's drop
-    -- chance, and anything you've seen it drop that the list doesn't have.
-    -- Returns the card's height.
+    -- chance, then anything you or the guild have seen it drop that the list
+    -- doesn't have, with how often in the guild's kills. Without Wowhead's
+    -- chance, five or more guild kills give one. Returns the card's height.
     local function PaintLoot(card, boss, encounter)
         for _, it in ipairs(card.items) do it:Hide() end
         local list, byId = {}, {}
-        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[encounter] or {}) do
-            local entry = { id = drop[1], chance = drop[2], item = {} }
-            list[#list + 1] = entry
-            byId[drop[1]] = entry
+        local function Add(id)
+            if not byId[id] then
+                byId[id] = { id = id, item = {} }
+                list[#list + 1] = byId[id]
+            end
+            return byId[id]
         end
-        for id, item in pairs(D.Loot()[D.Key(boss)] or {}) do
-            if byId[id] then
-                byId[id].item = item
-            else
-                list[#list + 1] = { id = id, item = item }
+        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[encounter] or {}) do
+            Add(drop[1]).chance = drop[2]
+        end
+        for id, item in pairs(D.Loot()[D.Key(boss)] or {}) do Add(id).item = item end
+        local guild = ns.GuildLoot and ns.GuildLoot.On() and ns.GuildLoot.For(encounter)
+        local guildKills = 0
+        if guild then
+            for id, n in pairs(guild.i or {}) do
+                Add(id).guild = n
+                guildKills = math.max(guildKills, n)
+            end
+            guildKills = math.max(guildKills, guild.k or 0)
+            for _, entry in ipairs(list) do
+                if entry.guild and not entry.chance and guildKills >= 5 then
+                    entry.guessed = math.floor(entry.guild / guildKills * 100 + 0.5)
+                end
             end
         end
         table.sort(list, function(a, b)
-            if (a.chance or 0) ~= (b.chance or 0) then return (a.chance or 0) > (b.chance or 0) end
+            local ca, cb = a.chance or a.guessed or 0, b.chance or b.guessed or 0
+            if ca ~= cb then return ca > cb end
             if (a.item.q or 0) ~= (b.item.q or 0) then return (a.item.q or 0) > (b.item.q or 0) end
             return a.id < b.id
         end)
         if #list == 0 then
-            card.none:SetText("No loot known yet. It's added when you loot this boss or roll on its loot.")
+            card.none:SetText("No loot known yet. It's added when you or a guildmate with jsal.ui loots this boss.")
             card.none:Show()
             return BOSS_H + 46
         end
@@ -361,10 +376,12 @@ Window.Page("dungeons", function(page)
             it.name:SetText(("|cff%s%s|r"):format(QUALITY_HEX[q] or "ffffff", name or entry.item.n or "..."))
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
             local parts = {}
-            if entry.chance then parts[#parts + 1] = ("%d%%"):format(entry.chance) end
+            if entry.chance or entry.guessed then parts[#parts + 1] = ("%d%%"):format(entry.chance or entry.guessed) end
             if slot then parts[#parts + 1] = slot end
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
-            if (entry.item.seen or 0) > 0 then
+            if entry.guild then
+                parts[#parts + 1] = ("guild %d of %d"):format(entry.guild, guildKills)
+            elseif (entry.item.seen or 0) > 0 then
                 parts[#parts + 1] = entry.item.seen > 1 and ("you've seen it %d×"):format(entry.item.seen) or "you've seen it"
             end
             it.slot:SetText(table.concat(parts, " · "))
