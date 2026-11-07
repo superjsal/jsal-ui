@@ -114,15 +114,26 @@ def where(item, zones):
     return kind, place
 
 
+def only_quest(item):
+    """The quest ID when an item's one source is a single known quest, else None."""
+    sources, more = item[10] or [], item[11] or []
+    if sources == [4] and len(more) == 1 and more[0][1] == 5 and more[0][2]:
+        return int(more[0][2])
+    return None
+
+
 def main():
     data = json.loads((SRC / "wowhead-items.json").read_text(encoding="utf-8"))
     zones = json.loads((SRC / "zones.json").read_text(encoding="utf-8"))
     places, place_index = [], {}
-    by_slot = {}
+    by_slot, quests = {}, {}
     kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4}
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
         kind, place = where(item, zones)
+        quest = only_quest(item)
+        if quest:
+            quests[item_id] = quest
         if place not in place_index:
             place_index[place] = len(places)
             places.append(place)
@@ -157,6 +168,9 @@ def main():
         "    items = {",
         "        " + ",\n        ".join(rows),
         "    },",
+        "    -- Items whose one source is a quest, \"item ID:quest ID\" separated by \";\": once the quest",
+        "    -- is done, its reward can't be had again.",
+        "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,
@@ -165,7 +179,7 @@ def main():
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places -> {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
+    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
 
 
 if __name__ == "__main__":

@@ -385,6 +385,26 @@ function Gear.Source(o)
     return table.concat(parts, ", or ")
 end
 
+-- Rewards of quests you've done can't be had again: an item whose one
+-- source is a quest carries that quest's ID, read once from GearData.
+local questOf
+function Gear.QuestOf(id)
+    if not questOf then
+        questOf = {}
+        for item, quest in ((ns.GearData and ns.GearData.quests) or ""):gmatch("(%d+):(%d+)") do
+            questOf[tonumber(item)] = tonumber(quest)
+        end
+    end
+    return questOf[id]
+end
+
+function Gear.RewardTaken(id)
+    local quest = Gear.QuestOf(id)
+    if not quest then return false end
+    if C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted then return C_QuestLog.IsQuestFlaggedCompleted(quest) and true or false end
+    return IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(quest) and true or false
+end
+
 function Gear.Candidates(slot, level, classFile, classID, side)
     local data = ns.GearData
     local out = {}
@@ -410,7 +430,8 @@ function Gear.Candidates(slot, level, classFile, classID, side)
                 and (s == 0 or s == side)
                 and (reqclass == 0 or math.floor(reqclass / bit) % 2 == 1)
                 and (Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType)
-                     or Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub))) then
+                     or Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub)))
+                and (kind ~= "2" or not Gear.RewardTaken(tonumber(id))) then
                 local e = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
                 e.needs = need or nil
                 -- Lighter than you wear: named, so it's a choice you see.
