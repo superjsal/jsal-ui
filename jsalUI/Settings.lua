@@ -12,9 +12,9 @@ local ROW_HEIGHT, COLUMN_GAP = 34, 28
 -- Where each part goes. A part not listed joins the last heading.
 local GROUPS = {
     { title = "GAMES", keys = { "dailyword", "iconguess", "chess", "flight", "guild" } },
-    { title = "LEVELING", keys = { "talents", "trainingpanel", "levelup", "quests", "journal" } },
+    { title = "LEVELING", keys = { "talents", "trainingpanel", "levelup", "quests", "journal", "dungeons" } },
     { title = "PROFESSIONS", keys = { "professionpanel", "profwindow", "shopping", "crafters" } },
-    { title = "AROUND THE UI", keys = { "launcher", "minimap", "vendor", "warnings" } },
+    { title = "AROUND THE UI", keys = { "launcher", "minimap", "vendor", "warnings", "waypoint" } },
 }
 
 local function Grouped()
@@ -74,8 +74,19 @@ end
 Window.Page("settings", function(page)
     local intro = Style.Text(page, 13, "muted")
     intro:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    intro:SetWidth(Window.contentWidth)
+    intro:SetWidth(Window.contentWidth - 150)
+    intro:SetJustifyH("LEFT")
     intro:SetText("Turn parts of jsal.ui on or off. Changes apply after you type /reload. Hover a part to see what it does.")
+    -- The guided setup, again, for anyone who skipped it or wants to start over.
+    if ns.Setup then
+        local again = Style.Button(page, "Set up again", "plain", 130)
+        again:SetHeight(26)
+        again:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", Window.contentWidth, -4)
+        again:SetScript("OnClick", function()
+            ns.Window.Toggle()
+            ns.Setup.Open()
+        end)
+    end
 
     local width = math.floor((Window.contentWidth - COLUMN_GAP) / 2)
 

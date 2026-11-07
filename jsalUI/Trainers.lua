@@ -63,9 +63,11 @@ function Trainers.Zone(trainer)
     return info and info.name or nil
 end
 
--- Puts the game's map pin on a trainer, or says where they are.
+-- Puts the game's map pin on a trainer, labelled with their name over the
+-- navigation marker, or says where they are.
 function Trainers.Pin(trainer)
-    if not Compat.SetWaypoint(trainer.map, trainer.x, trainer.y) then
+    local set = ns.Waypoint and ns.Waypoint.Set or function(map, x, y) return Compat.SetWaypoint(map, x, y) end
+    if not set(trainer.map, trainer.x, trainer.y, trainer.name, "trainer") then
         ns.Print(("%s is at %.0f, %.0f in %s."):format(trainer.name, trainer.x * 100, trainer.y * 100,
             Trainers.Zone(trainer) or "?"))
     else
