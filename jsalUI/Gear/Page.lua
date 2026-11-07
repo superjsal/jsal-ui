@@ -6,8 +6,8 @@
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local WINDOW_W, WINDOW_H = 1000, 830
-local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 290, 42, 2, 36, 50, 20
+local WINDOW_W, WINDOW_H = 1000, 860
+local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 300, 45, 1, 36, 54, 20
 local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
 local GREEN, RED = "|cff56944f", "|cffd65151"
 
@@ -87,12 +87,12 @@ Window.Page("gear", function(page)
         b.dot:SetPoint("CENTER", b.box, "TOPRIGHT", 0, 0)
         -- Three lines: the slot's name, what you wear, the upgrade.
         local textW = SLOT_W - ICON - 22
-        b.label = Style.Text(b, 10, "muted")
+        b.label = Style.Text(b, 11, "muted")
         b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, 2)
         b.label:SetText(slot.label:upper())
-        b.worn = Style.Text(b, 13, "text")
+        b.worn = Style.Text(b, 14, "text")
         b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -1)
-        b.up = Style.Text(b, 12, "muted")
+        b.up = Style.Text(b, 13, "muted")
         b.up:SetPoint("TOPLEFT", b.worn, "BOTTOMLEFT", 0, -1)
         for _, t in ipairs({ b.label, b.worn, b.up }) do
             t:SetWidth(textW)
@@ -120,10 +120,10 @@ Window.Page("gear", function(page)
     list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", paneW + LIST_GAP, -top)
     list:SetSize(listW, height - top - 60)
     Style.Rule(list, "LEFT", "line")
-    local wearHead = Style.Text(list, 11, "gold", nil, true)
+    local wearHead = Style.Text(list, 12, "gold", nil, true)
     wearHead:SetPoint("TOPLEFT", 14, 0)
-    local betterHead = Style.Text(list, 11, "gold", nil, true)
-    local empty = Style.Text(list, 12, "muted")
+    local betterHead = Style.Text(list, 12, "gold", nil, true)
+    local empty = Style.Text(list, 13, "muted")
     empty:SetWidth(listW - 28)
     empty:SetJustifyH("LEFT")
     local rows = {}
@@ -134,12 +134,12 @@ Window.Page("gear", function(page)
         r.box = IconBox(r, 36)
         r.box:SetPoint("LEFT", 0, 0)
         r.icon = r.box.icon
-        r.name = Style.Text(r, 13, "text")
+        r.name = Style.Text(r, 15, "text")
         r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 8, 0)
         r.name:SetWidth(listW - 80)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
-        r.where = Style.Text(r, 12, "muted")
+        r.where = Style.Text(r, 13, "muted")
         r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
         r.where:SetWidth(listW - 80)
         r.where:SetJustifyH("LEFT")
@@ -162,7 +162,7 @@ Window.Page("gear", function(page)
         return r
     end
 
-    local note = Style.Text(page, 11, "muted")
+    local note = Style.Text(page, 12, "muted")
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
     note:SetWidth(width)
     note:SetJustifyH("LEFT")
