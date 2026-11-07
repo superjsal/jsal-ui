@@ -160,11 +160,25 @@ local function UnlearnedRow(i)
     return r
 end
 
+-- The game's tooltip for what a row makes; a road step adds everything its
+-- crafts need in full (its line has room for only a little), with what's
+-- in your bags and bank.
 local function Tooltip(frame)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
+        if self.needs and #self.needs > 0 then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
+            for _, reagent in ipairs(self.needs) do
+                local need = reagent.count * (self.crafts or 1)
+                local have = Compat.ItemCount(reagent.item, true)
+                local enough = have >= need
+                GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
+                    ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
+            end
+        end
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -292,6 +306,7 @@ local function Paint()
         local s = Step(i)
         Place(s, y)
         s.item, s.spell = step.recipe.item, step.recipe.spell
+        s.needs, s.crafts = not step.recipe.vein and step.recipe.reagents or nil, step.crafts
         local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
         s.add:SetShown(shop and true or false)
         s.add:SetScript("OnClick", function() ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end)
