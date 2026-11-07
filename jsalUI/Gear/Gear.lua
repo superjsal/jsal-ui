@@ -394,8 +394,22 @@ function Gear.Plan(slot, spec)
     -- Items worth less than a quarter of the best one aren't worth listing,
     -- and nor, once anything adds what your spec wants most, are items that
     -- only win on Stamina (a caster's hood for a hunter); starred ones stay.
+    -- A main stat is one your spec weighs at least as much as Stamina (a
+    -- hunter's Spell Power and Intellect barely count), or weapon damage.
     local staWeight = weights and weights.stats.ITEM_MOD_STAMINA_SHORT or 0
-    local function Main(o) return o.score - (o.stats.ITEM_MOD_STAMINA_SHORT or 0) * staWeight > 0.01 end
+    local function Main(o)
+        if not weights then return true end
+        for key, value in pairs(o.stats) do
+            if value > 0 and key ~= "ITEM_MOD_STAMINA_SHORT" then
+                if key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
+                    if slot.dps and (weights.dps[slot.dps] or 0) > 0 then return true end
+                elseif (weights.stats[key] or 0) >= math.max(staWeight, 0.1) then
+                    return true
+                end
+            end
+        end
+        return false
+    end
     local best, anyMain = 0, false
     for _, o in ipairs(options) do
         best = math.max(best, o.score - worn.score)
