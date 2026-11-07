@@ -1,6 +1,6 @@
--- The Dungeons page: a picker on top opens every dungeon and raid in level
--- groups, the ones right for your level in green; the chosen one fills the
--- page below in two tabs. Bosses and loot: a card per boss, two to a row in
+-- The dungeon guide, in a window of its own: a picker on top opens every
+-- dungeon and raid in level groups, the ones right for your level in green;
+-- the chosen one fills the window below in two tabs. Bosses and loot: a card per boss, two to a row in
 -- the game's order, ticked once you've killed it, with its loot listed on
 -- it (Wowhead's list with drop chances, and what you and the guild have seen it drop).
 -- Quests: the dungeon's quests for your faction, ticked once done.
@@ -84,7 +84,7 @@ end
 
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
     local rightW = width
     local chosen, scrolled
     local Paint, opened
@@ -604,4 +604,5 @@ Window.Page("dungeons", function(page)
             if page:IsVisible() then Paint() end
         end)
     end)
-end)
+-- In a window of its own, with room for the boss cards.
+end, { width = 1000, height = 860 })

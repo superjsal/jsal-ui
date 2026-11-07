@@ -268,3 +268,47 @@ function Gear.ToggleStar(id)
 end
 
 ns.Command("gear", function() if ns.Window then ns.Window.Open("gear") end end)
+
+---------------------------------------------------------------------------
+-- A button beside the game's character pane (C) that opens the gear plan:
+-- jsal.ui's shield in a square, just outside the pane's right edge, on its
+-- Character tab only.
+---------------------------------------------------------------------------
+local button
+local function Button()
+    local pane = PaperDollFrame or CharacterFrame
+    if button or not (pane and CharacterFrame) then return button end
+    local Style = ns.Style
+    button = CreateFrame("Button", "jsalUIGearPlanButton", pane)
+    button:SetSize(34, 34)
+    button:SetPoint("TOPLEFT", CharacterFrame, "TOPRIGHT", 4, -36)
+    Style.Fill(button, "window")
+    local edges = Style.Border(button, "lineStrong")
+    local icon = button:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 1, -1)
+    icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    icon:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Icons\\gear")
+    button:SetScript("OnClick", function() if ns.Window then ns.Window.Open("gear") end end)
+    button:SetScript("OnEnter", function(self)
+        Style.SetBorder(edges, "gold")
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Gear plan")
+        GameTooltip:AddLine("Your best upgrades near your level, and where to get them.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function()
+        Style.SetBorder(edges, "lineStrong")
+        GameTooltip:Hide()
+    end)
+    return button
+end
+Gear.CharacterButton = Button
+
+function Gear:OnEnable()
+    local b = Button()
+    if b then b:Show() end
+end
+
+function Gear:OnDisable()
+    if button then button:Hide() end
+end
