@@ -12,7 +12,24 @@ local LIST_W, GAP, ROW_H, HEAD_H, BOSS_H, ITEM_H = 250, 24, 48, 28, 32, 36
 local function Fits(d, level) return level >= d.level and level <= d.level + 5 end
 local function TooHigh(d, level) return d.level > level + 3 end
 
-local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
+-- The list's groups, by the level a dungeon is tuned to; raids on their own.
+local GROUPS = {
+    { label = "LEVELS 10-20", to = 19 },
+    { label = "LEVELS 20-30", to = 29 },
+    { label = "LEVELS 30-40", to = 39 },
+    { label = "LEVELS 40-50", to = 49 },
+    { label = "LEVELS 50-60", to = 60 },
+    { label = "RAIDS", raid = true },
+}
+local function GroupOf(d)
+    if d.raid then return #GROUPS end
+    for g, group in ipairs(GROUPS) do
+        if group.to and d.level <= group.to then return g end
+    end
+    return #GROUPS - 1
+end
+
+local QUALITY_HEX ={ [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
 local GREEN = "|cff56944f"
 
 -- An item's details, asking the game to load them when it hasn't yet.
@@ -62,9 +79,31 @@ Window.Page("dungeons", function(page)
     local listScroll, list = Scroller(page, LIST_W + 8, height)
     listScroll:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
     local rowW = LIST_W
-    local heads = { dungeons = Section(list, rowW, "DUNGEONS"), raids = Section(list, rowW, "RAIDS") }
     local rows = {}
-    local Paint
+    local Paint, opened
+    local key = Style.Text(list, 11, "muted")
+    key:SetPoint("TOPLEFT", 0, -2)
+
+    -- A group's heading: click it to open or close the group.
+    local groupHeads = {}
+    for g in ipairs(GROUPS) do
+        local h = CreateFrame("Button", nil, list)
+        h:SetSize(rowW, HEAD_H)
+        Style.Fill(h, "well")
+        Style.Border(h, "line")
+        h.sign = Style.Text(h, 14, "gold", nil, true)
+        h.sign:SetPoint("LEFT", 10, 0)
+        h.label = Style.Text(h, 12, "gold", nil, true)
+        h.label:SetPoint("LEFT", 26, 0)
+        h.note = Style.Text(h, 11, "muted")
+        h.note:SetPoint("RIGHT", -10, 0)
+        h.note:SetJustifyH("RIGHT")
+        h:SetScript("OnClick", function()
+            opened[g] = not opened[g] or nil
+            Paint()
+        end)
+        groupHeads[g] = h
+    end
 
     local function Row(i)
         if rows[i] then return rows[i] end
@@ -232,21 +271,37 @@ Window.Page("dungeons", function(page)
             chosen = chosen or shown[1]
         end
 
-        -- The list, in two sections.
-        local y, i, chosenY = 0, 0, 0
-        local raidsShown = false
-        heads.dungeons:ClearAllPoints()
-        heads.dungeons:SetPoint("TOPLEFT", 0, 0)
-        heads.dungeons.note:SetText(GREEN .. "green|r: right for level " .. level)
-        y = HEAD_H
+        -- The list, in level groups; the one with the dungeon picked for
+        -- you starts open.
+        if not opened then
+            opened = {}
+            opened[GroupOf(chosen)] = true
+        end
+        key:SetText(GREEN .. "Green|r: right for level " .. level)
+        local y, i, chosenY = 22, 0, 0
+        local members = {}
         for _, d in ipairs(shown) do
-            if d.raid and not raidsShown then
-                raidsShown = true
-                y = y + 10
-                heads.raids:ClearAllPoints()
-                heads.raids:SetPoint("TOPLEFT", 0, -y)
-                y = y + HEAD_H
+            local g = GroupOf(d)
+            members[g] = members[g] or {}
+            table.insert(members[g], d)
+        end
+        for g, group in ipairs(GROUPS) do
+            local h = groupHeads[g]
+            local inGroup = members[g] or {}
+            h:SetShown(#inGroup > 0)
+            if #inGroup > 0 then
+                h:ClearAllPoints()
+                h:SetPoint("TOPLEFT", 0, -y)
+                local fits = 0
+                for _, d in ipairs(inGroup) do if Fits(d, level) then fits = fits + 1 end end
+                h.label:SetText(group.label)
+                -- How many it holds; "your level" when one is right for you.
+                local noun = group.raid and (#inGroup == 1 and "raid" or "raids") or (#inGroup == 1 and "dungeon" or "dungeons")
+                h.note:SetText(fits > 0 and (GREEN .. "your level|r · %d"):format(#inGroup) or ("%d %s"):format(#inGroup, noun))
+                h.sign:SetText(opened[g] and "-" or "+")
+                y = y + HEAD_H + 4
             end
+            for _, d in ipairs(opened[g] and inGroup or {}) do
             i = i + 1
             local r = Row(i)
             r.dungeon = d
@@ -268,8 +323,9 @@ Window.Page("dungeons", function(page)
             r:SetAlpha(TooHigh(d, level) and not on and 0.5 or 1)
             r:Show()
             y = y + ROW_H
+            end
+            if opened[g] and #inGroup > 0 then y = y + 6 end
         end
-        heads.raids:SetShown(raidsShown)
         for j = i + 1, #rows do rows[j]:Hide() end
         list:SetHeight(math.max(1, y))
         -- The first time, the list opens at the dungeon picked for you.
