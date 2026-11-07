@@ -126,7 +126,7 @@ many kills Wowhead has seen and how often each item dropped). It's read in a bro
 few seconds, since Wowhead turns away scripted downloads. A drop is kept when it's uncommon or better
 and has dropped in at least 2% of 10 or more kills, or when the zone's own Drops tab names the boss.
 The same build writes `DungeonLoot.lua` from it. Wowhead's numbers grow as more people play, so the
-higher dungeons' lists fill in over time; read them again now and then.
+higher dungeons' lists fill in over time; read them again now and then (`tools\wowhead\README.md` has the monthly steps).
 
 ## Gear plan
 
@@ -137,7 +137,7 @@ where each comes from. `data\gear\zones.json` names the zones (the game's AreaTa
 (MIT licence, `LICENSE` beside them), whose stat weights say what a point of each stat is worth.
 `python -I tools\build_gear.py` writes `jsalUI\Gear\GearData.lua`: the items as one line of text per slot,
 so they cost little memory until the gear plan opens, and the weights, with Stamina raised a little for
-leveling. Item names and stats come from the game while you play.
+leveling. Item names and stats come from the game while you play. `tools\wowhead\` reads the lists again; its README has the monthly steps.
 
 ## Daily Word's words
 
