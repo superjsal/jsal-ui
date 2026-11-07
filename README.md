@@ -20,7 +20,7 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Guild crafters | On the Professions page, search for what you need and see which guildmates can make it, online first, with a button to whisper them. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
 | Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to John in game; your version, class, level, zone and any jsal.ui error are added for you. Outside John's guild, copy it to email instead. |
 | Quick buttons | A small bar you drag anywhere: the dashboard, Daily Word, Icon Guess, chess, the shopping list, the Build Planner, the Training Planner and the layer you're in, with a gold dot when something's waiting. Choose its buttons in Settings or by right-clicking its grip, which also stands it up or locks it. |
-| Layers (testing) | Reads which copy of a zone you're in from the creatures around you. The quick bar's Layer button shows it; a click tells your guild. |
+| Layers | Reads which copy of a zone you're in from the creatures around you, and changes it through your guild: the quick bar's Layer button lists guildmates in your zone on another layer to join, asks in General, or tells your guild. You keep a layer while you're in that guildmate's group. Inviting guildmates who ask has a switch in Settings. |
 | Minimap button | Opens the dashboard; right-click it for the same places as the quick buttons. Sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
 | Quests on autopilot | Accepts and turns in quests. Hold Shift to do it yourself; reward choices stay yours. |
