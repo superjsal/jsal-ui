@@ -1,9 +1,10 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, today's
--- games, chess, the shopping list, the Build Planner) that can be dragged
--- anywhere by its grip, so nobody has to type /jsal. A gold dot marks a
--- button with something waiting: today's puzzle not played, your move in
--- chess. Right-click the grip to choose the buttons, stand the bar up, or
--- lock it. The minimap button's right-click menu lists the same places.
+-- games, chess, the shopping list, the planners) and the layer you're in,
+-- that can be dragged anywhere by its grip, so nobody has to type /jsal.
+-- A gold dot marks a button with something waiting: today's puzzle not
+-- played, your move in chess. Choose the buttons in Settings or by
+-- right-clicking the grip, which also stands the bar up or locks it. The
+-- minimap button's right-click menu lists the same places.
 local addonName, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -25,6 +26,30 @@ local function ChessWaiting()
         if game.status == "asked" then return game.opp .. " wants a game" end
         if chess.MyTurn(game) then return "Your move against " .. game.opp end
     end
+end
+
+-- The Layer button puts "I'm on layer 12 in Darkshore." in the guild chat
+-- box, ready to send with Enter; it never sends by itself.
+local function TellLayer()
+    local c = ns.Layers.Current()
+    if not c then return ns.Print(ns.Layers.NONE) end
+    local line = ns.Layers.ShareLine(c)
+    local open = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
+    if not open then return ns.Print(line) end
+    open((IsInGuild() and "/g " or "") .. line)
+end
+
+local function LayerTooltip(tip)
+    local c = ns.Layers.Current()
+    if not c then
+        tip:SetText("Layer")
+        tip:AddLine("Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
+        return
+    end
+    local mapName = ns.Layers.MapName(c)
+    tip:SetText("Layer " .. c.layer)
+    tip:AddLine((mapName and (mapName .. ", read ") or "Read ") .. ns.Layers.Ago(c), 1, 1, 1)
+    tip:AddLine(IsInGuild() and "Click to tell your guild" or "Click to say it in chat", 0.89, 0.69, 0.29)
 end
 
 -- Every button opens its place, and closes it when it's already open.
@@ -63,7 +88,24 @@ local PLACES = {
       open = Page("build") },
     { key = "training", label = "Training Planner", icon = OWN .. "training",
       open = Page("training") },
+    -- Shows a number, not an icon: the layer last read on this map.
+    { key = "layer", label = "Layer",
+      ready = function() return ns.Layers and ns.Layers.running end,
+      number = function() local c = ns.Layers.Current(); return c and c.layer end,
+      tooltip = LayerTooltip,
+      open = TellLayer,
+      note = "The layer jsal.ui last read on this map. Click it to tell your guild. Needs the Layer reader on." },
 }
+
+-- Settings has a switch for each button, the same choice as the grip's
+-- right-click menu; they apply at once.
+Launcher.options = {}
+for _, place in ipairs(PLACES) do
+    Launcher.options[#Launcher.options + 1] = { key = place.key, title = place.label, default = true,
+        note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
+end
+
+local function Hidden(key) return not ns.OptionOn("launcher", key) end
 
 local function Ready(place)
     return not place.ready or place.ready()
@@ -84,15 +126,21 @@ function Launcher.Place(key)
 end
 Launcher.Ready, Launcher.Waiting = Ready, Waiting
 
--- Saved for the account: where the bar is, which buttons are hidden, its
--- direction and whether it's locked.
+-- Saved for the account: where the bar is, its direction and whether it's
+-- locked. Which buttons show are Settings options; buttons hidden before
+-- those existed move across to them once.
 local function Saved()
     local s = ns.db.launcher
     if type(s) ~= "table" then
-        s = { hidden = {} }
+        s = {}
         ns.db.launcher = s
     end
-    s.hidden = type(s.hidden) == "table" and s.hidden or {}
+    if type(s.hidden) == "table" then
+        for key, hide in pairs(s.hidden) do
+            if hide then ns.SetOption("launcher", key, false) end
+        end
+    end
+    s.hidden = nil
     return s
 end
 
@@ -193,10 +241,16 @@ local function Button(place)
     b:SetSize(SIZE, SIZE)
     Style.Fill(b, "well")
     b.edges = Style.Border(b, "lineStrong")
-    b.icon = b:CreateTexture(nil, "ARTWORK")
-    b.icon:SetPoint("TOPLEFT", 2, -2)
-    b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
-    b.icon:SetTexture(place.icon)
+    if place.number then
+        b.number = Style.Text(b, 15, "gold", nil, true)
+        b.number:SetPoint("CENTER", 0, 0)
+        b.number:SetText("?")
+    else
+        b.icon = b:CreateTexture(nil, "ARTWORK")
+        b.icon:SetPoint("TOPLEFT", 2, -2)
+        b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+        b.icon:SetTexture(place.icon)
+    end
     b.dot = b:CreateTexture(nil, "OVERLAY")
     b.dot:SetTexture("Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\dot")
     b.dot:SetVertexColor(Style.Color("gold"))
@@ -207,9 +261,13 @@ local function Button(place)
     b:SetScript("OnEnter", function(self)
         Style.SetBorder(self.edges, "gold")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText(place.label)
-        local waiting = Waiting(place)
-        if waiting then GameTooltip:AddLine(waiting, 0.89, 0.69, 0.29) end
+        if place.tooltip then
+            place.tooltip(GameTooltip)
+        else
+            GameTooltip:SetText(place.label)
+            local waiting = Waiting(place)
+            if waiting then GameTooltip:AddLine(waiting, 0.89, 0.69, 0.29) end
+        end
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave", function(self)
@@ -227,7 +285,7 @@ Layout = function()
     local shown = 0
     for _, place in ipairs(PLACES) do
         local b = buttons[place.key]
-        local on = Ready(place) and not s.hidden[place.key]
+        local on = Ready(place) and not Hidden(place.key)
         b:SetShown(on)
         if on then
             b:ClearAllPoints()
@@ -254,10 +312,32 @@ Layout = function()
     end
 end
 
--- The dots: something waiting at a place.
+-- A number button's number: gold once read, a grey "?" before, smaller
+-- when it has more digits so it stays inside the button.
+local function PaintNumber(b)
+    local ok, n = pcall(b.place.number)
+    n = ok and n or nil
+    local text = n and tostring(n) or "?"
+    local font, _, flags = b.number:GetFont()
+    if font then b.number:SetFont(font, #text <= 2 and 15 or #text == 3 and 13 or 11, flags) end
+    b.number:SetText(text)
+    b.number:SetTextColor(Style.Color(n and "gold" or "muted"))
+end
+
+-- The dots: something waiting at a place; and the numbers.
 local function PaintDots()
     if not bar then return end
-    for _, b in pairs(buttons) do b.dot:SetShown(b:IsShown() and Waiting(b.place) ~= nil) end
+    for _, b in pairs(buttons) do
+        b.dot:SetShown(b:IsShown() and Waiting(b.place) ~= nil)
+        if b.number and b:IsShown() then PaintNumber(b) end
+    end
+end
+
+-- A switch flipped in Settings shows or hides its button at once.
+function Launcher:OnOption()
+    if not bar then return end
+    Layout()
+    PaintDots()
 end
 
 local function GripMenu()
@@ -265,8 +345,8 @@ local function GripMenu()
     local items = {}
     for _, place in ipairs(PLACES) do
         if Ready(place) then
-            items[#items + 1] = { place.label, s.hidden[place.key] and "hidden" or "shown", function()
-                s.hidden[place.key] = not s.hidden[place.key] or nil
+            items[#items + 1] = { place.label, Hidden(place.key) and "hidden" or "shown", function()
+                ns.SetOption("launcher", place.key, Hidden(place.key))
                 Layout()
                 PaintDots()
             end }
@@ -337,6 +417,7 @@ function Launcher:OnEnable()
         xpcall(PaintDots, ns.Report)
     end)
     if ns.Chess and ns.Chess.OnChange then ns.Chess.OnChange(function() xpcall(PaintDots, ns.Report) end) end
+    if ns.Layers and ns.Layers.OnChange then ns.Layers.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     Compat.After(2, function() xpcall(PaintDots, ns.Report) end)
 end
 
