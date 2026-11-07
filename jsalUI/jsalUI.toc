@@ -94,6 +94,7 @@ Journal\Recap.lua
 # spec's stat weights, from WoWSims.
 Gear\GearData.lua
 Gear\Gear.lua
+Gear\Stars.lua
 Gear\Page.lua
 
 # The dungeon guide: every dungeon and raid from the game's files, the bosses
