@@ -28,8 +28,10 @@ local function ChessWaiting()
     end
 end
 
--- The Layer button puts "I'm on layer 12 in Darkshore." in the guild chat
--- box, ready to send with Enter; it never sends by itself.
+-- The Layer button opens a menu: guildmates in your zone on another layer
+-- to join, asking in General, telling your guild, leaving a group. Telling
+-- puts "I'm on layer 12 in Darkshore." in the guild chat box, ready to
+-- send with Enter; it never sends by itself.
 local function TellLayer()
     local c = ns.Layers.Current()
     if not c then return ns.Print(ns.Layers.NONE) end
@@ -49,7 +51,18 @@ local function LayerTooltip(tip)
     local mapName = ns.Layers.MapName(c)
     tip:SetText("Layer " .. c.layer)
     tip:AddLine((mapName and (mapName .. ", read ") or "Read ") .. ns.Layers.Ago(c), 1, 1, 1)
-    tip:AddLine(IsInGuild() and "Click to tell your guild" or "Click to say it in chat", 0.89, 0.69, 0.29)
+    local others = ns.LayerSwitch and #ns.LayerSwitch.Choices() or 0
+    if others > 0 then
+        tip:AddLine(("%d guildmate%s here on another layer"):format(others, others == 1 and "" or "s"), 1, 1, 1)
+    end
+    tip:AddLine("Click to change layer or tell your guild", 0.89, 0.69, 0.29)
+end
+
+local function LayerMenu(button)
+    -- From the minimap button's list there's no button to open beside, so
+    -- the menu opens mid-screen.
+    if ns.LayerSwitch then return ns.LayerSwitch.Menu(button or UIParent, TellLayer) end
+    TellLayer()
 end
 
 -- Every button opens its place, and closes it when it's already open.
@@ -93,8 +106,8 @@ local PLACES = {
       ready = function() return ns.Layers and ns.Layers.running end,
       number = function() local c = ns.Layers.Current(); return c and c.layer end,
       tooltip = LayerTooltip,
-      open = TellLayer,
-      note = "The layer jsal.ui last read on this map. Click it to tell your guild. Needs the Layer reader on." },
+      open = LayerMenu,
+      note = "The layer jsal.ui last read on this map. Click it to join a guildmate on another layer, or to tell your guild. Needs Layers on." },
 }
 
 -- Settings has a switch for each button, the same choice as the grip's
@@ -257,7 +270,7 @@ local function Button(place)
     b.dot:SetSize(10, 10)
     b.dot:SetPoint("TOPRIGHT", 3, 3)
     b.dot:Hide()
-    b:SetScript("OnClick", function() place.open() end)
+    b:SetScript("OnClick", function(self) place.open(self) end)
     b:SetScript("OnEnter", function(self)
         Style.SetBorder(self.edges, "gold")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")

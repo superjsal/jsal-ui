@@ -81,6 +81,7 @@ Helpers\Warnings.lua
 Helpers\MinimapButton.lua
 Helpers\Layers.lua
 Helpers\Launcher.lua
+Helpers\LayerSwitch.lua
 Helpers\Reports.lua
 
 # The Journal: each character's story and stats, and the account's characters.

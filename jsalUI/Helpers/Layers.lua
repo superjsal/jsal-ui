@@ -8,8 +8,12 @@ local _, ns = ...
 local Compat = ns.Compat
 
 local Layers = ns.NewModule("layers", {
-    title = "Layer reader",
-    note = "Notes which copy (layer) of a zone you're in, from the creatures around you. /jsal layer",
+    title = "Layers",
+    note = "Notes which copy (layer) of a zone you're in, from the creatures around you, and changes it by joining a guildmate on another layer. /jsal layer",
+    options = {
+        { key = "host", title = "Invite guildmates who ask to join your layer", default = true,
+          note = "Only out of combat, outside dungeons, while your group has room, and never the same guildmate twice in a minute." },
+    },
 })
 ns.Layers = Layers
 
