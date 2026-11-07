@@ -40,8 +40,11 @@ for _, page in ipairs(PAGES) do byKey[page.key] = page end
 -- A part of jsal.ui claims its menu entry by giving it a builder. The builder
 -- runs once, the first time the page opens, and may set page.Refresh to run
 -- on every open.
-function Window.Page(key, build)
+function Window.Page(key, build, own)
     byKey[key].build = build
+    -- A page big enough to want room of its own (the gear plan, the dungeon
+    -- guide) opens in a window of that size beside the dashboard instead.
+    byKey[key].own = own
 end
 
 local frame, content, current, crumb
@@ -257,15 +260,45 @@ local function BuildPage(page)
     end
 end
 
+-- A page's own window: the panel every jsal.ui window shares, with the page
+-- built inside it the first time it opens. It holds no secure button, so
+-- unlike the dashboard it may stay open in a fight.
+local PANEL_PAD, BAR_H = 22, 32
+local function OpenOwn(page)
+    local own = page.own
+    if not own.frame then
+        local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
+        local f = Style.Panel(name, own.width, own.height, "jsal.ui  ·  " .. page.label)
+        local inner = CreateFrame("Frame", nil, f)
+        inner:SetPoint("TOPLEFT", PANEL_PAD, -(BAR_H + 16))
+        inner:SetPoint("BOTTOMRIGHT", -PANEL_PAD, 18)
+        inner.heading = CreateFrame("Frame", nil, inner)
+        inner.heading:SetSize(1, 1)
+        inner.heading:SetPoint("BOTTOMLEFT", inner, "TOPLEFT", 0, 8)
+        inner.contentWidth = own.width - PANEL_PAD * 2
+        inner.contentHeight = own.height - BAR_H - 16 - 18
+        own.frame, page.frame = f, inner
+        if not xpcall(function() page.build(inner) end, ns.Report) then
+            local text = Style.Text(inner, 13, "muted")
+            text:SetPoint("TOPLEFT")
+            text:SetText("This window hit an error. BugSack has the details.")
+        end
+    end
+    Refresh(page)
+    own.frame:Show()
+    own.frame:Raise()
+end
+
 function Window.Open(key)
+    local page = byKey[key] or byKey.home
+    if page.own and page.build then return OpenOwn(page) end
     if Compat.InCombat() then
         return ns.Print("The dashboard opens once combat ends.")
     end
     if not frame then Build() end
-    local page = byKey[key] or byKey.home
     if not page.frame then BuildPage(page) end
     for _, other in ipairs(PAGES) do
-        if other.frame then other.frame:SetShown(other == page) end
+        if other.frame and not other.own then other.frame:SetShown(other == page) end
     end
     current = page.key
     crumb:SetText(page.label)
@@ -290,15 +323,21 @@ combat:SetScript("OnEvent", function()
     if frame and frame:IsShown() then frame:Hide() end
 end)
 
--- Whether a page is the one on screen.
+-- Whether a page is on screen: the dashboard's current page, or a page's
+-- own window.
 function Window.IsOpen(key)
+    local page = byKey[key]
+    if page and page.own then return page.own.frame ~= nil and page.own.frame:IsShown() end
     return frame ~= nil and frame:IsShown() and current == key
 end
 
--- Repaints the page on screen after something it shows has changed.
+-- Repaints the pages on screen after something they show has changed.
 function Window.Refresh()
     if frame and frame:IsShown() and current then
         Refresh(byKey[current])
+    end
+    for _, page in ipairs(PAGES) do
+        if page.own and page.own.frame and page.own.frame:IsShown() then Refresh(page) end
     end
 end
 

@@ -1,13 +1,13 @@
--- The Gear plan page: your gear slots in one column, in the game's order.
--- Each slot is two lines: its name and what you wear, then, in green, the
--- best upgrade near your level for your spec; a
--- green dot marks the slots that have one. Click a slot to see its options
--- beside them: what each adds, where it comes from, its level, and a star to
--- keep it at the top.
+-- The Gear plan, in a window of its own: your gear slots in one column, in
+-- the game's order. Each slot shows its name, what you wear and, in green,
+-- the best upgrade near your level for your spec; a green dot marks the
+-- slots that have one. Click a slot to see its options beside them: what
+-- each adds, where it comes from, its level, and a star to keep it on top.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 240, 36, 2, 30, 46, 18
+local WINDOW_W, WINDOW_H = 1000, 830
+local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 290, 42, 2, 36, 50, 20
 local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
 local GREEN, RED = "|cff56944f", "|cffd65151"
 
@@ -47,7 +47,7 @@ end
 
 Window.Page("gear", function(page)
     local G = ns.Gear
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
     local paneW = SLOT_W
     local listW = width - paneW - LIST_GAP
     local chosen = "chest"
@@ -85,18 +85,17 @@ Window.Page("gear", function(page)
         b.dot:SetSize(9, 9)
         b.dot:SetColorTexture(Style.Color("wordGreen"))
         b.dot:SetPoint("CENTER", b.box, "TOPRIGHT", 0, 0)
-        -- Line one: the slot's name, then what you wear; line two: the upgrade.
-        local textW = SLOT_W - ICON - 18
+        -- Three lines: the slot's name, what you wear, the upgrade.
+        local textW = SLOT_W - ICON - 22
         b.label = Style.Text(b, 10, "muted")
-        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 6, -1)
+        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, 2)
         b.label:SetText(slot.label:upper())
-        b.worn = Style.Text(b, 12, "text")
-        b.worn:SetPoint("BOTTOMLEFT", b.label, "BOTTOMRIGHT", 5, -1)
-        b.worn:SetWidth(textW - b.label:GetStringWidth() - 5)
-        b.up = Style.Text(b, 11, "muted")
-        b.up:SetPoint("BOTTOMLEFT", b.box, "BOTTOMRIGHT", 6, 1)
-        b.up:SetWidth(textW)
+        b.worn = Style.Text(b, 13, "text")
+        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -1)
+        b.up = Style.Text(b, 12, "muted")
+        b.up:SetPoint("TOPLEFT", b.worn, "BOTTOMLEFT", 0, -1)
         for _, t in ipairs({ b.label, b.worn, b.up }) do
+            t:SetWidth(textW)
             t:SetJustifyH("LEFT")
             t:SetWordWrap(false)
         end
@@ -132,15 +131,15 @@ Window.Page("gear", function(page)
         if rows[i] then return rows[i] end
         local r = CreateFrame("Frame", nil, list)
         r:SetSize(listW - 14, ROW_H)
-        r.box = IconBox(r, 30)
+        r.box = IconBox(r, 36)
         r.box:SetPoint("LEFT", 0, 0)
         r.icon = r.box.icon
-        r.name = Style.Text(r, 12, "text")
+        r.name = Style.Text(r, 13, "text")
         r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 8, 0)
         r.name:SetWidth(listW - 80)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
-        r.where = Style.Text(r, 11, "muted")
+        r.where = Style.Text(r, 12, "muted")
         r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
         r.where:SetWidth(listW - 80)
         r.where:SetJustifyH("LEFT")
@@ -285,4 +284,4 @@ Window.Page("gear", function(page)
             if page:IsVisible() then Paint() end
         end)
     end)
-end)
+end, { width = WINDOW_W, height = WINDOW_H })
