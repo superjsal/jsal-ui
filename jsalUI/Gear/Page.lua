@@ -128,22 +128,61 @@ Window.Page("gear", function(page)
     local empty = Style.Text(list, 13, "muted")
     empty:SetWidth(listW - 28)
     empty:SetJustifyH("LEFT")
+    -- The options scroll, between their heading and the add box, with a
+    -- thin bar on the right when there are more than fit.
+    local ADD_H = 58
+    local OPT_TOP = 18 + ROW_H + 16 + 20
+    local VIEW_H = (height - top - 60) - OPT_TOP - ADD_H
+    local scroll = CreateFrame("ScrollFrame", nil, list)
+    scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
+    scroll:SetSize(listW, VIEW_H)
+    local optList = CreateFrame("Frame", nil, scroll)
+    optList:SetSize(listW, 1)
+    scroll:SetScrollChild(optList)
+    local track = scroll:CreateTexture(nil, "ARTWORK")
+    track:SetColorTexture(Style.Color("line"))
+    track:SetWidth(3)
+    track:SetPoint("TOPRIGHT")
+    track:SetPoint("BOTTOMRIGHT")
+    local thumb = scroll:CreateTexture(nil, "OVERLAY")
+    thumb:SetColorTexture(Style.Color("muted"))
+    thumb:SetWidth(3)
+    local function PaintThumb()
+        local total = optList:GetHeight() or 0
+        local more = total > VIEW_H + 1
+        track:SetShown(more)
+        thumb:SetShown(more)
+        if not more then return end
+        local h = math.max(24, VIEW_H * VIEW_H / total)
+        local offset = (scroll:GetVerticalScroll() or 0) / (total - VIEW_H) * (VIEW_H - h)
+        thumb:SetHeight(h)
+        thumb:ClearAllPoints()
+        thumb:SetPoint("TOPRIGHT", 0, -offset)
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local most = math.max(0, (optList:GetHeight() or 0) - VIEW_H)
+        self:SetVerticalScroll(math.max(0, math.min(most, self:GetVerticalScroll() - delta * ROW_H)))
+        PaintThumb()
+    end)
+
     local rows = {}
     local function Row(i)
         if rows[i] then return rows[i] end
-        local r = CreateFrame("Frame", nil, list)
-        r:SetSize(listW - 14, ROW_H)
+        -- The first row is what you wear, above the scroll; the rest scroll.
+        local r = CreateFrame("Frame", nil, i == 1 and list or optList)
+        r:SetSize(listW - (i == 1 and 14 or 28), ROW_H)
         r.box = IconBox(r, 36)
         r.box:SetPoint("LEFT", 0, 0)
         r.icon = r.box.icon
         r.name = Style.Text(r, 15, "text")
         r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 8, 0)
-        r.name:SetWidth(listW - 80)
+        r.name:SetWidth(listW - (i == 1 and 14 or 28) - 72)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
         r.where = Style.Text(r, 13, "muted")
         r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
-        r.where:SetWidth(listW - 80)
+        r.where:SetWidth(listW - (i == 1 and 14 or 28) - 72)
         r.where:SetJustifyH("LEFT")
         r.where:SetWordWrap(false)
         r.star = CreateFrame("Button", nil, r)
@@ -167,7 +206,6 @@ Window.Page("gear", function(page)
     -- Adding an item the plan doesn't list: its ID, a shift-clicked link
     -- or its Wowhead address. One the game hasn't loaded yet is tried again
     -- when it arrives.
-    local ADD_H = 58
     local box = Style.Field(list, listW - 14 - 96 - 8)
     box.well:SetPoint("BOTTOMLEFT", list, "BOTTOMLEFT", 14, 22)
     box.hint = Style.Text(box.well, 12, "muted")
@@ -217,16 +255,18 @@ Window.Page("gear", function(page)
     note:SetJustifyH("LEFT")
     note:SetText("Items and where they come from are from Wowhead Forever and what you and your guild have seen. They're incomplete, especially past level 30, and will change as more people play. Stat weights are WoWSims'.")
 
-    -- The line under an item: what it adds, where it comes from, its level.
+    -- The line under an item: what it adds, where it comes from, and the
+    -- level it needs (none shown when it needs none).
     local function Detail(o)
         local bits = {}
         if o.gains and o.gains ~= "" then bits[#bits + 1] = GREEN .. o.gains .. "|r" end
-        if o.kind ~= "" then bits[#bits + 1] = o.kind end
-        if o.place ~= "" then bits[#bits + 1] = o.place end
-        bits[#bits + 1] = (o.soon and RED or "") .. "level " .. math.max(o.req, 1) .. (o.soon and "|r" or "")
+        local source = G.Source(o)
+        if source ~= "" then bits[#bits + 1] = source end
+        if (o.req or 0) > 0 then bits[#bits + 1] = (o.soon and RED or "") .. "level " .. o.req .. (o.soon and "|r" or "") end
         return table.concat(bits, " · ")
     end
 
+    local paintedSlot
     Paint = function()
         local level = UnitLevel("player") or 1
         local spec = G.Spec()
@@ -288,14 +328,12 @@ Window.Page("gear", function(page)
         betterHead:ClearAllPoints()
         betterHead:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
         betterHead:SetText("BETTER FOR YOU")
-        local y = 18 + ROW_H + 16 + 20
-        local maxRows = math.floor((height - top - 60 - y - ADD_H) / ROW_H)
+        local y = OPT_TOP
         local shown = 0
         for i, o in ipairs(plan.options) do
-            if i > maxRows then break end
             local r = Row(i + 1)
             r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 14, -(y + (i - 1) * ROW_H))
+            r:SetPoint("TOPLEFT", 14, -((i - 1) * ROW_H))
             r.item, r.equip = o.id, nil
             local name, _, quality, texture = ItemInfo(o.id)
             r.icon:SetTexture(texture or Compat.ItemIcon(o.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
@@ -308,6 +346,12 @@ Window.Page("gear", function(page)
             shown = i
         end
         for i = shown + 2, #rows do rows[i]:Hide() end
+        -- Back to the top for another slot; kept in range otherwise.
+        optList:SetHeight(math.max(1, shown * ROW_H))
+        local most = math.max(0, shown * ROW_H - VIEW_H)
+        scroll:SetVerticalScroll(chosen ~= paintedSlot and 0 or math.min(scroll:GetVerticalScroll() or 0, most))
+        paintedSlot = chosen
+        PaintThumb()
         empty:ClearAllPoints()
         empty:SetPoint("TOPLEFT", 14, -y)
         if shown == 0 then
