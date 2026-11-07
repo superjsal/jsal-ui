@@ -71,8 +71,9 @@ function Gear.ForClass(classFile, level, itemClass, subclass, slot)
 end
 
 -- Whether a class can wear a piece of armor at all: its own type or any
--- lighter one. The plan keeps to your own type, except for profession gear
--- (an engineer's goggles are cloth, worn by every class).
+-- lighter one. The plan offers lighter armor too, when its stats are better
+-- for you (a hunter's cloth with Agility, an engineer's cloth goggles).
+Gear.ARMOR_NAMES = { "Cloth", "Leather", "Mail", "Plate" }
 function Gear.CanWear(classFile, level, itemClass, subclass)
     local gear = Gear.CLASS_GEAR[classFile or ""]
     if not gear or itemClass ~= ARMOR or not subclass or subclass < 1 or subclass > 4 then return false end
@@ -406,9 +407,13 @@ function Gear.Candidates(slot, level, classFile, classID, side)
                 and (s == 0 or s == side)
                 and (reqclass == 0 or math.floor(reqclass / bit) % 2 == 1)
                 and (Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType)
-                     or (need and Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub)))) then
+                     or Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub))) then
                 local e = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
                 e.needs = need or nil
+                -- Lighter than you wear: named, so it's a choice you see.
+                if not Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType) then
+                    e.lighter = Gear.ARMOR_NAMES[tonumber(sub)]
+                end
                 out[#out + 1] = e
             end
         end
