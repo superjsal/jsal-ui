@@ -268,7 +268,7 @@ local function OpenOwn(page)
     local own = page.own
     if not own.frame then
         local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
-        local f = Style.Panel(name, own.width, own.height, "jsal.ui  ·  " .. page.label)
+        local f = Style.Panel(name, own.width, own.height, page.label)
         local inner = CreateFrame("Frame", nil, f)
         inner:SetPoint("TOPLEFT", PANEL_PAD, -(BAR_H + 16))
         inner:SetPoint("BOTTOMRIGHT", -PANEL_PAD, 18)

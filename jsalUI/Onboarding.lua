@@ -395,7 +395,7 @@ local function Finish()
 end
 
 local function Build()
-    frame = Style.Panel("jsalUISetup", WIDTH, HEIGHT, "Set up jsal.ui")
+    frame = Style.Panel("jsalUISetup", WIDTH, HEIGHT, "Setup")
     frame:SetFrameStrata("DIALOG")
     -- Closing it early counts as seen, so it doesn't open again by itself.
     frame:HookScript("OnHide", function()
