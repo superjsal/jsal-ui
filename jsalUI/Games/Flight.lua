@@ -3,7 +3,7 @@
 -- tables give each path's length (FlightData.lua). A flight's time is the
 -- length of its legs over the flight speed, plus any stops along the way.
 local _, ns = ...
-local Style, Compat, Games = ns.Style, ns.Compat, ns.Games
+local Style, Compat = ns.Style, ns.Compat
 
 local Flight = ns.NewModule("flight", {
     title = "Flight bar",
@@ -61,25 +61,57 @@ local function Clock(seconds)
 end
 
 -- The bar.
-local bar, route, time, track, fill, knob, note, wordButton, iconButton
+local bar, route, time, track, fill, knob, note
 local current
 
+-- Today's games and chess, as the quick buttons' icons: a gold dot when
+-- one is waiting (today's puzzle not played, your move), a tooltip saying
+-- what. Parts that are switched off leave no gap.
+local GAMES, TILE = { "word", "icons", "chess" }, 32
+local tiles = {}
+
 local function PaintGames()
-    local today = Games.Today()
-    for _, entry in ipairs({
-        { button = wordButton, game = ns.DailyWord, label = "Daily Word #" .. today },
-        { button = iconButton, game = ns.IconGuess, label = "Icon Guess #" .. today },
-    }) do
-        local b, game = entry.button, entry.game
-        b:SetShown(game.running)
-        if game.DailyDone() then
-            b:SetLabel(entry.label .. " · done")
-            b:SetKind("plain")
-        else
-            b:SetLabel(entry.label)
-            b:SetKind("primary")
+    local launcher = ns.Launcher
+    local x = 12
+    for _, key in ipairs(GAMES) do
+        local t, place = tiles[key], launcher and launcher.Place(key)
+        local on = t and place and launcher.Ready(place)
+        if t then t:SetShown(on and true or false) end
+        if on then
+            t:ClearAllPoints()
+            t:SetPoint("BOTTOMLEFT", x, 12)
+            x = x + TILE + 6
+            t.dot:SetShown(launcher.Waiting(place) ~= nil)
         end
     end
+end
+
+local function Tile(key)
+    local place = ns.Launcher and ns.Launcher.Place(key)
+    if not place then return end
+    local t = CreateFrame("Button", nil, bar)
+    t:SetSize(TILE, TILE)
+    t.icon = t:CreateTexture(nil, "ARTWORK")
+    t.icon:SetAllPoints()
+    t.icon:SetTexture(place.icon)
+    t.dot = t:CreateTexture(nil, "OVERLAY")
+    t.dot:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Chess\\dot")
+    t.dot:SetVertexColor(Style.Color("gold"))
+    t.dot:SetSize(10, 10)
+    t.dot:SetPoint("TOPRIGHT", 3, 3)
+    t:SetScript("OnClick", function()
+        place.open()
+        PaintGames()
+    end)
+    t:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(place.label)
+        local waiting = ns.Launcher.Waiting(place)
+        if waiting then GameTooltip:AddLine(waiting, 0.89, 0.69, 0.29) end
+        GameTooltip:Show()
+    end)
+    t:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    tiles[key] = t
 end
 
 local function Paint()
@@ -108,25 +140,15 @@ local function Paint()
 end
 
 local function Build()
+    -- One fixed spot, top centre, where flight timers usually sit; it isn't
+    -- dragged, so it's always where you look for it. A spot saved by the
+    -- older, draggable bar is forgotten.
+    ns.db.flightPoint = nil
     bar = CreateFrame("Frame", "jsalUIFlightBar", UIParent)
-    bar:SetSize(WIDTH, 108)
-    local saved = ns.db.flightPoint
-    if type(saved) == "table" then
-        bar:SetPoint(saved[1], UIParent, saved[2], saved[3], saved[4])
-    else
-        bar:SetPoint("TOP", 0, -150)
-    end
+    bar:SetSize(WIDTH, 112)
+    bar:SetPoint("TOP", 0, -150)
     bar:SetFrameStrata("MEDIUM")
-    bar:SetClampedToScreen(true)
-    bar:SetMovable(true)
     bar:EnableMouse(true)
-    bar:RegisterForDrag("LeftButton")
-    bar:SetScript("OnDragStart", function() bar:StartMoving() end)
-    bar:SetScript("OnDragStop", function()
-        bar:StopMovingOrSizing()
-        local point, _, relativePoint, x, y = bar:GetPoint(1)
-        ns.db.flightPoint = { point, relativePoint, x, y }
-    end)
     bar:Hide()
     Style.Fill(bar, "window")
     Style.Border(bar, "lineStrong")
@@ -155,23 +177,24 @@ local function Build()
     note = Style.Text(bar, 11, "muted")
     note:SetPoint("TOPLEFT", track, "BOTTOMLEFT", 0, -6)
 
-    wordButton = Style.Button(bar, "", "primary", 150)
-    wordButton:SetHeight(24)
-    wordButton:SetPoint("BOTTOMLEFT", 12, 12)
-    wordButton:SetScript("OnClick", function() ns.DailyWord.Open() end)
-    iconButton = Style.Button(bar, "", "primary", 150)
-    iconButton:SetHeight(24)
-    iconButton:SetPoint("LEFT", wordButton, "RIGHT", 6, 0)
-    iconButton:SetScript("OnClick", function() ns.IconGuess.Open() end)
+    for _, key in ipairs(GAMES) do Tile(key) end
+    if ns.Chess and ns.Chess.OnChange then
+        ns.Chess.OnChange(function() if bar:IsShown() then PaintGames() end end)
+    end
 
-    -- A light refresh: the clock and the bar move a few times a second.
-    local wait = 0
+    -- A light refresh: the clock and the bar move a few times a second,
+    -- the games' dots every couple of seconds.
+    local wait, games = 0, 0
     bar:SetScript("OnUpdate", function(_, elapsed)
-        wait = wait - elapsed
+        wait, games = wait - elapsed, games - elapsed
         if wait > 0 then return end
         wait = 0.2
         if not Compat.OnTaxi() then return Flight.Land() end
         Paint()
+        if games <= 0 then
+            games = 2
+            PaintGames()
+        end
     end)
 end
 

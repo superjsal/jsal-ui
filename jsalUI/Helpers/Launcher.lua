@@ -73,6 +73,15 @@ local function Waiting(place)
     return ok and text or nil
 end
 
+-- The same places for other parts (the flight bar's games): one by key, and
+-- whether it's there to use and what's waiting.
+function Launcher.Place(key)
+    for _, place in ipairs(PLACES) do
+        if place.key == key then return place end
+    end
+end
+Launcher.Ready, Launcher.Waiting = Ready, Waiting
+
 -- Saved for the account: where the bar is, which buttons are hidden, its
 -- direction and whether it's locked.
 local function Saved()
