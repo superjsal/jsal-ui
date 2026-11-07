@@ -15,6 +15,8 @@ local Journal = ns.NewModule("journal", {
     options = {
         { key = "photo", title = "A screenshot at each level-up", default = true,
           note = "Saved in the game's Screenshots folder, and noted in the story." },
+        { key = "recap", title = "A session recap as you log out", default = true,
+          note = "Time, levels, kills, quests and gold since you logged in, and a reminder when you're not resting. /jsal recap shows it any time." },
     },
 })
 ns.Journal = Journal
@@ -47,7 +49,7 @@ Journal.Book = Book
 -- Each level's own row for the By level tab: time, XP, gold gained and
 -- spent, kills, quests, deaths. The level the journal began in is marked
 -- as started partway.
-local PER_LEVEL = { seconds = true, earned = true, foes = true, quests = true, deaths = true }
+local PER_LEVEL = { seconds = true, earned = true, spent = true, foes = true, quests = true, deaths = true }
 local function Level(level)
     local j = Book()
     j.levels = type(j.levels) == "table" and j.levels or {}
@@ -78,6 +80,8 @@ local function XPChanged()
     if xpWas then
         local gained = level == xpLevelWas and (xp - xpWas) or ((xpMaxWas - xpWas) + xp)
         if gained > 0 then
+            local s = Book().stats
+            s.xp = (s.xp or 0) + gained
             -- XP past the old level belongs to the level it was earned in.
             if level ~= xpLevelWas then
                 local old = Level(xpLevelWas)
@@ -267,8 +271,7 @@ local function MoneyChanged()
     local gained = now - (moneyWas or now)
     moneyWas = now
     if gained < 0 then
-        local row = Level()
-        row.spent = (row.spent or 0) - gained
+        Add("spent", -gained)
         return
     end
     if gained == 0 then return end
@@ -450,6 +453,11 @@ function Journal:OnEnable()
     LootPrefixes()
     DuelPatterns()
     moneyWas = GetMoney and GetMoney() or 0
+    -- This session starts now: what's counted from here is its recap.
+    local stats = {}
+    for k, v in pairs(Book().stats) do stats[k] = v end
+    Journal.session = { started = Compat.ServerTime(), clock = GetTime(), stats = stats,
+                        level = UnitLevel("player"), xp = UnitXP("player"), xpMax = UnitXPMax("player") }
     -- Where the XP bar stands now, so the first gain can be measured.
     xpWas = nil
     XPChanged()
