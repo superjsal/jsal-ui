@@ -412,7 +412,8 @@ Window.Page("dungeons", function(page)
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
             local parts = {}
             if entry.chance or entry.guessed then parts[#parts + 1] = ("%d%%"):format(entry.chance or entry.guessed) end
-            if slot then parts[#parts + 1] = slot end
+            -- Recipes and other things you don't wear have a blank slot name.
+            if slot and slot ~= "" then parts[#parts + 1] = slot end
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
             -- Too high for you yet: its level, in red.
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
