@@ -89,8 +89,9 @@ WINGS = {
 
 # Bosses whose encounter is named differently from the boss you see in the game (and on
 # Wowhead): Ruins of Lordaeron's "The Butcher" is The Baron, Hall of Thanes's "Infurnus" is
-# Magmatus. The card shows the boss's own name; loot is learned under either.
-NPC_NAME = {3355: "The Baron", 3495: "Magmatus"}
+# Magmatus, City of Dalaran's "Mana Elemental" is Arcanic Enigma. The card shows the boss's
+# own name; loot is learned under either.
+NPC_NAME = {3355: "The Baron", 3495: "Magmatus", 3301: "Arcanic Enigma"}
 
 # Rows that aren't a boss to kill.
 NOT_BOSSES = {3018}  # "The Molten Core": the raid's own completion

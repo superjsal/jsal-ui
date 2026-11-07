@@ -29,7 +29,7 @@ ns.DungeonData = {
     { id = 3274, map = 2998, name = "Excavation Site: Wetlands", level = 26, zone = "Wetlands", side = "Alliance",
       bosses = { { 3480, "Saltspine" }, { 3481, "Shadetooth" }, { 3644, "Highland Horror" }, { 3482, "Relic Guardian" } } },
     { id = 3271, map = 2959, name = "City of Dalaran", level = 28, zone = "Alterac Mountains",
-      bosses = { { 3298, "Arcane Anomaly" }, { 3299, "Fel Ancient" }, { 3300, "Mana Devourer" }, { 3301, "Mana Elemental" }, { 3302, "Unstable Sentinel" }, { 3310, "Lyn the Ignored" }, { 3311, "Atrexis the Grave Knight" }, { 3312, "Mana Wraith" }, { 3303, "Shade of the Archmage" } } },
+      bosses = { { 3298, "Arcane Anomaly" }, { 3299, "Fel Ancient" }, { 3300, "Mana Devourer" }, { 3301, "Mana Elemental", "Arcanic Enigma" }, { 3302, "Unstable Sentinel" }, { 3310, "Lyn the Ignored" }, { 3311, "Atrexis the Grave Knight" }, { 3312, "Mana Wraith" }, { 3303, "Shade of the Archmage" } } },
     { id = 17, map = 189, name = "Scarlet Monastery", level = 30, zone = "Tirisfal Glades", side = "Horde",
       bosses = { { 444, "Interrogator Vishas" }, { 2779, "Bloodmage Thalnos" }, { 446, "Houndmaster Loksey" }, { 447, "Arcanist Doan" }, { 448, "Herod" }, { 449, "High Inquisitor Fairbanks" }, { 450, "High Inquisitor Whitemane" } } },
     { id = 19, map = 129, name = "Razorfen Downs", level = 34, zone = "The Barrens", side = "Horde",
