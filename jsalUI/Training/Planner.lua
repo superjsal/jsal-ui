@@ -117,7 +117,7 @@ Window.Page("training", function(page)
     cartSub:SetPoint("TOPRIGHT", -CART_PAD, -(CART_PAD + 3))
     cartSub:SetJustifyH("RIGHT")
 
-    local TOTALS_H = 138
+    local TOTALS_H = 204
     local cardScroll, cardList = Scroller(cart, CART_W - CART_PAD * 2, height - top - 48 - TOTALS_H - CART_PAD)
     cardScroll:SetPoint("TOPLEFT", CART_PAD, -48)
     local empty = Style.Text(cardList, 13, "muted")
@@ -166,6 +166,27 @@ Window.Page("training", function(page)
     local priceNote = Style.Text(totals, 11, "muted")
     priceNote:SetPoint("TOPLEFT", 0, -118)
     priceNote:SetWidth(CART_W - CART_PAD * 2)
+    -- Your nearest class trainer, and a pin on the map to them.
+    local where = Style.Text(totals, 12, "muted")
+    where:SetPoint("TOPLEFT", 0, -150)
+    where:SetWidth(CART_W - CART_PAD * 2)
+    where:SetWordWrap(false)
+    local pin = Style.Button(totals, "Show trainer on map", "primary", CART_W - CART_PAD * 2)
+    pin:SetHeight(28)
+    pin:SetPoint("TOPLEFT", 0, -172)
+    local function PaintTrainer()
+        local _, _, classID = UnitClass("player")
+        local nearest = classID and ns.Trainers and ns.Trainers.Nearest("class" .. classID)
+        if nearest then
+            local place = ns.Trainers.Zone(nearest)
+            where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(nearest.name, place and (", " .. place) or ""))
+            pin:SetScript("OnClick", function() ns.Trainers.Pin(nearest) end)
+            pin:Enable()
+        else
+            where:SetText("No class trainer found nearby")
+            pin:Disable()
+        end
+    end
 
     local cards = {}
     local function Card(i)
@@ -613,7 +634,10 @@ Window.Page("training", function(page)
         lowerScroll:Place()
     end
 
-    page.Refresh = Paint
+    page.Refresh = function()
+        Paint()
+        PaintTrainer()
+    end
     local events = CreateFrame("Frame")
     for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED", "MERCHANT_CLOSED",
                              "UNIT_PET", "UNIT_LEVEL", "CRAFT_CLOSE" }) do
