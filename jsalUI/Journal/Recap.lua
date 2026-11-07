@@ -68,9 +68,8 @@ end
 local card, tiles, levelLine, moments, warning
 local function Build()
     card = Style.Panel("jsalUIRecap", WIDTH, HEIGHT, "This session")
-    card:ClearAllPoints()
-    card:SetPoint("TOP", 0, -140)
-    card:SetFrameStrata("DIALOG")
+    -- Under the game's own boxes, so it never covers the logout box's Exit Now.
+    card:SetFrameStrata("MEDIUM")
     levelLine = Style.Text(card, 14, "gold", nil, true)
     levelLine:SetPoint("TOPLEFT", 16, -46)
     levelLine:SetWidth(WIDTH - 32)
@@ -112,6 +111,25 @@ local function Build()
     close:SetScript("OnClick", function() card:Hide() end)
 end
 
+-- Just below the game's logout box while it shows, else near the top.
+local function Place()
+    if not card then return end
+    local popup
+    for _, which in ipairs({ "CAMP", "QUIT" }) do
+        if StaticPopup_Visible then
+            local name, frame = StaticPopup_Visible(which)
+            popup = popup or frame or (name and _G[name])
+        end
+    end
+    card:ClearAllPoints()
+    if popup then
+        card:SetPoint("TOP", popup, "BOTTOM", 0, -12)
+    else
+        card:SetPoint("TOP", 0, -140)
+    end
+end
+Recap.Place = Place
+
 function Recap.Show()
     local s = Recap.Summary()
     if not s then return ns.Print("The recap needs the Journal switched on in Settings.") end
@@ -136,7 +154,10 @@ function Recap.Show()
     local warn = not s.resting and s.level < 60
     warning:SetShown(warn)
     card:SetHeight(warn and HEIGHT or HEIGHT - 50)
+    Place()
     card:Show()
+    -- The logout box can appear a moment after the countdown starts.
+    Compat.After(0.1, Place)
     return s
 end
 
