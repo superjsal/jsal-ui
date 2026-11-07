@@ -6,7 +6,9 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Pets are offered the highest rank they can learn again, not Rank 1 first",
+    "The Journal: your character's story, stats by level, and all your characters",
+    "Guild crafters on the Professions page: see who in the guild makes what",
+    "Report a problem, at the bottom of this menu, and a Layer button on the quick bar",
 }
 
 local function NewsWanted()
