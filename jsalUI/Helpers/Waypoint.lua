@@ -87,7 +87,7 @@ Waypoint.FollowGuide = FollowGuide
 ---------------------------------------------------------------------------
 -- The label, kept just above the game's marker while it shows our pin.
 ---------------------------------------------------------------------------
-local box, title, distance
+local box, title, distance, pointer
 
 local function Build()
     box = CreateFrame("Frame", nil, UIParent)
@@ -100,6 +100,23 @@ local function Build()
     distance = Style.Text(box, 13, "gold", nil, true)
     distance:SetPoint("TOP", title, "BOTTOM", 0, -2)
     box:Hide()
+    -- jsal.ui's own pointer: a gold diamond with a dark edge, exactly where
+    -- the game's marker points (at the screen's edge when the spot is
+    -- behind you), since the game's own diamond may be hidden.
+    pointer = CreateFrame("Frame", nil, UIParent)
+    pointer:SetSize(18, 18)
+    pointer:SetFrameStrata("LOW")
+    local edge = pointer:CreateTexture(nil, "ARTWORK")
+    edge:SetSize(14, 14)
+    edge:SetPoint("CENTER")
+    edge:SetColorTexture(Style.Color("onGold"))
+    edge:SetRotation(math.rad(45))
+    local gem = pointer:CreateTexture(nil, "OVERLAY")
+    gem:SetSize(9, 9)
+    gem:SetPoint("CENTER")
+    gem:SetColorTexture(Style.Color("gold"))
+    gem:SetRotation(math.rad(45))
+    pointer:Hide()
 end
 
 local function Paint()
@@ -108,14 +125,18 @@ local function Paint()
     local show = frame and frame:IsVisible() and tracking and ours and Same(Current(), ours)
     if not show then
         box:Hide()
+        pointer:Hide()
         return
     end
     title:SetText(ours.label or "Waypoint")
     local yards = C_Navigation.GetDistance and C_Navigation.GetDistance()
     distance:SetText(yards and ("%d yd"):format(math.floor(yards)) or "")
     box:SetWidth(math.max(110, title:GetStringWidth() + 24))
+    pointer:ClearAllPoints()
+    pointer:SetPoint("CENTER", frame, "CENTER", 0, 0)
+    pointer:Show()
     box:ClearAllPoints()
-    box:SetPoint("BOTTOM", frame, "TOP", 0, 4)
+    box:SetPoint("BOTTOM", pointer, "TOP", 0, 4)
     box:Show()
 end
 
