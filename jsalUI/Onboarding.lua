@@ -26,7 +26,7 @@ local STEPS = {
 local GROUPS = {
     { label = "Journal and session recap", keys = { "journal" } },
     { label = "Daily Word, Icon Guess, chess and the flight bar", keys = { "dailyword", "iconguess", "chess", "flight" } },
-    { label = "Talents, training and level-up help", keys = { "talents", "trainingpanel", "levelup" } },
+    { label = "Talents, training, level-up help and guide waypoints", keys = { "talents", "trainingpanel", "levelup", "waypoint" } },
     { label = "Professions and the shopping list", keys = { "professionpanel", "profwindow", "shopping" } },
     { label = "Quick buttons and the minimap button", keys = { "launcher", "minimap" } },
     { label = "Vendor run, bag and gear warnings", keys = { "vendor", "warnings" } },

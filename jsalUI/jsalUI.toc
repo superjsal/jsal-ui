@@ -83,6 +83,7 @@ Helpers\Layers.lua
 Helpers\Launcher.lua
 Helpers\LayerSwitch.lua
 Helpers\Reports.lua
+Helpers\Waypoint.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
