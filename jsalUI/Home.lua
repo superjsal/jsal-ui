@@ -6,8 +6,8 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Change layers with your guild: click the Layer button on the quick bar",
-    "Join a guildmate on another layer in your zone, and keep it while you're grouped",
+    "No more \"blocked from an action\" message at login",
+    "The Journal counts kills from the game's own statistics, and shows bosses and flights",
 }
 
 local function NewsWanted()
