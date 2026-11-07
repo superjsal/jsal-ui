@@ -281,8 +281,8 @@ Window.Page("journal", function(page)
     -- By level: a row per level, newest first, and the totals.
     -----------------------------------------------------------------
     local levels = View("levels")
-    local COLS = { { "LEVEL", 56, "LEFT" }, { "TIME PLAYED", 78 }, { "XP GAINED", 76 }, { "XP/HOUR", 68 },
-                   { "GOLD GAINED", 82 }, { "GOLD SPENT", 82 }, { "NET", 82 }, { "KILLS", 54 },
+    local COLS = { { "LEVEL", 56, "LEFT" }, { "TIME", 78 }, { "XP", 76 }, { "XP/HOUR", 68 },
+                   { "GOLD IN", 82 }, { "GOLD OUT", 82 }, { "NET", 82 }, { "KILLS", 54 },
                    { "QUESTS", 56 }, { "DEATHS", 56 } }
     local colX, x = {}, 0
     local spare = math.floor((width - 690) / (#COLS - 1))
@@ -337,13 +337,17 @@ Window.Page("journal", function(page)
         if not xp or xp <= 0 or not seconds or seconds < 60 then return "-" end
         return Count(xp / (seconds / 3600))
     end
+    local function Money(copper)
+        return (copper or 0) > 0 and Coins(copper) or "-"
+    end
     local function Net(gained, spent)
         local net = (gained or 0) - (spent or 0)
+        if net == 0 then return "-" end
         return (net < 0 and "|cffff6b6b" or "|cff56944f") .. Coins(net) .. "|r"
     end
     local function FillRow(cells, label, row)
         local values = { label, Hours(row.seconds), row.xp and row.xp > 0 and Count(row.xp) or "-",
-                         PerHour(row.xp, row.seconds), Coins(row.earned), Coins(row.spent),
+                         PerHour(row.xp, row.seconds), Money(row.earned), Money(row.spent),
                          Net(row.earned, row.spent), Count(row.foes), Count(row.quests), Count(row.deaths) }
         for i, cell in ipairs(cells) do cell:SetText(values[i]) end
     end

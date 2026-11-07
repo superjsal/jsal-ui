@@ -453,7 +453,13 @@ function Journal:OnEnable()
     -- Where the XP bar stands now, so the first gain can be measured.
     xpWas = nil
     XPChanged()
-    Level()
+    -- A journal begun before rows were kept by level: while it has only
+    -- seen the level it began at, everything it counted belongs there.
+    local row, only = Level(), true
+    for lv in pairs(Book().levels) do if lv ~= Book().startLevel then only = false end end
+    if only and Book().startLevel == UnitLevel("player") then
+        for stat in pairs(PER_LEVEL) do row[stat] = math.max(row[stat] or 0, Book().stats[stat] or 0) end
+    end
     local f = CreateFrame("Frame")
     self.frame = f
     for _, event in ipairs({ "COMBAT_LOG_EVENT_UNFILTERED", "PLAYER_LEVEL_UP", "PLAYER_DEAD", "QUEST_TURNED_IN",
