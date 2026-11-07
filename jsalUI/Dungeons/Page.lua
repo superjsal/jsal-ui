@@ -54,10 +54,54 @@ end
 -- An item's details, asking the game to load them when it hasn't yet.
 local function ItemInfo(id)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
-    local name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture = get(id)
+    local name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, _, classID, subclassID = get(id)
     if not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
-    return name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture
+    return name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, classID, subclassID
 end
+
+---------------------------------------------------------------------------
+-- What your class wears and wields. Weapons by the game's weapon types
+-- (0 one-handed axe, 1 two-handed axe, 2 bow, 3 gun, 4 one-handed mace,
+-- 5 two-handed mace, 6 polearm, 7 one-handed sword, 8 two-handed sword,
+-- 10 staff, 13 fist weapon, 15 dagger, 16 thrown, 18 crossbow, 19 wand);
+-- armor as the type you wear (1 cloth, 2 leather, 3 mail, 4 plate), and
+-- from level 40 the next one up for the classes that get it.
+---------------------------------------------------------------------------
+local CLASS_GEAR = {
+    WARRIOR = { weapons = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 3, at40 = 4, shield = true },
+    PALADIN = { weapons = { 0, 1, 4, 5, 6, 7, 8 }, armor = 3, at40 = 4, shield = true },
+    HUNTER = { weapons = { 0, 1, 2, 3, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 2, at40 = 3 },
+    SHAMAN = { weapons = { 0, 1, 4, 5, 10, 13, 15 }, armor = 2, at40 = 3, shield = true },
+    ROGUE = { weapons = { 2, 3, 4, 7, 13, 15, 16, 18 }, armor = 2 },
+    DRUID = { weapons = { 4, 5, 10, 13, 15 }, armor = 2 },
+    PRIEST = { weapons = { 4, 10, 15, 19 }, armor = 1 },
+    MAGE = { weapons = { 7, 10, 15, 19 }, armor = 1 },
+    WARLOCK = { weapons = { 7, 10, 15, 19 }, armor = 1 },
+}
+local WEAPON, ARMOR, SHIELD = 2, 4, 6
+
+-- Whether an item is for you: a weapon your class wields, armor of the
+-- type you wear, or anything anyone wears (cloaks, rings, necklaces,
+-- trinkets, off-hand items, and anything that isn't gear). Nil when the
+-- game hasn't loaded the item yet.
+local function ForYou(classID, subclassID, equipLoc)
+    if not classID then return nil end
+    local _, classFile = UnitClass("player")
+    local gear = CLASS_GEAR[classFile or ""]
+    if not gear then return true end
+    if classID == WEAPON then
+        for _, kind in ipairs(gear.weapons) do if kind == subclassID then return true end end
+        return false
+    end
+    if classID == ARMOR then
+        if subclassID == SHIELD then return gear.shield == true end
+        if equipLoc == "INVTYPE_CLOAK" or not subclassID or subclassID < 1 or subclassID > 4 then return true end
+        local wears = (gear.at40 and (UnitLevel("player") or 1) >= 40) and gear.at40 or gear.armor
+        return subclassID == wears
+    end
+    return true
+end
+local RED = "|cffd65151"
 
 local function Scroller(parent, width, height)
     local scroll = CreateFrame("ScrollFrame", nil, parent)
@@ -371,7 +415,7 @@ Window.Page("dungeons", function(page)
             it:ClearAllPoints()
             it:SetPoint("TOPLEFT", 12, -(BOSS_H + 6 + (i - 1) * ITEM_H))
             it.item = entry.id
-            local name, _, quality, _, _, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
+            local name, _, quality, _, req, _, subclass, _, equipLoc, texture, classID, subclassID = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
             it.name:SetText(("|cff%s%s|r"):format(QUALITY_HEX[q] or "ffffff", name or entry.item.n or "..."))
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
@@ -379,6 +423,10 @@ Window.Page("dungeons", function(page)
             if entry.chance or entry.guessed then parts[#parts + 1] = ("%d%%"):format(entry.chance or entry.guessed) end
             if slot then parts[#parts + 1] = slot end
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
+            -- Too high for you yet: its level, in red.
+            if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
+            -- Not for your class or armor type: dimmed.
+            it:SetAlpha(ForYou(classID, subclassID, equipLoc) == false and 0.4 or 1)
             if entry.guild then
                 parts[#parts + 1] = ("guild %d of %d"):format(entry.guild, guildKills)
             elseif (entry.item.seen or 0) > 0 then
