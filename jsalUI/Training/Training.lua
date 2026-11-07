@@ -160,6 +160,18 @@ function Training.Read()
 
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     local data = { classID = classID, schools = source.schools, spells = {}, weapons = {}, haveTrainer = prices.haveTrainer }
+    -- Known: by the spell's ID, by its name at this rank or higher in your
+    -- spellbook, or a trainer having marked it learned. Forever can give a
+    -- spell you know a different ID from the one the trainer sells.
+    local book = Compat.PlayerSpellbook()
+    local trained = type(ns.char.trainedSpells) == "table" and ns.char.trainedSpells or {}
+    local function Known(id, name, rank)
+        if IsPlayerSpell(id) or book.ids[id] or trained[id] then return true end
+        if not name then return false end
+        if trained[name .. "|" .. (rank or "")] then return true end
+        local have = book.ranks[name]
+        return have ~= nil and have >= (tonumber(rank and rank:match("(%d+)")) or 0)
+    end
     -- Spells no class trainer sells come from a class quest, a book or (for
     -- a mage's teleports) a portal trainer, and say so. A priest's racial
     -- ranks are sold by trainers to that race only, so they show as usual.
@@ -175,7 +187,7 @@ function Training.Read()
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
                 cost = prices.bySpell[id] or prices.byName[name .. "|" .. (rank or "")],
-                known = IsPlayerSpell(id), skipped = skips[id] == true, via = via,
+                known = Known(id, name, rank), skipped = skips[id] == true, via = via,
             }
         end
     end
@@ -186,7 +198,7 @@ function Training.Read()
         if name and not classSpells[id] then
             data.spells[#data.spells + 1] = {
                 id = id, level = math.max(1, level or 1), name = name, icon = icon, rank = Rank(id),
-                cost = prices.bySpell[id], known = IsPlayerSpell(id), skipped = skips[id] == true,
+                cost = prices.bySpell[id], known = Known(id, name, Rank(id)), skipped = skips[id] == true,
             }
         end
     end

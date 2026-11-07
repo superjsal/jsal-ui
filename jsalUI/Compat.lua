@@ -228,6 +228,43 @@ function Compat.TrainerService(index)
     return name, third, second ~= "" and second or nil
 end
 
+-- What you know, from your own spellbook: each spell's ID, and for each name
+-- the highest rank in the book (0 for a spell without ranks). Forever can
+-- give a spell you know a different ID from the one its trainer sells, so
+-- name and rank are the surer check.
+function Compat.PlayerSpellbook()
+    local ids, ranks = {}, {}
+    local function Add(id, name, sub)
+        if id then ids[id] = true end
+        if name then
+            local rank = tonumber(sub and sub:match("(%d+)")) or 0
+            if rank >= (ranks[name] or -1) then ranks[name] = rank end
+        end
+    end
+    local book = C_SpellBook
+    local player = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
+    if book and book.GetNumSpellBookSkillLines and book.GetSpellBookSkillLineInfo and book.GetSpellBookItemInfo and player then
+        for line = 1, book.GetNumSpellBookSkillLines() or 0 do
+            local info = book.GetSpellBookSkillLineInfo(line)
+            if info then
+                for i = (info.itemIndexOffset or 0) + 1, (info.itemIndexOffset or 0) + (info.numSpellBookItems or 0) do
+                    local item = book.GetSpellBookItemInfo(i, player)
+                    if item then Add(item.spellID or item.actionID, item.name, item.subName) end
+                end
+            end
+        end
+    elseif GetNumSpellTabs and GetSpellTabInfo and GetSpellBookItemName then
+        for tab = 1, GetNumSpellTabs() do
+            local _, _, offset, count = GetSpellTabInfo(tab)
+            for i = (offset or 0) + 1, (offset or 0) + (count or 0) do
+                local name, sub, id = GetSpellBookItemName(i, BOOKTYPE_SPELL or "spell")
+                Add(id, name, sub)
+            end
+        end
+    end
+    return { ids = ids, ranks = ranks }
+end
+
 -- What the pet out now knows, from its spellbook: each spell by ID and by
 -- name and rank ("Bite|Rank 3").
 function Compat.PetSpellbook()
