@@ -427,7 +427,7 @@ Window.Page("dungeons", function(page)
             r:SetPoint("TOPLEFT", 0, -y)
             local killed = 0
             for _, b in ipairs(d.bosses) do
-                if D.KillCount(b[2], game) > 0 then killed = killed + 1 end
+                if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
             end
             r.name:SetText(d.name)
             local levelText = ("Level %d+"):format(d.level)
@@ -464,7 +464,7 @@ Window.Page("dungeons", function(page)
         title:SetText(d.name)
         local killed = 0
         for _, b in ipairs(d.bosses) do
-            if D.KillCount(b[2], game) > 0 then killed = killed + 1 end
+            if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
         end
         local bits = { (d.raid and "Raid · level %d+" or "Level %d+"):format(d.level), d.zone }
         if SideText(d) then bits[#bits + 1] = SideText(d) end
@@ -522,8 +522,8 @@ Window.Page("dungeons", function(page)
             local card = BossRow(k)
             card.boss = b[2]
             local col = (k - 1) % 2
-            local n = D.KillCount(b[2], game)
-            card.name:SetText(b[2])
+            local n = D.KillCount(b[2], game, b[3])
+            card.name:SetText(b[3] or b[2])
             card.kills:SetText(n > 0 and ("killed %d×"):format(n) or "")
             card.boxFill:SetShown(n > 0)
             card.tick:SetShown(n > 0)

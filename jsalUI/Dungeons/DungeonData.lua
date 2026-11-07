@@ -4,14 +4,14 @@ local _, ns = ...
 
 -- Each: its name, the level it's tuned to, where its entrance is, the side of the world
 -- that is (none: contested), the faction it's for (none: both), whether it's a raid, and
--- its bosses as { encounter ID, name }.
+-- its bosses as { encounter ID, name, and the boss's own name when it isn't the same }.
 ns.DungeonData = {
     { id = 3273, map = 3065, name = "Hall of Thanes", level = 13, zone = "Dun Morogh", side = "Alliance",
-      bosses = { { 3493, "Faldrim Anvilmar" }, { 3495, "Infurnus" }, { 3494, "Plunder" }, { 3496, "Durgen Dirgehammer" } } },
+      bosses = { { 3493, "Faldrim Anvilmar" }, { 3495, "Infurnus", "Magmatus" }, { 3494, "Plunder" }, { 3496, "Durgen Dirgehammer" } } },
     { id = 3, map = 389, name = "Ragefire Chasm", level = 13, zone = "Orgrimmar", side = "Horde", faction = "Horde",
       bosses = { { 2732, "Oggleflint" }, { 2733, "Taragaman the Hungerer" }, { 2734, "Jergosh the Invoker" }, { 2735, "Bazzalan" } } },
     { id = 3272, map = 2999, name = "Ruins of Lordaeron", level = 15, zone = "Tirisfal Glades", side = "Horde",
-      bosses = { { 3353, "Witherfang" }, { 3357, "The Abandoned" }, { 3355, "The Butcher" }, { 3408, "Lordaeron Captain" }, { 3411, "Viktor the Vile" }, { 3412, "Bjork" }, { 3354, "Rath'mael" } } },
+      bosses = { { 3353, "Witherfang" }, { 3357, "The Abandoned" }, { 3355, "The Butcher", "The Baron" }, { 3408, "Lordaeron Captain" }, { 3411, "Viktor the Vile" }, { 3412, "Bjork" }, { 3354, "Rath'mael" } } },
     { id = 5, map = 36, name = "The Deadmines", level = 16, zone = "Westfall", side = "Alliance",
       bosses = { { 2741, "Rhahk'Zor" }, { 2742, "Sneed" }, { 3676, "Miner Johnson" }, { 2743, "Gilnid" }, { 2744, "Captain Greenskin" }, { 2745, "Mr. Smite" }, { 2746, "Cookie" }, { 2747, "Edwin VanCleef" } } },
     { id = 1, map = 43, name = "Wailing Caverns", level = 17, zone = "The Barrens", side = "Horde",

@@ -18,13 +18,18 @@ local ROLL_WINDOW = 180
 local function Key(name) return type(name) == "string" and name:lower() or nil end
 Dungeons.Key = Key
 
--- Every boss by name, for the loot window and the game's statistics.
+-- Every boss by name, for the loot window: by its encounter's name and, when
+-- the boss you see is named differently, by that too, each giving the
+-- encounter's name, which kills and loot are kept under.
 local bosses
 local function Bosses()
     if bosses then return bosses end
     bosses = {}
     for _, d in ipairs(ns.DungeonData or {}) do
-        for _, b in ipairs(d.bosses) do bosses[Key(b[2])] = d end
+        for _, b in ipairs(d.bosses) do
+            bosses[Key(b[2])] = b[2]
+            if b[3] then bosses[Key(b[3])] = b[2] end
+        end
     end
     return bosses
 end
@@ -61,11 +66,13 @@ function Dungeons.GameKills()
     return out
 end
 
-function Dungeons.KillCount(boss, game)
-    local key = Key(boss)
+-- A boss's kills, by its encounter's name; the statistics may use the
+-- boss's own name instead.
+function Dungeons.KillCount(boss, game, ownName)
+    local key, own = Key(boss), Key(ownName)
     local n = Kills()[key] or 0
     for _, stat in ipairs(game or {}) do
-        if stat[1]:find(key, 1, true) then n = math.max(n, stat[2]) end
+        if stat[1]:find(key, 1, true) or (own and stat[1]:find(own, 1, true)) then n = math.max(n, stat[2]) end
     end
     return n
 end
@@ -94,8 +101,7 @@ end
 -- The boss you're looting: your target, dead, and one of the guide's.
 local function LootedBoss()
     if not (UnitExists and UnitExists("target") and UnitIsDead and UnitIsDead("target")) then return nil end
-    local name = UnitName("target")
-    return Bosses()[Key(name)] and name or nil
+    return Bosses()[Key(UnitName("target"))]
 end
 
 local recent, recentAt
