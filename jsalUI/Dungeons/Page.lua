@@ -1,13 +1,13 @@
 -- The Dungeons page: a picker on top opens every dungeon and raid in level
 -- groups, the ones right for your level in green; the chosen one fills the
--- page below in two tabs. Bosses and loot: its bosses in the game's order, ticked once
--- you've killed them, and under the chosen boss its loot (Wowhead's list
--- with drop chances, and anything you've seen it drop). Quests: the
--- dungeon's quests for your faction, ticked once done.
+-- page below in two tabs. Bosses and loot: a card per boss, two to a row in
+-- the game's order, ticked once you've killed it, with its loot listed on
+-- it (Wowhead's list with drop chances, and anything you've seen it drop).
+-- Quests: the dungeon's quests for your faction, ticked once done.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, BOSS_H, ITEM_H, QUEST_H = 340, 520, 34, 48, 28, 32, 36, 44
+local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, BOSS_H, ITEM_H, QUEST_H, CARD_GAP = 340, 520, 34, 48, 28, 36, 34, 44, 12
 
 -- Wowhead's quest sides: 1 Alliance, 2 Horde, 3 both.
 local QUEST_SIDE = { [1] = "Alliance", [2] = "Horde" }
@@ -77,7 +77,7 @@ Window.Page("dungeons", function(page)
     local D = ns.Dungeons
     local width, height = Window.contentWidth, Window.contentHeight
     local rightW = width
-    local chosen, chosenBoss, scrolled
+    local chosen, scrolled
     local Paint, opened
 
     -----------------------------------------------------------------
@@ -94,10 +94,14 @@ Window.Page("dungeons", function(page)
     pickerName:SetWidth(DROP_W - 50)
     pickerName:SetJustifyH("LEFT")
     pickerName:SetWordWrap(false)
-    local arrow = picker:CreateTexture(nil, "ARTWORK")
-    arrow:SetSize(22, 22)
-    arrow:SetPoint("RIGHT", -6, 0)
-    arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    -- A gold "v", drawn from two short strokes.
+    for _, way in ipairs({ -1, 1 }) do
+        local stroke = picker:CreateTexture(nil, "ARTWORK")
+        stroke:SetSize(8, 2)
+        stroke:SetColorTexture(Style.Color("gold"))
+        stroke:SetPoint("RIGHT", -14 - (way == -1 and 5 or 0), 0)
+        stroke:SetRotation(math.rad(45 * way))
+    end
     local key = Style.Text(page, 11, "muted")
     key:SetPoint("LEFT", picker, "RIGHT", 14, 0)
 
@@ -160,7 +164,7 @@ Window.Page("dungeons", function(page)
         r.count = Style.Text(r, 11, "muted")
         r.count:SetPoint("TOPRIGHT", -10, -8)
         r:SetScript("OnClick", function(self)
-            chosen, chosenBoss = self.dungeon, nil
+            chosen = self.dungeon
             drop:Hide()
             Paint()
         end)
@@ -199,19 +203,28 @@ Window.Page("dungeons", function(page)
     hint:SetJustifyH("RIGHT")
     local bossScroll, bossList = Scroller(right, rightW + 8, height - PICKER_H - 16 - 92)
     bossScroll:SetPoint("TOPLEFT", 0, -92)
-    local bossRows, items, questRows = {}, {}, {}
+    local bossRows, questRows = {}, {}
     local none = Style.Text(bossList, 12, "muted")
     none:SetWidth(rightW - 36)
     none:SetJustifyH("LEFT")
 
+    -- A boss's card: its name, ticked once you've killed it, and its loot
+    -- under it, one item to a line.
+    local cardW = math.floor((rightW - CARD_GAP) / 2)
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
-        local b = CreateFrame("Button", nil, bossList)
-        b:SetSize(rightW, BOSS_H)
-        b.bg = Style.Fill(b, "well")
-        b.box = CreateFrame("Frame", nil, b)
+        local b = CreateFrame("Frame", nil, bossList)
+        b:SetSize(cardW, BOSS_H)
+        Style.Fill(b, "well")
+        Style.Border(b, "line")
+        b.head = CreateFrame("Frame", nil, b)
+        b.head:SetPoint("TOPLEFT")
+        b.head:SetPoint("TOPRIGHT")
+        b.head:SetHeight(BOSS_H)
+        Style.Rule(b.head, "BOTTOM", "line")
+        b.box = CreateFrame("Frame", nil, b.head)
         b.box:SetSize(16, 16)
-        b.box:SetPoint("LEFT", 8, 0)
+        b.box:SetPoint("LEFT", 10, 0)
         b.boxFill = Style.Fill(b.box, "wordGreen")
         b.boxEdges = Style.Border(b.box, "lineStrong")
         -- The game's own check mark, in white.
@@ -221,18 +234,18 @@ Window.Page("dungeons", function(page)
         b.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
         b.tick:SetDesaturated(true)
         b.tick:SetVertexColor(1, 1, 1)
-        b.name = Style.Text(b, 13, "text")
+        b.name = Style.Text(b.head, 13, "text", nil, true)
         b.name:SetPoint("LEFT", b.box, "RIGHT", 10, 0)
-        b.name:SetWidth(rightW - 150)
+        b.name:SetWidth(cardW - 120)
         b.name:SetJustifyH("LEFT")
         b.name:SetWordWrap(false)
-        b.kills = Style.Text(b, 12, "muted")
+        b.kills = Style.Text(b.head, 11, "muted")
         b.kills:SetPoint("RIGHT", -10, 0)
-        Style.Rule(b, "BOTTOM", "line")
-        b:SetScript("OnClick", function(self)
-            chosenBoss = chosenBoss ~= self.boss and self.boss or nil
-            Paint()
-        end)
+        b.none = Style.Text(b, 11, "muted")
+        b.none:SetPoint("TOPLEFT", 12, -(BOSS_H + 8))
+        b.none:SetWidth(cardW - 24)
+        b.none:SetJustifyH("LEFT")
+        b.items = {}
         bossRows[i] = b
         return b
     end
@@ -278,10 +291,10 @@ Window.Page("dungeons", function(page)
         return q
     end
 
-    local itemW = math.floor((rightW - 36 - 10) / 2)
-    local function Item(i)
-        if items[i] then return items[i] end
-        local it = CreateFrame("Frame", nil, bossList)
+    local itemW = cardW - 24
+    local function Item(card, i)
+        if card.items[i] then return card.items[i] end
+        local it = CreateFrame("Frame", nil, card)
         it:SetSize(itemW, ITEM_H - 4)
         it.icon = it:CreateTexture(nil, "ARTWORK")
         it.icon:SetSize(26, 26)
@@ -305,13 +318,15 @@ Window.Page("dungeons", function(page)
             GameTooltip:Show()
         end)
         it:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        items[i] = it
+        card.items[i] = it
         return it
     end
 
-    -- A boss's loot: Wowhead's list with each item's drop chance, and
-    -- anything you've seen it drop that the list doesn't have.
-    local function PaintLoot(boss, encounter, y)
+    -- A boss's loot on its card: Wowhead's list with each item's drop
+    -- chance, and anything you've seen it drop that the list doesn't have.
+    -- Returns the card's height.
+    local function PaintLoot(card, boss, encounter)
+        for _, it in ipairs(card.items) do it:Hide() end
         local list, byId = {}, {}
         for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[encounter] or {}) do
             local entry = { id = drop[1], chance = drop[2], item = {} }
@@ -331,18 +346,15 @@ Window.Page("dungeons", function(page)
             return a.id < b.id
         end)
         if #list == 0 then
-            none:ClearAllPoints()
-            none:SetPoint("TOPLEFT", 36, -(y + 8))
-            none:SetText("No loot known yet. What it drops is added here when you loot it or roll on it.")
-            none:Show()
-            return y + 40
+            card.none:SetText("No loot known yet. It's added when you loot this boss or roll on its loot.")
+            card.none:Show()
+            return BOSS_H + 46
         end
-        none:Hide()
+        card.none:Hide()
         for i, entry in ipairs(list) do
-            local it = Item(i)
-            local row, col = math.floor((i - 1) / 2), (i - 1) % 2
+            local it = Item(card, i)
             it:ClearAllPoints()
-            it:SetPoint("TOPLEFT", 36 + col * (itemW + 10), -(y + 6 + row * ITEM_H))
+            it:SetPoint("TOPLEFT", 12, -(BOSS_H + 6 + (i - 1) * ITEM_H))
             it.item = entry.id
             local name, _, quality, _, _, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
@@ -359,7 +371,7 @@ Window.Page("dungeons", function(page)
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
-        return y + 6 + math.ceil(#list / 2) * ITEM_H + 6
+        return BOSS_H + 6 + #list * ITEM_H + 4
     end
 
     Paint = function()
@@ -459,7 +471,6 @@ Window.Page("dungeons", function(page)
         bits[#bits + 1] = ("%d of %d bosses killed"):format(killed, #d.bosses)
         meta:SetText(table.concat(bits, " · "))
 
-        for _, it in ipairs(items) do it:Hide() end
         for _, q in ipairs(questRows) do q:Hide() end
         for _, row in ipairs(bossRows) do row:Hide() end
         none:Hide()
@@ -503,24 +514,30 @@ Window.Page("dungeons", function(page)
             bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
             return
         end
-        hint:SetText("click a boss for its loot")
+        -- The bosses as cards, two to a row in the game's order; a row is as
+        -- tall as its taller card.
+        hint:SetText("hover an item for its details")
+        local rowH = 0
         for k, b in ipairs(d.bosses) do
-            local row = BossRow(k)
-            row.boss = b[2]
-            row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", 0, -by)
+            local card = BossRow(k)
+            card.boss = b[2]
+            local col = (k - 1) % 2
             local n = D.KillCount(b[2], game)
-            row.name:SetText(b[2])
-            row.kills:SetText(n > 0 and ("killed %d×"):format(n) or "")
-            row.boxFill:SetShown(n > 0)
-            row.tick:SetShown(n > 0)
-            Style.SetBorder(row.boxEdges, n > 0 and "wordGreen" or "lineStrong")
-            local open = chosenBoss == b[2]
-            row.bg:SetShown(open)
-            row.name:SetTextColor(Style.Color(open and "gold" or "text"))
-            row:Show()
-            by = by + BOSS_H
-            if open then by = PaintLoot(b[2], b[1], by) end
+            card.name:SetText(b[2])
+            card.kills:SetText(n > 0 and ("killed %d×"):format(n) or "")
+            card.boxFill:SetShown(n > 0)
+            card.tick:SetShown(n > 0)
+            Style.SetBorder(card.boxEdges, n > 0 and "wordGreen" or "lineStrong")
+            local h = PaintLoot(card, b[2], b[1])
+            card:SetHeight(h)
+            card:ClearAllPoints()
+            card:SetPoint("TOPLEFT", col * (cardW + CARD_GAP), -by)
+            card:Show()
+            rowH = math.max(rowH, h)
+            if col == 1 or k == #d.bosses then
+                by = by + rowH + CARD_GAP
+                rowH = 0
+            end
         end
         for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
         bossList:SetHeight(math.max(1, by))
@@ -529,8 +546,15 @@ Window.Page("dungeons", function(page)
 
     page.Refresh = function() Paint() end
     -- Item names and icons the game hadn't loaded yet arrive a moment later.
+    -- They come one by one, so the page repaints once for a batch.
+    local waiting
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:SetScript("OnEvent", function()
-        if page:IsVisible() and chosenBoss then Paint() end
+        if waiting or not page:IsVisible() or tab ~= "bosses" then return end
+        waiting = true
+        Compat.After(0.2, function()
+            waiting = nil
+            if page:IsVisible() then Paint() end
+        end)
     end)
 end)
