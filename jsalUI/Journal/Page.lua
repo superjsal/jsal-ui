@@ -5,6 +5,7 @@ local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 local TAB_W, GAP, TILE_H, ROW_H, CARD_H = 130, 8, 70, 26, 86
+local MODEL_W, HERO_H = 170, 210
 
 local function Hours(seconds)
     seconds = math.floor(seconds or 0)
@@ -79,7 +80,7 @@ Window.Page("journal", function(page)
     local summary = View("summary")
     local modelWell = CreateFrame("Frame", nil, summary)
     modelWell:SetPoint("TOPLEFT")
-    modelWell:SetSize(110, 130)
+    modelWell:SetSize(MODEL_W, HERO_H)
     Style.Fill(modelWell, "well")
     Style.Border(modelWell, "line")
     local model = CreateFrame("PlayerModel", nil, modelWell)
@@ -99,7 +100,7 @@ Window.Page("journal", function(page)
     for i = 1, 9 do
         local t = CreateFrame("Frame", nil, summary)
         t:SetSize(tileW, TILE_H)
-        t:SetPoint("TOPLEFT", ((i - 1) % 3) * (tileW + GAP), -(146 + math.floor((i - 1) / 3) * (TILE_H + GAP)))
+        t:SetPoint("TOPLEFT", ((i - 1) % 3) * (tileW + GAP), -(HERO_H + 16 + math.floor((i - 1) / 3) * (TILE_H + GAP)))
         Style.Fill(t, "well")
         Style.Border(t, "line")
         t.n = Style.Text(t, 20, "gold", nil, true)
@@ -114,7 +115,7 @@ Window.Page("journal", function(page)
         tiles[i] = t
     end
 
-    local listTop = 146 + 3 * (TILE_H + GAP) + 10
+    local listTop = HERO_H + 16 + 3 * (TILE_H + GAP) + 10
     local halfW = math.floor((width - 24) / 2)
     local function List(x, title)
         local head = Style.Text(summary, 11, "gold", nil, true)
@@ -154,6 +155,9 @@ Window.Page("journal", function(page)
         local className, classFile = UnitClass("player")
         model:SetUnit("player")
         model:SetRotation(0.35)
+        -- The camera a little closer than the game's default, so the
+        -- character fills its frame.
+        if model.SetCamDistanceScale then pcall(model.SetCamDistanceScale, model, 0.75) end
         name:SetText(ClassColor(classFile) .. (Compat.MyName() or UnitName("player")) .. "|r")
         who:SetText(("Level %d %s · %s on record"):format(UnitLevel("player"), className or "", Hours(J.Stat("seconds"))))
         local spells = J.Top(book.spells, 5)
