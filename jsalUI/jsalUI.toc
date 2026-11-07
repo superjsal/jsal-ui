@@ -95,6 +95,7 @@ Journal\Recap.lua
 Dungeons\DungeonData.lua
 Dungeons\DungeonLoot.lua
 Dungeons\Dungeons.lua
+Dungeons\GuildLoot.lua
 Dungeons\Page.lua
 
 # Dashboard pages.

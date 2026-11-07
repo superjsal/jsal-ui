@@ -7,7 +7,11 @@ local _, ns = ...
 
 local Dungeons = ns.NewModule("dungeons", {
     title = "Dungeon guide",
-    note = "A Dungeons page: every dungeon and raid by level, its bosses, the ones you've killed, and what each boss has dropped for you.",
+    note = "A Dungeons page: every dungeon and raid by level, its bosses, the ones you've killed, and what each boss drops.",
+    options = {
+        { key = "share", title = "Share boss loot with your guild", default = true,
+          note = "Guildmates with jsal.ui see the bosses you kill and what they drop, and you see theirs, so every boss's loot fills in. Only bosses and items are shared, not who looted what." },
+    },
 })
 ns.Dungeons = Dungeons
 
@@ -19,16 +23,16 @@ local function Key(name) return type(name) == "string" and name:lower() or nil e
 Dungeons.Key = Key
 
 -- Every boss by name, for the loot window: by its encounter's name and, when
--- the boss you see is named differently, by that too, each giving the
--- encounter's name, which kills and loot are kept under.
+-- the boss you see is named differently, by that too, each giving the boss
+-- as { encounter ID, encounter name (which kills and loot are kept under) }.
 local bosses
 local function Bosses()
     if bosses then return bosses end
     bosses = {}
     for _, d in ipairs(ns.DungeonData or {}) do
         for _, b in ipairs(d.bosses) do
-            bosses[Key(b[2])] = b[2]
-            if b[3] then bosses[Key(b[3])] = b[2] end
+            bosses[Key(b[2])] = b
+            if b[3] then bosses[Key(b[3])] = b end
         end
     end
     return bosses
@@ -104,8 +108,9 @@ local function LootedBoss()
     return Bosses()[Key(UnitName("target"))]
 end
 
-local recent, recentAt
+local recent, recentId, recentAt
 local looted = {}
+local Guild = function() return ns.GuildLoot end
 
 local function Changed()
     if ns.Window and ns.Window.IsOpen and ns.Window.IsOpen("dungeons") then ns.Window.Refresh() end
@@ -116,7 +121,8 @@ local function OnEvent(_, event, a, b, _, _, e)
         if e == 1 and type(b) == "string" then
             local kills = Kills()
             kills[Key(b)] = (kills[Key(b)] or 0) + 1
-            recent, recentAt = b, GetTime()
+            recent, recentId, recentAt = b, tonumber(a), GetTime()
+            if Guild() and recentId then Guild().Killed(recentId) end
             Changed()
         end
     elseif event == "LOOT_OPENED" then
@@ -128,12 +134,16 @@ local function OnEvent(_, event, a, b, _, _, e)
         if guid then looted[guid] = true end
         local any
         for slot = 1, (GetNumLootItems and GetNumLootItems() or 0) do
-            if Dungeons.Learn(boss, GetLootSlotLink(slot)) then any = true end
+            local link = GetLootSlotLink(slot)
+            if Dungeons.Learn(boss[2], link) then any = true end
+            if Guild() then Guild().Dropped(boss[1], link) end
         end
         if any then Changed() end
     elseif event == "START_LOOT_ROLL" then
         if recent and GetTime() - recentAt <= ROLL_WINDOW and GetLootRollItemLink then
-            if Dungeons.Learn(recent, GetLootRollItemLink(a)) then Changed() end
+            local link = GetLootRollItemLink(a)
+            if Dungeons.Learn(recent, link) then Changed() end
+            if Guild() and recentId then Guild().Dropped(recentId, link) end
         end
     end
 end
