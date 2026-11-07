@@ -18,11 +18,12 @@ ns.Gear = Gear
 -- sword, 8 two-handed sword, 10 staff, 13 fist weapon, 15 dagger, 16 thrown,
 -- 18 crossbow, 19 wand); armor as the type worn (1 cloth, 2 leather, 3 mail,
 -- 4 plate), and from level 40 the next one up for the classes that get it.
+-- Hunters leave out thrown weapons: one in the ranged slot stops Auto Shot.
 ---------------------------------------------------------------------------
 Gear.CLASS_GEAR = {
     WARRIOR = { weapons = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 3, at40 = 4, shield = true },
     PALADIN = { weapons = { 0, 1, 4, 5, 6, 7, 8 }, armor = 3, at40 = 4, shield = true },
-    HUNTER = { weapons = { 0, 1, 2, 3, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 2, at40 = 3 },
+    HUNTER = { weapons = { 0, 1, 2, 3, 6, 7, 8, 10, 13, 15, 18 }, armor = 2, at40 = 3 },
     SHAMAN = { weapons = { 0, 1, 4, 5, 10, 13, 15 }, armor = 2, at40 = 3, shield = true },
     ROGUE = { weapons = { 2, 3, 4, 7, 13, 15, 16, 18 }, armor = 2 },
     DRUID = { weapons = { 4, 5, 10, 13, 15 }, armor = 2 },
@@ -252,6 +253,15 @@ function Gear.Plan(slot, spec)
             end
         end
     end
+    -- Items worth less than a quarter of the best one aren't worth listing
+    -- (a caster's piece on an empty hunter slot), unless starred.
+    local best = 0
+    for _, o in ipairs(options) do best = math.max(best, o.score - worn.score) end
+    local kept = {}
+    for _, o in ipairs(options) do
+        if o.starred or (o.score - worn.score) >= best * 0.25 then kept[#kept + 1] = o end
+    end
+    options = kept
     table.sort(options, function(a, b)
         if a.starred ~= b.starred then return a.starred end
         if a.soon ~= b.soon then return not a.soon end
