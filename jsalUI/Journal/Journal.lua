@@ -1,11 +1,11 @@
 -- The Journal: each character's story from the day jsal.ui first saw it.
--- It counts as you play (foes, quests, damage and healing, deaths, gold
--- earned and where from, distance, spells cast, time in each zone, duels,
--- jumps) and notes the moments worth keeping: levels, rare and elite first
--- kills, dungeon bosses, blue and purple loot, deaths, profession ranks,
--- guild changes. It also keeps a line on every character of the account
--- for the Characters tab. Only your own actions are counted, so busy fights
--- stay light. Nothing is shared.
+-- It counts as you play (foes, quests, deaths, gold earned and where from,
+-- distance, spells cast, time in each zone, duels, jumps) and notes the
+-- moments worth keeping: levels, rare first kills, dungeon bosses, blue and
+-- purple loot, deaths, profession ranks, guild changes. It also keeps a
+-- line on every character of the account for the Characters tab. Forever
+-- keeps the combat log from addons, so nothing here reads it. Nothing is
+-- shared.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -170,7 +170,6 @@ end
 local playerGUID
 local units = {}        -- creature GUID = its kind, from units seen
 local unitCount = 0
-local lastHit           -- what last hurt you, for a death
 local moneyWas
 local window            -- which money window is open: vendor, mail...
 local questAt = -10
@@ -190,51 +189,30 @@ end
 
 local KINDS = { rare = "rare", rareelite = "rare elite", elite = "elite", worldboss = "boss" }
 
-local function Killed(guid, name)
-    Add("foes")
-    local seen = units[guid]
-    if not seen then return end
+-- Forever keeps the combat log from addons, so kills are counted from the
+-- game's own "Total kills" statistic as it rises, and a rare's first kill
+-- is noted when a rare you can see dies, unless someone else had tagged it.
+local function RareDied(unit)
+    if not (UnitExists(unit) and UnitIsDead(unit)) then return end
+    local guid = UnitGUID(unit)
+    local seen = guid and units[guid]
+    if not seen or seen.dead then return end
+    seen.dead = true
+    if UnitIsTapDenied and UnitIsTapDenied(unit) then return end
     local npc = select(6, strsplit("-", guid))
     if npc and First("kill:" .. npc) then
-        Journal.Note("kill", ("First kill: %s (%s)"):format(seen.name or name or "?", KINDS[seen.kind] or seen.kind))
+        Journal.Note("kill", ("First kill: %s (%s)"):format(seen.name or "?", KINDS[seen.kind] or seen.kind))
     end
 end
 
-local DAMAGE = { SWING_DAMAGE = 12, RANGE_DAMAGE = 15, SPELL_DAMAGE = 15, SPELL_PERIODIC_DAMAGE = 15, DAMAGE_SHIELD = 15 }
-local HEAL = { SPELL_HEAL = 15, SPELL_PERIODIC_HEAL = 15 }
-
-local function CombatLog()
-    local info = { CombatLogGetCurrentEventInfo() }
-    local event, sourceGUID, sourceName, destGUID, destName = info[2], info[4], info[5], info[8], info[9]
-    local mine = sourceGUID == playerGUID or (sourceGUID and sourceGUID == UnitGUID("pet"))
-    if mine then
-        local at = DAMAGE[event] or HEAL[event]
-        if at then
-            local amount = tonumber(info[at]) or 0
-            if HEAL[event] then
-                local over = tonumber(info[at + 1]) or 0
-                Add("healing", math.max(0, amount - over))
-            else
-                Add("damage", amount)
-            end
-        end
-    end
-    if event == "PARTY_KILL" and destGUID and destGUID:find("^Creature") then
-        -- Your kills and your group's: the killer is you, your pet, or in
-        -- your party or raid.
-        local flags = tonumber(info[6]) or 0
-        if mine or (bit and bit.band(flags, 0x7) ~= 0) then
-            Killed(destGUID, destName)
-        end
-    elseif destGUID == playerGUID then
-        if DAMAGE[event] then
-            lastHit = { name = sourceName, at = GetTime() }
-        elseif event == "ENVIRONMENTAL_DAMAGE" then
-            local kind = tostring(info[12] or ""):lower()
-            lastHit = { name = kind == "falling" and "a fall" or kind == "drowning" and "drowning" or kind == "lava" and "lava" or kind, at = GetTime() }
-        end
-    end
+local killsWas
+local function CountKills()
+    local total = Journal.GameStat and Journal.GameStat(1197)
+    if not total then return end
+    if killsWas and total > killsWas then Add("foes", total - killsWas) end
+    killsWas = total
 end
+Journal.CountKills = CountKills
 
 -- Distance and time: once a second, how far you've moved in the world and
 -- where you are. The game hides your position inside instances, so those
@@ -247,6 +225,8 @@ local function Tick(_, elapsed)
     tick = 0
     local j = Book()
     Add("seconds", seconds)
+    CountKills()
+    RareDied("target")
     local zone = Zone()
     if zone then j.zones[zone] = (j.zones[zone] or 0) + seconds end
     local y, x, map
@@ -360,12 +340,10 @@ local function CheckRanks()
     end
 end
 
+-- A death; its cause isn't known, since that came from the combat log.
 local function Dead()
     Add("deaths")
-    local killer = lastHit and GetTime() - lastHit.at < 10 and lastHit.name or nil
-    local j = Book()
-    if killer then j.killers[killer] = (j.killers[killer] or 0) + 1 end
-    Journal.Note("death", killer and ("Died to %s"):format(killer) or "Died")
+    Journal.Note("death", "Died")
 end
 
 -- Guild changes. The guild's name loads a little after login, so while
@@ -470,7 +448,7 @@ function Journal:OnEnable()
     end
     local f = CreateFrame("Frame")
     self.frame = f
-    for _, event in ipairs({ "COMBAT_LOG_EVENT_UNFILTERED", "PLAYER_LEVEL_UP", "PLAYER_DEAD", "QUEST_TURNED_IN",
+    for _, event in ipairs({ "PLAYER_LEVEL_UP", "PLAYER_DEAD", "QUEST_TURNED_IN",
                              "PLAYER_MONEY", "CHAT_MSG_LOOT", "CHAT_MSG_SYSTEM", "ENCOUNTER_END",
                              "UNIT_SPELLCAST_SUCCEEDED", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT",
                              "NAME_PLATE_UNIT_ADDED", "SKILL_LINES_CHANGED", "PLAYER_GUILD_UPDATE",
@@ -482,9 +460,7 @@ function Journal:OnEnable()
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
     local closes = { MERCHANT_CLOSED = true, MAIL_CLOSED = true, AUCTION_HOUSE_CLOSED = true, TRADE_CLOSED = true }
     f:SetScript("OnEvent", ns.Safe(self, function(_, event, a, b, c, d, e)
-        if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-            CombatLog()
-        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
             -- Only spells you know: the game also "casts" hidden effects,
             -- such as one at login, and items' own spells.
             if a == "player" and c and not NOT_CASTS[c] and (not IsPlayerSpell or IsPlayerSpell(c)) then
