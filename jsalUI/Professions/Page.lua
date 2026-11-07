@@ -154,11 +154,162 @@ Window.Page("professions", function(page)
         return recipe.label or (recipe.item and Compat.ItemName(recipe.item)) or (Compat.SpellInfo(recipe.spell)) or "..."
     end
 
+    ---------------------------------------------------------------------
+    -- Guild crafters: a card under your professions, and on the right a
+    -- search of what guildmates make, crafts someone online makes first.
+    ---------------------------------------------------------------------
+    local guildCard = CreateFrame("Button", nil, page)
+    guildCard:SetSize(LIST_W, CARD_H)
+    Style.Fill(guildCard, "well")
+    guildCard.edges = Style.Border(guildCard, "line")
+    local guildIcon = guildCard:CreateTexture(nil, "ARTWORK")
+    guildIcon:SetSize(32, 32)
+    guildIcon:SetPoint("TOPLEFT", 12, -12)
+    guildIcon:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Icons\\guild")
+    local guildName = Style.Text(guildCard, 13, "text", nil, true)
+    guildName:SetPoint("TOPLEFT", guildIcon, "TOPRIGHT", 10, 0)
+    guildName:SetText("Guild crafters")
+    local guildSub = Style.Text(guildCard, 11, "muted")
+    guildSub:SetPoint("TOPLEFT", guildName, "BOTTOMLEFT", 0, -3)
+    guildSub:SetText("Who in the guild makes what")
+
+    local G_ROW = 46
+    local guildView = CreateFrame("Frame", nil, page)
+    guildView:SetPoint("TOPLEFT", LIST_W + GAP, -top)
+    guildView:SetSize(roadW, height - top)
+    guildView:Hide()
+    local gHead = Section(guildView, roadW)
+    gHead:SetPoint("TOPLEFT")
+    gHead.title:SetText("GUILD CRAFTERS")
+    local searchWell = CreateFrame("Frame", nil, guildView)
+    searchWell:SetPoint("TOPLEFT", 0, -32)
+    searchWell:SetSize(roadW, 34)
+    Style.Fill(searchWell, "well")
+    Style.Border(searchWell, "lineStrong")
+    local search = CreateFrame("EditBox", nil, searchWell)
+    search:SetAllPoints()
+    search:SetTextInsets(10, 10, 0, 0)
+    search:SetAutoFocus(false)
+    search:SetMaxLetters(40)
+    search:SetFont(Style.font, 14, "")
+    search:SetTextColor(Style.Color("text"))
+    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    search:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+    searchWell:EnableMouse(true)
+    searchWell:SetScript("OnMouseDown", function() search:SetFocus() end)
+    local searchHint = Style.Text(searchWell, 13, "muted")
+    searchHint:SetPoint("LEFT", 10, 0)
+    searchHint:SetText("Search what you need: a bag, a potion, bracers")
+    local gMessage = Style.Text(guildView, 13, "muted")
+    gMessage:SetPoint("TOPLEFT", 0, -82)
+    gMessage:SetWidth(roadW)
+    gMessage:SetJustifyH("LEFT")
+    local gFoot = Style.Text(guildView, 11, "muted")
+    gFoot:SetPoint("BOTTOMLEFT", 0, 0)
+    gFoot:SetWidth(roadW)
+    gFoot:SetJustifyH("LEFT")
+    local maxRows = math.max(1, math.floor((height - top - 82 - 24) / G_ROW))
+    local gRows = {}
+    local function GuildRow(i)
+        if gRows[i] then return gRows[i] end
+        local r = CreateFrame("Frame", nil, guildView)
+        r:SetSize(roadW, G_ROW)
+        r:SetPoint("TOPLEFT", 0, -(76 + (i - 1) * G_ROW))
+        Style.Rule(r, "BOTTOM", "line")
+        r.icon = r:CreateTexture(nil, "ARTWORK")
+        r.icon:SetSize(28, 28)
+        r.icon:SetPoint("LEFT", 0, 0)
+        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        r.name = Style.Text(r, 13, "text")
+        r.name:SetPoint("BOTTOMLEFT", r.icon, "RIGHT", 10, 1)
+        r.name:SetWidth(roadW - 200)
+        r.name:SetWordWrap(false)
+        r.who = Style.Text(r, 11, "muted")
+        r.who:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -2)
+        r.who:SetWidth(roadW - 200)
+        r.who:SetWordWrap(false)
+        r.whisper = Style.Button(r, "Whisper", "primary", 140)
+        r.whisper:SetHeight(26)
+        r.whisper:SetPoint("RIGHT", 0, 0)
+        Tooltip(r)
+        gRows[i] = r
+        return r
+    end
+
+    local function PaintGuild()
+        local Crafters = ns.Crafters
+        local sharing = Crafters.Count()
+        gHead.note:SetText(sharing > 0 and ("%d guildmate%s sharing"):format(sharing, sharing == 1 and "" or "s") or "")
+        local text = search:GetText()
+        searchHint:SetShown(text == "" and not search:HasFocus())
+        for _, r in ipairs(gRows) do r:Hide() end
+        gFoot:SetText("")
+        local note
+        if not IsInGuild() then
+            note = "Guild crafters shows what your guildmates can make. Join a guild to use it."
+        elseif sharing == 0 then
+            note = "No recipes heard yet. Guildmates with jsal.ui share theirs once they've opened their profession windows, and their crafts show here as they come in."
+        elseif strtrim(text) == "" then
+            note = "Type what you need. Guildmates online now come first, with a button to whisper them."
+        end
+        local found = not note and Crafters.Search(text, 200) or {}
+        if not note and #found == 0 then note = "No guildmate makes anything by that name yet." end
+        gMessage:SetText(note or "")
+        gMessage:SetShown(note ~= nil)
+        for i = 1, math.min(#found, maxRows) do
+            local entry, r = found[i], GuildRow(i)
+            r:Show()
+            r.item = entry.row.item
+            r.spell = not entry.row.item and entry.row.spell or nil
+            r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(entry.row.spell)))
+            r.name:SetText(entry.name)
+            local on, off = {}, {}
+            for _, p in ipairs(entry.people) do
+                if p.online then
+                    on[#on + 1] = "|cff56944f" .. p.name .. "|r"
+                elseif #off < 3 then
+                    off[#off + 1] = #off == 0 and (p.name .. " (" .. Crafters.Ago(p.seen) .. ")") or p.name
+                end
+            end
+            local who = table.concat(on, ", ")
+            if #off > 0 then who = who .. (who ~= "" and "   " or "") .. table.concat(off, ", ") end
+            r.who:SetText(who)
+            local first = entry.people[1]
+            r.whisper:SetShown(first.online)
+            if first.online then
+                r.whisper.label:SetText("Whisper " .. (first.name:match("^%S+") or first.name))
+                r.whisper:SetScript("OnClick", function() Crafters.Whisper(first, entry.name) end)
+            end
+        end
+        if #found > maxRows then
+            gFoot:SetText(("Showing %d of %d. Type more to narrow it."):format(maxRows, #found))
+        end
+    end
+    search:SetScript("OnTextChanged", function() xpcall(PaintGuild, ns.Report) end)
+    search:SetScript("OnEditFocusGained", function() searchHint:Hide() end)
+    search:SetScript("OnEditFocusLost", function() searchHint:SetShown(search:GetText() == "") end)
+
     local function Paint()
         local mine = Professions.Mine()
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
-        if not selected or not Professions.Name(selected) then selected = mine[1] and mine[1].line end
+        local guildOn = ns.Crafters and ns.Crafters.running
+        if selected == "guild" and not guildOn then selected = nil end
+        if selected ~= "guild" and (not selected or not Professions.Name(selected)) then
+            selected = (mine[1] and mine[1].line) or (guildOn and "guild") or nil
+        end
+        guildCard:SetShown(guildOn)
+        if guildOn then
+            guildCard:ClearAllPoints()
+            local below = #mine > 0 and #mine * (CARD_H + 10) or (none:GetStringHeight() + 16)
+            guildCard:SetPoint("TOPLEFT", 0, -(top + below))
+            Style.SetBorder(guildCard.edges, selected == "guild" and "gold" or "line")
+            guildCard:SetScript("OnClick", function()
+                selected = "guild"
+                Paint()
+            end)
+        end
+        guildView:SetShown(selected == "guild")
         local current
         for i, p in ipairs(mine) do
             local c = Card(i)
@@ -180,6 +331,14 @@ Window.Page("professions", function(page)
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(items) do r:Hide() end
         needHead:Hide()
+        scroll:SetShown(selected ~= "guild")
+        if selected == "guild" then
+            head:Hide()
+            where:Hide()
+            pin:Hide()
+            PaintGuild()
+            return
+        end
         if not current then
             head:Hide()
             message:Hide()

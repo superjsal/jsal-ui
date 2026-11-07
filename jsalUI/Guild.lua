@@ -71,6 +71,8 @@ local function Status()
         average and ("%.2f"):format(average) or "", solved or 0,
         -- "R" when this player takes problem reports for jsal.ui.
         ns.Reports and ns.Reports.Receiving() and "R" or "",
+        -- A fingerprint of the recipes this player shares, for Guild crafters.
+        ns.Crafters and ns.Crafters.Signature() or "",
     }, ";")
 end
 
@@ -127,7 +129,8 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes = strsplit(";", payload or "")
+    if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
     CheckVersion(version, name)
     NoteSeen(name, version)
     members[name] = {
