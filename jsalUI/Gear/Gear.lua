@@ -86,17 +86,22 @@ local function ClassFile()
     return classFile
 end
 
+-- Your class's three talent trees, with the points you've spent in each,
+-- from the Build Planner's reading of your talents.
 function Gear.Trees()
-    local names = {}
-    for i = 1, 3 do
-        local name, _, points = nil, nil, 0
-        if GetTalentTabInfo then
-            local ok, a, b, c = pcall(GetTalentTabInfo, i)
-            if ok then name, points = a, tonumber(c) or 0 end
-        end
-        names[i] = { name = name or ("Tree " .. i), points = points or 0 }
+    local trees = {}
+    local data
+    if ns.TalentTree and ns.TalentTree.Read then
+        local ok, read = pcall(ns.TalentTree.Read)
+        data = ok and read or nil
     end
-    return names
+    for i = 1, 3 do
+        local tree = data and data.trees[i]
+        local points = 0
+        for _, id in ipairs(tree and tree.nodes or {}) do points = points + (data.nodes[id].learned or 0) end
+        trees[i] = { name = tree and tree.name or ("Tree " .. i), points = points }
+    end
+    return trees
 end
 
 function Gear.Spec()
