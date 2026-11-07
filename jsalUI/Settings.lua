@@ -119,7 +119,13 @@ Window.Page("settings", function(page)
             optionRows[i] = r
             r:SetTitle(option.title)
             r.note = option.note
-            r.onChange = function(on) ns.SetOption(module.key, option.key, on) end
+            r.onChange = function(on)
+                ns.SetOption(module.key, option.key, on)
+                -- A part that redraws on an option change (the quick bar) does it now.
+                if module.running and type(module.OnOption) == "function" then
+                    xpcall(function() module:OnOption(option.key, on) end, ns.Report)
+                end
+            end
             r.switch:SetOn(ns.OptionOn(module.key, option.key))
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 12, -38 - (i - 1) * ROW_HEIGHT)
