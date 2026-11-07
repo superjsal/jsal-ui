@@ -57,11 +57,17 @@ for _, path in ipairs({ Style.font, Style.boldFont, Style.brandFont }) do
     text:SetText("jsal.ui")
 end
 
+-- Text in the dashboard is drawn one size up: the window has room, and it
+-- reads more easily there. Panels beside the game's windows keep their size.
+local DASHBOARD_STEP = 1
+
 function Style.Text(parent, size, colorKey, layer, bold)
     local text = parent:CreateFontString(nil, layer or "OVERLAY")
-    text:SetFont(bold and Style.boldFont or Style.font, size or 13, "")
+    size = size or 13
+    if ns.Window and ns.Window.Contains and ns.Window.Contains(parent) then size = size + DASHBOARD_STEP end
+    text:SetFont(bold and Style.boldFont or Style.font, size, "")
     if not text:GetFont() then
-        text:SetFont(STANDARD_TEXT_FONT, size or 13, "")
+        text:SetFont(STANDARD_TEXT_FONT, size, "")
     end
     text:SetTextColor(Style.Color(colorKey or "text"))
     text:SetJustifyH("LEFT")
