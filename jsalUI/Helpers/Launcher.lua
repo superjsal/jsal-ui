@@ -342,8 +342,21 @@ local function Button(place)
     return b
 end
 
+-- The buttons due on the bar, as one line, to notice a change: parts that
+-- start after the bar (the gear plan, the dungeon guide) or are switched
+-- on or off elsewhere show up at the next look, without a reload.
+local laidOut
+local function Due()
+    local due = {}
+    for _, place in ipairs(PLACES) do
+        if buttons[place.key] and Ready(place) and not Hidden(place.key) then due[#due + 1] = place.key end
+    end
+    return table.concat(due, ",")
+end
+
 -- Which buttons show, in order, and where: side by side, or up and down.
 Layout = function()
+    laidOut = Due()
     local s = Saved()
     local vertical = s.vertical
     local shown = 0
@@ -474,14 +487,20 @@ function Launcher:OnEnable()
     if not bar then Build() end
     Layout()
     bar:Show()
-    -- The dots are looked at every few seconds and when chess changes.
+    -- The buttons and dots are looked at every few seconds, once everything
+    -- has started, and when chess changes.
+    local function Look()
+        if Due() ~= laidOut then Layout() end
+        PaintDots()
+    end
     local elapsed = 0
     bar:SetScript("OnUpdate", function(_, dt)
         elapsed = elapsed + dt
         if elapsed < 3 then return end
         elapsed = 0
-        xpcall(PaintDots, ns.Report)
+        xpcall(Look, ns.Report)
     end)
+    Compat.After(0, function() xpcall(Look, ns.Report) end)
     if ns.Chess and ns.Chess.OnChange then ns.Chess.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     if ns.Layers and ns.Layers.OnChange then ns.Layers.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     Compat.After(2, function() xpcall(PaintDots, ns.Report) end)
