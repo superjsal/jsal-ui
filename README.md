@@ -9,7 +9,7 @@ Made for casual players: every part is small, on by default, and has one switch.
 | --- | --- |
 | Daily Word | One five-letter word a day, the same for everyone, six tries. Share your grid to guild chat. |
 | Icon Guess | Name the spell from its icon. A daily round of ten, the same for everyone, plus practice rounds. |
-| Flight bar | While you fly: the route, the time left and today's games. Times come from the game's own flight tables. |
+| Flight bar | While you fly, at the top of the screen: the route, the time left, and buttons for Daily Word, Icon Guess and chess with a gold dot when one's waiting. Times come from the game's own flight tables. |
 | Chess | Play guildmates who have jsal.ui, a few games at once, with a win-loss record against each. Moves wait for whoever's turn it is, even across logouts. Guildmates' games show under Watching, to follow as they're played. No computer opponent, to keep jsal.ui light. |
 | Guild tab | Guildmates who run jsal.ui, their version and today's scores, and the Guild Word the guild master sets. |
 | Build Planner | Any class's three Forever trees in the dashboard, with a ready-made leveling build for each class (Rogue to come) from Wowhead's Forever leveling guides, to follow or copy. A build shows level by level, with what's taken and what's next; Learn next points spends waiting points in its order; Edit opens the trees. Builds are saved for the whole account and shared as Wowhead talent calculator links or short codes. |
