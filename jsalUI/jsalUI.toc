@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.14
+## Version: 0.3.15
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -83,12 +83,24 @@ Helpers\Layers.lua
 Helpers\Launcher.lua
 Helpers\LayerSwitch.lua
 Helpers\Reports.lua
+Helpers\Waypoint.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
 Journal\Page.lua
 Journal\Recap.lua
 
+# The dungeon guide: every dungeon and raid from the game's files, the bosses
+# you've killed and the loot each has dropped.
+Dungeons\DungeonData.lua
+Dungeons\DungeonLoot.lua
+Dungeons\Dungeons.lua
+Dungeons\GuildLoot.lua
+Dungeons\Page.lua
+
 # Dashboard pages.
 Home.lua
 Settings.lua
+
+# The guided setup, the first time jsal.ui runs and from Settings.
+Onboarding.lua

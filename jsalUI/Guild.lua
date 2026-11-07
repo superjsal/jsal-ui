@@ -77,6 +77,8 @@ local function Status()
         ns.LayerSwitch and ns.LayerSwitch.Code() or "",
         -- The last version that added files: updating past it needs a restart.
         ns.restartSince or "",
+        -- How many boss kills and drops this player has heard, for guild loot.
+        ns.GuildLoot and ns.GuildLoot.Signature() or "",
     }, ";")
 end
 
@@ -133,8 +135,9 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot = strsplit(";", payload or "")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
+    if ns.GuildLoot then ns.GuildLoot.HeardHello(name, loot, sender or name) end
     if ns.LayerSwitch and ns.Layers and ns.Layers.running then ns.LayerSwitch.Heard(name, layer, sender or name) end
     CheckVersion(version, name, restartSince)
     NoteSeen(name, version)

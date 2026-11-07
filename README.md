@@ -17,6 +17,7 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. In the game's profession window: where each recipe turns yellow, green and grey, reagents in bags and bank, a timer while you craft several, recipes you haven't learned (star the ones you want, and a profession trainer offers them), and a heads-up when you can train the next rank. |
 | Shopping list | What you mean to craft and other items you want, and what's left to buy once your bags and bank are counted, with vendor prices and auction prices from your own searches. A vendor who sells something on it offers to buy it for you. |
 | Journal | Your character's story from the day you install it, in four tabs. Summary: your character, favourite move and totals (foes, quests, deaths, gold and where it came from, distance, damage, healing, duels, jumps), with kills, quests, deaths and gold from the game's own statistics so they cover the whole life of the character. Story: levels, first kills of rares, dungeon bosses, blue and epic loot, deaths and their cause, profession ranks. By level: time, XP, XP per hour, gold in and out, kills, quests and deaths for each level. Characters: every character on the account with level, zone, gold, professions and rested XP. A screenshot at each level-up, and a recap of your session as you log out. |
+| Dungeons | Every dungeon and raid on Forever, from the game's own files, in a picker grouped by level (10-20 up to 50-60, and raids), the ones right for your level in green, with where each entrance is and which side that is (Horde side, Alliance side, or neither when contested). The chosen one shows its bosses in order, ticked once you've killed them (with the game's own Boss Kills statistics, so it covers kills from before jsal.ui), and under each boss its loot: Wowhead Forever's list with drop chances, plus anything you've seen it drop (from the bosses you loot and the rolls after a boss dies, kept for every character on the account), and what guildmates with jsal.ui have seen it drop, with how often in the guild's kills ("guild 3 of 8"; a switch in Settings turns sharing off). A Quests tab lists the dungeon's quests for your faction, ticked once done. |
 | Guild crafters | On the Professions page, search for what you need and see which guildmates can make it, online first, with a button to whisper them. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
 | Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to John in game; your version, class, level, zone and any jsal.ui error are added for you. Outside John's guild, copy it to email instead. |
 | Quick buttons | A small bar you drag anywhere: the dashboard, Daily Word, Icon Guess, chess, the shopping list, the Build Planner, the Training Planner and the layer you're in, with a gold dot when something's waiting. Choose its buttons in Settings or by right-clicking its grip, which also stands it up or locks it. |
@@ -51,8 +52,10 @@ New parts that need longer testing come out as betas first (versions like `0.3.1
 | `/jsal shop` | Opens or closes the shopping list |
 | `/jsal journal` | Your Journal |
 | `/jsal recap` | This session's recap |
+| `/jsal dungeons` | The dungeon guide |
 | `/jsal bug` | Report a problem |
 | `/jsal layer` | Which layer you're in |
+| `/jsal waypoint` | Why the waypoint label is or isn't showing; `/jsal waypoint clear` removes the map's pin |
 | `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
 | `/jsal version` | Prints the version |
 | `/jsal perf` | How long jsal.ui took to load |
@@ -106,6 +109,23 @@ Spell (cut to its ID and NameSubtext_lang columns) as CSV for the build in `Spel
 `python -I tools\build_spells.py <version>`. A spell's level is SpellLevel (BaseLevel when that's
 empty). Prices aren't in the files; the addon saves each class trainer's list when it opens, and
 once a class has one, only spells a trainer lists are shown.
+
+## Dungeons
+
+`data\dungeons\` holds LFGDungeons, DungeonEncounter, ContentTuning (cut to ID and MinLevelSquish) and
+Map (cut to ID, MapName_lang and InstanceType) as CSV from wago.tools for the build in
+`DungeonData.lua`'s header. After a patch, fetch them again and run `python -I tools\build_dungeons.py`;
+it stops if the game offers a dungeon it doesn't know yet, since where an entrance is isn't in the
+files. A dungeon's level is the one it's tuned to; Season of Discovery's versions of some dungeons are
+in the files under their own difficulties and are left out.
+
+Loot and quests come from Wowhead Forever, in `data\dungeons\wowhead.json`: each dungeon's zone page
+(its Quests tab, and its NPCs to find each boss) and each boss's NPC page (its Drops tab, with how
+many kills Wowhead has seen and how often each item dropped). It's read in a browser, one page every
+few seconds, since Wowhead turns away scripted downloads. A drop is kept when it's uncommon or better
+and has dropped in at least 2% of 10 or more kills, or when the zone's own Drops tab names the boss.
+The same build writes `DungeonLoot.lua` from it. Wowhead's numbers grow as more people play, so the
+higher dungeons' lists fill in over time; read them again now and then.
 
 ## Daily Word's words
 

@@ -6,8 +6,9 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "No more \"blocked from an action\" message at login",
-    "The Journal counts kills from the game's own statistics, and shows bosses and flights",
+    "Dungeons: every boss's loot and drop chances, your kills, quests, and what your guild sees drop",
+    "A waypoint label that follows your RestedXP guide",
+    "A short setup to choose the parts you want (/jsal setup)",
 }
 
 local function NewsWanted()

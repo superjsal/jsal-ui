@@ -309,21 +309,33 @@ end
 
 -- Standing in for the trainer: the game's window stays open (closing it
 -- would end the visit, and nothing could be bought) but out of sight,
--- faded and shrunk to a point so nothing of it can be clicked. It comes
--- back as it was when the visit ends.
-local concealed
+-- faded out, with an invisible cover over it so nothing of it can be
+-- clicked. Its size is left alone: UI skins size their borders by it, and
+-- a window shrunk away leaves them drawn far too thick. It comes back as
+-- it was when the visit ends.
+local concealed, cover
 local function Conceal(frame)
     if concealed then return end
-    concealed = { frame = frame, alpha = frame:GetAlpha(), scale = frame:GetScale() }
+    concealed = { frame = frame, alpha = frame:GetAlpha() }
     frame:SetAlpha(0)
-    frame:SetScale(0.01)
+    if not cover then
+        cover = CreateFrame("Frame", nil, UIParent)
+        cover:EnableMouse(true)
+        cover:EnableMouseWheel(true)
+        cover:SetScript("OnMouseWheel", function() end)
+    end
+    cover:ClearAllPoints()
+    cover:SetAllPoints(frame)
+    cover:SetFrameStrata(frame:GetFrameStrata())
+    cover:SetFrameLevel(frame:GetFrameLevel() + 5)
+    cover:Show()
 end
 
 local function Reveal()
     if not concealed then return end
-    concealed.frame:SetScale(concealed.scale)
     concealed.frame:SetAlpha(concealed.alpha)
     concealed = nil
+    if cover then cover:Hide() end
 end
 
 -- The panel's width: 330 beside a window, and wider standing in for the

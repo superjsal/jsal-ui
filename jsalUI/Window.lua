@@ -26,6 +26,7 @@ local PAGES = {
     { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
     { key = "professions", label = "Professions", icon = OWN .. "professions" },
+    { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
