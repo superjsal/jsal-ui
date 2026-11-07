@@ -90,6 +90,12 @@ Journal\Journal.lua
 Journal\Page.lua
 Journal\Recap.lua
 
+# The dungeon guide: every dungeon and raid from the game's files, the bosses
+# you've killed and the loot each has dropped.
+Dungeons\DungeonData.lua
+Dungeons\Dungeons.lua
+Dungeons\Page.lua
+
 # Dashboard pages.
 Home.lua
 Settings.lua
