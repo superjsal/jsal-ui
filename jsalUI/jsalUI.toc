@@ -74,7 +74,6 @@ Professions\Favorites.lua
 Professions\Shopping.lua
 
 # Everyday helpers.
-Helpers\Quests.lua
 Helpers\Vendor.lua
 Helpers\LevelUp.lua
 Helpers\Warnings.lua

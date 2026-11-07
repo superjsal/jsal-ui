@@ -30,20 +30,19 @@ local GROUPS = {
     { label = "Professions and the shopping list", keys = { "professionpanel", "profwindow", "shopping" } },
     { label = "Quick buttons and the minimap button", keys = { "launcher", "minimap" } },
     { label = "Vendor run, bag and gear warnings", keys = { "vendor", "warnings" } },
-    { label = "Quests on autopilot", keys = { "quests" } },
 }
 local GUILD_KEYS = { "guild", "crafters", "layers" }
 
 -- Starting points for the parts step.
 local PRESETS = {
     { key = "casual", label = "Casual", note = "Games, Journal, guild and helpers" },
-    { key = "everything", label = "Everything", note = "All of it, autopilot too" },
+    { key = "everything", label = "Everything", note = "All of it" },
     { key = "look", label = "Just the look", note = "Only the UI pack and its minimap button" },
 }
 local function PresetWants(preset, key)
     if preset == "everything" then return true end
     if preset == "look" then return key == "minimap" end
-    return key ~= "quests"
+    return true
 end
 
 local PLAYS = {
