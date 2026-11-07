@@ -82,7 +82,6 @@ Helpers\MinimapButton.lua
 Helpers\Layers.lua
 Helpers\Launcher.lua
 Helpers\Reports.lua
-Helpers\MailAlts.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
