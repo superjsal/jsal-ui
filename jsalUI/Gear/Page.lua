@@ -260,6 +260,7 @@ Window.Page("gear", function(page)
     local function Detail(o)
         local bits = {}
         if o.gains and o.gains ~= "" then bits[#bits + 1] = GREEN .. o.gains .. "|r" end
+        if o.lighter then bits[#bits + 1] = o.lighter end
         local source = G.Source(o)
         -- Profession gear: who can wear it, in red when you can't (yet).
         if o.needs then

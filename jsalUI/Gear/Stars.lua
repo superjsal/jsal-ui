@@ -88,7 +88,10 @@ function Gear.Add(text)
     local _, classFile = UnitClass("player")
     -- Usable now, or once you reach the item's level (mail for a hunter at 40).
     local level = UnitLevel("player") or 1
-    local function Usable(at) return Gear.ForClass(classFile, at, info.classID, info.subclassID, info.equipLoc) ~= false end
+    local function Usable(at)
+        return Gear.ForClass(classFile, at, info.classID, info.subclassID, info.equipLoc) ~= false
+            or Gear.CanWear(classFile, at, info.classID, info.subclassID)
+    end
     if not (Usable(level) or Usable(math.max(level, info.req or 0))) then
         return "Your class can't use " .. info.name .. ".", false
     end
