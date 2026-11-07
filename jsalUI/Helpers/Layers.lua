@@ -52,33 +52,7 @@ function Layers.Current()
     return current
 end
 
--- Layer-Swap, a separate addon many players use to change layers: when it's
--- loaded, the quick bar's Layer button opens its panel. It's found by its
--- title in the AddOns list, and opened through its own /ls command.
-function Layers.LayerSwapOpener()
-    local count = (C_AddOns and C_AddOns.GetNumAddOns) or GetNumAddOns
-    local info = (C_AddOns and C_AddOns.GetAddOnInfo) or GetAddOnInfo
-    if not (count and info and SlashCmdList) then return nil end
-    local loaded = false
-    for i = 1, count() do
-        local name, title = info(i)
-        local plain = tostring(title or name or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):lower()
-        if plain:find("layer%-?%s?swap") and Compat.IsAddOnLoaded(name) then
-            loaded = true
-            break
-        end
-    end
-    if not loaded then return nil end
-    for key, fn in pairs(SlashCmdList) do
-        for n = 1, 9 do
-            local word = _G["SLASH_" .. key .. n]
-            if type(word) ~= "string" then break end
-            if word:lower() == "/ls" then return function() fn("") end end
-        end
-    end
-end
-
-Layers.NONE ="No layer read on this map yet: mouse over or target any creature, then try again."
+Layers.NONE = "No layer read on this map yet: mouse over or target any creature, then try again."
 
 -- The name of the map a reading was taken on, or nil.
 function Layers.MapName(c)
