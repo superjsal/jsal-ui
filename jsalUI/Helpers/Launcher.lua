@@ -31,6 +31,10 @@ end
 -- The Layer button puts "I'm on layer 12 in Darkshore." in the guild chat
 -- box, ready to send with Enter; it never sends by itself.
 local function TellLayer()
+    -- With Layer-Swap loaded, a click opens its panel, where you can ask for
+    -- another layer; Shift-click still tells your guild.
+    local swap = ns.Layers.LayerSwapOpener()
+    if swap and not IsShiftKeyDown() then return swap() end
     local c = ns.Layers.Current()
     if not c then return ns.Print(ns.Layers.NONE) end
     local line = ns.Layers.ShareLine(c)
@@ -41,15 +45,24 @@ end
 
 local function LayerTooltip(tip)
     local c = ns.Layers.Current()
+    local swap = ns.Layers.LayerSwapOpener()
     if not c then
         tip:SetText("Layer")
         tip:AddLine("Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
+        if swap then tip:AddLine("Click to open Layer-Swap", 0.89, 0.69, 0.29) end
         return
     end
     local mapName = ns.Layers.MapName(c)
     tip:SetText("Layer " .. c.layer)
     tip:AddLine((mapName and (mapName .. ", read ") or "Read ") .. ns.Layers.Ago(c), 1, 1, 1)
-    tip:AddLine(IsInGuild() and "Click to tell your guild" or "Click to say it in chat", 0.89, 0.69, 0.29)
+    local tell = IsInGuild() and "tell your guild" or "say it in chat"
+    if swap then
+        tip:AddLine("Click to open Layer-Swap and change layers", 0.89, 0.69, 0.29)
+        tip:AddLine("Shift-click to " .. tell, 0.6, 0.59, 0.53)
+    else
+        tip:AddLine("Click to " .. tell, 0.89, 0.69, 0.29)
+        tip:AddLine("To change layers, get the Layer-Swap addon", 0.6, 0.59, 0.53, true)
+    end
 end
 
 -- Every button opens its place, and closes it when it's already open.
@@ -94,7 +107,7 @@ local PLACES = {
       number = function() local c = ns.Layers.Current(); return c and c.layer end,
       tooltip = LayerTooltip,
       open = TellLayer,
-      note = "The layer jsal.ui last read on this map. Click it to tell your guild. Needs the Layer reader on." },
+      note = "The layer jsal.ui last read on this map. Click it to tell your guild, or, with the Layer-Swap addon, to open it and change layers. Needs the Layer reader on." },
 }
 
 -- Settings has a switch for each button, the same choice as the grip's
