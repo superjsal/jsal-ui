@@ -18,8 +18,15 @@ local Waypoint = ns.NewModule("waypoint", {
 })
 ns.Waypoint = Waypoint
 
--- The pin jsal.ui set last: where, and what to call it.
+-- The pin jsal.ui set last: where, and what to call it. Saved for the
+-- character, so after a /reload the pin is still known as jsal.ui's and
+-- keeps moving with the guide.
 local ours
+
+local function Remember(pin)
+    ours = pin
+    if ns.char then ns.char.waypoint = pin end
+end
 
 local function Same(a, b)
     return a and b and a.map == b.map and math.abs(a.x - b.x) < 0.0005 and math.abs(a.y - b.y) < 0.0005
@@ -53,7 +60,7 @@ local arrivedAt, cleared
 -- Sets the game's pin and its label; false when the map takes no pins.
 function Waypoint.Set(map, x, y, label, source)
     if not Compat.SetWaypoint(map, x, y) then return false end
-    ours = { map = map, x = x, y = y, label = label, source = source }
+    Remember({ map = map, x = x, y = y, label = label, source = source })
     arrivedAt, cleared = nil, nil
     return true
 end
@@ -64,7 +71,8 @@ function Waypoint.Clear()
     if not ours then return end
     if Ours() and C_Map and C_Map.ClearUserWaypoint then C_Map.ClearUserWaypoint() end
     cleared = { map = ours.map, x = ours.x, y = ours.y }
-    ours, arrivedAt = nil, nil
+    Remember(nil)
+    arrivedAt = nil
 end
 
 ---------------------------------------------------------------------------
@@ -102,7 +110,7 @@ local function FollowGuide()
         -- The guide has nowhere to go: its old pin goes too.
         if ours and ours.source == "guide" and Ours() and C_Map.ClearUserWaypoint then
             C_Map.ClearUserWaypoint()
-            ours = nil
+            Remember(nil)
         end
         return
     end
@@ -195,6 +203,11 @@ end
 
 function Waypoint:OnEnable()
     if not box then Build() end
+    -- The pin jsal.ui set before a /reload or logout is still its own.
+    local saved = ns.char and ns.char.waypoint
+    if not ours and type(saved) == "table" and tonumber(saved.map) and tonumber(saved.x) and tonumber(saved.y) then
+        ours = saved
+    end
     local paint, follow = 0, 0
     box:SetScript("OnUpdate", nil)
     local driver = self.driver or CreateFrame("Frame")
@@ -233,7 +246,8 @@ function Waypoint.Status()
     end
     if guide and Same(cleared, guide) then Add("You cleared or reached that spot; the next step brings a new one.") end
     local now = Current()
-    Add("The map's pin: " .. SpotText(now) .. (now and (Same(now, ours) and " (jsal.ui's)" or " (set by you or another addon, so it's left alone)") or ""))
+    Add("The map's pin: " .. SpotText(now) .. (now and (Same(now, ours) and " (jsal.ui's)"
+        or " (set by you or another addon, so it's left alone; /jsal waypoint clear removes it)") or ""))
     local tracking = C_SuperTrack and C_SuperTrack.IsSuperTrackingUserWaypoint and C_SuperTrack.IsSuperTrackingUserWaypoint()
     Add("The game is tracking it: " .. (tracking and "yes" or "no"))
     local frame = C_Navigation and C_Navigation.GetFrame and C_Navigation.GetFrame()
@@ -245,6 +259,15 @@ end
 
 ns.Command("waypoint", function()
     for _, line in ipairs(Waypoint.Status()) do ns.Print(line) end
+end)
+
+-- /jsal waypoint clear: takes away whatever pin is on the map, so the guide
+-- can set its own.
+ns.Command("waypoint clear", function()
+    if C_Map and C_Map.ClearUserWaypoint then C_Map.ClearUserWaypoint() end
+    Remember(nil)
+    cleared, arrivedAt = nil, nil
+    ns.Print("The map's pin is cleared; your guide's next spot takes its place.")
 end)
 
 function Waypoint:OnDisable()
