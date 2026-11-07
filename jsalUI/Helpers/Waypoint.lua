@@ -1,8 +1,10 @@
 -- Waypoints: a label over the game's own navigation marker (the blue diamond
 -- that points at a map pin), naming where it leads and how far it is, for
 -- pins jsal.ui sets (a trainer) and, with RestedXP Guides on, the guide's
--- next step, which the marker follows by itself as the guide moves on. A
--- pin the player sets on the map is never replaced, and gets no label.
+-- next step, which the marker follows by itself as the guide moves on. At
+-- the spot it says Arrived and clears itself; a click on the label clears
+-- it too. A pin the player sets on the map is never replaced, and gets no
+-- label.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -43,11 +45,26 @@ local function Ours()
     return not now or Same(now, ours)
 end
 
+-- Within this many yards you've arrived; the pin goes after a few seconds
+-- there, or at once when its label is clicked.
+local ARRIVED, LINGER = 10, 3
+local arrivedAt, cleared
+
 -- Sets the game's pin and its label; false when the map takes no pins.
 function Waypoint.Set(map, x, y, label, source)
     if not Compat.SetWaypoint(map, x, y) then return false end
     ours = { map = map, x = x, y = y, label = label, source = source }
+    arrivedAt, cleared = nil, nil
     return true
+end
+
+-- Takes jsal.ui's pin away; a guide spot cleared isn't set again until the
+-- guide moves on.
+function Waypoint.Clear()
+    if not ours then return end
+    if Ours() and C_Map and C_Map.ClearUserWaypoint then C_Map.ClearUserWaypoint() end
+    cleared = { map = ours.map, x = ours.x, y = ours.y }
+    ours, arrivedAt = nil, nil
 end
 
 ---------------------------------------------------------------------------
@@ -79,7 +96,9 @@ local function FollowGuide()
         return
     end
     if not Ours() then return end
-    if ours and ours.source == "guide" and Same(ours, { map = map, x = x, y = y }) then return end
+    local spot = { map = map, x = x, y = y }
+    if ours and ours.source == "guide" and Same(ours, spot) then return end
+    if Same(cleared, spot) then return end
     Waypoint.Set(map, x, y, "Guide destination", "guide")
 end
 Waypoint.FollowGuide = FollowGuide
@@ -99,6 +118,15 @@ local function Build()
     title:SetPoint("TOP", 0, -5)
     distance = Style.Text(box, 13, "gold", nil, true)
     distance:SetPoint("TOP", title, "BOTTOM", 0, -2)
+    -- Clicking the label clears the pin.
+    box:EnableMouse(true)
+    box:SetScript("OnMouseUp", function() Waypoint.Clear() end)
+    box:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Click to clear this waypoint")
+        GameTooltip:Show()
+    end)
+    box:SetScript("OnLeave", function() GameTooltip:Hide() end)
     box:Hide()
     -- jsal.ui's own pointer: a gold diamond with a dark edge, exactly where
     -- the game's marker points (at the screen's edge when the spot is
@@ -130,7 +158,19 @@ local function Paint()
     end
     title:SetText(ours.label or "Waypoint")
     local yards = C_Navigation.GetDistance and C_Navigation.GetDistance()
-    distance:SetText(yards and ("%d yd"):format(math.floor(yards)) or "")
+    if yards and yards <= ARRIVED then
+        distance:SetText("Arrived")
+        arrivedAt = arrivedAt or GetTime()
+        if GetTime() - arrivedAt >= LINGER then
+            Waypoint.Clear()
+            box:Hide()
+            pointer:Hide()
+            return
+        end
+    else
+        arrivedAt = nil
+        distance:SetText(yards and ("%d yd"):format(math.floor(yards)) or "")
+    end
     box:SetWidth(math.max(110, title:GetStringWidth() + 24))
     pointer:ClearAllPoints()
     pointer:SetPoint("CENTER", frame, "CENTER", 0, 0)
