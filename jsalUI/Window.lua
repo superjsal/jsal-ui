@@ -12,7 +12,8 @@ local PAD_X, PAD_Y, MENU_PAD = 30, 26, 12
 Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
--- The side menu, in order, in its groups; Settings sits at the bottom. Each
+-- The side menu, in order, in its groups; Report a problem and Settings sit
+-- at the bottom. Each
 -- entry has one of jsal.ui's own icons (gold on a slate tile, in
 -- Media\Icons), or a game icon by name. An entry nothing has claimed yet
 -- says it's on the way.
@@ -27,6 +28,7 @@ local PAGES = {
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
+    { key = "report", label = "Report a problem", icon = OWN .. "report", bottom = true },
     { key = "settings", label = "Settings", icon = OWN .. "settings", bottom = true },
 }
 local byKey = {}
@@ -179,21 +181,26 @@ local function Build()
     close:SetPoint("TOPRIGHT")
     ReloadButton(bar):SetPoint("RIGHT", close, "LEFT", -6, 0)
 
-    -- The menu: entries in their groups from the top, Settings and the
-    -- version at the bottom.
+    -- The menu: entries in their groups from the top; the bottom entries
+    -- stack up from the version line, the last one lowest.
     local menu = CreateFrame("Frame", nil, frame)
     menu:SetPoint("TOPLEFT", 0, -TITLE_HEIGHT)
     menu:SetPoint("BOTTOMLEFT")
     menu:SetWidth(MENU_WIDTH)
     Style.Fill(menu, "titleBar")
     Style.Rule(menu, "RIGHT", "line")
-    local y = 18
+    local y, below = 18, 0
+    for _, page in ipairs(PAGES) do
+        if page.bottom then below = below + 1 end
+    end
     for _, page in ipairs(PAGES) do
         MenuButton(menu, page)
         local b = page.button
         if page.bottom then
-            b:SetPoint("BOTTOMLEFT", MENU_PAD, 40)
-            b:SetPoint("BOTTOMRIGHT", -MENU_PAD, 40)
+            below = below - 1
+            local up = 40 + below * (ITEM_HEIGHT + 2)
+            b:SetPoint("BOTTOMLEFT", MENU_PAD, up)
+            b:SetPoint("BOTTOMRIGHT", -MENU_PAD, up)
         else
             if page.group then
                 local group = Style.Text(menu, 10, "muted", nil, true)

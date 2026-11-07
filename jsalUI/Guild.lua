@@ -69,6 +69,8 @@ local function Status()
         iconDay or 0, iconScore or "",
         word and guildScore and word.id or 0, guildScore or "",
         average and ("%.2f"):format(average) or "", solved or 0,
+        -- "R" when this player takes problem reports for jsal.ui.
+        ns.Reports and ns.Reports.Receiving() and "R" or "",
     }, ";")
 end
 
@@ -125,7 +127,7 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports = strsplit(";", payload or "")
     CheckVersion(version, name)
     NoteSeen(name, version)
     members[name] = {
@@ -139,6 +141,7 @@ local function Store(payload, name, sender)
         iconScore = iconScore ~= "" and iconScore or nil,
         guildID = tonumber(guildID),
         guildScore = guildScore ~= "" and guildScore or nil,
+        takesReports = reports == "R",
         seen = GetTime(),
     }
 end
@@ -152,6 +155,7 @@ end
 local function Answer(payload, name, channel, sender)
     Record(payload, name, channel, sender)
     if ns.Chess then ns.Chess.Heard(name) end
+    if ns.Reports then ns.Reports.Heard(name) end
 end
 
 -- Guildmates heard from with jsal.ui this session, by name: their version,
@@ -219,6 +223,7 @@ function Guild:OnEnable()
     Comms.On("HI", function(payload, name, channel, sender)
         Record(payload, name, channel, sender)
         if ns.Chess then ns.Chess.Heard(name) end
+        if ns.Reports then ns.Reports.Heard(name) end
         if name ~= Compat.MyName() and (answered[name] or -30) + 30 < GetTime() then
             answered[name] = GetTime()
             Comms.Send("ME", Status(), "WHISPER", sender)
