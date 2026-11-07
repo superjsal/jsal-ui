@@ -1,6 +1,7 @@
--- Quick buttons: a small bar of jsal.ui's places (the dashboard, today's
--- games, chess, the shopping list, the planners) and the layer you're in,
--- that can be dragged anywhere by its grip, so nobody has to type /jsal.
+-- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
+-- the shopping list, the planners, the gear plan, the dungeon guide) and the
+-- layer you're in, that can be dragged anywhere by its grip, so nobody has
+-- to type /jsal. The three games share one button that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
 -- played, your move in chess. Choose the buttons in Settings or by
 -- right-clicking the grip, which also stands the bar up or locks it. The
@@ -10,7 +11,7 @@ local Style, Compat = ns.Style, ns.Compat
 
 local Launcher = ns.NewModule("launcher", {
     title = "Quick buttons",
-    note = "A small bar of buttons you can move anywhere: the dashboard, games, chess and more.",
+    note = "A small bar of buttons you can move anywhere: the dashboard, the games, the gear plan and more.",
 })
 ns.Launcher = Launcher
 
@@ -65,10 +66,11 @@ local function LayerMenu(button)
     TellLayer()
 end
 
--- Every button opens its place, and closes it when it's already open.
+-- Every button opens its place, and closes it when it's already open: the
+-- dashboard page, or the page's own window (the gear plan, the dungeons).
 local function Page(key)
     return function()
-        if ns.Window.IsOpen(key) then ns.Window.Toggle() else ns.Window.Open(key) end
+        if ns.Window.IsOpen(key) then ns.Window.Close(key) else ns.Window.Open(key) end
     end
 end
 
@@ -79,18 +81,69 @@ local function Game(window, open)
     end
 end
 
-local PLACES = {
+local function Ready(place)
+    return not place.ready or place.ready()
+end
+
+local function Waiting(place)
+    if not (place.waiting and Ready(place)) then return nil end
+    local ok, text = pcall(place.waiting)
+    return ok and text or nil
+end
+
+-- The games inside the Games button that are there to use, in order.
+local PLACES
+local function Games()
+    local list = {}
+    for _, place in ipairs(PLACES) do
+        if place.inGames and Ready(place) then list[#list + 1] = place end
+    end
+    return list
+end
+
+-- One button for the three games: its menu lists them, with what's waiting.
+local function GamesMenu(button)
+    local items = {}
+    for _, place in ipairs(Games()) do
+        items[#items + 1] = { place.label, Waiting(place) and "|cffe3b04bwaiting|r" or nil, place.open }
+    end
+    ns.Launcher.ShowMenu(button or UIParent, items)
+end
+
+local function GamesTooltip(tip)
+    tip:SetText("Games")
+    tip:AddLine("Daily Word, Icon Guess and chess", 1, 1, 1)
+    for _, place in ipairs(Games()) do
+        local waiting = Waiting(place)
+        if waiting then tip:AddLine(waiting, 0.89, 0.69, 0.29) end
+    end
+end
+
+-- inGames: inside the Games button, not a button of its own. barOnly: on
+-- the bar but not in the minimap button's list, which names each game.
+PLACES = {
     { key = "dashboard", label = "Dashboard", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Logo",
       open = function() ns.Window.Toggle() end },
-    { key = "word", label = "Daily Word", icon = OWN .. "word",
+    { key = "games", label = "Games", icon = OWN .. "games", barOnly = true,
+      ready = function() return #Games() > 0 end,
+      open = GamesMenu,
+      waiting = function()
+          for _, place in ipairs(Games()) do
+              local waiting = Waiting(place)
+              if waiting then return waiting end
+          end
+      end,
+      tooltip = GamesTooltip,
+      note = "One button for Daily Word, Icon Guess and chess: it opens a menu of them, with a gold dot when one is waiting." },
+    { key = "word", inGames = true, label = "Daily Word", icon = OWN .. "word",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
       open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),
       waiting = function() return not ns.DailyWord.DailyDone() and ("Puzzle #%d is waiting"):format(ns.Games.Today()) or nil end },
-    { key = "icons", label = "Icon Guess", icon = OWN .. "icons",
+    { key = "icons", inGames = true, label = "Icon Guess", icon = OWN .. "icons",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
-    { key = "chess", label = "Chess", icon = OWN .. "chess",
+    { key = "chess", inGames = true, label = "Chess", icon = OWN .. "chess",
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
@@ -101,6 +154,12 @@ local PLACES = {
       open = Page("build") },
     { key = "training", label = "Training Planner", icon = OWN .. "training",
       open = Page("training") },
+    { key = "gear", label = "Gear plan", icon = OWN .. "gear",
+      ready = function() return ns.Gear and ns.Gear.running end,
+      open = Page("gear") },
+    { key = "dungeons", label = "Dungeon guide", icon = OWN .. "dungeons",
+      ready = function() return ns.Dungeons and ns.Dungeons.running end,
+      open = Page("dungeons") },
     -- Shows a number, not an icon: the layer last read on this map.
     { key = "layer", label = "Layer",
       ready = function() return ns.Layers and ns.Layers.running end,
@@ -114,21 +173,13 @@ local PLACES = {
 -- right-click menu; they apply at once.
 Launcher.options = {}
 for _, place in ipairs(PLACES) do
-    Launcher.options[#Launcher.options + 1] = { key = place.key, title = place.label, default = true,
-        note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
+    if not place.inGames then
+        Launcher.options[#Launcher.options + 1] = { key = place.key, title = place.label, default = true,
+            note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
+    end
 end
 
 local function Hidden(key) return not ns.OptionOn("launcher", key) end
-
-local function Ready(place)
-    return not place.ready or place.ready()
-end
-
-local function Waiting(place)
-    if not (place.waiting and Ready(place)) then return nil end
-    local ok, text = pcall(place.waiting)
-    return ok and text or nil
-end
 
 -- The same places for other parts (the flight bar's games): one by key, and
 -- whether it's there to use and what's waiting.
@@ -228,7 +279,7 @@ end
 function Launcher.PlacesMenu(anchor)
     local items = {}
     for _, place in ipairs(PLACES) do
-        if Ready(place) then
+        if Ready(place) and not place.barOnly then
             local waiting = Waiting(place)
             items[#items + 1] = { place.label, waiting and "|cffe3b04bwaiting|r" or nil, place.open }
         end
@@ -298,8 +349,8 @@ Layout = function()
     local shown = 0
     for _, place in ipairs(PLACES) do
         local b = buttons[place.key]
-        local on = Ready(place) and not Hidden(place.key)
-        b:SetShown(on)
+        local on = b ~= nil and Ready(place) and not Hidden(place.key)
+        if b then b:SetShown(on) end
         if on then
             b:ClearAllPoints()
             local offset = GRIP + 4 + shown * (SIZE + GAP)
@@ -357,7 +408,7 @@ local function GripMenu()
     local s = Saved()
     local items = {}
     for _, place in ipairs(PLACES) do
-        if Ready(place) then
+        if Ready(place) and not place.inGames then
             items[#items + 1] = { place.label, Hidden(place.key) and "hidden" or "shown", function()
                 ns.SetOption("launcher", place.key, Hidden(place.key))
                 Layout()
@@ -407,7 +458,9 @@ local function Build()
         GameTooltip:Show()
     end)
     grip:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    for _, place in ipairs(PLACES) do buttons[place.key] = Button(place) end
+    for _, place in ipairs(PLACES) do
+        if not place.inGames then buttons[place.key] = Button(place) end
+    end
     local s = Saved()
     if s.point then
         bar:SetPoint(s.point, UIParent, s.relative or s.point, s.x or 0, s.y or 0)
