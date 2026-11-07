@@ -1,0 +1,58 @@
+# Ships a queued release overnight. Each night at 2 AM Central (08:00 UTC;
+# 3 AM while daylight time is on), if the version in jsalUI.toc has no tag
+# yet, it's tagged and published to GitHub releases, CurseForge and Wago,
+# the same as pushing a version tag by hand. Otherwise nothing happens.
+# "Run workflow" on the Actions tab runs it at once.
+name: Nightly release
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_KEY }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Is a version waiting?
+        id: queued
+        run: |
+          version=$(sed -n 's/^## Version: *//p' jsalUI/jsalUI.toc | tr -d '\r' | head -n1)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ -z "$version" ]; then
+            echo "No version in the toc."
+            echo "ship=false" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "v$version is already out; nothing waiting."
+            echo "ship=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$version is waiting; shipping it."
+            echo "ship=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag it
+        if: steps.queued.outputs.ship == 'true'
+        run: |
+          git config user.name "superjsal"
+          git config user.email "dev@jsal.io"
+          git tag -a "v${{ steps.queued.outputs.version }}" -m "jsal.ui ${{ steps.queued.outputs.version }}"
+          git push origin "v${{ steps.queued.outputs.version }}"
+
+      - name: Build and publish
+        if: steps.queued.outputs.ship == 'true'
+        uses: BigWigsMods/packager@v2
