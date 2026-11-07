@@ -68,18 +68,29 @@ function Waypoint.Clear()
 end
 
 ---------------------------------------------------------------------------
--- RestedXP Guides: the first unfinished spot of its current steps.
+-- RestedXP Guides: the spot its own arrow points to; failing that, the
+-- first unfinished spot of its current steps, leaving out the "keep doing
+-- this while questing" steps it pins above them.
 ---------------------------------------------------------------------------
+local function Spot(element)
+    if type(element) == "table" and tonumber(element.zone) and tonumber(element.x) and tonumber(element.y)
+        and not element.completed and not element.skip then
+        return tonumber(element.zone), element.x / 100, element.y / 100
+    end
+end
+
 function Waypoint.GuideTarget()
     local rxp = RXP
+    local arrow = rxp and rxp.arrowFrame
+    local map, x, y = Spot(arrow and arrow.element)
+    if map then return map, x, y end
     local steps = rxp and rxp.RXPFrame and rxp.RXPFrame.activeSteps
     if type(steps) ~= "table" then return nil end
     for _, step in ipairs(steps) do
+        if type(step) == "table" and step.sticky then step = nil end
         for _, element in ipairs(type(step) == "table" and step.elements or {}) do
-            if type(element) == "table" and element.zone and element.x and element.y
-                and not element.completed and not element.skip then
-                return tonumber(element.zone), element.x / 100, element.y / 100
-            end
+            map, x, y = Spot(element)
+            if map then return map, x, y end
         end
     end
 end
@@ -205,7 +216,7 @@ end
 ---------------------------------------------------------------------------
 -- /jsal waypoint: why the label is or isn't showing, for a bug report.
 ---------------------------------------------------------------------------
-local function Spot(s)
+local function SpotText(s)
     return s and ("%s %.1f, %.1f"):format(tostring(s.map), s.x * 100, s.y * 100) or "none"
 end
 
@@ -216,13 +227,13 @@ function Waypoint.Status()
         ns.OptionOn("waypoint", "guide") and "on" or "off"))
     local map, x, y = Waypoint.GuideTarget()
     local guide = map and { map = map, x = x, y = y }
-    Add("RestedXP's next spot: " .. (RXP and Spot(guide) or "RestedXP isn't running"))
+    Add("RestedXP's next spot: " .. (RXP and SpotText(guide) or "RestedXP isn't running"))
     if guide and C_Map and C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(map) then
         Add("That map takes no pins, so there's nothing to point at.")
     end
     if guide and Same(cleared, guide) then Add("You cleared or reached that spot; the next step brings a new one.") end
     local now = Current()
-    Add("The map's pin: " .. Spot(now) .. (now and (Same(now, ours) and " (jsal.ui's)" or " (set by you or another addon, so it's left alone)") or ""))
+    Add("The map's pin: " .. SpotText(now) .. (now and (Same(now, ours) and " (jsal.ui's)" or " (set by you or another addon, so it's left alone)") or ""))
     local tracking = C_SuperTrack and C_SuperTrack.IsSuperTrackingUserWaypoint and C_SuperTrack.IsSuperTrackingUserWaypoint()
     Add("The game is tracking it: " .. (tracking and "yes" or "no"))
     local frame = C_Navigation and C_Navigation.GetFrame and C_Navigation.GetFrame()
