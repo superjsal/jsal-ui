@@ -261,8 +261,16 @@ Window.Page("gear", function(page)
         local bits = {}
         if o.gains and o.gains ~= "" then bits[#bits + 1] = GREEN .. o.gains .. "|r" end
         local source = G.Source(o)
-        if source ~= "" then bits[#bits + 1] = source end
-        if (o.req or 0) > 0 then bits[#bits + 1] = (o.soon and RED or "") .. "level " .. o.req .. (o.soon and "|r" or "") end
+        -- Profession gear: who can wear it, in red when you can't (yet).
+        if o.needs then
+            source = source:gsub("^" .. o.needs.name .. " · ", "")
+            if source ~= "" then bits[#bits + 1] = source end
+            bits[#bits + 1] = (G.HasSkill(o.needs) and "" or RED) .. ("%s %d only"):format(o.needs.name, o.needs.skill)
+                .. (G.HasSkill(o.needs) and "" or "|r")
+        elseif source ~= "" then
+            bits[#bits + 1] = source
+        end
+        if (o.req or 0) > 0 and not o.needs then bits[#bits + 1] = (o.soon and RED or "") .. "level " .. o.req .. (o.soon and "|r" or "") end
         return table.concat(bits, " · ")
     end
 

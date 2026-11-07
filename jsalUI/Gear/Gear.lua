@@ -70,6 +70,16 @@ function Gear.ForClass(classFile, level, itemClass, subclass, slot)
     return true
 end
 
+-- Whether a class can wear a piece of armor at all: its own type or any
+-- lighter one. The plan keeps to your own type, except for profession gear
+-- (an engineer's goggles are cloth, worn by every class).
+function Gear.CanWear(classFile, level, itemClass, subclass)
+    local gear = Gear.CLASS_GEAR[classFile or ""]
+    if not gear or itemClass ~= ARMOR or not subclass or subclass < 1 or subclass > 4 then return false end
+    local wears = (gear.at40 and (level or 1) >= 40) and gear.at40 or gear.armor
+    return subclass <= wears
+end
+
 ---------------------------------------------------------------------------
 -- The slots, as the character pane lays them out: the game's equipment
 -- slots for what you wear, and the item slots (inventory types) that fit.
@@ -240,6 +250,68 @@ end
 -- The items that fit a slot for you, from GearData's text: your class and
 -- side, near your level.
 ---------------------------------------------------------------------------
+---------------------------------------------------------------------------
+-- Profession gear (an engineer's goggles): the skill it needs, from the
+-- game's own tooltip ("Requires Engineering (210)"), read once per item and
+-- only for crafted pieces whose required level is far below their item level.
+-- It belongs to the level you can first train that skill at, not its
+-- required level, and shows to everyone, marked for that profession only.
+---------------------------------------------------------------------------
+local needs = {}
+local skillPattern
+local function SkillPattern()
+    if skillPattern then return skillPattern end
+    local text = type(ITEM_MIN_SKILL) == "string" and ITEM_MIN_SKILL or "Requires %s (%d)"
+    text = text:gsub("([%(%)%.%[%]%+%-%*%?%^%$])", "%%%1")
+    text = text:gsub("%%s", "(.+)"):gsub("%%d", "(%%d+)")
+    skillPattern = "^" .. text .. "$"
+    return skillPattern
+end
+
+-- { name = "Engineering", skill = 210 }, false when it needs none, nil
+-- while the game hasn't loaded the item.
+function Gear.SkillNeed(id)
+    if needs[id] ~= nil then return needs[id] end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local tip = C_TooltipInfo and C_TooltipInfo.GetItemByID
+    if not (tip and get and get(id)) then
+        if C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+        return nil
+    end
+    local data = tip(id)
+    if not (data and data.lines) then return nil end
+    local found = false
+    for _, line in ipairs(data.lines) do
+        local name, skill = (line.leftText or ""):match(SkillPattern())
+        if name then
+            found = { name = name, skill = tonumber(skill) }
+            break
+        end
+    end
+    needs[id] = found
+    return found
+end
+
+-- The level a profession's skill can first be trained to: Journeyman (to
+-- 150) at 10, Expert (to 225) at 20, Artisan at 35.
+function Gear.SkillLevel(skill)
+    if skill <= 75 then return 1 end
+    if skill <= 150 then return 10 end
+    if skill <= 225 then return 20 end
+    return 35
+end
+
+-- Whether you have a profession at a skill.
+function Gear.HasSkill(need)
+    local P = ns.Professions
+    if not (need and P and P.Mine) then return false end
+    local ok, mine = pcall(P.Mine)
+    for _, p in ipairs(ok and mine or {}) do
+        if p.name and p.name:lower() == need.name:lower() and (p.skill or 0) >= need.skill then return true end
+    end
+    return false
+end
+
 -- One of GearData's items as the plan uses it. A drop with no one place
 -- to get it is a world drop.
 function Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
@@ -325,11 +397,19 @@ function Gear.Candidates(slot, level, classFile, classID, side)
             local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match("^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$")
             req, reqclass, s = tonumber(req), tonumber(reqclass), tonumber(s)
             local at = id and Gear.LevelOf(req, tonumber(ilvl))
+            local need
+            if id and kind == "4" and tonumber(ilvl) - math.max(req, 1) >= 12 then
+                need = Gear.SkillNeed(tonumber(id))
+                if need then at = math.max(req, Gear.SkillLevel(need.skill)) end
+            end
             if id and at >= level - Gear.BELOW and at <= level + Gear.ABOVE
                 and (s == 0 or s == side)
                 and (reqclass == 0 or math.floor(reqclass / bit) % 2 == 1)
-                and Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType) then
-                out[#out + 1] = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
+                and (Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType)
+                     or (need and Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub)))) then
+                local e = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
+                e.needs = need or nil
+                out[#out + 1] = e
             end
         end
     end
