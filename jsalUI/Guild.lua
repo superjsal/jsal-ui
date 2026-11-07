@@ -73,6 +73,8 @@ local function Status()
         ns.Reports and ns.Reports.Receiving() and "R" or "",
         -- A fingerprint of the recipes this player shares, for Guild crafters.
         ns.Crafters and ns.Crafters.Signature() or "",
+        -- The zone and layer this player is on ("map:layer"), for changing layers.
+        ns.LayerSwitch and ns.LayerSwitch.Code() or "",
     }, ";")
 end
 
@@ -129,8 +131,9 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer = strsplit(";", payload or "")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
+    if ns.LayerSwitch and ns.Layers and ns.Layers.running then ns.LayerSwitch.Heard(name, layer, sender or name) end
     CheckVersion(version, name)
     NoteSeen(name, version)
     members[name] = {
