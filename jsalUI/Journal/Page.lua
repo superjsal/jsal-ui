@@ -158,19 +158,28 @@ Window.Page("journal", function(page)
         who:SetText(("Level %d %s · %s on record"):format(UnitLevel("player"), className or "", Hours(J.Stat("seconds"))))
         local spells = J.Top(book.spells, 5)
         fav:SetText(spells[1] and ("Favourite move: %s, %s times"):format(spells[1].key, Count(spells[1].n)) or "Your favourite move shows once you've cast a few.")
+        -- The game's own totals cover the whole life of the character; the
+        -- rest is counted from the day the Journal began.
         local day = (date("%d %B %Y", book.since or Compat.ServerTime()):gsub("^0", ""))
-        since:SetText(("Kept since %s, from level %d"):format(day, book.startLevel or 1))
+        local extras = {}
+        for _, e in ipairs({ { "flights", "flight", "flights" }, { "hearths", "hearth", "hearths" }, { "camped", "campfire", "campfires" } }) do
+            local n = J.Total(e[1])
+            if n > 0 then extras[#extras + 1] = ("%s %s"):format(Count(n), n == 1 and e[2] or e[3]) end
+        end
+        since:SetText((#extras > 0 and (table.concat(extras, ", ") .. ". ") or "")
+            .. ("Distance, jumps and damage counted since %s."):format(day))
         local killers = J.Top(book.killers, 1)
-        local money = J.Top(book.money, 1)
-        local duelsWon, duelsLost = J.Stat("duelsWon"), J.Stat("duelsLost")
+        local source = J.MoneySource()
+        local bosses = J.Bosses()
+        local duelsWon, duelsLost = J.Total("duelsWon"), J.Total("duelsLost")
         local data = {
-            { Count(J.Stat("foes")), "Foes defeated", J.Stat("bosses") > 0 and (Count(J.Stat("bosses")) .. " bosses") or "" },
+            { Count(J.Total("foes")), "Foes defeated", bosses > 0 and (Count(bosses) .. (bosses == 1 and " boss" or " bosses")) or "" },
             { Miles(J.Stat("yards")), "Travelled", "" },
-            { Count(J.Stat("quests")), "Quests done", "" },
-            { Count(J.Stat("damage")), "Damage dealt", "" },
-            { Count(J.Stat("healing")), "Healing done", "" },
-            { Count(J.Stat("deaths")), "Deaths", killers[1] and ("most to " .. killers[1].key) or "" },
-            { Gold(J.Stat("earned")), "Gold earned", money[1] and ("most from " .. money[1].key) or "" },
+            { Count(J.Total("quests")), "Quests done", "" },
+            { Count(J.Total("damage")), "Damage dealt", "" },
+            { Count(J.Total("healing")), "Healing done", "" },
+            { Count(J.Total("deaths")), "Deaths", killers[1] and ("most to " .. killers[1].key) or "" },
+            { Gold(J.Total("earned")), "Gold earned", source and ("most from " .. source) or "" },
             { ("%d-%d"):format(duelsWon, duelsLost), "Duels won and lost", "" },
             { Count(J.Stat("jumps")), "Jumps", "" },
         }

@@ -353,6 +353,13 @@ end
 
 function Journal:OnEnable()
     playerGUID = UnitGUID("player")
+    -- A one-off reading of the Statistics window, no longer needed.
+    ns.db.statsRead = nil
+    -- Hidden effects counted before only known spells were: their names are
+    -- in capitals with no spaces, like LOGINEFFECT.
+    for name in pairs(Book().spells) do
+        if name:match("^[%u_%d]+$") then Book().spells[name] = nil end
+    end
     local j = Book()
     if #j.events == 0 then
         Journal.Note("start", ("This journal begins, at level %d"):format(UnitLevel("player")))
@@ -377,7 +384,9 @@ function Journal:OnEnable()
         if event == "COMBAT_LOG_EVENT_UNFILTERED" then
             CombatLog()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            if a == "player" and c and not NOT_CASTS[c] then
+            -- Only spells you know: the game also "casts" hidden effects,
+            -- such as one at login, and items' own spells.
+            if a == "player" and c and not NOT_CASTS[c] and (not IsPlayerSpell or IsPlayerSpell(c)) then
                 local name = Compat.SpellInfo(c)
                 if name then
                     local spells = Book().spells
@@ -449,3 +458,61 @@ function Journal:OnDisable()
 end
 
 ns.Command("journal", function() if ns.Window then ns.Window.Open("journal") end end)
+
+---------------------------------------------------------------------------
+-- The game's own Statistics window, kept since the character was made. A
+-- number there wins over the Journal's own count when it's bigger, so the
+-- Summary shows the whole history; what the game doesn't track (distance,
+-- jumps, and on Forever damage and healing) stays the Journal's count.
+---------------------------------------------------------------------------
+local GAME = { foes = 1197, quests = 98, deaths = 60, earned = 328, duelsWon = 319, duelsLost = 320,
+               damage = 197, healing = 198, flights = 349, hearths = 353, camped = 64222 }
+local MONEY_FROM = { loot = 333, quests = 326, vendor = 921, auction = 919 }
+local BOSS_KILLS = 14821   -- the Statistics window's Boss Kills list
+
+-- A statistic as a number: "--" is none, money is read from its coins.
+function Journal.GameStat(id)
+    local v = GetStatistic and GetStatistic(id)
+    if type(v) ~= "string" or v == "" or v == "--" then return nil end
+    if v:find("GoldIcon") or v:find("SilverIcon") or v:find("CopperIcon") then
+        local g = tonumber(v:match("(%d+)|TInterface\\MoneyFrame\\UI%-GoldIcon")) or 0
+        local s = tonumber(v:match("(%d+)|TInterface\\MoneyFrame\\UI%-SilverIcon")) or 0
+        local c = tonumber(v:match("(%d+)|TInterface\\MoneyFrame\\UI%-CopperIcon")) or 0
+        return g * 10000 + s * 100 + c
+    end
+    local n = v:gsub(",", ""):match("^%s*(%d+)")
+    return tonumber(n)
+end
+
+-- A Summary number: the game's total or the Journal's count, whichever is
+-- bigger, and whether the game's was used.
+function Journal.Total(name)
+    local own = Journal.Stat(name)
+    local game = GAME[name] and Journal.GameStat(GAME[name])
+    if game and game >= own then return game, true end
+    return own, false
+end
+
+-- Where most gold came from: by the game's figures, else the Journal's.
+function Journal.MoneySource()
+    local best, most = nil, 0
+    for source, id in pairs(MONEY_FROM) do
+        local n = Journal.GameStat(id) or 0
+        if n > most then best, most = source, n end
+    end
+    if best then return best end
+    local top = Top(Book().money, 1)[1]
+    return top and top.key or nil
+end
+
+-- Dungeon and raid bosses killed, from the game's Boss Kills list.
+function Journal.Bosses()
+    local total = 0
+    if GetCategoryNumAchievements and GetAchievementInfo then
+        for i = 1, (GetCategoryNumAchievements(BOSS_KILLS, true) or 0) do
+            local id = GetAchievementInfo(BOSS_KILLS, i)
+            total = total + (id and Journal.GameStat(id) or 0)
+        end
+    end
+    return math.max(total, Journal.Stat("bosses"))
+end
