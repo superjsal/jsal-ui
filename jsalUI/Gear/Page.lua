@@ -4,7 +4,8 @@
 -- slots that have one. Click a slot to see its options beside them: what
 -- each adds, where it comes from, its level, and a star to keep it on top.
 -- Under them, a box adds an item the plan doesn't list, starred, in the
--- slot it goes in.
+-- slot it goes in. Weights, beside the spec buttons, opens the spec's stat
+-- weights to change, or to fill from a Pawn scale.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -69,6 +70,136 @@ Window.Page("gear", function(page)
         end)
         specButtons[i] = b
     end
+
+    -----------------------------------------------------------------
+    -- The weights: each stat the spec values, as a number to change (a
+    -- changed one in gold), a box to paste a Pawn scale into, and Reset.
+    -----------------------------------------------------------------
+    local WEIGHTS_W, WROW_H = 340, 28
+    local weightsButton = Style.Button(page, "Weights", "plain", 100)
+    weightsButton:SetHeight(26)
+    weightsButton:SetPoint("RIGHT", specButtons[1], "LEFT", -8, 0)
+    local panel = CreateFrame("Frame", nil, page)
+    panel:SetWidth(WEIGHTS_W)
+    panel:SetPoint("TOPRIGHT", specButtons[3], "BOTTOMRIGHT", 0, -6)
+    panel:SetFrameStrata("DIALOG")
+    panel:EnableMouse(true)
+    Style.Fill(panel, "window")
+    Style.Border(panel, "lineStrong")
+    panel:Hide()
+    local panelTitle = Style.Text(panel, 13, "gold", nil, true)
+    panelTitle:SetPoint("TOPLEFT", 14, -12)
+    local panelHint = Style.Text(panel, 12, "muted")
+    panelHint:SetPoint("TOPRIGHT", -14, -13)
+    panelHint:SetText("higher counts more")
+    local weightRows = {}
+    local PaintWeights
+    local function Number(v)
+        local text = ("%.2f"):format(v or 0):gsub("0+$", ""):gsub("%.$", "")
+        return text
+    end
+    local function WeightRow(i)
+        if weightRows[i] then return weightRows[i] end
+        local r = CreateFrame("Frame", nil, panel)
+        r:SetSize(WEIGHTS_W - 28, WROW_H)
+        Style.Rule(r, "BOTTOM", "line")
+        r.label = Style.Text(r, 13, "text")
+        r.label:SetPoint("LEFT", 0, 0)
+        r.field = Style.Field(r, 70)
+        r.field.well:SetPoint("RIGHT", 0, 0)
+        r.field.well:SetHeight(22)
+        r.field:SetJustifyH("RIGHT")
+        local function Save(self)
+            local v = tonumber(self:GetText())
+            if v and r.key and math.abs(v - (r.value or 0)) > 0.0001 then
+                G.SetWeight(G.Spec(), r.key, v)
+                Paint()
+            end
+            PaintWeights()
+        end
+        r.field:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+        r.field:SetScript("OnEditFocusLost", Save)
+        weightRows[i] = r
+        return r
+    end
+    local pawn = Style.Field(panel, WEIGHTS_W - 28 - 76 - 8)
+    pawn:SetMaxLetters(0)
+    pawn.hint = Style.Text(pawn.well, 12, "muted")
+    pawn.hint:SetPoint("LEFT", 8, 0)
+    pawn.hint:SetText("Paste a Pawn scale")
+    pawn:SetScript("OnTextChanged", function(self) pawn.hint:SetShown(self:GetText() == "" and not self:HasFocus()) end)
+    pawn:SetScript("OnEditFocusGained", function() pawn.hint:Hide() end)
+    pawn:SetScript("OnEditFocusLost", function(self) pawn.hint:SetShown(self:GetText() == "") end)
+    local importButton = Style.Button(panel, "Use it", "plain", 76)
+    importButton:SetHeight(26)
+    importButton:SetPoint("LEFT", pawn.well, "RIGHT", 8, 0)
+    local resetButton = Style.Button(panel, "Reset to WoWSims", "plain", 150)
+    resetButton:SetHeight(26)
+    local weightsSaid = Style.Text(panel, 12, "gold")
+    weightsSaid:SetWidth(WEIGHTS_W - 28)
+    weightsSaid:SetJustifyH("LEFT")
+    local function Import()
+        local ok, message = G.ImportPawn(G.Spec(), pawn:GetText())
+        weightsSaid:SetText(message or "")
+        if ok then
+            pawn:SetText("")
+            pawn:ClearFocus()
+            Paint()
+        end
+        PaintWeights()
+    end
+    importButton:SetScript("OnClick", Import)
+    pawn:SetScript("OnEnterPressed", Import)
+    resetButton:SetScript("OnClick", function()
+        G.ResetWeights(G.Spec())
+        weightsSaid:SetText("Back to WoWSims' weights.")
+        Paint()
+        PaintWeights()
+    end)
+    PaintWeights = function()
+        if not panel:IsShown() then return end
+        local spec = G.Spec()
+        local trees = G.Trees()
+        panelTitle:SetText(trees[spec].name .. " weights")
+        local base = G.BaseWeights(spec) or { stats = {}, dps = {} }
+        local now = G.Weights(spec) or { stats = {}, dps = {} }
+        -- Every stat the spec values, by WoWSims or by you.
+        local list = {}
+        for _, s in ipairs(G.WEIGHT_STATS) do
+            local v = now.stats[s[1]] or 0
+            if v > 0 or (base.stats[s[1]] or 0) > 0 then list[#list + 1] = { key = s[1], label = s[2], value = v, base = base.stats[s[1]] or 0 } end
+        end
+        for _, d in ipairs(G.WEIGHT_DPS) do
+            local v = now.dps[d[1]] or 0
+            if v > 0 or (base.dps[d[1]] or 0) > 0 then list[#list + 1] = { key = d[1], label = d[2], value = v, base = base.dps[d[1]] or 0 } end
+        end
+        for i, e in ipairs(list) do
+            local r = WeightRow(i)
+            r:ClearAllPoints()
+            r:SetPoint("TOPLEFT", 14, -(38 + (i - 1) * WROW_H))
+            r.key, r.value = e.key, e.value
+            local changed = math.abs(e.value - e.base) > 0.0001
+            r.label:SetText(e.label .. (changed and " |cffe3b04b· yours|r" or ""))
+            if not r.field:HasFocus() then r.field:SetText(Number(e.value)) end
+            r.field:SetTextColor(Style.Color(changed and "gold" or "text"))
+            r:Show()
+        end
+        for i = #list + 1, #weightRows do weightRows[i]:Hide() end
+        local y = 38 + #list * WROW_H + 12
+        pawn.well:ClearAllPoints()
+        pawn.well:SetPoint("TOPLEFT", 14, -y)
+        resetButton:ClearAllPoints()
+        resetButton:SetPoint("TOPLEFT", 14, -(y + 34))
+        weightsSaid:ClearAllPoints()
+        weightsSaid:SetPoint("TOPLEFT", 14, -(y + 70))
+        panel:SetHeight(y + 70 + 26)
+    end
+    weightsButton:SetScript("OnClick", function()
+        panel:SetShown(not panel:IsShown())
+        weightsSaid:SetText("")
+        PaintWeights()
+    end)
+    page:HookScript("OnHide", function() panel:Hide() end)
 
     local top = 46
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
@@ -285,7 +416,10 @@ Window.Page("gear", function(page)
             b:SetKind(i == spec and "primary" or "plain")
         end
         local className = UnitClass("player") or ""
-        who:SetText(("%s %s · level %d"):format(trees[spec].name, className:lower(), level))
+        who:SetText(("%s %s · level %d"):format(trees[spec].name, className:lower(), level)
+            .. (G.CustomWeights(spec) and " · |cffe3b04byour weights|r" or ""))
+        weightsButton:SetKind(panel:IsShown() and "primary" or "plain")
+        PaintWeights()
 
         local plans = {}
         for _, s in ipairs(G.SLOTS) do plans[s.key] = G.Plan(s, spec) end
