@@ -251,6 +251,21 @@ Window.Page("dungeons", function(page)
     local none = Style.Text(bossList, 12, "muted")
     none:SetWidth(rightW - 36)
     none:SetJustifyH("LEFT")
+    -- Under each tab: where its lists come from, and that they're incomplete.
+    local NOTE = {
+        bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.",
+        quests = "Quests come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
+    }
+    local note = Style.Text(bossList, 11, "muted")
+    note:SetWidth(rightW - 8)
+    note:SetJustifyH("LEFT")
+    local function PlaceNote(which, y)
+        note:SetText(NOTE[which])
+        note:ClearAllPoints()
+        note:SetPoint("TOPLEFT", 0, -(y + 6))
+        note:Show()
+        return y + 6 + 32
+    end
 
     -- A boss's card: its name, ticked once you've killed it, and its loot
     -- under it, one item to a line.
@@ -575,6 +590,7 @@ Window.Page("dungeons", function(page)
                 none:Show()
                 by = 40
             end
+            by = PlaceNote("quests", by)
             bossList:SetHeight(math.max(1, by))
             bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
             return
@@ -605,6 +621,7 @@ Window.Page("dungeons", function(page)
             end
         end
         for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
+        by = PlaceNote("bosses", by)
         bossList:SetHeight(math.max(1, by))
         bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
     end
