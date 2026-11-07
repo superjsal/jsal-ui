@@ -207,10 +207,12 @@ local function BuildTimer()
     timer.fill:SetColorTexture(Style.Color("gold"))
 end
 
+-- Above the profession window, lined up with its right edge (the side
+-- jsal.ui's profession panel opens on); centred near the top without it.
 local function PlaceTimer()
     timer:ClearAllPoints()
     if ProfessionsFrame and ProfessionsFrame:IsShown() then
-        timer:SetPoint("BOTTOM", ProfessionsFrame, "TOP", 0, 8)
+        timer:SetPoint("BOTTOMRIGHT", ProfessionsFrame, "TOPRIGHT", 0, 8)
     else
         timer:SetPoint("TOP", UIParent, "TOP", 0, -160)
     end
