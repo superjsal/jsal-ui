@@ -55,6 +55,7 @@ New parts that need longer testing come out as betas first (versions like `0.3.1
 | `/jsal dungeons` | The dungeon guide |
 | `/jsal bug` | Report a problem |
 | `/jsal layer` | Which layer you're in |
+| `/jsal waypoint` | Why the waypoint label is or isn't showing; `/jsal waypoint clear` removes the map's pin |
 | `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
 | `/jsal version` | Prints the version |
 | `/jsal perf` | How long jsal.ui took to load |
