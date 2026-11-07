@@ -4,7 +4,28 @@ local addonName, ns = ...
 local Compat = ns.Compat
 
 ns.title = "jsal.ui"
-ns.version = Compat.Metadata(addonName, "Version") or "dev"
+
+-- Whether version a ("0.3.1") is newer than version b, part by part.
+function ns.Newer(a, b)
+    local pa, pb = { strsplit(".", a or "") }, { strsplit(".", b or "") }
+    for i = 1, math.max(#pa, #pb) do
+        local x, y = tonumber(pa[i]) or 0, tonumber(pb[i]) or 0
+        if x ~= y then return x > y end
+    end
+    return false
+end
+
+-- The game reads an addon's list of files, and its version, only when it
+-- starts; a /reload reloads the code but not the list. So each release
+-- sets the version its code is, and the last version that added files.
+-- After an update and a /reload, code newer than the version the game
+-- started with means an update came in: a /reload was enough unless it
+-- added files since, which load only after a restart.
+ns.codeVersion = "0.3.13"
+ns.restartSince = "0.3.13"
+ns.startedVersion = Compat.Metadata(addonName, "Version") or ns.codeVersion
+ns.needsRestart = ns.Newer(ns.restartSince, ns.startedVersion)
+ns.version = (not ns.needsRestart and ns.Newer(ns.codeVersion, ns.startedVersion)) and ns.codeVersion or ns.startedVersion
 
 function ns.Print(...)
     print("|cffe3b04bjsal.ui|r", ...)
@@ -263,3 +284,13 @@ end
 function jsalUI_OnCompartmentLeave()
     GameTooltip:Hide()
 end
+
+-- An update that added files came in while the game was running: after the
+-- /reload, say a restart is needed, in chat and across the screen.
+ns.OnLogin(function()
+    if not ns.needsRestart then return end
+    Compat.After(4, function()
+        ns.Print(("jsal.ui was updated to %s. Restart the game (exit and start it again, not just /reload) to finish: this update adds new files."):format(ns.codeVersion))
+        if UIErrorsFrame then UIErrorsFrame:AddMessage("jsal.ui: restart the game to finish updating", 1, 0.82, 0) end
+    end)
+end)

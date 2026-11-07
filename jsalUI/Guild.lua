@@ -75,27 +75,27 @@ local function Status()
         ns.Crafters and ns.Crafters.Signature() or "",
         -- The zone and layer this player is on ("map:layer"), for changing layers.
         ns.LayerSwitch and ns.LayerSwitch.Code() or "",
+        -- The last version that added files: updating past it needs a restart.
+        ns.restartSince or "",
     }, ";")
 end
 
--- Whether version a ("0.3.1") is newer than version b, part by part.
-local function Newer(a, b)
-    local pa, pb = { strsplit(".", a or "") }, { strsplit(".", b or "") }
-    for i = 1, math.max(#pa, #pb) do
-        local x, y = tonumber(pa[i]) or 0, tonumber(pb[i]) or 0
-        if x ~= y then return x > y end
-    end
-    return false
-end
+local Newer = ns.Newer
 
 -- Addons can't look online, but guildmates' copies say which version they
--- run: when one is newer than yours, you hear about it once a session.
+-- run: when one is newer than yours, you hear about it once a session, and
+-- whether that update needs a restart or just a /reload.
 local toldNewer
-local function CheckVersion(version, name)
+local function CheckVersion(version, name, restartSince)
     if not version or name == Compat.MyName() or not Newer(version, ns.version) then return end
     if toldNewer and not Newer(version, toldNewer) then return end
     toldNewer = version
-    ns.Print(("A newer jsal.ui is out: %s has %s, you have %s. Get it at jsal.io/jsal-ui."):format(name, version, ns.version))
+    local after = ""
+    if restartSince and restartSince ~= "" then
+        after = Newer(restartSince, ns.startedVersion or ns.version) and " After updating, restart the game."
+            or " After updating, a /reload is enough."
+    end
+    ns.Print(("A newer jsal.ui is out: %s has %s, you have %s. Get it at jsal.io/jsal-ui.%s"):format(name, version, ns.version, after))
 end
 
 -- Every guildmate ever heard with jsal.ui, kept per guild: when first and
@@ -131,10 +131,10 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince = strsplit(";", payload or "")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
     if ns.LayerSwitch and ns.Layers and ns.Layers.running then ns.LayerSwitch.Heard(name, layer, sender or name) end
-    CheckVersion(version, name)
+    CheckVersion(version, name, restartSince)
     NoteSeen(name, version)
     members[name] = {
         target = sender or name,   -- the name to whisper them by
