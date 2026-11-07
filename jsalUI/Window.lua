@@ -291,3 +291,13 @@ function Window.Refresh()
         Refresh(byKey[current])
     end
 end
+
+-- Whether a frame sits inside the dashboard (its text is drawn a size up).
+function Window.Contains(region)
+    local f = region
+    while f and frame do
+        if f == frame then return true end
+        f = f.GetParent and f:GetParent() or nil
+    end
+    return false
+end
