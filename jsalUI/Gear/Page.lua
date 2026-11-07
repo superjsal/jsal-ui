@@ -73,7 +73,8 @@ Window.Page("gear", function(page)
 
     -----------------------------------------------------------------
     -- The weights: each stat the spec values, as a number to change (a
-    -- changed one in gold), a box to paste a Pawn scale into, and Reset.
+    -- changed one in gold) or a cross to remove it; a stat to add; a box
+    -- to paste a Pawn scale into; and Reset.
     -----------------------------------------------------------------
     local WEIGHTS_W, WROW_H = 340, 28
     local weightsButton = Style.Button(page, "Weights", "plain", 100)
@@ -106,7 +107,15 @@ Window.Page("gear", function(page)
         r.label = Style.Text(r, 13, "text")
         r.label:SetPoint("LEFT", 0, 0)
         r.field = Style.Field(r, 70)
-        r.field.well:SetPoint("RIGHT", 0, 0)
+        r.field.well:SetPoint("RIGHT", -26, 0)
+        r.remove = Style.CloseButton(r, 22, function()
+            if r.key then
+                G.RemoveWeight(G.Spec(), r.key)
+                Paint()
+                PaintWeights()
+            end
+        end)
+        r.remove:SetPoint("RIGHT", 2, 0)
         r.field.well:SetHeight(22)
         r.field:SetJustifyH("RIGHT")
         local function Save(self)
@@ -138,6 +147,31 @@ Window.Page("gear", function(page)
     local weightsSaid = Style.Text(panel, 12, "gold")
     weightsSaid:SetWidth(WEIGHTS_W - 28)
     weightsSaid:SetJustifyH("LEFT")
+    -- Add a stat: a menu of the ones not listed; the new row waits at 0
+    -- with the cursor in it.
+    local addStat = Style.Button(panel, "Add a stat", "plain", 130)
+    addStat:SetHeight(26)
+    local focusKey
+    addStat:SetScript("OnClick", function(self)
+        local spec, items = G.Spec(), {}
+        local function Offer(key, label)
+            if not G.WeightShown(spec, key) then
+                items[#items + 1] = { label, nil, function()
+                    G.AddWeight(spec, key)
+                    focusKey = key
+                    Paint()
+                    PaintWeights()
+                end }
+            end
+        end
+        for _, s in ipairs(G.WEIGHT_STATS) do Offer(s[1], s[2]) end
+        for _, d in ipairs(G.WEIGHT_DPS) do Offer(d[1], d[2]) end
+        if #items == 0 then
+            weightsSaid:SetText("Every stat is listed already.")
+        elseif ns.Launcher and ns.Launcher.ShowMenu then
+            ns.Launcher.ShowMenu(self, items)
+        end
+    end)
     local function Import()
         local ok, message = G.ImportPawn(G.Spec(), pawn:GetText())
         weightsSaid:SetText(message or "")
@@ -166,12 +200,14 @@ Window.Page("gear", function(page)
         -- Every stat the spec values, by WoWSims or by you.
         local list = {}
         for _, s in ipairs(G.WEIGHT_STATS) do
-            local v = now.stats[s[1]] or 0
-            if v > 0 or (base.stats[s[1]] or 0) > 0 then list[#list + 1] = { key = s[1], label = s[2], value = v, base = base.stats[s[1]] or 0 } end
+            if G.WeightShown(spec, s[1]) then
+                list[#list + 1] = { key = s[1], label = s[2], value = now.stats[s[1]] or 0, base = base.stats[s[1]] or 0 }
+            end
         end
         for _, d in ipairs(G.WEIGHT_DPS) do
-            local v = now.dps[d[1]] or 0
-            if v > 0 or (base.dps[d[1]] or 0) > 0 then list[#list + 1] = { key = d[1], label = d[2], value = v, base = base.dps[d[1]] or 0 } end
+            if G.WeightShown(spec, d[1]) then
+                list[#list + 1] = { key = d[1], label = d[2], value = now.dps[d[1]] or 0, base = base.dps[d[1]] or 0 }
+            end
         end
         for i, e in ipairs(list) do
             local r = WeightRow(i)
@@ -183,13 +219,20 @@ Window.Page("gear", function(page)
             if not r.field:HasFocus() then r.field:SetText(Number(e.value)) end
             r.field:SetTextColor(Style.Color(changed and "gold" or "text"))
             r:Show()
+            if focusKey == e.key then
+                focusKey = nil
+                r.field:SetFocus()
+                r.field:HighlightText()
+            end
         end
         for i = #list + 1, #weightRows do weightRows[i]:Hide() end
         local y = 38 + #list * WROW_H + 12
         pawn.well:ClearAllPoints()
         pawn.well:SetPoint("TOPLEFT", 14, -y)
+        addStat:ClearAllPoints()
+        addStat:SetPoint("TOPLEFT", 14, -(y + 34))
         resetButton:ClearAllPoints()
-        resetButton:SetPoint("TOPLEFT", 14, -(y + 34))
+        resetButton:SetPoint("TOPRIGHT", -14, -(y + 34))
         weightsSaid:ClearAllPoints()
         weightsSaid:SetPoint("TOPLEFT", 14, -(y + 70))
         panel:SetHeight(y + 70 + 26)
