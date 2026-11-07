@@ -1,7 +1,7 @@
 # jsal.ui
 
 A free UI pack, daily games and easy helpers for WoW Forever, from [jsal.io](https://jsal.io).
-Made for casual players: every part is small, has one switch, and is on by default (except Quests on autopilot, which you switch on in Settings).
+Made for casual players: every part is small, has one switch, and is on by default.
 
 ## What's in it
 
@@ -25,7 +25,6 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Layers | Reads which copy of a zone you're in from the creatures around you, and changes it through your guild: the quick bar's Layer button lists guildmates in your zone on another layer to join, asks in General, or tells your guild. You keep a layer while you're in that guildmate's group. Inviting guildmates who ask has a switch in Settings. |
 | Minimap button | Opens the dashboard; right-click it for the same places as the quick buttons. Sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
-| Quests on autopilot | Accepts and turns in quests. Hold Shift to do it yourself; reward choices stay yours. |
 | Vendor run | Repairs and sells grey items at any vendor, and says what it spent and earned. |
 | Level-up helper | Talent points and trainer ranks on each level, and what a trainer has for you. |
 | Bags and gear warnings | A heads-up when bags are nearly full or gear is close to breaking. |
