@@ -86,6 +86,21 @@ local function DecorateRow(row)
     end
     row.jsalThresholds:SetText(Thresholds(recipe))
     row.jsalThresholds:Show()
+    -- The game sizes the name afresh each time it fills a row; a long one is
+    -- cut short of the numbers (the game's tooltip then gives it in full).
+    local label, count = row.Label, row.Count
+    if type(label) == "table" and label.SetWidth and label.GetWidth then
+        local countWidth = (type(count) == "table" and count:IsShown()) and count:GetStringWidth() or 0
+        local left, right = label:GetLeft(), row:GetRight()
+        local room
+        if left and right then
+            room = right - 8 - row.jsalThresholds:GetStringWidth() - 8 - countWidth - left
+        else
+            local skillUps = row.SkillUps and row.SkillUps:GetWidth() or 0
+            room = row:GetWidth() - skillUps - 10 - 8 - row.jsalThresholds:GetStringWidth() - 8 - countWidth
+        end
+        if room > 20 and label:GetWidth() > room then label:SetWidth(room) end
+    end
 end
 
 local listHooked
