@@ -20,27 +20,44 @@ ns.Gear = Gear
 -- 4 plate), and from level 40 the next one up for the classes that get it.
 -- Hunters leave out thrown weapons: one in the ranged slot stops Auto Shot.
 ---------------------------------------------------------------------------
+-- Checked against the game's own files (which skills each class can learn,
+-- and when): Forever's rogues also use one-handed axes and its druids
+-- polearms. Dual wield is learned at 10 by rogues, at 20 by warriors and
+-- hunters, and by shamans through a talent.
 Gear.CLASS_GEAR = {
-    WARRIOR = { weapons = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 3, at40 = 4, shield = true },
+    WARRIOR = { weapons = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 13, 15, 16, 18 }, armor = 3, at40 = 4, shield = true, dualWield = 20 },
     PALADIN = { weapons = { 0, 1, 4, 5, 6, 7, 8 }, armor = 3, at40 = 4, shield = true },
-    HUNTER = { weapons = { 0, 1, 2, 3, 6, 7, 8, 10, 13, 15, 18 }, armor = 2, at40 = 3 },
+    HUNTER = { weapons = { 0, 1, 2, 3, 6, 7, 8, 10, 13, 15, 18 }, armor = 2, at40 = 3, dualWield = 20 },
     SHAMAN = { weapons = { 0, 1, 4, 5, 10, 13, 15 }, armor = 2, at40 = 3, shield = true },
-    ROGUE = { weapons = { 2, 3, 4, 7, 13, 15, 16, 18 }, armor = 2 },
-    DRUID = { weapons = { 4, 5, 10, 13, 15 }, armor = 2 },
+    ROGUE = { weapons = { 0, 2, 3, 4, 7, 13, 15, 16, 18 }, armor = 2, dualWield = 10 },
+    DRUID = { weapons = { 4, 5, 6, 10, 13, 15 }, armor = 2 },
     PRIEST = { weapons = { 4, 10, 15, 19 }, armor = 1 },
     MAGE = { weapons = { 7, 10, 15, 19 }, armor = 1 },
     WARLOCK = { weapons = { 7, 10, 15, 19 }, armor = 1 },
 }
 local WEAPON, ARMOR, SHIELD, CLOAK = 2, 4, 6, 16
+local OFF_HAND_WEAPON = 22
+local DUAL_WIELD = 674
 
--- Whether an item is for a class at a level: a weapon it wields, armor of
--- the type it wears, or anything anyone wears (cloaks, rings, necklaces,
--- trinkets, off-hand items). Nil when not known.
+-- Whether you can carry a weapon in your off hand: the game says, when it's
+-- your own class (a shaman's talent included); else by the class's level.
+function Gear.DualWields(classFile, level)
+    local _, mine = UnitClass("player")
+    if classFile == mine and IsPlayerSpell then return IsPlayerSpell(DUAL_WIELD) and true or false end
+    local gear = Gear.CLASS_GEAR[classFile or ""]
+    return gear ~= nil and gear.dualWield ~= nil and (level or 1) >= gear.dualWield
+end
+
+-- Whether an item is for a class at a level: a weapon it wields (in the off
+-- hand only once it dual wields), armor of the type it wears, or anything
+-- anyone wears (cloaks, rings, necklaces, trinkets, off-hand items). Nil
+-- when not known.
 function Gear.ForClass(classFile, level, itemClass, subclass, slot)
     if not itemClass then return nil end
     local gear = Gear.CLASS_GEAR[classFile or ""]
     if not gear then return true end
     if itemClass == WEAPON then
+        if (slot == OFF_HAND_WEAPON or slot == "INVTYPE_WEAPONOFFHAND") and not Gear.DualWields(classFile, level) then return false end
         for _, kind in ipairs(gear.weapons) do if kind == subclass then return true end end
         return false
     end
@@ -192,7 +209,12 @@ function Gear.Candidates(slot, level, classFile, classID, side)
     local out = {}
     if not data then return out end
     local bit = classID and 2 ^ (classID - 1) or 0
-    for _, invType in ipairs(slot.types) do
+    local types = slot.types
+    -- Once you dual wield, a one-handed weapon fits your off hand too.
+    if slot.key == "off" and Gear.DualWields(classFile, level) then
+        types = { 14, 22, 23, 13 }
+    end
+    for _, invType in ipairs(types) do
         local line = data.items[invType]
         for entry in (line or ""):gmatch("[^;]+") do
             local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match("^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$")
