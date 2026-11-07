@@ -26,8 +26,13 @@ end
 -- The game's pin now, as { map, x, y }, or nil.
 local function Current()
     local point = C_Map and C_Map.GetUserWaypoint and C_Map.GetUserWaypoint()
-    if not point then return nil end
-    local x, y = point.position:GetXY()
+    if not (point and point.position) then return nil end
+    -- On Forever the position is a plain pair of numbers, not always one
+    -- with a GetXY of its own.
+    local pos = point.position
+    local x, y
+    if type(pos.GetXY) == "function" then x, y = pos:GetXY() else x, y = pos.x, pos.y end
+    if not (x and y) then return nil end
     return { map = point.uiMapID, x = x, y = y }
 end
 
