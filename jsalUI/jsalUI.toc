@@ -93,6 +93,7 @@ Journal\Recap.lua
 # spec's stat weights, from WoWSims.
 Gear\GearData.lua
 Gear\Gear.lua
+Gear\Weights.lua
 Gear\Stars.lua
 Gear\Page.lua
 
