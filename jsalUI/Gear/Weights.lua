@@ -88,6 +88,34 @@ function Gear.SetWeight(spec, key, value)
     return true
 end
 
+-- The stats the editor lists for a spec: every one that counts, and any you
+-- added that you haven't given a number yet.
+function Gear.WeightShown(spec, key)
+    local now = Gear.Weights(spec) or { stats = {}, dps = {} }
+    local isDps = key == "mh" or key == "oh" or key == "ranged"
+    local value = (isDps and now.dps[key] or now.stats[key]) or 0
+    local mine = Saved()[spec]
+    return value > 0 or (mine and mine.added and mine.added[key]) == true
+end
+
+-- Adding a stat the spec doesn't value yet: listed at 0 until you give it a
+-- number. Removing one: it counts nothing and leaves the list (Reset brings
+-- back WoWSims' own).
+function Gear.AddWeight(spec, key)
+    local all = Saved()
+    local mine = all[spec] or { stats = {}, dps = {} }
+    all[spec] = mine
+    mine.added = mine.added or {}
+    mine.added[key] = true
+    Changed()
+end
+
+function Gear.RemoveWeight(spec, key)
+    local mine = Saved()[spec]
+    if mine and mine.added then mine.added[key] = nil end
+    Gear.SetWeight(spec, key, 0)
+end
+
 function Gear.ResetWeights(spec)
     Saved()[spec] = nil
     Changed()
