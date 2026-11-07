@@ -88,6 +88,8 @@ local Newer = ns.Newer
 local toldNewer
 local function CheckVersion(version, name, restartSince)
     if not version or name == Compat.MyName() or not Newer(version, ns.version) then return end
+    -- A beta only interests players already on a beta: the rest hear only of newer stable versions.
+    if ns.IsBeta(version) and not ns.IsBeta(ns.version) then return end
     if toldNewer and not Newer(version, toldNewer) then return end
     toldNewer = version
     local after = ""

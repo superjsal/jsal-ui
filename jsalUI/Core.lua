@@ -5,14 +5,35 @@ local Compat = ns.Compat
 
 ns.title = "jsal.ui"
 
--- Whether version a ("0.3.1") is newer than version b, part by part.
+-- A version's numbers and, for a beta ("0.3.14-beta.2"), its beta number.
+local function Parts(v)
+    v = tostring(v or "")
+    local main, beta = v:match("^([%d%.]+)%-beta%.?(%d*)$")
+    if not main then main = v:match("^([%d%.]+)") or "" end
+    local nums = {}
+    for n in main:gmatch("%d+") do nums[#nums + 1] = tonumber(n) end
+    return nums, beta and (tonumber(beta) or 0) or nil
+end
+
+-- Whether a version is a beta.
+function ns.IsBeta(v)
+    local _, beta = Parts(v)
+    return beta ~= nil
+end
+
+-- Whether version a ("0.3.1", "0.3.14-beta.2") is newer than version b, part
+-- by part; a version's betas come before it ("0.3.14-beta.2" before "0.3.14").
 function ns.Newer(a, b)
-    local pa, pb = { strsplit(".", a or "") }, { strsplit(".", b or "") }
-    for i = 1, math.max(#pa, #pb) do
-        local x, y = tonumber(pa[i]) or 0, tonumber(pb[i]) or 0
+    local na, ba = Parts(a)
+    local nb, bb = Parts(b)
+    for i = 1, math.max(#na, #nb) do
+        local x, y = na[i] or 0, nb[i] or 0
         if x ~= y then return x > y end
     end
-    return false
+    if ba == bb then return false end
+    if not ba then return true end
+    if not bb then return false end
+    return ba > bb
 end
 
 -- The game reads an addon's list of files, and its version, only when it
