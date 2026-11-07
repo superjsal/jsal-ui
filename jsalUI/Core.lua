@@ -11,8 +11,10 @@ function ns.Print(...)
 end
 
 -- Passes an error to the game's error handler (BugSack, when it's installed)
--- with its stack intact, and hands it back.
+-- with its stack intact, and hands it back. The latest one's first line is
+-- kept for the session, so a problem report can carry it.
 local function Report(err)
+    ns.lastError = tostring(err):match("^[^\n]*")
     geterrorhandler()(err)
     return err
 end
@@ -208,7 +210,7 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal chess, /jsal shop, /jsal guild, /jsal settings, /jsal install.")
+        ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal chess, /jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug.")
     end
 end
 
