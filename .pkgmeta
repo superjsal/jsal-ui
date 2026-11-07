@@ -3,6 +3,12 @@
 # tools used to regenerate its tables stay out.
 package-as: jsalUI
 
+# The release notes are written by hand in CHANGELOG.md, for players, rather
+# than built from the commit messages. Each release replaces them.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
 move-folders:
   jsalUI/jsalUI: jsalUI
 
