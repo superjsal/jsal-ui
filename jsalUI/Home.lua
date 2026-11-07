@@ -6,9 +6,7 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Training no longer offers spells you know, and pets get the right rank",
-    "Quests on autopilot now starts off: switch it on in Settings if you want it",
-    "Bigger text here, a trainer finder in Training, and a new flight bar",
+    "Pets are offered the highest rank they can learn again, not Rank 1 first",
 }
 
 local function NewsWanted()
