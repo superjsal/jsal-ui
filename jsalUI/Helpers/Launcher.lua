@@ -61,6 +61,8 @@ local PLACES = {
       open = function() ns.Shopping.Toggle() end },
     { key = "build", label = "Build Planner", icon = OWN .. "build",
       open = Page("build") },
+    { key = "training", label = "Training Planner", icon = OWN .. "training",
+      open = Page("training") },
 }
 
 local function Ready(place)
