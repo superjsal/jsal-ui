@@ -35,8 +35,7 @@ local GUILD_KEYS = { "guild", "crafters", "layers" }
 
 -- Starting points for the parts step.
 local PRESETS = {
-    { key = "casual", label = "Casual", note = "Games, Journal, guild and helpers" },
-    { key = "everything", label = "Everything", note = "All of it" },
+    { key = "everything", label = "Everything", note = "Every part: games, Journal, guild and helpers" },
     { key = "look", label = "Just the look", note = "Only the UI pack and its minimap button" },
 }
 local function PresetWants(preset, key)
@@ -44,11 +43,13 @@ local function PresetWants(preset, key)
     if preset == "look" then return key == "minimap" end
     return true
 end
+-- Setups saved before Casual and Everything became one.
+local function Current(name) return name == "casual" and "everything" or name end
 
 local PLAYS = {
-    { key = "casual", label = "Casually", note = "Questing, games, the guild", preset = "casual" },
-    { key = "group", label = "Dungeons and raids", note = "Planners, timers, meters", preset = "casual" },
-    { key = "craft", label = "Crafting", note = "Professions first", preset = "casual" },
+    { key = "casual", label = "Casually", note = "Questing, games, the guild", preset = "everything" },
+    { key = "group", label = "Dungeons and raids", note = "Planners, timers, meters", preset = "everything" },
+    { key = "craft", label = "Crafting", note = "Professions first", preset = "everything" },
     { key = "all", label = "A bit of everything", note = "All of it", preset = "everything" },
 }
 
@@ -66,6 +67,7 @@ local function Wanted(key)
 end
 
 local function ApplyPreset(name)
+    name = Current(name)
     preset = name
     for _, group in ipairs(GROUPS) do
         for _, key in ipairs(group.keys) do
@@ -279,7 +281,7 @@ end
 
 BUILD.parts = function(page)
     Heading(page, "Which parts of jsal.ui?", "Start from a set, then change any switch. You can change them later in Settings.")
-    local tileW = math.floor((innerW - 20) / 3)
+    local tileW = math.floor((innerW - 10 * (#PRESETS - 1)) / #PRESETS)
     local tiles = {}
     local switches = {}
     local function RefreshSwitches() for _, s in ipairs(switches) do s:Refresh() end end
@@ -445,7 +447,7 @@ end
 function Setup.Open()
     if Compat.InCombat() then return ns.Print("Setup opens once combat ends.") end
     if not frame then Build() end
-    chosen, preset = {}, (ns.db.setup and ns.db.setup.preset) or nil
+    chosen, preset = {}, Current(ns.db.setup and ns.db.setup.preset) or nil
     play = ns.db.setup and ns.db.setup.play or nil
     startWanted = {}
     for key, module in pairs(ns.modules) do startWanted[key] = ns.ModuleWanted(module) end
