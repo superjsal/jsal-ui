@@ -21,6 +21,7 @@ local ICONS = "Interface\\Icons\\"
 local OWN = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local PAGES = {
     { key = "home", label = "Home", icon = OWN .. "home" },
+    { key = "journal", label = "Journal", icon = OWN .. "journal" },
     { key = "install", label = "Install", icon = OWN .. "install" },
     { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
