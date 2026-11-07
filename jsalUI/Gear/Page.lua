@@ -1,12 +1,13 @@
--- The Gear plan page: your gear slots in two columns. Each slot shows what
--- you wear and, in green, the best upgrade near your level for your spec; a
+-- The Gear plan page: your gear slots in one column, in the game's order.
+-- Each slot is two lines: its name and what you wear, then, in green, the
+-- best upgrade near your level for your spec; a
 -- green dot marks the slots that have one. Click a slot to see its options
 -- beside them: what each adds, where it comes from, its level, and a star to
 -- keep it at the top.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 178, 50, 6, 34, 46, 18
+local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 240, 36, 2, 30, 46, 18
 local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
 local GREEN, RED = "|cff56944f", "|cffd65151"
 
@@ -47,7 +48,7 @@ end
 Window.Page("gear", function(page)
     local G = ns.Gear
     local width, height = Window.contentWidth, Window.contentHeight
-    local paneW = SLOT_W * 2 + GAP
+    local paneW = SLOT_W
     local listW = width - paneW - LIST_GAP
     local chosen = "chest"
     local Paint
@@ -84,16 +85,18 @@ Window.Page("gear", function(page)
         b.dot:SetSize(9, 9)
         b.dot:SetColorTexture(Style.Color("wordGreen"))
         b.dot:SetPoint("CENTER", b.box, "TOPRIGHT", 0, 0)
+        -- Line one: the slot's name, then what you wear; line two: the upgrade.
         local textW = SLOT_W - ICON - 18
         b.label = Style.Text(b, 10, "muted")
-        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 6, 1)
+        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 6, -1)
         b.label:SetText(slot.label:upper())
         b.worn = Style.Text(b, 12, "text")
-        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -2)
+        b.worn:SetPoint("BOTTOMLEFT", b.label, "BOTTOMRIGHT", 5, -1)
+        b.worn:SetWidth(textW - b.label:GetStringWidth() - 5)
         b.up = Style.Text(b, 11, "muted")
-        b.up:SetPoint("TOPLEFT", b.worn, "BOTTOMLEFT", 0, -2)
+        b.up:SetPoint("BOTTOMLEFT", b.box, "BOTTOMRIGHT", 6, 1)
+        b.up:SetWidth(textW)
         for _, t in ipairs({ b.label, b.worn, b.up }) do
-            t:SetWidth(textW)
             t:SetJustifyH("LEFT")
             t:SetWordWrap(false)
         end
@@ -107,14 +110,10 @@ Window.Page("gear", function(page)
         slotFrames[slot.key] = b
         return b
     end
-    local columns = {
-        { "head", "neck", "shoulder", "back", "chest", "wrist", "hands", "waist" },
-        { "legs", "feet", "finger", "trinket", "main", "off", "ranged" },
-    }
     local byKey = {}
-    for _, s in ipairs(G.SLOTS) do byKey[s.key] = s end
-    for c, keys in ipairs(columns) do
-        for i, key in ipairs(keys) do SlotButton(byKey[key], (c - 1) * (SLOT_W + GAP), top + (i - 1) * (SLOT_H + GAP)) end
+    for i, s in ipairs(G.SLOTS) do
+        byKey[s.key] = s
+        SlotButton(s, 0, top + (i - 1) * (SLOT_H + GAP))
     end
 
     -- Beside the slots: the chosen slot's plan.
