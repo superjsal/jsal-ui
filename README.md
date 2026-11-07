@@ -16,7 +16,11 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Training Planner | Your next trainer visit and its cost, your road to 60, and every spell: ready now, coming soon, later, skipped, plus weapon skills. Spells come from the game's files; prices from class trainers you've opened. A panel beside the spellbook and trainers shows what's ready, with the nearest trainer and a map pin. |
 | Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. In the game's profession window: where each recipe turns yellow, green and grey, reagents in bags and bank, a timer while you craft several, recipes you haven't learned (star the ones you want, and a profession trainer offers them), and a heads-up when you can train the next rank. |
 | Shopping list | What you mean to craft and other items you want, and what's left to buy once your bags and bank are counted, with vendor prices and auction prices from your own searches. A vendor who sells something on it offers to buy it for you. |
-| Quick buttons | A small bar you drag anywhere: the dashboard, Daily Word, Icon Guess, chess, the shopping list, the Build Planner and the Training Planner, with a gold dot when something's waiting. Right-click its grip to choose the buttons, stand it up, or lock it. |
+| Journal | Your character's story from the day you install it, in four tabs. Summary: your character, favourite move and totals (foes, quests, deaths, gold and where it came from, distance, damage, healing, duels, jumps), with kills, quests, deaths and gold from the game's own statistics so they cover the whole life of the character. Story: levels, first kills of rares, dungeon bosses, blue and epic loot, deaths and their cause, profession ranks. By level: time, XP, XP per hour, gold in and out, kills, quests and deaths for each level. Characters: every character on the account with level, zone, gold, professions and rested XP. A screenshot at each level-up, and a recap of your session as you log out. |
+| Guild crafters | On the Professions page, search for what you need and see which guildmates can make it, online first, with a button to whisper them. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
+| Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to John in game; your version, class, level, zone and any jsal.ui error are added for you. Outside John's guild, copy it to email instead. |
+| Quick buttons | A small bar you drag anywhere: the dashboard, Daily Word, Icon Guess, chess, the shopping list, the Build Planner, the Training Planner and the layer you're in, with a gold dot when something's waiting. Choose its buttons in Settings or by right-clicking its grip, which also stands it up or locks it. |
+| Layers (testing) | Reads which copy of a zone you're in from the creatures around you. The quick bar's Layer button shows it; a click tells your guild. |
 | Minimap button | Opens the dashboard; right-click it for the same places as the quick buttons. Sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
 | Quests on autopilot | Accepts and turns in quests. Hold Shift to do it yourself; reward choices stay yours. |
@@ -40,6 +44,10 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | `/jsal icons` | Today's Icon Guess round |
 | `/jsal chess` | Your chess games |
 | `/jsal shop` | Opens or closes the shopping list |
+| `/jsal journal` | Your Journal |
+| `/jsal recap` | This session's recap |
+| `/jsal bug` | Report a problem |
+| `/jsal layer` | Which layer you're in |
 | `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
 | `/jsal version` | Prints the version |
 | `/jsal perf` | How long jsal.ui took to load |
@@ -52,10 +60,11 @@ Made for casual players: every part is small, has one switch, and is on by defau
 - `Style.lua`, `Window.lua`: the shared look and the dashboard.
 - `Profile.lua`, `Installer.lua`: the EllesmereUI profile and its one-click install.
 - `Games\`: Daily Word, Icon Guess, the flight offer and chess (its rules, games and page). `Guild.lua`: the Guild tab.
-- `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads. `Trainers.lua`: where trainers stand.
-- `Helpers\`: quests, vendor, level-up, warnings and the minimap button.
+- `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads and Guild crafters. `Trainers.lua`: where trainers stand.
+- `Journal\`: the Journal's counting, its page and the session recap.
+- `Helpers\`: quests, vendor, level-up, warnings, the minimap button, the quick buttons, layers and Report a problem.
 
-Nothing runs during combat, and jsal.ui reads no combat data.
+Nothing heavy runs during combat. The Journal counts only your own damage, healing and kills, so busy fights stay light.
 
 ## Flight times
 
