@@ -8,9 +8,12 @@
 local _, ns = ...
 local Compat = ns.Compat
 
+-- Off until the player switches it on in Settings: taking and handing in
+-- quests is something many players would rather do themselves.
 local Quests = ns.NewModule("quests", {
     title = "Quests on autopilot",
     note = "Accepts and turns in quests for you. Hold Shift to do it yourself.",
+    defaultOn = false,
     options = {
         { key = "grouped", title = "Take quests in a group too", default = false,
           note = "Off: in a group, you accept quests yourself, so an escort waits for everyone." },

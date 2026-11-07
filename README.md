@@ -1,7 +1,7 @@
 # jsal.ui
 
 A free UI pack, daily games and easy helpers for WoW Forever, from [jsal.io](https://jsal.io).
-Made for casual players: every part is small, on by default, and has one switch.
+Made for casual players: every part is small, has one switch, and is on by default (except Quests on autopilot, which you switch on in Settings).
 
 ## What's in it
 
