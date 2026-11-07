@@ -35,6 +35,17 @@ local function Gold(copper)
     return ("%dg"):format(math.floor((copper or 0) / 10000))
 end
 
+-- Coins in short: "2g 48s", "83s 52c", "5c", with a minus when spent.
+local function Coins(copper)
+    copper = math.floor(copper or 0)
+    local sign = copper < 0 and "-" or ""
+    copper = math.abs(copper)
+    local g, s, c = math.floor(copper / 10000), math.floor(copper % 10000 / 100), copper % 100
+    if g > 0 then return s > 0 and ("%s%dg %ds"):format(sign, g, s) or ("%s%dg"):format(sign, g) end
+    if s > 0 then return c > 0 and ("%s%ds %dc"):format(sign, s, c) or ("%s%ds"):format(sign, s) end
+    return ("%s%dc"):format(sign, c)
+end
+
 -- "today", "yesterday" or "2 Nov".
 local function Day(t)
     local now = Compat.ServerTime()
@@ -64,7 +75,7 @@ Window.Page("journal", function(page)
     end
 
     local Paint
-    for i, tab in ipairs({ { "summary", "Summary" }, { "story", "Story" }, { "characters", "Characters" } }) do
+    for i, tab in ipairs({ { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "characters", "Characters" } }) do
         local b = Style.Button(page, tab[2], "plain", TAB_W)
         b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", (i - 1) * (TAB_W + 6), -8)
         b:SetScript("OnClick", function()
@@ -267,6 +278,101 @@ Window.Page("journal", function(page)
     end
 
     -----------------------------------------------------------------
+    -- By level: a row per level, newest first, and the totals.
+    -----------------------------------------------------------------
+    local levels = View("levels")
+    local COLS = { { "LEVEL", 56, "LEFT" }, { "TIME PLAYED", 78 }, { "XP GAINED", 76 }, { "XP/HOUR", 68 },
+                   { "GOLD GAINED", 82 }, { "GOLD SPENT", 82 }, { "NET", 82 }, { "KILLS", 54 },
+                   { "QUESTS", 56 }, { "DEATHS", 56 } }
+    local colX, x = {}, 0
+    local spare = math.floor((width - 690) / (#COLS - 1))
+    for i, col in ipairs(COLS) do
+        colX[i] = x
+        x = x + col[2] + spare
+    end
+    local function Cells(parent, size, color, bold)
+        local cells = {}
+        for i, col in ipairs(COLS) do
+            local t = Style.Text(parent, size, color, nil, bold)
+            t:SetWidth(col[2])
+            t:SetJustifyH(col[3] or "RIGHT")
+            t:SetPoint("LEFT", colX[i], 0)
+            t:SetWordWrap(false)
+            cells[i] = t
+        end
+        return cells
+    end
+    local header = CreateFrame("Frame", nil, levels)
+    header:SetSize(width, 22)
+    header:SetPoint("TOPLEFT")
+    Style.Rule(header, "BOTTOM", "lineStrong")
+    for i, t in ipairs(Cells(header, 10, "gold", true)) do t:SetText(COLS[i][1]) end
+    local levelFoot = Style.Text(levels, 11, "muted")
+    levelFoot:SetPoint("BOTTOMLEFT")
+    levelFoot:SetWidth(width)
+    levelFoot:SetJustifyH("LEFT")
+    local totalRow = CreateFrame("Frame", nil, levels)
+    totalRow:SetSize(width, ROW_H + 4)
+    totalRow:SetPoint("BOTTOMLEFT", 0, 22)
+    Style.Rule(totalRow, "TOP", "lineStrong")
+    local totalCells = Cells(totalRow, 13, "text", true)
+    local levelRows = {}
+    local levelMax = math.max(1, math.floor((height - 52 - 22 - (ROW_H + 4) - 30) / ROW_H))
+    for i = 1, levelMax do
+        local r = CreateFrame("Frame", nil, levels)
+        r:SetSize(width, ROW_H)
+        r:SetPoint("TOPLEFT", 0, -(24 + (i - 1) * ROW_H))
+        Style.Rule(r, "BOTTOM", "line")
+        r.cells = Cells(r, 13, "text")
+        levelRows[i] = r
+    end
+    local levelOffset = 0
+    levels:EnableMouseWheel(true)
+    levels:SetScript("OnMouseWheel", function(_, delta)
+        levelOffset = math.max(0, levelOffset - delta * 3)
+        Paint()
+    end)
+
+    local function PerHour(xp, seconds)
+        if not xp or xp <= 0 or not seconds or seconds < 60 then return "-" end
+        return Count(xp / (seconds / 3600))
+    end
+    local function Net(gained, spent)
+        local net = (gained or 0) - (spent or 0)
+        return (net < 0 and "|cffff6b6b" or "|cff56944f") .. Coins(net) .. "|r"
+    end
+    local function FillRow(cells, label, row)
+        local values = { label, Hours(row.seconds), row.xp and row.xp > 0 and Count(row.xp) or "-",
+                         PerHour(row.xp, row.seconds), Coins(row.earned), Coins(row.spent),
+                         Net(row.earned, row.spent), Count(row.foes), Count(row.quests), Count(row.deaths) }
+        for i, cell in ipairs(cells) do cell:SetText(values[i]) end
+    end
+
+    local function PaintLevels()
+        local all = J.Book().levels or {}
+        local list, total = {}, {}
+        for level, row in pairs(all) do
+            list[#list + 1] = { level = level, row = row }
+            for _, k in ipairs({ "seconds", "xp", "earned", "spent", "foes", "quests", "deaths" }) do
+                total[k] = (total[k] or 0) + (row[k] or 0)
+            end
+        end
+        table.sort(list, function(a, b) return a.level > b.level end)
+        levelOffset = math.max(0, math.min(levelOffset, #list - levelMax))
+        local now = UnitLevel("player")
+        for i, r in ipairs(levelRows) do
+            local e = list[levelOffset + i]
+            r:SetShown(e ~= nil)
+            if e then
+                local label = tostring(e.level) .. (e.row.partial and "*" or "") .. (e.level == now and "+" or "")
+                FillRow(r.cells, label, e.row)
+            end
+        end
+        FillRow(totalCells, "Total", total)
+        levelFoot:SetText(("* the Journal began partway through this level   + in progress.   %d level%s recorded."):format(#list, #list == 1 and "" or "s"))
+    end
+
+    -----------------------------------------------------------------
     -- Characters.
     -----------------------------------------------------------------
     local chars = View("characters")
@@ -350,6 +456,7 @@ Window.Page("journal", function(page)
         if not J.running then return end
         if current == "summary" then PaintSummary()
         elseif current == "story" then PaintStory()
+        elseif current == "levels" then PaintLevels()
         else PaintCharacters() end
     end
     page.Refresh = function() xpcall(Paint, ns.Report) end

@@ -44,10 +44,55 @@ local function Book()
 end
 Journal.Book = Book
 
+-- Each level's own row for the By level tab: time, XP, gold gained and
+-- spent, kills, quests, deaths. The level the journal began in is marked
+-- as started partway.
+local PER_LEVEL = { seconds = true, earned = true, foes = true, quests = true, deaths = true }
+local function Level(level)
+    local j = Book()
+    j.levels = type(j.levels) == "table" and j.levels or {}
+    level = level or UnitLevel("player")
+    local row = j.levels[level]
+    if type(row) ~= "table" then
+        row = { partial = next(j.levels) == nil or nil }
+        j.levels[level] = row
+    end
+    return row
+end
+Journal.Level = Level
+
 local function Add(stat, amount)
     local s = Book().stats
     s[stat] = (s[stat] or 0) + (amount or 1)
+    if PER_LEVEL[stat] then
+        local row = Level()
+        row[stat] = (row[stat] or 0) + (amount or 1)
+    end
 end
+
+-- XP gained, across a level-up too: what was left of the old level plus
+-- what's into the new one.
+local xpWas, xpMaxWas, xpLevelWas
+local function XPChanged()
+    local xp, max, level = UnitXP("player"), UnitXPMax("player"), UnitLevel("player")
+    if xpWas then
+        local gained = level == xpLevelWas and (xp - xpWas) or ((xpMaxWas - xpWas) + xp)
+        if gained > 0 then
+            -- XP past the old level belongs to the level it was earned in.
+            if level ~= xpLevelWas then
+                local old = Level(xpLevelWas)
+                old.xp = (old.xp or 0) + (xpMaxWas - xpWas)
+                local new = Level(level)
+                new.xp = (new.xp or 0) + xp
+            else
+                local row = Level(level)
+                row.xp = (row.xp or 0) + gained
+            end
+        end
+    end
+    xpWas, xpMaxWas, xpLevelWas = xp, max, level
+end
+Journal.XPChanged = XPChanged
 
 local function Zone()
     local zone = GetRealZoneText and GetRealZoneText() or ""
@@ -221,7 +266,12 @@ local function MoneyChanged()
     local now = GetMoney()
     local gained = now - (moneyWas or now)
     moneyWas = now
-    if gained <= 0 then return end
+    if gained < 0 then
+        local row = Level()
+        row.spent = (row.spent or 0) - gained
+        return
+    end
+    if gained == 0 then return end
     Add("earned", gained)
     local source = window or ((GetTime() - questAt < 2) and "quests") or "loot"
     local m = Book().money
@@ -400,6 +450,10 @@ function Journal:OnEnable()
     LootPrefixes()
     DuelPatterns()
     moneyWas = GetMoney and GetMoney() or 0
+    -- Where the XP bar stands now, so the first gain can be measured.
+    xpWas = nil
+    XPChanged()
+    Level()
     local f = CreateFrame("Frame")
     self.frame = f
     for _, event in ipairs({ "COMBAT_LOG_EVENT_UNFILTERED", "PLAYER_LEVEL_UP", "PLAYER_DEAD", "QUEST_TURNED_IN",
@@ -408,7 +462,7 @@ function Journal:OnEnable()
                              "NAME_PLATE_UNIT_ADDED", "SKILL_LINES_CHANGED", "PLAYER_GUILD_UPDATE",
                              "MERCHANT_SHOW", "MERCHANT_CLOSED", "MAIL_SHOW", "MAIL_CLOSED",
                              "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED", "TRADE_SHOW", "TRADE_CLOSED",
-                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING" }) do
+                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE" }) do
         pcall(f.RegisterEvent, f, event)
     end
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
@@ -432,6 +486,8 @@ function Journal:OnEnable()
             NoteUnit("mouseover")
         elseif event == "NAME_PLATE_UNIT_ADDED" then
             NoteUnit(a)
+        elseif event == "PLAYER_XP_UPDATE" then
+            if a == "player" or a == nil then XPChanged() end
         elseif event == "PLAYER_LEVEL_UP" then
             LevelUp(a)
             Journal.SaveCharacter()
