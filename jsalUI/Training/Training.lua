@@ -339,15 +339,15 @@ function Training.Pet()
         for i, r in ipairs(a.ranks) do
             if pet.known[r.pet] then knownAt = i end
         end
-        -- The best rank to teach now, else the next one up.
+        -- A pet learns an ability's ranks in order, so only the next rank up
+        -- from the one it knows can be taught.
         local row = { name = name, icon = a.icon }
-        for i = #a.ranks, knownAt + 1, -1 do
-            local r = a.ranks[i]
-            local entry = listed[name .. "|" .. (r.rank > 0 and ("Rank " .. r.rank) or "")]
-            local have = entry or IsPlayerSpell(r.beast)
-            if have and (pet.level or 0) >= r.level then
-                row.state, row.spell, row.points = "ready", r, entry and entry.points
-                break
+        local nextRank = a.ranks[knownAt + 1]
+        if nextRank then
+            local entry = listed[name .. "|" .. (nextRank.rank > 0 and ("Rank " .. nextRank.rank) or "")]
+            local have = entry or IsPlayerSpell(nextRank.beast)
+            if have and (pet.level or 0) >= nextRank.level then
+                row.state, row.spell, row.points = "ready", nextRank, entry and entry.points
             end
         end
         if not row.state then
