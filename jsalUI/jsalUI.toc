@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.15
+## Version: 0.3.16-beta.1
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -89,6 +89,12 @@ Helpers\Waypoint.lua
 Journal\Journal.lua
 Journal\Page.lua
 Journal\Recap.lua
+
+# The gear plan: every piece of gear near your level, from Wowhead Forever, and each
+# spec's stat weights, from WoWSims.
+Gear\GearData.lua
+Gear\Gear.lua
+Gear\Page.lua
 
 # The dungeon guide: every dungeon and raid from the game's files, the bosses
 # you've killed and the loot each has dropped.

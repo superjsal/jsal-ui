@@ -12,7 +12,7 @@ local ROW_HEIGHT, COLUMN_GAP = 34, 28
 -- Where each part goes. A part not listed joins the last heading.
 local GROUPS = {
     { title = "GAMES", keys = { "dailyword", "iconguess", "chess", "flight", "guild" } },
-    { title = "LEVELING", keys = { "talents", "trainingpanel", "levelup", "quests", "journal", "dungeons" } },
+    { title = "LEVELING", keys = { "talents", "trainingpanel", "levelup", "quests", "journal", "dungeons", "gear" } },
     { title = "PROFESSIONS", keys = { "professionpanel", "profwindow", "shopping", "crafters" } },
     { title = "AROUND THE UI", keys = { "launcher", "minimap", "vendor", "warnings", "waypoint" } },
 }

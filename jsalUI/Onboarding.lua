@@ -24,7 +24,7 @@ local STEPS = {
 -- The parts, in groups a player can understand at a glance; each switch
 -- turns its whole group on or off.
 local GROUPS = {
-    { label = "Journal, session recap and dungeon guide", keys = { "journal", "dungeons" } },
+    { label = "Journal, session recap, dungeon guide and gear plan", keys = { "journal", "dungeons", "gear" } },
     { label = "Daily Word, Icon Guess, chess and the flight bar", keys = { "dailyword", "iconguess", "chess", "flight" } },
     { label = "Talents, training, level-up help and guide waypoints", keys = { "talents", "trainingpanel", "levelup", "waypoint" } },
     { label = "Professions and the shopping list", keys = { "professionpanel", "profwindow", "shopping" } },
