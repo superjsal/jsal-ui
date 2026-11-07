@@ -479,12 +479,7 @@ Window.Page("gear", function(page)
                 b.icon:SetTexture(emptyTexture)
                 b.worn:SetText("|cff9a9688empty|r")
             end
-            -- The slot names the best piece you can use: profession gear
-            -- stays in the list, but not here until you have the skill.
-            local best
-            for _, o in ipairs(plan.options) do
-                if not o.needs or G.HasSkill(o.needs) then best = o; break end
-            end
+            local best = plan.options[1]
             if best then
                 local name = ItemInfo(best.id)
                 b.up:SetText(GREEN .. "Better: " .. (name or "...") .. "|r")
