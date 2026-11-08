@@ -6,9 +6,9 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Dungeons: every boss's loot and drop chances, your kills, quests, and what your guild sees drop",
-    "A waypoint label that follows your RestedXP guide",
-    "A short setup to choose the parts you want (/jsal setup)",
+    "Gear plan: the best upgrades near your level, and stars that tell you when one drops (/jsal gear)",
+    "The game's menu bar in jsal.ui's look, and Outfit in EllesmereUI and RestedXP",
+    "Softer windows, and Report a problem now sends your latest jsal.ui errors",
 }
 
 local function NewsWanted()
