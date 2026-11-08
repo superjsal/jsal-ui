@@ -39,6 +39,11 @@ MenuBar.ICONS = {
 -- jsal.ui's parts of each button, kept here rather than on the game's frames.
 local skins = {}
 
+-- The room between tiles and around them. The game spaces its buttons 27
+-- apart, so tiles are 24: at an Edit Mode size of 135% that's the quick
+-- buttons' 32, 4 apart.
+local GAP = 3
+
 -- Everything else drawn on a button fades to nothing: the game's pictures
 -- (its four states, the tile behind, the portrait, the guild emblem, the
 -- latency bar, the alert glows) and any other addon's skin of it, such as
@@ -58,7 +63,7 @@ end
 
 -- At rest a dark tile; under the pointer a step lighter with a gold line;
 -- while its window is open, a gold line. A button the game has switched
--- off has a dim icon.
+-- off has a dim icon, and full gold again once it's back on.
 local function Paint(button)
     local s = skins[button]
     if not s then return end
@@ -68,7 +73,8 @@ local function Paint(button)
     s.fill:SetColorTexture(Style.Color((s.hover and enabled) and "wellHover" or "well"))
     Style.SetBorder(s.edges, ((s.hover and enabled) or open) and "gold" or "lineStrong")
     if enabled then
-        s.icon:SetVertexColor(Style.Color("gold"))
+        local r, g, b = Style.Color("gold")
+        s.icon:SetVertexColor(r, g, b, 1)
     else
         local r, g, b = Style.Color("muted")
         s.icon:SetVertexColor(r, g, b, 0.45)
@@ -89,7 +95,11 @@ local function Skin(button, icon)
     s.tile = tile
     s.fill = Style.Fill(tile, "well")
     s.edges = Style.Border(tile, "lineStrong")
-    s.icon = tile:CreateTexture(nil, "ARTWORK")
+    -- Inside the well, the raised slate square jsal.ui's own icons have,
+    -- then the gold shape on it.
+    s.slate = tile:CreateTexture(nil, "ARTWORK")
+    s.slate:SetTexture(ICONS .. "tile")
+    s.icon = tile:CreateTexture(nil, "ARTWORK", nil, 1)
     s.icon:SetTexture(ICONS .. icon)
     s.icon:SetPoint("CENTER")
     s.dot = tile:CreateTexture(nil, "OVERLAY")
@@ -98,12 +108,19 @@ local function Skin(button, icon)
     s.dot:SetSize(9, 9)
     s.dot:SetPoint("TOPRIGHT", 3, 3)
     s.dot:Hide()
-    -- A square tile, 2px in from the button's sides so neighbours have a gap.
+    -- A square tile, GAP short of the space the game gives each button (its
+    -- buttons overlap their neighbours), so tiles stand GAP apart.
     local function Fit()
         local w, h = button:GetWidth(), button:GetHeight()
-        local side = math.max(16, math.min(w, h) - 4)
+        local menu = MicroMenu
+        local across = w + (menu and tonumber(menu.childXPadding) or 0)
+        local side = math.max(16, math.min(across, h) - GAP)
         tile:SetSize(side, side)
-        s.icon:SetSize(side * 0.62, side * 0.62)
+        local inset = side / 16
+        s.slate:ClearAllPoints()
+        s.slate:SetPoint("TOPLEFT", inset, -inset)
+        s.slate:SetPoint("BOTTOMRIGHT", -inset, inset)
+        s.icon:SetSize(side * 0.54, side * 0.54)
         MenuBar.fit = { w, h, side }
         if MenuBar.FitFrame then MenuBar.FitFrame(w, h, side) end
     end
@@ -122,7 +139,7 @@ local function Skin(button, icon)
 end
 
 -- The bar's own frame, as the quick buttons have: the game's frame art is
--- faded and jsal.ui's dark frame drawn 4px outside the tiles, under them.
+-- faded and jsal.ui's dark frame drawn GAP outside the tiles, under them.
 -- The game's buttons are taller than wide, so the frame comes in from the
 -- top and bottom of the bar to sit as close to the square tiles.
 local back
@@ -142,7 +159,7 @@ end
 
 function MenuBar.FitFrame(w, h, side)
     if not back then return end
-    local x, y = (w - side) / 2 - 4, (h - side) / 2 - 4
+    local x, y = (w - side) / 2 - GAP, (h - side) / 2 - GAP
     back:ClearAllPoints()
     back:SetPoint("TOPLEFT", MicroMenu, "TOPLEFT", x, -y)
     back:SetPoint("BOTTOMRIGHT", MicroMenu, "BOTTOMRIGHT", -x, y)
