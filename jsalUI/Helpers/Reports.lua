@@ -85,18 +85,27 @@ end
 
 -- A guildmate online now whose jsal.ui takes reports: their name and the
 -- name to whisper them by.
--- Takers heard this session (their jsal.ui said hello), by name. The guild
--- list alone isn't enough: just after someone logs out it still shows them
--- online for a minute or two, and a whisper then only earns a "No player
--- named ..." line in chat.
+-- Takers heard this session (their jsal.ui said hello), by name, with when.
+-- The guild list alone isn't enough: just after someone logs out it still
+-- shows them online for a minute or two, and a whisper then only earns a
+-- "No player named ..." line in chat. One person can take reports on more
+-- than one character (it's for the whole account), so the taker just heard
+-- is the one sent to; otherwise the one heard most lately.
 local heard = {}
 
-local function Taker()
+local function Taker(preferred)
     local members = ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}
     local online, me = OnlineNow(), Compat.MyName()
-    for name, m in pairs(members) do
-        if m.takesReports and heard[name] and online[name] and name ~= me then return name, m.target or name end
+    local function Fits(name)
+        local m = members[name]
+        return m and m.takesReports and heard[name] and online[name] and name ~= me
     end
+    if preferred and Fits(preferred) then return preferred, members[preferred].target or preferred end
+    local best
+    for name in pairs(members) do
+        if Fits(name) and (not best or heard[name] > heard[best]) then best = name end
+    end
+    if best then return best, members[best].target or best end
 end
 
 -- A report written on the account that takes reports needs no whisper: it
@@ -115,17 +124,18 @@ end
 
 -- Sends every waiting report to a taker who's online, at most once every
 -- two minutes each, until the taker confirms it.
-function Reports.Flush()
+function Reports.Flush(preferred)
     local out = Out()
     if #out == 0 then return end
     if Reports.Receiving() then return KeepHere() end
     if not IsInGuild() then return end
-    local _, target = Taker()
+    local _, target = Taker(preferred)
     if not target then return end
     local now = GetTime()
     for _, r in ipairs(out) do
-        if not r.sentAt or r.sentAt + RESEND <= now then
-            r.sentAt = now
+        -- A different taker (the one just heard) is tried at once.
+        if not r.sentAt or r.sentAt + RESEND <= now or r.sentTo ~= target then
+            r.sentAt, r.sentTo = now, target
             local pieces = Pieces(table.concat({ r.text, r.details, r.error }, "^"))
             for i, piece in ipairs(pieces) do
                 Comms.Send("BR", table.concat({ r.id, i, #pieces, piece }, ";"), "WHISPER", target)
@@ -138,8 +148,8 @@ end
 function Reports.Heard(name)
     local m = ns.Guild and ns.Guild.Members and ns.Guild.Members()[name]
     if m and m.takesReports then
-        heard[name] = true
-        Reports.Flush()
+        heard[name] = GetTime()
+        Reports.Flush(name)
     end
 end
 
