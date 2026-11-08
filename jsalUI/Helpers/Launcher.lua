@@ -301,9 +301,24 @@ local Layout
 
 -- Locked, the grip goes and the bar can't be dragged; the j's right-click
 -- (or the grip's menu, while unlocked) switches it.
+-- The bar is held by its centre, so it stays centred where it was put when
+-- it grows or shrinks: the grip coming and going with the lock, a button
+-- switched on or off.
+local function HoldByCentre()
+    local cx, cy = bar:GetCenter()
+    local ux, uy = UIParent:GetCenter()
+    if not (cx and cy and ux and uy) then return end
+    local x, y = math.floor(cx - ux + 0.5), math.floor(cy - uy + 0.5)
+    bar:ClearAllPoints()
+    bar:SetPoint("CENTER", UIParent, "CENTER", x, y)
+    local s = Saved()
+    s.point, s.relative, s.x, s.y = "CENTER", "CENTER", x, y
+end
+
 local function ToggleLock()
     local s = Saved()
     s.locked = not s.locked or nil
+    HoldByCentre()
     Layout()
     if GameTooltip:IsShown() and buttons.dashboard and GameTooltip:IsOwned(buttons.dashboard) then
         buttons.dashboard:GetScript("OnEnter")(buttons.dashboard)
@@ -376,9 +391,7 @@ local function BuildClock()
 end
 
 local function SavePlace()
-    local point, _, relative, x, y = bar:GetPoint(1)
-    local s = Saved()
-    s.point, s.relative, s.x, s.y = point, relative, x, y
+    HoldByCentre()
 end
 
 local function Button(place)
