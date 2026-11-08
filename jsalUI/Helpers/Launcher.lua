@@ -522,6 +522,17 @@ local function PaintDots()
     end
 end
 
+-- Whether a shown button (or the time) has lost its place on screen: the
+-- game can drop a button's position while it's still pinned to the bar, and
+-- an unplaced button isn't drawn. Laying the bar out again pins it afresh.
+function Launcher.Lost()
+    if not (bar and bar:IsShown()) then return false end
+    for _, b in pairs(buttons) do
+        if b:IsShown() and not b:GetLeft() then return true end
+    end
+    return clock ~= nil and clock:IsShown() and not clock:GetLeft()
+end
+
 -- A switch flipped in Settings shows or hides its button at once.
 function Launcher:OnOption()
     if not bar then return end
@@ -622,7 +633,7 @@ function Launcher:OnEnable()
     -- The buttons and dots are looked at every few seconds, once everything
     -- has started, and when chess changes.
     local function Look()
-        if Due() ~= laidOut then Layout() end
+        if Due() ~= laidOut or Launcher.Lost() then Layout() end
         PaintDots()
     end
     -- The time is looked at each second; it changes only on the minute.
