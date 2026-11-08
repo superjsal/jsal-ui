@@ -2,9 +2,10 @@
 -- that points at a map pin), naming where it leads and how far it is, for
 -- pins jsal.ui sets (a trainer) and, with RestedXP Guides on, the guide's
 -- next step, which the marker follows by itself as the guide moves on. At
--- the spot it says Arrived and clears itself; a click on the label clears
--- it too. A pin the player sets on the map is never replaced, and gets no
--- label.
+-- the spot it says Arrived; a trainer's pin then clears itself, while the
+-- guide's stays until the guide moves on, since a map pin knows nothing of
+-- height and the spot may be a floor up. A click on the label clears either.
+-- A pin the player sets on the map is never replaced, and gets no label.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -52,8 +53,9 @@ local function Ours()
     return not now or Same(now, ours)
 end
 
--- Within this many yards you've arrived; the pin goes after a few seconds
--- there, or at once when its label is clicked.
+-- Within this many yards you've arrived; a trainer's pin goes after a few
+-- seconds there, or at once when its label is clicked. The guide's waits for
+-- the guide: within 10 yards on the map can still be the floor below.
 local ARRIVED, LINGER = 10, 3
 local arrivedAt, cleared
 
@@ -182,7 +184,7 @@ local function Paint()
     if yards and yards <= ARRIVED then
         distance:SetText("Arrived")
         arrivedAt = arrivedAt or GetTime()
-        if GetTime() - arrivedAt >= LINGER then
+        if ours.source ~= "guide" and GetTime() - arrivedAt >= LINGER then
             Waypoint.Clear()
             box:Hide()
             pointer:Hide()
