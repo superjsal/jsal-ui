@@ -18,6 +18,7 @@
 # Every moved or renamed Blizzard call goes through Compat, so it loads first.
 Compat.lua
 Core.lua
+Errors.lua
 Comms.lua
 Style.lua
 Window.lua
