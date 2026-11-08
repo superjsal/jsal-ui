@@ -1,6 +1,10 @@
-# jsal.ui 0.3.17
+# jsal.ui 0.3.18
 
 Coming from 0.3.15, restart the game after updating: 0.3.16 added new files. From 0.3.16, a /reload is enough.
+
+- **Fixed:** "No player named ... is currently playing" no longer shows up in chat when jsal.ui's hidden messages reach a guildmate who has just logged off. A mistyped name in your own whisper still shows it.
+
+## In 0.3.17
 
 - **New parts start off:** the bag button, the hunter range check, the menu bar look and the time on the quick buttons now start switched off, so updating doesn't change your screen. Turn on the ones you want in jsal.ui's Settings, under Around the UI (the time is under Quick buttons), then /reload. If you already turned one on yourself, it stays on.
 
