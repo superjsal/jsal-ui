@@ -1,5 +1,5 @@
 -- Report a problem: a player says what went wrong, and jsal.ui adds their
--- version, class, level, zone and the session's latest jsal.ui error. The
+-- version, class, level, zone and jsal.ui's latest errors (Errors.lua). The
 -- report goes through the guild's hidden addon channel to whoever takes
 -- reports (John, on any of his characters). It waits on the sender's side
 -- until he's online, and leaves only once his copy says it has it. Outside
@@ -48,7 +48,7 @@ function Reports.Details()
 end
 
 function Reports.LastError()
-    return ns.lastError and ("Last error: " .. ns.lastError) or "Last error: none this session"
+    return ns.Errors and ns.Errors.Summary() or "Errors: none lately"
 end
 
 -- A report as one line, for copying.

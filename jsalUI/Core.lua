@@ -53,11 +53,15 @@ function ns.Print(...)
 end
 
 -- Passes an error to the game's error handler (BugSack, when it's installed)
--- with its stack intact, and hands it back. The latest one's first line is
--- kept for the session, so a problem report can carry it.
+-- with its stack intact, and hands it back. It's kept for problem reports
+-- first (Errors.lua), and not counted again as the game's handler sees it.
 local function Report(err)
     ns.lastError = tostring(err):match("^[^\n]*")
-    geterrorhandler()(err)
+    local errors = ns.Errors
+    if errors then pcall(errors.Record, err, true) end
+    if errors then errors.passing = true end
+    pcall(geterrorhandler(), err)
+    if errors then errors.passing = false end
     return err
 end
 ns.Report = Report
