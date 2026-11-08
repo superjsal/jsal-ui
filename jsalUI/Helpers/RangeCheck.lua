@@ -70,10 +70,23 @@ local function Near()
     return r and true or false
 end
 
+-- Before a hunter learns Wing Clip, a five-yard item's range says whether
+-- you're in melee: whether it would reach, not whether you carry it.
+local MELEE_ITEM = 8149   -- Voodoo Charm
+local function ItemReaches()
+    local check = (C_Item and C_Item.IsItemInRange) or IsItemInRange
+    if not check then return nil end
+    local ok, r = pcall(check, MELEE_ITEM, "target")
+    if not ok or r == nil then return nil end
+    return r == true or r == 1
+end
+
 -- Where you stand: "melee", "dead", "shoot" or "far".
 local last
 function RangeCheck.Read()
-    if Reaches(MELEE) then
+    local melee = Reaches(MELEE)
+    if melee == nil then melee = ItemReaches() end
+    if melee then
         last = "melee"
     elseif Reaches(RANGED) then
         last = "shoot"
@@ -224,6 +237,8 @@ end
 function RangeCheck:OnEnable()
     local _, class = UnitClass("player")
     if class ~= "HUNTER" then return end
+    -- The game answers an item's range once it has the item loaded.
+    if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, MELEE_ITEM) end
     if not box then Build() end
     Place()
     -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
