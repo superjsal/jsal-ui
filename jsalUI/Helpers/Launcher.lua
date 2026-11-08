@@ -180,7 +180,7 @@ for _, place in ipairs(PLACES) do
             note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
     end
 end
-Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = true,
+Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = false,
     note = "The time in the middle of the bar, when it's laid out side by side. Hover it for local and realm time; click it for the game's clock." }
 
 local function Hidden(key) return not ns.OptionOn("launcher", key) end
