@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.16-beta.1
+## Version: 0.3.16-beta.2
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -86,6 +86,7 @@ Helpers\Reports.lua
 Helpers\Waypoint.lua
 Helpers\SharedFonts.lua
 Helpers\MenuBar.lua
+Helpers\BagButton.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
