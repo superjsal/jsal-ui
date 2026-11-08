@@ -2,8 +2,9 @@
 -- jsal.ui's look, matching the quick buttons: each button a dark tile with a
 -- 1px line and a gold icon, in a dark frame. They stay the game's own buttons:
 -- what a click opens, the tooltips, the greyed-out state and the alerts are
--- all the game's. Only how they look changes: the game's pictures are faded
--- (never removed or moved), and jsal.ui's tile sits over each button. An
+-- all the game's. Only how they look changes: the game's pictures, and any
+-- other addon's skin on the buttons, are faded (never removed or moved), and
+-- jsal.ui's tile sits over each button. An
 -- alert the game would flash shows as a gold dot, as on the quick buttons.
 local addonName, ns = ...
 local Style = ns.Style
@@ -35,25 +36,20 @@ MenuBar.ICONS = {
     MainMenuMicroButton = "help",
 }
 
--- The pictures the game puts on a button besides its own four states: the
--- tile behind, the portrait, the guild emblem, the latency bar, the alert
--- glows. Faded to nothing; the game keeps showing and hiding them as before.
-local ART = {
-    "Background", "PushedBackground", "Shadow", "Portrait", "PushedShadow", "FlashContent",
-    "Emblem", "HighlightEmblem", "MainMenuBarPerformanceBar", "NotificationOverlay",
-}
-
 -- jsal.ui's parts of each button, kept here rather than on the game's frames.
 local skins = {}
 
+-- Everything else drawn on a button fades to nothing: the game's pictures
+-- (its four states, the tile behind, the portrait, the guild emblem, the
+-- latency bar, the alert glows) and any other addon's skin of it, such as
+-- EllesmereUI's boxes. The game keeps showing and hiding its parts as before.
 local function Fade(button)
-    for _, get in ipairs({ "GetNormalTexture", "GetPushedTexture", "GetDisabledTexture", "GetHighlightTexture" }) do
-        local texture = button[get] and button[get](button)
-        if texture then texture:SetAlpha(0) end
+    local s = skins[button]
+    for _, region in ipairs({ button:GetRegions() }) do
+        if region.SetAlpha then region:SetAlpha(0) end
     end
-    for _, key in ipairs(ART) do
-        local region = button[key]
-        if region and region.SetAlpha then region:SetAlpha(0) end
+    for _, child in ipairs({ button:GetChildren() }) do
+        if child ~= (s and s.tile) and child.SetAlpha then child:SetAlpha(0) end
     end
     -- The alert border is flashed by changing its alpha, so it loses its
     -- picture instead; the gold dot stands in for it.
@@ -104,9 +100,12 @@ local function Skin(button, icon)
     s.dot:Hide()
     -- A square tile, 2px in from the button's sides so neighbours have a gap.
     local function Fit()
-        local side = math.max(16, math.min(button:GetWidth(), button:GetHeight()) - 4)
+        local w, h = button:GetWidth(), button:GetHeight()
+        local side = math.max(16, math.min(w, h) - 4)
         tile:SetSize(side, side)
         s.icon:SetSize(side * 0.62, side * 0.62)
+        MenuBar.fit = { w, h, side }
+        if MenuBar.FitFrame then MenuBar.FitFrame(w, h, side) end
     end
     Fit()
     skins[button] = s
@@ -123,7 +122,9 @@ local function Skin(button, icon)
 end
 
 -- The bar's own frame, as the quick buttons have: the game's frame art is
--- faded and jsal.ui's dark frame drawn just outside the buttons, under them.
+-- faded and jsal.ui's dark frame drawn 4px outside the tiles, under them.
+-- The game's buttons are taller than wide, so the frame comes in from the
+-- top and bottom of the bar to sit as close to the square tiles.
 local back
 local function Frame()
     local menu = MicroMenu
@@ -131,12 +132,20 @@ local function Frame()
     if menu.BackgroundArt then menu.BackgroundArt:SetAlpha(0) end
     if menu.BorderArt then menu.BorderArt:SetAlpha(0) end
     back = CreateFrame("Frame", nil, menu)
-    back:SetPoint("TOPLEFT", -4, 4)
-    back:SetPoint("BOTTOMRIGHT", 4, -4)
     back:SetFrameLevel(math.max(0, menu:GetFrameLevel() - 1))
     Style.Fill(back, "window")
     Style.Border(back, "lineStrong")
     Style.Shadow(back, 10)
+    local fit = MenuBar.fit or { 32, 32, 28 }
+    MenuBar.FitFrame(fit[1], fit[2], fit[3])
+end
+
+function MenuBar.FitFrame(w, h, side)
+    if not back then return end
+    local x, y = (w - side) / 2 - 4, (h - side) / 2 - 4
+    back:ClearAllPoints()
+    back:SetPoint("TOPLEFT", MicroMenu, "TOPLEFT", x, -y)
+    back:SetPoint("BOTTOMRIGHT", MicroMenu, "BOTTOMRIGHT", -x, y)
 end
 
 function MenuBar.PaintAll()
@@ -157,7 +166,8 @@ function MenuBar:OnEnable()
     -- The game repaints its buttons as windows open and close and as the
     -- player's level unlocks them; jsal.ui repaints after it.
     if type(UpdateMicroButtons) == "function" then hooksecurefunc("UpdateMicroButtons", MenuBar.PaintAll) end
-    -- Alerts, checked twice a second.
+    -- Twice a second: alerts, and anything another addon has drawn on a
+    -- button since (EllesmereUI skins them a moment after login).
     local driver = self.driver or CreateFrame("Frame")
     self.driver = driver
     local wait = 0
@@ -165,7 +175,10 @@ function MenuBar:OnEnable()
         wait = wait + elapsed
         if wait < 0.5 then return end
         wait = 0
-        for button, s in pairs(skins) do s.dot:SetShown(button:IsShown() and Alerting(button)) end
+        for button, s in pairs(skins) do
+            Fade(button)
+            s.dot:SetShown(button:IsShown() and Alerting(button))
+        end
     end))
 end
 
