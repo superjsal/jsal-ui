@@ -152,6 +152,7 @@ local function Build()
     bar:Hide()
     Style.Fill(bar, "window")
     Style.Border(bar, "lineStrong")
+    Style.Shadow(bar)
 
     route = Style.Text(bar, 14, "text")
     route:SetPoint("TOPLEFT", 12, -12)

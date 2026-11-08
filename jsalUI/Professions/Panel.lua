@@ -43,6 +43,7 @@ local function Build()
     panel:Hide()
     Style.Fill(panel, "window")
     Style.Border(panel, "lineStrong")
+    Style.Shadow(panel)
 
     local bar = CreateFrame("Frame", nil, panel)
     bar:SetPoint("TOPLEFT")
@@ -154,6 +155,7 @@ local function UnlearnedRow(i)
         GameTooltip:Show()
     end)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    Style.Hover(r, 6)
     unlearned[i] = r
     return r
 end
@@ -180,6 +182,7 @@ local function Tooltip(frame)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    Style.Hover(frame, 6)
 end
 
 local function Step(i)
