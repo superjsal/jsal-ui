@@ -85,19 +85,41 @@ end
 
 -- A guildmate online now whose jsal.ui takes reports: their name and the
 -- name to whisper them by.
+-- Takers heard this session (their jsal.ui said hello), by name. The guild
+-- list alone isn't enough: just after someone logs out it still shows them
+-- online for a minute or two, and a whisper then only earns a "No player
+-- named ..." line in chat.
+local heard = {}
+
 local function Taker()
     local members = ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}
     local online, me = OnlineNow(), Compat.MyName()
     for name, m in pairs(members) do
-        if m.takesReports and online[name] and name ~= me then return name, m.target or name end
+        if m.takesReports and heard[name] and online[name] and name ~= me then return name, m.target or name end
     end
+end
+
+-- A report written on the account that takes reports needs no whisper: it
+-- goes straight into this account's own list.
+local function KeepHere()
+    local out = Out()
+    if #out == 0 then return end
+    local me = Compat.MyName() or "you"
+    for _, r in ipairs(out) do
+        In()[#In() + 1] = { id = r.id, from = me, at = r.at or Compat.ServerTime(), text = r.text or "",
+                            details = r.details or "", error = r.error or "" }
+    end
+    for i = #out, 1, -1 do out[i] = nil end
+    Reports.justSent = true
 end
 
 -- Sends every waiting report to a taker who's online, at most once every
 -- two minutes each, until the taker confirms it.
 function Reports.Flush()
     local out = Out()
-    if #out == 0 or not IsInGuild() then return end
+    if #out == 0 then return end
+    if Reports.Receiving() then return KeepHere() end
+    if not IsInGuild() then return end
     local _, target = Taker()
     if not target then return end
     local now = GetTime()
@@ -115,7 +137,10 @@ end
 -- The Guild tab heard from a guildmate: if they take reports, send.
 function Reports.Heard(name)
     local m = ns.Guild and ns.Guild.Members and ns.Guild.Members()[name]
-    if m and m.takesReports then Reports.Flush() end
+    if m and m.takesReports then
+        heard[name] = true
+        Reports.Flush()
+    end
 end
 
 -- Cuts text to at most max bytes, never inside a letter.
