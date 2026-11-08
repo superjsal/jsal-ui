@@ -7,10 +7,10 @@
 --
 -- The game gives addons no distance to an enemy, only whether a spell
 -- reaches: a melee strike in range means melee, Auto Shot in range means
--- shooting, and when neither does, the duel-distance check (about ten yards)
--- tells the dead zone from too far. Where that check isn't allowed (in a
--- fight, on some clients), the last reading decides: coming out of melee is
--- the dead zone.
+-- shooting, and when neither does, the game's follow and duel distances tell
+-- the dead zone from too far. Where those checks aren't allowed (in a fight,
+-- on some clients), the last reading decides: coming out of melee is the dead
+-- zone.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -63,11 +63,24 @@ local function Reaches(list)
     return answer
 end
 
+-- Close enough that not shooting means too close, not too far. The duel
+-- distance alone left a gap: on WoW Forever it's shorter than Auto Shot's
+-- least range, so the box flickered grey between shooting and the dead zone.
+-- The follow distance (about 28 yards) is well inside shooting range, so
+-- out of shot but within it is always the dead zone.
+local FOLLOW = 4
 local function Near()
     if not CheckInteractDistance then return nil end
-    local ok, r = pcall(CheckInteractDistance, "target", DUEL)
-    if not ok then return nil end
-    return r and true or false
+    local answered
+    for _, index in ipairs({ FOLLOW, DUEL }) do
+        local ok, r = pcall(CheckInteractDistance, "target", index)
+        if ok then
+            if r then return true end
+            answered = true
+        end
+    end
+    if answered then return false end
+    return nil
 end
 
 -- Before a hunter learns Wing Clip, a five-yard item's range says whether
