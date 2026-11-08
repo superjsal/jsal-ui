@@ -28,7 +28,7 @@ local MESSAGES = {
     off = "EllesmereUI is installed but turned off. Turn it on in the AddOns list on the character screen.",
     old = "This EllesmereUI is too old for the installer. Update it, then /reload.",
     noProfile = "The jsal.ui look isn't in this version yet. Everything else in jsal.ui works without it.",
-    ready = "Ready to install. This adds a profile called jsal.ui to EllesmereUI and switches to it; then you type /reload.",
+    ready = "Ready to install. This adds a profile called jsal.ui to EllesmereUI and switches to it, with Outfit, jsal.ui's font, in EllesmereUI and RestedXP Guides. Then you type /reload.",
     update = "A newer jsal.ui look is ready. Updating replaces the jsal.ui profile; your other profiles stay as they are.",
     installed = "Installed. You're on the latest jsal.ui look.",
 }
@@ -51,6 +51,7 @@ function Installer.Install()
     if not Installer.CanInstall(state) then
         return false, Installer.Message(state)
     end
+    local first = not ns.db.installed
     local ran, ok, err, status = xpcall(function()
         return EllesmereUI.ImportProfileSilent({
             importString = ns.Profile.string,
@@ -69,6 +70,13 @@ function Installer.Install()
         with = ns.version,
         specLocked = status == "spec_locked" or nil,
     }
+    -- The look's font is Outfit, which the profile sets in EllesmereUI. A
+    -- first install also turns on Outfit for RestedXP Guides; an update
+    -- leaves that switch as the player last set it.
+    if first then
+        ns.SetOption("sharedFonts", "restedxp", true)
+        if ns.SharedFonts and ns.SharedFonts.running then ns.SharedFonts.SetRestedXP(true) end
+    end
     return true, status
 end
 
