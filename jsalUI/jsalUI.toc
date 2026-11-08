@@ -80,6 +80,7 @@ Helpers\LevelUp.lua
 Helpers\Warnings.lua
 Helpers\MinimapButton.lua
 Helpers\Layers.lua
+Helpers\Unlock.lua
 Helpers\Launcher.lua
 Helpers\LayerSwitch.lua
 Helpers\Reports.lua

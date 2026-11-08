@@ -312,6 +312,19 @@ function BagButton:OnEnable()
     if not holder then Build() end
     Place()
     holder:Show()
+    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    if ns.Unlock then
+        ns.Unlock.Add({
+            key = "BagButton", label = "jsal.ui bag button",
+            frame = function() return holder end,
+            load = function() return ns.db and ns.db.bagButtonAt end,
+            save = function(point, relative, x, y)
+                if not ns.db then return end
+                ns.db.bagButtonAt = point and { point, relative, x, y } or nil
+                if not point then Place() end
+            end,
+        })
+    end
     BagButton.ShowSlots(false)
     -- Another addon setting the bag bar's alpha (a fade on hover) doesn't
     -- bring it back while the button stands in for it.
