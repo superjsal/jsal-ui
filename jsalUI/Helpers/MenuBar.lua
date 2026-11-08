@@ -11,6 +11,8 @@ local Style = ns.Style
 
 local MenuBar = ns.NewModule("menubar", {
     title = "Menu bar look",
+    -- New parts that change the game's own look start off; players turn them on.
+    defaultOn = false,
     note = "The game's menu bar (character, spellbook, quest log and the rest) drawn like the quick buttons: gold icons on dark tiles. Turning it off takes a /reload.",
 })
 ns.MenuBar = MenuBar

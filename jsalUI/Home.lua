@@ -7,8 +7,8 @@ local Style, Window = ns.Style, ns.Window
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
     "Gear plan: the best upgrades near your level, and stars that tell you when one drops (/jsal gear)",
-    "A bag button with your free space, and a range check for hunters",
-    "The game's menu bar in jsal.ui's look, the time on the quick buttons, and softer windows",
+    "New in Settings, off until you turn them on: a bag button, a hunter range check, the menu bar look",
+    "Softer windows, and Report a problem now sends your latest jsal.ui errors",
 }
 
 local function NewsWanted()

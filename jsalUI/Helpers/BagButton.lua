@@ -11,6 +11,8 @@ local Style, Compat = ns.Style, ns.Compat
 
 local BagButton = ns.NewModule("bagbutton", {
     title = "Bag button",
+    -- It takes the place of the game's bag bar, so it starts off.
+    defaultOn = false,
     note = "One button with your free bag space in place of the game's bag bar; drag it anywhere. Point at it for your cheapest items; right-click it for your bag slots. Turning it off takes a /reload.",
 })
 ns.BagButton = BagButton

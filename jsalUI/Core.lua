@@ -42,7 +42,7 @@ end
 -- After an update and a /reload, code newer than the version the game
 -- started with means an update came in: a /reload was enough unless it
 -- added files since, which load only after a restart.
-ns.codeVersion = "0.3.16"
+ns.codeVersion = "0.3.17"
 ns.restartSince = "0.3.16"
 ns.startedVersion = Compat.Metadata(addonName, "Version") or ns.codeVersion
 ns.needsRestart = ns.Newer(ns.restartSince, ns.startedVersion)

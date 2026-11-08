@@ -16,6 +16,8 @@ local Style, Compat = ns.Style, ns.Compat
 
 local RangeCheck = ns.NewModule("rangecheck", {
     title = "Hunter range check",
+    -- A new box on the screen, so it starts off.
+    defaultOn = false,
     note = "A small box that shows, by its colour, where you stand from your target: white melee, red dead zone, green shooting, dim grey too far. Hunters only; drag it anywhere and resize it from its corner.",
     options = {
         { key = "sound", title = "Sound in the dead zone", default = false,
