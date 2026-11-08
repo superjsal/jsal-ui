@@ -1,6 +1,10 @@
-# jsal.ui 0.3.18
+# jsal.ui 0.3.19
 
 Coming from 0.3.15, restart the game after updating: 0.3.16 added new files. From 0.3.16, a /reload is enough.
+
+- **Fixed:** the hunter range check no longer sets off a "tried to call the protected function" error in a fight before you learn Wing Clip (taming a pet on the level 10 quest, for one). In a fight it goes by Auto Shot and its last reading.
+
+## In 0.3.18
 
 - **Fixed:** "No player named ... is currently playing" no longer shows up in chat when jsal.ui's hidden messages reach a guildmate who has just logged off. A mistyped name in your own whisper still shows it.
 

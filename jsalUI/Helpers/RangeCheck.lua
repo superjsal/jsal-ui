@@ -8,9 +8,10 @@
 -- The game gives addons no distance to an enemy, only whether a spell
 -- reaches: a melee strike in range means melee, Auto Shot in range means
 -- shooting, and when neither does, the game's follow and duel distances tell
--- the dead zone from too far. Where those checks aren't allowed (in a fight,
--- on some clients), the last reading decides: coming out of melee is the dead
--- zone.
+-- the dead zone from too far. In a fight the game blocks the item and
+-- distance checks outright (a blocked call, not an error a pcall can catch),
+-- so they're never asked then, and the last reading decides: coming out of
+-- melee is the dead zone.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -72,7 +73,7 @@ end
 -- out of shot but within it is always the dead zone.
 local FOLLOW = 4
 local function Near()
-    if not CheckInteractDistance then return nil end
+    if not CheckInteractDistance or Compat.InCombat() then return nil end
     local answered
     for _, index in ipairs({ FOLLOW, DUEL }) do
         local ok, r = pcall(CheckInteractDistance, "target", index)
@@ -90,7 +91,7 @@ end
 local MELEE_ITEM = 8149   -- Voodoo Charm
 local function ItemReaches()
     local check = (C_Item and C_Item.IsItemInRange) or IsItemInRange
-    if not check then return nil end
+    if not check or Compat.InCombat() then return nil end
     local ok, r = pcall(check, MELEE_ITEM, "target")
     if not ok or r == nil then return nil end
     return r == true or r == 1
