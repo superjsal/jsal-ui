@@ -205,7 +205,12 @@ function Compat.BagItem(bag, slot)
     end
     local icon, count, locked, quality, _, _, link, _, noValue, itemID = GetContainerItemInfo(bag, slot)
     if not icon then return nil end
-    return { stackCount = count, isLocked = locked, quality = quality, hyperlink = link, hasNoValue = noValue, itemID = itemID }
+    return { iconFileID = icon, stackCount = count, isLocked = locked, quality = quality, hyperlink = link, hasNoValue = noValue, itemID = itemID }
+end
+
+function Compat.PickupBagItem(bag, slot)
+    local pick = (Container and Container.PickupContainerItem) or PickupContainerItem
+    pick(bag, slot)
 end
 
 function Compat.UseBagItem(bag, slot)

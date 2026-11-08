@@ -22,6 +22,7 @@ for key, hex in pairs({
     muted = "9a9688",
     gold = "e3b04b",
     goldHover = "ecbe62",
+    red = "e0604a",
     onGold = "16130c",
     blue = "2f5db5",
     white = "ffffff",
