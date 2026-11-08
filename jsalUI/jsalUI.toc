@@ -84,6 +84,7 @@ Helpers\LayerSwitch.lua
 Helpers\Reports.lua
 Helpers\Waypoint.lua
 Helpers\SharedFonts.lua
+Helpers\MenuBar.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
