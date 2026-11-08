@@ -14,7 +14,7 @@ local GROUPS = {
     { title = "GAMES", keys = { "dailyword", "iconguess", "chess", "flight", "guild" } },
     { title = "LEVELING", keys = { "talents", "trainingpanel", "levelup", "journal", "dungeons", "gear" } },
     { title = "PROFESSIONS", keys = { "professionpanel", "profwindow", "shopping", "crafters" } },
-    { title = "AROUND THE UI", keys = { "launcher", "minimap", "vendor", "warnings", "waypoint" } },
+    { title = "AROUND THE UI", keys = { "launcher", "minimap", "vendor", "warnings", "waypoint", "sharedFonts" } },
 }
 
 local function Grouped()
