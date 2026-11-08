@@ -313,6 +313,19 @@ end
 -- clicked. Its size is left alone: UI skins size their borders by it, and
 -- a window shrunk away leaves them drawn far too thick. It comes back as
 -- it was when the visit ends.
+-- The cover and the panel sit a whole strata above the game's window: its
+-- list rows and buttons are drawn at frame levels of their own, above any
+-- level beside it, so in the window's own strata they still took clicks and
+-- showed tooltips through the cover and over the panel's Train all.
+local STRATA = { "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG", "TOOLTIP" }
+local function Above(strata)
+    for i, s in ipairs(STRATA) do
+        if s == strata then return STRATA[math.min(i + 1, #STRATA - 1)] end
+    end
+    return "DIALOG"
+end
+Panel.Above = Above
+
 local concealed, cover
 local function Conceal(frame)
     if concealed then return end
@@ -326,8 +339,8 @@ local function Conceal(frame)
     end
     cover:ClearAllPoints()
     cover:SetAllPoints(frame)
-    cover:SetFrameStrata(frame:GetFrameStrata())
-    cover:SetFrameLevel(frame:GetFrameLevel() + 5)
+    cover:SetFrameStrata(Above(frame:GetFrameStrata()))
+    cover:SetFrameLevel(1)
     cover:Show()
 end
 
@@ -848,6 +861,8 @@ local function OpenBeside(frame)
     -- the panel takes its place at the left of the screen.
     if StandsIn() then
         Conceal(frame)
+        panel:SetFrameStrata(Above(frame:GetFrameStrata()))
+        panel:SetFrameLevel(10)
         panel:ClearAllPoints()
         panel:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -116)
         xpcall(Paint, ns.Report)
