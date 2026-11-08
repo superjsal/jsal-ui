@@ -15,11 +15,13 @@ for key, hex in pairs({
     window = "191c23",
     titleBar = "15181e",
     well = "22262f",
+    wellHover = "2b303b",
     line = "2a2e38",
     lineStrong = "3d424e",
     text = "ece6d6",
     muted = "9a9688",
     gold = "e3b04b",
+    goldHover = "ecbe62",
     onGold = "16130c",
     blue = "2f5db5",
     white = "ffffff",
@@ -141,8 +143,98 @@ function Style.Rule(frame, side, colorKey)
     return t
 end
 
+-- A soft shadow around a window, so its edge stays clear over a bright zone
+-- like sand or snow. One blurred square (Media\Shadow) is cut into four
+-- corners and four edges reaching `size` beyond the frame, a little lower
+-- than it, and drawn under the frame's own fill, which hides the middle.
+-- The frame must be at least twice `size` tall and wide.
+local SHADOW = "Interface\\AddOns\\" .. addonName .. "\\Media\\Shadow"
+local SHADOW_ALPHA = 0.7
+
+function Style.Shadow(frame, size)
+    size = size or 20
+    local drop = math.floor(size / 4 + 0.5)
+    local function Piece(l, r, t, b)
+        local tex = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+        tex:SetTexture(SHADOW)
+        tex:SetTexCoord(l, r, t, b)
+        tex:SetVertexColor(0, 0, 0, SHADOW_ALPHA)
+        return tex
+    end
+    local tl, tr = Piece(0, 0.5, 0, 0.5), Piece(0.5, 1, 0, 0.5)
+    local bl, br = Piece(0, 0.5, 0.5, 1), Piece(0.5, 1, 0.5, 1)
+    for _, corner in ipairs({ tl, tr, bl, br }) do corner:SetSize(size * 2, size * 2) end
+    tl:SetPoint("TOPLEFT", frame, "TOPLEFT", -size, size - drop)
+    tr:SetPoint("TOPRIGHT", frame, "TOPRIGHT", size, size - drop)
+    bl:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", -size, -size - drop)
+    br:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", size, -size - drop)
+    -- The edges stretch a thin strip from the middle of the square.
+    local top = Piece(0.49, 0.51, 0, 0.5)
+    top:SetPoint("TOPLEFT", tl, "TOPRIGHT")
+    top:SetPoint("BOTTOMRIGHT", tr, "BOTTOMLEFT")
+    local bottom = Piece(0.49, 0.51, 0.5, 1)
+    bottom:SetPoint("TOPLEFT", bl, "TOPRIGHT")
+    bottom:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
+    local left = Piece(0, 0.5, 0.49, 0.51)
+    left:SetPoint("TOPLEFT", tl, "BOTTOMLEFT")
+    left:SetPoint("BOTTOMRIGHT", bl, "TOPRIGHT")
+    local right = Piece(0.5, 1, 0.49, 0.51)
+    right:SetPoint("TOPLEFT", tr, "BOTTOMLEFT")
+    right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+end
+
+-- Opening: a window fades in as it rises `from` pixels into place (a
+-- negative `from` starts it below), quick enough not to wait on. The first
+-- step sets the start, the second brings it home, so it always ends exactly
+-- where it was placed or dragged to.
+local OPEN_TIME = 0.14
+
+function Style.Opening(frame, from)
+    local group = frame.CreateAnimationGroup and frame:CreateAnimationGroup()
+    if not group then return end
+    local function Step(kind, order, duration)
+        local a = group:CreateAnimation(kind)
+        a:SetOrder(order)
+        a:SetDuration(duration)
+        return a
+    end
+    Step("Translation", 1, 0):SetOffset(0, from)
+    local hidden = Step("Alpha", 1, 0)
+    hidden:SetFromAlpha(0)
+    hidden:SetToAlpha(0)
+    local rise = Step("Translation", 2, OPEN_TIME)
+    rise:SetOffset(0, -from)
+    rise:SetSmoothing("OUT")
+    local fade = Step("Alpha", 2, OPEN_TIME)
+    fade:SetFromAlpha(0)
+    fade:SetToAlpha(1)
+    frame:HookScript("OnShow", function()
+        group:Stop()
+        group:Play()
+    end)
+    return group
+end
+
+-- A faint light over a row or card under the pointer, so it's clear what a
+-- click or a tooltip will come from. It reaches `pad` past the row's sides
+-- for rows whose icon sits on their edge. Call it after the row's own
+-- OnEnter and OnLeave are set: it adds to them.
+function Style.Hover(frame, pad)
+    pad = pad or 0
+    local glow = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
+    glow:SetPoint("TOPLEFT", -pad, 0)
+    glow:SetPoint("BOTTOMRIGHT", pad, 0)
+    local r, g, b = Style.Color("text")
+    glow:SetColorTexture(r, g, b, 0.06)
+    glow:Hide()
+    frame:HookScript("OnEnter", function() glow:Show() end)
+    frame:HookScript("OnLeave", function() glow:Hide() end)
+    return glow
+end
+
 -- Buttons. "primary" is gold with dark text, for the one main action on a
--- page; "plain" is a well with a line around it.
+-- page; "plain" is a well with a line around it. Under the pointer both
+-- light up a step.
 -- A tone overrides the kind for a game's answer buttons: "right" is gold,
 -- "wrong" is dimmed.
 local function PaintButton(b)
@@ -156,11 +248,11 @@ local function PaintButton(b)
         b.label:SetTextColor(Style.Color("muted"))
         Style.SetBorder(b.edges, "line")
     elseif b.kind == "primary" and enabled then
-        b.bg:SetColorTexture(Style.Color("gold"))
+        b.bg:SetColorTexture(Style.Color(b.hover and "goldHover" or "gold"))
         b.label:SetTextColor(Style.Color("onGold"))
-        Style.SetBorder(b.edges, b.hover and "text" or "gold")
+        Style.SetBorder(b.edges, b.hover and "goldHover" or "gold")
     else
-        b.bg:SetColorTexture(Style.Color("well"))
+        b.bg:SetColorTexture(Style.Color((enabled and b.hover) and "wellHover" or "well"))
         b.label:SetTextColor(Style.Color(enabled and "text" or "muted"))
         Style.SetBorder(b.edges, (enabled and b.hover) and "gold" or "lineStrong")
     end
@@ -252,6 +344,8 @@ function Style.Banner(title, line, onClick)
         banner:SetFrameStrata("HIGH")
         Style.Fill(banner, "window")
         Style.Border(banner, "gold")
+        Style.Shadow(banner)
+        Style.Opening(banner, 16)
         local mark = banner:CreateTexture(nil, "ARTWORK")
         mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
         mark:SetSize(36, 36)
@@ -299,6 +393,8 @@ function Style.Panel(name, width, height, title)
     f:Hide()
     Style.Fill(f, "window")
     Style.Border(f, "lineStrong")
+    Style.Shadow(f)
+    Style.Opening(f, -8)
     tinsert(UISpecialFrames, name)
 
     local bar = CreateFrame("Frame", nil, f)

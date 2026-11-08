@@ -327,6 +327,7 @@ Window.Page("dungeons", function(page)
             GameTooltip:Show()
         end)
         q:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        Style.Hover(q)
         questRows[i] = q
         return q
     end
@@ -367,6 +368,7 @@ Window.Page("dungeons", function(page)
             GameTooltip:Show()
         end)
         it:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        Style.Hover(it, 4)
         card.items[i] = it
         return it
     end

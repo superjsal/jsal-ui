@@ -345,6 +345,7 @@ Window.Page("training", function(page)
         r:SetDetail(nil)
         r:EnableMouse(true)
         Tooltip(r)
+        Style.Hover(r, 6)
         return r
     end
 

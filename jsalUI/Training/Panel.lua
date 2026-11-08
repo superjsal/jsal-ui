@@ -108,6 +108,7 @@ local function Row()
             GameTooltip:Show()
         end)
         r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        Style.Hover(r, 6)
         -- Standing in for the trainer, each row has its own Train button and
         -- a Skip (or what it waits on, for later spells).
         r.train = Style.Button(r, "Train", "plain", 50)
@@ -135,6 +136,7 @@ local function Build()
     panel:Hide()
     Style.Fill(panel, "window")
     Style.Border(panel, "lineStrong")
+    Style.Shadow(panel)
 
     local bar = CreateFrame("Frame", nil, panel)
     bar:SetPoint("TOPLEFT")

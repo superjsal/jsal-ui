@@ -257,6 +257,7 @@ Window.Page("build", function(page)
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        Style.Hover(row)
         return row
     end
 

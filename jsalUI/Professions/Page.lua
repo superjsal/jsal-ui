@@ -28,6 +28,7 @@ local function Tooltip(frame)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    Style.Hover(frame, 6)
 end
 
 Window.Page("professions", function(page)

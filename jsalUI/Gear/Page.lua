@@ -33,6 +33,7 @@ local function Tooltip(frame)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    Style.Hover(frame)
 end
 
 -- An icon in a framed box, so an empty slot still shows where it is.
@@ -87,6 +88,7 @@ Window.Page("gear", function(page)
     panel:EnableMouse(true)
     Style.Fill(panel, "window")
     Style.Border(panel, "lineStrong")
+    Style.Shadow(panel, 12)
     panel:Hide()
     local panelTitle = Style.Text(panel, 13, "gold", nil, true)
     panelTitle:SetPoint("TOPLEFT", 14, -12)
