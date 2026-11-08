@@ -224,6 +224,19 @@ function RangeCheck:OnEnable()
     if class ~= "HUNTER" then return end
     if not box then Build() end
     Place()
+    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    if ns.Unlock then
+        ns.Unlock.Add({
+            key = "RangeCheck", label = "jsal.ui range check",
+            frame = function() return box end,
+            load = function() return ns.db and ns.db.rangeCheckAt end,
+            save = function(point, relative, x, y)
+                if not ns.db then return end
+                ns.db.rangeCheckAt = point and { point, relative, x, y } or nil
+                if not point then Place() end
+            end,
+        })
+    end
     local events = self.events or CreateFrame("Frame")
     self.events = events
     events:RegisterEvent("PLAYER_TARGET_CHANGED")

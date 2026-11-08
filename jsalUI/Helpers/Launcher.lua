@@ -3,9 +3,11 @@
 -- layer you're in, that can be dragged anywhere by its grip, so nobody has
 -- to type /jsal. The three games share one button that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
--- played, your move in chess. Choose the buttons in Settings or by
--- right-clicking the grip, which also stands the bar up or locks it. The
--- minimap button's right-click menu lists the same places.
+-- played, your move in chess. Laid side by side, the time sits between its
+-- two halves. Right-clicking the j locks or unlocks it; locked, the grip goes.
+-- Choose the buttons in Settings or by right-clicking the grip, which also
+-- stands the bar up. The minimap button's right-click menu lists the same
+-- places.
 local addonName, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -178,6 +180,8 @@ for _, place in ipairs(PLACES) do
             note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
     end
 end
+Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = true,
+    note = "The time in the middle of the bar, when it's laid out side by side. Hover it for local and realm time; click it for the game's clock." }
 
 local function Hidden(key) return not ns.OptionOn("launcher", key) end
 
@@ -291,9 +295,85 @@ end
 ---------------------------------------------------------------------------
 -- The bar.
 ---------------------------------------------------------------------------
-local bar, grip
+local bar, grip, clock
 local buttons = {}
 local Layout
+
+-- Locked, the grip goes and the bar can't be dragged; the j's right-click
+-- (or the grip's menu, while unlocked) switches it.
+local function ToggleLock()
+    local s = Saved()
+    s.locked = not s.locked or nil
+    Layout()
+    if GameTooltip:IsShown() and buttons.dashboard and GameTooltip:IsOwned(buttons.dashboard) then
+        buttons.dashboard:GetScript("OnEnter")(buttons.dashboard)
+    end
+end
+Launcher.ToggleLock = ToggleLock
+
+---------------------------------------------------------------------------
+-- The time, in the middle of the bar: local or realm time and 12 or 24
+-- hours as the game's own clock is set.
+---------------------------------------------------------------------------
+local function Hours(h, m, military)
+    if military then return ("%d:%02d"):format(h, m), "" end
+    return ("%d:%02d"):format(h % 12 == 0 and 12 or h % 12, m), h < 12 and "AM" or "PM"
+end
+
+function Launcher.Time(which)
+    local military = GetCVarBool and GetCVarBool("timeMgrUseMilitaryTime")
+    local localTime = which == "local" or (which == nil and GetCVarBool and GetCVarBool("timeMgrUseLocalTime"))
+    local h, m
+    if localTime or not GetGameTime then
+        local now = date("*t")
+        h, m = now.hour, now.min
+    else
+        h, m = GetGameTime()
+    end
+    return Hours(h, m, military)
+end
+
+local function PaintClock()
+    if not (clock and clock:IsShown()) then return end
+    local text, half = Launcher.Time()
+    if clock.time:GetText() == text and clock.half:GetText() == half then return end
+    clock.time:SetText(text)
+    clock.half:SetText(half)
+    local width = clock.time:GetStringWidth() + (half ~= "" and clock.half:GetStringWidth() + 3 or 0) + 20
+    if math.abs(clock:GetWidth() - width) > 0.5 then
+        clock:SetWidth(width)
+        Layout()
+    end
+end
+
+local function OpenClock()
+    if not TimeManager_Toggle then
+        local load = (C_AddOns and C_AddOns.LoadAddOn) or LoadAddOn
+        if load then pcall(load, "Blizzard_TimeManager") end
+    end
+    if TimeManager_Toggle then TimeManager_Toggle() end
+end
+
+local function BuildClock()
+    clock = CreateFrame("Button", nil, bar)
+    clock:SetSize(70, SIZE)
+    clock.time = Style.Text(clock, 15, "text", nil, true)
+    clock.half = Style.Text(clock, 12, "muted")
+    clock.time:SetPoint("LEFT", 10, 0)
+    clock.half:SetPoint("LEFT", clock.time, "RIGHT", 3, 0)
+    clock:SetScript("OnClick", OpenClock)
+    clock:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Time")
+        local lt, lh = Launcher.Time("local")
+        local rt, rh = Launcher.Time("realm")
+        GameTooltip:AddDoubleLine("Local time", lt .. (lh ~= "" and " " .. lh or ""), 0.6, 0.59, 0.53, 1, 1, 1)
+        GameTooltip:AddDoubleLine("Realm time", rt .. (rh ~= "" and " " .. rh or ""), 0.6, 0.59, 0.53, 1, 1, 1)
+        GameTooltip:AddLine("Click for the game's clock: stopwatch and alarm.", 0.6, 0.59, 0.53)
+        GameTooltip:Show()
+    end)
+    clock:SetScript("OnLeave", function() GameTooltip:Hide() end)
+end
 
 local function SavePlace()
     local point, _, relative, x, y = bar:GetPoint(1)
@@ -322,7 +402,13 @@ local function Button(place)
     b.dot:SetSize(10, 10)
     b.dot:SetPoint("TOPRIGHT", 3, 3)
     b.dot:Hide()
-    b:SetScript("OnClick", function(self) place.open(self) end)
+    -- The j also takes a right-click: it locks or unlocks the bar.
+    local isJ = place.key == "dashboard"
+    if isJ then b:RegisterForClicks("LeftButtonUp", "RightButtonUp") end
+    b:SetScript("OnClick", function(self, mouse)
+        if isJ and mouse == "RightButton" then return ToggleLock() end
+        place.open(self)
+    end)
     b:SetScript("OnEnter", function(self)
         Style.SetBorder(self.edges, "gold")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
@@ -332,6 +418,9 @@ local function Button(place)
             GameTooltip:SetText(place.label)
             local waiting = Waiting(place)
             if waiting then GameTooltip:AddLine(waiting, 0.89, 0.69, 0.29) end
+        end
+        if isJ then
+            GameTooltip:AddLine(Saved().locked and "Right-click to unlock the bar." or "Right-click to lock the bar.", 0.6, 0.59, 0.53)
         end
         GameTooltip:Show()
     end)
@@ -356,27 +445,36 @@ local function Due()
 end
 
 -- Which buttons show, in order, and where: side by side, or up and down.
+-- Side by side, the time sits between the two halves. The grip takes room
+-- only while the bar is unlocked.
 Layout = function()
     laidOut = Due()
     local s = Saved()
     local vertical = s.vertical
-    local shown = 0
+    local list = {}
     for _, place in ipairs(PLACES) do
         local b = buttons[place.key]
         local on = b ~= nil and Ready(place) and not Hidden(place.key)
         if b then b:SetShown(on) end
-        if on then
-            b:ClearAllPoints()
-            local offset = GRIP + 4 + shown * (SIZE + GAP)
-            if vertical then
-                b:SetPoint("TOPLEFT", 4, -offset)
-            else
-                b:SetPoint("TOPLEFT", offset, -4)
-            end
-            shown = shown + 1
+        if on then list[#list + 1] = b end
+    end
+    local withClock = clock ~= nil and not vertical and not Hidden("time")
+    if clock then clock:SetShown(withClock) end
+    local half = math.ceil(#list / 2)
+    grip:SetShown(not s.locked)
+    local at = 4 + (s.locked and 0 or GRIP)
+    for i, b in ipairs(list) do
+        b:ClearAllPoints()
+        if vertical then b:SetPoint("TOPLEFT", 4, -at) else b:SetPoint("TOPLEFT", at, -4) end
+        at = at + SIZE + GAP
+        if withClock and i == half then
+            clock:ClearAllPoints()
+            clock:SetPoint("TOPLEFT", at, -4)
+            at = at + clock:GetWidth() + GAP
         end
     end
-    local length = GRIP + 4 + math.max(1, shown) * (SIZE + GAP)
+    if #list == 0 then at = at + SIZE + GAP end
+    local length = at - GAP + 4
     if vertical then bar:SetSize(SIZE + 8, length) else bar:SetSize(length, SIZE + 8) end
     grip:ClearAllPoints()
     if vertical then
@@ -434,9 +532,7 @@ local function GripMenu()
         s.vertical = not s.vertical or nil
         Layout()
     end }
-    items[#items + 1] = { s.locked and "Unlock it" or "Lock it in place", nil, function()
-        s.locked = not s.locked or nil
-    end }
+    items[#items + 1] = { s.locked and "Unlock it" or "Lock it in place", "or right-click the j", ToggleLock }
     Launcher.ShowMenu(grip, items)
 end
 
@@ -476,6 +572,7 @@ local function Build()
     for _, place in ipairs(PLACES) do
         if not place.inGames then buttons[place.key] = Button(place) end
     end
+    BuildClock()
     local s = Saved()
     if s.point then
         bar:SetPoint(s.point, UIParent, s.relative or s.point, s.x or 0, s.y or 0)
@@ -489,19 +586,45 @@ function Launcher:OnEnable()
     if not bar then Build() end
     Layout()
     bar:Show()
+    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    if ns.Unlock then
+        ns.Unlock.Add({
+            key = "QuickButtons", label = "jsal.ui quick buttons",
+            frame = function() return bar end,
+            hidden = function() return not bar:IsShown() end,
+            load = function()
+                local s = Saved()
+                return s.point and { s.point, s.relative, s.x, s.y } or nil
+            end,
+            save = function(point, relative, x, y)
+                local s = Saved()
+                s.point, s.relative, s.x, s.y = point, relative, x, y
+                if not point then
+                    bar:ClearAllPoints()
+                    bar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 160)
+                end
+            end,
+        })
+    end
     -- The buttons and dots are looked at every few seconds, once everything
     -- has started, and when chess changes.
     local function Look()
         if Due() ~= laidOut then Layout() end
         PaintDots()
     end
-    local elapsed = 0
+    -- The time is looked at each second; it changes only on the minute.
+    local elapsed, ticked = 0, 0
     bar:SetScript("OnUpdate", function(_, dt)
-        elapsed = elapsed + dt
+        elapsed, ticked = elapsed + dt, ticked + dt
+        if ticked >= 1 then
+            ticked = 0
+            xpcall(PaintClock, ns.Report)
+        end
         if elapsed < 3 then return end
         elapsed = 0
         xpcall(Look, ns.Report)
     end)
+    xpcall(PaintClock, ns.Report)
     Compat.After(0, function() xpcall(Look, ns.Report) end)
     if ns.Chess and ns.Chess.OnChange then ns.Chess.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     if ns.Layers and ns.Layers.OnChange then ns.Layers.OnChange(function() xpcall(PaintDots, ns.Report) end) end
