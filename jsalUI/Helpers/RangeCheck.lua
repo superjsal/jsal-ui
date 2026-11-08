@@ -24,7 +24,9 @@ local RangeCheck = ns.NewModule("rangecheck", {
 })
 ns.RangeCheck = RangeCheck
 
-local MELEE = { 2973, 2974, 1495 }   -- Raptor Strike, Wing Clip, Mongoose Bite
+-- Raptor Strike isn't asked: on WoW Forever the game says it's in range at
+-- any distance, so it can't tell melee apart.
+local MELEE = { 2974, 1495 }   -- Wing Clip, Mongoose Bite
 local RANGED = { 75, 3044 }          -- Auto Shot, Arcane Shot
 local DUEL = 3                        -- the duel distance, about ten yards
 local EVERY = 0.1
