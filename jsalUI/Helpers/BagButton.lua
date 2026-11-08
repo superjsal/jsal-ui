@@ -1,7 +1,8 @@
--- One bag button in place of the game's bag bar, at the end of the menu bar:
--- a gold bag and how many bag slots are free, in red at five or fewer. A
--- click opens your bags; a right-click brings the game's bag slots back where
--- Edit Mode put them, to put on or swap a bag, and a second hides them again.
+-- One bag button in place of the game's bag bar, in a small frame of its
+-- own that drags anywhere: a gold bag and how many bag slots are free, in red
+-- at five or fewer. It starts where the game's bag bar is. A click opens your
+-- bags; a right-click brings the game's bag slots back where Edit Mode put
+-- them, to put on or swap a bag, and a second hides them again.
 -- Pointing at it opens a panel with your free space and the four cheapest
 -- things in your bags, grey junk first: a click on one puts it on your
 -- cursor, to drop or sell (the game asks before anything is destroyed).
@@ -10,7 +11,7 @@ local Style, Compat = ns.Style, ns.Compat
 
 local BagButton = ns.NewModule("bagbutton", {
     title = "Bag button",
-    note = "One button with your free bag space in place of the game's bag bar, at the end of the menu bar. Point at it for your cheapest items; right-click it for your bag slots. Needs Menu bar look; turning it off takes a /reload.",
+    note = "One button with your free bag space in place of the game's bag bar; drag it anywhere. Point at it for your cheapest items; right-click it for your bag slots. Turning it off takes a /reload.",
 })
 ns.BagButton = BagButton
 
@@ -105,7 +106,8 @@ end
 ---------------------------------------------------------------------------
 -- The button.
 ---------------------------------------------------------------------------
-local tile, panel
+local holder, tile, panel
+local SIZE, INSET = 32, 4
 
 local function Lay()
     local h = tile:GetHeight()
@@ -118,7 +120,9 @@ local function Lay()
     tile.count:SetPoint("LEFT", tile.icon, "RIGHT", h * 0.22, 0)
     tile.free:ClearAllPoints()
     tile.free:SetPoint("LEFT", tile.count, "RIGHT", 3, 0)
-    tile:SetWidth(pad + h * 0.58 + h * 0.22 + tile.count:GetStringWidth() + 3 + tile.free:GetStringWidth() + pad + 2)
+    local width = pad + h * 0.58 + h * 0.22 + tile.count:GetStringWidth() + 3 + tile.free:GetStringWidth() + pad + 2
+    tile:SetWidth(width)
+    holder:SetSize(width + INSET * 2, h + INSET * 2)
 end
 
 local function PaintTile()
@@ -130,9 +134,6 @@ local function PaintTile()
     tile.fill:SetColorTexture(Style.Color(tile.hover and "wellHover" or "well"))
     Style.SetBorder(tile.edges, lit and "gold" or "lineStrong")
     Lay()
-    if ns.MenuBar and ns.MenuBar.tail == tile and ns.MenuBar.fit then
-        ns.MenuBar.FitFrame(ns.MenuBar.fit[1], ns.MenuBar.fit[2], ns.MenuBar.fit[3])
-    end
 end
 BagButton.PaintTile = PaintTile
 
@@ -229,7 +230,7 @@ local function BuildPanel()
     panel.label:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -8)
     -- It stays while the pointer is on the button or the panel.
     panel:SetScript("OnUpdate", function(self, elapsed)
-        self.away = (tile:IsMouseOver() or self:IsMouseOver()) and 0 or (self.away or 0) + elapsed
+        self.away = (holder:IsMouseOver() or self:IsMouseOver()) and 0 or (self.away or 0) + elapsed
         if self.away > 0.25 then self:Hide() end
     end)
 end
@@ -237,24 +238,56 @@ end
 local function OpenPanel()
     if not panel then BuildPanel() end
     panel:ClearAllPoints()
-    panel:SetPoint("BOTTOMRIGHT", tile, "TOPRIGHT", 0, 10)
+    panel:SetPoint("BOTTOMRIGHT", holder, "TOPRIGHT", 0, 8)
     panel.away = 0
     panel:Show()
     PaintPanel()
 end
 
+-- Where the frame was dragged to, saved for the account; at first, where the
+-- game's bag bar is.
+local function Place()
+    holder:ClearAllPoints()
+    local at = ns.db and ns.db.bagButtonAt
+    if type(at) == "table" and at[1] then
+        holder:SetPoint(at[1], UIParent, at[2], at[3], at[4])
+    elseif BagsBar and select(2, BagsBar:GetCenter()) then
+        local x, y = BagsBar:GetCenter()
+        local scale = BagsBar:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        holder:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x * scale, y * scale)
+    else
+        holder:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -320, 60)
+    end
+end
+
 local function Build()
-    tile = CreateFrame("Button", "jsalUIBagButton", UIParent)
+    holder = CreateFrame("Frame", "jsalUIBagButton", UIParent)
+    holder:SetFrameStrata("MEDIUM")
+    holder:SetClampedToScreen(true)
+    holder:SetMovable(true)
+    Style.Fill(holder, "window")
+    Style.Border(holder, "lineStrong")
+    Style.Shadow(holder, 10)
+    tile = CreateFrame("Button", nil, holder)
+    tile:SetPoint("TOPLEFT", INSET, -INSET)
     tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    -- Dragging the button moves the whole frame; a plain click still clicks.
+    tile:RegisterForDrag("LeftButton")
+    tile:SetScript("OnDragStart", function() holder:StartMoving() end)
+    tile:SetScript("OnDragStop", function()
+        holder:StopMovingOrSizing()
+        local point, _, relative, x, y = holder:GetPoint(1)
+        if ns.db then ns.db.bagButtonAt = { point, relative, x, y } end
+    end)
     tile.fill = Style.Fill(tile, "well")
     tile.edges = Style.Border(tile, "lineStrong")
     tile.icon = tile:CreateTexture(nil, "ARTWORK")
     tile.icon:SetTexture(BAG)
     tile.icon:SetVertexColor(Style.Color("gold"))
-    tile.count = Style.Text(tile, 10, "text", nil, true)
-    tile.free = Style.Text(tile, 9, "muted")
+    tile.count = Style.Text(tile, 13, "text", nil, true)
+    tile.free = Style.Text(tile, 12, "muted")
     tile.free:SetText("free")
-    tile:SetHeight(24)
+    tile:SetHeight(SIZE)
     tile:SetScript("OnSizeChanged", Lay)
     tile:SetScript("OnClick", function(_, button)
         if button == "RightButton" then
@@ -276,14 +309,9 @@ local function Build()
 end
 
 function BagButton:OnEnable()
-    if not tile then Build() end
-    local MenuBar = ns.MenuBar
-    if not (MenuBar and MenuBar.Tail and MenuBar.Tail(tile)) then
-        -- Without the menu bar there's nowhere to put it: the game's bag bar stays.
-        tile:Hide()
-        return
-    end
-    tile:Show()
+    if not holder then Build() end
+    Place()
+    holder:Show()
     BagButton.ShowSlots(false)
     -- Another addon setting the bag bar's alpha (a fade on hover) doesn't
     -- bring it back while the button stands in for it.
@@ -310,8 +338,7 @@ end
 
 function BagButton:OnDisable()
     if self.events then self.events:UnregisterAllEvents() end
-    if tile then tile:Hide() end
+    if holder then holder:Hide() end
     if panel then panel:Hide() end
     BagButton.ShowSlots(true)
-    if ns.MenuBar and ns.MenuBar.Tail then ns.MenuBar.Tail(nil) end
 end

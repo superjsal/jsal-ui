@@ -162,31 +162,7 @@ function MenuBar.FitFrame(w, h, side)
     local x, y = (w - side) / 2 - GAP, (h - side) / 2 - GAP
     back:ClearAllPoints()
     back:SetPoint("TOPLEFT", MicroMenu, "TOPLEFT", x, -y)
-    -- A tile added after the game's buttons (the bag button) joins the frame.
-    local tail = MenuBar.tail
-    if tail then
-        tail:ClearAllPoints()
-        tail:SetPoint("LEFT", MicroMenu, "RIGHT", GAP - (w - side) / 2, 0)
-        tail:SetHeight(side)
-    end
-    if tail and tail:IsShown() then
-        back:SetPoint("BOTTOMRIGHT", tail, "BOTTOMRIGHT", GAP, -GAP)
-    else
-        back:SetPoint("BOTTOMRIGHT", MicroMenu, "BOTTOMRIGHT", -x, y)
-    end
-end
-
--- A tile at the end of the bar, after the game's buttons: placed GAP after
--- the last tile, as tall as the tiles, in the bar's own scale, and taken
--- into the frame. Without the menu bar it isn't placed, and says so.
-MenuBar.GAP = GAP
-function MenuBar.Tail(frame)
-    if not (back and MicroMenu) then return false end
-    MenuBar.tail = frame
-    if frame then frame:SetParent(MicroMenu) end
-    local fit = MenuBar.fit or { 32, 32, 28 }
-    MenuBar.FitFrame(fit[1], fit[2], fit[3])
-    return true
+    back:SetPoint("BOTTOMRIGHT", MicroMenu, "BOTTOMRIGHT", -x, y)
 end
 
 function MenuBar.PaintAll()
