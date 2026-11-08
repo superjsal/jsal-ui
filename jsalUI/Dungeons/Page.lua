@@ -19,6 +19,20 @@ local function QuestDone(id)
     return IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(id) and true or false
 end
 
+-- In your quest log now: picked up and not yet handed in.
+local function QuestHeld(id)
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local index = C_QuestLog.GetLogIndexForQuestID(id)
+        return index ~= nil and index > 0
+    end
+    if GetQuestLogIndexByID then return (GetQuestLogIndexByID(id) or 0) > 0 end
+    if not (GetNumQuestLogEntries and GetQuestLogTitle) then return false end
+    for i = 1, (GetNumQuestLogEntries()) do
+        if select(8, GetQuestLogTitle(i)) == id then return true end
+    end
+    return false
+end
+
 -- Right for your level: from the level it's tuned to, up to five above.
 -- More than three below it, it's dimmed.
 local function Fits(d, level) return level >= d.level and level <= d.level + 5 end
@@ -558,7 +572,11 @@ Window.Page("dungeons", function(page)
                 row.name:SetText(q[2])
                 local bits = { ("From level %d"):format(q[4] or q[3]) }
                 if QUEST_SIDE[q[5]] then bits[#bits + 1] = QUEST_SIDE[q[5]] end
-                if done then bits[#bits + 1] = "done" end
+                if done then
+                    bits[#bits + 1] = "done"
+                elseif QuestHeld(q[1]) then
+                    bits[#bits + 1] = "|cffe3b04bin your quest log|r"
+                end
                 row.detail:SetText(table.concat(bits, " · "))
                 row.level:SetText(("Level %d"):format(q[3]))
                 row.boxFill:SetShown(done)
