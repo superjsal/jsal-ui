@@ -217,20 +217,16 @@ local function Build()
     panel.train:SetHeight(28)
 end
 
--- Buys everything the trainer offers now that isn't skipped. The list shows
--- only what can be learned while it runs, and goes from the last row up:
--- buying one renumbers the rows after it. Gold is counted down here, as the
--- game's own count only drops once the trainer answers.
+-- Buying needs the rows that can be learned listed; the player's other two
+-- filters stay as they are, as rows of any other kind are passed over.
+local LEARNABLE = { available = true }
+
+-- Buys everything the trainer offers now that isn't skipped, from the last
+-- row up: buying one can renumber the rows after it. Gold is counted down
+-- here, as the game's own count only drops once the trainer answers.
 local function TrainAll(skippedIDs, skippedNames)
-    local saved = {}
-    for _, kind in ipairs({ "available", "unavailable", "used" }) do
-        saved[kind] = GetTrainerServiceTypeFilter(kind) and true or false
-    end
-    SetTrainerServiceTypeFilter("available", true)
-    SetTrainerServiceTypeFilter("unavailable", false)
-    SetTrainerServiceTypeFilter("used", false)
     local budget, bought, spent, short = GetMoney(), 0, 0, 0
-    local ok, err = pcall(function()
+    local ok, err = ns.TrainerPrices.WithFilters(LEARNABLE, function()
         for i = GetNumTrainerServices(), 1, -1 do
             local name, kind, rank = Compat.TrainerService(i)
             if name and kind == "available" then
@@ -252,7 +248,6 @@ local function TrainAll(skippedIDs, skippedNames)
             end
         end
     end)
-    for kind, on in pairs(saved) do SetTrainerServiceTypeFilter(kind, on) end
     if not ok then return ns.Report(err) end
     if bought == 0 and short == 0 then
         ns.Print("Nothing here to train that you haven't skipped.")
@@ -266,17 +261,9 @@ local function TrainAll(skippedIDs, skippedNames)
 end
 
 -- The trainer's row for one spell, by its ID or else its name and rank.
--- Runs with only what can be learned now listed, as TrainAll does.
 local function TrainOne(spell)
-    local saved = {}
-    for _, kind in ipairs({ "available", "unavailable", "used" }) do
-        saved[kind] = GetTrainerServiceTypeFilter(kind) and true or false
-    end
-    SetTrainerServiceTypeFilter("available", true)
-    SetTrainerServiceTypeFilter("unavailable", false)
-    SetTrainerServiceTypeFilter("used", false)
     local result
-    local ok, err = pcall(function()
+    local ok, err = ns.TrainerPrices.WithFilters(LEARNABLE, function()
         for i = 1, GetNumTrainerServices() do
             local name, kind, rank = Compat.TrainerService(i)
             if name and kind == "available" then
@@ -298,7 +285,6 @@ local function TrainOne(spell)
             end
         end
     end)
-    for kind, on in pairs(saved) do SetTrainerServiceTypeFilter(kind, on) end
     if not ok then return ns.Report(err) end
     if result == "short" then
         ns.Print(("%s needs more gold than you have."):format(spell.name))
