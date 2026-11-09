@@ -70,8 +70,11 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                     -- A pet trainer lists the pet's spell; the price is kept
                     -- under the Beast Training spell that teaches it.
                     local pet = (row.spell and petToBeast[row.spell]) or beastByName[(row.name or "") .. "|" .. (row.rank or "")]
+                    -- Visits are kept for the whole account, so whether it's
+                    -- learned is read from this character's own record later.
                     if pet then
-                        prices.pet[pet] = { cost = row.cost, level = row.level, learned = row.category == "used" }
+                        prices.pet[pet] = { cost = row.cost, level = row.level, spell = row.spell,
+                                            key = (row.name or "") .. "|" .. (row.rank or "") }
                     end
                 end
             end
@@ -219,7 +222,8 @@ function Training.Read()
         if name then
             data.spells[#data.spells + 1] = {
                 id = id, level = taught.level or 1, name = name, icon = icon, rank = Rank(id),
-                cost = taught.cost, known = IsPlayerSpell(id) or taught.learned,
+                cost = taught.cost,
+                known = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or (taught.key and trained[taught.key]) or false,
                 skipped = skips[id] == true, source = "pet", group = "Pet trainer",
             }
         end
