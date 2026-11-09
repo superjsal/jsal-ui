@@ -34,20 +34,22 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
         if key:find("^%? @ ") then trainers[key] = nil end
     end
     for _, trainer in pairs(trainers) do
-        for _, row in ipairs(type(trainer.rows) == "table" and trainer.rows or {}) do
+        for _, row in ipairs(ns.TrainerPrices.RowsOf(trainer)) do
             local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
             if id then prices.weapons[id] = row.cost end
         end
     end
     for _, trainer in pairs(trainers) do
         if trainer.class == classID and type(trainer.rows) == "table" then
+            local rows = ns.TrainerPrices.RowsOf(trainer)
             -- Visits saved before Forever's order was known hold the row's
-            -- kind where its rank should be.
-            for _, row in ipairs(trainer.rows) do
-                if KINDS[row.rank] then row.category, row.rank = row.rank, Rank(row.spell or 0) end
+            -- kind where its rank should be, and are kept with no rank.
+            for _, row in ipairs(rows) do
+                if KINDS[row.rank] then row.category, row.rank = row.rank, nil end
+                if row.rank == nil and row.spell then row.rank = Rank(row.spell) end
             end
             local teachesClass = false
-            for _, row in ipairs(trainer.rows) do
+            for _, row in ipairs(rows) do
                 if (row.spell and classSpells[row.spell]) or classNames[row.name or ""] then
                     teachesClass = true
                     break
@@ -55,7 +57,7 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
             end
             if teachesClass then
                 prices.haveTrainer = true
-                for _, row in ipairs(trainer.rows) do
+                for _, row in ipairs(rows) do
                     if row.spell then
                         prices.bySpell[row.spell] = row.cost
                         prices.listed[row.spell] = true
@@ -66,7 +68,7 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                     prices.byName[(row.name or "") .. "|" .. (row.rank or "")] = row.cost
                 end
             else
-                for _, row in ipairs(trainer.rows) do
+                for _, row in ipairs(rows) do
                     -- A pet trainer lists the pet's spell; the price is kept
                     -- under the Beast Training spell that teaches it.
                     local pet = (row.spell and petToBeast[row.spell]) or beastByName[(row.name or "") .. "|" .. (row.rank or "")]

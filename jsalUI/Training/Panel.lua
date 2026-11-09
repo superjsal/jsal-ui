@@ -55,7 +55,7 @@ local function LastTrainer(classID)
     for key, t in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
         if t.class == classID and type(t.rows) == "table" and not key:find("^%? @ ") then
             local teaches = false
-            for _, row in ipairs(t.rows) do
+            for _, row in ipairs(ns.TrainerPrices.RowsOf(t)) do
                 if row.spell and classSpells[row.spell] then teaches = true break end
             end
             if teaches and (not best or (t.seen or 0) > (best.seen or 0)) then best, bestKey = t, key end
