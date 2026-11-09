@@ -68,7 +68,8 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
     # A trainer charges less the better your standing with its faction, so
     # the same spell is saved at several prices. The highest seen is the
     # full price, and that's the one shipped. Levels come from the newest
-    # visit.
+    # visit that gives one: a row for a rank already bought ("used") comes
+    # with level 0, and must not replace a level another visit saw.
     def full(prices, spell, cost):
         prices[spell] = max(cost, prices.get(spell, 0))
     trainers = sorted(SAVED["trainers"], key=lambda t: t.get("seen") or 0)
@@ -86,12 +87,13 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
             for r in rows:
                 full(spells, r["spell"], r["cost"])
                 if r["spell"] not in spell_ids:
-                    extra[r["spell"]] = r.get("level") or 1
+                    extra[r["spell"]] = r.get("level") or extra.get(r["spell"], 1)
         else:
             for r in rows:
                 if r["spell"] in pet_to_beast:
                     beast = pet_to_beast[r["spell"]]
-                    pet[beast] = (max(r["cost"], pet.get(beast, (0,))[0]), r.get("level") or 1)
+                    cost, level = pet.get(beast, (0, 1))
+                    pet[beast] = (max(r["cost"], cost), r.get("level") or level)
     if extra:
         lines.append("        extra = { " + ", ".join(f"{{ {s}, {l} }}" for s, l in sorted(extra.items(), key=lambda kv: (kv[1], kv[0]))) + " },")
     grimoires = {}
