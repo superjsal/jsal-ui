@@ -10,8 +10,8 @@
 -- shooting, and when neither does, the game's follow and duel distances tell
 -- the dead zone from too far. In a fight the game blocks the item and
 -- distance checks outright (a blocked call, not an error a pcall can catch),
--- so they're never asked then, and the last reading decides: coming out of
--- melee is the dead zone.
+-- so they're never asked then, and the last reading decides: out of shot
+-- after being in it is close, not too far.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -98,6 +98,10 @@ local function ItemReaches()
 end
 
 -- Where you stand: "melee", "dead", "shoot" or "far".
+-- In a fight, losing Auto Shot means the enemy came in close (they come to
+-- you): only a fight that began too far stays too far. Before Wing Clip
+-- nothing can tell melee from the dead zone then, and at those levels a
+-- hunter fights up close, so close reads as melee.
 local last
 function RangeCheck.Read()
     local melee = Reaches(MELEE)
@@ -108,7 +112,13 @@ function RangeCheck.Read()
         last = "shoot"
     else
         local near = Near()
-        if near == nil then near = (last == "melee" or last == "dead") end
+        if near == nil then
+            near = last ~= "far"
+            if near and melee == nil then
+                last = "melee"
+                return last
+            end
+        end
         last = near and "dead" or "far"
     end
     return last
