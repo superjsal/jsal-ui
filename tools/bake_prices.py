@@ -16,6 +16,17 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "prices" / "trainers.json"
 KINDS = {"available", "unavailable", "used"}
+LETTERS = {"a": "available", "u": "unavailable", "x": "used"}
+
+
+def row_of(r):
+    """A saved row: a table of named fields, or (the slimmer form) one line
+    of text, spell|name|rank|level|cost|kind, the kind as a letter."""
+    if not isinstance(r, str):
+        return r
+    spell, name, rank, level, cost, kind = (r.split("|") + [""] * 6)[:6]
+    return {"spell": int(spell) if spell else None, "name": name, "rank": rank or None,
+            "level": int(level or 0), "cost": int(cost or 0), "category": LETTERS.get(kind)}
 
 TOKEN = re.compile(r'\s*(?:(\{)|(\})|(=)|(,|;)|\[\s*"((?:[^"\\]|\\.)*)"\s*\]|\[\s*(-?\d+(?:\.\d+)?)\s*\]|'
                    r'"((?:[^"\\]|\\.)*)"|(-?\d+(?:\.\d+)?(?:e-?\d+)?)|(true|false|nil)|([A-Za-z_]\w*))')
@@ -24,6 +35,8 @@ TOKEN = re.compile(r'\s*(?:(\{)|(\})|(=)|(,|;)|\[\s*"((?:[^"\\]|\\.)*)"\s*\]|\[\
 def parse_lua(text):
     """A SavedVariables file as {name: value}: tables become dicts (or lists
     when they only hold array entries)."""
+    # The game numbers a list's entries in a comment at the end of each line.
+    text = re.sub(r"--\s*\[\d+\]\s*$", "", text, flags=re.M)
     tokens = []
     for m in TOKEN.finditer(text):
         tokens.append(m.groups())
@@ -88,7 +101,10 @@ def main():
             m = re.match(r"^(.*?) @ ([^(]+)", key)
             npc, zone = (m.group(1), m.group(2).strip()) if m else (key, None)
         rows = []
-        for r in t.get("rows") or []:
+        rows_saved = t.get("rows") or []
+        if isinstance(rows_saved, dict):
+            rows_saved = [rows_saved[k] for k in sorted(rows_saved)]
+        for r in map(row_of, rows_saved):
             # Visits saved before Forever's order was known hold the kind
             # where the rank should be.
             kind = r.get("category") if r.get("category") in KINDS else r.get("rank") if r.get("rank") in KINDS else None

@@ -11,6 +11,71 @@ ns.TrainerPrices = Prices
 
 local FILTERS = { "available", "unavailable", "used" }
 
+---------------------------------------------------------------------------
+-- How a visit's rows are kept. Every trainer seen is saved for the whole
+-- account, some sixty rows each, so a row is one short line of text rather
+-- than a table of named fields (a third of the size in the saved file):
+--   spell|name|rank|level|cost|kind
+-- with nothing between the bars where there's nothing to say, and the kind
+-- as a letter: a (available), u (unavailable, level too low), x (learned).
+---------------------------------------------------------------------------
+local LETTER = { available = "a", unavailable = "u", used = "x" }
+local KIND = { a = "available", u = "unavailable", x = "used" }
+
+function Prices.Pack(row)
+    local rank, kind = row.rank, row.category
+    -- Visits saved before Forever's order was known hold the row's kind
+    -- where its rank should be.
+    if LETTER[rank] then rank, kind = nil, rank end
+    return table.concat({
+        row.spell and tostring(row.spell) or "", row.name or "", rank or "",
+        tostring(row.level or 0), tostring(row.cost or 0), LETTER[kind] or "",
+    }, "|")
+end
+
+function Prices.Unpack(text)
+    local spell, name, rank, level, cost, kind = text:match("^([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)|([^|]*)$")
+    if not name then return nil end
+    return {
+        spell = tonumber(spell), name = name, rank = rank ~= "" and rank or nil,
+        level = tonumber(level) or 0, cost = tonumber(cost) or 0, category = KIND[kind],
+    }
+end
+
+-- A saved visit's rows, each as a table with its fields named. Unpacked
+-- once per visit and kept only as long as the visit itself is.
+local unpacked = setmetatable({}, { __mode = "k" })
+function Prices.RowsOf(visit)
+    local saved = type(visit) == "table" and visit.rows
+    if type(saved) ~= "table" then return {} end
+    local rows = unpacked[saved]
+    if not rows then
+        rows = {}
+        for _, row in ipairs(saved) do
+            if type(row) == "string" then row = Prices.Unpack(row) end
+            if type(row) == "table" then rows[#rows + 1] = row end
+        end
+        unpacked[saved] = rows
+    end
+    return rows
+end
+
+-- Visits saved in the older, roomier form are rewritten in this one.
+function Prices.Slim()
+    local changed = 0
+    for _, visit in pairs(type(ns.db.trainers) == "table" and ns.db.trainers or {}) do
+        if type(visit) == "table" and type(visit.rows) == "table" then
+            local packed, was = {}, false
+            for _, row in ipairs(visit.rows) do
+                if type(row) == "table" then row, was = Prices.Pack(row), true end
+                if type(row) == "string" then packed[#packed + 1] = row end
+            end
+            if was then visit.rows, changed = packed, changed + 1 end
+        end
+    end
+    return changed
+end
+
 -- The spell a trainer row teaches, from the game's tooltip data for it.
 local function SpellOf(index)
     if C_TooltipInfo and C_TooltipInfo.GetTrainerService then
@@ -105,11 +170,13 @@ local function Record()
     -- the list has changed.
     local before = ns.db.trainers[key]
     local same = type(before) == "table" and type(before.rows) == "table" and #before.rows == #rows and before.highest == highest
+    local packed = {}
+    for i, row in ipairs(rows) do packed[i] = Prices.Pack(row) end
     -- Where the trainer stands, for a map pin: the player is next to them.
     local map, x, y = Compat.PlayerPosition()
     ns.db.trainers[key] = {
         class = classID, classFile = classFile, npc = npc, zone = zone, map = map, x = x, y = y,
-        build = (select(2, GetBuildInfo())), seen = Compat.ServerTime(), highest = highest, rows = rows,
+        build = (select(2, GetBuildInfo())), seen = Compat.ServerTime(), highest = highest, rows = packed,
     }
     if not same then
         ns.Print(("Saved %d spells and prices from %s in %s, up to level %d."):format(#rows, npc, zone, highest))
@@ -160,11 +227,16 @@ end
 local events = CreateFrame("Frame")
 events:RegisterEvent("TRAINER_SHOW")
 events:RegisterEvent("MERCHANT_SHOW")
+events:RegisterEvent("PLAYER_LOGIN")
 -- Not every client has the Beast Training window, and registering an event
 -- the client doesn't know is an error.
 pcall(events.RegisterEvent, events, "CRAFT_SHOW")
 local RECORD = { TRAINER_SHOW = Record, MERCHANT_SHOW = RecordGrimoires, CRAFT_SHOW = RecordBeastTraining }
 events:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_LOGIN" then
+        xpcall(Prices.Slim, ns.Report)
+        return
+    end
     -- The list fills in a moment after the window opens.
     Compat.After(0.3, function()
         xpcall(RECORD[event], ns.Report)
