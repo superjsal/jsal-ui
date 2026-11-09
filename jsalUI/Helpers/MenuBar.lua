@@ -128,14 +128,17 @@ local function Skin(button, icon)
     end
     Fit()
     skins[button] = s
-    button:HookScript("OnSizeChanged", Fit)
-    button:HookScript("OnEnter", function(self) s.hover = true; Paint(self) end)
-    button:HookScript("OnLeave", function(self) s.hover = false; Paint(self) end)
-    button:HookScript("OnEnable", Paint)
-    button:HookScript("OnDisable", Paint)
-    button:HookScript("OnShow", Paint)
+    -- These run inside the game's own buttons, so each goes through the
+    -- module's guard: an error is reported once and the skin stands down.
+    local paint = ns.Safe(MenuBar, Paint)
+    button:HookScript("OnSizeChanged", ns.Safe(MenuBar, Fit))
+    button:HookScript("OnEnter", ns.Safe(MenuBar, function(self) s.hover = true; Paint(self) end))
+    button:HookScript("OnLeave", ns.Safe(MenuBar, function(self) s.hover = false; Paint(self) end))
+    button:HookScript("OnEnable", paint)
+    button:HookScript("OnDisable", paint)
+    button:HookScript("OnShow", paint)
     for _, method in ipairs({ "SetPushed", "SetNormal" }) do
-        if type(button[method]) == "function" then hooksecurefunc(button, method, Paint) end
+        if type(button[method]) == "function" then hooksecurefunc(button, method, paint) end
     end
     Paint(button)
 end
@@ -184,7 +187,7 @@ function MenuBar:OnEnable()
     Frame()
     -- The game repaints its buttons as windows open and close and as the
     -- player's level unlocks them; jsal.ui repaints after it.
-    if type(UpdateMicroButtons) == "function" then hooksecurefunc("UpdateMicroButtons", MenuBar.PaintAll) end
+    if type(UpdateMicroButtons) == "function" then hooksecurefunc("UpdateMicroButtons", ns.Safe(MenuBar, MenuBar.PaintAll)) end
     -- Twice a second: alerts, and anything another addon has drawn on a
     -- button since (EllesmereUI skins them a moment after login).
     local driver = self.driver or CreateFrame("Frame")

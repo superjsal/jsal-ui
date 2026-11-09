@@ -508,12 +508,12 @@ local function HookDetails()
     detailButton:SetScript("OnClick", function()
         if detailRecipe then Shopping.AddCraft(detailRecipe, count:GetText()) end
     end)
-    hooksecurefunc(form, "Init", function(_, recipeInfo)
+    hooksecurefunc(form, "Init", ns.Safe(Shopping, function(_, recipeInfo)
         detailRecipe = type(recipeInfo) == "table" and recipeInfo.recipeID or nil
         local show = Shopping.running and detailRecipe ~= nil and Recipe(detailRecipe) ~= nil
         detailButton:SetShown(show)
         count.well:SetShown(show)
-    end)
+    end))
 end
 
 ---------------------------------------------------------------------------
@@ -675,9 +675,9 @@ function Shopping:OnEnable()
     self.events = events
     -- Shift-clicking an item while the add box has the cursor puts it there.
     if ChatEdit_InsertLink then
-        hooksecurefunc("ChatEdit_InsertLink", function(link)
+        hooksecurefunc("ChatEdit_InsertLink", ns.Safe(Shopping, function(link)
             if box and box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
-        end)
+        end))
     end
     pcall(HookDetails)
 end
