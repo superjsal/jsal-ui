@@ -1,6 +1,11 @@
-# jsal.ui 0.3.19
+# jsal.ui 0.3.20
 
-Coming from 0.3.15, restart the game after updating: 0.3.16 added new files. From 0.3.16, a /reload is enough.
+After updating, restart the game: this version adds a new file, so a /reload isn't enough.
+
+- **Food reminder (new, off until turned on):** a small glowing tile while you aren't Well Fed. Point at it for the food in your bags in a row under it, buff food first; point at one for its tooltip, click one to eat it. It hides in a fight and once you're Well Fed, and drags anywhere (or moves in EllesmereUI's Unlock Mode). Turn it on in jsal.ui's Settings, under Around the UI.
+- **Fixed:** the hunter range check no longer turns grey ("too far") when an enemy you shot at comes up close in a fight. Before Wing Clip it now reads melee; from Wing Clip on, the dead zone and melee as before.
+
+## In 0.3.19
 
 - **Fixed:** the hunter range check no longer sets off a "tried to call the protected function" error in a fight before you learn Wing Clip (taming a pet on the level 10 quest, for one). In a fight it goes by Auto Shot and its last reading.
 
