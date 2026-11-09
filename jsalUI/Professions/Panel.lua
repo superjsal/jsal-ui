@@ -510,7 +510,8 @@ end
 -- per profession); the panel starts after them, measured on screen and put
 -- in its own scale. A reach of more than a tab's width is something else (an
 -- open menu), so it's ignored.
-local function PlaceBeside(frame)
+-- The shopping list opens beside the window the same way.
+function ns.TabsReach(frame, beside)
     local reach, right = 0, frame:GetRight()
     if right then
         local scale = frame:GetEffectiveScale()
@@ -518,14 +519,19 @@ local function PlaceBeside(frame)
         edges[#edges + 1] = frame.ProfessionsOverviewTab
         for _, tab in ipairs(frame.rightProfessionTabs or {}) do edges[#edges + 1] = tab end
         for _, child in ipairs(edges) do
-            local edge = child ~= panel and child:IsShown() and child:GetRight()
+            local edge = child ~= beside and child:IsShown() and child:GetRight()
             if edge then
                 local past = edge * child:GetEffectiveScale() - right * scale
                 if past > reach and past <= 100 * scale then reach = past end
             end
         end
-        reach = reach / panel:GetEffectiveScale()
+        reach = reach / beside:GetEffectiveScale()
     end
+    return reach
+end
+
+local function PlaceBeside(frame)
+    local reach = ns.TabsReach(frame, panel)
     panel:ClearAllPoints()
     panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6 + reach, 0)
 end

@@ -303,8 +303,10 @@ local function PlaceBeside()
     local panel, game = jsalUIProfessionPanel, ProfessionsFrame
     local next = (panel and panel:IsShown() and panel) or (game and game:IsShown() and game)
     if not next then return false end
+    -- Beside the game's window, after the profession tabs on its right edge.
+    local reach = (next == game and ns.TabsReach) and ns.TabsReach(game, frame) or 0
     frame:ClearAllPoints()
-    frame:SetPoint("TOPLEFT", next, "TOPRIGHT", 6, 0)
+    frame:SetPoint("TOPLEFT", next, "TOPRIGHT", 6 + reach, 0)
     frame:SetFrameStrata(next:GetFrameStrata())
     frame:Raise()
     frame.beside = true
