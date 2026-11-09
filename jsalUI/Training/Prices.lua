@@ -109,19 +109,35 @@ local function Rows()
     return rows, highest
 end
 
--- Reads every row with all three filters on, then always puts the player's
--- own filter choices back, even if reading went wrong. The game takes the
--- on/off as true or false.
+-- Runs fn with the trainer's filters set as asked ({ available = true },
+-- say), then always puts the player's own choices back, even if fn went
+-- wrong. Only a filter that isn't already as asked is touched, and only
+-- that one is put back: each change makes the game redraw its list, so a
+-- filter that's already right is left alone. The game takes the on/off as
+-- true or false. Returns pcall's results.
+function Prices.WithFilters(want, fn)
+    local was = {}
+    for _, kind in ipairs(FILTERS) do
+        local on = want[kind]
+        if on ~= nil then
+            local now = GetTrainerServiceTypeFilter(kind) and true or false
+            if now ~= on then
+                was[kind] = now
+                SetTrainerServiceTypeFilter(kind, on)
+            end
+        end
+    end
+    local ok, a, b = pcall(fn)
+    for _, kind in ipairs(FILTERS) do
+        if was[kind] ~= nil then SetTrainerServiceTypeFilter(kind, was[kind]) end
+    end
+    return ok, a, b
+end
+
+-- Reads every row, which needs all three filters on.
+local ALL = { available = true, unavailable = true, used = true }
 local function ReadTrainer()
-    local saved = {}
-    for _, kind in ipairs(FILTERS) do
-        saved[kind] = GetTrainerServiceTypeFilter(kind) and true or false
-        SetTrainerServiceTypeFilter(kind, true)
-    end
-    local ok, rows, highest = pcall(Rows)
-    for _, kind in ipairs(FILTERS) do
-        SetTrainerServiceTypeFilter(kind, saved[kind])
-    end
+    local ok, rows, highest = Prices.WithFilters(ALL, Rows)
     if not ok then error(rows, 0) end
     return rows, highest
 end
