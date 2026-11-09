@@ -1,6 +1,10 @@
-# jsal.ui 0.3.20
+# jsal.ui 0.3.21
 
-After updating, restart the game: this version adds a new file, so a /reload isn't enough.
+Coming from 0.3.19 or earlier, restart the game after updating: 0.3.20 added a new file. From 0.3.20, a /reload is enough.
+
+- **Fixed:** Add to shopping list in a profession window no longer opens the shopping list over the profession tabs on the window's right edge; it opens just past them.
+
+## In 0.3.20
 
 - **Food reminder (new, off until turned on):** a small glowing tile while you aren't Well Fed. Point at it for the food in your bags in a row under it, buff food first; point at one for its tooltip, click one to eat it. It hides in a fight and once you're Well Fed, and drags anywhere (or moves in EllesmereUI's Unlock Mode). Turn it on in jsal.ui's Settings, under Around the UI.
 - **Fixed:** the hunter range check no longer turns grey ("too far") when an enemy you shot at comes up close in a fight. Before Wing Clip it now reads melee; from Wing Clip on, the dead zone and melee as before.
