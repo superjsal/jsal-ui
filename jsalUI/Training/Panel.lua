@@ -887,6 +887,20 @@ local function OpenBeside(frame)
     panel:Show()
 end
 
+-- What the panel shows can change after it opens: a trainer's list fills in
+-- a moment after its window does, and a first visit is saved a moment after
+-- that. So each repaint looks again at what kind of trainer this is, and
+-- opens afresh if the answer has changed.
+local function Refresh()
+    if not (panel and panel:IsShown()) then return end
+    if anchor and anchor == ClassTrainerFrame then
+        local ok, kind = pcall(TrainerKind)
+        if ok and kind ~= context then OpenBeside(anchor) return end
+    end
+    xpcall(Paint, ns.Report)
+end
+Panel.Refresh = Refresh
+
 local function Hook()
     if Compat.GamepadUI() then return end
     for _, find in ipairs(TARGETS) do
@@ -923,12 +937,12 @@ function Panel:OnEnable()
         if event == "ADDON_LOADED" then
             Hook()
         elseif panel and panel:IsShown() then
-            Compat.After(0.2, function()
-                if panel:IsShown() then xpcall(Paint, ns.Report) end
-            end)
+            Compat.After(0.2, Refresh)
         end
     end)
     self.events = events
+    -- A visit just saved has prices and levels the first paint didn't.
+    if ns.TrainerPrices then ns.TrainerPrices.OnSaved = Refresh end
     Hook()
 end
 
