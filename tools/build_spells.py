@@ -65,25 +65,33 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
     spell that teaches each) and a warlock's Grimoires. Returns how many of
     the class's spells have a price."""
     spells, extra, weapons, pet = {}, {}, {}, {}
+    # A trainer charges less the better your standing with its faction, so
+    # the same spell is saved at several prices. The highest seen is the
+    # full price, and that's the one shipped. Levels come from the newest
+    # visit.
+    def full(prices, spell, cost):
+        prices[spell] = max(cost, prices.get(spell, 0))
+    trainers = sorted(SAVED["trainers"], key=lambda t: t.get("seen") or 0)
     # Weapon skills cost the same at every weapon master, for every class,
     # so any class's visit prices them.
-    for trainer in SAVED["trainers"]:
+    for trainer in trainers:
         for r in trainer["rows"]:
             if r.get("spell") in weapon_ids:
-                weapons[r["spell"]] = r["cost"]
-    for trainer in SAVED["trainers"]:
+                full(weapons, r["spell"], r["cost"])
+    for trainer in trainers:
         if trainer["class"] != class_id:
             continue
         rows = [r for r in trainer["rows"] if r.get("spell")]
         if any(r["spell"] in spell_ids for r in rows):
             for r in rows:
-                spells[r["spell"]] = r["cost"]
+                full(spells, r["spell"], r["cost"])
                 if r["spell"] not in spell_ids:
                     extra[r["spell"]] = r.get("level") or 1
         else:
             for r in rows:
                 if r["spell"] in pet_to_beast:
-                    pet[pet_to_beast[r["spell"]]] = (r["cost"], r.get("level") or 1)
+                    beast = pet_to_beast[r["spell"]]
+                    pet[beast] = (max(r["cost"], pet.get(beast, (0,))[0]), r.get("level") or 1)
     if extra:
         lines.append("        extra = { " + ", ".join(f"{{ {s}, {l} }}" for s, l in sorted(extra.items(), key=lambda kv: (kv[1], kv[0]))) + " },")
     grimoires = {}
