@@ -8,6 +8,7 @@ local Style, Window = ns.Style, ns.Window
 local NEWS = {
     "Food reminder: a glowing tile while you aren't Well Fed; point at it and click a food to eat (Settings, Around the UI)",
     "Hunter range check: an enemy right next to you in a fight no longer reads too far",
+    "The shopping list opens clear of the profession tabs",
 }
 
 local function NewsWanted()
