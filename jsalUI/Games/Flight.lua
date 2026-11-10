@@ -50,6 +50,37 @@ local function Legs(nodes, hops)
     return yards, stops
 end
 
+-- The flight points a flight passes before its last: each one's name, and
+-- the yards and stop seconds flown by the time it's reached (no yards when
+-- a leg isn't in the game's tables).
+local function Via(nodes, hops)
+    local list, yards, stops = {}, 0, 0
+    for i = 1, #hops - 1 do
+        local from, to = nodes[hops[i][1]], nodes[hops[i][2]]
+        local path = yards and from and to and from.id and to.id and ns.FlightPaths[from.id * 10000 + to.id]
+        yards = path and (yards + path[1]) or nil
+        list[i] = { name = to and to.name, yards = yards, stops = stops }
+        stops = stops + (path and path[2] or 0)
+    end
+    return list
+end
+
+-- The next flight point a flight can still land at: true, its name and
+-- the seconds into the flight it's reached. One a couple of seconds away
+-- is too late to ask for. With a leg missing from the tables there's no
+-- telling which point is next, so it has no name and no time.
+local LAND_NOTICE = 2
+local function NextStop(flight, elapsed)
+    if type(flight.via) ~= "table" then return false end
+    local speed = Speed() * (flight.bonus or 1)
+    for _, stop in ipairs(flight.via) do
+        if not stop.yards then return true end
+        local at = stop.yards / speed + stop.stops
+        if at > elapsed + LAND_NOTICE then return true, stop.name, at end
+    end
+    return false
+end
+
 -- Flight points are named "Town, Zone"; the bar shows just the town.
 local function Short(name)
     return name and (name:match("^([^,]+)") or name) or "?"
@@ -61,7 +92,7 @@ local function Clock(seconds)
 end
 
 -- The bar.
-local bar, route, time, track, fill, knob, note
+local bar, route, time, track, fill, knob, note, land
 local current
 
 -- Today's games and chess, as the quick buttons' icons: a gold dot when
@@ -114,10 +145,22 @@ local function Tile(key)
     tiles[key] = t
 end
 
+local function PaintRoute()
+    route:SetText(("|cff9a9688%s|r  ›  %s"):format(Short(current.from), Short(current.to)))
+end
+
 local function Paint()
     if not current then return end
     local elapsed = Compat.Now() - current.start
     local trackWidth = track:GetWidth()
+    -- Land at the next flight point: there while one is still ahead.
+    local ahead, stop = false, nil
+    if not current.early then ahead, stop = NextStop(current, elapsed) end
+    if ahead then
+        land.label:SetText(stop and ("Land at " .. Short(stop)) or "Land at the next stop")
+        land:SetWidth(math.max(60, land.label:GetStringWidth() + 18))
+    end
+    land:SetShown(ahead)
     if current.expected then
         local left = current.expected - elapsed
         local share = math.min(1, math.max(0, elapsed / current.expected))
@@ -128,14 +171,15 @@ local function Paint()
         knob:ClearAllPoints()
         knob:SetPoint("CENTER", track, "LEFT", trackWidth * share, 0)
         knob:Show()
-        note:SetText(left <= 0 and "Landing any moment" or (Clock(current.expected) .. " in all"))
+        note:SetText(left <= 0 and "Landing any moment" or current.early and "Landing early"
+            or (Clock(current.expected) .. " in all"))
     else
         -- A route the tables don't have: count up instead.
         time:SetText(Clock(elapsed))
         time:SetTextColor(Style.Color("text"))
         fill:Hide()
         knob:Hide()
-        note:SetText("This route isn't in the game's flight tables yet")
+        note:SetText(current.early and "Landing at the next stop" or "This route isn't in the game's flight tables yet")
     end
 end
 
@@ -178,6 +222,31 @@ local function Build()
     note = Style.Text(bar, 11, "muted")
     note:SetPoint("TOPLEFT", track, "BOTTOMLEFT", 0, -6)
 
+    -- Land at the next flight point, on the note's line: a flight with
+    -- stops can be cut short at the next one.
+    land = CreateFrame("Button", nil, bar)
+    land:SetSize(120, 20)
+    land:SetPoint("TOPRIGHT", track, "BOTTOMRIGHT", 0, -4)
+    Style.Fill(land, "well")
+    land.edges = Style.Border(land, "lineStrong")
+    land.label = Style.Text(land, 11, "gold")
+    land.label:SetPoint("CENTER")
+    land:SetScript("OnEnter", function(self)
+        Style.SetBorder(self.edges, "gold")
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText("Land at the next flight point")
+        GameTooltip:AddLine("The rest of the flight isn't refunded.", 0.6, 0.59, 0.53)
+        GameTooltip:Show()
+    end)
+    land:SetScript("OnLeave", function(self)
+        Style.SetBorder(self.edges, "lineStrong")
+        GameTooltip:Hide()
+    end)
+    land:SetScript("OnClick", ns.Safe(Flight, function()
+        if current and not current.early then TaxiRequestEarlyLanding() end
+    end))
+    land:Hide()
+
     for _, key in ipairs(GAMES) do Tile(key) end
     if ns.Chess and ns.Chess.OnChange then
         ns.Chess.OnChange(function() if bar:IsShown() then PaintGames() end end)
@@ -201,7 +270,7 @@ end
 
 local function Show()
     if not bar then Build() end
-    route:SetText(("|cff9a9688%s|r  ›  %s"):format(Short(current.from), Short(current.to)))
+    PaintRoute()
     PaintGames()
     Paint()
     bar:Show()
@@ -250,8 +319,10 @@ local function OnTakeTaxi(slot)
     local nodes, here = Compat.TaxiNodes()
     local to = nodes[slot]
     if not to then return end
-    local yards, stops = Legs(nodes, Compat.TaxiHops(slot))
+    local hops = Compat.TaxiHops(slot)
+    local yards, stops = Legs(nodes, hops)
     pending = {
+        via = Via(nodes, hops),
         from = nodes[here] and nodes[here].name,
         to = to.name,
         yards = yards,
@@ -272,9 +343,20 @@ function Flight:OnEnable()
         hooked = true
         hooksecurefunc("TakeTaxiNode", ns.Safe(self, OnTakeTaxi))
         -- An early landing cuts the flight short, so it doesn't count
-        -- toward the speed.
+        -- toward the speed, and the bar counts down to the flight point
+        -- it lands at instead. Asked for from any addon's button or the
+        -- game's own, not only this bar's.
         hooksecurefunc("TaxiRequestEarlyLanding", ns.Safe(self, function()
-            if current then current.early = true end
+            if not current or current.early then return end
+            local ahead, stop, at = NextStop(current, Compat.Now() - current.start)
+            current.early = true
+            if ahead then
+                current.to, current.expected = stop or current.to, at
+            end
+            if bar and bar:IsShown() then
+                PaintRoute()
+                Paint()
+            end
         end))
         -- Takeoff and landing to the moment: the game takes the controls
         -- away as the flight starts and hands them back as it lands.
