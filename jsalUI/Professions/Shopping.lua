@@ -351,10 +351,16 @@ local function PlaceBeside()
     local panel, game = jsalUIProfessionPanel, ProfessionsFrame
     local next = (panel and panel:IsShown() and panel) or (game and game:IsShown() and game)
     if not next then return false end
+    local right, top = next:GetRight(), next:GetTop()
+    if not (right and top) then return false end
     -- Beside the game's window, after the profession tabs on its right edge.
     local reach = (next == game and ns.TabsReach) and ns.TabsReach(game, frame) or 0
+    -- Placed on the screen there, not hung off the window: once the window
+    -- closes the game can take its place away, and the list would be left
+    -- with none to be dragged from.
+    local scale = next:GetEffectiveScale() / frame:GetEffectiveScale()
     frame:ClearAllPoints()
-    frame:SetPoint("TOPLEFT", next, "TOPRIGHT", 6 + reach, 0)
+    frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", right * scale + 6 + reach, top * scale)
     frame:SetFrameStrata(next:GetFrameStrata())
     frame:Raise()
     frame.beside = true
