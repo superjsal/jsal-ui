@@ -11,6 +11,10 @@ local Style, Compat, Professions = ns.Style, ns.Compat, ns.Professions
 local Shopping = ns.NewModule("shopping", {
     title = "Shopping list",
     note = "What to craft and buy, less what you have, with prices. /jsal shop",
+    options = {
+        { key = "craftMats", title = "Add something you can craft as its craft, with its mats", default = false,
+          note = "When one of your professions makes an item you add (a Camp Tent, say), the list adds the craft and what it takes. Buy it instead puts the item back." },
+    },
 })
 ns.Shopping = Shopping
 
@@ -45,6 +49,17 @@ function Shopping.AddItem(item, count)
     local items = List().items
     items[item] = (items[item] or 0) + count
     Shopping.Open()
+end
+
+-- The recipe of one of your professions that makes an item, and that
+-- profession's name, when the option to add such items as crafts is on.
+function Shopping.CraftFor(item)
+    if not ns.OptionOn("shopping", "craftMats") then return nil end
+    for _, p in ipairs(Professions.Mine()) do
+        local recipe = Professions.MadeBy(p.line, item)
+        if recipe then return recipe, p.name end
+    end
+    return nil
 end
 
 local function Recipe(spell)
@@ -235,8 +250,31 @@ local function Build()
     frame.add = Style.Button(frame, "Add", "plain", 60)
     frame.add:SetHeight(26)
     frame.add:SetPoint("LEFT", qty.well, "RIGHT", 6, 0)
+    -- Something you can craft goes on as its craft, with a way back to
+    -- buying the item itself.
+    local undone
+    frame.undo = CreateFrame("Button", nil, frame)
+    frame.undo:SetSize(96, 16)
+    frame.undo:SetPoint("TOPRIGHT", box.well, "BOTTOMRIGHT", 46 + 60 + 12, -3)
+    local undoText = Style.Text(frame.undo, 11, "text")
+    undoText:SetPoint("RIGHT")
+    undoText:SetText("Buy it instead")
+    Style.Hover(frame.undo)
+    frame.undo:Hide()
+    frame.undo:SetScript("OnClick", function()
+        local u = undone
+        frame.undo:Hide()
+        frame.message:SetText("")
+        if not u then return end
+        local crafts = List().crafts
+        crafts[u.spell] = (crafts[u.spell] or 0) > u.crafts and crafts[u.spell] - u.crafts or nil
+        undone = nil
+        Shopping.AddItem(u.item, u.count)
+    end)
     local function Add()
         local item = ItemFromText(box:GetText())
+        frame.undo:Hide()
+        undone = nil
         if not item then
             frame.message:SetText("That isn't an item the game knows yet: shift-click it instead.")
             return
@@ -244,8 +282,18 @@ local function Build()
         frame.message:SetText("")
         box:SetText("")
         box:ClearFocus()
-        Shopping.AddItem(item, qty:GetText())
+        local count = math.max(1, math.floor(tonumber(qty:GetText()) or 1))
         qty:SetText("1")
+        local recipe, profession = Shopping.CraftFor(item)
+        if recipe then
+            local crafts = math.ceil(count / math.max(1, recipe.makes or 1))
+            undone = { spell = recipe.spell, crafts = crafts, item = item, count = count }
+            Shopping.AddCraft(recipe.spell, crafts)
+            frame.message:SetText(("A %s craft: its mats are below."):format(profession))
+            frame.undo:Show()
+            return
+        end
+        Shopping.AddItem(item, count)
     end
     frame.add:SetScript("OnClick", Add)
     box:SetScript("OnEnterPressed", Add)
