@@ -6,9 +6,8 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Shopping list: add a craftable item as its craft, with its mats (Settings, Shopping list)",
-    "Shift-click puts an item in the shopping list and gear plan boxes",
-    "The shopping list stays put when dragged after a profession window closes",
+    "Flight bar: a button to land at the next flight point, on flights with stops",
+    "After landing early, the bar counts down to where you'll land",
 }
 
 local function NewsWanted()
