@@ -35,14 +35,18 @@ function Compat.InCombat()
     return InCombatLockdown()
 end
 
--- A unit's ID, or nil when the game hides it. In a dungeon Forever hands
--- addons creature IDs as secret values, which raise an error when read
--- (split, compared, used as a key), so every ID is read through here.
-function Compat.GUID(unit)
-    local guid = UnitGUID(unit)
-    if guid == nil or issecretvalue(guid) then return nil end
-    return guid
+-- In a dungeon Forever hands addons another unit's ID, name and family as
+-- secret values, which raise an error when read (split, compared, used as
+-- a key). Anything read about a unit other than the player comes through
+-- here, as nil when it's hidden.
+function Compat.Plain(value)
+    if value == nil or issecretvalue(value) then return nil end
+    return value
 end
+
+function Compat.GUID(unit) return Compat.Plain(UnitGUID(unit)) end
+function Compat.Name(unit) return Compat.Plain((UnitName(unit))) end
+function Compat.Family(unit) return Compat.Plain((UnitCreatureFamily(unit))) end
 
 function Compat.ServerTime()
     return GetServerTime()

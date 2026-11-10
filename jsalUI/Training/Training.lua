@@ -260,7 +260,7 @@ end
 
 -- A hunter's pet as last seen: its family, level and the abilities it knows.
 local function NotePet(source)
-    local family = UnitExists("pet") and UnitCreatureFamily("pet")
+    local family = UnitExists("pet") and Compat.Family("pet")
     if not family then return end
     -- The pet's spellbook shows each ability once, at the rank it knows.
     local book = Compat.PetSpellbook()
@@ -274,7 +274,7 @@ local function NotePet(source)
             end
         end
     end
-    ns.char.pet = { family = family, name = UnitName("pet"), level = UnitLevel("pet"), known = known }
+    ns.char.pet = { family = family, name = Compat.Name("pet"), level = UnitLevel("pet"), known = known }
 end
 
 -- Pet abilities are the pet's, not yours, so the game only says what the pet
@@ -323,7 +323,7 @@ function Training.Pet()
     NotePet(source)
     local pet = type(ns.char.pet) == "table" and ns.char.pet or nil
     if not pet then return { none = true } end
-    local here = UnitExists("pet") and UnitCreatureFamily("pet") == pet.family
+    local here = UnitExists("pet") and Compat.Family("pet") == pet.family
     local beast = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
     local listed = beast and beast.rows or {}
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}

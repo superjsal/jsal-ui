@@ -180,7 +180,7 @@ local function Record()
     end
     -- Saved per trainer and class: a weapon master shows each class the
     -- weapons it can learn, so one class's visit doesn't replace another's.
-    local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
+    local npc, zone = Compat.Name("npc") or "?", GetZoneText() or "?"
     local key = ("%s @ %s (%s)"):format(npc, zone, classFile or "?")
     -- The window can open several times in one visit; it's only news when
     -- the list has changed.
@@ -214,7 +214,7 @@ local function RecordGrimoires()
     end
     if #books == 0 then return end
     ns.db.grimoires = type(ns.db.grimoires) == "table" and ns.db.grimoires or {}
-    local npc, zone = UnitName("npc") or "?", GetZoneText() or "?"
+    local npc, zone = Compat.Name("npc") or "?", GetZoneText() or "?"
     ns.db.grimoires[npc .. " @ " .. zone] = {
         class = classID, npc = npc, zone = zone, seen = Compat.ServerTime(), rows = books,
     }

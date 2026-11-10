@@ -183,7 +183,7 @@ local function NoteUnit(unit)
     local kind = UnitClassification and UnitClassification(unit) or "normal"
     if kind ~= "rare" and kind ~= "rareelite" and kind ~= "worldboss" then return end
     if unitCount > 300 then units, unitCount = {}, 0 end
-    units[guid] = { kind = kind, name = UnitName(unit), level = UnitLevel(unit) }
+    units[guid] = { kind = kind, name = Compat.Name(unit), level = UnitLevel(unit) }
     unitCount = unitCount + 1
 end
 

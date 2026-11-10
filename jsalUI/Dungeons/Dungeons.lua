@@ -105,7 +105,7 @@ end
 -- The boss you're looting: your target, dead, and one of the guide's.
 local function LootedBoss()
     if not (UnitExists and UnitExists("target") and UnitIsDead and UnitIsDead("target")) then return nil end
-    return Bosses()[Key(UnitName("target"))]
+    return Bosses()[Key(ns.Compat.Name("target"))]
 end
 
 local recent, recentId, recentAt

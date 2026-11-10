@@ -44,7 +44,7 @@ local function Note(unit)
     if not zone then return end
     local map = Compat.PlayerPosition()
     local was = current
-    current = { layer = zone, server = server, map = map, at = Compat.Now(), from = UnitName(unit), npc = npc }
+    current = { layer = zone, server = server, map = map, at = Compat.Now(), from = Compat.Name(unit), npc = npc }
     if not was or was.layer ~= zone or was.map ~= map then Changed() end
 end
 

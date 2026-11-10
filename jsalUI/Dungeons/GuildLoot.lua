@@ -66,7 +66,7 @@ function GuildLoot.GroupTag()
     local raid = IsInRaid and IsInRaid()
     local count = raid and GetNumGroupMembers() or (GetNumSubgroupMembers and GetNumSubgroupMembers() or 0)
     for i = 1, count do
-        local name = UnitName((raid and "raid" or "party") .. i)
+        local name = Compat.Name((raid and "raid" or "party") .. i)
         if name then names[#names + 1] = name end
     end
     table.sort(names)
