@@ -1,6 +1,12 @@
-# jsal.ui 0.3.24
+# jsal.ui 0.3.25
 
 Coming from 0.3.19 or earlier, restart the game after updating: 0.3.20 added a new file. From 0.3.20, a /reload is enough.
+
+- **Fixed:** an error in a dungeon ("a secret string value", from the Journal) that switched the Journal off until the next reload, so loot, levels and deaths after it went unrecorded. Inside a dungeon the game hides chat lines and names from addons; every part of jsal.ui that listens to the game now steps around hidden ones.
+- **Fixed:** a quick button, usually the j, sometimes went invisible until a reload. The bar now notices within a second and puts it back, rebuilding the button if it has to. If one ever stays gone, `/jsal bar` repairs it and saves what it saw for a bug report.
+- **Fixed:** the Journal's story no longer shows "Died" twice for one death.
+
+## In 0.3.24
 
 - **Flight bar, land early (new):** on a flight with stops, the flight bar has a button named for the next flight point, "Land at Stormwind". Click it and you land there instead of flying on; the bar then counts down to that landing. The button goes once the last stop is behind you, and a direct flight has none. It's part of the flight bar, so there's nothing to turn on.
 - **Flight bar:** landing early from another addon's button retargets the bar's route and countdown the same way.

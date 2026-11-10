@@ -6,8 +6,9 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "Flight bar: a button to land at the next flight point, on flights with stops",
-    "After landing early, the bar counts down to where you'll land",
+    "Fixed: the Journal stopping for the session after an error in a dungeon",
+    "A quick button that goes missing comes back within a second",
+    "Flight bar: a button to land at the next flight point (0.3.24)",
 }
 
 local function NewsWanted()
