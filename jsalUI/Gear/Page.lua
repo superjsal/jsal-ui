@@ -419,11 +419,10 @@ Window.Page("gear", function(page)
     box:SetScript("OnEnterPressed", Add)
     page.AddBox = box
     -- Shift-clicking an item while the box has the cursor puts its link there.
-    if ChatEdit_InsertLink and hooksecurefunc then
-        hooksecurefunc("ChatEdit_InsertLink", ns.Safe(ns.Gear, function(link)
-            if box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
-        end))
-    end
+    -- The game's shift-click calls ChatFrameUtil.InsertLink by that name.
+    hooksecurefunc(ChatFrameUtil, "InsertLink", ns.Safe(ns.Gear, function(link)
+        if box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
+    end))
 
     local note = Style.Text(page, 12, "muted")
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
