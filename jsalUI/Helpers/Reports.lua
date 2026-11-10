@@ -333,6 +333,9 @@ Window.Page("report", function(page)
     local function Paint()
         hint:SetShown(box:GetText() == "" and not box:HasFocus())
         addedText:SetText(Reports.Details() .. "\n" .. Reports.LastError())
+        -- A few long errors wrap to several lines: the box grows to hold
+        -- them, and the Send button below moves down with it.
+        added:SetHeight(math.max(52, addedText:GetStringHeight() + 18))
         local waiting = Reports.Waiting()
         if message then
             status:SetText(message)
