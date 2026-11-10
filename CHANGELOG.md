@@ -1,6 +1,15 @@
-# jsal.ui 0.3.21
+# jsal.ui 0.3.22
 
 Coming from 0.3.19 or earlier, restart the game after updating: 0.3.20 added a new file. From 0.3.20, a /reload is enough.
+
+- **Fixed:** no more errors in a dungeon from pointing at, targeting or looting creatures and bosses. Inside a dungeon the game keeps their names hidden from addons, and jsal.ui now steps around them. (The layer reader reads nothing in a dungeon, where there are no layers anyway.)
+- **Training Planner:** bows, guns, crossbows and thrown weapons now have a price, a pet's first ranks of Great Stamina and Natural Armor show the pet level they need (10 and 12), and prices are always the full price, not one a faction discount lowered.
+- **Fixed:** the first time you open a trainer, jsal.ui's panel fills in by itself, without closing and opening it again.
+- **Fixed:** with two hunters, a pet ability one of them bought at a pet trainer no longer shows as known for the other.
+- **Smaller settings file:** saved trainer visits take about a third of the space. Your first login after updating converts them; nothing to do.
+- **Steadier:** jsal.ui leaves the trainer's own list filters as you set them, and if one of its additions to the game's windows (item links, the shopping list, the menu bar) ever hits an error, that part switches itself off instead of erroring again and again.
+
+## In 0.3.21
 
 - **Fixed:** Add to shopping list in a profession window no longer opens the shopping list over the profession tabs on the window's right edge; it opens just past them.
 
