@@ -533,6 +533,71 @@ function Launcher.Lost()
     return clock ~= nil and clock:IsShown() and not clock:GetLeft()
 end
 
+-- How the game sees the bar and a button, as one line, for finding out why
+-- a button stops being drawn. Every value goes through tostring under
+-- pcall, so one the game won't hand over reads "?" instead of erroring.
+local function Say(fn, ...)
+    local ok, a, b, c, d, e = pcall(fn, ...)
+    if not ok then return "?" end
+    local out = {}
+    for i, v in ipairs({ a == nil and "nil" or a, b, c, d, e }) do
+        local fine, text = pcall(tostring, type(v) == "table" and (v.GetName and v:GetName() or "frame") or v)
+        out[i] = fine and text or "?"
+    end
+    return table.concat(out, ",")
+end
+
+local function Describe(name, f)
+    if not f then return name .. ": none" end
+    return ("%s shown=%s visible=%s alpha=%s left=%s top=%s size=%s,%s points=%s at=%s level=%s strata=%s"):format(
+        name, Say(f.IsShown, f), Say(f.IsVisible, f), Say(f.GetEffectiveAlpha, f), Say(f.GetLeft, f), Say(f.GetTop, f),
+        Say(f.GetWidth, f), Say(f.GetHeight, f), Say(f.GetNumPoints, f), Say(f.GetPoint, f, 1),
+        Say(f.GetFrameLevel, f), Say(f.GetFrameStrata, f))
+end
+
+-- A look at the bar, kept in the settings file (the last few): when it
+-- was, where, and how the game sees the bar, the j and any button with no
+-- place. `why` says what asked: the bar's own check, or /jsal bar.
+local KEEP_CHECKS = 8
+function Launcher.Check(why)
+    if not bar then return {} end
+    local lines = { Describe("bar", bar), Describe("dashboard", buttons.dashboard) }
+    for key, b in pairs(buttons) do
+        if key ~= "dashboard" and b:IsShown() and not b:GetLeft() then lines[#lines + 1] = Describe(key, b) end
+    end
+    local list = type(ns.db.barChecks) == "table" and ns.db.barChecks or {}
+    list[#list + 1] = {
+        why = why, at = Compat.ServerTime and Compat.ServerTime() or 0, version = ns.version,
+        zone = Say(GetRealZoneText), combat = Say(InCombatLockdown), locked = Saved().locked and true or false, lines = lines,
+    }
+    while #list > KEEP_CHECKS do table.remove(list, 1) end
+    ns.db.barChecks = list
+    return lines
+end
+
+-- A button made afresh in the old one's place, for one the game still
+-- won't place after the bar is laid out again.
+local MakeButton = Button
+local function Remake(key)
+    local old = buttons[key]
+    if not (old and old.place) then return end
+    old:Hide()
+    old:ClearAllPoints()
+    buttons[key] = MakeButton(old.place)
+end
+
+-- The repair: lay the bar out again; any button still without a place is
+-- made afresh. Returns what it took: "layout", "remade", or "failed".
+function Launcher.Mend()
+    Layout()
+    if not Launcher.Lost() then return "layout" end
+    for key, b in pairs(buttons) do
+        if b:IsShown() and not b:GetLeft() then Remake(key) end
+    end
+    Layout()
+    return Launcher.Lost() and "failed" or "remade"
+end
+
 -- A switch flipped in Settings shows or hides its button at once.
 function Launcher:OnOption()
     if not bar then return end
@@ -633,7 +698,16 @@ function Launcher:OnEnable()
     -- The buttons and dots are looked at every few seconds, once everything
     -- has started, and when chess changes.
     local function Look()
-        if Due() ~= laidOut or Launcher.Lost() then Layout() end
+        if Launcher.Lost() then
+            -- Noted before and after the repair, so a recurrence leaves
+            -- what the game said about it in the settings file.
+            Launcher.Check("lost")
+            local how = Launcher.Mend()
+            local checks = ns.db.barChecks
+            if checks and checks[#checks] then checks[#checks].mended = how end
+        elseif Due() ~= laidOut then
+            Layout()
+        end
         PaintDots()
     end
     -- The time is looked at each second; it changes only on the minute.
@@ -644,6 +718,9 @@ function Launcher:OnEnable()
             ticked = 0
             xpcall(PaintClock, ns.Report)
         end
+        -- A button with no place is looked for each second, so one that
+        -- goes is back almost at once; the rest waits its three seconds.
+        if ticked == 0 and elapsed < 3 and Launcher.Lost() then elapsed = 3 end
         if elapsed < 3 then return end
         elapsed = 0
         xpcall(Look, ns.Report)
@@ -654,6 +731,19 @@ function Launcher:OnEnable()
     if ns.Layers and ns.Layers.OnChange then ns.Layers.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     Compat.After(2, function() xpcall(PaintDots, ns.Report) end)
 end
+
+-- /jsal bar: what the game says about the bar and the j, into chat and the
+-- settings file, then the repair. For when a button has gone missing.
+ns.Command("bar", function()
+    if not bar then return ns.Print("The quick buttons are switched off.") end
+    for _, line in ipairs(Launcher.Check("asked")) do ns.Print(line) end
+    local how = Launcher.Mend()
+    local checks = ns.db.barChecks
+    if checks and checks[#checks] then checks[#checks].mended = how end
+    PaintDots()
+    ns.Print(how == "failed" and "Laid the bar out again; a button still has no place. A /reload brings it back."
+        or "Laid the bar out again. This look is saved for a bug report.")
+end)
 
 function Launcher:OnDisable()
     if bar then
