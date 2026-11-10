@@ -6,9 +6,9 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
-    "No more errors in dungeons from pointing at, targeting or looting creatures",
-    "Training Planner: prices for bows, guns, crossbows and thrown, and the right pet level for pet ranks",
-    "A trainer's panel fills in on your first visit, and the settings file is a third the size",
+    "Shopping list: add a craftable item as its craft, with its mats (Settings, Shopping list)",
+    "Shift-click puts an item in the shopping list and gear plan boxes",
+    "The shopping list stays put when dragged after a profession window closes",
 }
 
 local function NewsWanted()

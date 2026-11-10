@@ -1,6 +1,15 @@
-# jsal.ui 0.3.22
+# jsal.ui 0.3.23
 
 Coming from 0.3.19 or earlier, restart the game after updating: 0.3.20 added a new file. From 0.3.20, a /reload is enough.
+
+- **Shopping list, craft with its mats (new, off until turned on):** add something one of your professions makes, a Camp Tent for a leatherworker, and the list adds the craft instead, with what it takes under To buy. A note says whose craft it is, and Buy it instead puts the item itself back. Turn it on in jsal.ui's Settings, under Shopping list.
+- **Fixed:** shift-clicking an item into the shopping list's box, or the gear plan's Add box, now works: from your bags, or the item's icon in a profession window's recipe details.
+- **Fixed:** the shopping list no longer jumps across the screen when you drag it after closing the profession window it opened beside.
+- **Fixed:** the shopping list's last line says "1 to buy, no price known yet" instead of "Nothing to buy" when nothing on it has a price yet.
+- **Fixed:** "No player named ... is currently playing" no longer shows when the game prints a guildmate's realm after a space, as it can after opening the Guild tab.
+- **Fixed:** in Report a problem, a few long errors no longer run out of their box and under the Send to John button.
+
+## In 0.3.22
 
 - **Fixed:** no more errors in a dungeon from pointing at, targeting or looting creatures and bosses. Inside a dungeon the game keeps their names hidden from addons, and jsal.ui now steps around them. (The layer reader reads nothing in a dungeon, where there are no layers anyway.)
 - **Training Planner:** bows, guns, crossbows and thrown weapons now have a price, a pet's first ranks of Great Stamina and Natural Armor show the pet level they need (10 and 12), and prices are always the full price, not one a faction discount lowered.
