@@ -341,7 +341,12 @@ local function CheckRanks()
 end
 
 -- A death; its cause isn't known, since that came from the combat log.
+local diedAt
 local function Dead()
+    -- The game can say it twice for one death, in the same moment.
+    local now = GetTime()
+    if diedAt and now - diedAt < 5 then return end
+    diedAt = now
     Add("deaths")
     Journal.Note("death", "Died")
 end
