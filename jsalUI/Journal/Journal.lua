@@ -460,6 +460,8 @@ function Journal:OnEnable()
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
     local closes = { MERCHANT_CLOSED = true, MAIL_CLOSED = true, AUCTION_HOUSE_CLOSED = true, TRADE_CLOSED = true }
     f:SetScript("OnEvent", ns.Safe(self, function(_, event, a, b, c, d, e)
+        -- In a dungeon a chat line, a boss's name or a spell can be hidden.
+        a, b, c, d, e = Compat.Plains(a, b, c, d, e)
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
             -- Only spells you know: the game also "casts" hidden effects,
             -- such as one at login, and items' own spells.
@@ -496,7 +498,7 @@ function Journal:OnEnable()
             if e == 1 and b then
                 Add("bosses")
                 if First("boss:" .. tostring(a)) then
-                    local instance = GetInstanceInfo and GetInstanceInfo()
+                    local instance = GetInstanceInfo and Compat.Plain((GetInstanceInfo()))
                     Journal.Note("boss", ("Defeated %s%s"):format(b, instance and (" in " .. instance) or ""))
                 end
             end

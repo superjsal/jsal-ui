@@ -54,6 +54,7 @@ function LevelUp:OnEnable()
     -- shows once a visit.
     local told = false
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, level)
+        level = ns.Compat.Plain(level)
         if not LevelUp.running then return end
         if event == "PLAYER_LEVEL_UP" then
             -- The new talent point lands a moment after the level.

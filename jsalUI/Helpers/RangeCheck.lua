@@ -286,6 +286,7 @@ function RangeCheck:OnEnable()
     events:RegisterEvent("UNIT_HEALTH")
     events:RegisterEvent("PLAYER_ENTERING_WORLD")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
+        unit = Compat.Plain(unit)
         if event == "UNIT_HEALTH" and unit ~= "target" then return end
         RangeCheck.Update()
     end))

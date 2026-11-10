@@ -88,7 +88,8 @@ end
 local listener = CreateFrame("Frame")
 listener:RegisterEvent("CHAT_MSG_ADDON")
 listener:SetScript("OnEvent", function(_, _, prefix, text, channel, sender)
-    if prefix ~= PREFIX or type(text) ~= "string" then return end
+    prefix, text, channel, sender = Compat.Plains(prefix, text, channel, sender)
+    if prefix ~= PREFIX or type(text) ~= "string" or not sender then return end
     local kind, payload = text:match("^(%u+)|(.*)$")
     local fn = kind and handlers[kind]
     if not fn then return end

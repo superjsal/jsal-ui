@@ -303,6 +303,7 @@ local function NoteAll()
 end
 
 watcher:SetScript("OnEvent", function(_, event, unit)
+    unit = ns.Compat.Plain(unit)
     if event == "UNIT_PET" and unit ~= "player" then return end
     if event == "UNIT_LEVEL" and unit ~= "pet" then return end
     local _, classFile = UnitClass("player")

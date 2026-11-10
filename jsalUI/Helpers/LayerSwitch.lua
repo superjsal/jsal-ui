@@ -146,6 +146,7 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("PARTY_INVITE_REQUEST")
 events:RegisterEvent("GROUP_LEFT")
 events:SetScript("OnEvent", function(_, event, inviter)
+    inviter = ns.Compat.Plain(inviter)
     if event == "GROUP_LEFT" then
         joined = nil
         return
