@@ -176,7 +176,7 @@ local questAt = -10
 
 local function NoteUnit(unit)
     if not UnitExists(unit) or UnitIsPlayer(unit) then return end
-    local guid = UnitGUID(unit)
+    local guid = Compat.GUID(unit)
     if not guid or units[guid] then return end
     -- Only rares and world bosses make the story; dungeon bosses come from
     -- the encounter's end instead.
@@ -194,7 +194,7 @@ local KINDS = { rare = "rare", rareelite = "rare elite", elite = "elite", worldb
 -- is noted when a rare you can see dies, unless someone else had tagged it.
 local function RareDied(unit)
     if not (UnitExists(unit) and UnitIsDead(unit)) then return end
-    local guid = UnitGUID(unit)
+    local guid = Compat.GUID(unit)
     local seen = guid and units[guid]
     if not seen or seen.dead then return end
     seen.dead = true
@@ -403,7 +403,7 @@ function Journal.Story(group)
 end
 
 function Journal:OnEnable()
-    playerGUID = UnitGUID("player")
+    playerGUID = Compat.GUID("player")
     -- A one-off reading of the Statistics window, no longer needed.
     ns.db.statsRead = nil
     -- A "Joined" noted in the first minutes of a journal came from the

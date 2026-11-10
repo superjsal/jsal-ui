@@ -129,7 +129,7 @@ local function OnEvent(_, event, a, b, _, _, e)
         local boss = LootedBoss()
         if not boss then return end
         -- Each corpse once, however often its window is opened.
-        local guid = UnitGUID and UnitGUID("target")
+        local guid = ns.Compat.GUID("target")
         if guid and looted[guid] then return end
         if guid then looted[guid] = true end
         local any
