@@ -352,9 +352,22 @@ local function PaintClock()
     if not (clock and clock:IsShown()) then return end
     local text, half = Launcher.Time()
     if clock.time:GetText() == text and clock.half:GetText() == half then return end
+    -- Room for the widest time with this many digits, so the bar keeps its
+    -- width from one minute to the next (digits differ in width, and a bar
+    -- that resizes every minute is laid out again every minute). The time
+    -- sits in the middle of its room.
+    local digit, most = "0", 0
+    for d = 0, 9 do
+        clock.time:SetText(tostring(d))
+        local w = clock.time:GetStringWidth()
+        if w > most then digit, most = tostring(d), w end
+    end
+    clock.time:SetText((text:gsub("%d", digit)))
+    local room = clock.time:GetStringWidth()
     clock.time:SetText(text)
     clock.half:SetText(half)
-    local width = clock.time:GetStringWidth() + (half ~= "" and clock.half:GetStringWidth() + 3 or 0) + 20
+    clock.time:SetPoint("LEFT", 10 + math.max(0, room - clock.time:GetStringWidth()) / 2, 0)
+    local width = room + (half ~= "" and clock.half:GetStringWidth() + 3 or 0) + 20
     if math.abs(clock:GetWidth() - width) > 0.5 then
         clock:SetWidth(width)
         Layout()
@@ -697,8 +710,13 @@ function Launcher:OnEnable()
     end
     -- The buttons and dots are looked at every few seconds, once everything
     -- has started, and when chess changes.
+    -- A button counts as lost when it has no place on two looks a second
+    -- apart: the game can take a moment to place one after the bar is laid
+    -- out, and that isn't a button gone missing.
+    local lostFor = 0
     local function Look()
-        if Launcher.Lost() then
+        if lostFor >= 2 and Launcher.Lost() then
+            lostFor = 0
             -- Noted before and after the repair, so a recurrence leaves
             -- what the game said about it in the settings file.
             Launcher.Check("lost")
@@ -720,7 +738,10 @@ function Launcher:OnEnable()
         end
         -- A button with no place is looked for each second, so one that
         -- goes is back almost at once; the rest waits its three seconds.
-        if ticked == 0 and elapsed < 3 and Launcher.Lost() then elapsed = 3 end
+        if ticked == 0 then
+            lostFor = Launcher.Lost() and lostFor + 1 or 0
+            if lostFor >= 2 then elapsed = 3 end
+        end
         if elapsed < 3 then return end
         elapsed = 0
         xpcall(Look, ns.Report)
