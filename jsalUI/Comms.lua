@@ -42,10 +42,14 @@ end
 local QUIET = 10
 local whispered = {}
 
+-- A name as the line may print it: with its realm after a dash, after a
+-- space, or without it. Spaces, dashes and case are left out of the match.
+local function Key(name) return (name:gsub("[%s%-]", ""):lower()) end
+
 function Comms.Whispered(target)
     local now = GetTime()
-    whispered[target] = now
-    if Ambiguate then whispered[Ambiguate(target, "none")] = now end
+    whispered[Key(target)] = now
+    if Ambiguate then whispered[Key(Ambiguate(target, "none"))] = now end
 end
 
 local notFound
@@ -57,7 +61,7 @@ function Comms.Unanswered(text)
     end
     local name = text:match(notFound)
     if not name then return false end
-    local at = whispered[name] or (Ambiguate and whispered[Ambiguate(name, "none")])
+    local at = whispered[Key(name)] or (Ambiguate and whispered[Key(Ambiguate(name, "none"))])
     return at ~= nil and GetTime() - at <= QUIET
 end
 
