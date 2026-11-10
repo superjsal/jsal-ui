@@ -2326,7 +2326,7 @@
    "class": 3,
    "npc": "Belia Thundergranite",
    "zone": "Ironforge",
-   "seen": 1793986556,
+   "seen": 1794275850,
    "rows": [
     {
      "spell": 4187,
@@ -13775,49 +13775,49 @@
    "class": 3,
    "npc": "Karrina Mekenda",
    "zone": "Stormwind City",
-   "seen": 1794233931,
+   "seen": 1794318400,
    "rows": [
     {
      "spell": 4187,
      "name": "Great Stamina",
      "cost": 10,
-     "level": 10,
-     "kind": "available"
-    },
-    {
-     "spell": 24545,
-     "name": "Natural Armor",
-     "cost": 10,
-     "level": 10,
-     "kind": "available"
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 4188,
      "name": "Great Stamina",
      "cost": 120,
-     "level": 12,
-     "kind": "unavailable"
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24545,
+     "name": "Natural Armor",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 24549,
      "name": "Natural Armor",
      "cost": 120,
-     "level": 12,
-     "kind": "unavailable"
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 4189,
      "name": "Great Stamina",
      "cost": 400,
      "level": 18,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24550,
      "name": "Natural Armor",
      "cost": 400,
      "level": 18,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24493,
@@ -14888,6 +14888,1758 @@
   },
   {
    "class": 3,
+   "npc": "Olmin Burningbeard",
+   "zone": "Ironforge",
+   "seen": 1794269988,
+   "rows": [
+    {
+     "spell": 3044,
+     "name": "Arcane Shot",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14281,
+     "name": "Arcane Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13165,
+     "name": "Aspect of the Hawk",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13163,
+     "name": "Aspect of the Monkey",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5116,
+     "name": "Concussive Shot",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1130,
+     "name": "Hunter's Mark",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 136,
+     "name": "Mend Pet",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14260,
+     "name": "Raptor Strike",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1513,
+     "name": "Scare Beast",
+     "cost": 1200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1978,
+     "name": "Serpent Sting",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13549,
+     "name": "Serpent Sting",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1494,
+     "name": "Track Beasts",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19883,
+     "name": "Track Humanoids",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2974,
+     "name": "Wing Clip",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 200,
+     "level": 8,
+     "kind": "used"
+    },
+    {
+     "spell": 6197,
+     "name": "Eagle Eye",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 1002,
+     "name": "Eyes of the Beast",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 13795,
+     "name": "Immolation Trap",
+     "cost": 1500,
+     "level": 16,
+     "kind": "available"
+    },
+    {
+     "spell": 1495,
+     "name": "Mongoose Bite",
+     "cost": 1500,
+     "level": 16,
+     "kind": "available"
+    },
+    {
+     "spell": 14261,
+     "name": "Raptor Strike",
+     "cost": 1500,
+     "level": 16,
+     "kind": "available"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19434,
+     "name": "Aimed Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14274,
+     "name": "Distracting Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14323,
+     "name": "Hunter's Mark",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3043,
+     "name": "Scorpid Sting",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1462,
+     "name": "Beast Lore",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14262,
+     "name": "Raptor Strike",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19885,
+     "name": "Track Hidden",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14302,
+     "name": "Immolation Trap",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3045,
+     "name": "Rapid Fire",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13551,
+     "name": "Serpent Sting",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19880,
+     "name": "Track Elementals",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20900,
+     "name": "Aimed Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14283,
+     "name": "Arcane Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14319,
+     "name": "Aspect of the Hawk",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13809,
+     "name": "Frost Trap",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3661,
+     "name": "Mend Pet",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13161,
+     "name": "Aspect of the Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1242634,
+     "name": "Counterattack",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15629,
+     "name": "Distracting Shot",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5384,
+     "name": "Feign Death",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14269,
+     "name": "Mongoose Bite",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14326,
+     "name": "Scare Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1543,
+     "name": "Flare",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14263,
+     "name": "Raptor Strike",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19878,
+     "name": "Track Demons",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299348,
+     "name": "Trueshot Aura",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14272,
+     "name": "Disengage",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13813,
+     "name": "Explosive Trap",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13552,
+     "name": "Serpent Sting",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20901,
+     "name": "Aimed Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14284,
+     "name": "Arcane Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14303,
+     "name": "Immolation Trap",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3662,
+     "name": "Mend Pet",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293525,
+     "name": "Summon Hawk",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3034,
+     "name": "Viper Sting",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14320,
+     "name": "Aspect of the Hawk",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14267,
+     "name": "Wing Clip",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299445,
+     "name": "Aspect of the Beast",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13159,
+     "name": "Aspect of the Pack",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15630,
+     "name": "Distracting Shot",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14310,
+     "name": "Freezing Trap",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14324,
+     "name": "Hunter's Mark",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8737,
+     "name": "Mail",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14264,
+     "name": "Raptor Strike",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19882,
+     "name": "Track Giants",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19506,
+     "name": "Trueshot Aura",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1510,
+     "name": "Volley",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20909,
+     "name": "Counterattack",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13553,
+     "name": "Serpent Sting",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20902,
+     "name": "Aimed Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14285,
+     "name": "Arcane Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14316,
+     "name": "Explosive Trap",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13542,
+     "name": "Mend Pet",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14270,
+     "name": "Mongoose Bite",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20043,
+     "name": "Aspect of the Wild",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14304,
+     "name": "Immolation Trap",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14327,
+     "name": "Scare Beast",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14279,
+     "name": "Viper Sting",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14321,
+     "name": "Aspect of the Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14273,
+     "name": "Disengage",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14265,
+     "name": "Raptor Strike",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310785,
+     "name": "Sniper Shot",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293526,
+     "name": "Summon Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299446,
+     "name": "Aspect of the Beast",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15631,
+     "name": "Distracting Shot",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13554,
+     "name": "Serpent Sting",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19879,
+     "name": "Track Dragonkin",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20905,
+     "name": "Trueshot Aura",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14294,
+     "name": "Volley",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20903,
+     "name": "Aimed Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14286,
+     "name": "Arcane Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13543,
+     "name": "Mend Pet",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20910,
+     "name": "Counterattack",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14317,
+     "name": "Explosive Trap",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20190,
+     "name": "Aspect of the Wild",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14305,
+     "name": "Immolation Trap",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14266,
+     "name": "Raptor Strike",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14280,
+     "name": "Viper Sting",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14322,
+     "name": "Aspect of the Hawk",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14325,
+     "name": "Hunter's Mark",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14271,
+     "name": "Mongoose Bite",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13555,
+     "name": "Serpent Sting",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310786,
+     "name": "Sniper Shot",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14295,
+     "name": "Volley",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20904,
+     "name": "Aimed Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14287,
+     "name": "Arcane Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299447,
+     "name": "Aspect of the Beast",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15632,
+     "name": "Distracting Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14311,
+     "name": "Freezing Trap",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13544,
+     "name": "Mend Pet",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293527,
+     "name": "Summon Hawk",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20906,
+     "name": "Trueshot Aura",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14268,
+     "name": "Wing Clip",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 3,
+   "npc": "Regnus Thundergranite",
+   "zone": "Ironforge",
+   "seen": 1794275842,
+   "rows": [
+    {
+     "spell": 3044,
+     "name": "Arcane Shot",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14281,
+     "name": "Arcane Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13165,
+     "name": "Aspect of the Hawk",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13163,
+     "name": "Aspect of the Monkey",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5116,
+     "name": "Concussive Shot",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1130,
+     "name": "Hunter's Mark",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13795,
+     "name": "Immolation Trap",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 136,
+     "name": "Mend Pet",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1495,
+     "name": "Mongoose Bite",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14260,
+     "name": "Raptor Strike",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14261,
+     "name": "Raptor Strike",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1513,
+     "name": "Scare Beast",
+     "cost": 1200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1978,
+     "name": "Serpent Sting",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13549,
+     "name": "Serpent Sting",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1494,
+     "name": "Track Beasts",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19883,
+     "name": "Track Humanoids",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2974,
+     "name": "Wing Clip",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 200,
+     "level": 8,
+     "kind": "used"
+    },
+    {
+     "spell": 6197,
+     "name": "Eagle Eye",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 1002,
+     "name": "Eyes of the Beast",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19434,
+     "name": "Aimed Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14274,
+     "name": "Distracting Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14323,
+     "name": "Hunter's Mark",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3043,
+     "name": "Scorpid Sting",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1462,
+     "name": "Beast Lore",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14262,
+     "name": "Raptor Strike",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19885,
+     "name": "Track Hidden",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14302,
+     "name": "Immolation Trap",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3045,
+     "name": "Rapid Fire",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13551,
+     "name": "Serpent Sting",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19880,
+     "name": "Track Elementals",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20900,
+     "name": "Aimed Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14283,
+     "name": "Arcane Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14319,
+     "name": "Aspect of the Hawk",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13809,
+     "name": "Frost Trap",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3661,
+     "name": "Mend Pet",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13161,
+     "name": "Aspect of the Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1242634,
+     "name": "Counterattack",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15629,
+     "name": "Distracting Shot",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5384,
+     "name": "Feign Death",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14269,
+     "name": "Mongoose Bite",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14326,
+     "name": "Scare Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1543,
+     "name": "Flare",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14263,
+     "name": "Raptor Strike",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19878,
+     "name": "Track Demons",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299348,
+     "name": "Trueshot Aura",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14272,
+     "name": "Disengage",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13813,
+     "name": "Explosive Trap",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13552,
+     "name": "Serpent Sting",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20901,
+     "name": "Aimed Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14284,
+     "name": "Arcane Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14303,
+     "name": "Immolation Trap",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3662,
+     "name": "Mend Pet",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293525,
+     "name": "Summon Hawk",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3034,
+     "name": "Viper Sting",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14320,
+     "name": "Aspect of the Hawk",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14267,
+     "name": "Wing Clip",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299445,
+     "name": "Aspect of the Beast",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13159,
+     "name": "Aspect of the Pack",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15630,
+     "name": "Distracting Shot",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14310,
+     "name": "Freezing Trap",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14324,
+     "name": "Hunter's Mark",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8737,
+     "name": "Mail",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14264,
+     "name": "Raptor Strike",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19882,
+     "name": "Track Giants",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19506,
+     "name": "Trueshot Aura",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1510,
+     "name": "Volley",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20909,
+     "name": "Counterattack",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13553,
+     "name": "Serpent Sting",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20902,
+     "name": "Aimed Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14285,
+     "name": "Arcane Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14316,
+     "name": "Explosive Trap",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13542,
+     "name": "Mend Pet",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14270,
+     "name": "Mongoose Bite",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20043,
+     "name": "Aspect of the Wild",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14304,
+     "name": "Immolation Trap",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14327,
+     "name": "Scare Beast",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14279,
+     "name": "Viper Sting",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14321,
+     "name": "Aspect of the Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14273,
+     "name": "Disengage",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14265,
+     "name": "Raptor Strike",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310785,
+     "name": "Sniper Shot",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293526,
+     "name": "Summon Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299446,
+     "name": "Aspect of the Beast",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15631,
+     "name": "Distracting Shot",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13554,
+     "name": "Serpent Sting",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19879,
+     "name": "Track Dragonkin",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20905,
+     "name": "Trueshot Aura",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14294,
+     "name": "Volley",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20903,
+     "name": "Aimed Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14286,
+     "name": "Arcane Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13543,
+     "name": "Mend Pet",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20910,
+     "name": "Counterattack",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14317,
+     "name": "Explosive Trap",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20190,
+     "name": "Aspect of the Wild",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14305,
+     "name": "Immolation Trap",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14266,
+     "name": "Raptor Strike",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14280,
+     "name": "Viper Sting",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14322,
+     "name": "Aspect of the Hawk",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14325,
+     "name": "Hunter's Mark",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14271,
+     "name": "Mongoose Bite",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13555,
+     "name": "Serpent Sting",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310786,
+     "name": "Sniper Shot",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14295,
+     "name": "Volley",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20904,
+     "name": "Aimed Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14287,
+     "name": "Arcane Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299447,
+     "name": "Aspect of the Beast",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15632,
+     "name": "Distracting Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14311,
+     "name": "Freezing Trap",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13544,
+     "name": "Mend Pet",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293527,
+     "name": "Summon Hawk",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20906,
+     "name": "Trueshot Aura",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14268,
+     "name": "Wing Clip",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 3,
    "npc": "Silvaria",
    "zone": "Darnassus",
    "seen": 1794182046,
@@ -15248,6 +17000,882 @@
      "name": "Thunder Clap",
      "cost": 100,
      "level": 6,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 3,
+   "npc": "Ulfir Ironbeard",
+   "zone": "Stormwind City",
+   "seen": 1794318372,
+   "rows": [
+    {
+     "spell": 3044,
+     "name": "Arcane Shot",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14281,
+     "name": "Arcane Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13165,
+     "name": "Aspect of the Hawk",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13163,
+     "name": "Aspect of the Monkey",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5116,
+     "name": "Concussive Shot",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1130,
+     "name": "Hunter's Mark",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13795,
+     "name": "Immolation Trap",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 136,
+     "name": "Mend Pet",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1495,
+     "name": "Mongoose Bite",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14260,
+     "name": "Raptor Strike",
+     "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14261,
+     "name": "Raptor Strike",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1513,
+     "name": "Scare Beast",
+     "cost": 1200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1978,
+     "name": "Serpent Sting",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 13549,
+     "name": "Serpent Sting",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1494,
+     "name": "Track Beasts",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19883,
+     "name": "Track Humanoids",
+     "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2974,
+     "name": "Wing Clip",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 200,
+     "level": 8,
+     "kind": "used"
+    },
+    {
+     "spell": 6197,
+     "name": "Eagle Eye",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 1002,
+     "name": "Eyes of the Beast",
+     "cost": 1200,
+     "level": 14,
+     "kind": "available"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
+     "level": 18,
+     "kind": "available"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
+     "level": 18,
+     "kind": "available"
+    },
+    {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 18,
+     "kind": "available"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
+     "level": 18,
+     "kind": "available"
+    },
+    {
+     "spell": 19434,
+     "name": "Aimed Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14274,
+     "name": "Distracting Shot",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 2100,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14323,
+     "name": "Hunter's Mark",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3043,
+     "name": "Scorpid Sting",
+     "cost": 7000,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1462,
+     "name": "Beast Lore",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14262,
+     "name": "Raptor Strike",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19885,
+     "name": "Track Hidden",
+     "cost": 7200,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14302,
+     "name": "Immolation Trap",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3045,
+     "name": "Rapid Fire",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13551,
+     "name": "Serpent Sting",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19880,
+     "name": "Track Elementals",
+     "cost": 7400,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20900,
+     "name": "Aimed Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14283,
+     "name": "Arcane Shot",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14319,
+     "name": "Aspect of the Hawk",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13809,
+     "name": "Frost Trap",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3661,
+     "name": "Mend Pet",
+     "cost": 7500,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13161,
+     "name": "Aspect of the Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1242634,
+     "name": "Counterattack",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15629,
+     "name": "Distracting Shot",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5384,
+     "name": "Feign Death",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14269,
+     "name": "Mongoose Bite",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14326,
+     "name": "Scare Beast",
+     "cost": 7600,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1543,
+     "name": "Flare",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14263,
+     "name": "Raptor Strike",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19878,
+     "name": "Track Demons",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299348,
+     "name": "Trueshot Aura",
+     "cost": 10000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14272,
+     "name": "Disengage",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13813,
+     "name": "Explosive Trap",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13552,
+     "name": "Serpent Sting",
+     "cost": 11000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20901,
+     "name": "Aimed Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14284,
+     "name": "Arcane Shot",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14303,
+     "name": "Immolation Trap",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3662,
+     "name": "Mend Pet",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293525,
+     "name": "Summon Hawk",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 3034,
+     "name": "Viper Sting",
+     "cost": 13000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14320,
+     "name": "Aspect of the Hawk",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14267,
+     "name": "Wing Clip",
+     "cost": 15000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299445,
+     "name": "Aspect of the Beast",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13159,
+     "name": "Aspect of the Pack",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15630,
+     "name": "Distracting Shot",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14310,
+     "name": "Freezing Trap",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14324,
+     "name": "Hunter's Mark",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8737,
+     "name": "Mail",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14264,
+     "name": "Raptor Strike",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19882,
+     "name": "Track Giants",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19506,
+     "name": "Trueshot Aura",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1510,
+     "name": "Volley",
+     "cost": 16000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20909,
+     "name": "Counterattack",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13553,
+     "name": "Serpent Sting",
+     "cost": 22000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20902,
+     "name": "Aimed Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14285,
+     "name": "Arcane Shot",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14316,
+     "name": "Explosive Trap",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13542,
+     "name": "Mend Pet",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14270,
+     "name": "Mongoose Bite",
+     "cost": 23000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20043,
+     "name": "Aspect of the Wild",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14304,
+     "name": "Immolation Trap",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14327,
+     "name": "Scare Beast",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14279,
+     "name": "Viper Sting",
+     "cost": 28000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14321,
+     "name": "Aspect of the Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14273,
+     "name": "Disengage",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14265,
+     "name": "Raptor Strike",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310785,
+     "name": "Sniper Shot",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293526,
+     "name": "Summon Hawk",
+     "cost": 29000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299446,
+     "name": "Aspect of the Beast",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15631,
+     "name": "Distracting Shot",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13554,
+     "name": "Serpent Sting",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 19879,
+     "name": "Track Dragonkin",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20905,
+     "name": "Trueshot Aura",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14294,
+     "name": "Volley",
+     "cost": 30000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20903,
+     "name": "Aimed Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14286,
+     "name": "Arcane Shot",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13543,
+     "name": "Mend Pet",
+     "cost": 36000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20910,
+     "name": "Counterattack",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14317,
+     "name": "Explosive Trap",
+     "cost": 37000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20190,
+     "name": "Aspect of the Wild",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14305,
+     "name": "Immolation Trap",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14266,
+     "name": "Raptor Strike",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14280,
+     "name": "Viper Sting",
+     "cost": 38000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14322,
+     "name": "Aspect of the Hawk",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14325,
+     "name": "Hunter's Mark",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14271,
+     "name": "Mongoose Bite",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13555,
+     "name": "Serpent Sting",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310786,
+     "name": "Sniper Shot",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14295,
+     "name": "Volley",
+     "cost": 39000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20904,
+     "name": "Aimed Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14287,
+     "name": "Arcane Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1299447,
+     "name": "Aspect of the Beast",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 15632,
+     "name": "Distracting Shot",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14311,
+     "name": "Freezing Trap",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 13544,
+     "name": "Mend Pet",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1293527,
+     "name": "Summon Hawk",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20906,
+     "name": "Trueshot Aura",
+     "cost": 42000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14268,
+     "name": "Wing Clip",
+     "cost": 42000,
+     "level": 60,
      "kind": "unavailable"
     }
    ]
