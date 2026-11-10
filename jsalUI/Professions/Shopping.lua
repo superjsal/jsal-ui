@@ -674,11 +674,10 @@ function Shopping:OnEnable()
     end)
     self.events = events
     -- Shift-clicking an item while the add box has the cursor puts it there.
-    if ChatEdit_InsertLink then
-        hooksecurefunc("ChatEdit_InsertLink", ns.Safe(Shopping, function(link)
-            if box and box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
-        end))
-    end
+    -- The game's shift-click calls ChatFrameUtil.InsertLink by that name.
+    hooksecurefunc(ChatFrameUtil, "InsertLink", ns.Safe(Shopping, function(link)
+        if box and box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
+    end))
     pcall(HookDetails)
 end
 
