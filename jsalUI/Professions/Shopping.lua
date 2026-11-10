@@ -509,8 +509,15 @@ Paint = function()
     y = y + 6
     Place(frame.rule, y)
     y = y + 10
-    local text = total > 0 and ("About |cffece6d6%s|r to buy"):format(Compat.Money(total)) or "Nothing to buy"
-    if unpriced > 0 then text = text .. (" · %d unpriced"):format(unpriced) end
+    local text
+    if total > 0 then
+        text = ("About |cffece6d6%s|r to buy"):format(Compat.Money(total))
+        if unpriced > 0 then text = text .. (" · %d unpriced"):format(unpriced) end
+    elseif unpriced > 0 then
+        text = ("%d to buy, no price known yet"):format(unpriced)
+    else
+        text = "Nothing to buy"
+    end
     if total > 0 then text = text .. " · auction prices from your own searches" end
     frame.total:SetText(text)
     Place(frame.total, y + 4)
