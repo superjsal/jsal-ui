@@ -40,7 +40,7 @@ end
 
 local function Note(unit)
     if not (UnitExists(unit) and not UnitIsPlayer(unit)) then return end
-    local zone, server, _, npc = Layers.FromGUID(UnitGUID(unit))
+    local zone, server, _, npc = Layers.FromGUID(Compat.GUID(unit))
     if not zone then return end
     local map = Compat.PlayerPosition()
     local was = current
