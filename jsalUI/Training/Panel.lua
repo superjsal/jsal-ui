@@ -659,7 +659,7 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
     local who = context == "weapons" and "Weapon master" or context == "pet" and "Pet trainer"
         or ((UnitClass("player")) .. " trainer")
     panel.title:SetText(who)
-    local npc = UnitName("npc")
+    local npc = ns.Compat.Name("npc")
     local zone = GetSubZoneText and GetSubZoneText() ~= "" and GetSubZoneText() or (GetZoneText and GetZoneText()) or nil
     local y = 36 + 10
     panel.sub:SetText(("%s%s · level %d"):format(npc or "Trainer", zone and (", " .. zone) or "", level))
