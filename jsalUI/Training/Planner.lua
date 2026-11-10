@@ -650,6 +650,7 @@ Window.Page("training", function(page)
         pcall(events.RegisterEvent, events, event)
     end
     events:SetScript("OnEvent", function(_, event, unit)
+        unit = Compat.Plain(unit)
         if event == "UNIT_LEVEL" and unit ~= "pet" then return end
         if page:IsVisible() then Compat.After(0.3, function() xpcall(Paint, ns.Report) end) end
     end)

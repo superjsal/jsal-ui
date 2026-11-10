@@ -95,6 +95,7 @@ function Layers:OnEnable()
     events:RegisterEvent("NAME_PLATE_UNIT_ADDED")
     events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
+        unit = Compat.Plain(unit)
         if event == "ZONE_CHANGED_NEW_AREA" then
             if current then
                 current = nil

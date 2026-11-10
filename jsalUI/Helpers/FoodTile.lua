@@ -326,6 +326,7 @@ function FoodTile:OnEnable()
         events:RegisterEvent(e)
     end
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
+        unit = Compat.Plain(unit)
         if event == "UNIT_AURA" and unit ~= "player" then return end
         -- The fight's lockdown starts after this event, so hide now.
         if event == "PLAYER_REGEN_DISABLED" then

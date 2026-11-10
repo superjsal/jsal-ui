@@ -116,7 +116,8 @@ local function Changed()
     if ns.Window and ns.Window.IsOpen and ns.Window.IsOpen("dungeons") then ns.Window.Refresh() end
 end
 
-local function OnEvent(_, event, a, b, _, _, e)
+local function OnEvent(_, event, a, b, c, d, e)
+    a, b, c, d, e = ns.Compat.Plains(a, b, c, d, e)
     if event == "ENCOUNTER_END" then
         if e == 1 and type(b) == "string" then
             local kills = Kills()

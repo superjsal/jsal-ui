@@ -44,6 +44,14 @@ function Compat.Plain(value)
     return value
 end
 
+-- What an event hands its handler can be secret in a dungeon too: a chat
+-- line, a name, an ID. A handler that reads them takes them through here
+-- first, each one nil when it's hidden.
+function Compat.Plains(a, b, c, d, e)
+    local Plain = Compat.Plain
+    return Plain(a), Plain(b), Plain(c), Plain(d), Plain(e)
+end
+
 function Compat.GUID(unit) return Compat.Plain(UnitGUID(unit)) end
 function Compat.Name(unit) return Compat.Plain((UnitName(unit))) end
 function Compat.Family(unit) return Compat.Plain((UnitCreatureFamily(unit))) end

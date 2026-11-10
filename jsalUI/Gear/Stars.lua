@@ -246,6 +246,7 @@ function Gear.Entered()
 end
 
 local function OnEvent(_, event, a)
+    a = ns.Compat.Plain(a)
     if event == "PLAYER_EQUIPMENT_CHANGED" then
         Gear.Tidy(a)
     elseif event == "LOOT_OPENED" then
