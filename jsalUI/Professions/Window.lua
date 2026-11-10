@@ -257,9 +257,11 @@ local function StartRun(recipeID, count)
 end
 
 local function OnCast(event, unit, _, spellID)
+    -- The game can hide a cast's unit, spell and times; hidden ones are nil.
+    unit, spellID = Compat.Plains(unit, spellID)
     if unit ~= "player" or not run or spellID ~= run.spell then return end
     if event == "UNIT_SPELLCAST_START" then
-        local _, _, _, startMS, endMS = UnitCastingInfo("player")
+        local _, _, _, startMS, endMS = Compat.Plains(UnitCastingInfo("player"))
         if startMS and endMS then
             run.each = (endMS - startMS) / 1000
             run.castEnd = endMS / 1000

@@ -111,7 +111,7 @@ function Switch.WhyNot(name, code)
     if IsInInstance and IsInInstance() then return "instance" end
     local members = GetNumGroupMembers and GetNumGroupMembers() or 0
     if members >= 5 or (IsInRaid and IsInRaid()) then return "full" end
-    if members > 0 and not UnitIsGroupLeader("player") then return "notlead" end
+    if members > 0 and not Compat.Plain(UnitIsGroupLeader("player")) then return "notlead" end
     if (invited[name] or -AGAIN) + AGAIN > GetTime() then return "again" end
     local c = ns.Layers.Current()
     local map = tonumber(tostring(code or ""):match("^(%d+)"))
