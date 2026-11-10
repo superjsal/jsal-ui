@@ -39,7 +39,9 @@ function FoodTile.Buffs()
         if get then
             local ok, aura = pcall(get, "player", i, "HELPFUL")
             if not ok or not aura then break end
-            name, icon, spell = aura.name, aura.icon, aura.spellId
+            -- The game can hide a buff's details (it marks them so for
+            -- restricted fights); a hidden one is skipped, never read.
+            name, icon, spell = Compat.Plains(aura.name, aura.icon, aura.spellId)
         elseif UnitBuff then
             local n, ic, _, _, _, _, _, _, _, id = UnitBuff("player", i)
             if not n then break end
@@ -47,7 +49,7 @@ function FoodTile.Buffs()
         else
             break
         end
-        if icon == WELL_FED_ICON or name == "Well Fed" or OTHER_BUFFS[spell] then fed = true end
+        if icon == WELL_FED_ICON or name == "Well Fed" or (spell and OTHER_BUFFS[spell]) then fed = true end
         if name == "Food" or name == "Refreshment" or name == "Food & Drink" then eating = true end
     end
     return fed, eating
