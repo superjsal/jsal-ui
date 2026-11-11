@@ -17,6 +17,8 @@ local Window = ns.NewModule("profwindow", {
           note = "Beside each reagent: how many are in your bags and in the bank." },
         { key = "unlearned", title = "Recipes not learned yet", default = true,
           note = "In the profession panel, with where each comes from; star the ones you want." },
+        { key = "sources", title = "Where recipes come from", default = false,
+          note = "In that list: the ones you can learn now first, each with its vendor, quest or drop. Click one for a map pin." },
         { key = "favorites", title = "Favourites at trainers", default = true,
           note = "At a profession trainer: your starred recipes it can teach you now." },
         { key = "timer", title = "Craft timer", default = true,

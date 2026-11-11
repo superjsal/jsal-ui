@@ -40,7 +40,14 @@ same script again carries on. Never try to get past the check another way.
    - Then: `python -I tools/build_pets.py` (writes `jsalUI/Training/TameData.lua`; compare its
      beast count with the last commit's). Wowhead's own "Used by NPC" lists were tried first and
      dropped: they name every rank for most beasts, so the rank a beast really has can't be told.
-4. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
+4. **Recipe sources (8 lists, then a few hundred vendor and recipe pages; one to two hours):**
+   - Start the receiver: `python -I tools/wowhead/receive.py data/professions/wowhead-sources.json`
+   - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalRecipes')`, then the
+     whole of `recipes.js`. Watch `window.__recipes` (`pages`, `left`, `err`); on a block, John
+     clears it and you run `recipes.js` again (it carries on).
+   - Then: `python -I tools/build_recipe_sources.py` (writes `jsalUI/Professions/RecipeSources.lua`;
+     compare its recipe and vendor counts with the last commit's).
+5. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
    the gear plan and a dungeon in game if John can, and commit on `beta` as
    "Data: Wowhead refresh (date)" with no Claude co-author line. It goes out with the next
    release; tick the to-do on John's list.
@@ -51,6 +58,9 @@ same script again carries on. Never try to get past the check another way.
   the address of a page on 127.0.0.1:8799, which posts it back to the receiver.
 - `gear.js`: every uncommon-or-better armor list (by type and slot), jewelry, cloaks, off-hand
   items, shields and each weapon type. Robes come with the chest lists.
+- `recipes.js`: each profession's recipe list (a recipe's quest, single vendor or single mob), then
+  every vendor's page: their side, zone, map spot and each recipe they sell with its price and
+  stock. A vendor recipe no vendor read so far sells has its own page read for its "Sold by" list.
 - `bosses.py`, `dungeons.js`, `merge_dungeons.py`: each dungeon's zone page (quests, NPCs, and the
   Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). A drop is
   kept when it's uncommon or better and dropped in at least 2% of 10 or more kills, or when the

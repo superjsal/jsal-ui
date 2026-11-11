@@ -21,6 +21,7 @@ local panel, anchor, dismissed
 local hooked = {}
 local steps, items, unlearned = {}, {}, {}
 local MAX_UNLEARNED, showAllUnlearned = 4, false
+local DETAIL_H = 40
 local SOURCE = { [1] = "Trainer", [2] = "Vendor pattern", [3] = "Drop", [4] = "Quest" }
 
 local function Line(name)
@@ -108,6 +109,10 @@ local function Build()
     panel.unlearnedHead:SetText("NOT LEARNED YET")
     panel.unlearnedCount = Style.Text(panel, 11, "muted")
     panel.unlearnedCount:SetJustifyH("RIGHT")
+    panel.laterHead = Style.Text(panel, 11, "gold", nil, true)
+    panel.laterHead:SetText("LATER")
+    panel.laterCount = Style.Text(panel, 11, "muted")
+    panel.laterCount:SetJustifyH("RIGHT")
     panel.showAll = CreateFrame("Button", nil, panel)
     panel.showAll:SetSize(WIDTH - PAD * 2, 18)
     panel.showAll.text = Style.Text(panel.showAll, 11, "muted")
@@ -144,20 +149,53 @@ local function UnlearnedRow(i)
     r.source:SetPoint("RIGHT")
     r.source:SetJustifyH("RIGHT")
     r.name = Style.Text(r, 12, "text")
-    r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
-    r.name:SetPoint("RIGHT", r.source, "LEFT", -8, 0)
     r.name:SetWordWrap(false)
+    r.where = Style.Text(r, 11, "muted")
+    r.where:SetWordWrap(false)
     r:EnableMouse(true)
     r:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
+        local sources = self.detailed and ns.RecipeSourceText
+        if sources and self.spell then
+            GameTooltip:AddLine(" ")
+            sources.Tooltip(GameTooltip, self.spell, self.faction)
+            if self.canPin then GameTooltip:AddLine("Click for a map pin on the vendor.", 0.6, 0.59, 0.53) end
+        end
         GameTooltip:AddLine("Click the star to keep it in your favourites.", 0.6, 0.59, 0.53)
         GameTooltip:Show()
     end)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r:SetScript("OnMouseUp", function(self)
+        if self.detailed and self.canPin and self.spell then
+            ns.RecipeSourceText.Pin(self.spell, self.faction)
+        end
+    end)
     Style.Hover(r, 6)
     unlearned[i] = r
     return r
+end
+
+-- A row on one line, or on two with where the recipe comes from under its
+-- name and the skill it needs on the right.
+local function LayoutRow(r, detailed)
+    r:SetHeight(detailed and DETAIL_H or ROW_H)
+    r.name:ClearAllPoints()
+    r.source:ClearAllPoints()
+    r.where:ClearAllPoints()
+    if detailed then
+        r.source:SetPoint("TOPRIGHT", 0, -5)
+        r.name:SetPoint("TOPLEFT", 52, -5)
+        r.name:SetPoint("TOPRIGHT", -34, -5)
+        r.where:SetPoint("TOPLEFT", 52, -21)
+        r.where:SetPoint("TOPRIGHT", 0, -21)
+        r.where:Show()
+    else
+        r.source:SetPoint("RIGHT")
+        r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+        r.name:SetPoint("RIGHT", r.source, "LEFT", -8, 0)
+        r.where:Hide()
+    end
 end
 
 -- The game's tooltip for what a row makes; a road step adds everything its
@@ -416,42 +454,75 @@ local function Paint()
     local missing = {}
     local favourites = ns.ProfFavorites
     local wanted = ns.ProfWindow and ns.ProfWindow.On("unlearned") and favourites and not Professions.IsGathering(line)
+    -- With "Where recipes come from" on: the ones your skill is high enough
+    -- for come first, under their own heading, and each row names its source.
+    local sources = wanted and ns.ProfWindow.On("sources") and ns.RecipeSourceText or nil
+    local faction = sources and UnitFactionGroup and UnitFactionGroup("player") or nil
+    local ready = 0
     if wanted then
         for _, recipe in ipairs(Professions.Recipes(line)) do
-            if not known[recipe.spell] then missing[#missing + 1] = recipe end
+            if not known[recipe.spell] then
+                missing[#missing + 1] = recipe
+                if sources and recipe.learn <= skill then ready = ready + 1 end
+            end
         end
         table.sort(missing, function(a, b)
+            if sources then
+                local ra, rb = a.learn <= skill, b.learn <= skill
+                if ra ~= rb then return ra end
+            end
             local fa, fb = favourites.Has(a.spell), favourites.Has(b.spell)
             if fa ~= fb then return fa end
             if a.learn ~= b.learn then return a.learn < b.learn end
             return a.spell < b.spell
         end)
     end
-    local listed = 0
+    local listed, later = 0, false
     if #missing > 0 then
         y = y + 8
         Place(panel.rule2, y)
         y = y + 12
         Place(panel.unlearnedHead, y + 2)
-        panel.unlearnedCount:SetText(#missing)
+        panel.unlearnedHead:SetText(ready > 0 and "READY TO LEARN" or "NOT LEARNED YET")
+        panel.unlearnedCount:SetText(ready > 0 and ready or #missing)
         PlaceRight(panel.unlearnedCount, y + 2)
         y = y + 22
-        local limit = showAllUnlearned and 14 or MAX_UNLEARNED
+        local limit = showAllUnlearned and (sources and 8 or 14) or MAX_UNLEARNED
         for i, recipe in ipairs(missing) do
             if i > limit then break end
             listed = i
+            if ready > 0 and i == ready + 1 then
+                y = y + 6
+                Place(panel.laterHead, y + 2)
+                panel.laterCount:SetText(#missing - ready)
+                PlaceRight(panel.laterCount, y + 2)
+                later = true
+                y = y + 22
+            end
             local r = UnlearnedRow(i)
             Place(r, y)
+            LayoutRow(r, sources ~= nil)
             r.item, r.spell = recipe.item, recipe.spell
+            r.detailed, r.faction = sources ~= nil, faction
             r.icon:SetTexture(RecipeIcon(recipe))
             r.name:SetText(RecipeName(recipe))
-            r.source:SetText(("%s · %d"):format(SOURCE[recipe.how] or "Other", recipe.learn))
+            if sources then
+                r.source:SetText(recipe.learn)
+                r.source:SetTextColor(Style.Color(recipe.learn <= skill and "green" or "muted"))
+                r.where:SetText(sources.Line(recipe.spell, faction) or SOURCE[recipe.how] or "Other")
+                local vendor = sources.Vendors(recipe.spell, faction)[1]
+                r.canPin = vendor and vendor.map and vendor.map > 0 or false
+            else
+                r.source:SetText(("%s · %d"):format(SOURCE[recipe.how] or "Other", recipe.learn))
+                r.source:SetTextColor(Style.Color("muted"))
+                r.canPin = false
+            end
             SetStar(r.star.tex, favourites.Has(recipe.spell))
             r.star:SetScript("OnClick", function()
                 favourites.Toggle(recipe.spell)
                 xpcall(Paint, ns.Report)
             end)
-            y = y + ROW_H
+            y = y + (sources and DETAIL_H or ROW_H)
         end
         if #missing > MAX_UNLEARNED then
             local rest = #missing - listed
@@ -474,6 +545,10 @@ local function Paint()
         panel.showAll:Hide()
     end
     for i = listed + 1, #unlearned do unlearned[i]:Hide() end
+    if not later then
+        panel.laterHead:Hide()
+        panel.laterCount:Hide()
+    end
 
     -- The nearest trainer who teaches your rank, or the next one once
     -- you're ready for it, with a map pin.
