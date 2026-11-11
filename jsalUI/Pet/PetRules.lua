@@ -149,6 +149,82 @@ function Rules.Advance(s, now)
     return s
 end
 
+---------------------------------------------------------------------------
+-- The long run: a bond that grows with every day you look after it, and
+-- one small wish a day. Neither is ever lost, and skipping a day costs
+-- nothing.
+---------------------------------------------------------------------------
+local DAY = 86400
+-- Each level of the bond, and the points it starts at. With a wish granted
+-- and a day's care, a day is worth about six.
+Rules.BONDS = {
+    { 0, "Wary" }, { 6, "Curious" }, { 18, "Friendly" }, { 40, "Fond" }, { 75, "Devoted" }, { 130, "Inseparable" },
+}
+-- What it may wish for: something you do in your own play, or with it.
+-- `need` is how many times; `text` finishes "Today it ...".
+Rules.WISHES = {
+    { kind = "quest", need = 1, text = "wants to watch you hand in a quest" },
+    { kind = "flight", need = 1, text = "wants to hear about a flight" },
+    { kind = "zone", need = 1, text = "wants you to go somewhere else for a while" },
+    { kind = "pat", need = 3, text = "wants a proper fuss: three pats" },
+    { kind = "treat", need = 1, text = "fancies a treat" },
+    { kind = "play", need = 1, text = "wants a game with a toy" },
+}
+local WISH = {}
+for _, wish in ipairs(Rules.WISHES) do WISH[wish.kind] = wish end
+
+-- The bond's level, its name, the points so far, and the points the next
+-- level starts at (nil at the last).
+function Rules.Bond(s)
+    local points, level = s.bond or 0, 1
+    for i, step in ipairs(Rules.BONDS) do
+        if points >= step[1] then level = i end
+    end
+    local next = Rules.BONDS[level + 1]
+    return level, Rules.BONDS[level][2], points, next and next[1] or nil
+end
+
+local function Closer(s, points)
+    local before = Rules.Bond(s)
+    s.bond = (s.bond or 0) + points
+    local after, name = Rules.Bond(s)
+    -- A new level is said once, by whoever shows the pet next.
+    if after > before then s.bonded = name end
+end
+
+-- The first feed, pat and scoop of each day bring you a little closer.
+local function Cared(s, now, what)
+    local day = math.floor(now / DAY)
+    if type(s.cared) ~= "table" or s.cared.day ~= day then s.cared = { day = day } end
+    if s.cared[what] then return end
+    s.cared[what] = true
+    Closer(s, 1)
+end
+
+-- Today's wish: the same one all day, a different one tomorrow. Its kind,
+-- how far along it is, and whether it's been granted.
+function Rules.Wish(s, now)
+    local day = math.floor(now / DAY)
+    if type(s.wish) ~= "table" or s.wish.day ~= day or not WISH[s.wish.kind] then
+        local pick = (day * 7 + math.floor((s.born or 0) / 60)) % #Rules.WISHES + 1
+        s.wish = { day = day, kind = Rules.WISHES[pick].kind, count = 0 }
+    end
+    return s.wish, WISH[s.wish.kind]
+end
+
+-- Something happened that it might have wished for. True the moment the
+-- wish is granted: it's delighted, and you're closer for it.
+function Rules.Did(s, kind, now)
+    local wish, what = Rules.Wish(s, now)
+    if wish.done or wish.kind ~= kind then return false end
+    wish.count = wish.count + 1
+    if wish.count < what.need then return false end
+    wish.done = true
+    s.fun = Clamp(s.fun + 20)
+    Closer(s, 3)
+    return true
+end
+
 local function Use(s, supply)
     if (s.supplies[supply] or 0) < 1 then return false end
     s.supplies[supply] = s.supplies[supply] - 1
@@ -171,11 +247,14 @@ function Rules.Feed(s, now)
         if s.bowl then return false, "The bowl is full for when it wakes." end
         if not Use(s, "meal") then return false, WANT.meal end
         s.bowl = true
+        -- Filling its bowl is looking after it, awake or not.
+        Cared(s, now, "feed")
         return true, "You fill the bowl for when it wakes."
     end
     if s.hunger >= 95 then return false, "It isn't hungry." end
     if not Use(s, "meal") then return false, WANT.meal end
     Eat(s, now)
+    Cared(s, now, "feed")
     return true, "It cleans the bowl."
 end
 
@@ -185,6 +264,7 @@ function Rules.Treat(s, now)
     if not Use(s, "treat") then return false, WANT.treat end
     s.hunger, s.fun = Clamp(s.hunger + 10), Clamp(s.fun + 15)
     s.sweets = s.sweets + 1
+    Rules.Did(s, "treat", now)
     if s.sweets > 3 and not s.sick then
         s.sick, s.sickSince = true, now
         return true, "One treat too many: it feels poorly."
@@ -199,6 +279,7 @@ function Rules.Play(s, now)
     if s.energy < 20 then return false, "It's too tired to play." end
     if not Use(s, "toy") then return false, WANT.toy end
     s.fun, s.energy = Clamp(s.fun + 35), Clamp(s.energy - 10)
+    Rules.Did(s, "play", now)
     return true, "It chases the toy round the pen."
 end
 
@@ -207,6 +288,7 @@ function Rules.Scoop(s, now)
     if s.droppings < 1 then return false, "Nothing to scoop." end
     s.droppings = s.droppings - 1
     s.clean = Clamp(s.clean + 15)
+    Cared(s, now, "scoop")
     return true, "Scooped."
 end
 
@@ -258,6 +340,8 @@ function Rules.Pat(s, now)
     if #recent >= PATS_AN_HOUR then return false, "It's had enough fuss for now." end
     recent[#recent + 1] = now
     s.fun = Clamp(s.fun + 5)
+    Cared(s, now, "pat")
+    Rules.Did(s, "pat", now)
     return true, "It leans into your hand."
 end
 

@@ -101,7 +101,7 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local pen, body, sprite, snore, title, sub, message, walk, parts
+local pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk, parts
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 110, 290, 470, 610 }
 local said
@@ -121,6 +121,48 @@ local function PaintWalk()
     end
     body:ClearAllPoints()
     body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
+end
+
+-- Its milestones, each told once: hatching, growing up, a closer bond.
+-- They go into your Journal's story, and the newest comes back as a line
+-- for whoever is showing the pet.
+local function Milestones(s)
+    local told = {}
+    local form = FORMS[s.form] or FORMS[1]
+    if not s.told then
+        s.told = true
+        told[#told + 1] = ("%s the %s hatched"):format(s.name, FORMS[1])
+    end
+    if s.grew then
+        s.grew = nil
+        told[#told + 1] = ("%s has grown into a %s!"):format(s.name, form)
+    end
+    if s.bonded then
+        told[#told + 1] = ("%s and you are closer now: %s"):format(s.name, s.bonded)
+        s.bonded = nil
+    end
+    local J = ns.Journal
+    if J and J.running then
+        for _, text in ipairs(told) do J.Note("pet", text) end
+    end
+    -- Hatching isn't news on its own page; the others are.
+    local last = told[#told]
+    if last and last:find(" hatched$") then last = nil end
+    return last
+end
+
+-- Today's wish and the bond, in words.
+local function WishText(s)
+    local wish, what = Rules.Wish(s, Now())
+    if wish.done then return "Today's wish is granted.", true end
+    local text = "Today it " .. what.text
+    if what.need > 1 then text = ("%s (%d of %d)"):format(text, wish.count, what.need) end
+    return text, false
+end
+
+local function BondText(s)
+    local _, name, points, next = Rules.Bond(s)
+    return next and ("Bond: %s · %d of %d"):format(name, points, next) or ("Bond: %s"):format(name)
 end
 
 -- How long until it grows, in words; nil once it's fully grown.
@@ -147,11 +189,12 @@ local function Refresh()
     local day = math.floor(math.max(0, Now() - s.born) / 86400) + 1
     local growing = Growing(s)
     sub:SetText(("%s · day %d%s"):format(mood, day, growing and (" · " .. growing) or " · fully grown"))
-    if s.grew then
-        s.grew = nil
-        said = ("%s has grown into a %s!"):format(s.name, FORMS[s.form] or "")
-    end
+    said = Milestones(s) or said
     message:SetText(said or "")
+    local wish, granted = WishText(s)
+    wishLine:SetText(wish)
+    wishLine:SetTextColor(Style.Color(granted and "muted" or "text"))
+    bondLine:SetText(BondText(s))
     for _, need in ipairs(Rules.NEEDS) do
         local bar = bars[need]
         bar.fill:SetWidth(math.max(1, bar.width * s[need] / 100))
@@ -186,7 +229,7 @@ Window.Page("pet", function(page)
     -- Everything under the two lines, to hide as one when the part is off.
     parts = CreateFrame("Frame", nil, page)
     parts:SetPoint("TOPLEFT", sub, "BOTTOMLEFT", 0, -16)
-    parts:SetSize(width, PEN_H + 150)
+    parts:SetSize(width, PEN_H + 176)
 
     pen = CreateFrame("Frame", nil, parts)
     pen:SetSize(PEN_W, PEN_H)
@@ -268,8 +311,17 @@ Window.Page("pet", function(page)
         bars[need] = { fill = fill, width = half - 88 }
     end
 
+    -- Today's wish at the left, the bond at the right.
+    wishLine = Style.Text(parts, 13, "text")
+    wishLine:SetPoint("TOPLEFT", 0, -(PEN_H + 68))
+    wishLine:SetWidth(width - 230)
+    wishLine:SetWordWrap(false)
+    bondLine = Style.Text(parts, 13, "secondary")
+    bondLine:SetPoint("TOPRIGHT", 0, -(PEN_H + 68))
+    bondLine:SetJustifyH("RIGHT")
+
     message = Style.Text(parts, 13, "gold")
-    message:SetPoint("TOPLEFT", 0, -(PEN_H + 70))
+    message:SetPoint("TOPLEFT", 0, -(PEN_H + 94))
     message:SetWidth(width)
     message:SetWordWrap(false)
 
@@ -278,7 +330,7 @@ Window.Page("pet", function(page)
     local function Care(key, act)
         local b = Style.Button(parts, "", "plain", 115)
         b:SetHeight(30)
-        b:SetPoint("TOPLEFT", x, -(PEN_H + 96))
+        b:SetPoint("TOPLEFT", x, -(PEN_H + 120))
         b:SetScript("OnClick", function() Do(act) end)
         care[key] = b
         x = x + 123
@@ -290,9 +342,9 @@ Window.Page("pet", function(page)
     Care("lights", Rules.Lights)
     Care("medicine", Rules.Medicine)
     local hint = Style.Text(parts, 12, "muted")
-    hint:SetPoint("TOPLEFT", 0, -(PEN_H + 138))
+    hint:SetPoint("TOPLEFT", 0, -(PEN_H + 162))
     hint:SetWidth(width)
-    hint:SetText("Quests you hand in bring meals, flights bring toys, and a new level brings treats, soap and medicine. Click a dropping to scoop it, and the creature itself for a pat.")
+    hint:SetText("Quests you hand in bring meals, flights bring toys, and a new level brings treats, soap and medicine. Click a dropping to scoop it, and the creature itself for a pat. Each day it has one wish; granting it, and looking after it day by day, deepens your bond.")
 
     page.Refresh = function()
         said = nil
@@ -315,17 +367,48 @@ function Pet.Earn(supply, count)
     if Window.IsOpen("pet") then Refresh() end
 end
 
+-- Something you did that it may have wished for today. Granted with its
+-- page shut, it says so in chat, once.
+function Pet.Did(kind)
+    local s = Pet.State()
+    if not Rules.Did(s, kind, Now()) then return end
+    if Window.IsOpen("pet") then
+        -- A wish can tip the bond up a level: say both, the wish first.
+        local more = Milestones(s)
+        said = ("%s's wish is granted."):format(s.name) .. (more and (" " .. more) or "")
+        Refresh()
+    else
+        ns.Print(("%s's wish is granted. It's delighted."):format(s.name))
+        Milestones(s)
+    end
+end
+
+-- The zone you're in, as the game names it.
+local function ZoneName()
+    local zone = GetRealZoneText and GetRealZoneText() or ""
+    return zone ~= "" and zone or nil
+end
+
 function Pet:OnEnable()
     -- A hatchling from the moment the part is switched on, so what you earn
     -- before first opening its page isn't lost.
     Pet.State()
+    -- Where you are now, so that only going somewhere else counts as a trip.
+    local zone = ZoneName()
     local events = CreateFrame("Frame")
     events:RegisterEvent("QUEST_TURNED_IN")
     events:RegisterEvent("PLAYER_LEVEL_UP")
     events:RegisterEvent("PLAYER_CONTROL_LOST")
+    events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event)
-        if event == "QUEST_TURNED_IN" then
+        if event == "ZONE_CHANGED_NEW_AREA" then
+            -- The game also says this as you log in; that isn't a trip.
+            local now = ZoneName()
+            if now and zone and now ~= zone then Pet.Did("zone") end
+            zone = now or zone
+        elseif event == "QUEST_TURNED_IN" then
             Pet.Earn("meal", 1)
+            Pet.Did("quest")
         elseif event == "PLAYER_LEVEL_UP" then
             Pet.Earn("treat", 2)
             Pet.Earn("soap", 1)
@@ -334,7 +417,10 @@ function Pet:OnEnable()
             -- The game takes the controls away as a flight starts (and for
             -- other things): a moment later, see whether you're flying.
             Compat.After(1, ns.Safe(self, function()
-                if Compat.OnTaxi() then Pet.Earn("toy", 1) end
+                if Compat.OnTaxi() then
+                    Pet.Earn("toy", 1)
+                    Pet.Did("flight")
+                end
             end))
         end
     end))
