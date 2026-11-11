@@ -19,7 +19,7 @@ ns.Pet = Pet
 local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
 -- The pen is as wide as the page; the creature is drawn at three times its
 -- 32 pixels, so each of them is a sharp 3 by 3 square.
-local PEN_W, PEN_H, SIZE = Window.contentWidth, 240, 96
+local PEN_W, PEN_H, SIZE = Window.contentWidth, 240, 128
 local HEAP_W = 24
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
@@ -29,6 +29,23 @@ local NEED_NAME = { hunger = "Fed", energy = "Rested", fun = "Happy", clean = "C
 -- Each form's pictures: standing, mid-step and asleep.
 local SPRITE = { "briarboar", "thornhog", "brambletusk" }
 local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
+-- A form with a sheet is animated instead: one picture of 64 cells, eight
+-- to a row, its animations one after another. Each is the cell it starts
+-- at (counted from 0), how many frames it has and how long each one shows.
+local SHEETS = {
+    briarboar = {
+        file = "briarboar_sheet", cols = 8,
+        walk = { first = 0, count = 4, time = 0.14 },
+        idle = { first = 4, count = 15, time = 0.14 },
+        eat  = { first = 19, count = 11, time = 0.12 },
+        jump = { first = 30, count = 7, time = 0.1 },
+        sit  = { first = 37, count = 10, time = 0.16 },
+        doze = { first = 47, count = 8, time = 0.16 },
+        wake = { first = 55, count = 9, time = 0.12 },
+        stand = 4, sleep = 54,    -- the cells held while it stands and while it sleeps
+    },
+}
+Pet.SHEETS = SHEETS
 
 ---------------------------------------------------------------------------
 -- Wandering, with no drawing in it. A walk is where the creature is (its
@@ -44,8 +61,37 @@ function Pet.NewWalk(random)
     return { x = x, y = y, tx = x, ty = y, wait = 1, facing = "left", frame = "stand", clock = 0 }
 end
 
+-- Starts a short animation (eating, a jump, settling down): it stays where
+-- it is until that's played through. A form with no sheet has none.
+function Pet.Play(walk, sheet, name)
+    local anim = sheet and sheet[name]
+    if type(anim) ~= "table" then return false end
+    walk.act = { name = name, clock = 0, length = anim.count * anim.time }
+    return true
+end
+
+-- The cell of its sheet to show right now.
+function Pet.Cell(walk, sheet)
+    local act = walk.act
+    local anim = act and sheet[act.name]
+    if anim then
+        return anim.first + math.min(anim.count - 1, math.floor(act.clock / anim.time))
+    end
+    if walk.frame == "sleep" then return sheet.sleep end
+    if walk.wait <= 0 then
+        return sheet.walk.first + math.floor(walk.clock / sheet.walk.time) % sheet.walk.count
+    end
+    return sheet.stand
+end
+
 -- Moves the walk on by `dt` seconds.
 function Pet.Step(walk, dt, random)
+    if walk.act then
+        walk.act.clock = walk.act.clock + dt
+        if walk.act.clock >= walk.act.length then walk.act = nil end
+        walk.frame = "stand"
+        return walk
+    end
     if walk.wait > 0 then
         walk.wait = walk.wait - dt
         walk.frame = "stand"
@@ -106,17 +152,29 @@ local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 110, 290, 470, 610 }
 local said
 
+-- The sheet of the form it's in now, if that form has one.
+local function Sheet()
+    return SHEETS[SPRITE[Pet.State().form] or SPRITE[1]]
+end
+
 local function PaintWalk()
-    -- The sprite is drawn facing left; turned round, its picture is flipped.
-    if walk.facing == "right" then
-        sprite:SetTexCoord(1, 0, 0, 1)
+    local sheet = Sheet()
+    local file, left, right, top, bottom
+    if sheet then
+        local cell = Pet.Cell(walk, sheet)
+        local col, row = cell % sheet.cols, math.floor(cell / sheet.cols)
+        file = MEDIA .. sheet.file
+        left, right, top, bottom = col / sheet.cols, (col + 1) / sheet.cols, row / sheet.cols, (row + 1) / sheet.cols
     else
-        sprite:SetTexCoord(0, 1, 0, 1)
+        file = MEDIA .. (SPRITE[Pet.State().form] or SPRITE[1]) .. SUFFIX[walk.frame]
+        left, right, top, bottom = 0, 1, 0, 1
     end
-    local file = MEDIA .. (SPRITE[Pet.State().form] or SPRITE[1]) .. SUFFIX[walk.frame]
+    -- The sprite is drawn facing left; turned round, its picture is flipped.
+    if walk.facing == "right" then left, right = right, left end
+    sprite:SetTexCoord(left, right, top, bottom)
     if sprite.file ~= file then
         sprite.file = file
-        -- NEAREST keeps each of its 32 pixels a sharp square when drawn larger.
+        -- NEAREST keeps each of its pixels a sharp square when drawn larger.
         sprite:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
     end
     body:ClearAllPoints()
@@ -217,9 +275,20 @@ Pet.Refresh = Refresh
 
 -- One piece of care: do it, say what happened, and show how it is now. The
 -- menu's badge and Today hear about it too.
-local function Do(act)
-    local _, what = act(Pet.State(), Now())
+-- `show` is the animation that goes with it, played when the care was
+-- given and the creature is awake to react ("lights" picks its own: settling
+-- down or getting up).
+local function Do(act, show)
+    local s = Pet.State()
+    local ok, what = act(s, Now())
     said = what
+    if ok and walk and show then
+        if show == "lights" then
+            Pet.Play(walk, Sheet(), s.asleep and "doze" or "wake")
+        elseif not s.asleep then
+            Pet.Play(walk, Sheet(), show)
+        end
+    end
     Refresh()
 end
 
@@ -269,7 +338,7 @@ Window.Page("pet", function(page)
     sprite = body:CreateTexture(nil, "ARTWORK")
     sprite:SetAllPoints()
     Compat.Crisp(sprite)
-    body:SetScript("OnClick", function() Do(Rules.Pat) end)
+    body:SetScript("OnClick", function() Do(Rules.Pat, "jump") end)
     snore = Style.Text(body, 15, "secondary", nil, true)
     snore:SetPoint("BOTTOMLEFT", body, "TOPRIGHT", -26, -20)
     snore:SetText("z z z")
@@ -278,12 +347,22 @@ Window.Page("pet", function(page)
     local since = 0
     pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
         if not walk then return end
+        -- A long hitch (a loading screen) shouldn't fling it across the pen.
+        local dt = math.min(elapsed, 0.1)
         if Pet.State().asleep then
-            -- Asleep, it stays put, eyes shut.
-            walk.frame, walk.wait = "sleep", math.max(walk.wait, 0.5)
+            -- Asleep, it stays put, eyes shut, once it has settled down.
+            if walk.act then Pet.Step(walk, dt, math.random) end
+            if not walk.act then walk.frame = "sleep" end
+            walk.wait = math.max(walk.wait, 0.5)
         else
-            -- A long hitch (a loading screen) shouldn't fling it across the pen.
-            Pet.Step(walk, math.min(elapsed, 0.1), math.random)
+            local walking = walk.wait <= 0
+            Pet.Step(walk, dt, math.random)
+            -- Just arrived somewhere: now and then it sits, or looks about.
+            local sheet = Sheet()
+            if sheet and walking and walk.wait > 0 and not walk.act then
+                local pick = math.random(1, 4)
+                if pick <= 2 then Pet.Play(walk, sheet, pick == 1 and "sit" or "idle") end
+            end
         end
         PaintWalk()
         -- Its needs move slowly: look again twice a minute.
@@ -327,19 +406,19 @@ Window.Page("pet", function(page)
 
     -- Care, each button with how many it has left.
     local x = 0
-    local function Care(key, act)
+    local function Care(key, act, show)
         local b = Style.Button(parts, "", "plain", 115)
         b:SetHeight(30)
         b:SetPoint("TOPLEFT", x, -(PEN_H + 120))
-        b:SetScript("OnClick", function() Do(act) end)
+        b:SetScript("OnClick", function() Do(act, show) end)
         care[key] = b
         x = x + 123
     end
-    Care("meal", Rules.Feed)
-    Care("treat", Rules.Treat)
-    Care("toy", Rules.Play)
+    Care("meal", Rules.Feed, "eat")
+    Care("treat", Rules.Treat, "eat")
+    Care("toy", Rules.Play, "jump")
     Care("soap", Rules.Bath)
-    Care("lights", Rules.Lights)
+    Care("lights", Rules.Lights, "lights")
     Care("medicine", Rules.Medicine)
     local hint = Style.Text(parts, 12, "muted")
     hint:SetPoint("TOPLEFT", 0, -(PEN_H + 162))
