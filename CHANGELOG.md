@@ -1,6 +1,10 @@
-# jsal.ui 0.3.27
+# jsal.ui 0.3.28
 
-Coming from 0.3.25 or earlier, restart the game after updating: 0.3.26 added new files. From 0.3.26, a /reload is enough.
+Restart the game after updating: this version adds new files, and a /reload doesn't load those.
+
+- **Where recipes come from** (new, off until you turn it on: Settings, Profession window, "Where recipes come from"). In the profession panel's "Not learned yet" list, the recipes your skill is high enough for now come first, under "Ready to learn", with the rest under "Later". Each one says where to get it: the vendor, their zone and the price; the quest; or the mob that drops it. Vendors are the ones that sell to your side, and limited stock is marked. Point at a recipe for every source, and click it for a map pin on the vendor. A recipe that drops from many mobs just says "World drop". 1,362 recipes and 193 vendors, from Wowhead's WoW Forever lists.
+
+## In 0.3.27
 
 - **Pet abilities on beasts:** the "Tame to learn" line now names the exact rank a beast has. In 0.3.26 it could be one rank too high on beasts whose level sits right where a rank begins. The beast list now comes from Petopia's WoW Forever lists: 375 beasts, including the new abilities (Mine!, Web, Pinch, Swipe, Dismember, Dust Cloud, Savage Rend, Tendon Rip, Trickster's Dance) and Cower. The line also shows on beasts far above your level. It's for hunters and off until you turn it on: Settings, Leveling, "Pet abilities on beasts".
 
