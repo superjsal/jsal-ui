@@ -104,7 +104,7 @@ local function Zone()
 end
 
 -- A moment for the story: kind is level, kill, boss, loot, death, prof,
--- guild, duel or start.
+-- guild, duel, start or pet (your companion's milestones).
 function Journal.Note(kind, text, extra)
     local events = Book().events
     local e = { t = Compat.ServerTime(), k = kind, s = text, z = Zone() }
@@ -398,7 +398,7 @@ end
 
 -- The story, newest first, of one kind group or all: rows of events.
 local GROUPS = { levels = { level = true }, kills = { kill = true, boss = true }, loot = { loot = true },
-                 deaths = { death = true }, more = { prof = true, guild = true, duel = true, start = true } }
+                 deaths = { death = true }, more = { prof = true, guild = true, duel = true, start = true, pet = true } }
 function Journal.Story(group)
     local out, events, only = {}, Book().events, GROUPS[group]
     for i = #events, 1, -1 do

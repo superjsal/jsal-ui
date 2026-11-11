@@ -9,6 +9,9 @@ A beta, for trying the Companion before it goes to everyone. Restart the game af
   - **It's forgiving.** Look in twice a day and it stays cheerful with no toys at all. However long you're away, only half a day passes for it; a bowl can be filled while it sleeps; and at worst it feels poorly for a few hours.
   - **It grows up:** about two well-kept days, then a well-kept week, each form bigger and thornier.
   - **On Today:** when it wants something, it's listed under Ready now, and its menu entry shows a gold 1.
+  - **A wish each day:** one small thing it would like, mostly something you'd do anyway: hand in a quest, take a flight, go to another zone, give it a fuss. Grant it and it's delighted. Skip it and nothing is lost.
+  - **A bond that keeps growing:** each day's care and each wish granted bring you closer, from Wary through Curious, Friendly, Fond and Devoted to Inseparable. It takes weeks, and it never goes down.
+  - **In your Journal:** hatching, growing up and each new level of the bond are written into your story.
   - Not in yet: naming it (it's called Bramble), things in its pen, and supplies from fishing, Cooking and First Aid.
 
 ## In 0.3.32
