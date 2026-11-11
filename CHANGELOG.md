@@ -1,4 +1,17 @@
-# jsal.ui 0.3.32
+# jsal.ui 0.3.33-beta.1
+
+A beta, for trying the Companion before it goes to everyone. Restart the game after updating: this version adds new files, and a /reload doesn't load those.
+
+- **Companion** (new, off until you turn it on: Settings, Games, "Companion"; then the Companion page in the dashboard, or `/jsal pet`). A small creature of your own, a Briarboar, lives in a pen on its page and wanders about it.
+  - **Four needs:** fed, rested, happy and clean. Its mood follows them.
+  - **Looking after it:** feed it, give it a treat, play, bathe it, turn the lights out. Click it for a pat. A while after a meal a dropping appears in the pen: click it to scoop it.
+  - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine. Scooping, petting and the lights cost nothing.
+  - **It's forgiving.** Look in twice a day and it stays cheerful with no toys at all. However long you're away, only half a day passes for it; a bowl can be filled while it sleeps; and at worst it feels poorly for a few hours.
+  - **It grows up:** about two well-kept days, then a well-kept week, each form bigger and thornier.
+  - **On Today:** when it wants something, it's listed under Ready now, and its menu entry shows a gold 1.
+  - Not in yet: naming it (it's called Bramble), things in its pen, and supplies from fishing, Cooking and First Aid.
+
+## In 0.3.32
 
 Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
 
