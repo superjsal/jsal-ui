@@ -25,6 +25,15 @@ local function With(name, area)
     return zone and (name .. ", " .. zone) or name
 end
 
+-- A recipe's quest as a line, and whether your side can take it.
+local function Quest(entry, faction)
+    if not entry.q then return nil, false end
+    local side, theirs = SIDE[faction], entry.q[3] or 0
+    return "Quest: " .. With(entry.q[1], entry.q[2]), theirs == 0 or not side or theirs == side
+end
+
+local function OtherSide(faction) return OTHER[SIDE[faction]] or "other side" end
+
 -- The vendors that sell a recipe to your side, the ones that never run out
 -- first and then the cheapest, and how many sell it only to the other side.
 function Sources.Vendors(spell, faction)
@@ -68,11 +77,28 @@ function Sources.Line(spell, faction)
         if #mine > 1 then line = line .. (" · +%d more"):format(#mine - 1) end
         return line
     end
-    if entry.q then return "Quest: " .. With(entry.q[1], entry.q[2]) end
+    local quest, open = Quest(entry, faction)
+    if quest and open then return quest end
     if entry.d then return "Drops from " .. With(entry.d[1], entry.d[2]) end
-    if others > 0 then return ("Sold to the %s only"):format(OTHER[SIDE[faction]] or "other side") end
     if entry.w then return "World drop" end
+    if others > 0 then return ("Sold to the %s only"):format(OtherSide(faction)) end
+    if quest then return ("From a %s quest only"):format(OtherSide(faction)) end
     return nil
+end
+
+-- The note under a step of the road whose pattern has to be bought: who
+-- sells it to you, where and for how much; or, when no vendor sells it to
+-- your side, the quest or drop it comes from. Nil with the switch off or
+-- nothing known, so the road keeps its plain note.
+function Sources.BuyNote(spell)
+    if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
+    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
+    local v = Sources.Vendors(spell, faction)[1]
+    if not v then return Sources.Line(spell, faction) end
+    local note = "Buy the pattern from " .. With(v.name, v.area)
+    if v.copper > 0 then note = note .. " · " .. Compat.Money(v.copper) end
+    if v.stock > 0 then note = note .. " · limited" end
+    return note
 end
 
 -- Everything known about a recipe's sources, for its tooltip.
@@ -94,9 +120,14 @@ function Sources.Tooltip(tooltip, spell, faction)
         Add(line)
     end
     if not mine[1] and others > 0 then
-        Add(("Sold to the %s only"):format(OTHER[SIDE[faction]] or "other side"), 0.6, 0.59, 0.53)
+        Add(("Sold to the %s only"):format(OtherSide(faction)), 0.6, 0.59, 0.53)
     end
-    if entry.q then Add("Quest: " .. With(entry.q[1], entry.q[2])) end
+    local quest, open = Quest(entry, faction)
+    if quest and open then
+        Add(quest)
+    elseif quest then
+        Add(("From a %s quest only"):format(OtherSide(faction)), 0.6, 0.59, 0.53)
+    end
     if entry.d then Add("Drops from " .. With(entry.d[1], entry.d[2])) end
     if entry.w then Add("World drop") end
     return added
