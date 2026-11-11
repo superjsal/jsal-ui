@@ -1,4 +1,10 @@
-# jsal.ui 0.3.29
+# jsal.ui 0.3.30
+
+Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
+
+- **Where recipes come from: the other side's quests.** A recipe that comes from a quest only the other faction can take no longer sends you to it. It reads "From a Horde quest only" (or Alliance), and a way you can get it, such as a world drop, is named first. Before, an Alliance character was shown Kodo Hide Bag's quest in Thunder Bluff.
+
+## In 0.3.29
 
 Every page has been reworked to be easier to read: larger text, clearer headings, and each page now opens with what matters most. Nothing was taken away.
 
