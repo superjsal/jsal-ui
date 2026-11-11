@@ -134,6 +134,134 @@ function Today.Dungeons()
     return fits, coming
 end
 
+---------------------------------------------------------------------------
+-- What the next level brings. A part of its own, so it has a switch.
+---------------------------------------------------------------------------
+local NextLevel = ns.NewModule("nextlevel", {
+    title = "Next level on Today",
+    -- A new block on the first page, so it starts off.
+    defaultOn = false,
+    note = "Beside Today's title: the talent and trainer visit your next level brings, and whether your gold covers it.",
+})
+ns.NextLevel = NextLevel
+
+-- Nothing to set up: the page asks Today.NextLevel() each time it opens.
+function NextLevel:OnEnable() end
+
+local LAST_LEVEL = 60
+
+-- Spells at an odd level are trained on the next even one, as the Training
+-- Planner counts its stops.
+local function Stop(level)
+    if level <= 1 then return 1 end
+    return level + level % 2
+end
+
+-- What the next level brings: the talent your plan takes with its point, the
+-- trainer visit (or the next one after it, when that level has nothing to
+-- buy), a dungeon that becomes right for you, a profession rank you can
+-- train, and the gold you have. Nil at the last level, with the part off, or
+-- when there's nothing to say.
+function Today.NextLevel()
+    if not NextLevel.running then return nil end
+    local level = UnitLevel("player") or 1
+    if level >= LAST_LEVEL then return nil end
+    local info = { level = level + 1, money = GetMoney() }
+
+    -- The plan's talent for that level's point: the one after the points
+    -- you already have to spend.
+    local Tree = ns.TalentTree
+    local data = Tree and Tree.Read()
+    if data and info.level >= Tree.FIRST_LEVEL then
+        local waiting, seen = Compat.UnspentTalentPoints() or 0, {}
+        for _, id in ipairs(Tree.Replay(data, Tree.Active().order or {})) do
+            seen[id] = (seen[id] or 0) + 1
+            local node = data.nodes[id]
+            if node and node.learned < seen[id] then
+                if waiting == 0 then
+                    info.talent, info.rank = node, seen[id]
+                    break
+                end
+                waiting = waiting - 1
+            end
+        end
+    end
+
+    -- Trainer visits ahead of you, by the level you'd make each. A spell no
+    -- trainer has shown yet has no price, so the total is "from" that much.
+    local training = ns.Training and ns.Training.Read()
+    if training then
+        local visits = {}
+        for _, spell in ipairs(training.spells) do
+            if not spell.known and not spell.skipped and spell.level > level then
+                local stop = Stop(spell.level)
+                local visit = visits[stop] or { level = stop, count = 0, cost = 0, unpriced = 0 }
+                visits[stop] = visit
+                visit.count = visit.count + 1
+                if spell.via ~= "quest" and spell.via ~= "book" then
+                    if spell.cost then visit.cost = visit.cost + spell.cost else visit.unpriced = visit.unpriced + 1 end
+                end
+            end
+        end
+        info.visit = visits[info.level]
+        if not info.visit then
+            for stop, visit in pairs(visits) do
+                if not info.later or stop < info.later.level then info.later = visit end
+            end
+        end
+    end
+
+    local _, coming = Today.Dungeons()
+    if coming and coming.level == info.level then info.dungeon = coming.name end
+
+    local P = ns.Professions
+    for _, mine in ipairs(P and P.Mine() or {}) do
+        local rank = P.Rank(mine.cap)
+        if rank.next and rank.level == info.level and mine.skill >= rank.at then
+            info.profession = ("%s %s to train"):format(rank.next, mine.name)
+            break
+        end
+    end
+
+    if not (info.talent or info.visit or info.later or info.dungeon or info.profession) then return nil end
+    return info
+end
+
+local function VisitText(visit)
+    local text = Plural(visit.count, "spell")
+    if visit.cost > 0 then
+        text = text .. (visit.unpriced > 0 and " from " or " for ") .. Compat.Money(visit.cost)
+    end
+    return text
+end
+
+-- The block's three lines: the level, what it brings, and the gold. The
+-- first two things go on the main line; anything more follows the gold.
+function Today.NextLevelLines(info)
+    local items = {}
+    if info.talent then
+        items[#items + 1] = info.rank > 1 and ("%s, rank %d"):format(info.talent.name, info.rank) or info.talent.name
+    end
+    if info.visit then items[#items + 1] = VisitText(info.visit) end
+    if info.dungeon then items[#items + 1] = info.dungeon .. " opens" end
+    if info.profession then items[#items + 1] = info.profession end
+
+    local under = {}
+    if info.visit and info.visit.cost > 0 then
+        local short = info.visit.cost - info.money
+        under[1] = ("You have %s: %s"):format(Compat.Money(info.money), short > 0
+            and (Style.Tint("red") .. Compat.Money(short) .. " short|r")
+            or (Style.Tint("green") .. "enough|r"))
+    elseif info.later then
+        under[1] = ("Next trainer visit at %d: %s"):format(info.later.level, VisitText(info.later))
+    end
+    for i = 3, #items do under[#under + 1] = items[i] end
+    local main = items[1] or ""
+    if items[2] then main = main .. " · " .. items[2] end
+    if main == "" then main, under = under[1] or "", {} end
+    return ("AT LEVEL %d"):format(info.level), main, table.concat(under, " · ")
+end
+
 -- The number beside a menu entry: things to do there now.
 function Today.Badge(key)
     local n
@@ -248,6 +376,21 @@ Window.Page("home", function(page)
     title:SetText("Today")
     local who = Style.Text(page, 13, "muted")
     who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+
+    -- What the next level brings, at the right of the title: three short
+    -- lines, hidden when there's nothing to say or the part is off.
+    local nextHead = Caps(page, "")
+    nextHead:SetPoint("TOPRIGHT", title, "TOPLEFT", width, 0)
+    local nextMain = Style.Text(page, 13, "text")
+    nextMain:SetPoint("TOPRIGHT", nextHead, "BOTTOMRIGHT", 0, -5)
+    local nextUnder = Style.Text(page, 12, "muted")
+    nextUnder:SetPoint("TOPRIGHT", nextMain, "BOTTOMRIGHT", 0, -3)
+    for _, line in ipairs({ nextHead, nextMain, nextUnder }) do
+        line:SetJustifyH("RIGHT")
+        line:SetWordWrap(false)
+    end
+    nextMain:SetWidth(math.floor(width * 0.62))
+    nextUnder:SetWidth(math.floor(width * 0.62))
 
     -- Ready now: one box, a row for each thing waiting.
     local readyHead = Caps(page, "READY NOW")
@@ -461,11 +604,21 @@ Window.Page("home", function(page)
         end
     end
 
+    local function PaintNext()
+        local info = Today.NextLevel()
+        for _, line in ipairs({ nextHead, nextMain, nextUnder }) do line:SetShown(info ~= nil) end
+        if not info then return end
+        local head, main, under = Today.NextLevelLines(info)
+        nextHead:SetText(head)
+        nextMain:SetText(main)
+        nextUnder:SetText(under)
+    end
+
     page.Refresh = function()
         who:SetText(("%s, level %d %s"):format(UnitName("player") or "", UnitLevel("player") or 0, UnitClass("player") or ""))
         news:SetShown(NewsWanted())
         PaintReady()
-        for _, paint in ipairs({ PaintBuild, PaintGear, PaintProfessions, PaintDungeons }) do
+        for _, paint in ipairs({ PaintNext, PaintBuild, PaintGear, PaintProfessions, PaintDungeons }) do
             xpcall(paint, ns.Report)
         end
     end
