@@ -42,6 +42,7 @@ Games\ChessRules.lua
 Games\Chess.lua
 Games\ChessPage.lua
 Guild.lua
+Pet\PetRules.lua
 Pet\Pet.lua
 
 # Talents: the trees, ready-made leveling builds, the plan rules, the Build
