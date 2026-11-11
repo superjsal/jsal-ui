@@ -304,10 +304,8 @@ end
 
 Window.Page("guild", function(page)
     local width = Window.contentWidth
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    lead:SetWidth(width)
-    lead:SetText("Guildmates who run jsal.ui, and how they did today. Those not online now are greyed, with when they were last seen.")
+    local title, lead = Window.Header(page, width)
+    lead:SetText("How guildmates with jsal.ui did today. Those not online now are dimmed, with when they were last seen.")
 
     -- The Guild Word card: what's set and a Play button; the guild master gets a
     -- box to set a new one.
@@ -395,6 +393,16 @@ Window.Page("guild", function(page)
         end
         local word = Guild.Word()
         local list = Sorted(word and word.id)
+        -- The title: how many of the guild run jsal.ui, and how many are on.
+        local online = 0
+        for _, e in ipairs(list) do if not e.away then online = online + 1 end end
+        if not Guild.running then
+            title:SetText("The Guild tab is turned off")
+        elseif not inGuild then
+            title:SetText("You're not in a guild yet")
+        else
+            title:SetText(("%d in your guild run%s jsal.ui   |cff9a9688%d online|r"):format(#list, #list == 1 and "s" or "", online))
+        end
 
         -- The Guild Word card.
         local officer = Compat.IsGuildMaster()
@@ -431,7 +439,7 @@ Window.Page("guild", function(page)
             row:SetShown(e and true or false)
             if e and e.away then
                 -- Not online now: greyed, with when they were last seen.
-                row:SetAlpha(0.5)
+                row:SetAlpha(0.65)
                 row.cells[1]:SetText(e.name)
                 row.cells[2]:SetText("Last seen " .. Ago(e.last))
                 for c = 3, 5 do row.cells[c]:SetText("") end

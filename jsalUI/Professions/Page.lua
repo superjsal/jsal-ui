@@ -36,11 +36,18 @@ Window.Page("professions", function(page)
     local roadW = width - LIST_W - GAP
     local selected
 
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    lead:SetWidth(width)
-    lead:SetText("What to craft, and how many, to reach each profession's next rank.")
-    local top = 34
+    -- The top: the chosen profession and its skill, its rank and nearest
+    -- trainer under it, and a pin on the map to that trainer.
+    local title = Style.Text(page, 21, "text", nil, true)
+    title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
+    local sub = Style.Text(page, 13, "muted")
+    sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+    sub:SetWidth(width - 200)
+    sub:SetWordWrap(false)
+    local pin = Style.Button(page, "Show trainer on map", "plain", 180)
+    pin:SetHeight(30)
+    pin:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width, -12)
+    local top = 62
 
     -- Left: your professions.
     local cards = {}
@@ -50,7 +57,7 @@ Window.Page("professions", function(page)
         c:SetSize(LIST_W, CARD_H)
         c:SetPoint("TOPLEFT", 0, -(top + (i - 1) * (CARD_H + 10)))
         Style.Fill(c, "well")
-        c.edges = Style.Border(c, "line")
+        c.edges = Style.Border(c, "cardLine")
         c.icon = c:CreateTexture(nil, "ARTWORK")
         c.icon:SetSize(32, 32)
         c.icon:SetPoint("TOPLEFT", 12, -12)
@@ -77,30 +84,13 @@ Window.Page("professions", function(page)
     -- Right: the road, in a scrolling list, and the nearest trainer under it.
     local head = Section(page, roadW)
     head:SetPoint("TOPLEFT", LIST_W + GAP, -top)
-    local FOOT_H = 64
-    local scroll = CreateFrame("ScrollFrame", nil, page)
-    scroll:SetSize(roadW, height - top - 30 - FOOT_H)
+    local scroll, list = Style.Scroller(page, roadW, height - top - 30, roadW - 8)
     scroll:SetPoint("TOPLEFT", LIST_W + GAP, -(top + 30))
-    local list = CreateFrame("Frame", nil, scroll)
-    list:SetSize(roadW - 8, 1)
-    scroll:SetScrollChild(list)
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(self, delta)
-        local target = self:GetVerticalScroll() - delta * 60
-        self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), target)))
-    end)
     local message = Style.Text(list, 13, "muted")
     message:SetWidth(roadW - 8)
     local needHead = Section(list, roadW - 8)
     needHead.title:SetText("ALL YOU NEED")
     needHead.note:SetText("bags and bank / need")
-
-    local where = Style.Text(page, 11, "muted")
-    where:SetPoint("BOTTOMLEFT", LIST_W + GAP, 40)
-    where:SetWidth(roadW)
-    local pin = Style.Button(page, "Show trainer on map", "plain", 180)
-    pin:SetHeight(28)
-    pin:SetPoint("BOTTOMLEFT", LIST_W + GAP, 0)
 
     local steps, items = {}, {}
     local function Step(i)
@@ -134,13 +124,14 @@ Window.Page("professions", function(page)
         r.icon:SetSize(22, 22)
         r.icon:SetPoint("LEFT")
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
-        r.name:SetWidth(220)
-        r.name:SetWordWrap(false)
         r.count = Style.Text(r, 12, "muted")
         r.count:SetPoint("RIGHT")
         r.count:SetJustifyH("RIGHT")
+        r.name = Style.Text(r, 12, "text")
+        r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
+        r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
+        r.name:SetJustifyH("LEFT")
+        r.name:SetWordWrap(false)
         Tooltip(r)
         items[i] = r
         return r
@@ -162,7 +153,7 @@ Window.Page("professions", function(page)
     local guildCard = CreateFrame("Button", nil, page)
     guildCard:SetSize(LIST_W, CARD_H)
     Style.Fill(guildCard, "well")
-    guildCard.edges = Style.Border(guildCard, "line")
+    guildCard.edges = Style.Border(guildCard, "cardLine")
     local guildIcon = guildCard:CreateTexture(nil, "ARTWORK")
     guildIcon:SetSize(32, 32)
     guildIcon:SetPoint("TOPLEFT", 12, -12)
@@ -229,7 +220,7 @@ Window.Page("professions", function(page)
         r.who:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -2)
         r.who:SetWidth(roadW - 200)
         r.who:SetWordWrap(false)
-        r.whisper = Style.Button(r, "Whisper", "primary", 140)
+        r.whisper = Style.Button(r, "Whisper", "plain", 140)
         r.whisper:SetHeight(26)
         r.whisper:SetPoint("RIGHT", 0, 0)
         Tooltip(r)
@@ -267,7 +258,7 @@ Window.Page("professions", function(page)
             local on, off = {}, {}
             for _, p in ipairs(entry.people) do
                 if p.online then
-                    on[#on + 1] = "|cff56944f" .. p.name .. "|r"
+                    on[#on + 1] = Style.Tint("green") .. p.name .. "|r"
                 elseif #off < 3 then
                     off[#off + 1] = #off == 0 and (p.name .. " (" .. Crafters.Ago(p.seen) .. ")") or p.name
                 end
@@ -304,7 +295,7 @@ Window.Page("professions", function(page)
             guildCard:ClearAllPoints()
             local below = #mine > 0 and #mine * (CARD_H + 10) or (none:GetStringHeight() + 16)
             guildCard:SetPoint("TOPLEFT", 0, -(top + below))
-            Style.SetBorder(guildCard.edges, selected == "guild" and "gold" or "line")
+            Style.SetBorder(guildCard.edges, selected == "guild" and "gold" or "cardLine")
             guildCard:SetScript("OnClick", function()
                 selected = "guild"
                 Paint()
@@ -320,7 +311,7 @@ Window.Page("professions", function(page)
             local rank = Professions.Rank(p.cap)
             c.sub:SetText(("%d of %d · %s"):format(p.skill, p.cap, rank.name))
             c.fill:SetWidth(math.max(1, (LIST_W - 24) * math.min(1, p.skill / math.max(1, p.cap))))
-            Style.SetBorder(c.edges, p.line == selected and "gold" or "line")
+            Style.SetBorder(c.edges, p.line == selected and "gold" or "cardLine")
             c:SetScript("OnClick", function()
                 selected = p.line
                 Paint()
@@ -335,16 +326,18 @@ Window.Page("professions", function(page)
         scroll:SetShown(selected ~= "guild")
         if selected == "guild" then
             head:Hide()
-            where:Hide()
             pin:Hide()
+            title:SetText("Guild crafters")
+            sub:SetText("Who in your guild makes what, with a whisper to the ones online")
             PaintGuild()
             return
         end
         if not current then
             head:Hide()
             message:Hide()
-            where:Hide()
             pin:Hide()
+            title:SetText("Professions")
+            sub:SetText("What to craft, and how many, to reach each profession's next rank")
             return
         end
         head:Show()
@@ -393,7 +386,8 @@ Window.Page("professions", function(page)
             if step.recipe.vein then
                 s.detail:SetText(("Mine them: a sure point each until %d"):format(step.recipe.yellow))
             elseif step.buy then
-                s.detail:SetText(("Buy the pattern from a vendor, from %d"):format(step.recipe.learn))
+                s.detail:SetText(ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(step.recipe.spell)
+                    or ("Buy the pattern from a vendor, from %d"):format(step.recipe.learn))
             elseif step.learn then
                 s.detail:SetText(("Learn it at the trainer, from %d"):format(step.recipe.learn))
             else
@@ -425,10 +419,12 @@ Window.Page("professions", function(page)
                 r.item = entry.item
                 r.icon:SetTexture(Compat.ItemIcon(entry.item))
                 r.name:SetText(Compat.ItemName(entry.item) or "...")
-                local color = entry.have >= entry.need and "56944f" or "ff6b6b"
+                local color = entry.have >= entry.need and Style.hex.green or Style.hex.red
                 local price = Professions.IsVendor(entry.item)
-                local extra = price and (" · vendor " .. Compat.Money(price)) or (made[entry.item] and " · to make more" or "")
-                r.count:SetText(("|cff%s%d|r / %d%s"):format(color, entry.have, entry.need, extra))
+                -- Where more comes from goes before the numbers, so the
+                -- numbers stay in line at the right.
+                local from = price and ("vendor " .. Compat.Money(price) .. "   ") or (made[entry.item] and "to make more   " or "")
+                r.count:SetText(("%s|cff%s%d|r / %d"):format(from, color, entry.have, entry.need))
                 y = y + ROW_H
             end
         end
@@ -441,13 +437,15 @@ Window.Page("professions", function(page)
         for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
         local needed = (rank.at and current.skill >= rank.at) and rankIndex + 1 or rankIndex
         local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. current.line, needed)
-        where:SetShown(trainer ~= nil)
+        title:SetText(("%s   |cff9a9688%d of %d|r"):format(current.name, current.skill, current.cap))
+        local under = rank.name
         pin:SetShown(trainer ~= nil)
         if trainer then
             local place = ns.Trainers.Zone(trainer)
-            where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or ""))
+            under = under .. (" · Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or "")
             pin:SetScript("OnClick", function() ns.Trainers.Pin(trainer) end)
         end
+        sub:SetText(under)
     end
 
     page.Refresh = function() xpcall(Paint, ns.Report) end

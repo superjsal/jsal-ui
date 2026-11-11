@@ -15,7 +15,7 @@ local fields = {}
 -- A labelled one-line box that selects all its text when clicked.
 local function Field(label, top)
     local f = {}
-    f.label = Style.Text(frame, 11, "gold", nil, true)
+    f.label = Style.Text(frame, 12, "gold", nil, true)
     f.label:SetPoint("TOPLEFT", 16, top)
     f.label:SetText(label)
     f.well = CreateFrame("Frame", nil, frame)

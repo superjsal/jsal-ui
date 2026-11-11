@@ -11,8 +11,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 local WINDOW_W, WINDOW_H = 1000, 860
 local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 300, 45, 1, 36, 54, 20
-local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
-local GREEN, RED = "|cff56944f", "|cffd65151"
+local OPT_H, OPT_GAP = 62, 8   -- an upgrade's card, and the room between two
+local GAIN_W = 150             -- room for what an upgrade adds ("+14 AP, +3 Sta")
+local RED = Style.Tint("red")
 
 local function ItemInfo(id)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
@@ -22,14 +23,22 @@ local function ItemInfo(id)
 end
 
 local function Colored(name, quality)
-    return ("|cff%s%s|r"):format(QUALITY_HEX[quality or 1] or "ffffff", name or "...")
+    return ("|cff%s%s|r"):format(Style.Quality(quality), name or "...")
 end
 
 local function Tooltip(frame)
     frame:SetScript("OnEnter", function(self)
-        if not (self.item or self.equip) then return end
+        if not (self.item or self.equip or self.note) then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if self.item then GameTooltip:SetItemByID(self.item) else GameTooltip:SetInventoryItem("player", self.equip) end
+        if self.item then
+            GameTooltip:SetItemByID(self.item)
+        elseif self.equip then
+            GameTooltip:SetInventoryItem("player", self.equip)
+        else
+            GameTooltip:SetText(self.title or "")
+        end
+        -- A slot names its best upgrade under what you wear.
+        if self.note then GameTooltip:AddLine(self.note, Style.Color("green")) end
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -57,12 +66,15 @@ Window.Page("gear", function(page)
     local chosen = "chest"
     local Paint
 
-    -- The top line: who it's for, and the spec, which picks the stat weights.
+    -- The top: how many slots can be better, who it's for, and the spec,
+    -- which picks the stat weights.
+    local title = Style.Text(page, 20, "text", nil, true)
+    title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -6)
     local who = Style.Text(page, 13, "muted")
-    who:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -14)
+    who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -3)
     local specButtons = {}
     for i = 3, 1, -1 do
-        local b = Style.Button(page, "", "plain", 124)
+        local b = Style.Button(page, "", "tab", 124)
         b:SetHeight(26)
         b:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width - (3 - i) * 128, -8)
         b:SetScript("OnClick", function()
@@ -78,7 +90,7 @@ Window.Page("gear", function(page)
     -- to paste a Pawn scale into; and Reset.
     -----------------------------------------------------------------
     local WEIGHTS_W, WROW_H = 340, 28
-    local weightsButton = Style.Button(page, "Weights", "plain", 100)
+    local weightsButton = Style.Button(page, "Weights", "tab", 100)
     weightsButton:SetHeight(26)
     weightsButton:SetPoint("RIGHT", specButtons[1], "LEFT", -8, 0)
     local panel = CreateFrame("Frame", nil, page)
@@ -246,7 +258,7 @@ Window.Page("gear", function(page)
     end)
     page:HookScript("OnHide", function() panel:Hide() end)
 
-    local top = 46
+    local top = 58
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
     -- wear and the best upgrade.
     local slotFrames = {}
@@ -259,24 +271,20 @@ Window.Page("gear", function(page)
         b.box = IconBox(b, ICON)
         b.box:SetPoint("LEFT", 6, 0)
         b.icon = b.box.icon
-        b.dot = b:CreateTexture(nil, "OVERLAY")
-        b.dot:SetSize(9, 9)
-        b.dot:SetColorTexture(Style.Color("wordGreen"))
-        b.dot:SetPoint("CENTER", b.box, "TOPRIGHT", 0, 0)
-        -- Three lines: the slot's name, what you wear, the upgrade.
-        local textW = SLOT_W - ICON - 22
+        -- Two lines: the slot's name, with what its best upgrade adds at
+        -- the right, and what you wear. The upgrade's own name is in the
+        -- tooltip and beside the slots once it's chosen.
         b.label = Style.Text(b, 11, "muted")
-        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, 2)
+        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, -3)
         b.label:SetText(slot.label:upper())
+        b.gain = Style.Text(b, 12, "green", nil, true)
+        b.gain:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -7)
+        b.gain:SetJustifyH("RIGHT")
         b.worn = Style.Text(b, 14, "text")
-        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -1)
-        b.up = Style.Text(b, 13, "muted")
-        b.up:SetPoint("TOPLEFT", b.worn, "BOTTOMLEFT", 0, -1)
-        for _, t in ipairs({ b.label, b.worn, b.up }) do
-            t:SetWidth(textW)
-            t:SetJustifyH("LEFT")
-            t:SetWordWrap(false)
-        end
+        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -3)
+        b.worn:SetWidth(SLOT_W - ICON - 22)
+        b.worn:SetJustifyH("LEFT")
+        b.worn:SetWordWrap(false)
         b.slot = slot
         b.equip = slot.equip[1]
         Tooltip(b)
@@ -309,70 +317,63 @@ Window.Page("gear", function(page)
     local ADD_H = 58
     local OPT_TOP = 18 + ROW_H + 16 + 20
     local VIEW_H = (height - top - 60) - OPT_TOP - ADD_H
-    local scroll = CreateFrame("ScrollFrame", nil, list)
+    local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
-    scroll:SetSize(listW, VIEW_H)
-    local optList = CreateFrame("Frame", nil, scroll)
-    optList:SetSize(listW, 1)
-    scroll:SetScrollChild(optList)
-    local track = scroll:CreateTexture(nil, "ARTWORK")
-    track:SetColorTexture(Style.Color("line"))
-    track:SetWidth(3)
-    track:SetPoint("TOPRIGHT")
-    track:SetPoint("BOTTOMRIGHT")
-    local thumb = scroll:CreateTexture(nil, "OVERLAY")
-    thumb:SetColorTexture(Style.Color("muted"))
-    thumb:SetWidth(3)
-    local function PaintThumb()
-        local total = optList:GetHeight() or 0
-        local more = total > VIEW_H + 1
-        track:SetShown(more)
-        thumb:SetShown(more)
-        if not more then return end
-        local h = math.max(24, VIEW_H * VIEW_H / total)
-        local offset = (scroll:GetVerticalScroll() or 0) / (total - VIEW_H) * (VIEW_H - h)
-        thumb:SetHeight(h)
-        thumb:ClearAllPoints()
-        thumb:SetPoint("TOPRIGHT", 0, -offset)
-    end
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(self, delta)
-        local most = math.max(0, (optList:GetHeight() or 0) - VIEW_H)
-        self:SetVerticalScroll(math.max(0, math.min(most, self:GetVerticalScroll() - delta * ROW_H)))
-        PaintThumb()
-    end)
 
     local rows = {}
     local function Row(i)
         if rows[i] then return rows[i] end
-        -- The first row is what you wear, above the scroll; the rest scroll.
-        local r = CreateFrame("Frame", nil, i == 1 and list or optList)
-        r:SetSize(listW - (i == 1 and 14 or 28), ROW_H)
-        r.box = IconBox(r, 36)
-        r.box:SetPoint("LEFT", 0, 0)
+        -- The first row is what you wear, above the scroll; the rest are
+        -- the upgrades, a card each, and scroll.
+        local card = i > 1
+        local w = listW - (card and 28 or 14)
+        local r = CreateFrame("Frame", nil, card and optList or list)
+        r:SetSize(w, card and OPT_H or ROW_H)
+        if card then
+            Style.Fill(r, "well")
+            Style.Border(r, "cardLine")
+        else
+            Style.Rule(r, "BOTTOM", "line")
+        end
+        r.box = IconBox(r, card and 40 or 36)
+        r.box:SetPoint("LEFT", card and 10 or 0, 0)
         r.icon = r.box.icon
-        r.name = Style.Text(r, 15, "text")
-        r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 8, 0)
-        r.name:SetWidth(listW - (i == 1 and 14 or 28) - 72)
-        r.name:SetJustifyH("LEFT")
-        r.name:SetWordWrap(false)
-        r.where = Style.Text(r, 13, "muted")
-        r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
-        r.where:SetWidth(listW - (i == 1 and 14 or 28) - 72)
-        r.where:SetJustifyH("LEFT")
-        r.where:SetWordWrap(false)
+        -- A star keeps an upgrade on top: the game's own yellow star (the
+        -- raid marker), grey until starred, in a box that reads as a button.
         r.star = CreateFrame("Button", nil, r)
-        r.star:SetSize(18, 18)
-        r.star:SetPoint("RIGHT", 0, 0)
+        r.star:SetSize(30, 30)
+        r.star:SetPoint("RIGHT", -10, 0)
+        r.star.edges = Style.Border(r.star, "lineStrong")
         r.star.tex = r.star:CreateTexture(nil, "ARTWORK")
-        r.star.tex:SetAllPoints()
-        -- The game's own yellow star (the raid marker), grey until starred.
+        r.star.tex:SetSize(16, 16)
+        r.star.tex:SetPoint("CENTER")
         r.star.tex:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
         r.star:SetScript("OnClick", function(self)
             G.ToggleStar(self:GetParent().item)
             Paint()
         end)
-        Style.Rule(r, "BOTTOM", "line")
+        r.star:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.on and "Starred" or "Star it")
+            GameTooltip:AddLine(self.on and "Click to take the star off."
+                or "Keeps it on top here, and marks it wherever it turns up.", 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        r.star:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        -- What it adds over what you wear, large, beside the star.
+        r.gain = Style.Text(r, 15, "green", nil, true)
+        r.gain:SetPoint("RIGHT", r.star, "LEFT", -12, 0)
+        r.gain:SetJustifyH("RIGHT")
+        r.name = Style.Text(r, 15, "text")
+        r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 10, card and -2 or 0)
+        r.where = Style.Text(r, 13, "muted")
+        r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
+        local textW = w - (card and 60 or 46) - (card and (GAIN_W + 12 + 30 + 10 + 10) or 0)
+        for _, t in ipairs({ r.name, r.where }) do
+            t:SetWidth(textW)
+            t:SetJustifyH("LEFT")
+            t:SetWordWrap(false)
+        end
         r:EnableMouse(true)
         Tooltip(r)
         rows[i] = r
@@ -428,13 +429,13 @@ Window.Page("gear", function(page)
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
     note:SetWidth(width)
     note:SetJustifyH("LEFT")
-    note:SetText("Items and where they come from are from Wowhead Forever and what you and your guild have seen. They're incomplete, especially past level 30, and will change as more people play. Stat weights are WoWSims'.")
+    note:SetWordWrap(false)
+    note:SetText("Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30. Stat weights are WoWSims'.")
 
-    -- The line under an item: what it adds, where it comes from, and the
+    -- The line under an item: where it comes from, and the
     -- level it needs (none shown when it needs none).
     local function Detail(o)
         local bits = {}
-        if o.gains and o.gains ~= "" then bits[#bits + 1] = GREEN .. o.gains .. "|r" end
         if o.lighter then bits[#bits + 1] = o.lighter end
         local source = G.Source(o)
         -- Profession gear: who can wear it, in red when you can't (yet).
@@ -457,20 +458,23 @@ Window.Page("gear", function(page)
         local trees = G.Trees()
         for i, b in ipairs(specButtons) do
             b:SetLabel(trees[i].name)
-            b:SetKind(i == spec and "primary" or "plain")
+            b:SetSelected(i == spec)
         end
         local className = UnitClass("player") or ""
         who:SetText(("%s %s · level %d"):format(trees[spec].name, className:lower(), level)
             .. (G.CustomWeights(spec) and " · |cffe3b04byour weights|r" or ""))
-        weightsButton:SetKind(panel:IsShown() and "primary" or "plain")
+        weightsButton:SetSelected(panel:IsShown())
         PaintWeights()
 
         local plans = {}
         for _, s in ipairs(G.SLOTS) do plans[s.key] = G.Plan(s, spec) end
+        local better, checking = 0, false
         for key, b in pairs(slotFrames) do
             local plan = plans[key]
             local worn = plan.worn
             b.equip = worn.link and worn.equip or nil
+            b.title = b.slot.label
+            local best = plan.options[1]
             if worn.link then
                 local name, _, quality, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
                 b.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
@@ -478,19 +482,28 @@ Window.Page("gear", function(page)
             else
                 local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(b.slot.empty)
                 b.icon:SetTexture(emptyTexture)
-                b.worn:SetText("|cff9a9688empty|r")
+                -- An empty slot with something to put in it is the easiest win.
+                b.worn:SetText(best and "|cffe3b04bEmpty|r" or "|cff9a9688Empty|r")
             end
-            local best = plan.options[1]
             if best then
-                local name = ItemInfo(best.id)
-                b.up:SetText(GREEN .. "Better: " .. (name or "...") .. "|r")
+                better = better + 1
+                b.gain:SetText(best.gains and best.gains ~= "" and best.gains or "Better")
+                b.gain:SetTextColor(Style.Color("green"))
+                b.note = "Best upgrade: " .. (ItemInfo(best.id) or "...")
             else
-                b.up:SetText(plan.waiting > 0 and "checking..." or "nothing better yet")
+                b.gain:SetText(plan.waiting > 0 and "checking..." or "")
+                b.gain:SetTextColor(Style.Color("muted"))
+                b.note = nil
             end
-            b.dot:SetShown(best ~= nil)
+            checking = checking or plan.waiting > 0
             local on = key == chosen
             b.bg:SetShown(on)
             for _, e in ipairs(b.edges) do e:SetShown(on) end
+        end
+        if better > 0 then
+            title:SetText(("%d slot%s can be better"):format(better, better == 1 and "" or "s"))
+        else
+            title:SetText(checking and "Checking the items near your level..." or "Nothing better near your level yet")
         end
 
         -- The chosen slot.
@@ -511,6 +524,7 @@ Window.Page("gear", function(page)
         end
         wornRow.where:SetText("")
         wornRow.star:Hide()
+        wornRow.gain:SetText("")
         wornRow:Show()
         betterHead:ClearAllPoints()
         betterHead:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
@@ -520,25 +534,29 @@ Window.Page("gear", function(page)
         for i, o in ipairs(plan.options) do
             local r = Row(i + 1)
             r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 14, -((i - 1) * ROW_H))
+            r:SetPoint("TOPLEFT", 14, -((i - 1) * (OPT_H + OPT_GAP)))
             r.item, r.equip = o.id, nil
             local name, _, quality, texture = ItemInfo(o.id)
             r.icon:SetTexture(texture or Compat.ItemIcon(o.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             r.name:SetText(Colored(name, quality or o.quality))
             r.where:SetText(Detail(o))
+            r.gain:SetText(o.gains or "")
             r.star:Show()
             r.star.tex:SetDesaturated(not o.starred)
-            r.star:SetAlpha(o.starred and 1 or 0.5)
+            r.star.on = o.starred
+            r.star.tex:SetAlpha(o.starred and 1 or 0.6)
+            Style.SetBorder(r.star.edges, o.starred and "gold" or "lineStrong")
             r:Show()
             shown = i
         end
         for i = shown + 2, #rows do rows[i]:Hide() end
         -- Back to the top for another slot; kept in range otherwise.
-        optList:SetHeight(math.max(1, shown * ROW_H))
-        local most = math.max(0, shown * ROW_H - VIEW_H)
+        optList:SetHeight(math.max(1, shown * (OPT_H + OPT_GAP)))
+        local most = math.max(0, shown * (OPT_H + OPT_GAP) - VIEW_H)
         scroll:SetVerticalScroll(chosen ~= paintedSlot and 0 or math.min(scroll:GetVerticalScroll() or 0, most))
         paintedSlot = chosen
-        PaintThumb()
+        scroll:UpdateScrollChildRect()
+        scroll:Place()
         empty:ClearAllPoints()
         empty:SetPoint("TOPLEFT", 14, -y)
         if shown == 0 then

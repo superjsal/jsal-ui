@@ -22,7 +22,6 @@ local OWN = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local PAGES = {
     { key = "home", label = "Home", icon = OWN .. "home" },
     { key = "journal", label = "Journal", icon = OWN .. "journal" },
-    { key = "install", label = "Install", icon = OWN .. "install" },
     { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
     { key = "gear", label = "Gear plan", icon = OWN .. "gear" },
@@ -31,6 +30,8 @@ local PAGES = {
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
+    -- Installing the look is done once, so it sits with the other rare ones.
+    { key = "install", label = "Install", icon = OWN .. "install", bottom = true },
     { key = "report", label = "Report a problem", icon = OWN .. "report", bottom = true },
     { key = "settings", label = "Settings", icon = OWN .. "settings", bottom = true },
 }
@@ -47,30 +48,48 @@ function Window.Page(key, build, own)
     byKey[key].own = own
 end
 
+-- A page's top: a title that says where things stand (set as the page
+-- paints), and a quieter line under it. Returns both.
+function Window.Header(page, width)
+    local title = Style.Text(page, 21, "text", nil, true)
+    title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
+    title:SetWidth(width)
+    title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+    local sub = Style.Text(page, 13, "muted")
+    sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+    sub:SetWidth(width)
+    sub:SetJustifyH("LEFT")
+    return title, sub
+end
+
 local frame, content, current, crumb
 
 -- Addons can't reload the game themselves on Forever, but the game's own
 -- secure button can run the /reload command when the player clicks it.
 -- Because it's secure, the dashboard never opens or closes during combat:
 -- it closes as a fight starts and waits until it ends to open.
-local function ReloadButton(parent)
-    local b = CreateFrame("Button", "jsalUIReloadButton", parent, "SecureActionButtonTemplate")
+-- Each one needs a name of its own. A gold one is a page's main action
+-- (Settings, once a change is waiting for a reload).
+function Window.ReloadButton(parent, name, text, width, gold)
+    local b = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
     b:SetAttribute("type", "macro")
     b:SetAttribute("macrotext", "/reload")
     b:RegisterForClicks("AnyUp", "AnyDown")
-    b:SetSize(72, 26)
-    local fill = Style.Fill(b, "well")
-    local edges = Style.Border(b, "lineStrong")
-    local label = Style.Text(b, 11, "text", nil, true)
+    b:SetSize(width, 26)
+    local rest, lit = gold and "gold" or "well", gold and "goldHover" or "wellHover"
+    local fill = Style.Fill(b, rest)
+    local edges = Style.Border(b, gold and "gold" or "lineStrong")
+    local label = Style.Text(b, gold and 13 or 11, gold and "onGold" or "text", nil, true)
     label:SetPoint("CENTER")
-    label:SetText("Reload")
+    label:SetText(text)
     b:SetScript("OnEnter", function()
-        fill:SetColorTexture(Style.Color("wellHover"))
-        Style.SetBorder(edges, "gold")
+        fill:SetColorTexture(Style.Color(lit))
+        Style.SetBorder(edges, gold and "goldHover" or "gold")
     end)
     b:SetScript("OnLeave", function()
-        fill:SetColorTexture(Style.Color("well"))
-        Style.SetBorder(edges, "lineStrong")
+        fill:SetColorTexture(Style.Color(rest))
+        Style.SetBorder(edges, gold and "gold" or "lineStrong")
     end)
     return b
 end
@@ -86,7 +105,22 @@ local function PaintMenu()
         local selected = page.key == current
         b.bg:SetShown(selected)
         b.mark:SetShown(selected)
-        b.label:SetTextColor(Style.Color(selected and "text" or "muted"))
+        b.label:SetTextColor(Style.Color(selected and "text" or "secondary"))
+    end
+end
+
+-- The gold number beside an entry: how many things are waiting there now
+-- (spells to train, today's games), as Home's Ready now list counts them.
+local function PaintBadges()
+    for _, page in ipairs(PAGES) do
+        local b = page.button
+        local ok, n = pcall(function() return ns.Today and ns.Today.Badge(page.key) end)
+        n = ok and n or nil
+        b.badge:SetShown(n ~= nil)
+        if n then
+            b.count:SetText(n)
+            b.badge:SetWidth(math.max(18, b.count:GetStringWidth() + 10))
+        end
     end
 end
 
@@ -117,9 +151,34 @@ local function MenuButton(menu, page)
         icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     end
     icon:SetTexture(own and page.icon or (ICONS .. page.icon))
-    b.label = Style.Text(b, 13, "muted")
+    b.label = Style.Text(b, 13, "secondary")
     b.label:SetPoint("LEFT", frameIcon, "RIGHT", 10, 0)
     b.label:SetText(page.label)
+    b.badge = CreateFrame("Frame", nil, b)
+    b.badge:SetSize(18, 18)
+    b.badge:SetPoint("RIGHT", -4, 0)
+    Style.Fill(b.badge, "gold")
+    b.count = Style.Text(b.badge, 11, "onGold", nil, true)
+    b.count:SetPoint("CENTER")
+    b.count:SetJustifyH("CENTER")
+    b.badge:Hide()
+    -- A page that opens in a window of its own says so with a small arrow
+    -- out of a corner, so the dashboard staying put is no surprise.
+    if page.own then
+        local out = CreateFrame("Frame", nil, b)
+        out:SetSize(9, 9)
+        out:SetPoint("RIGHT", -10, 0)
+        local function Stroke(w, h, angle)
+            local t = out:CreateTexture(nil, "ARTWORK")
+            t:SetColorTexture(Style.Color("muted"))
+            t:SetSize(w, h)
+            if angle then t:SetRotation(math.rad(angle)) end
+            return t
+        end
+        Stroke(11, 1.5, 45):SetPoint("CENTER")
+        Stroke(6, 1.5):SetPoint("TOPRIGHT")
+        Stroke(1.5, 6):SetPoint("TOPRIGHT")
+    end
     b:SetScript("OnClick", function() Window.Open(page.key) end)
     b:SetScript("OnEnter", function()
         b.label:SetTextColor(Style.Color("text"))
@@ -139,6 +198,7 @@ end
 
 local function Build()
     frame = CreateFrame("Frame", "jsalUIWindow", UIParent)
+    frame.jsalRoomy = true
     -- Scaled before anything is drawn on it, so its 1px lines start crisp.
     frame:SetScale(FitScale())
     frame:SetSize(WIDTH, HEIGHT)
@@ -196,7 +256,7 @@ local function Build()
     crumb:SetJustifyV("MIDDLE")
     local close = Style.CloseButton(bar, TITLE_HEIGHT, function() frame:Hide() end)
     close:SetPoint("TOPRIGHT")
-    ReloadButton(bar):SetPoint("RIGHT", close, "LEFT", -6, 0)
+    Window.ReloadButton(bar, "jsalUIReloadButton", "Reload", 72):SetPoint("RIGHT", close, "LEFT", -6, 0)
 
     -- The menu: entries in their groups from the top; the bottom entries
     -- stack up from the version line, the last one lowest.
@@ -280,6 +340,7 @@ local function OpenOwn(page)
     if not own.frame then
         local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
         local f = Style.Panel(name, own.width, own.height, page.label)
+        f.jsalRoomy = true
         local inner = CreateFrame("Frame", nil, f)
         inner:SetPoint("TOPLEFT", PANEL_PAD, -(BAR_H + 16))
         inner:SetPoint("BOTTOMRIGHT", -PANEL_PAD, 18)
@@ -314,6 +375,7 @@ function Window.Open(key)
     current = page.key
     crumb:SetText(page.label)
     PaintMenu()
+    PaintBadges()
     Refresh(page)
     frame:Show()
 end
@@ -355,11 +417,23 @@ end
 -- Repaints the pages on screen after something they show has changed.
 function Window.Refresh()
     if frame and frame:IsShown() and current then
+        PaintBadges()
         Refresh(byKey[current])
     end
     for _, page in ipairs(PAGES) do
         if page.own and page.own.frame and page.own.frame:IsShown() then Refresh(page) end
     end
+end
+
+-- Whether a frame sits in one of the big windows, the dashboard or a page's
+-- own window, where Style.Text draws nothing under its smallest size.
+function Window.Roomy(region)
+    local f = region
+    while f do
+        if f.jsalRoomy then return true end
+        f = f.GetParent and f:GetParent() or nil
+    end
+    return false
 end
 
 -- Whether a frame sits inside the dashboard (its text is drawn a size up).

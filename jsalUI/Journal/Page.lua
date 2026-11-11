@@ -76,7 +76,7 @@ Window.Page("journal", function(page)
 
     local Paint
     for i, tab in ipairs({ { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "characters", "Characters" } }) do
-        local b = Style.Button(page, tab[2], "plain", TAB_W)
+        local b = Style.Button(page, tab[2], "tab", TAB_W)
         b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", (i - 1) * (TAB_W + 6), -8)
         b:SetScript("OnClick", function()
             current = tab[1]
@@ -93,7 +93,7 @@ Window.Page("journal", function(page)
     modelWell:SetPoint("TOPLEFT")
     modelWell:SetSize(MODEL_W, HERO_H)
     Style.Fill(modelWell, "well")
-    Style.Border(modelWell, "line")
+    Style.Border(modelWell, "cardLine")
     local model = CreateFrame("PlayerModel", nil, modelWell)
     model:SetPoint("TOPLEFT", 1, -1)
     model:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -113,7 +113,7 @@ Window.Page("journal", function(page)
         t:SetSize(tileW, TILE_H)
         t:SetPoint("TOPLEFT", ((i - 1) % 3) * (tileW + GAP), -(HERO_H + 16 + math.floor((i - 1) / 3) * (TILE_H + GAP)))
         Style.Fill(t, "well")
-        Style.Border(t, "line")
+        Style.Border(t, "cardLine")
         t.n = Style.Text(t, 20, "gold", nil, true)
         t.n:SetPoint("TOPLEFT", 12, -10)
         t.label = Style.Text(t, 12, "text")
@@ -215,7 +215,7 @@ Window.Page("journal", function(page)
     local filters = {}
     for i, f in ipairs({ { nil, "All" }, { "levels", "Levels" }, { "kills", "Kills" }, { "loot", "Loot" },
                          { "deaths", "Deaths" }, { "more", "More" } }) do
-        local b = Style.Button(story, f[2], "plain", 84)
+        local b = Style.Button(story, f[2], "tab", 84)
         b:SetHeight(24)
         b:SetPoint("TOPLEFT", (i - 1) * 90, 0)
         b:SetScript("OnClick", function()
@@ -256,7 +256,7 @@ Window.Page("journal", function(page)
     end)
 
     local function PaintStory()
-        for _, f in ipairs(filters) do f.button:SetKind(f.key == filter and "primary" or "plain") end
+        for _, f in ipairs(filters) do f.button:SetSelected(f.key == filter) end
         local list = J.Story(filter)
         offset = math.max(0, math.min(offset, #list - maxRows))
         for i, r in ipairs(storyRows) do
@@ -343,7 +343,7 @@ Window.Page("journal", function(page)
     local function Net(gained, spent)
         local net = (gained or 0) - (spent or 0)
         if net == 0 then return "-" end
-        return (net < 0 and "|cffff6b6b" or "|cff56944f") .. Coins(net) .. "|r"
+        return (net < 0 and Style.Tint("red") or Style.Tint("green")) .. Coins(net) .. "|r"
     end
     local function FillRow(cells, label, row)
         local values = { label, Hours(row.seconds), row.xp and row.xp > 0 and Count(row.xp) or "-",
@@ -390,7 +390,7 @@ Window.Page("journal", function(page)
         c:SetSize(cardW, CARD_H)
         c:SetPoint("TOPLEFT", ((i - 1) % 2) * (cardW + GAP), -(28 + math.floor((i - 1) / 2) * (CARD_H + GAP)))
         Style.Fill(c, "well")
-        c.edges = Style.Border(c, "line")
+        c.edges = Style.Border(c, "cardLine")
         c.name = Style.Text(c, 14, "text", nil, true)
         c.name:SetPoint("TOPLEFT", 12, -10)
         c.sub = Style.Text(c, 12, "muted")
@@ -438,7 +438,7 @@ Window.Page("journal", function(page)
             if c then
                 card.name:SetText(ClassColor(c.classFile) .. (c.name or "?") .. "|r")
                 card.sub:SetText(("Level %d %s%s"):format(c.level or 0, c.class or "", c.name == me and " · you're on this one" or ""))
-                Style.SetBorder(card.edges, c.name == me and "gold" or "line")
+                Style.SetBorder(card.edges, c.name == me and "gold" or "cardLine")
                 card.line:SetText(("%s · %s"):format(c.zone or "somewhere", Compat.Money(c.money or 0)))
                 local profs = {}
                 for _, p in ipairs(c.professions or {}) do profs[#profs + 1] = ("%s %d"):format(p.name, p.skill or 0) end
@@ -455,7 +455,7 @@ Window.Page("journal", function(page)
     end
 
     Paint = function()
-        for key, b in pairs(tabs) do b:SetKind(key == current and "primary" or "plain") end
+        for key, b in pairs(tabs) do b:SetSelected(key == current) end
         for key, v in pairs(views) do v:SetShown(key == current) end
         if not J.running then return end
         if current == "summary" then PaintSummary()

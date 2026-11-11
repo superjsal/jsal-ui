@@ -6,8 +6,8 @@
 local addonName, ns = ...
 local Style, Window, Rules = ns.Style, ns.Window, ns.ChessRules
 
-local LIST_W, GUTTER = 176, 18
-local BODY_TOP = 36
+local LIST_W, GUTTER = 200, 18
+local BODY_TOP = 62
 local SQ, COORD = 58, 14
 local ROW_H, MATE_H = 46, 30
 local MEDIA = "Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\"
@@ -60,9 +60,9 @@ Window.Page("chess", function(page)
         Paint()
     end
 
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", 0, -4)
-    lead:SetWidth(width)
+    -- The top: what's waiting on you first (a challenge, your move), else
+    -- what's going on.
+    local title, lead = Window.Header(page, width)
     lead:SetText("Play guildmates who have jsal.ui. Moves wait for whoever's turn it is.")
 
     ---------------------------------------------------------------------------
@@ -447,6 +447,7 @@ Window.Page("chess", function(page)
     Paint = function()
         if not Chess.running then
             for _, f in ipairs({ board, stateText, primary, second, movesHead, movesText, gamesHead, watchHead, mateHead, recordHead, noGames, noMates }) do f:Hide() end
+            title:SetText("Chess is turned off")
             empty:SetText("Chess is turned off in Settings.")
             empty:Show()
             return
@@ -460,6 +461,28 @@ Window.Page("chess", function(page)
 
         -- The games: your own, or one you're watching.
         local games, watching = Chess.Games(), Chess.Watching()
+        -- The title: a challenge to answer, then a move that's yours, then
+        -- who you're waiting on.
+        local asked, yours, waitingOn, going = nil, nil, nil, 0
+        for _, g in ipairs(games) do
+            if g.status == "asked" then
+                asked = asked or g
+            elseif g.status ~= "over" then
+                going = going + 1
+                if g.status == "play" and Chess.MyTurn(g) then yours = yours or g else waitingOn = waitingOn or g end
+            end
+        end
+        if asked then
+            title:SetText(asked.opp .. " wants a game")
+        elseif yours then
+            title:SetText("Your move against " .. yours.opp)
+        elseif going == 1 then
+            title:SetText("Waiting on " .. waitingOn.opp)
+        elseif going > 1 then
+            title:SetText(going .. " games on the go")
+        else
+            title:SetText("No game on the go")
+        end
         local selected, seeing
         for _, g in ipairs(games) do if g.id == selectedID then selected = g end end
         for i, w in ipairs(watching) do if w.id == selectedID and i <= MAX_WATCH then seeing = w end end
@@ -493,7 +516,7 @@ Window.Page("chess", function(page)
             local on = g == selected
             row.bg:SetShown(on)
             row.mark:SetShown(on)
-            row.name:SetTextColor(Style.Color(on and "text" or "muted"))
+            row.name:SetTextColor(Style.Color(on and "text" or "secondary"))
             row:Show()
             if g.status ~= "over" then openWith[g.opp] = true end
         end
@@ -528,7 +551,7 @@ Window.Page("chess", function(page)
             local on = wg == seeing
             row.bg:SetShown(on)
             row.mark:SetShown(on)
-            row.name:SetTextColor(Style.Color(on and "text" or "muted"))
+            row.name:SetTextColor(Style.Color(on and "text" or "secondary"))
             row:Show()
         end
         for i = shownWatch + 1, #watchRows do watchRows[i]:Hide() end

@@ -10,19 +10,28 @@ local function Hex(hex)
     return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
 end
 
-Style.colors = {}
+Style.colors, Style.hex = {}, {}
 for key, hex in pairs({
     window = "191c23",
     titleBar = "15181e",
     well = "22262f",
     wellHover = "2b303b",
     line = "2a2e38",
+    -- The line around a card: a step stronger than a rule, so a card's edge
+    -- shows against its own fill.
+    cardLine = "363b47",
     lineStrong = "3d424e",
+    -- A scroll list's bar.
+    thumb = "7a776d",
     text = "ece6d6",
+    -- Between text and muted: a label that isn't the one chosen (a tab, a
+    -- menu entry), which muted would make look switched off.
+    secondary = "c4bfb0",
     muted = "9a9688",
     gold = "e3b04b",
     goldHover = "ecbe62",
-    red = "e0604a",
+    -- Red and green are for text on a card, so both keep 4.5:1 against it.
+    red = "ef7a66",
     green = "62b35a",
     onGold = "16130c",
     blue = "2f5db5",
@@ -33,11 +42,26 @@ for key, hex in pairs({
     wordGrey = "3a3d44",
 }) do
     Style.colors[key] = { Hex(hex) }
+    Style.hex[key] = hex
 end
 
 function Style.Color(key)
     local c = Style.colors[key]
     return c[1], c[2], c[3]
+end
+
+-- A colour as the code that starts coloured words inside a line of text;
+-- "|r" ends them.
+function Style.Tint(key)
+    return "|cff" .. Style.hex[key]
+end
+
+-- An item's name colour by its quality, as six hex digits. The game's own
+-- colours, except rare blue and epic purple, lightened: the game's are near
+-- 3:1 on these dark fills, too dim to read as text.
+local QUALITY = { [0] = "9d9d9d", "ffffff", "1eff00", "4d9fff", "c07bff", "ff8000" }
+function Style.Quality(quality)
+    return QUALITY[quality or 1] or "ffffff"
 end
 
 -- Outfit, in Regular and SemiBold (its bold here), trimmed to Latin and
@@ -64,11 +88,16 @@ end
 -- Text in the dashboard is drawn one size up: the window has room, and it
 -- reads more easily there. Panels beside the game's windows keep their size.
 local DASHBOARD_STEP = 1
+-- In the dashboard and a page's own window nothing is drawn smaller than
+-- this, unless `exact` asks for a size as given (a rank in the corner of an
+-- icon, which has no room to grow).
+local SMALLEST = 12
 
-function Style.Text(parent, size, colorKey, layer, bold)
+function Style.Text(parent, size, colorKey, layer, bold, exact)
     local text = parent:CreateFontString(nil, layer or "OVERLAY")
     size = size or 13
     if ns.Window and ns.Window.Contains and ns.Window.Contains(parent) then size = size + DASHBOARD_STEP end
+    if not exact and ns.Window and ns.Window.Roomy and ns.Window.Roomy(parent) then size = math.max(size, SMALLEST) end
     text:SetFont(bold and Style.boldFont or Style.font, size, "")
     if not text:GetFont() then
         text:SetFont(STANDARD_TEXT_FONT, size, "")
@@ -237,10 +266,15 @@ end
 -- Buttons. "primary" is gold with dark text, for the one main action on a
 -- page; "plain" is a well with a line around it. Under the pointer both
 -- light up a step.
+-- "tab" is one of a row of choices (a page's tabs, a filter, a spec): the
+-- chosen one is lit with a gold line under it, set with SetSelected, so gold
+-- fill stays the mark of the main action.
 -- A tone overrides the kind for a game's answer buttons: "right" is gold,
 -- "wrong" is dimmed.
 local function PaintButton(b)
     local enabled = b:IsEnabled()
+    local chosen = b.kind == "tab" and b.selected and not b.tone
+    b.under:SetShown(chosen and true or false)
     if b.tone == "right" then
         b.bg:SetColorTexture(Style.Color("gold"))
         b.label:SetTextColor(Style.Color("onGold"))
@@ -253,6 +287,11 @@ local function PaintButton(b)
         b.bg:SetColorTexture(Style.Color(b.hover and "goldHover" or "gold"))
         b.label:SetTextColor(Style.Color("onGold"))
         Style.SetBorder(b.edges, b.hover and "goldHover" or "gold")
+    elseif b.kind == "tab" then
+        local lit = chosen or (enabled and b.hover)
+        b.bg:SetColorTexture(Style.Color(lit and "wellHover" or "well"))
+        b.label:SetTextColor(Style.Color(lit and "text" or "secondary"))
+        Style.SetBorder(b.edges, "lineStrong")
     else
         b.bg:SetColorTexture(Style.Color((enabled and b.hover) and "wellHover" or "well"))
         b.label:SetTextColor(Style.Color(enabled and "text" or "muted"))
@@ -267,6 +306,13 @@ function Style.Button(parent, label, kind, width)
     b.bg = b:CreateTexture(nil, "BACKGROUND")
     b.bg:SetAllPoints()
     b.edges = Style.Border(b, "lineStrong")
+    -- The gold line under a chosen tab.
+    b.under = b:CreateTexture(nil, "ARTWORK")
+    b.under:SetColorTexture(Style.Color("gold"))
+    b.under:SetPoint("BOTTOMLEFT")
+    b.under:SetPoint("BOTTOMRIGHT")
+    b.under:SetHeight(2)
+    b.under:Hide()
     b.label = Style.Text(b, 13, "text", nil, true)
     b.label:SetPoint("CENTER")
     b.label:SetJustifyH("CENTER")
@@ -285,8 +331,58 @@ function Style.Button(parent, label, kind, width)
         self.tone = tone
         PaintButton(self)
     end
+    function b:SetSelected(on)
+        self.selected = on and true or false
+        PaintButton(self)
+    end
     PaintButton(b)
     return b
+end
+
+-- A list that scrolls with the mouse wheel. A thin bar at its right shows
+-- where it is whenever there's more than fits, and follows by itself as the
+-- list grows, shrinks or moves. Returns the scroll frame, to place, and the
+-- frame to put the rows in: `childWidth` wide (the list's own width when not
+-- given; narrower leaves the bar a gutter). The bar sits `barX` to the right
+-- of the list's edge, and a turn of the wheel moves the list `step` pixels.
+function Style.Scroller(parent, width, height, childWidth, barX, step)
+    local scroll = CreateFrame("ScrollFrame", nil, parent)
+    scroll:SetSize(width, height)
+    local child = CreateFrame("Frame", nil, scroll)
+    child:SetSize(childWidth or width, 1)
+    scroll:SetScrollChild(child)
+    -- The bar belongs to the parent, so it can sit past the list's edge.
+    local bar = parent:CreateTexture(nil, "OVERLAY")
+    bar:SetColorTexture(Style.Color("thumb"))
+    bar:SetWidth(3)
+    bar:Hide()
+    function scroll:Place()
+        local range, h = self:GetVerticalScrollRange() or 0, self:GetHeight()
+        local show = range > 0.5 and self:IsVisible()
+        bar:SetShown(show)
+        if not show then return end
+        local size = math.max(24, h * h / (h + range))
+        local at = math.max(0, math.min(1, (self:GetVerticalScroll() or 0) / range))
+        bar:SetHeight(size)
+        bar:ClearAllPoints()
+        bar:SetPoint("TOPRIGHT", self, "TOPRIGHT", barX or 0, -(h - size) * at)
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local target = self:GetVerticalScroll() - delta * (step or 60)
+        self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), target)))
+        self:Place()
+    end)
+    -- The list got longer or shorter: keep it in range, and move the bar.
+    scroll:SetScript("OnScrollRangeChanged", function(self)
+        local range = self:GetVerticalScrollRange() or 0
+        if (self:GetVerticalScroll() or 0) > range then self:SetVerticalScroll(range) end
+        self:Place()
+    end)
+    scroll:SetScript("OnVerticalScroll", function(self) self:Place() end)
+    scroll:SetScript("OnShow", function(self) self:Place() end)
+    scroll:SetScript("OnHide", function(self) self:Place() end)
+    return scroll, child
 end
 
 -- A close cross for a title bar, drawn from two thin strokes.
@@ -437,7 +533,7 @@ end
 function Style.Card(parent, heading)
     local card = CreateFrame("Frame", nil, parent)
     Style.Fill(card, "well")
-    Style.Border(card, "line")
+    Style.Border(card, "cardLine")
     card.heading = Style.Text(card, 11, "muted", nil, true)
     card.heading:SetPoint("TOPLEFT", 12, -10)
     card.heading:SetText(heading:upper())

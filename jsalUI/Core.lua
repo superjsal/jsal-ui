@@ -42,7 +42,7 @@ end
 -- After an update and a /reload, code newer than the version the game
 -- started with means an update came in: a /reload was enough unless it
 -- added files since, which load only after a restart.
-ns.codeVersion = "0.3.28"
+ns.codeVersion = "0.3.29"
 ns.restartSince = "0.3.28"
 ns.startedVersion = Compat.Metadata(addonName, "Version") or ns.codeVersion
 ns.needsRestart = ns.Newer(ns.restartSince, ns.startedVersion)
@@ -171,6 +171,9 @@ end
 
 local function StartModules()
     for _, module in ipairs(ns.moduleOrder) do
+        -- Whether it was switched on as the game loaded: Settings compares
+        -- its switch with this, to say which changes wait for a reload.
+        module.wantedAtStart = ns.ModuleWanted(module)
         if ns.ModuleWanted(module) and type(module.OnEnable) == "function" then
             local ok, err = xpcall(function() module:OnEnable() end, Report)
             if ok then

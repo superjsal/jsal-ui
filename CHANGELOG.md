@@ -1,6 +1,18 @@
-# jsal.ui 0.3.28
+# jsal.ui 0.3.29
 
-Restart the game after updating: this version adds new files, and a /reload doesn't load those.
+Every page has been reworked to be easier to read: larger text, clearer headings, and each page now opens with what matters most. Nothing was taken away.
+
+- **Home is now Today.** A "Ready now" list of what's waiting for you: a trainer visit with its cost and a map pin, talent points to spend, a chess move, today's Daily Word and Icon Guess. Under it, a card each for your build, your gear, your professions and the dungeon for your level, each a click into its page. What's new is one line at the bottom.
+- **The menu shows what's waiting.** A gold number sits beside Training Planner, Build Planner, Games and Chess when there's something to do there. Gear plan and Dungeons have a small arrow, because they open in a window of their own. Install has moved to the bottom, with Report a problem and Settings.
+- **Settings.** One group to a tab, with what each part does written under its name instead of in a tooltip. A part's options open under it. A box at the top finds any part or option. When you flip a part's switch, a bar at the bottom lists what's waiting for a reload, with Undo and a Reload button.
+- **Training Planner.** The top says what's ready and what it costs, with the map pin beside it. Spells you've skipped fold into one line under your visit. A hunter's pet abilities are grouped by how you get them, and one your pet is already high enough for says "Any time" instead of a level it passed long ago.
+- **Gear plan.** The top counts the slots that can be better. Each slot shows what its best upgrade adds ("+16 AP") in place of the upgrade's name, which is in the slot's tooltip and beside the slots once you click one. Empty slots stand out, and each upgrade is a card with a clearer star.
+- **Profession panel.** Two tabs, "Your road" and "Recipes to learn", so the panel no longer runs off the bottom of the screen, and recipes get room for twelve at a time. A step's "needs" line is no longer cut short, and the have and need numbers line up.
+- **Profession road, where to buy a pattern.** With "Where recipes come from" switched on, a step of the road that needs a bought pattern names who sells it to you, where, and for how much, instead of only "Buy the pattern from a vendor".
+- **Every other page opens with a title that says where things stand:** "Leatherworking 51 of 150", "2 puzzles to play today", "Your move against Yari". Games has a card for each game with your record on it. Dungeons names the dungeon once, and ticks a boss only once you've killed it.
+- **Easier to read everywhere.** No text is smaller than 12px in the dashboard, the Gear plan or the Dungeons window, and text is a size up in the panels beside the game's windows. Rare and epic item names are a lighter blue and purple that read on the dark background. The chosen tab has a gold line under it, and a gold button is kept for a page's one main action. Every list that scrolls shows a bar.
+
+## In 0.3.28
 
 - **Where recipes come from** (new, off until you turn it on: Settings, Profession window, "Where recipes come from"). In the profession panel's "Not learned yet" list, the recipes your skill is high enough for now come first, under "Ready to learn", with the rest under "Later". Each one says where to get it: the vendor, their zone and the price; the quest; or the mob that drops it. Vendors are the ones that sell to your side, and limited stock is marked. Point at a recipe for every source, and click it for a map pin on the vendor. A recipe that drops from many mobs just says "World drop". 1,362 recipes and 193 vendors, from Wowhead's WoW Forever lists.
 

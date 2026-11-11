@@ -219,7 +219,7 @@ local function Build()
     knob:SetSize(2, 14)
     knob:SetColorTexture(Style.Color("text"))
 
-    note = Style.Text(bar, 11, "muted")
+    note = Style.Text(bar, 12, "muted")
     note:SetPoint("TOPLEFT", track, "BOTTOMLEFT", 0, -6)
 
     -- Land at the next flight point, on the note's line: a flight with
@@ -229,7 +229,7 @@ local function Build()
     land:SetPoint("TOPRIGHT", track, "BOTTOMRIGHT", 0, -4)
     Style.Fill(land, "well")
     land.edges = Style.Border(land, "lineStrong")
-    land.label = Style.Text(land, 11, "gold")
+    land.label = Style.Text(land, 12, "gold")
     land.label:SetPoint("CENTER")
     land:SetScript("OnEnter", function(self)
         Style.SetBorder(self.edges, "gold")

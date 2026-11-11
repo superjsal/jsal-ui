@@ -204,7 +204,7 @@ end
 
 local function Build()
     frame = Style.Panel("jsalUIIconGuess", 360, 440, "Icon Guess")
-    subtitle = Style.Text(frame, 11, "muted")
+    subtitle = Style.Text(frame, 12, "muted")
     subtitle:SetPoint("TOP", 0, -44)
     subtitle:SetJustifyH("CENTER")
 

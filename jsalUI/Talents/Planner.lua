@@ -68,10 +68,11 @@ Window.Page("build", function(page)
         end
     end
 
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", 0, -4)
-    lead:SetWidth(width - 220)
-    lead:SetText("Plan a build for any class, then follow it one point at a time.")
+    -- The top: the build that's open, with its main tree and points.
+    local title = Style.Text(page, 20, "text", nil, true)
+    title:SetPoint("TOPLEFT", 0, -1)
+    title:SetWidth(width - 220)
+    title:SetWordWrap(false)
 
     -- Top right: bring in a build from a code, or start a new one.
     local newBuild = Small(page, "New build", "plain", 100)
@@ -88,7 +89,7 @@ Window.Page("build", function(page)
         b:SetSize(classW, 26)
         b:SetPoint("TOPLEFT", (i - 1) * (classW + 6), -CLASSES_TOP)
         b.bg = Style.Fill(b, "well")
-        b.edges = Style.Border(b, "line")
+        b.edges = Style.Border(b, "cardLine")
         b.label = Style.Text(b, 12, "text", nil, true)
         b.label:SetPoint("CENTER")
         b.label:SetJustifyH("CENTER")
@@ -200,31 +201,8 @@ Window.Page("build", function(page)
     nameHint:Hide()
 
     -- The plan list scrolls with the mouse wheel; a thin bar shows where.
-    local scroll = CreateFrame("ScrollFrame", nil, view)
+    local scroll, list = Style.Scroller(view, rightW - 8, height - MAIN_TOP, nil, 7, STEP_H * 3)
     scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP))
-    scroll:SetSize(rightW - 8, height - MAIN_TOP)
-    local list = CreateFrame("Frame", nil, scroll)
-    list:SetSize(rightW - 8, 1)
-    scroll:SetScrollChild(list)
-    local thumb = view:CreateTexture(nil, "ARTWORK")
-    thumb:SetColorTexture(Style.Color("lineStrong"))
-    thumb:SetWidth(3)
-    local function PlaceThumb()
-        local range = scroll:GetVerticalScrollRange()
-        local h = scroll:GetHeight()
-        thumb:SetShown(range > 0)
-        if range <= 0 then return end
-        local size = math.max(24, h * h / (h + range))
-        thumb:SetHeight(size)
-        thumb:ClearAllPoints()
-        thumb:SetPoint("TOPRIGHT", scroll, "TOPRIGHT", 7, -(h - size) * scroll:GetVerticalScroll() / range)
-    end
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(self, delta)
-        local target = self:GetVerticalScroll() - delta * STEP_H * 3
-        self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), target)))
-        PlaceThumb()
-    end)
     local empty = Style.Text(list, 13, "muted")
     empty:SetPoint("TOPLEFT", 10, -10)
     empty:SetWidth(rightW - 30)
@@ -269,7 +247,7 @@ Window.Page("build", function(page)
     end
 
     local function PaintView()
-        viewHead.title:SetText(build.name:upper())
+        viewHead.title:SetText("THE PLAN, LEVEL BY LEVEL")
         local taken, nextIndex = Progress()
         local waiting = data.own and Compat.UnspentTalentPoints() or 0
         if data.own then
@@ -325,7 +303,7 @@ Window.Page("build", function(page)
             row.bg:SetShown(i % 2 == 1)
             local done = data.own and step.last <= taken
             local isNext = nextIndex and step.first <= nextIndex and nextIndex <= step.last
-            row:SetAlpha(done and 0.45 or 1)
+            row:SetAlpha(done and 0.6 or 1)
             if done then
                 row.state:SetText("Taken")
                 row.state:SetTextColor(Style.Color("muted"))
@@ -341,7 +319,7 @@ Window.Page("build", function(page)
         for i = #steps + 1, #stepRows do stepRows[i]:Hide() end
         list:SetHeight(math.max(1, #steps * STEP_H))
         scroll:UpdateScrollChildRect()
-        PlaceThumb()
+        scroll:Place()
     end
 
     ---------------------------------------------------------------------------
@@ -513,7 +491,7 @@ Window.Page("build", function(page)
                 chip = CreateFrame("Frame", nil, page)
                 chip:SetHeight(22)
                 Style.Fill(chip, "well")
-                chip.edges = Style.Border(chip, "line")
+                chip.edges = Style.Border(chip, "cardLine")
                 chip.level = Style.Text(chip, 11, "muted", nil, true)
                 chip.level:SetPoint("LEFT", 6, 0)
                 chip.text = Style.Text(chip, 11, "text")
@@ -535,7 +513,7 @@ Window.Page("build", function(page)
             chip:SetWidth(w)
             chip:ClearAllPoints()
             chip:SetPoint("TOPLEFT", levelHead, "BOTTOMLEFT", x, -8 - line * 26)
-            Style.SetBorder(chip.edges, i == nextIndex and "gold" or "line")
+            Style.SetBorder(chip.edges, i == nextIndex and "gold" or "cardLine")
             chip:Show()
             x = x + w + 4
         end
@@ -578,7 +556,7 @@ Window.Page("build", function(page)
         for _, b in ipairs(classButtons) do
             local on = b.classID == classID
             b.bg:SetShown(on)
-            Style.SetBorder(b.edges, on and "gold" or "line")
+            Style.SetBorder(b.edges, on and "gold" or "cardLine")
         end
         if not data then return end
         kept, ranks, spent = Tree.Replay(data, build.order or {})
@@ -600,7 +578,7 @@ Window.Page("build", function(page)
             local selected = b == build
             row.bg:SetShown(selected)
             row.mark:SetShown(selected)
-            row.name:SetTextColor(Style.Color(selected and "text" or "muted"))
+            row.name:SetTextColor(Style.Color(selected and "text" or "secondary"))
             row:Show()
         end
         for _, b in ipairs(builds) do Place(b) end
@@ -622,6 +600,7 @@ Window.Page("build", function(page)
         levelHead:SetShown(editing)
         more:SetShown(editing)
         for _, chip in ipairs(chips) do if not editing then chip:Hide() end end
+        title:SetText((editing and "Editing " or "") .. build.name .. "   |cff9a9688" .. Summary(build) .. "|r")
         if editing then PaintEditor() else PaintView() end
     end
 

@@ -271,7 +271,7 @@ BUILD.addons = function(page)
         end
         local state = ns.Installer.State()
         Add("EllesmereUI", "Bars, frames, minimap and damage meters",
-            state == "installed" and "|cff56944fSet up|r" or state == "missing" and "Not installed"
+            state == "installed" and (Style.Tint("green") .. "Set up|r") or state == "missing" and "Not installed"
             or state == "noProfile" and "Coming soon" or "On the previous step")
         for _, o in ipairs(OTHERS) do
             if Compat.AddOnExists(o.addon) then Add(o.label, o.note, "Coming soon") end
@@ -380,7 +380,7 @@ local function Show(i)
         b.bg:SetShown(n == current)
         b.mark:SetShown(n == current)
         b.num:SetText(n < current and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14|t" or tostring(n))
-        b.label:SetTextColor(Style.Color(n == current and "text" or "muted"))
+        b.label:SetTextColor(Style.Color(n == current and "text" or "secondary"))
     end
     local page = pages[STEPS[current].key]
     if page.Refresh then xpcall(page.Refresh, ns.Report) end
