@@ -6,8 +6,8 @@ local Style, Window = ns.Style, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
+    "Recipes you haven't learned can name their vendor, quest or drop (off: Settings, Profession window)",
     "Hunters: beast tooltips can say which pet ability taming one teaches (off: Settings, Leveling)",
-    "That line now names the exact rank, for more beasts and the new abilities",
     "The quick buttons no longer shift each minute as the time changes (0.3.26)",
 }
 
