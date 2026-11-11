@@ -455,14 +455,15 @@ local function SideNumber()
     return faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
 end
 
-function Gear.Plan(slot, spec)
+function Gear.Plan(slot, spec, only)
     local weights = Gear.Weights(spec)
     local level = UnitLevel("player") or 1
     local _, classFile, classID = UnitClass("player")
     -- What you wear: for rings and trinkets, the weaker of the two, as an
-    -- upgrade replaces that one.
+    -- upgrade replaces that one; or the one place asked for (`only`), when
+    -- the page gives each ring and trinket its own row.
     local worn
-    for _, equip in ipairs(slot.equip) do
+    for _, equip in ipairs(only and { only } or slot.equip) do
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
         local stats = link and Stats(link) or {}
         local score = link and Gear.Score(stats, weights, slot.dps) or 0

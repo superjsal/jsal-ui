@@ -10,7 +10,7 @@ local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 local WINDOW_W, WINDOW_H = 1000, 860
-local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 300, 45, 1, 36, 54, 20
+local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 300, 40, 1, 34, 54, 20
 local OPT_H, OPT_GAP = 62, 8   -- an upgrade's card, and the room between two
 local GAIN_W = 150             -- room for what an upgrade adds ("+14 AP, +3 Sta")
 local RED = Style.Tint("red")
@@ -262,7 +262,8 @@ Window.Page("gear", function(page)
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
     -- wear and the best upgrade.
     local slotFrames = {}
-    local function SlotButton(slot, x, y)
+    local function SlotButton(row, x, y)
+        local slot = row.slot
         local b = CreateFrame("Button", nil, page)
         b:SetSize(SLOT_W, SLOT_H)
         b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", x, -y)
@@ -276,7 +277,7 @@ Window.Page("gear", function(page)
         -- tooltip and beside the slots once it's chosen.
         b.label = Style.Text(b, 11, "muted")
         b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, -3)
-        b.label:SetText(slot.label:upper())
+        b.label:SetText(row.label:upper())
         b.gain = Style.Text(b, 12, "green", nil, true)
         b.gain:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -7)
         b.gain:SetJustifyH("RIGHT")
@@ -285,20 +286,33 @@ Window.Page("gear", function(page)
         b.worn:SetWidth(SLOT_W - ICON - 22)
         b.worn:SetJustifyH("LEFT")
         b.worn:SetWordWrap(false)
-        b.slot = slot
-        b.equip = slot.equip[1]
+        b.slot, b.row = slot, row
+        b.equip = row.equip
         Tooltip(b)
         b:SetScript("OnClick", function(self)
-            chosen = self.slot.key
+            chosen = self.row.key
             Paint()
         end)
-        slotFrames[slot.key] = b
+        slotFrames[row.key] = b
         return b
     end
-    local byKey = {}
-    for i, s in ipairs(G.SLOTS) do
-        byKey[s.key] = s
-        SlotButton(s, 0, top + (i - 1) * (SLOT_H + GAP))
+    -- A row for every place an item goes: both rings and both trinkets get
+    -- their own, numbered, as the character pane shows them.
+    local slotRows, byKey, firstRow = {}, {}, {}
+    for _, s in ipairs(G.SLOTS) do
+        for n, equip in ipairs(s.equip) do
+            local pair = #s.equip > 1
+            local row = {
+                slot = s, equip = equip,
+                key = pair and (s.key .. n) or s.key,
+                label = pair and ("%s %d"):format(s.label, n) or s.label,
+                empty = pair and s.empty:gsub("0Slot$", (n - 1) .. "Slot") or s.empty,
+            }
+            slotRows[#slotRows + 1] = row
+            byKey[row.key] = row
+            firstRow[s.key] = firstRow[s.key] or row.key
+            SlotButton(row, 0, top + (#slotRows - 1) * (SLOT_H + GAP))
+        end
     end
 
     -- Beside the slots: the chosen slot's plan.
@@ -412,7 +426,7 @@ Window.Page("gear", function(page)
         if ok then
             box:SetText("")
             box:ClearFocus()
-            chosen = slot.key
+            chosen = firstRow[slot.key]
             Paint()
         end
     end
@@ -467,20 +481,20 @@ Window.Page("gear", function(page)
         PaintWeights()
 
         local plans = {}
-        for _, s in ipairs(G.SLOTS) do plans[s.key] = G.Plan(s, spec) end
+        for _, row in ipairs(slotRows) do plans[row.key] = G.Plan(row.slot, spec, row.equip) end
         local better, checking = 0, false
         for key, b in pairs(slotFrames) do
             local plan = plans[key]
             local worn = plan.worn
             b.equip = worn.link and worn.equip or nil
-            b.title = b.slot.label
+            b.title = b.row.label
             local best = plan.options[1]
             if worn.link then
                 local name, _, quality, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
                 b.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
                 b.worn:SetText(Colored(name, quality))
             else
-                local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(b.slot.empty)
+                local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(b.row.empty)
                 b.icon:SetTexture(emptyTexture)
                 -- An empty slot with something to put in it is the easiest win.
                 b.worn:SetText(best and "|cffe3b04bEmpty|r" or "|cff9a9688Empty|r")
@@ -507,8 +521,8 @@ Window.Page("gear", function(page)
         end
 
         -- The chosen slot.
-        local slot, plan = byKey[chosen], plans[chosen]
-        wearHead:SetText(slot.label:upper() .. " · YOU WEAR")
+        local slot, plan = byKey[chosen].slot, plans[chosen]
+        wearHead:SetText(byKey[chosen].label:upper() .. " · YOU WEAR")
         local wornRow = Row(1)
         wornRow:ClearAllPoints()
         wornRow:SetPoint("TOPLEFT", 14, -18)
