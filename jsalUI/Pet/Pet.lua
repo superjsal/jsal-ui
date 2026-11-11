@@ -87,7 +87,9 @@ end
 ---------------------------------------------------------------------------
 local frame, pen, body, sprite, snore, line, message, walk
 local bars, care, heaps = {}, {}, {}
-local FILE = { stand = MEDIA .. "briarboar", step = MEDIA .. "briarboar_step" }
+-- Each form's pictures: standing, mid-step and asleep.
+local SPRITE = { "briarboar", "thornhog", "brambletusk" }
+local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
 local HEAP_AT = { 70, 180, 290, 370 }
 local said
 
@@ -98,10 +100,11 @@ local function PaintWalk()
     else
         sprite:SetTexCoord(0, 1, 0, 1)
     end
-    if sprite.file ~= walk.frame then
-        sprite.file = walk.frame
+    local file = MEDIA .. (SPRITE[Pet.State().form] or SPRITE[1]) .. SUFFIX[walk.frame]
+    if sprite.file ~= file then
+        sprite.file = file
         -- NEAREST keeps each of its 32 pixels a sharp square when drawn larger.
-        sprite:SetTexture(FILE[walk.frame], "CLAMP", "CLAMP", "NEAREST")
+        sprite:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
     end
     body:ClearAllPoints()
     body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
@@ -196,8 +199,8 @@ local function Build()
     pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
         local s = Pet.State()
         if s.asleep then
-            -- Asleep, it stays put.
-            walk.frame, walk.wait = "stand", math.max(walk.wait, 0.5)
+            -- Asleep, it stays put, eyes shut.
+            walk.frame, walk.wait = "sleep", math.max(walk.wait, 0.5)
         else
             -- A long hitch (a loading screen) shouldn't fling it across the pen.
             Pet.Step(walk, math.min(elapsed, 0.1), math.random)
