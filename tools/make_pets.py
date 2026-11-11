@@ -1,4 +1,6 @@
-"""Writes the companion's sprites to jsalUI/Media/Pet: each creature drawn from shapes on a
+"""Writes the companion's sprites: for each form, standing, mid-step and asleep.
+
+Writes the companion's sprites to jsalUI/Media/Pet: each creature drawn from shapes on a
 32 x 32 grid, shaded with the light from the upper left, and outlined in a dark tone of the
 colour beside it. Original creatures, drawn for jsal.ui.
 
@@ -92,7 +94,7 @@ class G:
         return im
 
 
-def briarboar(g, step=False):
+def briarboar(g, step=False, sleep=False):
     brown, dark, light, cream, pink = "#a8683c", "#7d4a2a", "#c98a55", "#f0dcb8", "#e59a8a"
     green, dgreen = "#5fae57", "#3f8f4a"
     # far ear, back ridge of leaf-thorns, tail
@@ -127,10 +129,92 @@ def briarboar(g, step=False):
     # little tusks
     g.R(5, 21, 5, 22, W); g.R(12, 22, 12, 23, W)
     # eyes: tall and dark, a white glint at the top
-    g.R(6, 15, 6, 17, K); g.P(6, 15, W)
-    g.R(12, 15, 13, 17, K); g.P(12, 15, W)
+    if sleep:
+        # asleep: each eye a closed line
+        g.P(6, 17, K); g.R(12, 17, 13, 17, K)
+    else:
+        g.R(6, 15, 6, 17, K); g.P(6, 15, W)
+        g.R(12, 15, 13, 17, K); g.P(12, 15, W)
     # a small smile
     g.P(9, 23, dark); g.P(10, 23, dark); g.P(11, 22, dark)
+
+
+def thornhog(g, step=False, sleep=False):
+    """The grown form: bigger, a longer ridge of four thorns, bigger tusks, a brow."""
+    brown, dark, light, cream, pink = "#a8683c", "#7d4a2a", "#c98a55", "#f0dcb8", "#e59a8a"
+    green, dgreen = "#5fae57", "#3f8f4a"
+    g.T(6, 11.5, 5, 6.5, 9.5, 9, brown)
+    g.T(15, 12, 17, 6, 19, 12, green)
+    g.T(18.5, 11.5, 21, 5.5, 23, 12, dgreen)
+    g.T(22, 12.5, 25, 7.5, 26.5, 14, green)
+    g.T(25.5, 15, 28.5, 11.5, 29, 17.5, dgreen)
+    g.P(29, 21, dark); g.P(30, 20, dark)
+    g.E(30.2, 18.4, 1.5, 1.5, green)
+    far, near, hind = ((7, 10, 29), (15, 18, 30), (22, 26, 30)) if step else ((8, 11, 30), (14, 17, 30), (23, 27, 30))
+    g.R(hind[0], 25, hind[1], hind[2], dark)
+    g.E(21, 19.5, 8.6, 7.6, brown)
+    g.R(far[0], 25, far[1], far[2], brown)
+    g.R(near[0], 26, near[1], near[2], brown)
+    g.T(12.5, 10, 16, 4.5, 17.5, 11.5, brown)
+    g.E(11.5, 16, 7.6, 7.4, light)
+    g.finish()
+    g.T(13.5, 10, 15.7, 6.4, 16.3, 10.8, pink)
+    g.E(9, 20.2, 4.4, 3.1, cream)
+    g.E(7.9, 19.8, 2.7, 2, pink)
+    g.P(6, 19, K); g.P(8, 19, K)
+    g.E(20.6, 25, 2, 1.6, cream)
+    for x0, x1, y in (far, near, hind):
+        g.R(x0, y, x1, y, dark)
+    g.R(4, 20, 5, 22, W); g.P(4, 19, W)
+    g.R(12, 21, 13, 23, W); g.P(13, 20, W)
+    if sleep:
+        g.P(5, 16, K); g.R(11, 16, 12, 16, K)
+    else:
+        g.R(5, 14, 5, 16, K); g.P(5, 14, W)
+        g.R(11, 14, 12, 16, K); g.P(11, 14, W)
+        g.P(4, 12, K); g.P(5, 13, K); g.P(6, 13, K)
+        g.P(10, 13, K); g.P(11, 13, K); g.P(12, 12, K); g.P(13, 12, K)
+    g.P(8, 22, dark); g.P(9, 22, dark); g.P(10, 22, dark)
+
+
+def brambletusk(g, step=False, sleep=False):
+    """Fully grown: three tall thorns tipped in pale wood, a dark crest, tusks that curve up."""
+    brown, dark, light, cream, pink = "#96592f", "#6b3f22", "#b97a48", "#ead2aa", "#d98a7a"
+    green, dgreen, thorn = "#4f9a52", "#2f7a3a", "#d9c48a"
+    g.T(5.5, 11, 4, 5.5, 9, 8.5, brown)
+    g.T(13.5, 10.5, 16.5, 1.5, 19.5, 10.5, dgreen)
+    g.T(18.5, 10, 22.5, 1, 25, 11, green)
+    g.T(24, 12, 28.5, 5, 29.5, 14.5, dgreen)
+    g.P(30, 21, dark); g.P(31, 20, dark)
+    far, near, hind = ((6, 10, 29), (15, 19, 30), (22, 27, 30)) if step else ((7, 11, 30), (14, 18, 30), (23, 28, 30))
+    g.R(hind[0], 25, hind[1], hind[2], dark)
+    g.E(21.5, 18.5, 9.5, 8.5, brown)
+    g.R(far[0], 25, far[1], far[2], brown)
+    g.R(near[0], 26, near[1], near[2], brown)
+    g.T(12, 9.5, 15.5, 3.5, 17.5, 11, brown)
+    g.E(11, 16, 8, 7.8, light)
+    g.T(8.5, 9.6, 10.5, 5, 12.5, 9.4, dark)
+    g.finish()
+    g.T(13.2, 9.6, 15.3, 5.6, 16.2, 10.3, pink)
+    g.E(8.5, 20.6, 4.8, 3.3, cream)
+    g.E(7.4, 20.2, 2.9, 2.1, pink)
+    g.P(5, 19, K); g.P(8, 19, K)
+    g.E(20.8, 25.6, 2, 1.4, cream)
+    for x0, x1, y in (far, near, hind):
+        g.R(x0, y, x1, y, dark)
+    for x, y in ((4, 23), (4, 22), (3, 22), (3, 21), (3, 20), (2, 20), (2, 19), (2, 18)):
+        g.P(x, y, W)
+    for x, y in ((12, 24), (12, 23), (13, 23), (13, 22), (13, 21), (14, 21), (14, 20), (14, 19)):
+        g.P(x, y, W)
+    g.P(16, 3, thorn); g.P(22, 2, thorn); g.P(28, 6, thorn)
+    if sleep:
+        g.P(5, 15, K); g.R(11, 15, 12, 15, K)
+    else:
+        g.R(5, 14, 5, 15, K); g.P(5, 14, W)
+        g.R(11, 14, 12, 15, K); g.P(11, 14, W)
+        g.P(3, 11, K); g.P(4, 12, K); g.P(5, 13, K); g.P(6, 13, K)
+        g.P(10, 13, K); g.P(11, 13, K); g.P(12, 12, K); g.P(13, 11, K)
+    g.P(8, 23, dark); g.P(9, 23, dark); g.P(10, 23, dark)
 
 
 def preview(g, path):
@@ -143,10 +227,11 @@ def preview(g, path):
 
 
 # Each file and how it's drawn.
-SPRITES = {
-    "briarboar": lambda g: briarboar(g),
-    "briarboar_step": lambda g: briarboar(g, step=True),
-}
+SPRITES = {}
+for _name, _draw in (("briarboar", briarboar), ("thornhog", thornhog), ("brambletusk", brambletusk)):
+    SPRITES[_name] = lambda g, d=_draw: d(g)
+    SPRITES[_name + "_step"] = lambda g, d=_draw: d(g, step=True)
+    SPRITES[_name + "_sleep"] = lambda g, d=_draw: d(g, sleep=True)
 
 if __name__ == "__main__":
     out = Path(__file__).resolve().parent.parent / "jsalUI" / "Media" / "Pet"
