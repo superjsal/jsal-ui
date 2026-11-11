@@ -18,7 +18,7 @@ local Window = ns.NewModule("profwindow", {
         { key = "unlearned", title = "Recipes not learned yet", default = true,
           note = "In the profession panel, with where each comes from; star the ones you want." },
         { key = "sources", title = "Where recipes come from", default = false,
-          note = "In that list: the ones you can learn now first, each with its vendor, quest or drop. Click one for a map pin." },
+          note = "In that list: the ones you can learn now first, each with its vendor, quest or drop; click one for a map pin. The road names the vendor too." },
         { key = "favorites", title = "Favourites at trainers", default = true,
           note = "At a profession trainer: your starred recipes it can teach you now." },
         { key = "timer", title = "Craft timer", default = true,
@@ -196,7 +196,7 @@ local function BuildTimer()
     timer.name = Style.Text(timer, 12, "text")
     timer.name:SetPoint("TOPLEFT", 74, -10)
     timer.name:SetWordWrap(false)
-    timer.count = Style.Text(timer, 11, "muted")
+    timer.count = Style.Text(timer, 12, "muted")
     timer.count:SetPoint("TOPRIGHT", timer.icon, "TOPLEFT", -10, 2)
     timer.count:SetJustifyH("RIGHT")
     timer.track = CreateFrame("Frame", nil, timer)

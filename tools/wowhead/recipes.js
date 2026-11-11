@@ -3,7 +3,7 @@
 // recipe lists (each item's quest, single vendor or single mob). Then the vendors: every vendor a
 // list names is read (its page has its side, zone, map spot and everything it sells, with prices);
 // a vendor recipe no vendor read so far sells has its own page read for its "Sold by" list, and
-// those vendors are read in turn. One page every 15 seconds, kept in localStorage ("jsalRecipes"),
+// those vendors are read in turn. Last, each quest that gives a recipe, for its side. One page every 15 seconds, kept in localStorage ("jsalRecipes"),
 // so after a Human Verification stop (John clears it in the pane) running it again carries on.
 // When all is in, it sends the result to tools/wowhead/receive.py (start that first). To start
 // afresh: localStorage.removeItem('jsalRecipes').
@@ -15,6 +15,7 @@ window.__recipes = { done: false, pages: 0, left: 0, last: '', err: null };
   let store;
   try { store = JSON.parse(localStorage.getItem('jsalRecipes') || '{}'); } catch (e) { store = {}; }
   store.lists = store.lists || {}; store.npcs = store.npcs || {}; store.items = store.items || {};
+  store.quests = store.quests || {};
   const save = () => localStorage.setItem('jsalRecipes', JSON.stringify(store));
   const page = async (u) => {
     const r = await fetch(u);
@@ -95,13 +96,22 @@ window.__recipes = { done: false, pages: 0, left: 0, last: '', err: null };
       save();
       for (const id of ids) wanted.add(id);
     }
+    // Each quest that gives a recipe: its side (1 Alliance, 2 Horde, 3 both), zone and level.
+    for (const p of PROFS) for (const it of store.lists[p]) for (const s of it[4]) {
+      if (s[1] !== 5 || !s[2] || store.quests[s[2]]) continue;
+      const t = await page('/forever/quest=' + s[2]);
+      const g = t.match(new RegExp('g_quests\\[' + s[2] + '\\], (\\{.*?\\})\\);'));
+      const info = g ? JSON.parse(g[1]) : {};
+      store.quests[s[2]] = [info.side || 0, info.category || 0, info.reqlevel || 0];
+      save();
+    }
   } catch (e) { __recipes.err = String(e.message || e); __recipes.done = true; return; }
   __recipes.done = true;
   const out = JSON.stringify({ fetched: FETCHED,
     fields: { lists: 'item, name, skill, source, sourcemore[name,type,id,zone,category]',
       npcs: 'n name, react [alliance, horde], loc zones, spot [uiMap, x, y], sells item: [copper, stock, other cost, standing]',
-      items: 'vendor recipe: the vendors on its own page' },
-    lists: store.lists, npcs: store.npcs, items: store.items });
+      items: 'vendor recipe: the vendors on its own page', quests: 'quest: [side, zone, level]' },
+    lists: store.lists, npcs: store.npcs, items: store.items, quests: store.quests });
   location.href = 'http://127.0.0.1:8799/#' + encodeURIComponent(out);
 })();
 'started; watch window.__recipes'

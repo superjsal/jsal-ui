@@ -19,6 +19,8 @@ OUT = ROOT / "jsalUI" / "Professions" / "RecipeSources.lua"
 
 LINES = {"alchemy": 171, "blacksmithing": 164, "enchanting": 333, "engineering": 202, "leatherworking": 165,
          "tailoring": 197, "cooking": 185, "first-aid": 129}
+# Vendors Wowhead places at a dungeon entrance with no zone: the zone they stand in.
+ZONE_FIX = {5783: 17, 2683: 1}
 PATTERN = re.compile(r"^(Pattern|Recipe|Plans|Schematic|Formula|Manual|Design): (.+)$")
 
 
@@ -51,6 +53,7 @@ def main():
         if spell in names:
             by_name.setdefault((line, names[spell]), spell)
 
+    quests = data.get("quests", {})
     sellers = {}
     for npc_id, npc in data["npcs"].items():
         for item, sale in npc["sells"].items():
@@ -76,7 +79,8 @@ def main():
             vendor_ids = {npc_id for npc_id, _ in vendors}
             for n, kind, ident, zone, category in more:
                 if kind == 5 and n and "q" not in entry:
-                    entry["q"] = (n, category if category > 0 else 0)
+                    quest = quests.get(str(ident)) or [0, 0, 0]
+                    entry["q"] = (n, category if category > 0 else 0, quest[0] if quest[0] in (1, 2) else 0)
                 elif kind in (1, 2) and n and ident not in vendor_ids and 2 in source and "d" not in entry:
                     entry["d"] = (n, zone)
             if 2 in source and "d" not in entry:
@@ -103,7 +107,7 @@ def main():
     ]
     for npc_id in sorted(used):
         npc = data["npcs"][str(npc_id)]
-        zone = npc["loc"][0] if npc["loc"] else 0
+        zone = ZONE_FIX.get(npc_id) or (npc["loc"][0] if npc["loc"] else 0)
         parts = [lua_string(npc["n"]), str(zone), str(side(npc["react"]))]
         if len(npc["spot"]) == 3 and npc["spot"][0]:
             parts += [str(npc["spot"][0]), str(npc["spot"][1]), str(npc["spot"][2])]
@@ -111,7 +115,7 @@ def main():
     lines += [
         "    },",
         "    -- A recipe, by its spell: v its vendors (vendor, price in copper, how many",
-        "    -- in stock or 0 for always), q its quest and zone, d the one mob or chest",
+        "    -- in stock or 0 for always), q its quest, zone and side, d the one mob or chest",
         "    -- that drops it and its zone, w when it drops from many.",
         "    recipes = {",
     ]
@@ -120,7 +124,7 @@ def main():
         if "v" in entry:
             parts.append("v = { " + ", ".join(str(x) for x in entry["v"]) + " }")
         if "q" in entry:
-            parts.append(f"q = {{ {lua_string(entry['q'][0])}, {entry['q'][1]} }}")
+            parts.append(f"q = {{ {lua_string(entry['q'][0])}, {entry['q'][1]}, {entry['q'][2]} }}")
         if "d" in entry:
             parts.append(f"d = {{ {lua_string(entry['d'][0])}, {entry['d'][1]} }}")
         if "w" in entry:
