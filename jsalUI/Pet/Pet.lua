@@ -297,14 +297,13 @@ local function Build()
     pen:SetPoint("TOPLEFT", PAD, -(32 + PAD))
     pen:SetClipsChildren(true)
     Style.Border(pen, "cardLine")
-    local ground = pen:CreateTexture(nil, "BACKGROUND")
-    ground:SetAllPoints()
-    ground:SetColorTexture(0.12, 0.165, 0.133)
-    local sky = pen:CreateTexture(nil, "BORDER")
-    sky:SetPoint("TOPLEFT")
-    sky:SetPoint("TOPRIGHT")
-    sky:SetHeight(60)
-    sky:SetColorTexture(0.137, 0.165, 0.212)
+    -- The meadow: pixel art at half the pen's size, so its pixels match the
+    -- creature's. It sits in the top left 170 by 100 of a 256 by 128 picture.
+    local scene = pen:CreateTexture(nil, "BACKGROUND")
+    scene:SetAllPoints()
+    scene:SetTexture(MEDIA .. "meadow", "CLAMP", "CLAMP", "NEAREST")
+    scene:SetTexCoord(0, 170 / 256, 0, 100 / 128)
+    Compat.Crisp(scene)
 
     -- Droppings: click one to scoop it.
     for i, x in ipairs(HEAP_AT) do
