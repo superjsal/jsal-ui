@@ -29,6 +29,10 @@ local PAGES = {
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
+    -- Only in the menu once its part is switched on: `when` is asked as the
+    -- dashboard is built, and a switch waits for a reload anyway.
+    { key = "pet", label = "Companion", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar",
+      when = function() return ns.Pet ~= nil and ns.Pet.running == true end },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
     -- Installing the look is done once, so it sits with the other rare ones.
     { key = "install", label = "Install", icon = OWN .. "install", bottom = true },
@@ -273,7 +277,10 @@ local function Build()
     for _, page in ipairs(PAGES) do
         MenuButton(menu, page)
         local b = page.button
-        if page.bottom then
+        if page.when and not page.when() then
+            -- A part that's off has no entry, and takes no room.
+            b:Hide()
+        elseif page.bottom then
             below = below - 1
             local up = 40 + below * (ITEM_HEIGHT + 2)
             b:SetPoint("BOTTOMLEFT", MENU_PAD, up)

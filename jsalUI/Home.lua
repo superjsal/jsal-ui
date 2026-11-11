@@ -262,10 +262,18 @@ function Today.NextLevelLines(info)
     return ("AT LEVEL %d"):format(info.level), main, table.concat(under, " · ")
 end
 
+-- Your companion, when it wants something from you: what to say, and its
+-- picture. Nil when it's fine, asleep, or the part is off.
+function Today.Pet()
+    return ns.Pet and ns.Pet.Wants() or nil
+end
+
 -- The number beside a menu entry: things to do there now.
 function Today.Badge(key)
     local n
-    if key == "training" then
+    if key == "pet" then
+        n = Today.Pet() and 1 or nil
+    elseif key == "training" then
         n = Today.Training()
     elseif key == "build" then
         n = Today.Talents()
@@ -311,6 +319,13 @@ local function Ready()
                 if nearest then ns.Trainers.Pin(nearest) else Window.Open("training") end
             end,
         })
+    end)
+
+    Try(function()
+        local wants = Today.Pet()
+        if not wants then return end
+        Add({ texture = wants.texture, title = wants.title, sub = wants.sub,
+            button = "Open", click = function() Window.Open("pet") end })
     end)
 
     Try(function()
@@ -528,7 +543,8 @@ Window.Page("home", function(page)
         local ready = Ready()
         for i, item in ipairs(ready) do
             local r = Row(i)
-            r.icon:SetTexture(OWN .. item.icon)
+            -- One of jsal.ui's icons, or a picture of its own (the companion's).
+            r.icon:SetTexture(item.texture or (OWN .. item.icon))
             r.title:SetText(item.title)
             r.sub:SetText(item.sub or "")
             r.value:SetText(item.value or "")
