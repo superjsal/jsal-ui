@@ -2,11 +2,10 @@
 -- when taming it teaches a pet ability rank that isn't in your Beast
 -- Training yet ("Tame to learn: Bite (Rank 3)"), and a grey one when the
 -- beast is still above your level. A beast with nothing new gets no line.
--- Which beasts carry which ability comes from Wowhead Forever (TameData.lua).
--- It lists several ranks for most beasts, since a beast's level varies; the
--- rank named is the highest of them a pet of the beast's level can know.
--- Wowhead has abilities for about half the tameable beasts, so no line
--- doesn't always mean nothing to learn.
+-- Which beasts carry which rank comes from Petopia's Forever lists
+-- (TameData.lua): each beast there has one rank of each ability it carries.
+-- A beast Petopia doesn't list gets no line, so no line doesn't always mean
+-- nothing to learn.
 -- what you have comes from your Beast Training list, saved each time you
 -- open it, and from the spells the game says you know. Inside a dungeon the
 -- game hides which creature you're pointing at, so there's no line there.
@@ -23,19 +22,17 @@ ns.TameTip = TameTip
 
 local HUNTER = 3
 
--- Every family ability by the pet's own spell: the Beast Training spell that
--- teaches it, the pet level it needs and its rank. The abilities every family shares come from pet
--- trainers, not from taming, so they're left out.
+-- Every pet ability by the pet's own spell: the Beast Training spell that
+-- teaches it and its rank. Most of what every family shares comes from pet
+-- trainers, but not all (Cower is tamed), so the beast list decides.
 local index
 local function Index()
     if index then return index end
     index = {}
     local source = ns.SpellData and ns.SpellData[HUNTER]
-    for family, list in pairs(source and source.families or {}) do
-        if family ~= "*" then
-            for _, entry in ipairs(list) do
-                index[entry[1]] = { pet = entry[1], beast = entry[2], level = entry[3], rank = entry[4] }
-            end
+    for _, list in pairs(source and source.families or {}) do
+        for _, entry in ipairs(list) do
+            index[entry[1]] = { pet = entry[1], beast = entry[2], rank = entry[4] }
         end
     end
     return index
@@ -62,15 +59,13 @@ local function Have(name, entry, listed)
     return (IsPlayerSpell and IsPlayerSpell(entry.beast)) or listed[name .. "|" .. RankText(entry.rank)] ~= nil
 end
 
--- What taming this creature at this level would teach you: a list of
--- { name, rank }, and whether your Beast Training has been seen (before
--- that, only the spells the game says you know count as yours). Nil for a
--- creature that isn't a beast you can tame, or whose level isn't known. Of
--- the ranks a beast is listed with, it has the highest its level allows;
--- a rank below one you have isn't new.
-function TameTip.New(npc, level)
+-- What taming this creature would teach you: a list of { name, rank }, and
+-- whether your Beast Training has been seen (before that, only the spells
+-- the game says you know count as yours). Nil for a creature that isn't a
+-- listed beast. A rank below one you have isn't new.
+function TameTip.New(npc)
     local carries = ns.TameData and ns.TameData[npc]
-    if not (carries and level and level > 0) then return nil end
+    if not carries then return nil end
     local saved = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
     local listed = saved and type(saved.rows) == "table" and saved.rows or {}
     local all = Index()
@@ -78,7 +73,7 @@ function TameTip.New(npc, level)
     for _, spell in ipairs(carries) do
         local entry = all[spell]
         local name = entry and Name(spell)
-        if name and entry.level <= level and (not best[name] or entry.rank > best[name].rank) then best[name] = entry end
+        if name and (not best[name] or entry.rank > best[name].rank) then best[name] = entry end
     end
     local new = {}
     for name, entry in pairs(best) do
@@ -110,10 +105,7 @@ function TameTip.Lines(tooltip, guid)
     local unit = "mouseover"
     local over = UnitExists(unit) and Compat.GUID(unit) or nil
     if not guid then guid = over end
-    -- The level is read from the creature under the mouse, so a tooltip
-    -- about any other creature gets no line.
-    local level = guid == over and Compat.Plain(UnitLevel(unit)) or nil
-    local new, checked = TameTip.New(Creature(guid), level)
+    local new, checked = TameTip.New(Creature(guid))
     if not (new and #new > 0) then return end
     local parts = {}
     for i, a in ipairs(new) do
@@ -122,9 +114,11 @@ function TameTip.Lines(tooltip, guid)
     local r, g, b = Style.Color("gold")
     tooltip:AddLine("Tame to learn: " .. table.concat(parts, ", "), r, g, b, true)
     local mr, mg, mb = Style.Color("muted")
-    -- You can tame a beast of your level or below.
+    -- You can tame a beast of your level or below. Its level is read from
+    -- the creature under the mouse, when that's the one the tooltip is about.
+    local level = guid == over and Compat.Plain(UnitLevel(unit)) or nil
     local mine = UnitLevel("player")
-    if mine and level > mine then
+    if level and mine and level > mine then
         tooltip:AddLine("Tameable at level " .. level, mr, mg, mb)
     end
     if not checked then
