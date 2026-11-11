@@ -55,12 +55,11 @@ local function GroupOf(d)
     return #GROUPS - 1
 end
 
-local QUALITY_HEX ={ [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000" }
-local GREEN = "|cff56944f"
+local GREEN = Style.Tint("green")
 
 -- The side of the world its entrance is on, in that faction's colour; a
 -- dungeon only one faction can enter says so. Contested ones say nothing.
-local SIDE_COLOR = { Horde = "|cffd65151", Alliance = "|cff5b9be6" }
+local SIDE_COLOR = { Horde = Style.Tint("red"), Alliance = "|cff5b9be6" }
 local function SideText(d)
     local side = d.faction or d.side
     if not side then return nil end
@@ -82,21 +81,7 @@ local function ForYou(classID, subclassID, equipLoc)
     local _, classFile = UnitClass("player")
     return ns.Gear.ForClass(classFile, UnitLevel("player") or 1, classID, subclassID, equipLoc)
 end
-local RED = "|cffd65151"
-
-local function Scroller(parent, width, height)
-    local scroll = CreateFrame("ScrollFrame", nil, parent)
-    scroll:SetSize(width, height)
-    local child = CreateFrame("Frame", nil, scroll)
-    child:SetSize(width - 8, 1)
-    scroll:SetScrollChild(child)
-    scroll:EnableMouseWheel(true)
-    scroll:SetScript("OnMouseWheel", function(self, delta)
-        local target = self:GetVerticalScroll() - delta * 60
-        self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), target)))
-    end)
-    return scroll, child
-end
+local RED = Style.Tint("red")
 
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
@@ -138,7 +123,7 @@ Window.Page("dungeons", function(page)
     Style.Fill(drop, "titleBar")
     Style.Border(drop, "lineStrong")
     drop:Hide()
-    local listScroll, list = Scroller(drop, DROP_W - 12, DROP_H - 12)
+    local listScroll, list = Style.Scroller(drop, DROP_W - 12, DROP_H - 12, DROP_W - 20)
     listScroll:SetPoint("TOPLEFT", 6, -6)
     local rowW = DROP_W - 20
     local rows = {}
@@ -155,7 +140,7 @@ Window.Page("dungeons", function(page)
         local h = CreateFrame("Button", nil, list)
         h:SetSize(rowW, HEAD_H)
         Style.Fill(h, "well")
-        Style.Border(h, "line")
+        Style.Border(h, "cardLine")
         h.sign = Style.Text(h, 14, "gold", nil, true)
         h.sign:SetPoint("LEFT", 10, 0)
         h.label = Style.Text(h, 12, "gold", nil, true)
@@ -203,20 +188,18 @@ Window.Page("dungeons", function(page)
     local right = CreateFrame("Frame", nil, page)
     right:SetPoint("TOPLEFT", picker, "BOTTOMLEFT", 0, -16)
     right:SetSize(rightW, height - PICKER_H - 16)
-    local title = Style.Text(right, 20, "text", nil, true)
-    title:SetPoint("TOPLEFT")
-    title:SetWidth(rightW)
-    title:SetJustifyH("LEFT")
+    -- The picker above is the dungeon's name; under it, its level, where it
+    -- is, and how many of its bosses you've killed.
     local meta = Style.Text(right, 13, "muted")
-    meta:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+    meta:SetPoint("TOPLEFT")
     meta:SetWidth(rightW)
     meta:SetJustifyH("LEFT")
     -- Two tabs: the bosses with their loot, and the dungeon's quests.
     local tab = "bosses"
     local tabs = {}
     for k, t in ipairs({ { "bosses", "Bosses and loot", 150 }, { "quests", "Quests", 120 } }) do
-        local b = Style.Button(right, t[2], "plain", t[3])
-        b:SetPoint("TOPLEFT", k == 1 and 0 or 156, -52)
+        local b = Style.Button(right, t[2], "tab", t[3])
+        b:SetPoint("TOPLEFT", k == 1 and 0 or 156, -28)
         b:SetScript("OnClick", function()
             tab = t[1]
             Paint()
@@ -224,10 +207,10 @@ Window.Page("dungeons", function(page)
         tabs[t[1]] = b
     end
     local hint = Style.Text(right, 12, "muted")
-    hint:SetPoint("TOPRIGHT", 0, -60)
+    hint:SetPoint("TOPRIGHT", 0, -36)
     hint:SetJustifyH("RIGHT")
-    local bossScroll, bossList = Scroller(right, rightW + 8, height - PICKER_H - 16 - 92)
-    bossScroll:SetPoint("TOPLEFT", 0, -92)
+    local bossScroll, bossList = Style.Scroller(right, rightW + 8, height - PICKER_H - 16 - 68, rightW)
+    bossScroll:SetPoint("TOPLEFT", 0, -68)
     local bossRows, questRows = {}, {}
     local none = Style.Text(bossList, 13, "muted")
     none:SetWidth(rightW - 36)
@@ -256,7 +239,7 @@ Window.Page("dungeons", function(page)
         local b = CreateFrame("Frame", nil, bossList)
         b:SetSize(cardW, BOSS_H)
         Style.Fill(b, "well")
-        Style.Border(b, "line")
+        Style.Border(b, "cardLine")
         b.head = CreateFrame("Frame", nil, b)
         b.head:SetPoint("TOPLEFT")
         b.head:SetPoint("TOPRIGHT")
@@ -424,7 +407,7 @@ Window.Page("dungeons", function(page)
             it.item = entry.id
             local name, _, quality, _, req, _, subclass, _, equipLoc, texture, classID, subclassID = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
-            it.name:SetText(("|cff%s%s|r"):format(QUALITY_HEX[q] or "ffffff", name or entry.item.n or "..."))
+            it.name:SetText(("|cff%s%s|r"):format(Style.Quality(q), name or entry.item.n or "..."))
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
             local parts = {}
             if entry.chance or entry.guessed then parts[#parts + 1] = ("%d%%"):format(entry.chance or entry.guessed) end
@@ -434,7 +417,7 @@ Window.Page("dungeons", function(page)
             -- Too high for you yet: its level, in red.
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
             -- Not for your class or armor type: dimmed.
-            it:SetAlpha(ForYou(classID, subclassID, equipLoc) == false and 0.4 or 1)
+            it:SetAlpha(ForYou(classID, subclassID, equipLoc) == false and 0.55 or 1)
             if entry.guild then
                 parts[#parts + 1] = ("guild %d of %d"):format(entry.guild, guildKills)
             elseif (entry.item.seen or 0) > 0 then
@@ -541,7 +524,6 @@ Window.Page("dungeons", function(page)
         local d = chosen
         if not d then return end
         pickerName:SetText(d.name)
-        title:SetText(d.name)
         local killed = 0
         for _, b in ipairs(d.bosses) do
             if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
@@ -560,8 +542,8 @@ Window.Page("dungeons", function(page)
             if not side or side == faction then quests[#quests + 1] = q end
         end
         tabs.quests:SetLabel(#quests > 0 and ("Quests (%d)"):format(#quests) or "Quests")
-        tabs.bosses:SetKind(tab == "bosses" and "primary" or "plain")
-        tabs.quests:SetKind(tab == "quests" and "primary" or "plain")
+        tabs.bosses:SetSelected(tab == "bosses")
+        tabs.quests:SetSelected(tab == "quests")
         local by = 0
         if tab == "quests" then
             hint:SetText(#quests > 0 and "hover one for its details" or "")
@@ -581,9 +563,15 @@ Window.Page("dungeons", function(page)
                 end
                 row.detail:SetText(table.concat(bits, " · "))
                 row.level:SetText(("Level %d"):format(q[3]))
-                row.boxFill:SetShown(done)
-                row.tick:SetShown(done)
-                Style.SetBorder(row.boxEdges, done and "wordGreen" or "lineStrong")
+                row.box:SetShown(done)
+                -- Without a tick the name starts at the row's edge.
+                row.name:ClearAllPoints()
+                if done then
+                    row.name:SetPoint("TOPLEFT", row.box, "TOPRIGHT", 10, 4)
+                else
+                    row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 8, -12)
+                end
+                Style.SetBorder(row.boxEdges, "wordGreen")
                 row:Show()
                 by = by + QUEST_H
             end
@@ -610,9 +598,15 @@ Window.Page("dungeons", function(page)
             local n = D.KillCount(b[2], game, b[3])
             card.name:SetText(b[3] or b[2])
             card.kills:SetText(n > 0 and ("killed %d×"):format(n) or "")
-            card.boxFill:SetShown(n > 0)
-            card.tick:SetShown(n > 0)
-            Style.SetBorder(card.boxEdges, n > 0 and "wordGreen" or "lineStrong")
+            card.box:SetShown(n > 0)
+            -- Without a tick the name starts at the card's edge, over its loot.
+            card.name:ClearAllPoints()
+            if n > 0 then
+                card.name:SetPoint("LEFT", card.box, "RIGHT", 10, 0)
+            else
+                card.name:SetPoint("LEFT", card.head, "LEFT", 12, 0)
+            end
+            Style.SetBorder(card.boxEdges, "wordGreen")
             local h = PaintLoot(card, b[2], b[1])
             card:SetHeight(h)
             card:ClearAllPoints()

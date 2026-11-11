@@ -126,10 +126,14 @@ local function LookText()
 end
 
 Window.Page("install", function(page)
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    lead:SetWidth(Window.contentWidth)
+    local title, lead = Window.Header(page, Window.contentWidth)
     lead:SetText("The jsal.ui look is an EllesmereUI profile. Installing it takes one click and a reload.")
+    -- The title: where things stand, in a few words.
+    local HEADLINES = {
+        missing = "EllesmereUI isn't installed", off = "EllesmereUI is turned off", old = "EllesmereUI needs an update",
+        noProfile = "The look isn't in this version yet", ready = "The jsal.ui look is ready to install",
+        update = "A newer jsal.ui look is ready", installed = "You're on the jsal.ui look",
+    }
 
     local card = Style.Card(page, "Status")
     card:SetSize(Window.contentWidth, 88)
@@ -161,6 +165,7 @@ Window.Page("install", function(page)
 
     local function Paint()
         local state = Installer.State()
+        title:SetText(done and "Installed: reload to switch to it" or HEADLINES[state] or "The jsal.ui look")
         ellesmere:SetText(EllesmereText(state))
         look:SetText(LookText())
         message:SetText(done and FINISH or Installer.Message(state))

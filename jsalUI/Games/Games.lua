@@ -26,64 +26,77 @@ function Games.Random(seed)
     end
 end
 
--- The Today card on Home and Games: one row per daily game, with its state
--- and a button to play or see the result.
-function Games.TodayCard(parent, width, height)
-    local card = Style.Card(parent, "Today")
-    card:SetSize(width, height)
-    local rows = {}
-    local GAMES = {
-        { label = "Daily Word", game = function() return ns.DailyWord end },
-        { label = "Icon Guess", game = function() return ns.IconGuess end },
-    }
-    for i, entry in ipairs(GAMES) do
-        local top = -34 - (i - 1) * 44
-        local name = Style.Text(card, 13, "text")
-        name:SetPoint("TOPLEFT", 12, top)
-        name:SetText(entry.label)
-        local state = Style.Text(card, 11, "muted")
-        state:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -4)
-        state:SetWidth(width - 140)
-        local play = Style.Button(card, "Play", "plain", 96)
-        play:SetPoint("TOPRIGHT", -12, top + 4)
-        play:SetScript("OnClick", function() entry.game().Open() end)
-        rows[i] = { entry = entry, state = state, play = play }
-    end
-    function card:Refresh()
-        self.heading:SetText(("TODAY · #%d"):format(Games.Today()))
-        for _, row in ipairs(rows) do
-            local game = row.entry.game()
-            row.state:SetText(game.Status())
-            row.play:SetLabel(game.DailyDone() and "Result" or "Play")
-        end
-    end
-    return card
+-- The Games page: a card for each daily game, with how today's stands, your
+-- record, and a button to play it or see how it went.
+local GAMES = {
+    { label = "Daily Word", icon = "word", game = function() return ns.DailyWord end },
+    { label = "Icon Guess", icon = "icons", game = function() return ns.IconGuess end, practice = true },
+}
+
+-- A game's record without its own name in front ("Daily Word: 1 played"
+-- under a card that already says Daily Word).
+local function Tidy(text)
+    text = (text or ""):gsub("^[^:]+:%s*", "")
+    return (text:gsub("^%l", string.upper))
 end
 
 Window.Page("games", function(page)
-    local lead = Style.Text(page, 13, "muted")
-    lead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    lead:SetWidth(Window.contentWidth)
-    lead:SetText("Play any time, or when a flight starts. Each day's puzzles are the same for everyone, so you can compare with your guild.")
+    local width = Window.contentWidth
+    local CARD_H, PAD = 104, 14
+    local title, sub = Window.Header(page, width)
+    sub:SetText("Each day's puzzles are the same for everyone, so you can compare with your guild. They're offered when a flight starts, too.")
 
-    local half = (Window.contentWidth - 12) / 2
-    local today = Games.TodayCard(page, half, 128)
-    today:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", 0, -16)
-
-    local stats = Style.Card(page, "Your record")
-    stats:SetSize(half, 128)
-    stats:SetPoint("TOPLEFT", today, "TOPRIGHT", 12, 0)
-    local record = Style.Text(stats, 13, "text")
-    record:SetPoint("TOPLEFT", stats.heading, "BOTTOMLEFT", 0, -10)
-    record:SetWidth(half - 24)
-    record:SetSpacing(4)
-
-    local practice = Style.Button(page, "Icon Guess practice", "plain", 180)
-    practice:SetPoint("TOPLEFT", today, "BOTTOMLEFT", 0, -16)
-    practice:SetScript("OnClick", function() ns.IconGuess.Practice() end)
+    local cards = {}
+    for i, entry in ipairs(GAMES) do
+        local c = CreateFrame("Frame", nil, page)
+        c:SetSize(width, CARD_H)
+        c:SetPoint("TOPLEFT", sub, "BOTTOMLEFT", 0, -(18 + (i - 1) * (CARD_H + 12)))
+        Style.Fill(c, "well")
+        Style.Border(c, "cardLine")
+        local icon = c:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(40, 40)
+        icon:SetPoint("TOPLEFT", PAD, -PAD)
+        icon:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Icons\\" .. entry.icon)
+        local name = Style.Text(c, 15, "text", nil, true)
+        name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 14, 0)
+        name:SetText(entry.label)
+        c.state = Style.Text(c, 13, "text")
+        c.state:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -4)
+        c.record = Style.Text(c, 12, "muted")
+        c.record:SetPoint("BOTTOMLEFT", PAD, PAD)
+        c.record:SetWidth(width - PAD * 2)
+        c.record:SetJustifyH("LEFT")
+        c.record:SetWordWrap(false)
+        c.play = Style.Button(c, "Play", "plain", 124)
+        c.play:SetHeight(30)
+        c.play:SetPoint("TOPRIGHT", -PAD, -PAD)
+        c.play:SetScript("OnClick", function() entry.game().Open() end)
+        if entry.practice then
+            c.practice = Style.Button(c, "Practice", "plain", 100)
+            c.practice:SetHeight(30)
+            c.practice:SetPoint("RIGHT", c.play, "LEFT", -8, 0)
+            c.practice:SetScript("OnClick", function() entry.game().Practice() end)
+        end
+        cards[i] = c
+    end
 
     page.Refresh = function()
-        today:Refresh()
-        record:SetText(ns.DailyWord.Record() .. "\n" .. ns.IconGuess.Record())
+        local left = 0
+        for i, entry in ipairs(GAMES) do
+            local game, c = entry.game(), cards[i]
+            local on = game ~= nil and game.running == true
+            local done = on and game.DailyDone() and true or false
+            c.state:SetText(game and game.Status() or "Turned off in Settings")
+            c.state:SetTextColor(Style.Color(on and "text" or "muted"))
+            c.record:SetText(game and Tidy(game.Record()) or "")
+            c.play:SetLabel(done and "Result" or "Play")
+            -- Gold marks the first one still to play, and only that one.
+            c.play:SetKind((on and not done and left == 0) and "primary" or "plain")
+            c.play:SetEnabled(on)
+            if c.practice then c.practice:SetEnabled(on) end
+            if on and not done then left = left + 1 end
+        end
+        title:SetText((left == 0 and "Today's puzzles are done" or (left == 1 and "1 puzzle left today" or (left .. " puzzles to play today")))
+            .. ("   |cff9a9688#%d|r"):format(Games.Today()))
     end
 end)

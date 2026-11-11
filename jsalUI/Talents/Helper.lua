@@ -52,7 +52,7 @@ local function Build()
     text = Style.Text(toast, 13, "text")
     text:SetPoint("TOPLEFT", 14, -12)
     text:SetWidth(392)
-    why = Style.Text(toast, 11, "gold")
+    why = Style.Text(toast, 12, "gold")
     why:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -4)
     why:SetWidth(392)
 
