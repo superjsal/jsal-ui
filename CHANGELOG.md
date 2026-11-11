@@ -1,4 +1,10 @@
-# jsal.ui 0.3.31
+# jsal.ui 0.3.32
+
+Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
+
+- **Gear plan: a row for each ring and each trinket.** The list had one "Finger" row and one "Trinket" row standing for two slots each, so with both trinket slots empty it looked as if one was missing. Each slot now has its own row (Finger 1, Finger 2, Trinket 1, Trinket 2), showing what's in it and its own best upgrade. The rows are a little shorter so all seventeen fit, and the count at the top now counts each of those slots on its own.
+
+## In 0.3.31
 
 Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
 
