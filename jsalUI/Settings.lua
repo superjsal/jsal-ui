@@ -15,7 +15,7 @@ local SWITCH_W, OPTIONS_W = 36, 86
 
 -- Where each part goes. A part not listed joins the last group.
 local GROUPS = {
-    { title = "Games", width = 100, keys = { "dailyword", "iconguess", "chess", "flight", "guild" } },
+    { title = "Games", width = 100, keys = { "dailyword", "iconguess", "chess", "flight", "guild", "pet" } },
     { title = "Leveling", width = 110, keys = { "talents", "trainingpanel", "tametip", "nextlevel", "levelup", "journal", "dungeons", "gear" } },
     { title = "Professions", width = 130, keys = { "professionpanel", "profwindow", "shopping", "crafters" } },
     { title = "Around the UI", width = 150, keys = { "launcher", "minimap", "vendor", "warnings", "waypoint", "menubar", "bagbutton", "rangecheck", "foodtile", "sharedFonts" } },
