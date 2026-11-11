@@ -1,6 +1,12 @@
-# jsal.ui 0.3.25
+# jsal.ui 0.3.26
 
-Coming from 0.3.19 or earlier, restart the game after updating: 0.3.20 added a new file. From 0.3.20, a /reload is enough.
+Restart the game after updating: this version adds new files, and a /reload doesn't load those.
+
+- **Pet abilities on beasts (new, for hunters, off until you turn it on):** in Settings, under Leveling, switch on "Pet abilities on beasts". A beast's tooltip then gets a gold line, "Tame to learn: Bite (Rank 3)", when taming it would teach your pets an ability rank that isn't in your Beast Training yet, and a grey "Tameable at level 24" when the beast is still above your level. A beast with nothing new for you gets no line. Open Beast Training once so jsal.ui knows what you already have. Which beasts carry which ability comes from Wowhead, which has it for about half the beasts you can tame, so no line doesn't always mean nothing to learn; and there's no line inside dungeons, where the game hides which creature you're pointing at.
+- **Quick buttons:** the bar no longer changes width, and its buttons no longer shift, each minute as the time changes. The time now has room for its widest digits and sits in the middle of it.
+- **Hardening:** the food reminder and the crafting timer step around buff and cast details the game can hide, instead of risking an error.
+
+## In 0.3.25
 
 - **Fixed:** an error in a dungeon ("a secret string value", from the Journal) that switched the Journal off until the next reload, so loot, levels and deaths after it went unrecorded. Inside a dungeon the game hides chat lines and names from addons; every part of jsal.ui that listens to the game now steps around hidden ones.
 - **Fixed:** a quick button, usually the j, sometimes went invisible until a reload. The bar now notices within a second and puts it back, rebuilding the button if it has to. If one ever stays gone, `/jsal bar` repairs it and saves what it saw for a bug report.
