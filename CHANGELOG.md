@@ -1,4 +1,10 @@
-# jsal.ui 0.3.30
+# jsal.ui 0.3.31
+
+Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
+
+- **Next level on Today** (new, off until you turn it on: Settings, Leveling, "Next level on Today"). Three short lines at the right of Today's title say what your next level brings: the talent your plan takes with that level's point, the trainer visit with its cost, and whether the gold you have covers it ("enough", or how much you're short). A dungeon that becomes right for you and a profession rank you can train are named when they land on that level. When the next level has nothing to buy, it names the next trainer visit instead. A price no trainer has shown you yet makes the total read "from".
+
+## In 0.3.30
 
 Coming from 0.3.27 or earlier, restart the game after updating: 0.3.28 added new files. From 0.3.28, a /reload is enough.
 

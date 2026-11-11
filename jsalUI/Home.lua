@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Every page is easier to read: larger text, and each one opens with what matters most",
+    "Today can show what your next level brings and whether your gold covers it (off: Settings, Leveling)",
+    "Every page is easier to read: larger text, and each one opens with what matters most (0.3.29)",
     "This page is now Today, and the menu shows a gold number where something's waiting",
-    "Settings says what each part does, finds one by name, and has a Reload button when changes wait",
 }
 
 local function NewsWanted()
