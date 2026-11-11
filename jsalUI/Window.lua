@@ -30,9 +30,11 @@ local PAGES = {
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
     -- Only in the menu once its part is switched on: `when` is asked as the
-    -- dashboard is built, and a switch waits for a reload anyway.
+    -- dashboard is built, and a switch waits for a reload anyway. It has a
+    -- small window of its own rather than a page here: `open` shows that.
     { key = "pet", label = "Companion", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar",
-      when = function() return ns.Pet ~= nil and ns.Pet.running == true end },
+      when = function() return ns.Pet ~= nil and ns.Pet.running == true end,
+      open = function() ns.Pet.Open() end },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
     -- Installing the look is done once, so it sits with the other rare ones.
     { key = "install", label = "Install", icon = OWN .. "install", bottom = true },
@@ -370,6 +372,7 @@ end
 
 function Window.Open(key)
     local page = byKey[key] or byKey.home
+    if page.open then return page.open() end
     if page.own and page.build then return OpenOwn(page) end
     if Compat.InCombat() then
         return ns.Print("The dashboard opens once combat ends.")
