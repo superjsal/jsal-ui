@@ -55,6 +55,27 @@ function Rules.Mood(s)
     return "bored", "Bored"
 end
 
+-- The one thing it most wants from you right now: a word for the code, a
+-- line to show and a line under it. Nil when it's fine, and while it
+-- sleeps: a sleeping pet wants leaving alone.
+function Rules.Wants(s)
+    if s.sick then
+        return "poorly", s.name .. " is poorly", "Medicine mends it at once; a few hours' rest does too"
+    end
+    if s.asleep then return nil end
+    if s.droppings > 0 then
+        return "scoop", s.name .. "'s pen needs scooping", "Left lying, it slowly dirties the pen"
+    end
+    if s.hunger < 35 then
+        local meals = s.supplies.meal or 0
+        return "hungry", s.name .. " is hungry",
+            meals > 0 and ("You have %d meal%s"):format(meals, meals == 1 and "" or "s") or "No meals left: hand in a quest for one"
+    end
+    if s.clean < 35 then return "dirty", s.name .. " needs a bath", "A bath makes it spotless" end
+    if s.fun < 25 then return "bored", s.name .. " is bored", "A pat costs nothing" end
+    return nil
+end
+
 -- The form it has grown into: 1 hatchling, 2 grown, 3 fully grown.
 function Rules.FormFor(good)
     return good >= Rules.FULL and 3 or good >= Rules.GROWN and 2 or 1

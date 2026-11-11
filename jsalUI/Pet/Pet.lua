@@ -3,10 +3,10 @@
 -- scoop, and can feel a little poorly. You look after it with supplies your
 -- play brings in: a quest handed in is a meal, a flight is a toy, a new
 -- level is treats, soap and medicine. Its life is in PetRules.lua; this is
--- the window, the wandering and the supplies. Nothing here runs unless its
--- window is open, apart from noticing what you earn.
+-- its page in the dashboard, the wandering and the supplies. Nothing here
+-- runs unless its page is open, apart from noticing what you earn.
 local _, ns = ...
-local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
+local Style, Compat, Rules, Window = ns.Style, ns.Compat, ns.PetRules, ns.Window
 
 local Pet = ns.NewModule("pet", {
     title = "Companion",
@@ -17,12 +17,18 @@ local Pet = ns.NewModule("pet", {
 ns.Pet = Pet
 
 local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
-local PEN_W, PEN_H, SIZE = 440, 150, 64
-local SPEED = 28          -- pixels a second
+-- The pen is as wide as the page; the creature is drawn at three times its
+-- 32 pixels, so each of them is a sharp 3 by 3 square.
+local PEN_W, PEN_H, SIZE = Window.contentWidth, 240, 96
+local HEAP_W = 24
+local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
-Pet.PEN_W, Pet.PEN_H, Pet.SIZE = PEN_W, PEN_H, SIZE
+Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.HEAP_W = PEN_W, PEN_H, SIZE, HEAP_W
 local FORMS = { "Briarboar", "Thornhog", "Brambletusk" }
 local NEED_NAME = { hunger = "Fed", energy = "Rested", fun = "Happy", clean = "Clean" }
+-- Each form's pictures: standing, mid-step and asleep.
+local SPRITE = { "briarboar", "thornhog", "brambletusk" }
+local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
 
 ---------------------------------------------------------------------------
 -- Wandering, with no drawing in it. A walk is where the creature is (its
@@ -82,15 +88,22 @@ function Pet.State()
     return s
 end
 
+-- What it wants from you right now, for Today: a title, a line under it and
+-- its picture; nil when it's fine, asleep, or the part is off.
+function Pet.Wants()
+    if not Pet.running then return nil end
+    local s = Rules.Advance(Pet.State(), Now())
+    local key, title, sub = Rules.Wants(s)
+    if not key then return nil end
+    return { key = key, title = title, sub = sub, texture = MEDIA .. (SPRITE[s.form] or SPRITE[1]) }
+end
+
 ---------------------------------------------------------------------------
--- The window.
+-- Its page.
 ---------------------------------------------------------------------------
-local frame, pen, body, sprite, snore, line, message, walk
+local pen, body, sprite, snore, title, sub, message, walk, parts
 local bars, care, heaps = {}, {}, {}
--- Each form's pictures: standing, mid-step and asleep.
-local SPRITE = { "briarboar", "thornhog", "brambletusk" }
-local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
-local HEAP_AT = { 70, 180, 290, 370 }
+local HEAP_AT = { 110, 290, 470, 610 }
 local said
 
 local function PaintWalk()
@@ -110,12 +123,30 @@ local function PaintWalk()
     body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
 end
 
--- Everything that depends on how it is: the line under the title, the four
+-- How long until it grows, in words; nil once it's fully grown.
+local function Growing(s)
+    local goal = s.form == 1 and Rules.GROWN or s.form == 2 and Rules.FULL or nil
+    if not goal then return nil end
+    local days = math.max(1, math.ceil((goal - s.good) / 24))
+    return ("grows after about %d more good day%s"):format(days, days == 1 and "" or "s")
+end
+
+-- Everything that depends on how it is: the lines at the top, the four
 -- bars, the droppings, the buttons and what they'd use.
 local function Refresh()
+    if not Pet.running then
+        title:SetText("Companion")
+        sub:SetText("Turned off. Switch it on in Settings, under Games.")
+        parts:Hide()
+        return
+    end
+    parts:Show()
     local s = Rules.Advance(Pet.State(), Now())
     local _, mood = Rules.Mood(s)
-    line:SetText(("%s the %s · %s"):format(s.name, FORMS[s.form] or FORMS[1], mood))
+    title:SetText(("%s the %s"):format(s.name, FORMS[s.form] or FORMS[1]))
+    local day = math.floor(math.max(0, Now() - s.born) / 86400) + 1
+    local growing = Growing(s)
+    sub:SetText(("%s · day %d%s"):format(mood, day, growing and (" · " .. growing) or " · fully grown"))
     if s.grew then
         s.grew = nil
         said = ("%s has grown into a %s!"):format(s.name, FORMS[s.form] or "")
@@ -136,24 +167,30 @@ local function Refresh()
     care.medicine:SetLabel(("Medicine · %d"):format(s.supplies.medicine))
     care.medicine:SetEnabled(s.sick)
     care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
+    walk = walk or Pet.NewWalk(math.random)
+    PaintWalk()
 end
 Pet.Refresh = Refresh
 
--- One piece of care: do it, say what happened, and show how it is now.
+-- One piece of care: do it, say what happened, and show how it is now. The
+-- menu's badge and Today hear about it too.
 local function Do(act)
     local _, what = act(Pet.State(), Now())
     said = what
     Refresh()
 end
 
-local function Build()
-    frame = Style.Panel("jsalUIPet", PEN_W + 40, 392, "Companion")
-    line = Style.Text(frame, 13, "text", nil, true)
-    line:SetPoint("TOPLEFT", 20, -46)
+Window.Page("pet", function(page)
+    local width = PEN_W
+    title, sub = Window.Header(page, width)
+    -- Everything under the two lines, to hide as one when the part is off.
+    parts = CreateFrame("Frame", nil, page)
+    parts:SetPoint("TOPLEFT", sub, "BOTTOMLEFT", 0, -16)
+    parts:SetSize(width, PEN_H + 150)
 
-    pen = CreateFrame("Frame", nil, frame)
+    pen = CreateFrame("Frame", nil, parts)
     pen:SetSize(PEN_W, PEN_H)
-    pen:SetPoint("TOPLEFT", 20, -72)
+    pen:SetPoint("TOPLEFT")
     pen:SetClipsChildren(true)
     Style.Border(pen, "cardLine")
     local ground = pen:CreateTexture(nil, "BACKGROUND")
@@ -162,21 +199,21 @@ local function Build()
     local sky = pen:CreateTexture(nil, "BORDER")
     sky:SetPoint("TOPLEFT")
     sky:SetPoint("TOPRIGHT")
-    sky:SetHeight(44)
+    sky:SetHeight(70)
     sky:SetColorTexture(0.137, 0.165, 0.212)
 
     -- Droppings: click one to scoop it.
     for i, x in ipairs(HEAP_AT) do
         local heap = CreateFrame("Button", nil, pen)
-        heap:SetSize(16, 12)
-        heap:SetPoint("TOPLEFT", x, -(PEN_H - 22 - (i % 2) * 18))
+        heap:SetSize(HEAP_W, 18)
+        heap:SetPoint("TOPLEFT", x, -(PEN_H - 34 - (i % 2) * 26))
         local low = heap:CreateTexture(nil, "ARTWORK")
         low:SetPoint("BOTTOMLEFT")
-        low:SetSize(16, 6)
+        low:SetSize(HEAP_W, 9)
         low:SetColorTexture(0.36, 0.24, 0.14)
         local top = heap:CreateTexture(nil, "ARTWORK")
-        top:SetPoint("BOTTOM", 0, 6)
-        top:SetSize(10, 6)
+        top:SetPoint("BOTTOM", 0, 9)
+        top:SetSize(15, 9)
         top:SetColorTexture(0.44, 0.3, 0.18)
         heap:SetScript("OnClick", function() Do(Rules.Scoop) end)
         heap:Hide()
@@ -190,15 +227,15 @@ local function Build()
     sprite:SetAllPoints()
     Compat.Crisp(sprite)
     body:SetScript("OnClick", function() Do(Rules.Pat) end)
-    snore = Style.Text(body, 13, "secondary", nil, true)
-    snore:SetPoint("BOTTOMLEFT", body, "TOPRIGHT", -18, -14)
+    snore = Style.Text(body, 15, "secondary", nil, true)
+    snore:SetPoint("BOTTOMLEFT", body, "TOPRIGHT", -26, -20)
     snore:SetText("z z z")
 
-    -- Only while the window is open: a hidden frame gets no updates.
+    -- Only while the page is showing: a hidden frame gets no updates.
     local since = 0
     pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
-        local s = Pet.State()
-        if s.asleep then
+        if not walk then return end
+        if Pet.State().asleep then
             -- Asleep, it stays put, eyes shut.
             walk.frame, walk.wait = "sleep", math.max(walk.wait, 0.5)
         else
@@ -214,59 +251,60 @@ local function Build()
         end
     end))
 
-    -- The four needs, two to a row.
+    -- The four needs, two to a row, under the pen.
+    local half = math.floor(width / 2)
     for i, need in ipairs(Rules.NEEDS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
-        local label = Style.Text(frame, 12, "secondary")
-        label:SetPoint("TOPLEFT", 20 + col * 226, -(236 + row * 22))
+        local label = Style.Text(parts, 13, "secondary")
+        label:SetPoint("TOPLEFT", col * half, -(PEN_H + 16 + row * 24))
         label:SetText(NEED_NAME[need])
-        local track = frame:CreateTexture(nil, "ARTWORK")
-        track:SetPoint("TOPLEFT", 78 + col * 226, -(240 + row * 22))
-        track:SetSize(136, 6)
+        local track = parts:CreateTexture(nil, "ARTWORK")
+        track:SetPoint("TOPLEFT", col * half + 64, -(PEN_H + 21 + row * 24))
+        track:SetSize(half - 88, 6)
         track:SetColorTexture(Style.Color("titleBar"))
-        local fill = frame:CreateTexture(nil, "OVERLAY")
+        local fill = parts:CreateTexture(nil, "OVERLAY")
         fill:SetPoint("TOPLEFT", track, "TOPLEFT")
         fill:SetHeight(6)
-        bars[need] = { fill = fill, width = 136 }
+        bars[need] = { fill = fill, width = half - 88 }
     end
 
-    message = Style.Text(frame, 12, "gold")
-    message:SetPoint("TOPLEFT", 20, -288)
-    message:SetWidth(PEN_W)
+    message = Style.Text(parts, 13, "gold")
+    message:SetPoint("TOPLEFT", 0, -(PEN_H + 70))
+    message:SetWidth(width)
     message:SetWordWrap(false)
 
     -- Care, each button with how many it has left.
-    local function Care(key, x, y, act)
-        local b = Style.Button(frame, "", "plain", 104)
-        b:SetPoint("TOPLEFT", x, y)
+    local x = 0
+    local function Care(key, act)
+        local b = Style.Button(parts, "", "plain", 115)
+        b:SetHeight(30)
+        b:SetPoint("TOPLEFT", x, -(PEN_H + 96))
         b:SetScript("OnClick", function() Do(act) end)
         care[key] = b
+        x = x + 123
     end
-    Care("meal", 20, -312, Rules.Feed)
-    Care("treat", 132, -312, Rules.Treat)
-    Care("toy", 244, -312, Rules.Play)
-    Care("soap", 356, -312, Rules.Bath)
-    Care("lights", 20, -348, Rules.Lights)
-    Care("medicine", 132, -348, Rules.Medicine)
-    local hint = Style.Text(frame, 11, "muted")
-    hint:SetPoint("TOPLEFT", 244, -350)
-    hint:SetWidth(216)
-    hint:SetText("Quests bring meals, flights bring toys, a new level brings the rest.")
-end
+    Care("meal", Rules.Feed)
+    Care("treat", Rules.Treat)
+    Care("toy", Rules.Play)
+    Care("soap", Rules.Bath)
+    Care("lights", Rules.Lights)
+    Care("medicine", Rules.Medicine)
+    local hint = Style.Text(parts, 12, "muted")
+    hint:SetPoint("TOPLEFT", 0, -(PEN_H + 138))
+    hint:SetWidth(width)
+    hint:SetText("Quests you hand in bring meals, flights bring toys, and a new level brings treats, soap and medicine. Click a dropping to scoop it, and the creature itself for a pat.")
+
+    page.Refresh = function()
+        said = nil
+        Refresh()
+    end
+end)
 
 function Pet.Open()
     if not Pet.running then
         return ns.Print("The companion is turned off. /jsal settings turns it on.")
     end
-    if Compat.InCombat() then
-        return ns.Print("The companion's window opens once combat ends.")
-    end
-    if not frame then Build() end
-    walk = walk or Pet.NewWalk(math.random)
-    said = nil
-    PaintWalk()
-    Refresh()
-    frame:Show()
+    Window.Open("pet")
 end
 
 ---------------------------------------------------------------------------
@@ -274,22 +312,19 @@ end
 ---------------------------------------------------------------------------
 function Pet.Earn(supply, count)
     Rules.Earn(Pet.State(), supply, count)
-    if frame and frame:IsShown() then Refresh() end
+    if Window.IsOpen("pet") then Refresh() end
 end
 
 function Pet:OnEnable()
     -- A hatchling from the moment the part is switched on, so what you earn
-    -- before first opening the window isn't lost.
+    -- before first opening its page isn't lost.
     Pet.State()
     local events = CreateFrame("Frame")
-    events:RegisterEvent("PLAYER_REGEN_DISABLED")
     events:RegisterEvent("QUEST_TURNED_IN")
     events:RegisterEvent("PLAYER_LEVEL_UP")
     events:RegisterEvent("PLAYER_CONTROL_LOST")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event)
-        if event == "PLAYER_REGEN_DISABLED" then
-            if frame then frame:Hide() end
-        elseif event == "QUEST_TURNED_IN" then
+        if event == "QUEST_TURNED_IN" then
             Pet.Earn("meal", 1)
         elseif event == "PLAYER_LEVEL_UP" then
             Pet.Earn("treat", 2)
