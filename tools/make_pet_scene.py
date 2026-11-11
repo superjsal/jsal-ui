@@ -2,8 +2,8 @@
 
     python -I tools/make_pet_scene.py meadow <scene.png> [preview folder]
 
-The scene is pixel art at half the pen's size (the pen is 340 by 200, so 170
-by 100; a 172-wide picture loses a column each side), drawn at twice its size
+The scene is pixel art at half the pen's size (the pen is 440 by 200, so 220
+by 100; a wider picture loses the columns over at each side), drawn at twice its size
 so its pixels match the creature's. The game wants sides that are powers of
 two, so it's written into the top left of a 256 by 128 picture,
 jsalUI/Media/Pet/<name>.tga, and jsalUI/Pet/Pet.lua shows only that corner.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from PIL import Image
 
-W, H = 170, 100
+W, H = 220, 100
 
 
 def main():
