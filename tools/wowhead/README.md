@@ -33,7 +33,16 @@ same script again carries on. Never try to get past the check another way.
      `data/dungeons/wowhead.json` (bosses not reached keep their old loot), then
      `python -I tools/build_dungeons.py` (writes `DungeonLoot.lua`). `__dungeons.unmatched`
      names bosses Wowhead lists under another name: add them to `ALIAS` in `bosses.py`.
-3. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
+3. **Pet abilities (about 115 pages, 16 minutes; only when a patch changes pets or beasts):**
+   - `python -I tools/wowhead/petspells.py` prints a `window.__petSpells = ...;` line: every pet
+     ability rank a family can learn.
+   - Start the receiver: `python -I tools/wowhead/receive.py data/pets/wowhead.json`
+   - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalPets')`, the
+     `window.__petSpells` line, then the whole of `pets.js`. Watch `window.__pets`; on a block,
+     John clears it and you run `pets.js` again (with `window.__petSpells` still set).
+   - Then: `python -I tools/build_pets.py` (writes `jsalUI/Training/TameData.lua`; compare its
+     beast count with the last commit's).
+4. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
    the gear plan and a dungeon in game if John can, and commit on `beta` as
    "Data: Wowhead refresh (date)" with no Claude co-author line. It goes out with the next
    release; tick the to-do on John's list.
@@ -44,6 +53,8 @@ same script again carries on. Never try to get past the check another way.
   the address of a page on 127.0.0.1:8799, which posts it back to the receiver.
 - `gear.js`: every uncommon-or-better armor list (by type and slot), jewelry, cloaks, off-hand
   items, shields and each weapon type. Robes come with the chest lists.
+- `petspells.py`, `pets.js`: each pet ability rank's spell page (its "Used by NPC" list) and each
+  pet family's page (its "Tameable" list). A beast is kept when it's on both.
 - `bosses.py`, `dungeons.js`, `merge_dungeons.py`: each dungeon's zone page (quests, NPCs, and the
   Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). A drop is
   kept when it's uncommon or better and dropped in at least 2% of 10 or more kills, or when the

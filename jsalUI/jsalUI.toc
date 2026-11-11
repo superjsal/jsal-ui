@@ -61,6 +61,10 @@ Training\SpellData.lua
 Training\Training.lua
 Training\Planner.lua
 Training\Panel.lua
+# Which beasts carry which pet ability rank, from Wowhead Forever, and the
+# tooltip line that says what taming one would teach you.
+Training\TameData.lua
+Training\TameTip.lua
 
 # Professions: every recipe from the game's files, the road to the next rank,
 # the panel beside the profession window, additions to the window itself,
