@@ -3,10 +3,11 @@
 -- scoop, and can feel a little poorly. You look after it with supplies your
 -- play brings in: a quest handed in is a meal, a flight is a toy, a new
 -- level is treats, soap and medicine. Its life is in PetRules.lua; this is
--- its page in the dashboard, the wandering and the supplies. Nothing here
--- runs unless its page is open, apart from noticing what you earn.
+-- its window (a small one of its own, to leave open while you play), the
+-- wandering and the supplies. Nothing here runs unless that window is open,
+-- apart from noticing what you earn.
 local _, ns = ...
-local Style, Compat, Rules, Window = ns.Style, ns.Compat, ns.PetRules, ns.Window
+local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
 
 local Pet = ns.NewModule("pet", {
     title = "Companion",
@@ -17,9 +18,11 @@ local Pet = ns.NewModule("pet", {
 ns.Pet = Pet
 
 local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
--- The pen is as wide as the page; the creature is drawn at three times its
--- 32 pixels, so each of them is a sharp 3 by 3 square.
-local PEN_W, PEN_H, SIZE = Window.contentWidth, 240, 128
+-- The window is as wide as the pen plus a margin each side; the creature is
+-- drawn at 128 pixels, twice the size of its 64-pixel art.
+local PAD = 10
+local PEN_W, PEN_H, SIZE = 340, 200, 128
+local WIN_W, WIN_H = PEN_W + PAD * 2, 512
 local HEAP_W = 24
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
@@ -147,9 +150,9 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk, parts
+local window, pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk
 local bars, care, heaps = {}, {}, {}
-local HEAP_AT = { 110, 290, 470, 610 }
+local HEAP_AT = { 24, 104, 196, 286 }
 local said
 
 -- The sheet of the form it's in now, if that form has one.
@@ -234,13 +237,6 @@ end
 -- Everything that depends on how it is: the lines at the top, the four
 -- bars, the droppings, the buttons and what they'd use.
 local function Refresh()
-    if not Pet.running then
-        title:SetText("Companion")
-        sub:SetText("Turned off. Switch it on in Settings, under Games.")
-        parts:Hide()
-        return
-    end
-    parts:Show()
     local s = Rules.Advance(Pet.State(), Now())
     local _, mood = Rules.Mood(s)
     title:SetText(("%s the %s"):format(s.name, FORMS[s.form] or FORMS[1]))
@@ -292,17 +288,13 @@ local function Do(act, show)
     Refresh()
 end
 
-Window.Page("pet", function(page)
-    local width = PEN_W
-    title, sub = Window.Header(page, width)
-    -- Everything under the two lines, to hide as one when the part is off.
-    parts = CreateFrame("Frame", nil, page)
-    parts:SetPoint("TOPLEFT", sub, "BOTTOMLEFT", 0, -16)
-    parts:SetSize(width, PEN_H + 176)
+local function Build()
+    window = Style.Panel("jsalUIPetWindow", WIN_W, WIN_H, "Companion")
+    title = window.title
 
-    pen = CreateFrame("Frame", nil, parts)
+    pen = CreateFrame("Frame", nil, window)
     pen:SetSize(PEN_W, PEN_H)
-    pen:SetPoint("TOPLEFT")
+    pen:SetPoint("TOPLEFT", PAD, -(32 + PAD))
     pen:SetClipsChildren(true)
     Style.Border(pen, "cardLine")
     local ground = pen:CreateTexture(nil, "BACKGROUND")
@@ -311,7 +303,7 @@ Window.Page("pet", function(page)
     local sky = pen:CreateTexture(nil, "BORDER")
     sky:SetPoint("TOPLEFT")
     sky:SetPoint("TOPRIGHT")
-    sky:SetHeight(70)
+    sky:SetHeight(60)
     sky:SetColorTexture(0.137, 0.165, 0.212)
 
     -- Droppings: click one to scoop it.
@@ -373,46 +365,55 @@ Window.Page("pet", function(page)
         end
     end))
 
-    -- The four needs, two to a row, under the pen.
-    local half = math.floor(width / 2)
+    -- Everything under the pen hangs from this, PEN_H down from the pen's top.
+    local parts = CreateFrame("Frame", nil, window)
+    parts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
+    parts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
+
+    -- How it is, its age and when it grows.
+    sub = Style.Text(parts, 12, "secondary")
+    sub:SetPoint("TOPLEFT", 0, -10)
+    sub:SetWidth(PEN_W)
+    sub:SetWordWrap(false)
+
+    -- The four needs, two to a row.
+    local half = math.floor(PEN_W / 2)
     for i, need in ipairs(Rules.NEEDS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
-        local label = Style.Text(parts, 13, "secondary")
-        label:SetPoint("TOPLEFT", col * half, -(PEN_H + 16 + row * 24))
+        local label = Style.Text(parts, 12, "secondary")
+        label:SetPoint("TOPLEFT", col * half, -(34 + row * 22))
         label:SetText(NEED_NAME[need])
         local track = parts:CreateTexture(nil, "ARTWORK")
-        track:SetPoint("TOPLEFT", col * half + 64, -(PEN_H + 21 + row * 24))
-        track:SetSize(half - 88, 6)
+        track:SetPoint("TOPLEFT", col * half + 54, -(39 + row * 22))
+        track:SetSize(half - 66, 6)
         track:SetColorTexture(Style.Color("titleBar"))
         local fill = parts:CreateTexture(nil, "OVERLAY")
         fill:SetPoint("TOPLEFT", track, "TOPLEFT")
         fill:SetHeight(6)
-        bars[need] = { fill = fill, width = half - 88 }
+        bars[need] = { fill = fill, width = half - 66 }
     end
 
-    -- Today's wish at the left, the bond at the right.
-    wishLine = Style.Text(parts, 13, "text")
-    wishLine:SetPoint("TOPLEFT", 0, -(PEN_H + 68))
-    wishLine:SetWidth(width - 230)
+    -- Today's wish, then the bond, then what just happened.
+    wishLine = Style.Text(parts, 12, "text")
+    wishLine:SetPoint("TOPLEFT", 0, -84)
+    wishLine:SetWidth(PEN_W)
     wishLine:SetWordWrap(false)
-    bondLine = Style.Text(parts, 13, "secondary")
-    bondLine:SetPoint("TOPRIGHT", 0, -(PEN_H + 68))
-    bondLine:SetJustifyH("RIGHT")
-
-    message = Style.Text(parts, 13, "gold")
-    message:SetPoint("TOPLEFT", 0, -(PEN_H + 94))
-    message:SetWidth(width)
+    bondLine = Style.Text(parts, 12, "secondary")
+    bondLine:SetPoint("TOPLEFT", 0, -102)
+    message = Style.Text(parts, 12, "gold")
+    message:SetPoint("TOPLEFT", 0, -122)
+    message:SetWidth(PEN_W)
     message:SetWordWrap(false)
 
-    -- Care, each button with how many it has left.
-    local x = 0
+    -- Care, three to a row, each button with how many it has left.
+    local count = 0
     local function Care(key, act, show)
-        local b = Style.Button(parts, "", "plain", 115)
-        b:SetHeight(30)
-        b:SetPoint("TOPLEFT", x, -(PEN_H + 120))
+        local b = Style.Button(parts, "", "plain", 108)
+        b:SetHeight(28)
+        b:SetPoint("TOPLEFT", (count % 3) * 116, -(146 + math.floor(count / 3) * 34))
         b:SetScript("OnClick", function() Do(act, show) end)
         care[key] = b
-        x = x + 123
+        count = count + 1
     end
     Care("meal", Rules.Feed, "eat")
     Care("treat", Rules.Treat, "eat")
@@ -420,22 +421,27 @@ Window.Page("pet", function(page)
     Care("soap", Rules.Bath)
     Care("lights", Rules.Lights, "lights")
     Care("medicine", Rules.Medicine)
-    local hint = Style.Text(parts, 12, "muted")
-    hint:SetPoint("TOPLEFT", 0, -(PEN_H + 162))
-    hint:SetWidth(width)
-    hint:SetText("Quests you hand in bring meals, flights bring toys, and a new level brings treats, soap and medicine. Click a dropping to scoop it, and the creature itself for a pat. Each day it has one wish; granting it, and looking after it day by day, deepens your bond.")
+    local hint = Style.Text(parts, 11, "muted")
+    hint:SetPoint("TOPLEFT", 0, -220)
+    hint:SetWidth(PEN_W)
+    hint:SetText("Quests bring meals, flights bring toys, a new level brings the rest. Click it for a pat, and a dropping to scoop it.")
+end
 
-    page.Refresh = function()
-        said = nil
-        Refresh()
-    end
-end)
+local function IsOpen()
+    return window ~= nil and window:IsShown() == true
+end
 
+-- /jsal pet, the dashboard's menu and Today all come here: its window opens,
+-- or closes if it was open.
 function Pet.Open()
     if not Pet.running then
         return ns.Print("The companion is turned off. /jsal settings turns it on.")
     end
-    Window.Open("pet")
+    if not window then Build() end
+    if IsOpen() then return window:Hide() end
+    said = nil
+    Refresh()
+    window:Show()
 end
 
 ---------------------------------------------------------------------------
@@ -443,7 +449,7 @@ end
 ---------------------------------------------------------------------------
 function Pet.Earn(supply, count)
     Rules.Earn(Pet.State(), supply, count)
-    if Window.IsOpen("pet") then Refresh() end
+    if IsOpen() then Refresh() end
 end
 
 -- Something you did that it may have wished for today. Granted with its
@@ -451,7 +457,7 @@ end
 function Pet.Did(kind)
     local s = Pet.State()
     if not Rules.Did(s, kind, Now()) then return end
-    if Window.IsOpen("pet") then
+    if IsOpen() then
         -- A wish can tip the bond up a level: say both, the wish first.
         local more = Milestones(s)
         said = ("%s's wish is granted."):format(s.name) .. (more and (" " .. more) or "")
