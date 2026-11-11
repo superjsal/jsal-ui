@@ -7,8 +7,8 @@ local Style, Window = ns.Style, ns.Window
 -- each release. The card shows once per version, until it's put away.
 local NEWS = {
     "Hunters: beast tooltips can say which pet ability taming one teaches (off: Settings, Leveling)",
-    "The quick buttons no longer shift each minute as the time changes",
-    "Fixed: the Journal stopping for the session after an error in a dungeon (0.3.25)",
+    "That line now names the exact rank, for more beasts and the new abilities",
+    "The quick buttons no longer shift each minute as the time changes (0.3.26)",
 }
 
 local function NewsWanted()
