@@ -18,15 +18,19 @@ local Pet = ns.NewModule("pet", {
 ns.Pet = Pet
 
 local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
--- The window is as wide as the pen plus a margin each side; the creature is
--- drawn at 128 pixels, twice the size of its 64-pixel art.
+-- The window is as wide as the pen plus a margin each side. Each form is
+-- drawn at its own size, so a hatchling is small and has growing to do; the
+-- largest is 128 pixels, twice the size of its 64-pixel art.
 local PAD = 10
-local PEN_W, PEN_H, SIZE = 340, 200, 128
+local PEN_W, PEN_H, SIZE = 440, 200, 128
+local SIZES = { 64, 96, 128 }
+-- How far down the pen the grass starts: its feet stay below this.
+local GRASS = 110
 local WIN_W, WIN_H = PEN_W + PAD * 2, 512
 local HEAP_W = 24
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
-Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.HEAP_W = PEN_W, PEN_H, SIZE, HEAP_W
+Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.SIZES, Pet.HEAP_W = PEN_W, PEN_H, SIZE, SIZES, HEAP_W
 local FORMS = { "Briarboar", "Thornhog", "Brambletusk" }
 local NEED_NAME = { hunger = "Fed", energy = "Rested", fun = "Happy", clean = "Clean" }
 -- Each form's pictures: standing, mid-step and asleep.
@@ -55,13 +59,18 @@ Pet.SHEETS = SHEETS
 -- top left corner in the pen), where it's heading, which way it faces,
 -- which frame shows, and how long it still stands before the next stroll.
 ---------------------------------------------------------------------------
-local function Spot(random)
-    return random(0, PEN_W - SIZE), random(0, PEN_H - SIZE)
+local function Spot(random, size)
+    -- Its feet are near the bottom of its picture: high enough up the pen
+    -- and a small one would be standing on the fence.
+    local top = math.max(0, math.floor(GRASS - size * 0.92))
+    return random(0, PEN_W - size), random(top, PEN_H - size)
 end
 
-function Pet.NewWalk(random)
-    local x, y = Spot(random)
-    return { x = x, y = y, tx = x, ty = y, wait = 1, facing = "left", frame = "stand", clock = 0 }
+-- `size` is how large it's drawn (the largest, unless told).
+function Pet.NewWalk(random, size)
+    size = size or SIZE
+    local x, y = Spot(random, size)
+    return { x = x, y = y, tx = x, ty = y, wait = 1, facing = "left", frame = "stand", clock = 0, size = size }
 end
 
 -- Starts a short animation (eating, a jump, settling down): it stays where
@@ -99,7 +108,7 @@ function Pet.Step(walk, dt, random)
         walk.wait = walk.wait - dt
         walk.frame = "stand"
         if walk.wait <= 0 then
-            walk.tx, walk.ty = Spot(random)
+            walk.tx, walk.ty = Spot(random, walk.size or SIZE)
             if walk.tx ~= walk.x then walk.facing = walk.tx > walk.x and "right" or "left" end
             walk.clock = 0
         end
@@ -150,9 +159,9 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk
+local window, pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk, parts, fold
 local bars, care, heaps = {}, {}, {}
-local HEAP_AT = { 24, 104, 196, 286 }
+local HEAP_AT = { 30, 140, 260, 380 }
 local said
 
 -- The sheet of the form it's in now, if that form has one.
@@ -179,6 +188,10 @@ local function PaintWalk()
         sprite.file = file
         -- NEAREST keeps each of its pixels a sharp square when drawn larger.
         sprite:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+    end
+    if body.size ~= walk.size then
+        body.size = walk.size
+        body:SetSize(walk.size, walk.size)
     end
     body:ClearAllPoints()
     body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
@@ -264,7 +277,9 @@ local function Refresh()
     care.medicine:SetLabel(("Medicine · %d"):format(s.supplies.medicine))
     care.medicine:SetEnabled(s.sick)
     care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
-    walk = walk or Pet.NewWalk(math.random)
+    -- A form that has grown is drawn larger, and starts from a spot that fits it.
+    local size = SIZES[s.form] or SIZE
+    if not walk or walk.size ~= size then walk = Pet.NewWalk(math.random, size) end
     PaintWalk()
 end
 Pet.Refresh = Refresh
@@ -288,9 +303,59 @@ local function Do(act, show)
     Refresh()
 end
 
+-- Where you dragged it to is kept.
+local function Dropped()
+    window:StopMovingOrSizing()
+    local point, _, relative, x, y = window:GetPoint(1)
+    if point then ns.db.petAt = { point, relative, x, y } end
+end
+
+-- Escape closes the whole window, like the game's own. The pen on its own
+-- is something you leave on screen, so Escape leaves it be.
+local function Escapes(on)
+    if not UISpecialFrames then return end
+    for i = #UISpecialFrames, 1, -1 do
+        if UISpecialFrames[i] == "jsalUIPetWindow" then table.remove(UISpecialFrames, i) end
+    end
+    if on then table.insert(UISpecialFrames, "jsalUIPetWindow") end
+end
+
+-- The whole window, or just the pen with its creature: the small button in
+-- the pen's corner swaps between them, and which you chose is kept.
+local function Layout()
+    local small = ns.db.petCompact == true
+    window.bar:SetShown(not small)
+    parts:SetShown(not small)
+    pen:ClearAllPoints()
+    if small then
+        pen:SetPoint("TOPLEFT", 1, -1)
+        window:SetSize(PEN_W + 2, PEN_H + 2)
+    else
+        pen:SetPoint("TOPLEFT", PAD, -(32 + PAD))
+        window:SetSize(WIN_W, WIN_H)
+    end
+    fold:SetLabel(small and "+" or "-")
+    Escapes(not small)
+end
+
+function Pet.Fold()
+    ns.db.petCompact = ns.db.petCompact ~= true and true or nil
+    if window then Layout() end
+end
+
 local function Build()
     window = Style.Panel("jsalUIPetWindow", WIN_W, WIN_H, "Companion")
     title = window.title
+    local at = ns.db.petAt
+    if type(at) == "table" and at[1] then
+        window:ClearAllPoints()
+        window:SetPoint(at[1], UIParent, at[2] or at[1], at[3] or 0, at[4] or 0)
+    end
+    window.bar:SetScript("OnDragStop", Dropped)
+    -- Shown or not is kept too, so the pen you left out is there next time.
+    -- (Hidden along with the whole interface, it still counts as shown.)
+    window:SetScript("OnShow", function() ns.db.petShown = true end)
+    window:SetScript("OnHide", function() ns.db.petShown = window:IsShown() and true or nil end)
 
     pen = CreateFrame("Frame", nil, window)
     pen:SetSize(PEN_W, PEN_H)
@@ -302,8 +367,13 @@ local function Build()
     local scene = pen:CreateTexture(nil, "BACKGROUND")
     scene:SetAllPoints()
     scene:SetTexture(MEDIA .. "meadow", "CLAMP", "CLAMP", "NEAREST")
-    scene:SetTexCoord(0, 170 / 256, 0, 100 / 128)
+    scene:SetTexCoord(0, 220 / 256, 0, 100 / 128)
     Compat.Crisp(scene)
+    -- The pen can be dragged too: with only the pen showing, it's all there is to hold.
+    pen:EnableMouse(true)
+    pen:RegisterForDrag("LeftButton")
+    pen:SetScript("OnDragStart", function() window:StartMoving() end)
+    pen:SetScript("OnDragStop", Dropped)
 
     -- Droppings: click one to scoop it.
     for i, x in ipairs(HEAP_AT) do
@@ -364,8 +434,16 @@ local function Build()
         end
     end))
 
+    -- In the pen's corner: show only the pen, or everything again.
+    fold = Style.Button(pen, "-", "plain", 20)
+    fold:SetHeight(20)
+    fold:SetPoint("TOPRIGHT", -4, -4)
+    fold:SetFrameLevel(50)
+    fold:SetAlpha(0.75)
+    fold:SetScript("OnClick", function() Pet.Fold() end)
+
     -- Everything under the pen hangs from this, PEN_H down from the pen's top.
-    local parts = CreateFrame("Frame", nil, window)
+    parts = CreateFrame("Frame", nil, window)
     parts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
     parts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
 
@@ -407,9 +485,9 @@ local function Build()
     -- Care, three to a row, each button with how many it has left.
     local count = 0
     local function Care(key, act, show)
-        local b = Style.Button(parts, "", "plain", 108)
+        local b = Style.Button(parts, "", "plain", 141)
         b:SetHeight(28)
-        b:SetPoint("TOPLEFT", (count % 3) * 116, -(146 + math.floor(count / 3) * 34))
+        b:SetPoint("TOPLEFT", (count % 3) * 149, -(146 + math.floor(count / 3) * 34))
         b:SetScript("OnClick", function() Do(act, show) end)
         care[key] = b
         count = count + 1
@@ -424,6 +502,7 @@ local function Build()
     hint:SetPoint("TOPLEFT", 0, -220)
     hint:SetWidth(PEN_W)
     hint:SetText("Quests bring meals, flights bring toys, a new level brings the rest. Click it for a pat, and a dropping to scoop it.")
+    Layout()
 end
 
 local function IsOpen()
@@ -477,6 +556,10 @@ function Pet:OnEnable()
     -- A hatchling from the moment the part is switched on, so what you earn
     -- before first opening its page isn't lost.
     Pet.State()
+    -- The pen left out on its own comes back after a reload or a login.
+    if ns.db.petShown and ns.db.petCompact then
+        Compat.After(1, function() if not (window and window:IsShown()) then Pet.Open() end end)
+    end
     -- Where you are now, so that only going somewhere else counts as a trip.
     local zone = ZoneName()
     local events = CreateFrame("Frame")
