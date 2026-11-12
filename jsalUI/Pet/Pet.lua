@@ -29,6 +29,7 @@ local PEN_W, PEN_H, SIZE = 440, 200, 128
 -- An egg in the row under the buttons: the bottom middle 32 pixels of its
 -- 64-pixel picture, where the egg stands, at its own size.
 local EGG_W = 32
+local YARD_MAX = 6        -- how many settled companions wander the paddock, and are listed under it
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
@@ -223,12 +224,14 @@ end
 ---------------------------------------------------------------------------
 local function Now() return Compat.ServerTime() end
 
--- The saved companion; a new hatchling the first time, or when what's
--- saved isn't one.
+-- The saved companion. The first time, or when what's saved isn't one,
+-- there's a stand-in marked `unchosen`: it keeps the supplies your play
+-- earns until you've chosen an egg (Pet.Choose), and is never shown.
 function Pet.State()
     local s = ns.db.pet
     if type(s) ~= "table" or type(s.supplies) ~= "table" or type(s.stamp) ~= "number" or type(s.due) ~= "table" then
         s = Rules.New(Now())
+        s.unchosen = true
         ns.db.pet = s
     end
     return s
@@ -238,6 +241,10 @@ end
 -- its picture; nil when it's fine, asleep, or the part is off.
 function Pet.Wants()
     if not Pet.running then return nil end
+    if Pet.State().unchosen then
+        local first = Rules.EGGS[Rules.STARTERS[1]]
+        return { key = "egg", title = "Three eggs are waiting", sub = "Choose your companion", texture = MEDIA .. first.species .. "_egg" }
+    end
     local s = Rules.Advance(Pet.State(), Now())
     local key, title, sub = Rules.Wants(s)
     if not key then return nil end
@@ -248,8 +255,12 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine
-local eggSlots = {}
+local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine, pickLine
+local yardToggle, yardParts, yardHead, albumLine, nameBox
+local eggSlots, picks, roamers, yardRows, album = {}, {}, {}, {}, {}
+-- Whether the pen is showing the paddock (the companions that have settled)
+-- and not the companion you look after.
+local yard = false
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 30, 140, 260, 380 }
 local said
@@ -478,8 +489,123 @@ end
 
 -- Everything that depends on how it is: the lines at the top, the four
 -- bars, the droppings, the buttons and what they'd use.
+-- One settled companion wandering the paddock: a frame of its own in the
+-- pen, drawn from its sheet at the art's own size (so even a last form is
+-- small here, and several fit).
+local function PaintRoamer(r)
+    local sheet, w = r.sheet, r.walk
+    local cell = Pet.Cell(w, sheet)
+    local col, row = cell % sheet.cols, math.floor(cell / sheet.cols)
+    local left, right = col * sheet.cell / sheet.w, (col + 1) * sheet.cell / sheet.w
+    if w.facing == "right" then left, right = right, left end
+    r.sprite:SetTexCoord(left, right, row * sheet.cell / sheet.h, (row + 1) * sheet.cell / sheet.h)
+    r.body:ClearAllPoints()
+    r.body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(w.x + 0.5), -math.floor(w.y + 0.5))
+end
+
+-- The paddock: the last few to settle wander the meadow, and under it
+-- they're listed, with the kinds you've raised so far (the rest in shadow).
+local function PaintYard(s)
+    local settled = Settled()
+    local first = math.max(1, #settled - YARD_MAX + 1)
+    for i = 1, YARD_MAX do
+        local record = settled[first + i - 1]
+        local r = roamers[i]
+        if record then
+            if not r then
+                r = { body = CreateFrame("Frame", nil, pen) }
+                r.body:SetSize(64, 64)
+                r.sprite = r.body:CreateTexture(nil, "ARTWORK")
+                r.sprite:SetPoint("CENTER")
+                Compat.Crisp(r.sprite)
+                roamers[i] = r
+            end
+            if r.record ~= record then
+                r.record = record
+                local sprites = Rules.Species(record).sprites
+                r.sheet = SHEETS[sprites[record.form] or sprites[1]]
+                r.walk = Pet.NewWalk(math.random, 64)
+                r.sprite:SetSize(r.sheet.cell, r.sheet.cell)
+                r.sprite:SetTexture(MEDIA .. r.sheet.file, "CLAMP", "CLAMP", "NEAREST")
+            end
+            r.body:Show()
+            PaintRoamer(r)
+            yardRows[i]:SetText(("%s the %s · %d day%s together · %s"):format(record.name, FormName(record, record.form),
+                record.days or 1, (record.days or 1) == 1 and "" or "s", record.bond or "Wary"))
+        else
+            if r then
+                r.record = nil
+                r.body:Hide()
+            end
+            yardRows[i]:SetText("")
+        end
+    end
+    yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown companion settles when you hatch an egg."
+        or #settled > YARD_MAX and ("%d have settled here. The last %d:"):format(#settled, YARD_MAX)
+        or #settled == 1 and "One has settled here." or ("%d have settled here."):format(#settled))
+    -- The album: every kind's first form, in shadow until you've raised one.
+    local raised, count = {}, 0
+    if not s.unchosen then raised[s.species or "briarboar"] = true end
+    for _, record in ipairs(settled) do raised[record.species or "briarboar"] = true end
+    for i, kind in ipairs(Rules.KINDS) do
+        local picture = album[i]
+        if not picture.file then
+            picture.file = MEDIA .. Rules.SPECIES[kind].sprites[1]
+            picture:SetTexture(picture.file, "CLAMP", "CLAMP", "NEAREST")
+        end
+        if raised[kind] then
+            count = count + 1
+            picture:SetVertexColor(1, 1, 1)
+            picture:SetAlpha(1)
+        else
+            picture:SetVertexColor(0, 0, 0)
+            picture:SetAlpha(0.5)
+        end
+    end
+    albumLine:SetText(("Kinds raised: %d of %d"):format(count, #Rules.KINDS))
+end
+
+local Layout
 local function Refresh()
-    local s = Rules.Advance(Pet.State(), Now())
+    -- A new player has no companion yet: three eggs stand on the grass to
+    -- choose from, and nothing else of the window is there.
+    local s = Pet.State()
+    local picking = s.unchosen == true
+    if window.picking ~= picking then
+        window.picking = picking
+        Layout()
+    end
+    for i, pick in ipairs(picks) do
+        pick:SetShown(picking)
+        if picking and not pick.file then
+            pick.file = MEDIA .. Rules.EGGS[Rules.STARTERS[i]].species .. "_egg"
+            pick.picture:SetTexture(pick.file, "CLAMP", "CLAMP", "NEAREST")
+        end
+    end
+    body:SetShown(not picking and not yard)
+    yardToggle:SetShown(not picking)
+    if picking then
+        yard = false
+        title:SetText("Choose your companion")
+        pickLine:SetText(said or "Three eggs have turned up. Click one for a closer look.")
+        for _, heap in ipairs(heaps) do heap:Hide() end
+        pen.dark, pen.shade, walk = 0, 0, nil
+        pen.night:SetAlpha(0)
+        return
+    end
+    s = Rules.Advance(s, Now())
+    if window.yard ~= yard then
+        window.yard = yard
+        Layout()
+    end
+    yardToggle:SetLabel(yard and "Back" or ("Paddock · %d"):format(#Settled()))
+    if yard then
+        title:SetText("The paddock")
+        for _, heap in ipairs(heaps) do heap:Hide() end
+        prop:Hide()
+        return PaintYard(s)
+    end
+    for _, r in ipairs(roamers) do r.body:Hide() end
     local _, mood = Rules.Mood(s)
     title:SetText(looking and (Own(looking) and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
         or ("%s the %s"):format(s.name, FormName(s)))
@@ -538,7 +664,8 @@ local function Refresh()
         end
     end
     eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
-        or "No eggs yet. Your play turns one up now and then.")
+        or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone or coming back from the dead can turn one up."
+        or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
 end
 Pet.Refresh = Refresh
 
@@ -582,14 +709,22 @@ end
 
 -- The whole window, or just the pen with its creature: the small button in
 -- the pen's corner swaps between them, and which you chose is kept.
-local function Layout()
-    local small = ns.db.petCompact == true
+function Layout()
+    -- Choosing an egg, it's the whole pen and one line under it, never just the pen.
+    local picking = window.picking == true
+    local small = ns.db.petCompact == true and not picking
     window.bar:SetShown(not small)
-    parts:SetShown(not small)
+    parts:SetShown(not small and not picking and not window.yard)
+    yardParts:SetShown(window.yard == true and not small and not picking)
+    pickLine:SetShown(picking)
+    fold:SetShown(not picking)
     pen:ClearAllPoints()
     if small then
         pen:SetPoint("TOPLEFT", 1, -1)
         window:SetSize(PEN_W + 2, PEN_H + 2)
+    elseif picking then
+        pen:SetPoint("TOPLEFT", PAD, -(32 + PAD))
+        window:SetSize(WIN_W, 32 + PAD + PEN_H + 50)
     else
         pen:SetPoint("TOPLEFT", PAD, -(32 + PAD))
         window:SetSize(WIN_W, WIN_H)
@@ -680,6 +815,17 @@ local function Build()
     local since = 0
     pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
         Pet.tick = (Pet.tick or 0) + elapsed
+        -- The paddock: its settled companions wander, and nothing else moves.
+        if yard then
+            local dt = math.min(elapsed, 0.1)
+            for _, r in ipairs(roamers) do
+                if r.record then
+                    Pet.Step(r.walk, dt, math.random)
+                    PaintRoamer(r)
+                end
+            end
+            return
+        end
         -- Dusk and dawn: the night meadow fades in or out, a little each frame.
         if pen.shade and pen.shade ~= pen.dark then
             local by = math.min(elapsed, 0.1) / DUSK
@@ -726,6 +872,63 @@ local function Build()
     fold:SetFrameLevel(50)
     fold:SetAlpha(0.75)
     fold:SetScript("OnClick", function() Pet.Fold() end)
+
+    -- In the pen's other corner: over to the paddock, and back.
+    yardToggle = Style.Button(pen, "Paddock", "plain", 92)
+    yardToggle:SetHeight(20)
+    yardToggle:SetPoint("TOPLEFT", 4, -4)
+    yardToggle:SetFrameLevel(50)
+    yardToggle:SetAlpha(0.85)
+    yardToggle:SetScript("OnClick", function() Pet.Paddock() end)
+
+    -- Under the pen while the paddock shows: who has settled, then the album.
+    yardParts = CreateFrame("Frame", nil, window)
+    yardParts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
+    yardParts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
+    yardParts:Hide()
+    yardHead = Style.Text(yardParts, 12, "text")
+    yardHead:SetPoint("TOPLEFT", 0, -10)
+    yardHead:SetWidth(PEN_W)
+    for i = 1, YARD_MAX do
+        local row = Style.Text(yardParts, 12, "secondary")
+        row:SetPoint("TOPLEFT", 0, -(34 + (i - 1) * 20))
+        row:SetWidth(PEN_W)
+        row:SetWordWrap(false)
+        yardRows[i] = row
+    end
+    albumLine = Style.Text(yardParts, 12, "text")
+    albumLine:SetPoint("TOPLEFT", 0, -(44 + YARD_MAX * 20))
+    for i = 1, #Rules.KINDS do
+        local picture = yardParts:CreateTexture(nil, "ARTWORK")
+        picture:SetSize(64, 64)
+        picture:SetPoint("TOPLEFT", (i - 1) * 84, -(64 + YARD_MAX * 20))
+        Compat.Crisp(picture)
+        album[i] = picture
+    end
+
+    -- For a new player: three eggs on the grass, each with its name over it,
+    -- and a line under the pen that says what to do and what a click found.
+    pickLine = Style.Text(window, 12, "text")
+    pickLine:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, -12)
+    pickLine:SetWidth(PEN_W)
+    pickLine:Hide()
+    for i, key in ipairs(Rules.STARTERS) do
+        local pick = CreateFrame("Button", nil, pen)
+        pick:SetSize(64, 84)
+        pick:SetPoint("BOTTOM", pen, "BOTTOMLEFT", math.floor(PEN_W * i / 4), 24)
+        -- The bottom middle of its picture, where the egg stands, at twice its size like a creature.
+        pick.picture = pick:CreateTexture(nil, "ARTWORK")
+        pick.picture:SetSize(64, 64)
+        pick.picture:SetPoint("BOTTOM", 0, 0)
+        pick.picture:SetTexCoord(0.25, 0.75, 0.5, 1)
+        Compat.Crisp(pick.picture)
+        local name = Style.Text(pick, 12, "text", nil, true)
+        name:SetPoint("TOP", 0, 0)
+        name:SetText((Rules.EGGS[key].name:gsub(" egg$", "")))
+        pick:SetScript("OnClick", function() Pet.Choose(i) end)
+        pick:Hide()
+        picks[i] = pick
+    end
 
     -- Everything under the pen hangs from this, PEN_H down from the pen's top.
     parts = CreateFrame("Frame", nil, window)
@@ -805,6 +1008,30 @@ local function Build()
         slot:Hide()
         eggSlots[i] = slot
     end
+    -- Beside the eggs: a new name for it. The box shows when Rename is
+    -- pressed; Enter takes the name, Escape leaves it as it was.
+    local rename = Style.Button(parts, "Rename", "plain", 141)
+    rename:SetHeight(28)
+    rename:SetPoint("TOPLEFT", 298, -282)
+    nameBox = Style.Field(parts, 141)
+    nameBox.well:SetPoint("TOPLEFT", 149, -283)
+    nameBox.well:Hide()
+    nameBox:SetMaxLetters(16)
+    nameBox:SetScript("OnEnterPressed", function(self)
+        Pet.Rename(self:GetText())
+        self:ClearFocus()
+        self.well:Hide()
+    end)
+    nameBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+        self.well:Hide()
+    end)
+    rename:SetScript("OnClick", function()
+        nameBox.well:Show()
+        nameBox:SetText(Pet.State().name)
+        nameBox:SetFocus()
+        nameBox:HighlightText()
+    end)
     Layout()
 end
 
@@ -820,7 +1047,7 @@ function Pet.Open()
     end
     if not window then Build() end
     if IsOpen() then return window:Hide() end
-    said, Pet.armed = nil, nil
+    said, Pet.armed, yard = nil, nil, false
     pen.shade = nil     -- opened, it's day or night at once, with no fade
     Refresh()
     window:Show()
@@ -838,6 +1065,7 @@ end
 -- page shut, it says so in chat, once.
 function Pet.Did(kind)
     local s = Pet.State()
+    if s.unchosen then return end       -- no companion yet to wish for anything
     if not Rules.Did(s, kind, Now()) then return end
     if IsOpen() then
         -- A wish can tip the bond up a level: say both, the wish first.
@@ -861,6 +1089,8 @@ end
 -- egg was found and there was room to keep it.
 Pet.Luck = math.random
 function Pet.Found(source, roll)
+    -- Not while it's still growing: there aren't so many kinds that eggs should pile up.
+    if not Rules.CanFind(Pet.State()) then return false end
     local kind = Rules.EggFrom(source, roll or Pet.Luck())
     if not kind then return false end
     local where = ZoneName() or "your travels"
@@ -875,6 +1105,55 @@ function Pet.Found(source, roll)
         Refresh()
     end
     return true
+end
+
+-- The paddock and back: the pen shows the companions that have settled.
+function Pet.Paddock()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    if Pet.State().unchosen then return end
+    yard = not yard
+    looking, said = nil, nil
+    Refresh()
+end
+ns.Command("pet paddock", Pet.Paddock)
+
+-- A new name for the companion, from the box in its window.
+function Pet.Rename(text)
+    local s = Pet.State()
+    if s.unchosen then return false end
+    local old = s.name
+    local ok, what = Rules.Rename(s, text)
+    said = what
+    local J = ns.Journal
+    if ok and J and J.running then J.Note("pet", ("%s is called %s now"):format(old, s.name)) end
+    if IsOpen() then Refresh() end
+    return ok
+end
+
+-- A new player's choice between the three eggs. With the window open the
+-- first click on an egg only tells you about it, and a second on the same
+-- one makes it yours: it hatches there in the pen, with whatever your play
+-- had already earned.
+function Pet.Choose(index)
+    local s = Pet.State()
+    local kind = Rules.EGGS[Rules.STARTERS[index] or ""]
+    if not (s.unchosen and kind) then return end
+    if IsOpen() and Pet.armed ~= index then
+        Pet.armed = index
+        said = ("The %s. %s Click it again to make it yours."):format(kind.name, kind.hint)
+        return Refresh()
+    end
+    Pet.armed = nil
+    local young = Rules.New(Now(), nil, kind.species)
+    for supply, count in pairs(s.supplies) do
+        young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
+    end
+    ns.db.pet = young
+    looking, walk, said = nil, nil, nil
+    if window then Refresh() end
 end
 
 -- A click on one of your eggs. A fully grown companion can settle in the
@@ -1056,6 +1335,23 @@ function Pet.Try()
     if not IsOpen() then Pet.Open() else Refresh() end
 end
 ns.Command("pet try", Pet.Try)
+
+-- /jsal pet new: a trial of the very start. Everything of yours is put
+-- aside as /jsal pet try does, and you're shown the three eggs a new player
+-- chooses between. /jsal pet try (or new) again puts everything back.
+function Pet.TryNew()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if type(ns.db.petAside) == "table" then return Pet.Try() end
+    ns.db.petAside = { pet = Pet.State(), eggs = ns.db.petEggs, settled = ns.db.petSettled }
+    ns.db.pet, ns.db.petEggs, ns.db.petSettled = nil, {}, {}
+    Pet.State()
+    ns.Print("A trial of the start: choose an egg as a new player would. /jsal pet try puts your own companion back.")
+    looking, walk, said, Pet.armed = nil, nil, nil, nil
+    if not IsOpen() then Pet.Open() else Refresh() end
+end
+ns.Command("pet new", Pet.TryNew)
 
 -- /jsal pet dirty and /jsal pet sick: the companion in the pen is made
 -- dirty, or poorly, there and then, with a bar of soap or a dose of medicine
