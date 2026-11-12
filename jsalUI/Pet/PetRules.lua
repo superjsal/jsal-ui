@@ -29,10 +29,41 @@ local ASLEEP = { hunger = -2, energy = 25, fun = -1 }
 
 local function Clamp(v) return math.max(0, math.min(100, v)) end
 
+-- The kinds of creature: each one's three forms by name, the pictures
+-- they're drawn with, and what a hatchling is called until it's named.
+Rules.SPECIES = {
+    briarboar = { forms = { "Briarboar", "Thornhog", "Brambletusk" },
+                  sprites = { "briarboar", "thornhog", "brambletusk" }, name = "Bramble" },
+    wispkin = { forms = { "Wispkin", "Gloamtail", "Wispjester" },
+                sprites = { "wispkin", "gloamtail", "wispjester" }, name = "Wisp" },
+    scrapwing = { forms = { "Scrapwing", "Jabdrake", "Flarechamp" },
+                  sprites = { "scrapwing", "jabdrake", "flarechamp" }, name = "Cinder" },
+    stormcub = { forms = { "Stormcub", "Thundermane", "Tempestmane" },
+                 sprites = { "stormcub", "thundermane", "tempestmane" }, name = "Bolt" },
+    capling = { forms = { "Capling", "Lanternshell", "Bloomsage" },
+                sprites = { "capling", "lanternshell", "bloomsage" }, name = "Morel" },
+}
+-- The eggs your play can turn up, and what hatches from each.
+Rules.EGGS = {
+    mossy = { name = "Mossy egg", species = "briarboar" },
+    ghostly = { name = "Ghostly egg", species = "wispkin" },
+    ember = { name = "Ember egg", species = "scrapwing" },
+    storm = { name = "Storm egg", species = "stormcub" },
+    toadstool = { name = "Toadstool egg", species = "capling" },
+}
+Rules.MAX_EGGS = 3
+
+-- A companion's kind; one saved before there were kinds is a Briarboar.
+function Rules.Species(s)
+    return Rules.SPECIES[s.species or "briarboar"] or Rules.SPECIES.briarboar
+end
+
 -- A newly hatched companion, with a few supplies to start on.
-function Rules.New(now, name)
+function Rules.New(now, name, species)
+    species = Rules.SPECIES[species] and species or "briarboar"
     return {
-        name = name or "Bramble", born = now, stamp = now,
+        species = species,
+        name = name or Rules.SPECIES[species].name, born = now, stamp = now,
         hunger = 70, energy = 80, fun = 70, clean = 100,
         asleep = false, sick = false, droppings = 0, due = {}, sweets = 0, pats = {},
         good = 0, form = 1,
@@ -343,6 +374,51 @@ function Rules.Pat(s, now)
     Cared(s, now, "pat")
     Rules.Did(s, "pat", now)
     return true, "It leans into your hand."
+end
+
+---------------------------------------------------------------------------
+-- The paddock: a fully grown companion can be settled there, where it
+-- stays yours and needs no more care, and an egg hatched in its place. It
+-- takes an egg to settle one, so you're never without a companion.
+---------------------------------------------------------------------------
+function Rules.CanSettle(s, eggs)
+    if s.form < 3 then return false, "It isn't fully grown yet." end
+    if #(eggs or {}) < 1 then return false, "Find an egg first, so you're never without a companion." end
+    return true
+end
+
+-- What the paddock remembers of a companion: its kind, name, how long you
+-- had it and how close you were.
+function Rules.Settled(s, now)
+    local _, bond = Rules.Bond(s)
+    return {
+        species = s.species or "briarboar", name = s.name, form = s.form,
+        born = s.born, settled = now, days = math.floor(math.max(0, now - s.born) / DAY) + 1, bond = bond,
+    }
+end
+
+-- Settles the companion and hatches the egg at that place in the list:
+-- the record for the paddock and the new hatchling, which keeps what was in
+-- the cupboard. Nil and why when it can't be done.
+function Rules.Succeed(s, eggs, index, now)
+    local ok, why = Rules.CanSettle(s, eggs)
+    if not ok then return nil, why end
+    local egg = eggs[index]
+    local kind = egg and Rules.EGGS[egg.kind]
+    if not kind then return nil, "That egg isn't there." end
+    table.remove(eggs, index)
+    local young = Rules.New(now, nil, kind.species)
+    for supply, count in pairs(s.supplies) do
+        young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
+    end
+    return Rules.Settled(s, now), young
+end
+
+-- A found egg joins the others, if there's room. True when it's kept.
+function Rules.FindEgg(eggs, kind, from, now)
+    if not Rules.EGGS[kind] or #eggs >= Rules.MAX_EGGS then return false end
+    eggs[#eggs + 1] = { kind = kind, from = from, found = now }
+    return true
 end
 
 -- Supplies your play brings in.
