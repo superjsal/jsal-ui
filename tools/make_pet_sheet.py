@@ -5,8 +5,8 @@
     python -I tools/make_pet_sheet.py brambletusk <frames folder> [preview folder]
 
 The frames folder holds one folder per animation (Walk, Idle_Long, Eating, Jump,
-Idle_Sitting, Going_to_Sleep, Waking_Getting_Up, and Special and Poorly if it
-has them), each with a south-west folder
+Idle_Sitting, Going_to_Sleep, Waking_Getting_Up; and Special, Poorly, and Run,
+Cheer, Dig and Yawn if it has them), each with a south-west folder
 of frame_000.png, frame_001.png and so on, 64 pixels square or larger, the creature
 facing down and to the left. The game flips the picture when it walks to the right.
 
@@ -124,6 +124,48 @@ def special(folder, lay, ground=None, kind=SPECIAL):
     return strip
 
 
+# And it may have four more animations, eight frames each: Run (a cycle, like
+# its walk), and Cheer, Dig and Yawn (each ending as it stands). They share one
+# picture, <name>_more.png, 1024 by 512: 96-pixel cells, ten to a row, a row
+# for each in that order, the creature standing in a cell where it stands in
+# the middle of a cell of its sheet. All four must be there, or none.
+MORE = ("Run", "Cheer", "Dig", "Yawn")
+
+
+def more(folder, lay, ground=None, walk_feet=None):
+    side, per = 96, 8
+    rows = []
+    for name in MORE:
+        files = sorted((folder / name / "south-west").glob("frame_*.png"))
+        if not files:
+            assert not rows, (name, "is missing, but others are there")
+            return None
+        assert len(files) == per, (name, len(files), per)
+        rows.append((name, [Image.open(file).convert("RGBA") for file in files]))
+    assert len(rows) == len(MORE), [name for name, _ in rows]
+    sheet = Image.new("RGBA", (1024, 512), (0, 0, 0, 0))
+    room = (side - 64) // 2 + lay["shift"]
+    for row, (name, ims) in enumerate(rows):
+        drop = 0
+        if ground is not None:
+            # As on the sheet: the lowest its feet reach goes on the creature's ground row.
+            drop = ground - max(im.getbbox()[3] - (im.height - 64) // 2 + lay["shift"] for im in ims)
+        if name == "Run" and walk_feet is not None:
+            # It breaks from a walk into a run and back: the two keep to the same line,
+            # the lowest its feet reach running where they reach walking (`walk_feet`,
+            # a row of this 96-pixel cell).
+            drop = walk_feet - max(im.getbbox()[3] + room - (im.height - 64) // 2 for im in ims)
+        for i, im in enumerate(ims):
+            left, top = room - (im.width - 64) // 2, room - (im.height - 64) // 2 + drop
+            box = im.getbbox()
+            if box[0] + left < 0 or box[1] + top < 0 or box[2] + left > side or box[3] + top > side:
+                print("  cut off:", name, i, box, (left, top))
+            cell = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+            cell.paste(im, (left, top))
+            sheet.paste(cell, (i * side, row * side))
+    return sheet
+
+
 def main():
     name, folder = sys.argv[1], Path(sys.argv[2])
     lay = LAYOUT.get(name, PLAIN)
@@ -139,6 +181,15 @@ def main():
     still.save(out / (name + ".png"), optimize=True)
     print(len(cells), "frames ->", out / (name + "_sheet.png"))
     extra = special(folder, lay, GROUND.get(name))
+    walk_feet = max(cell.getbbox()[3] for cell in cells[:lay["walk"]]) + (96 - side) // 2
+    extras = more(folder, lay, GROUND.get(name), walk_feet)
+    if extras:
+        extras.save(out / (name + "_more.png"), optimize=True)
+        print("more ->", out / (name + "_more.png"))
+        if len(sys.argv) > 3:
+            look = Image.new("RGBA", extras.size, (42, 47, 58, 255))
+            look.alpha_composite(extras)
+            look.crop((0, 0, 8 * 96, 4 * 96)).resize((8 * 96 * 2, 4 * 96 * 2), Image.NEAREST).save(Path(sys.argv[3]) / (name + "_more.png"))
     poorly = special(folder, lay, GROUND.get(name), POORLY)
     if poorly:
         poorly.save(out / (name + "_poorly.png"), optimize=True)

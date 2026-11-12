@@ -50,9 +50,9 @@ Rules.SPECIES = {
 Rules.EGGS = {
     mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03,
               hint = "It smells of rain and bramble." },
-    ghostly = { name = "Ghostly egg", species = "wispkin", from = "ghost", chance = 0.15,
+    ghostly = { name = "Ghostly egg", species = "wispkin", from = "ghost", chance = 0.1,
                 hint = "It's cold, and lighter than it looks." },
-    ember = { name = "Ember egg", species = "scrapwing", from = "level", chance = 0.3,
+    ember = { name = "Ember egg", species = "scrapwing", from = "level", chance = 0.1,
               hint = "It's warm to the touch, and something inside is tapping." },
     storm = { name = "Storm egg", species = "stormcub", from = "flight", chance = 0.06,
               hint = "It hums, and lifts the hair on your arm." },
@@ -318,6 +318,30 @@ function Rules.Company(s, now, roll)
     return closer, found
 end
 
+-- More supplies from your play: a fish caught or a point of Cooking is a
+-- treat, a point of First Aid is medicine. So that it's a pleasant extra
+-- and not something to farm: three treats and one medicine a day this way.
+-- Returns what was earned, or nil.
+Rules.EXTRA = { fishing = { "treat", 3 }, cooking = { "treat", 3 }, firstaid = { "medicine", 1 } }
+function Rules.Extra(s, kind, now)
+    local rule = Rules.EXTRA[kind]
+    if not rule then return nil end
+    local day = math.floor(now / DAY)
+    if type(s.extra) ~= "table" or s.extra.day ~= day then s.extra = { day = day } end
+    local supply, most = rule[1], rule[2]
+    if (s.extra[supply] or 0) >= most then return nil end
+    s.extra[supply] = (s.extra[supply] or 0) + 1
+    Rules.Earn(s, supply, 1)
+    return supply
+end
+
+-- How today's company stands, for its page: things done so far, and how many it takes.
+function Rules.CompanyToday(s, now)
+    local c = s.company
+    local today = type(c) == "table" and c.day == math.floor(now / DAY)
+    return today and c.deeds or 0, Rules.COMPANY.deeds
+end
+
 local function Use(s, supply)
     if (s.supplies[supply] or 0) < 1 then return false end
     s.supplies[supply] = s.supplies[supply] - 1
@@ -326,10 +350,10 @@ end
 
 local WANT = {
     meal = "No meals left. Quests you hand in bring more.",
-    treat = "No treats left. A new level brings more.",
+    treat = "No treats left. Fishing, Cooking and a new level bring more.",
     toy = "No toys left. Flights bring more.",
     soap = "No soap left. A new level brings more.",
-    medicine = "No medicine left. A new level brings more.",
+    medicine = "No medicine left. First Aid and a new level bring more.",
 }
 
 -- Each kind of care: true and what happened, or false and why not.

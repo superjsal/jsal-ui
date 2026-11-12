@@ -34,8 +34,101 @@ def is_sky(p, y):
     return y < SKY and ((b > 170 and b > r + 25) or (r > 200 and g > 200 and b > 200))
 
 
+# The other scenes (snow, desert, swamp and the rest) have skies of their own
+# colours, so theirs is found, not known: everything that can be reached from
+# the top edge of the picture, above row SKY_DEEP, through pixels that each
+# differ little from the one before. Clouds, hills and treetops stop it, and
+# stay part of the land: at night they're dark shapes against the sky.
+SKY_DEEP, SKY_STEP = 40, 26
+# In these scenes a band of cloud lies right across the sky with more sky under
+# it: there the search goes on through the clouds (white, or nearly), which
+# still stay as they are. Not where the land itself is white, as in the snow.
+THROUGH_CLOUDS = {"desert", "savanna", "coast"}
+
+
+def find_sky(px, through=False):
+    sky, cloud, todo = set(), set(), [(x, 0) for x in range(W)]
+    for start in todo:
+        sky.add(start)
+    while todo:
+        x, y = todo.pop()
+        a = px[x, y]
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= nx < W and 0 <= ny < SKY_DEEP and (nx, ny) not in sky and (nx, ny) not in cloud:
+                b = px[nx, ny]
+                if through and min(b[:3]) > 190 and max(b[:3]) - min(b[:3]) < 50:
+                    cloud.add((nx, ny))
+                    todo.append((nx, ny))
+                elif (x, y) in cloud and b[2] > b[0] + 20 and b[2] > 120:
+                    # Out of the far side of a cloud: only into blue.
+                    sky.add((nx, ny))
+                    todo.append((nx, ny))
+                elif (x, y) in sky and abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2]) <= SKY_STEP:
+                    sky.add((nx, ny))
+                    todo.append((nx, ny))
+    # A sky drawn with a speckle of two blues leaves single pixels behind: a
+    # blue one with sky on two sides or more is sky as well (twice over).
+    for _ in range(2):
+        more = set()
+        for y in range(SKY_DEEP):
+            for x in range(W):
+                c = px[x, y]
+                if (x, y) not in sky and (x, y) not in cloud and c[2] > c[0] + 20:
+                    if sum(n in sky for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))) >= 2:
+                        more.add((x, y))
+        sky |= more
+    # A thin trickle of it can run on down between far trees in a mist: the sky
+    # ends at the first row where less than an eighth of the row is sky.
+    for y in range(SKY_DEEP):
+        if sum((x, y) in sky for x in range(W)) < W // 8:
+            sky = {p for p in sky if p[1] < y}
+            break
+    return sky
+
+
+def found(name):
+    """The night and the sunset of a scene whose sky is found: the same two
+    looks as the meadow's, without the meadow's sun."""
+    day = Image.open(MEDIA / (name + ".png")).convert("RGBA").crop((0, 0, W, H))
+    sky = find_sky(day.load(), name in THROUGH_CLOUDS)
+    deep = max(y for _, y in sky) + 1
+    night, dusk_im = day.copy(), day.copy()
+    np_, dp = night.load(), dusk_im.load()
+    for y in range(H):
+        for x in range(W):
+            r, g, b, _ = dp[x, y]
+            if (x, y) in sky:
+                t = y / deep
+                np_[x, y] = tuple(int(TOP[i] + (LOW[i] - TOP[i]) * t) for i in range(3)) + (255,)
+                dp[x, y] = sunset(t)
+            else:
+                grey = (r + g + b) // 3
+                np_[x, y] = tuple(min(255, int((c * (1 - GREY) + grey * GREY) * TINT[i])) for i, c in enumerate((r, g, b))) + (255,)
+                dp[x, y] = tuple(min(255, int(c * WARM[i] * DIM_BY)) for i, c in enumerate((r, g, b))) + (255,)
+    rng = random.Random(1)
+    high = [p for p in sorted(sky) if p[1] < min(20, deep)]
+    for x, y in rng.sample(high, min(STARS, len(high))):
+        np_[x, y] = BRIGHT if rng.random() < 0.4 else DIM
+    # The moon goes where there's most sky for it, in the left half.
+    best = max(((sum((mx + dx, 9 + dy) in sky for dx in range(-5, 6) for dy in range(-5, 6)), -abs(mx - 40), mx)
+                for mx in range(12, W // 2)), default=None)
+    if best and best[0] > 60:
+        mx, my = best[2], 9
+        for dy in range(-5, 6):
+            for dx in range(-5, 6):
+                if dx * dx + dy * dy <= 26 and (dx - 3) ** 2 + (dy + 1) ** 2 > 20 and (mx + dx, my + dy) in sky:
+                    np_[mx + dx, my + dy] = MOONLIGHT
+    print(name, "sky:", len(sky), "pixels, down to row", deep)
+    return night, dusk_im
+
+
 def main():
     name = sys.argv[1]
+    if name != "meadow":
+        night, dusk_im = found(name)
+        save(night, name, "_night")
+        save(dusk_im, name, "_dusk")
+        return
     im = Image.open(MEDIA / (name + ".png")).convert("RGBA").crop((0, 0, W, H))
     px = im.load()
     sky = set()
