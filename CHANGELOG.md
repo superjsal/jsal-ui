@@ -1,18 +1,22 @@
-# jsal.ui 0.3.33-beta.1
+# jsal.ui 0.3.33
 
-A beta, for trying the Companion before it goes to everyone. Restart the game after updating: this version adds new files, and a /reload doesn't load those.
+Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load those.
 
-- **Companion** (new, off until you turn it on: Settings, Games, "Companion"; then the Companion page in the dashboard, or `/jsal pet`). A small creature of your own, a Briarboar, lives in a pen on its page and wanders about it.
-  - **Four needs:** fed, rested, happy and clean. Its mood follows them.
-  - **Looking after it:** feed it, give it a treat, play, bathe it, turn the lights out. Click it for a pat. A while after a meal a dropping appears in the pen: click it to scoop it.
-  - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine. Scooping, petting and the lights cost nothing.
-  - **It's forgiving.** Look in twice a day and it stays cheerful with no toys at all. However long you're away, only half a day passes for it; a bowl can be filled while it sleeps; and at worst it feels poorly for a few hours.
-  - **It grows up:** about two well-kept days, then a well-kept week, each form bigger and thornier.
-  - **On Today:** when it wants something, it's listed under Ready now, and its menu entry shows a gold 1.
-  - **A wish each day:** one small thing it would like, mostly something you'd do anyway: hand in a quest, take a flight, go to another zone, give it a fuss. Grant it and it's delighted. Skip it and nothing is lost.
-  - **A bond that keeps growing:** each day's care and each wish granted bring you closer, from Wary through Curious, Friendly, Fond and Devoted to Inseparable. It takes weeks, and it never goes down.
-  - **In your Journal:** hatching, growing up and each new level of the bond are written into your story.
-  - Not in yet: naming it (it's called Bramble), things in its pen, and supplies from fishing, Cooking and First Aid.
+- **Companion** (new, off until you turn it on: Settings, Games, "Companion"; then Companion in the dashboard, or `/jsal pet`). A small creature of your own to look after, in a window you can leave open while you play.
+  - **Choose an egg.** Three are waiting: Mossy, Ember and Toadstool. Click one to hear about it, click it again to make it yours. It hatches there and then, and you name it, once.
+  - **Five kinds, three forms each.** A briar boar, a ghost monkey, a boxing dragon, a lightning lion and a fairy turtle. Each grows up twice, about two well-kept days and then a well-kept week, and each form has something of its own to show off.
+  - **Four needs:** fed, rested, happy and clean. Feed it, give it a treat, play, bathe it, turn the lights out, click it for a pat, and scoop the dropping that turns up a while after a meal.
+  - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine.
+  - **It's forgiving.** Look in twice a day and it stays cheerful. However long you're away, only half a day passes for it, and at worst it feels poorly for a few hours.
+  - **How it is shows on it:** mud and flies when it's dirty, a tub and a sparkle for its bath, a droop and dizzy stars when it's poorly. Lights out takes its meadow through a sunset into night.
+  - **A wish each day and a bond that keeps growing,** from Wary to Inseparable. Neither is ever lost, and its milestones go into your Journal.
+  - **Eggs from your play.** Once yours is fully grown, a quest, a flight, a new level, a new zone or coming back from the dead can turn up another egg. Hatch it and the grown one settles in the paddock for good.
+  - **The paddock and its album.** The Paddock button shows the companions that have settled, going about their day, and an album of every form you've raised.
+  - **Out with you.** The Out button (or `/jsal pet out`) takes it out of its window to walk a short strip of your screen while you play. Drag it where you like. It keeps pace with you, runs when you ride, naps when you're away, goes faint in a fight, and does something about what you do: a quest handed in, a new level, a flight. Point at it for buttons to bring its window back, mute it, or change its size.
+  - **Its company counts.** The fifth quest, flight, new zone or level of a day with it on your screen brings you a little closer, and now and then it digs up a treat or a toy. Nothing is lost by leaving it in.
+  - **Sounds,** small ones, with a mute button in the pen's corner and a switch in Settings.
+  - **On Today:** when it wants something it's listed under Ready now, and its menu entry shows a gold 1.
+  - `/jsal pet restart`, typed twice, starts over with a new egg. It can't be undone.
 
 ## In 0.3.32
 

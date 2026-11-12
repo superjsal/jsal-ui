@@ -4128,18 +4128,18 @@
    "class": 3,
    "npc": "Buliwyf Stonehand",
    "zone": "Ironforge",
-   "seen": 1794260890,
+   "seen": 1794452240,
    "rows": [
-    {
-     "spell": 15590,
-     "name": "Fist Weapons",
-     "cost": 1000,
-     "level": 0,
-     "kind": "available"
-    },
     {
      "spell": 266,
      "name": "Guns",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 15590,
+     "name": "Fist Weapons",
      "cost": 1000,
      "level": 0,
      "kind": "available"
@@ -4200,6 +4200,329 @@
      "cost": 1000,
      "level": 0,
      "kind": "available"
+    }
+   ]
+  },
+  {
+   "class": 3,
+   "npc": "Caelyb",
+   "zone": "Ashenvale",
+   "seen": 1794406259,
+   "rows": [
+    {
+     "spell": 24493,
+     "name": "Arcane Resistance",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 23992,
+     "name": "Fire Resistance",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24446,
+     "name": "Frost Resistance",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4187,
+     "name": "Great Stamina",
+     "cost": 9,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4188,
+     "name": "Great Stamina",
+     "cost": 108,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4189,
+     "name": "Great Stamina",
+     "cost": 360,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14917,
+     "name": "Growl",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24545,
+     "name": "Natural Armor",
+     "cost": 9,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24549,
+     "name": "Natural Armor",
+     "cost": 108,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24550,
+     "name": "Natural Armor",
+     "cost": 360,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24492,
+     "name": "Nature Resistance",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24488,
+     "name": "Shadow Resistance",
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4190,
+     "name": "Great Stamina",
+     "cost": 1260,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24551,
+     "name": "Natural Armor",
+     "cost": 1260,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24497,
+     "name": "Arcane Resistance",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24439,
+     "name": "Fire Resistance",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24447,
+     "name": "Frost Resistance",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4191,
+     "name": "Great Stamina",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14918,
+     "name": "Growl",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24552,
+     "name": "Natural Armor",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24502,
+     "name": "Nature Resistance",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24505,
+     "name": "Shadow Resistance",
+     "cost": 1440,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4192,
+     "name": "Great Stamina",
+     "cost": 2520,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24553,
+     "name": "Natural Armor",
+     "cost": 2520,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24500,
+     "name": "Arcane Resistance",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24444,
+     "name": "Fire Resistance",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24448,
+     "name": "Frost Resistance",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14919,
+     "name": "Growl",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24503,
+     "name": "Nature Resistance",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24506,
+     "name": "Shadow Resistance",
+     "cost": 3240,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4193,
+     "name": "Great Stamina",
+     "cost": 4320,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24554,
+     "name": "Natural Armor",
+     "cost": 4320,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 4194,
+     "name": "Great Stamina",
+     "cost": 5760,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24555,
+     "name": "Natural Armor",
+     "cost": 5760,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24501,
+     "name": "Arcane Resistance",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24445,
+     "name": "Fire Resistance",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24449,
+     "name": "Frost Resistance",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14920,
+     "name": "Growl",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24504,
+     "name": "Nature Resistance",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24507,
+     "name": "Shadow Resistance",
+     "cost": 6480,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5041,
+     "name": "Great Stamina",
+     "cost": 7560,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24629,
+     "name": "Natural Armor",
+     "cost": 7560,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5042,
+     "name": "Great Stamina",
+     "cost": 9000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 14921,
+     "name": "Growl",
+     "cost": 9000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 24630,
+     "name": "Natural Armor",
+     "cost": 9000,
+     "level": 60,
+     "kind": "unavailable"
     }
    ]
   },
@@ -8357,7 +8680,7 @@
    "class": 3,
    "npc": "Einris Brightspear",
    "zone": "Stormwind City",
-   "seen": 1794233755,
+   "seen": 1794352937,
    "rows": [
     {
      "spell": 3044,
@@ -8367,9 +8690,23 @@
      "kind": "used"
     },
     {
+     "spell": 14281,
+     "name": "Arcane Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 13165,
      "name": "Aspect of the Hawk",
      "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
      "level": 0,
      "kind": "used"
     },
@@ -8388,6 +8725,13 @@
      "kind": "used"
     },
     {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1130,
      "name": "Hunter's Mark",
      "cost": 100,
@@ -8395,9 +8739,51 @@
      "kind": "used"
     },
     {
+     "spell": 13795,
+     "name": "Immolation Trap",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 136,
+     "name": "Mend Pet",
+     "cost": 600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1495,
+     "name": "Mongoose Bite",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 14260,
      "name": "Raptor Strike",
      "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14261,
+     "name": "Raptor Strike",
+     "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1513,
+     "name": "Scare Beast",
+     "cost": 1200,
      "level": 0,
      "kind": "used"
     },
@@ -8416,6 +8802,13 @@
      "kind": "used"
     },
     {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1494,
      "name": "Track Beasts",
      "cost": 10,
@@ -8430,39 +8823,25 @@
      "kind": "used"
     },
     {
-     "spell": 3127,
-     "name": "Parry",
-     "cost": 200,
-     "level": 8,
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
+     "level": 0,
      "kind": "used"
-    },
-    {
-     "spell": 14281,
-     "name": "Arcane Shot",
-     "cost": 600,
-     "level": 12,
-     "kind": "available"
-    },
-    {
-     "spell": 20736,
-     "name": "Distracting Shot",
-     "cost": 600,
-     "level": 12,
-     "kind": "available"
-    },
-    {
-     "spell": 136,
-     "name": "Mend Pet",
-     "cost": 600,
-     "level": 12,
-     "kind": "available"
     },
     {
      "spell": 2974,
      "name": "Wing Clip",
      "cost": 600,
-     "level": 12,
-     "kind": "available"
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 200,
+     "level": 8,
+     "kind": "used"
     },
     {
      "spell": 6197,
@@ -8479,116 +8858,60 @@
      "kind": "available"
     },
     {
-     "spell": 1513,
-     "name": "Scare Beast",
-     "cost": 1200,
-     "level": 14,
-     "kind": "available"
-    },
-    {
-     "spell": 13795,
-     "name": "Immolation Trap",
-     "cost": 1500,
-     "level": 16,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 1495,
-     "name": "Mongoose Bite",
-     "cost": 1500,
-     "level": 16,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14261,
-     "name": "Raptor Strike",
-     "cost": 1500,
-     "level": 16,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14318,
-     "name": "Aspect of the Hawk",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 2643,
-     "name": "Multi-Shot",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 13550,
-     "name": "Serpent Sting",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 19884,
-     "name": "Track Undead",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
      "spell": 19434,
      "name": "Aimed Shot",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14282,
      "name": "Arcane Shot",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 5118,
      "name": "Aspect of the Cheetah",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 781,
      "name": "Disengage",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14274,
      "name": "Distracting Shot",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 674,
      "name": "Dual Wield",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 1499,
      "name": "Freezing Trap",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 3111,
      "name": "Mend Pet",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14323,
@@ -12899,7 +13222,7 @@
    "class": 3,
    "npc": "Jocaste",
    "zone": "Darnassus",
-   "seen": 1794021507,
+   "seen": 1794413018,
    "rows": [
     {
      "spell": 3044,
@@ -12916,9 +13239,30 @@
      "kind": "used"
     },
     {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 1890,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 1890,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 13165,
      "name": "Aspect of the Hawk",
      "cost": 360,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1440,
      "level": 0,
      "kind": "used"
     },
@@ -12933,6 +13277,27 @@
      "spell": 5116,
      "name": "Concussive Shot",
      "cost": 180,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 1890,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 20736,
+     "name": "Distracting Shot",
+     "cost": 540,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 1890,
      "level": 0,
      "kind": "used"
     },
@@ -12958,9 +13323,23 @@
      "kind": "used"
     },
     {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 1890,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1495,
      "name": "Mongoose Bite",
      "cost": 1350,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1440,
      "level": 0,
      "kind": "used"
     },
@@ -13000,6 +13379,13 @@
      "kind": "used"
     },
     {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1440,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1494,
      "name": "Track Beasts",
      "cost": 9,
@@ -13010,6 +13396,13 @@
      "spell": 19883,
      "name": "Track Humanoids",
      "cost": 360,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1440,
      "level": 0,
      "kind": "used"
     },
@@ -13028,11 +13421,11 @@
      "kind": "used"
     },
     {
-     "spell": 20736,
-     "name": "Distracting Shot",
-     "cost": 540,
-     "level": 12,
-     "kind": "available"
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 1890,
+     "level": 20,
+     "kind": "used"
     },
     {
      "spell": 6197,
@@ -13049,123 +13442,53 @@
      "kind": "available"
     },
     {
-     "spell": 14318,
-     "name": "Aspect of the Hawk",
-     "cost": 1440,
-     "level": 18,
-     "kind": "available"
-    },
-    {
-     "spell": 2643,
-     "name": "Multi-Shot",
-     "cost": 1440,
-     "level": 18,
-     "kind": "available"
-    },
-    {
-     "spell": 13550,
-     "name": "Serpent Sting",
-     "cost": 1440,
-     "level": 18,
-     "kind": "available"
-    },
-    {
-     "spell": 19884,
-     "name": "Track Undead",
-     "cost": 1440,
-     "level": 18,
-     "kind": "available"
-    },
-    {
      "spell": 19434,
      "name": "Aimed Shot",
      "cost": 1890,
      "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14282,
-     "name": "Arcane Shot",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 5118,
-     "name": "Aspect of the Cheetah",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 781,
-     "name": "Disengage",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14274,
      "name": "Distracting Shot",
      "cost": 1890,
      "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 674,
-     "name": "Dual Wield",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 1499,
-     "name": "Freezing Trap",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 3111,
-     "name": "Mend Pet",
-     "cost": 1890,
-     "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14323,
      "name": "Hunter's Mark",
      "cost": 6300,
      "level": 22,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 3043,
      "name": "Scorpid Sting",
      "cost": 6300,
      "level": 22,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 1462,
      "name": "Beast Lore",
      "cost": 6480,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14262,
      "name": "Raptor Strike",
      "cost": 6480,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 19885,
      "name": "Track Hidden",
      "cost": 6480,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14302,
@@ -13775,7 +14098,7 @@
    "class": 3,
    "npc": "Karrina Mekenda",
    "zone": "Stormwind City",
-   "seen": 1794318400,
+   "seen": 1794352961,
    "rows": [
     {
      "spell": 4187,
@@ -13788,6 +14111,13 @@
      "spell": 4188,
      "name": "Great Stamina",
      "cost": 120,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4189,
+     "name": "Great Stamina",
+     "cost": 400,
      "level": 0,
      "kind": "used"
     },
@@ -13806,60 +14136,53 @@
      "kind": "used"
     },
     {
-     "spell": 4189,
-     "name": "Great Stamina",
-     "cost": 400,
-     "level": 18,
-     "kind": "available"
-    },
-    {
      "spell": 24550,
      "name": "Natural Armor",
      "cost": 400,
-     "level": 18,
-     "kind": "available"
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 24493,
      "name": "Arcane Resistance",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 23992,
      "name": "Fire Resistance",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24446,
      "name": "Frost Resistance",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14917,
      "name": "Growl",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24492,
      "name": "Nature Resistance",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24488,
      "name": "Shadow Resistance",
      "cost": 440,
      "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 4190,
@@ -15766,7 +16089,7 @@
    "class": 3,
    "npc": "Regnus Thundergranite",
    "zone": "Ironforge",
-   "seen": 1794275842,
+   "seen": 1794452214,
    "rows": [
     {
      "spell": 3044,
@@ -15783,9 +16106,30 @@
      "kind": "used"
     },
     {
+     "spell": 14282,
+     "name": "Arcane Shot",
+     "cost": 2100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5118,
+     "name": "Aspect of the Cheetah",
+     "cost": 2100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 13165,
      "name": "Aspect of the Hawk",
      "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14318,
+     "name": "Aspect of the Hawk",
+     "cost": 1600,
      "level": 0,
      "kind": "used"
     },
@@ -15797,9 +16141,23 @@
      "kind": "used"
     },
     {
+     "spell": 1462,
+     "name": "Beast Lore",
+     "cost": 7200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 5116,
      "name": "Concussive Shot",
      "cost": 200,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 781,
+     "name": "Disengage",
+     "cost": 2100,
      "level": 0,
      "kind": "used"
     },
@@ -15811,9 +16169,23 @@
      "kind": "used"
     },
     {
+     "spell": 1499,
+     "name": "Freezing Trap",
+     "cost": 2100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1130,
      "name": "Hunter's Mark",
      "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14323,
+     "name": "Hunter's Mark",
+     "cost": 7000,
      "level": 0,
      "kind": "used"
     },
@@ -15832,9 +16204,23 @@
      "kind": "used"
     },
     {
+     "spell": 3111,
+     "name": "Mend Pet",
+     "cost": 2100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1495,
      "name": "Mongoose Bite",
      "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 2643,
+     "name": "Multi-Shot",
+     "cost": 1600,
      "level": 0,
      "kind": "used"
     },
@@ -15849,6 +16235,13 @@
      "spell": 14261,
      "name": "Raptor Strike",
      "cost": 1500,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 14262,
+     "name": "Raptor Strike",
+     "cost": 7200,
      "level": 0,
      "kind": "used"
     },
@@ -15874,6 +16267,13 @@
      "kind": "used"
     },
     {
+     "spell": 13550,
+     "name": "Serpent Sting",
+     "cost": 1600,
+     "level": 0,
+     "kind": "used"
+    },
+    {
      "spell": 1494,
      "name": "Track Beasts",
      "cost": 10,
@@ -15884,6 +16284,13 @@
      "spell": 19883,
      "name": "Track Humanoids",
      "cost": 400,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 19884,
+     "name": "Track Undead",
+     "cost": 1600,
      "level": 0,
      "kind": "used"
     },
@@ -15902,6 +16309,13 @@
      "kind": "used"
     },
     {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 2100,
+     "level": 20,
+     "kind": "used"
+    },
+    {
      "spell": 6197,
      "name": "Eagle Eye",
      "cost": 1200,
@@ -15916,151 +16330,60 @@
      "kind": "available"
     },
     {
-     "spell": 14318,
-     "name": "Aspect of the Hawk",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 2643,
-     "name": "Multi-Shot",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 13550,
-     "name": "Serpent Sting",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 19884,
-     "name": "Track Undead",
-     "cost": 1600,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
      "spell": 19434,
      "name": "Aimed Shot",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14282,
-     "name": "Arcane Shot",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 5118,
-     "name": "Aspect of the Cheetah",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 781,
-     "name": "Disengage",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14274,
      "name": "Distracting Shot",
      "cost": 2100,
      "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 674,
-     "name": "Dual Wield",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 1499,
-     "name": "Freezing Trap",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 3111,
-     "name": "Mend Pet",
-     "cost": 2100,
-     "level": 20,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14323,
-     "name": "Hunter's Mark",
-     "cost": 7000,
-     "level": 22,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 3043,
      "name": "Scorpid Sting",
      "cost": 7000,
      "level": 22,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 1462,
-     "name": "Beast Lore",
-     "cost": 7200,
-     "level": 24,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 14262,
-     "name": "Raptor Strike",
-     "cost": 7200,
-     "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 19885,
      "name": "Track Hidden",
      "cost": 7200,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 14302,
      "name": "Immolation Trap",
      "cost": 7400,
      "level": 26,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 3045,
      "name": "Rapid Fire",
      "cost": 7400,
      "level": 26,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 13551,
      "name": "Serpent Sting",
      "cost": 7400,
      "level": 26,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 19880,
      "name": "Track Elementals",
      "cost": 7400,
      "level": 26,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 20900,
@@ -16642,320 +16965,320 @@
    "class": 3,
    "npc": "Silvaria",
    "zone": "Darnassus",
-   "seen": 1794182046,
+   "seen": 1794413069,
    "rows": [
-    {
-     "spell": 4187,
-     "name": "Great Stamina",
-     "cost": 10,
-     "level": 10,
-     "kind": "available"
-    },
-    {
-     "spell": 24545,
-     "name": "Natural Armor",
-     "cost": 10,
-     "level": 10,
-     "kind": "available"
-    },
-    {
-     "spell": 4188,
-     "name": "Great Stamina",
-     "cost": 120,
-     "level": 12,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 24549,
-     "name": "Natural Armor",
-     "cost": 120,
-     "level": 12,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 4189,
-     "name": "Great Stamina",
-     "cost": 400,
-     "level": 18,
-     "kind": "unavailable"
-    },
-    {
-     "spell": 24550,
-     "name": "Natural Armor",
-     "cost": 400,
-     "level": 18,
-     "kind": "unavailable"
-    },
     {
      "spell": 24493,
      "name": "Arcane Resistance",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 23992,
      "name": "Fire Resistance",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 24446,
      "name": "Frost Resistance",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4187,
+     "name": "Great Stamina",
+     "cost": 9,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4188,
+     "name": "Great Stamina",
+     "cost": 108,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 4189,
+     "name": "Great Stamina",
+     "cost": 360,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 14917,
      "name": "Growl",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24545,
+     "name": "Natural Armor",
+     "cost": 9,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24549,
+     "name": "Natural Armor",
+     "cost": 108,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 24550,
+     "name": "Natural Armor",
+     "cost": 360,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 24492,
      "name": "Nature Resistance",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 24488,
      "name": "Shadow Resistance",
-     "cost": 440,
-     "level": 20,
-     "kind": "unavailable"
+     "cost": 396,
+     "level": 0,
+     "kind": "used"
     },
     {
      "spell": 4190,
      "name": "Great Stamina",
-     "cost": 1400,
+     "cost": 1260,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24551,
      "name": "Natural Armor",
-     "cost": 1400,
+     "cost": 1260,
      "level": 24,
-     "kind": "unavailable"
+     "kind": "available"
     },
     {
      "spell": 24497,
      "name": "Arcane Resistance",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 24439,
      "name": "Fire Resistance",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 24447,
      "name": "Frost Resistance",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 4191,
      "name": "Great Stamina",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 14918,
      "name": "Growl",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 24552,
      "name": "Natural Armor",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 24502,
      "name": "Nature Resistance",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 24505,
      "name": "Shadow Resistance",
-     "cost": 1600,
+     "cost": 1440,
      "level": 30,
      "kind": "unavailable"
     },
     {
      "spell": 4192,
      "name": "Great Stamina",
-     "cost": 2800,
+     "cost": 2520,
      "level": 36,
      "kind": "unavailable"
     },
     {
      "spell": 24553,
      "name": "Natural Armor",
-     "cost": 2800,
+     "cost": 2520,
      "level": 36,
      "kind": "unavailable"
     },
     {
      "spell": 24500,
      "name": "Arcane Resistance",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 24444,
      "name": "Fire Resistance",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 24448,
      "name": "Frost Resistance",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 14919,
      "name": "Growl",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 24503,
      "name": "Nature Resistance",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 24506,
      "name": "Shadow Resistance",
-     "cost": 3600,
+     "cost": 3240,
      "level": 40,
      "kind": "unavailable"
     },
     {
      "spell": 4193,
      "name": "Great Stamina",
-     "cost": 4800,
+     "cost": 4320,
      "level": 42,
      "kind": "unavailable"
     },
     {
      "spell": 24554,
      "name": "Natural Armor",
-     "cost": 4800,
+     "cost": 4320,
      "level": 42,
      "kind": "unavailable"
     },
     {
      "spell": 4194,
      "name": "Great Stamina",
-     "cost": 6400,
+     "cost": 5760,
      "level": 48,
      "kind": "unavailable"
     },
     {
      "spell": 24555,
      "name": "Natural Armor",
-     "cost": 6400,
+     "cost": 5760,
      "level": 48,
      "kind": "unavailable"
     },
     {
      "spell": 24501,
      "name": "Arcane Resistance",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 24445,
      "name": "Fire Resistance",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 24449,
      "name": "Frost Resistance",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 14920,
      "name": "Growl",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 24504,
      "name": "Nature Resistance",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 24507,
      "name": "Shadow Resistance",
-     "cost": 7200,
+     "cost": 6480,
      "level": 50,
      "kind": "unavailable"
     },
     {
      "spell": 5041,
      "name": "Great Stamina",
-     "cost": 8400,
+     "cost": 7560,
      "level": 54,
      "kind": "unavailable"
     },
     {
      "spell": 24629,
      "name": "Natural Armor",
-     "cost": 8400,
+     "cost": 7560,
      "level": 54,
      "kind": "unavailable"
     },
     {
      "spell": 5042,
      "name": "Great Stamina",
-     "cost": 10000,
+     "cost": 9000,
      "level": 60,
      "kind": "unavailable"
     },
     {
      "spell": 14921,
      "name": "Growl",
-     "cost": 10000,
+     "cost": 9000,
      "level": 60,
      "kind": "unavailable"
     },
     {
      "spell": 24630,
      "name": "Natural Armor",
-     "cost": 10000,
+     "cost": 9000,
      "level": 60,
      "kind": "unavailable"
     }

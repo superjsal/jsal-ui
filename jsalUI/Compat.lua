@@ -153,6 +153,37 @@ function Compat.OnTaxi()
     return UnitOnTaxi("player") and true or false
 end
 
+-- How the player is getting about, for the companion out with you. Speed
+-- and being away are things the game can hide (in a dungeon, or while chat
+-- is locked): hidden, they read as standing still, and here.
+function Compat.Speed()
+    local speed = Compat.Plain(GetUnitSpeed("player"))
+    return speed or 0
+end
+function Compat.Away()
+    local away = Compat.Plain(UnitIsAFK("player"))
+    return away and true or false
+end
+function Compat.Mounted() return IsMounted() and true or false end
+-- Whether the loot window that's opening is a catch from fishing.
+function Compat.Fished() return IsFishingLoot() and true or false end
+-- The hour by the realm's clock, 0 to 23.
+function Compat.Hour()
+    local hour = GetGameTime()
+    return hour or 12
+end
+function Compat.Resting() return IsResting() and true or false end
+function Compat.Dead() return UnitIsDeadOrGhost("player") and true or false end
+
+-- How far across `frame` the pointer is, from its left edge, in the frame's
+-- own units; nil if that can't be told.
+function Compat.Cursor(frame)
+    local x = GetCursorPosition()
+    local scale, left = frame:GetEffectiveScale(), frame:GetLeft()
+    if not (x and scale and left) or scale <= 0 then return nil end
+    return x / scale - left
+end
+
 -- The flight master's map: each slot's node ID (when the client gives one)
 -- and name, which slot is where the player stands, and the map's ID.
 function Compat.TaxiNodes()
