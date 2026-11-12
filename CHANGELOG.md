@@ -3,20 +3,19 @@
 Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load those.
 
 - **Companion** (new, off until you turn it on: Settings, Games, "Companion"; then Companion in the dashboard, or `/jsal pet`). A small creature of your own to look after, in a window you can leave open while you play.
-  - **Choose an egg.** Three are waiting: Mossy, Ember and Toadstool. Click one to hear about it, click it again to make it yours. It hatches there and then, and you name it, once.
-  - **Five kinds, three forms each.** A briar boar, a ghost monkey, a boxing dragon, a lightning lion and a fairy turtle. Each grows up twice, about two well-kept days and then a well-kept week, and each form has something of its own to show off.
+  - **Choose an egg.** Three are waiting, drawn from the six kinds, so yours may not be your guildmate's three. Click one to hear about it, click it again to make it yours. It hatches there and then, and you name it, once.
+  - **Six kinds, three forms each.** A briar boar, a ghost monkey, a boxing dragon, a lightning lion, a fairy turtle and a steel elephant. Each grows up twice, about two well-kept days and then a well-kept week, and each form has something of its own to show off.
   - **Four needs:** fed, rested, happy and clean. Feed it, give it a treat, play, bathe it, turn the lights out, click it for a pat, and scoop the dropping that turns up a while after a meal.
   - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine.
   - **It's forgiving.** Look in twice a day and it stays cheerful. However long you're away, only half a day passes for it, and at worst it feels poorly for a few hours.
   - **How it is shows on it:** mud and flies when it's dirty, a tub and a sparkle for its bath, a droop and dizzy stars when it's poorly. Lights out takes its meadow through a sunset into night.
   - **A wish each day and a bond that keeps growing,** from Wary to Inseparable. Neither is ever lost, and its milestones go into your Journal.
-  - **Eggs from your play.** Once yours is fully grown, a quest, a flight, a new level, a new zone, a dungeon or raid boss, or coming back from the dead can turn up another egg. Hatch it and the grown one settles in the paddock for good.
+  - **Eggs from your play.** Once yours is fully grown, a quest, a flight, a new level, a new zone, a fight won or coming back from the dead can turn up another egg. Hatch it and the grown one settles in the paddock for good.
   - **The paddock and its album.** The Paddock button shows the companions that have settled, going about their day, and an album of every form you've raised.
   - **Out with you.** The Out button (or `/jsal pet out`) takes it out of its window to walk a short strip of your screen while you play. Drag it where you like. It keeps pace with you, runs when you ride, naps when you're away, goes faint in a fight, and does something about what you do: a quest handed in, a new level, a flight. Point at it for buttons to bring its window back, mute it, or change its size.
   - **Its company counts.** The fifth quest, flight, new zone or level of a day with it on your screen brings you a little closer, and now and then it digs up a treat or a toy. Nothing is lost by leaving it in.
   - **Sounds,** small ones, with a mute button in the pen's corner and a switch in Settings.
   - **On Today:** when it wants something it's listed under Ready now, and its menu entry shows a gold 1.
-  - `/jsal pet restart`, typed twice, starts over with a new egg. It can't be undone.
 
 ## In 0.3.32
 

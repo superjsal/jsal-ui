@@ -486,12 +486,33 @@ function Pet.State()
     return s
 end
 
+-- The three eggs a new player is offered: any three of all the kinds there
+-- are, drawn once (Pet.Pick is the dice) and kept with the stand-in, so
+-- they're the same three each time the window opens until one is chosen.
+-- Starting over draws again.
+Pet.Pick = math.random
+local function Offer()
+    local s = Pet.State()
+    local offer, good = s.offer, false
+    if type(offer) == "table" and #offer == Rules.OFFERED then
+        good = true
+        for _, key in ipairs(offer) do
+            if not Rules.EGGS[key] then good = false end
+        end
+    end
+    if not good then
+        offer = Rules.Offer(Pet.Pick)
+        s.offer = offer
+    end
+    return offer
+end
+
 -- What it wants from you right now, for Today: a title, a line under it and
 -- its picture; nil when it's fine, asleep, or the part is off.
 function Pet.Wants()
     if not Pet.running then return nil end
     if Pet.State().unchosen then
-        local first = Rules.EGGS[Rules.STARTERS[1]]
+        local first = Rules.EGGS[Offer()[1]]
         return { key = "egg", title = "Three eggs are waiting", sub = "Choose your companion", texture = Art(first.species .. "_egg") }
     end
     local s = Rules.Advance(Pet.State(), Now())
@@ -1058,11 +1079,15 @@ local function Refresh()
         window.picking = picking
         Layout()
     end
+    local offer = picking and Offer() or nil
     for i, pick in ipairs(picks) do
         pick:SetShown(picking)
-        if picking and not pick.file then
-            pick.file = Art(Rules.EGGS[Rules.STARTERS[i]].species .. "_egg")
-            pick.picture:SetTexture(pick.file, "CLAMP", "CLAMP", "NEAREST")
+        local kind = offer and Rules.EGGS[offer[i]]
+        local file = kind and Art(kind.species .. "_egg")
+        if file and pick.file ~= file then
+            pick.file = file
+            pick.picture:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+            pick.name:SetText((kind.name:gsub(" egg$", "")))
         end
     end
     body:SetShown(not picking and not yard)
@@ -1170,7 +1195,7 @@ local function Refresh()
         end
     end
     eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
-        or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone, a boss or coming back from the dead can turn one up."
+        or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone, a fight won or coming back from the dead can turn one up."
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
     -- Just hatched and not yet named: the name box opens by itself, with the
     -- name it would otherwise have ready to type over.
@@ -1799,7 +1824,7 @@ local function BuildPicks()
     pickLine:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, -12)
     pickLine:SetWidth(PEN_W)
     pickLine:Hide()
-    for i, key in ipairs(Rules.STARTERS) do
+    for i = 1, Rules.OFFERED do
         local pick = CreateFrame("Button", nil, pen)
         pick:SetSize(64, 84)
         pick:SetPoint("BOTTOM", pen, "BOTTOMLEFT", math.floor(PEN_W * i / 4), 24)
@@ -1809,9 +1834,9 @@ local function BuildPicks()
         pick.picture:SetPoint("BOTTOM", 0, 0)
         pick.picture:SetTexCoord(0.25, 0.75, 0.5, 1)
         Compat.Crisp(pick.picture)
-        local name = Style.Text(pick, 12, "text", nil, true)
-        name:SetPoint("TOP", 0, 0)
-        name:SetText((Rules.EGGS[key].name:gsub(" egg$", "")))
+        -- Which egg it is, and so its picture and name, is said when it's shown (Refresh).
+        pick.name = Style.Text(pick, 12, "text", nil, true)
+        pick.name:SetPoint("TOP", 0, 0)
         pick:SetScript("OnClick", function() Pet.Choose(i) end)
         pick:Hide()
         picks[i] = pick
@@ -2144,8 +2169,8 @@ end
 -- had already earned.
 function Pet.Choose(index)
     local s = Pet.State()
-    local kind = Rules.EGGS[Rules.STARTERS[index] or ""]
-    if not (s.unchosen and kind) then return end
+    local kind = s.unchosen and Rules.EGGS[Offer()[index] or ""]
+    if not kind then return end
     if IsOpen() and Pet.armed ~= index then
         Pet.armed = index
         said = ("The %s. %s Click it again to make it yours."):format(kind.name, kind.hint)
@@ -2200,7 +2225,18 @@ function Pet.HatchEgg(index)
     if IsOpen() then Refresh() end
 end
 
+-- A trial (/jsal pet try, /jsal pet new) puts your real companion aside, and
+-- only a beta build has the commands that bring it back. So a release that
+-- finds one put aside brings it home itself. True when it did.
+function Pet.Home()
+    local kept = ns.db.petAside
+    if Pet.Trials(ns.version) or type(kept) ~= "table" then return false end
+    ns.db.pet, ns.db.petEggs, ns.db.petSettled, ns.db.petAside = kept.pet, kept.eggs or {}, kept.settled or {}, nil
+    return true
+end
+
 function Pet:OnEnable()
+    Pet.Home()
     -- A hatchling from the moment the part is switched on, so what you earn
     -- before first opening its page isn't lost.
     Pet.State()
@@ -2224,14 +2260,16 @@ function Pet:OnEnable()
     events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     events:RegisterEvent("PLAYER_UNGHOST")
     events:RegisterEvent("PLAYER_DEAD")
-    -- A boss brought down; a client without the event has no Steel eggs.
-    pcall(events.RegisterEvent, events, "ENCOUNTER_END")
-    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text, _, _, _, won)
+    -- Out of a fight. (A boss brought down, ENCOUNTER_END, is kept for rarer
+    -- eggs to come: John, 12 Nov 2026.)
+    events:RegisterEvent("PLAYER_REGEN_ENABLED")
+    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text)
         -- A chat line can be hidden in a dungeon: then it's nil.
         text = Compat.Plain(text)
-        if event == "ENCOUNTER_END" then
-            -- Won, not wiped: sometimes there's something in the wreckage.
-            if Compat.Plain(won) == 1 then Pet.Found("boss") end
+        if event == "PLAYER_REGEN_ENABLED" then
+            -- A fight you walked away from: once in a long while there's
+            -- something in the wreckage.
+            if not Compat.Dead() then Pet.Found("fight") end
         elseif event == "LOOT_READY" then
             -- A catch, not a corpse; and the game can say so twice for one catch.
             if Compat.Fished() and Now() - fished >= 2 then
@@ -2294,10 +2332,10 @@ end
 
 ns.Command("pet", function() Pet.Open() end)
 
--- The commands below this one, all but /jsal pet restart, are for trying
--- things out while it's being made (a look at another form, a trial of
--- settling, making it dirty or poorly on purpose). They're there only in a
--- beta build, one whose version says so: a release has none of them.
+-- The commands below this one are for trying things out while it's being
+-- made (a look at another form, a trial of settling, making it dirty or
+-- poorly on purpose, starting over). They're there only in a beta build, one
+-- whose version says so: a release has none of them.
 function Pet.Trials(version)
     return tostring(version or ""):find("beta", 1, true) ~= nil
 end
@@ -2433,7 +2471,9 @@ function Pet.Restart()
     ns.Print("Started over. Choose an egg.")
     if not IsOpen() then Pet.Open() else Refresh() end
 end
-ns.Command("pet restart", Pet.Restart)
+-- Beta builds only since 12 Nov 2026 (John: "you can remove the restart when
+-- we push to main, i already picked a new companion").
+Trial("pet restart", Pet.Restart)
 
 -- /jsal pet dirty and /jsal pet sick: the companion in the pen is made
 -- dirty, or poorly, there and then, with a bar of soap or a dose of medicine
@@ -2461,3 +2501,21 @@ function Pet.Dirty() Make("dirty") end
 function Pet.Sick() Make("sick") end
 Trial("pet dirty", Pet.Dirty)
 Trial("pet sick", Pet.Sick)
+
+-- /jsal pet stock: the cupboard is topped up to three of everything, and
+-- today's treats are forgotten, so that feeding, treats and play can be
+-- tried without waiting on quests, flights and fish. Beta builds only.
+function Pet.Stock()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    local s = Pet.State()
+    if s.unchosen then return ns.Print("Choose an egg first.") end
+    for _, supply in ipairs({ "meal", "treat", "toy", "soap", "medicine" }) do
+        s.supplies[supply] = math.max(s.supplies[supply] or 0, 3)
+    end
+    s.sweets = 0
+    said = "The cupboard is stocked: three of everything."
+    if IsOpen() then Refresh() else Pet.Open() end
+end
+Trial("pet stock", Pet.Stock)
