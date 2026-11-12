@@ -3,7 +3,7 @@
 Restart the game after updating (exit and start it again): this version adds a new picture, and a /reload doesn't load it.
 
 - **Companion: more to do together.**
-  - **It copies your emotes.** `/dance` and it dances, `/sit` and it sits, `/wave` and it hops, `/roar` and it shows off, `/cry` and it droops. In its pen or out with you.
+  - **It copies your emotes.** `/dance` and it dances, `/wave` and it hops, `/roar` and it shows off, `/cry` and it droops, `/yawn` and it yawns. In its pen or out with you.
   - **Tricks, which come with your bond.** Right-click it and it does one it knows: sit first, then a hop, a dig, a dance, and at the last its own special. A new one comes with each level of the bond.
   - **A bath you scrub.** Bath puts a brush in your hand: rub it over your companion and the suds come up until it's clean. Click it, or wait a moment, for a quick wash.
   - **Chase the pointer.** Wiggle the pointer in its pen and it runs after it and pounces, a little fun the first few times a day.
