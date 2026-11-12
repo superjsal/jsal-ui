@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "A Companion to look after: choose an egg, raise it, play fetch and catch, and take it out with you (off: Settings, Games)",
-    "The gear plan has a row for each ring and each trinket, so no slot goes unseen",
-    "Today can show what your next level brings and whether your gold covers it (off: Settings, Leveling)",
+    "Beta: your Companion copies your emotes, learns tricks as you grow closer, and has a bath you scrub",
+    "Wiggle the pointer in its pen and it gives chase; a rare or a blue drop gets its notice",
+    "A Companion to look after: choose an egg, raise it, play fetch and catch (off: Settings, Games)",
 }
 
 local function NewsWanted()

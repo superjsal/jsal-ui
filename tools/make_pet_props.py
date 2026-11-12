@@ -2,7 +2,7 @@
 
     python -I tools/make_pet_props.py <folder> [preview folder]
 
-The folder holds dropping.png, bowl.png, ball.png and treat.png, each 32 pixels square
+The folder holds dropping.png, bowl.png, ball.png, treat.png and scrubber.png, each 32 pixels square
 with a see-through background. Writes jsalUI/Media/Pet/<name>.png for each,
 unchanged but for the format.
 """
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PIL import Image
 
-PROPS = ("dropping", "bowl", "ball", "treat")
+PROPS = ("dropping", "bowl", "ball", "treat", "scrubber")
 
 
 def main():

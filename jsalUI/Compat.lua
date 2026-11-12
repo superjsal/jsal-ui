@@ -193,6 +193,38 @@ function Compat.CursorAt(frame)
     return x / scale - left, top - y / scale
 end
 
+-- Tells `fn` the emote you just did, by the game's own word for it ("DANCE",
+-- "SIT", "WAVE"), whichever way you did it. False when the game can't say.
+-- This runs inside the game's own emote, every time: `fn` should be a
+-- module's guarded function, and it's called in a pcall besides.
+function Compat.OnEmote(fn)
+    if not (hooksecurefunc and DoEmote) then return false end
+    hooksecurefunc("DoEmote", function(token) pcall(fn, token) end)
+    return true
+end
+
+-- Whether you're sat eating or drinking: one of your buffs is the one food
+-- or drink gives while you take it. A buff the game hides is skipped.
+function Compat.Eating()
+    local get = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+    if not get then return false end
+    for i = 1, 40 do
+        local ok, aura = pcall(get, "player", i, "HELPFUL")
+        if not ok or not aura then break end
+        local name = Compat.Plain(aura.name)
+        if name == "Food" or name == "Drink" or name == "Refreshment" or name == "Food & Drink" then return true end
+    end
+    return false
+end
+
+-- Whether what you have targeted is a rare.
+function Compat.TargetRare()
+    if not UnitClassification then return false end
+    local ok, kind = pcall(UnitClassification, "target")
+    kind = ok and Compat.Plain(kind) or nil
+    return kind == "rare" or kind == "rareelite"
+end
+
 -- The flight master's map: each slot's node ID (when the client gives one)
 -- and name, which slot is where the player stands, and the map's ID.
 function Compat.TaxiNodes()
