@@ -90,6 +90,39 @@ local REST_NAP = 60
 -- What it may do when it gets somewhere, one time in eight each (the rest
 -- of the time it only stands): sit, look about, show off, yawn and stretch, dig.
 local IDLE = { "sit", "idle", "special", "yawn", "dig" }
+-- And out with you while you're on the move: the short ones, so it's soon
+-- on its way again, and wherever it happens to be on its strip, every WHIM
+-- seconds or so (between the two numbers). John, 12 Nov 2026: "while i'm
+-- walking and running it doesnt really do its emotes anymore, i'd like for
+-- it to still do its other animations", and then "should be able to do it
+-- throughout the strip not just at the end".
+local ON_THE_GO = { "special", "cheer", "dig", "yawn", "idle" }
+local WHIM = { 4, 9 }
+Pet.WHIM = WHIM
+
+-- Counts down to its next whim while it's on the move with you. True when
+-- one is due, and the wait for the one after is drawn (`roll(a, b)`).
+function Pet.Whim(walk, dt, roll)
+    walk.whim = (walk.whim or roll(WHIM[1] * 10, WHIM[2] * 10) / 10) - dt
+    if walk.whim > 0 then return false end
+    walk.whim = roll(WHIM[1] * 10, WHIM[2] * 10) / 10
+    return true
+end
+
+-- What it does of its own accord: `roll(a, b)` is the dice. At rest, asked
+-- as it arrives somewhere, more often than not something. On the move with
+-- you (`moving`), asked when a whim is due, always one of the short ones.
+-- Poorly (`sick`), it doesn't show off: mostly it droops where it stands,
+-- and sometimes just sits; on the move it only plods on.
+function Pet.Idle(roll, moving, sick)
+    if sick then
+        if moving then return nil end
+        local pick = roll(1, 6)
+        return pick <= 4 and "poorly" or pick == 5 and "sit" or nil
+    end
+    if moving then return ON_THE_GO[roll(1, #ON_THE_GO)] end
+    return IDLE[roll(1, 8)]
+end
 -- Food and play in its pen. A meal, a treat or a toy is in your hand for HOLD
 -- seconds: click the grass and it's set down or thrown there (in the air for
 -- `fly` seconds, ARC pixels high), and the creature goes over to it. A ball
@@ -788,6 +821,9 @@ local function PaintWalk()
     local errand, held, toss = walk.errand, pen.held, pen.toss
     local thing = act and act.prop or errand and errand.thing or held and held.thing or toss and "treat"
     local seen = thing ~= nil
+    -- What's in your hand is drawn by a picture of its own, over the creature
+    -- (`pen.hand`): the brush goes over what it scrubs, not behind it.
+    local inHand = false
     if thing then
         local file = Art(thing)
         if prop.file ~= file then
@@ -823,11 +859,21 @@ local function PaintWalk()
             prop:SetPoint("BOTTOMLEFT", pen, "TOPLEFT", math.floor(x + 0.5), -math.floor(y + 0.5))
         else
             local x, y = Compat.CursorAt(pen)
-            seen = x ~= nil and x >= 0 and x <= PEN_W and y >= 0 and y <= PEN_H
-            if seen then prop:SetPoint("CENTER", pen, "TOPLEFT", math.floor(x), -math.floor(y)) end
+            seen = false
+            inHand = x ~= nil and x >= 0 and x <= PEN_W and y >= 0 and y <= PEN_H
+            if inHand then
+                local hand = pen.hand
+                if hand.file ~= file then
+                    hand.file = file
+                    hand:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+                end
+                hand:ClearAllPoints()
+                hand:SetPoint("CENTER", pen, "TOPLEFT", math.floor(x), -math.floor(y))
+            end
         end
     end
     prop:SetShown(seen)
+    pen.hand:SetShown(inHand)
 end
 
 -- How you're getting about, for the companion out with you: on the move or
@@ -1728,6 +1774,14 @@ local function BuildPen()
     prop:SetSize(HEAP_W, HEAP_W)
     Compat.Crisp(prop)
     prop:Hide()
+    -- And what's in your hand, on a layer of its own above the creature.
+    local above = CreateFrame("Frame", nil, pen)
+    above:SetAllPoints()
+    above:SetFrameLevel(40)
+    pen.hand = above:CreateTexture(nil, "OVERLAY")
+    pen.hand:SetSize(HEAP_W, HEAP_W)
+    Compat.Crisp(pen.hand)
+    pen.hand:Hide()
     bubble = body:CreateTexture(nil, "OVERLAY", nil, 2)
     bubble:SetSize(32, 32)
     bubble:SetTexture(Art("bubble"), "CLAMP", "CLAMP", "NEAREST")
@@ -1816,16 +1870,19 @@ local function BuildPen()
                 local walking = walk.wait <= 0
                 Pet.Step(walk, dt, math.random)
                 -- Just arrived somewhere, and not hurrying after you: now and then it does something.
-                if sheet and walking and walk.wait > 0 and not walk.act and not walk.errand and not walk.chase and not (going and going.moving) then
-                    if Pet.State().sick then
-                        -- Poorly, it doesn't show off: more often than not it droops
-                        -- where it stands, and sometimes it just sits down.
-                        local pick = math.random(1, 6)
-                        if pick <= 5 then Pet.Play(walk, sheet, pick <= 4 and "poorly" or "sit") end
+                local moving = going and going.moving
+                if not moving then walk.whim = nil end
+                if sheet and not walk.act and not walk.errand and not walk.chase then
+                    -- At rest, as it arrives somewhere; on the move with you, wherever it
+                    -- is on its strip when the whim takes it. It stops, does it, and goes on.
+                    local due
+                    if moving then
+                        due = Pet.Whim(walk, dt, math.random)
                     else
-                        local pick = IDLE[math.random(1, 8)]
-                        if pick then Pet.Play(walk, sheet, pick) end
+                        due = walking and walk.wait > 0
                     end
+                    local pick = due and Pet.Idle(math.random, moving, Pet.State().sick)
+                    if pick then Pet.Play(walk, sheet, pick) end
                 end
             end
         end
@@ -2261,6 +2318,27 @@ local EMOTES = {
     CRY = "poorly", SOB = "poorly", ROAR = "special", FLEX = "special",
 }
 Pet.EMOTES = EMOTES
+-- The game's own /dance and the rest can't be listened to as they're done
+-- (Forever keeps that door from addons), so they're known by the line they
+-- put in chat: "You burst into dance." A word of that line, and the emote
+-- it means. English, like the other lines the Companion reads; /sit puts no
+-- line in chat, so it's copied only from a macro, or when you sit to eat.
+local EMOTE_WORDS = {
+    { "dance", "DANCE" }, { "cheer", "CHEER" }, { "applaud", "APPLAUD" }, { "clap", "CLAP" }, { "victory", "VICTORY" },
+    { "laugh", "LAUGH" }, { "asleep", "SLEEP" }, { "yawn", "YAWN" }, { "wave", "WAVE" }, { "greet", "HELLO" },
+    { "hello", "HELLO" }, { "kiss", "KISS" }, { "hug", "HUG" }, { "love", "LOVE" }, { "cry", "CRY" },
+    { "roar", "ROAR" }, { "flex", "FLEX" },
+}
+-- The emote a chat line of your own is, or nil: a line about someone else
+-- ("Thrall dances with you.") isn't yours and is nothing.
+function Pet.EmoteOf(text)
+    if type(text) ~= "string" or not text:find("^You ") then return nil end
+    local line = text:lower()
+    for _, word in ipairs(EMOTE_WORDS) do
+        if line:find(word[1], 1, true) then return word[2] end
+    end
+    return nil
+end
 function Pet.Emote(token)
     -- In a dungeon the game may hide the word; then there's nothing to copy.
     token = Compat.Plain(token)
@@ -2424,6 +2502,7 @@ function Pet:OnEnable()
     events:RegisterEvent("PLAYER_DEAD")
     events:RegisterEvent("PLAYER_TARGET_CHANGED")
     events:RegisterEvent("CHAT_MSG_LOOT")
+    events:RegisterEvent("CHAT_MSG_TEXT_EMOTE")
     -- Out of a fight. (A boss brought down, ENCOUNTER_END, is kept for rarer
     -- eggs to come: John, 12 Nov 2026.)
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -2472,6 +2551,10 @@ function Pet:OnEnable()
             Pet.Found("level")
             Pet.React("level")
             Pet.Along()
+        elseif event == "CHAT_MSG_TEXT_EMOTE" then
+            -- An emote of yours, by the line it put in chat.
+            local emote = Pet.EmoteOf(text)
+            if emote then Pet.Emote(emote) end
         elseif event == "PLAYER_TARGET_CHANGED" then
             -- A rare: it perks up, but not every time you look away and back.
             if Compat.TargetRare() and Now() - (Pet.rareAt or 0) >= 30 and Pet.React("rare") then Pet.rareAt = Now() end
@@ -2692,3 +2775,30 @@ function Pet.Stock()
     if IsOpen() then Refresh() else Pet.Open() end
 end
 Trial("pet stock", Pet.Stock)
+
+-- /jsal pet wish: today's wish is swapped for the next kind in the list,
+-- not yet granted, so a wish can be tried on a day it didn't fall on (or
+-- once today's is done). "/jsal pet wish fetch" and "/jsal pet wish catch"
+-- ask for those two (a command is matched whole, so each is its own). Beta
+-- builds only; a wish granted this way counts like any other.
+function Pet.NewWish(kind)
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    local s = Pet.State()
+    if s.unchosen then return ns.Print("Choose an egg first.") end
+    local now = Now()
+    local wish = Rules.Wish(s, now)
+    local at, asked = 0, nil
+    kind = type(kind) == "string" and kind:lower():match("^%s*(%a+)") or nil
+    for i, one in ipairs(Rules.WISHES) do
+        if one.kind == wish.kind then at = i end
+        if one.kind == kind then asked = one.kind end
+    end
+    s.wish = { day = wish.day, kind = asked or Rules.WISHES[at % #Rules.WISHES + 1].kind, count = 0 }
+    said = "A new wish for today."
+    if IsOpen() then Refresh() else Pet.Open() end
+end
+Trial("pet wish", function() Pet.NewWish() end)
+Trial("pet wish fetch", function() Pet.NewWish("fetch") end)
+Trial("pet wish catch", function() Pet.NewWish("catch") end)

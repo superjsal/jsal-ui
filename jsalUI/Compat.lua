@@ -197,6 +197,11 @@ end
 -- "SIT", "WAVE"), whichever way you did it. False when the game can't say.
 -- This runs inside the game's own emote, every time: `fn` should be a
 -- module's guarded function, and it's called in a pcall besides.
+-- This hears only the older door, DoEmote, which macros and other addons
+-- may use. The game's own slash commands (/dance) go through a newer one
+-- that Forever keeps from addons, and that one is left well alone: those
+-- emotes are heard from the line they put in chat instead (the Companion
+-- listens for CHAT_MSG_TEXT_EMOTE).
 function Compat.OnEmote(fn)
     if not (hooksecurefunc and DoEmote) then return false end
     hooksecurefunc("DoEmote", function(token) pcall(fn, token) end)
