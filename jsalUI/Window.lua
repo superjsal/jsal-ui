@@ -32,7 +32,7 @@ local PAGES = {
     -- Only in the menu once its part is switched on: `when` is asked as the
     -- dashboard is built, and a switch waits for a reload anyway. It has a
     -- small window of its own rather than a page here: `open` shows that.
-    { key = "pet", label = "Companion", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar",
+    { key = "pet", label = "Companion", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar.png",
       when = function() return ns.Pet ~= nil and ns.Pet.running == true end,
       open = function() ns.Pet.Open() end },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },

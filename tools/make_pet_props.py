@@ -3,7 +3,7 @@
     python -I tools/make_pet_props.py <folder> [preview folder]
 
 The folder holds dropping.png, bowl.png and ball.png, each 32 pixels square
-with a see-through background. Writes jsalUI/Media/Pet/<name>.tga for each,
+with a see-through background. Writes jsalUI/Media/Pet/<name>.png for each,
 unchanged but for the format.
 """
 import sys
@@ -21,7 +21,7 @@ def main():
     for i, name in enumerate(PROPS):
         im = Image.open(folder / (name + ".png")).convert("RGBA")
         assert im.size == (32, 32), (name, im.size)
-        im.save(out / (name + ".tga"), compression="tga_rle")
+        im.save(out / (name + ".png"), optimize=True)
         look.alpha_composite(im, (i * 34 + 1, 1))
         print("wrote", name)
     if len(sys.argv) > 2:

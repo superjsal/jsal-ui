@@ -185,11 +185,13 @@ local SHADOW_ALPHA = 0.7
 function Style.Shadow(frame, size)
     size = size or 20
     local drop = math.floor(size / 4 + 0.5)
+    local pieces = {}
     local function Piece(l, r, t, b)
         local tex = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
         tex:SetTexture(SHADOW)
         tex:SetTexCoord(l, r, t, b)
         tex:SetVertexColor(0, 0, 0, SHADOW_ALPHA)
+        pieces[#pieces + 1] = tex
         return tex
     end
     local tl, tr = Piece(0, 0.5, 0, 0.5), Piece(0.5, 1, 0, 0.5)
@@ -212,6 +214,8 @@ function Style.Shadow(frame, size)
     local right = Piece(0.5, 1, 0.49, 0.51)
     right:SetPoint("TOPLEFT", tr, "BOTTOMLEFT")
     right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+    -- All eight, for whoever wants to hide the shadow.
+    return pieces
 end
 
 -- Opening: a window fades in as it rises `from` pixels into place (a
@@ -489,9 +493,11 @@ function Style.Panel(name, width, height, title)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:Hide()
-    Style.Fill(f, "window")
-    Style.Border(f, "lineStrong")
-    Style.Shadow(f)
+    -- Kept on the frame, for a window that can do without them (the
+    -- companion out of its window hides all three).
+    f.fill = Style.Fill(f, "window")
+    f.edges = Style.Border(f, "lineStrong")
+    f.shadow = Style.Shadow(f)
     Style.Opening(f, -8)
     tinsert(UISpecialFrames, name)
 
