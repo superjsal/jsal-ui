@@ -9,6 +9,8 @@ Restart the game after updating (exit and start it again): this version adds a n
   - **Chase the pointer.** Wiggle the pointer in its pen and it runs after it and pounces, a little fun the first few times a day.
   - **Wishes for the new games.** Today's wish may be a proper game of fetch, or a treat to catch out of the air.
   - **It notices more.** A rare in your sights and it perks up; something blue or better in your bags and it dances. Out with you, it sits down when you sit to eat or drink, and shivers in the snow.
+  - **Livelier on the move.** Out with you while you walk or run, it stops every few seconds, wherever it is, for one of its short animations, then goes on.
+  - **What's in your hand is drawn over your companion,** not behind it.
 
 ## In 0.3.33
 
