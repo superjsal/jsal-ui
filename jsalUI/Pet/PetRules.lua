@@ -260,6 +260,8 @@ Rules.WISHES = {
     { kind = "pat", need = 3, text = "wants a proper fuss: three pats" },
     { kind = "treat", need = 1, text = "fancies a treat" },
     { kind = "play", need = 1, text = "wants a game with a toy" },
+    { kind = "fetch", need = 3, text = "wants a proper game of fetch: three throws" },
+    { kind = "catch", need = 1, text = "wants to catch a treat out of the air" },
 }
 local WISH = {}
 for _, wish in ipairs(Rules.WISHES) do WISH[wish.kind] = wish end
@@ -429,6 +431,56 @@ function Rules.Fetch(s, now)
     if s.sick or s.energy < 20 then return false, "That's enough for now: it lies down by the ball." end
     s.fun, s.energy = Clamp(s.fun + 5), Clamp(s.energy - 3)
     return true, "Off it goes again."
+end
+
+-- The pointer, wiggled in its pen, is something to chase, and caught is a
+-- little fun: the first few pounces of a day, so it's a game and not a chore.
+Rules.POUNCES = 3
+function Rules.Pounce(s, now)
+    Rules.Advance(s, now)
+    local day = math.floor(now / DAY)
+    if type(s.pounces) ~= "table" or s.pounces.day ~= day then s.pounces = { day = day, count = 0 } end
+    if s.pounces.count < Rules.POUNCES then
+        s.pounces.count = s.pounces.count + 1
+        s.fun = Clamp(s.fun + 3)
+    end
+    return true, "It pounces on the pointer!"
+end
+
+-- Tricks, which come with the bond: one more at each level after the first.
+-- `anim` is the animation that is the trick, `say` what the page says.
+Rules.TRICKS = {
+    { level = 2, anim = "sit", say = "Sit! Down it goes." },
+    { level = 3, anim = "jump", say = "Up! A great hop." },
+    { level = 4, anim = "dig", say = "Dig! It sets to." },
+    { level = 5, anim = "cheer", say = "Dance! It needs no telling twice." },
+    { level = 6, anim = "special", say = "Show them! And it does." },
+}
+-- The tricks it knows now, and the bond level the next comes at (or nil).
+function Rules.Tricks(s)
+    local level, known, next = Rules.Bond(s), {}, nil
+    for _, trick in ipairs(Rules.TRICKS) do
+        if level >= trick.level then
+            known[#known + 1] = trick
+        elseif not next then
+            next = trick.level
+        end
+    end
+    return known, next
+end
+-- Asked for a trick: true, what to say and the animation; or false and why
+-- not. `roll(a, b)` picks among the ones it knows. Nothing is gained or
+-- spent: a trick is for the pleasure of it.
+function Rules.Trick(s, now, roll)
+    Rules.Advance(s, now)
+    if s.asleep then return false, "It's asleep." end
+    if s.sick then return false, "It's too poorly for tricks." end
+    local known, next = Rules.Tricks(s)
+    if #known == 0 then
+        return false, ("It doesn't know any tricks yet. The first comes when you're %s."):format(Rules.BONDS[next][2])
+    end
+    local trick = known[math.max(1, math.min(#known, roll(1, #known)))]
+    return true, trick.say, trick.anim
 end
 
 -- A treat tossed up and caught, not set down: the same treat (Rules.Treat

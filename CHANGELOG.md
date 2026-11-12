@@ -1,6 +1,18 @@
-# jsal.ui 0.3.33
+# jsal.ui 0.3.34
 
-Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load those.
+Restart the game after updating (exit and start it again): this version adds a new picture, and a /reload doesn't load it.
+
+- **Companion: more to do together.**
+  - **It copies your emotes.** `/dance` and it dances, `/sit` and it sits, `/wave` and it hops, `/roar` and it shows off, `/cry` and it droops. In its pen or out with you.
+  - **Tricks, which come with your bond.** Right-click it and it does one it knows: sit first, then a hop, a dig, a dance, and at the last its own special. A new one comes with each level of the bond.
+  - **A bath you scrub.** Bath puts a brush in your hand: rub it over your companion and the suds come up until it's clean. Click it, or wait a moment, for a quick wash.
+  - **Chase the pointer.** Wiggle the pointer in its pen and it runs after it and pounces, a little fun the first few times a day.
+  - **Wishes for the new games.** Today's wish may be a proper game of fetch, or a treat to catch out of the air.
+  - **It notices more.** A rare in your sights and it perks up; something blue or better in your bags and it dances. Out with you, it sits down when you sit to eat or drink, and shivers in the snow.
+
+## In 0.3.33
+
+Coming from 0.3.32 or earlier, restart the game after updating: 0.3.33 added new files.
 
 - **Companion** (new, off until you turn it on: Settings, Games, "Companion"; then Companion in the dashboard, or `/jsal pet`). A small creature of your own to look after, in a window you can leave open while you play.
   - **Choose an egg.** Three are waiting, drawn from the six kinds, so yours may not be your guildmate's three. Click one to hear about it, click it again to make it yours. It hatches there and then, and you name it, once.
