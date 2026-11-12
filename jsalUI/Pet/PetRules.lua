@@ -48,12 +48,43 @@ Rules.SPECIES = {
 -- a quest handed in, coming back from being a ghost, a new level, a
 -- flight, and arriving in another zone.
 Rules.EGGS = {
-    mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03 },
-    ghostly = { name = "Ghostly egg", species = "wispkin", from = "ghost", chance = 0.15 },
-    ember = { name = "Ember egg", species = "scrapwing", from = "level", chance = 0.3 },
-    storm = { name = "Storm egg", species = "stormcub", from = "flight", chance = 0.06 },
-    toadstool = { name = "Toadstool egg", species = "capling", from = "zone", chance = 0.08 },
+    mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03,
+              hint = "It smells of rain and bramble." },
+    ghostly = { name = "Ghostly egg", species = "wispkin", from = "ghost", chance = 0.15,
+                hint = "It's cold, and lighter than it looks." },
+    ember = { name = "Ember egg", species = "scrapwing", from = "level", chance = 0.3,
+              hint = "It's warm to the touch, and something inside is tapping." },
+    storm = { name = "Storm egg", species = "stormcub", from = "flight", chance = 0.06,
+              hint = "It hums, and lifts the hair on your arm." },
+    toadstool = { name = "Toadstool egg", species = "capling", from = "zone", chance = 0.08,
+                  hint = "Something inside it is humming a tune." },
 }
+-- The three a new player chooses between. The other two are only ever found.
+Rules.STARTERS = { "mossy", "ember", "toadstool" }
+-- The kinds in the order an album shows them.
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling" }
+
+-- Whether play can turn up an egg for this companion yet: only once it's
+-- fully grown, when an egg is something it can make way for.
+function Rules.CanFind(s)
+    return not s.unchosen and s.form >= 3
+end
+
+-- Gives it the name you typed, tidied: two to sixteen letters, with spaces,
+-- hyphens and apostrophes allowed inside. True and what to say, or false
+-- and why not.
+function Rules.Rename(s, text)
+    text = tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")
+    if #text < 2 then return false, "A name needs at least two letters." end
+    if #text > 16 then return false, "That's too long for a name: sixteen letters at most." end
+    if not text:find("^[%a\128-\255][%a\128-\255 '%-]*$") then
+        return false, "A name is letters, with spaces, hyphens or apostrophes inside."
+    end
+    if text == s.name then return false, "That's its name already." end
+    local old = s.name
+    s.name = text
+    return true, ("%s is called %s now."):format(old, text)
+end
 Rules.MAX_EGGS = 3
 
 -- Grubby enough to show, and to want a bath.
