@@ -560,7 +560,7 @@ end
 ---------------------------------------------------------------------------
 function Rules.CanSettle(s, eggs)
     if s.form < 3 then return false, "It isn't fully grown yet." end
-    if #(eggs or {}) < 1 then return false, "Find an egg first, so you're never without a companion." end
+    if #(eggs or {}) < 1 then return false, "Find an egg first, so you're never without a pal." end
     return true
 end
 

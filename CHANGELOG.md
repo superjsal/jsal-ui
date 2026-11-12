@@ -1,6 +1,14 @@
-# jsal.ui 0.3.34
+# jsal.ui 0.3.35
 
-Restart the game after updating (exit and start it again): this version adds a new picture, and a /reload doesn't load it.
+Coming from 0.3.34, a /reload is enough. From 0.3.33 or earlier, restart the game after updating.
+
+- **Unlock Mode, jsal.ui's own** (`/jsal unlock`, or Move pieces at the top of Settings). Every jsal.ui piece is outlined and named, even one that's hidden just now: the quick buttons, the bag button, the food reminder, the range check and your pal out with you. Drag one and it snaps to a grid, the middle of the screen and the other pieces; hold Shift to place it freely. Pick one to type its exact X and Y. Right-click a piece, or Undo all, to put things back where they were; Done or Escape to finish. It needs nothing else installed, and a fight starting closes it. With EllesmereUI on, the pieces are in its Unlock Mode as well, as before.
+- **The Companion has a name of its own: Jsal's Pals.** It's in the menu, Settings and its window under that name, and the creature you raise is your pal. Nothing about it has changed, and `/jsal pet` still opens it.
+- **Setup no longer offers the jsal.ui look,** which isn't ready yet. Its step, the "Your addons" step and the "Just the look" starting set are gone until it is, and so is the Install page at the bottom of the menu. Setup is now five steps, and the parts page is the switches on their own. jsal.ui never needed EllesmereUI: everything else is as it was.
+
+## In 0.3.34
+
+Coming from 0.3.33 or earlier, restart the game after updating: 0.3.34 added a new picture.
 
 - **Companion: more to do together.**
   - **It copies your emotes.** `/dance` and it dances, `/wave` and it hops, `/roar` and it shows off, `/cry` and it droops, `/yawn` and it yawns. In its pen or out with you.

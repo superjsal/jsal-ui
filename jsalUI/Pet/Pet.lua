@@ -10,7 +10,8 @@ local _, ns = ...
 local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
 
 local Pet = ns.NewModule("pet", {
-    title = "Companion",
+    -- Its name, John's pick (12 Nov 2026: "jsal's pals i like it"); a creature is a pal.
+    title = "Jsal's Pals",
     -- A new part, so it starts off.
     defaultOn = false,
     note = "A small creature of your own to look after, with supplies your play earns. /jsal pet",
@@ -138,7 +139,7 @@ local TOSS, CATCH_FROM, CATCH_TO = 1.6, 0.76, 0.96
 local SCRUB, CHASE, WIGGLE = 500, 4, 500
 local IN_HAND = {
     bowl = { fly = 0, hint = "Click the grass to set its bowl down." },
-    treat = { fly = 0.45, hint = "Click the grass to throw the treat, or your companion to toss it up." },
+    treat = { fly = 0.45, hint = "Click the grass to throw the treat, or your pal to toss it up." },
     ball = { fly = 0.5, hint = "Click the grass to throw the ball." },
 }
 Pet.HOLD, Pet.AGAIN, Pet.THROWS, Pet.TOSS, Pet.SCRUB, Pet.WIGGLE, Pet.CHASE = HOLD, AGAIN, THROWS, TOSS, SCRUB, WIGGLE, CHASE
@@ -560,7 +561,7 @@ function Pet.Wants()
     if not Pet.running then return nil end
     if Pet.State().unchosen then
         local first = Rules.EGGS[Offer()[1]]
-        return { key = "egg", title = "Three eggs are waiting", sub = "Choose your companion", texture = Art(first.species .. "_egg") }
+        return { key = "egg", title = "Three eggs are waiting", sub = "Choose your pal", texture = Art(first.species .. "_egg") }
     end
     local s = Rules.Advance(Pet.State(), Now())
     local key, title, sub = Rules.Wants(s)
@@ -1103,7 +1104,7 @@ local function PaintYard(s)
             yardRows[i]:SetText("")
         end
     end
-    yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown companion settles when you hatch an egg."
+    yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown pal settles when you hatch an egg."
         or #settled > YARD_MAX and ("%d have settled here. The last %d:"):format(#settled, YARD_MAX)
         or #settled == 1 and "One has settled here." or ("%d have settled here."):format(#settled))
     -- Under the list, every kind's first form, in shadow until you've raised one.
@@ -1175,7 +1176,7 @@ local function Refresh()
     yardToggle:SetShown(not picking and not window.out)
     if picking then
         yard = false
-        title:SetText("Choose your companion")
+        title:SetText("Choose your pal")
         pickLine:SetText(said or "Three eggs have turned up. Click one for a closer look.")
         for _, heap in ipairs(heaps) do heap:Hide() end
         pen.dark, pen.shade, walk = 0, 0, nil
@@ -1426,7 +1427,7 @@ function Pet.Petted(button)
     -- It stops where it is and watches it go up.
     walk.act, walk.errand, walk.running = nil, nil, nil
     walk.tx, walk.ty, walk.wait = walk.x, walk.y, TOSS + 1
-    said = "Up it goes! Click your companion as the treat comes down to it."
+    said = "Up it goes! Click your pal as the treat comes down to it."
     Refresh()
 end
 
@@ -1563,6 +1564,24 @@ local function Place()
     end
 end
 
+-- Out with you, it's one of the pieces Unlock Mode moves (/jsal unlock):
+-- named, sized as its strip, and kept in the same spot it's dragged to.
+local function Movable()
+    if not (ns.Unlock and ns.Unlock.Add) or Pet.movable then return end
+    Pet.movable = true
+    ns.Unlock.Add({
+        key = "Companion", label = "your pal",
+        frame = function() return window and window.out and window or nil end,
+        size = function() return stripW, stripH end,
+        load = function() return ns.db.petOutAt end,
+        save = function(point, relative, x, y)
+            ns.db.petOutAt = point and { point, relative, x, y } or nil
+            if window and window.out then Place() end
+        end,
+    })
+end
+Pet.Movable = Movable
+
 -- Escape closes the whole window, like the game's own. The pen on its own
 -- is something you leave on screen, so Escape leaves it be.
 local function Escapes(on)
@@ -1678,7 +1697,7 @@ end
 -- game refused the whole file (12 Nov; the tests' newer Lua allows 255, and
 -- limits_test now counts them). Keep each part well under.
 local function BuildPen()
-    window = Style.Panel("jsalUIPetWindow", WIN_W, WIN_H, "Companion")
+    window = Style.Panel("jsalUIPetWindow", WIN_W, WIN_H, "Jsal's Pals")
     title = window.title
     window.bar:SetScript("OnDragStop", Dropped)
     -- Shown or not is kept too, so the pen you left out is there next time.
@@ -2150,7 +2169,7 @@ end
 -- or closes if it was open.
 function Pet.Open()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not window then Build() end
     if IsOpen() then return window:Hide() end
@@ -2235,7 +2254,7 @@ end
 -- The paddock and back: the pen shows the companions that have settled.
 function Pet.Paddock()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not IsOpen() then Pet.Open() end
     if Pet.State().unchosen then return end
@@ -2251,7 +2270,7 @@ ns.Command("pet paddock", Pet.Paddock)
 -- same again (or the + over it) brings the window back.
 function Pet.Out()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     -- Asked for while nothing of it is showing, it comes out.
     if not IsOpen() then
@@ -2473,6 +2492,7 @@ end
 
 function Pet:OnEnable()
     Pet.Home()
+    Pet.Movable()
     -- Hear your emotes, once: the game keeps a listener for good.
     if not Pet.hears then
         Pet.hears = Compat.OnEmote(ns.Safe(self, function(token) Pet.Emote(token) end)) or false
@@ -2603,7 +2623,7 @@ end
 -- the last as itself again. For seeing what it will grow into.
 function Pet.Look()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not IsOpen() then Pet.Open() end
     local s = Pet.State()
@@ -2629,7 +2649,7 @@ Trial("pet look", Pet.Look)
 -- for it to feel like it.
 function Pet.ShowOff()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not IsOpen() then Pet.Open() end
     if not walk then return end
@@ -2646,7 +2666,7 @@ Trial("pet special", Pet.ShowOff)
 -- for a look at it. Nothing about the companion changes.
 function Pet.Hatch()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not IsOpen() then Pet.Open() end
     if not walk then return end
@@ -2668,7 +2688,7 @@ Trial("pet hatch", Pet.Hatch)
 -- back exactly as it was; what's put aside is kept through a reload.
 function Pet.Try()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     local kept = ns.db.petAside
     if type(kept) == "table" then
@@ -2683,7 +2703,7 @@ function Pet.Try()
         for _, kind in ipairs({ "ghostly", "ember", "toadstool" }) do
             Rules.FindEgg(ns.db.petEggs, kind, "a trial", now)
         end
-        ns.Print("A trial: a fully grown stand-in and three eggs. Click an egg twice to settle it and hatch the egg. /jsal pet try again puts your own companion back.")
+        ns.Print("A trial: a fully grown stand-in and three eggs. Click an egg twice to settle it and hatch the egg. /jsal pet try again puts your own pal back.")
     end
     looking, walk, said, Pet.armed = nil, nil, nil, nil
     if not IsOpen() then Pet.Open() else Refresh() end
@@ -2695,13 +2715,13 @@ Trial("pet try", Pet.Try)
 -- chooses between. /jsal pet try (or new) again puts everything back.
 function Pet.TryNew()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if type(ns.db.petAside) == "table" then return Pet.Try() end
     ns.db.petAside = { pet = Pet.State(), eggs = ns.db.petEggs, settled = ns.db.petSettled }
     ns.db.pet, ns.db.petEggs, ns.db.petSettled = nil, {}, {}
     Pet.State()
-    ns.Print("A trial of the start: choose an egg as a new player would. /jsal pet try puts your own companion back.")
+    ns.Print("A trial of the start: choose an egg as a new player would. /jsal pet try puts your own pal back.")
     looking, walk, said, Pet.armed = nil, nil, nil, nil
     if not IsOpen() then Pet.Open() else Refresh() end
 end
@@ -2712,11 +2732,11 @@ Trial("pet new", Pet.TryNew)
 -- It can't be undone, so the first time only says so; typed again, it's done.
 function Pet.Restart()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not Pet.restarting then
         Pet.restarting = true
-        return ns.Print("This starts over for good: your companion, your eggs and the paddock are all lost, and you choose a new egg. /jsal pet restart again to do it.")
+        return ns.Print("This starts over for good: your pal, your eggs and the paddock are all lost, and you choose a new egg. /jsal pet restart again to do it.")
     end
     Pet.restarting = nil
     -- What a trial put aside goes too: a release has no command to end one,
@@ -2737,7 +2757,7 @@ Trial("pet restart", Pet.Restart)
 -- medicine play. It is your real companion unless a trial is on.
 local function Make(how)
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     if not IsOpen() then Pet.Open() end
     local s = Pet.State()
@@ -2763,7 +2783,7 @@ Trial("pet sick", Pet.Sick)
 -- tried without waiting on quests, flights and fish. Beta builds only.
 function Pet.Stock()
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     local s = Pet.State()
     if s.unchosen then return ns.Print("Choose an egg first.") end
@@ -2783,7 +2803,7 @@ Trial("pet stock", Pet.Stock)
 -- builds only; a wish granted this way counts like any other.
 function Pet.NewWish(kind)
     if not Pet.running then
-        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
     end
     local s = Pet.State()
     if s.unchosen then return ns.Print("Choose an egg first.") end

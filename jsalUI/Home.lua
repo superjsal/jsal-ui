@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Your Companion copies your emotes, learns tricks as you grow closer, and has a bath you scrub",
-    "Wiggle the pointer in its pen and it gives chase; a rare or a blue drop gets its notice",
-    "A Companion to look after: choose an egg, raise it, play fetch and catch (off: Settings, Games)",
+    "Beta: /jsal unlock moves every jsal.ui piece, on a grid, with exact X and Y if you like",
+    "The Companion has a name of its own now: Jsal's Pals. Your pal is just as it was",
+    "Setup no longer offers the jsal.ui look, which isn't ready yet",
 }
 
 local function NewsWanted()
