@@ -51,6 +51,9 @@ LAYOUT = {
     "stormcub": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "flarechamp": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "wispjester": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 4, "shift": 0},
+    "boltusk": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
+    "rumbletrunk": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "warmammoth": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
 }
 
 # A creature whose animations came out standing at different heights names the

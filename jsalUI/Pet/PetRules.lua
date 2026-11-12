@@ -42,11 +42,13 @@ Rules.SPECIES = {
                  sprites = { "stormcub", "thundermane", "tempestmane" }, name = "Bolt" },
     capling = { forms = { "Capling", "Lanternshell", "Bloomsage" },
                 sprites = { "capling", "lanternshell", "bloomsage" }, name = "Morel" },
+    boltusk = { forms = { "Boltusk", "Rumbletrunk", "Warmammoth" },
+                sprites = { "boltusk", "rumbletrunk", "warmammoth" }, name = "Rivet" },
 }
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
--- flight, and arriving in another zone.
+-- flight, arriving in another zone, and a dungeon or raid boss brought down.
 Rules.EGGS = {
     mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03,
               hint = "It smells of rain and bramble." },
@@ -58,11 +60,13 @@ Rules.EGGS = {
               hint = "It hums, and lifts the hair on your arm." },
     toadstool = { name = "Toadstool egg", species = "capling", from = "zone", chance = 0.08,
                   hint = "Something inside it is humming a tune." },
+    steel = { name = "Steel egg", species = "boltusk", from = "boss", chance = 0.1,
+              hint = "It's heavy, riveted shut, and now and then it clanks." },
 }
 -- The three a new player chooses between. The other two are only ever found.
 Rules.STARTERS = { "mossy", "ember", "toadstool" }
 -- The kinds in the order an album shows them.
-Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling" }
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk" }
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.
@@ -398,6 +402,24 @@ function Rules.Play(s, now)
     s.fun, s.energy = Clamp(s.fun + 35), Clamp(s.energy - 10)
     Rules.Did(s, "play", now)
     return true, "It chases the toy round the pen."
+end
+
+-- Another throw of a ball it has just brought back: no toy is used, it's a
+-- little more fun and a little more tiring. The pen allows a few of these.
+function Rules.Fetch(s, now)
+    Rules.Advance(s, now)
+    if s.asleep then return false, "It's asleep." end
+    if s.sick or s.energy < 20 then return false, "That's enough for now: it lies down by the ball." end
+    s.fun, s.energy = Clamp(s.fun + 5), Clamp(s.energy - 3)
+    return true, "Off it goes again."
+end
+
+-- A treat tossed up and caught, not set down: the same treat (Rules.Treat
+-- has already been paid), and a little more fun.
+function Rules.Caught(s, now)
+    Rules.Advance(s, now)
+    s.fun = Clamp(s.fun + 5)
+    return true, "It jumps and catches it!"
 end
 
 function Rules.Scoop(s, now)
