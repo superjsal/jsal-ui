@@ -26,7 +26,7 @@ def main():
     sheet = Image.new("RGBA", (256, 128), (0, 0, 0, 255))
     sheet.paste(scene, (0, 0))
     out = Path(__file__).resolve().parent.parent / "jsalUI" / "Media" / "Pet" / (name + ".tga")
-    sheet.save(out)
+    sheet.save(out, compression="tga_rle")
     print(scene.size, "->", out)
     if len(sys.argv) > 3:
         scene.resize((W * 2, H * 2), Image.NEAREST).save(Path(sys.argv[3]) / (name + "_scene.png"))

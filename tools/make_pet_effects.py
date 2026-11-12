@@ -2,7 +2,7 @@
 
     python -I tools/make_pet_effects.py <washtub.png> [preview folder]
 
-Writes jsalUI/Media/Pet/effects.tga, 512 by 256: 64-pixel cells, eight to a
+Writes jsalUI/Media/Pet/effects.tga, 512 by 512: 64-pixel cells, eight to a
 row, each drawn over the 64 pixels a creature stands in (so at its size).
 The same pictures do for every kind, so nothing here knows a creature's
 shape: everything sits round it or in front of its lower half.
@@ -15,6 +15,17 @@ shape: everything sits round it or in front of its lower half.
   rows 2-3   a bath, sixteen frames played once: a washtub of suds comes up
              in front of it (0-2), bubbles rise and foam scrubs about (3-10),
              the tub goes down again (11-12), and it's left sparkling (12-15).
+
+  rows 4-5   getting well, sixteen frames played once: green crosses float
+             up round it (0-7), a ring of light sweeps up it from its feet
+             (4-10), and two hearts pop over its head among twinkles (10-15).
+
+Also writes mud_mask.tga, 64 square: where the mud is on a dirty creature.
+The pen draws the creature a second time, dark and brown, and shows that
+only where this picture is solid: so the splotches are always on the
+creature and never beside it, whatever its shape or pose. White where
+there's mud, clear elsewhere: a couple of dozen blobs, thicker low down,
+some with a drip, the same every run.
 
 <washtub.png> is the one drawn thing (a Pro Flash object); it is never
 scaled, only slid up from the ground line and cut off there. The rest is a
@@ -152,19 +163,102 @@ def bath(i, tub):
     return cell
 
 
+CROSS, CROSS_PALE = (96, 210, 120, 255), (214, 250, 220, 255)
+RING, RING_PALE = (190, 250, 200, 255), (255, 255, 255, 255)
+HEART, HEART_PALE, HEART_DARK = (245, 110, 150, 255), (255, 200, 215, 255), (150, 50, 90, 255)
+CROSSES = ((14, 0), (48, 1), (30, 2), (20, 3), (44, 4))    # where each starts, and on which frame
+HEART_SHAPE = (" ## ## ", "#######", "#######", " ##### ", "  ###  ", "   #   ")
+
+
+def cross(px, x, y, faint):
+    """A plump green cross with a dark edge, so it shows against the grass."""
+    shape = [(dx, dy) for dx in range(-3, 4) for dy in range(-3, 4) if abs(dx) <= 1 or abs(dy) <= 1]
+    edge = (24, 92, 52, 130 if faint else 255)
+    fill = (CROSS[0], CROSS[1], CROSS[2], 150 if faint else 255)
+    for dx, dy in shape:
+        for ex, ey in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            dot(px, x + dx + ex, y + dy + ey, edge)
+    for dx, dy in shape:
+        dot(px, x + dx, y + dy, fill)
+    if not faint:
+        dot(px, x, y, CROSS_PALE)
+        dot(px, x - 1, y - 1, CROSS_PALE)
+
+
+def heart(px, x, y):
+    for row, line in enumerate(HEART_SHAPE):
+        for col, mark in enumerate(line):
+            if mark == "#":
+                dot(px, x - 3 + col, y - 2 + row, HEART)
+    dot(px, x - 2, y - 1, HEART_PALE)
+    dot(px, x - 1, y - 1, HEART_PALE)
+    dot(px, x, y + 4, HEART_DARK)
+
+
+def well(i):
+    cell = blank()
+    px = cell.load()
+    for x, first in CROSSES:
+        age = i - first
+        if 0 <= age <= 4:
+            cross(px, x + (1 if age % 2 else 0), 46 - age * 7, age == 4)
+    if 4 <= i <= 10:
+        # The ring: the front half of a flat hoop, climbing from its feet to over its head.
+        y = 56 - (i - 4) * 8
+        for a in range(0, 33):
+            turn = a / 32 * math.pi
+            x = 32 - 24 * math.cos(turn)
+            dot(px, x, y + 4 * math.sin(turn) + 1, RING)
+            dot(px, x, y + 4 * math.sin(turn), RING_PALE)
+    if i >= 10:
+        rise = (i - 10) // 2
+        heart(px, 22, 14 - rise)
+        if i >= 12:
+            heart(px, 42, 10 - (i - 12) // 2)
+    for x, y, first in ((12, 26, 11), (52, 22, 12), (32, 34, 13), (16, 44, 14), (50, 42, 14)):
+        if i - first in (0, 1) or (i == 15 and first == 14):
+            twinkle(px, x, y, 3 if i - first == 1 else 2)
+    return cell
+
+
+def mud_mask():
+    mask = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+    px = mask.load()
+    rng = random.Random(11)
+    made = 0
+    while made < 26:
+        x, y = rng.randrange(4, 60), rng.randrange(8, 62)
+        # More of it low down, where mud would be.
+        if rng.random() > 0.35 + 0.65 * y / 62:
+            continue
+        made += 1
+        r = rng.choice((1, 2, 2, 3))
+        for dy in range(-r, r + 1):
+            for dx in range(-r - 1, r + 2):
+                if dx * dx * 0.7 + dy * dy <= r * r + rng.random():
+                    dot(px, x + dx, y + dy, (255, 255, 255, 255))
+        if rng.random() < 0.4:
+            for d in range(1, rng.randrange(2, 5)):
+                dot(px, x, y + r + d, (255, 255, 255, 255))
+    return mask
+
+
 def main():
     tub = Image.open(sys.argv[1]).convert("RGBA")
     tub = tub.crop(tub.getbbox())
-    sheet = Image.new("RGBA", (512, 256), (0, 0, 0, 0))
-    cells = [dirty(i) for i in range(8)] + [poorly(i) for i in range(8)] + [bath(i, tub) for i in range(16)]
+    sheet = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+    cells = ([dirty(i) for i in range(8)] + [poorly(i) for i in range(8)] + [bath(i, tub) for i in range(16)]
+             + [well(i) for i in range(16)])
     for n, cell in enumerate(cells):
         sheet.paste(cell, (n % COLS * CELL, n // COLS * CELL))
-    sheet.save(MEDIA / "effects.tga")
+    sheet.save(MEDIA / "effects.tga", compression="tga_rle")
+    mud_mask().save(MEDIA / "mud_mask.tga", compression="tga_rle")
     print(len(cells), "cells ->", MEDIA / "effects.tga")
     if len(sys.argv) > 2:
         look = Image.new("RGBA", sheet.size, (42, 47, 58, 255))
         look.alpha_composite(sheet)
-        look.resize((sheet.width * 3, sheet.height * 3), Image.NEAREST).save(Path(sys.argv[2]) / "effects.png")
+        look = look.crop((0, 0, 512, 384))
+        look.resize((look.width * 3, look.height * 3), Image.NEAREST).save(Path(sys.argv[2]) / "effects.png")
 
 
 if __name__ == "__main__":

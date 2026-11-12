@@ -128,13 +128,13 @@ def main():
     for i, cell in enumerate(cells):
         sheet.paste(cell, (i % cols * side, i // cols * side))
     out = Path(__file__).resolve().parent.parent / "jsalUI" / "Media" / "Pet"
-    sheet.save(out / (name + "_sheet.tga"))
+    sheet.save(out / (name + "_sheet.tga"), compression="tga_rle")
     still = cells[lay["walk"]]          # the first resting frame
-    still.save(out / (name + ".tga"))
+    still.save(out / (name + ".tga"), compression="tga_rle")
     print(len(cells), "frames ->", out / (name + "_sheet.tga"))
     extra = special(folder, lay, GROUND.get(name))
     if extra:
-        extra.save(out / (name + "_special.tga"))
+        extra.save(out / (name + "_special.tga"), compression="tga_rle")
         print("special ->", out / (name + "_special.tga"))
         if len(sys.argv) > 3:
             look = Image.new("RGBA", extra.size, (42, 47, 58, 255))

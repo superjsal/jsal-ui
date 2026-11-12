@@ -39,15 +39,22 @@ local STEP_TIME = 0.28    -- seconds each walking frame shows
 local DUSK = 2.5          -- seconds the pen takes to turn from day to night, or back
 -- What's drawn over any creature, whatever its kind: flies and a smell when
 -- it's dirty, dizzy stars when it's poorly, a tub of suds and then a sparkle
--- for a bath. One picture of 64-pixel cells, eight to a row, drawn over the
--- 64 pixels it stands in (tools/make_pet_effects.py). The first two go
--- round and round; the bath plays once, over as long as its animation.
+-- for a bath, green crosses and a pair of hearts as medicine makes it well.
+-- One picture of 64-pixel cells, eight to a row, drawn over the 64 pixels
+-- it stands in (tools/make_pet_effects.py). The first two go round and
+-- round; the others play once, over as long as the animation they go with.
 local EFFECTS = {
     dirty = { first = 0, count = 8, time = 0.12 },
     sick = { first = 8, count = 8, time = 0.14 },
     bath = { first = 16, count = 16 },
+    well = { first = 32, count = 16 },
 }
 local MUDDY, GREEN, PLAIN = { 0.74, 0.62, 0.46 }, { 0.78, 1, 0.78 }, { 1, 1, 1 }
+-- Dirty, it's a little dulled all over (GRUBBY) and has mud on it: the same
+-- picture drawn again in MUD, shown only where mud_mask.tga is solid, so
+-- the splotches keep to its shape. Where the game can't mask a picture,
+-- it's MUDDY all over and there are no splotches.
+local GRUBBY, MUD = { 0.88, 0.8, 0.68 }, { 0.42, 0.29, 0.16 }
 Pet.EFFECTS = EFFECTS
 Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.SIZES, Pet.HEAP_W = PEN_W, PEN_H, SIZE, SIZES, HEAP_W
 local NEED_NAME = { hunger = "Fed", energy = "Rested", fun = "Happy", clean = "Clean" }
@@ -241,7 +248,7 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, prop, effect, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine
+local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine
 local eggSlots = {}
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 30, 140, 260, 380 }
@@ -334,23 +341,55 @@ local function PaintWalk()
     end
     -- How it is shows on it. Poorly, it's off-colour, with stars going round
     -- its head, and standing still it shivers; dirty, it's muddy, with flies;
-    -- in the bath, the tub and suds, and the mud stays until halfway through.
+    -- in the bath, the tub and suds, and the mud stays until halfway through;
+    -- given medicine, it stays off-colour until halfway through getting well.
     local s, act = Pet.State(), walk.act
     local tick = Pet.tick or 0
-    local washing = act and act.effect == "bath"
-    local dirty = Rules.Dirty(s) or (washing and act.grubby and act.clock < act.length / 2)
-    local hue = s.sick and GREEN or dirty and MUDDY or PLAIN
+    local over = act and EFFECTS[act.effect] and act.effect or nil
+    local early = act and act.clock < act.length / 2
+    local washing = over == "bath"
+    local dirty = Rules.Dirty(s) or (washing and act.grubby and early)
+    local ill = s.sick or (over == "well" and act.ill and early)
+    -- The mud is made the first time it's needed.
+    if dirty and not mud then
+        mud = body:CreateTexture(nil, "ARTWORK", nil, 1)
+        mud:SetAllPoints(sprite)
+        Compat.Crisp(mud)
+        mud:SetDesaturated(true)
+        mud:SetVertexColor(MUD[1], MUD[2], MUD[3])
+        mud:Hide()
+        if body.CreateMaskTexture then
+            local mask = body:CreateMaskTexture()
+            mask:SetAllPoints(body)
+            mask:SetTexture(MEDIA .. "mud_mask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE", "NEAREST")
+            mud:AddMaskTexture(mask)
+            mud.masked = true
+        end
+    end
+    local splotched = dirty and mud.masked
+    if mud then
+        if splotched then
+            -- The same cell of the same picture as the creature, so it moves with it.
+            mud:SetTexCoord(left, right, top, bottom)
+            if mud.file ~= file then
+                mud.file = file
+                mud:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+            end
+        end
+        mud:SetShown(splotched and true or false)
+    end
+    local hue = ill and GREEN or dirty and (splotched and GRUBBY or MUDDY) or PLAIN
     if sprite.hue ~= hue then
         sprite.hue = hue
         sprite:SetVertexColor(hue[1], hue[2], hue[3])
     end
-    local which = washing and "bath" or s.sick and "sick" or dirty and "dirty" or nil
+    local which = over or s.sick and "sick" or dirty and "dirty" or nil
     if which then
         local fx = EFFECTS[which]
         local at = fx.time and math.floor(tick / fx.time) % fx.count
             or math.min(fx.count - 1, math.floor(act.clock / act.length * fx.count))
         local col, row = (fx.first + at) % 8, math.floor((fx.first + at) / 8)
-        effect:SetTexCoord(col / 8, (col + 1) / 8, row / 4, (row + 1) / 4)
+        effect:SetTexCoord(col / 8, (col + 1) / 8, row / 8, (row + 1) / 8)
         if not effect.file then
             effect.file = MEDIA .. "effects"
             effect:SetTexture(effect.file, "CLAMP", "CLAMP", "NEAREST")
@@ -511,14 +550,14 @@ Pet.Refresh = Refresh
 -- `over` what's drawn over it (EFFECTS).
 local function Do(act, show, thing, over)
     local s = Pet.State()
-    local grubby = Rules.Dirty(s)
+    local grubby, ill = Rules.Dirty(s), s.sick
     local ok, what = act(s, Now())
     said = what
     if ok and walk and show then
         if show == "lights" then
             Pet.Play(walk, Sheet(), s.asleep and "doze" or "wake")
         elseif not s.asleep and Pet.Play(walk, Sheet(), show) then
-            walk.act.prop, walk.act.effect, walk.act.grubby = thing, over, grubby
+            walk.act.prop, walk.act.effect, walk.act.grubby, walk.act.ill = thing, over, grubby, ill
         end
     end
     Refresh()
@@ -743,7 +782,7 @@ local function Build()
     Care("toy", Rules.Play, "jump", "ball")
     Care("soap", Rules.Bath, "idle", nil, "bath")
     Care("lights", Rules.Lights, "lights")
-    Care("medicine", Rules.Medicine)
+    Care("medicine", Rules.Medicine, "idle", nil, "well")
     local hint = Style.Text(parts, 11, "muted")
     hint:SetPoint("TOPLEFT", 0, -220)
     hint:SetWidth(PEN_W)
@@ -1017,3 +1056,30 @@ function Pet.Try()
     if not IsOpen() then Pet.Open() else Refresh() end
 end
 ns.Command("pet try", Pet.Try)
+
+-- /jsal pet dirty and /jsal pet sick: the companion in the pen is made
+-- dirty, or poorly, there and then, with a bar of soap or a dose of medicine
+-- to put it right. For seeing how those look and how the bath and the
+-- medicine play. It is your real companion unless a trial is on.
+local function Make(how)
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    local s = Pet.State()
+    if s.asleep then Rules.Lights(s, Now()) end
+    if how == "dirty" then
+        s.clean = 20
+        s.supplies.soap = math.max(s.supplies.soap, 1)
+        said = ("%s is dirty now. Bath puts it right."):format(s.name)
+    else
+        s.sick, s.sickSince = true, Now()
+        s.supplies.medicine = math.max(s.supplies.medicine, 1)
+        said = ("%s is poorly now. Medicine puts it right."):format(s.name)
+    end
+    Refresh()
+end
+function Pet.Dirty() Make("dirty") end
+function Pet.Sick() Make("sick") end
+ns.Command("pet dirty", Pet.Dirty)
+ns.Command("pet sick", Pet.Sick)
