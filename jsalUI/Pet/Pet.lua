@@ -19,15 +19,18 @@ ns.Pet = Pet
 
 local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
 -- The window is as wide as the pen plus a margin each side. Each form is
--- drawn at its own size, so a hatchling is small and has growing to do; the
--- largest is 128 pixels, twice the size of its 64-pixel art.
+-- drawn at its own size, so a hatchling is small, the middle form reads as
+-- an adolescent, and the last is the largest: 64, 96 and 128 pixels for the
+-- 64 pixels of art it stands in. At 96 a pixel comes out one or two wide by
+-- turns, which a small face shows (uneven eyes): art meant for the middle
+-- size is better made 96 pixels to begin with.
 local PAD = 10
 local PEN_W, PEN_H, SIZE = 440, 200, 128
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
 local WIN_W, WIN_H = PEN_W + PAD * 2, 512
-local HEAP_W = 24
+local HEAP_W = 32       -- a dropping, and the bowl and ball: 32-pixel pictures
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
 Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.SIZES, Pet.HEAP_W = PEN_W, PEN_H, SIZE, SIZES, HEAP_W
@@ -39,19 +42,72 @@ local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
 -- A form with a sheet is animated instead: one picture of 64 cells, eight
 -- to a row, its animations one after another. Each is the cell it starts
 -- at (counted from 0), how many frames it has and how long each one shows.
+-- Every sheet is packed by tools/make_pet_sheet.py, its animations in this
+-- order. `lay` is for a creature too large for the usual sheet: how big its
+-- cells are, how many to a row, the picture's size, and how many frames it
+-- walks in. A larger cell still has the 64 pixels it stands in at its
+-- middle, with room around them for it to move.
+local function Packed(file, lay)
+    lay = lay or {}
+    local sheet = { file = file, cell = lay.cell or 64, cols = lay.cols or 8, w = lay.w or 512, h = lay.h or 512 }
+    local at = 0
+    for _, anim in ipairs({
+        { "walk", lay.walk or 4, lay.walkTime or 0.14 }, { "idle", 15, 0.14 }, { "eat", 11, 0.12 }, { "jump", 7, 0.1 },
+        { "sit", 10, 0.16 }, { "doze", 8, 0.16 }, { "wake", 9, 0.12 },
+    }) do
+        sheet[anim[1]] = { first = at, count = anim[2], time = anim[3] }
+        at = at + anim[2]
+    end
+    -- The cells held while it stands and while it sleeps.
+    sheet.stand, sheet.sleep = sheet.idle.first, sheet.doze.first + sheet.doze.count - 1
+    -- One more, in a picture of its own with larger cells: the thing its
+    -- kind can do (a fiery punch, a burst of leaves), nine frames in a row.
+    sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = 96, w = 1024, h = 128 }
+    -- A first form has one more again: its egg rocking, cracking and
+    -- breaking open round it, ten frames in a row (tools/make_pet_hatch.py).
+    if lay.hatch then
+        sheet.hatch = { first = 0, count = 10, time = 0.2, file = (file:gsub("_sheet$", "_hatch")), cell = 96, w = 1024, h = 128 }
+    end
+    return sheet
+end
 local SHEETS = {
-    briarboar = {
-        file = "briarboar_sheet", cols = 8,
-        walk = { first = 0, count = 4, time = 0.14 },
-        idle = { first = 4, count = 15, time = 0.14 },
-        eat  = { first = 19, count = 11, time = 0.12 },
-        jump = { first = 30, count = 7, time = 0.1 },
-        sit  = { first = 37, count = 10, time = 0.16 },
-        doze = { first = 47, count = 8, time = 0.16 },
-        wake = { first = 55, count = 9, time = 0.12 },
-        stand = 4, sleep = 54,    -- the cells held while it stands and while it sleeps
-    },
+    briarboar = Packed("briarboar_sheet", { hatch = true }),
+    thornhog = Packed("thornhog_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    brambletusk = Packed("brambletusk_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    wispkin = Packed("wispkin_sheet", { hatch = true }),
+    gloamtail = Packed("gloamtail_sheet"),
+    wispjester = Packed("wispjester_sheet", { cell = 80, cols = 12, w = 1024, h = 512 }),
+    scrapwing = Packed("scrapwing_sheet", { hatch = true }),
+    jabdrake = Packed("jabdrake_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    flarechamp = Packed("flarechamp_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    stormcub = Packed("stormcub_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    thundermane = Packed("thundermane_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    tempestmane = Packed("tempestmane_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    capling = Packed("capling_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    lanternshell = Packed("lanternshell_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    bloomsage = Packed("bloomsage_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
 }
+-- Everything /jsal pet look can show, in the order it shows them: your own
+-- creature's line, then a line you can't raise yet. `form` is which of the
+-- three sizes it's drawn at; `own` marks the line your companion belongs to.
+local LOOKS = {
+    { sprite = "briarboar", name = "Briarboar", form = 1, own = true },
+    { sprite = "thornhog", name = "Thornhog", form = 2, own = true },
+    { sprite = "brambletusk", name = "Brambletusk", form = 3, own = true },
+    { sprite = "wispkin", name = "Wispkin", form = 1 },
+    { sprite = "gloamtail", name = "Gloamtail", form = 2 },
+    { sprite = "wispjester", name = "Wispjester", form = 3 },
+    { sprite = "scrapwing", name = "Scrapwing", form = 1 },
+    { sprite = "jabdrake", name = "Jabdrake", form = 2 },
+    { sprite = "flarechamp", name = "Flarechamp", form = 3 },
+    { sprite = "stormcub", name = "Stormcub", form = 1 },
+    { sprite = "thundermane", name = "Thundermane", form = 2 },
+    { sprite = "tempestmane", name = "Tempestmane", form = 3 },
+    { sprite = "capling", name = "Capling", form = 1 },
+    { sprite = "lanternshell", name = "Lanternshell", form = 2 },
+    { sprite = "bloomsage", name = "Bloomsage", form = 3 },
+}
+Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
 
 ---------------------------------------------------------------------------
@@ -159,26 +215,45 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, snore, title, sub, message, wishLine, bondLine, walk, parts, fold
+local window, pen, body, sprite, prop, snore, title, sub, message, wishLine, bondLine, walk, parts, fold
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 30, 140, 260, 380 }
 local said
 
--- The sheet of the form it's in now, if that form has one.
+-- A form being looked at ahead of time (/jsal pet look): only what's drawn
+-- changes, nothing saved does, and a reload forgets it.
+local looking       -- an entry of LOOKS, or nil for the companion as it is
+local function Form()
+    return looking and looking.form or Pet.State().form
+end
+
+-- The name its pictures go by: the look's, or its own form's.
+local function Sprite()
+    return looking and looking.sprite or SPRITE[Pet.State().form] or SPRITE[1]
+end
+
+-- The sheet of the form that's drawn now, if that form has one.
 local function Sheet()
-    return SHEETS[SPRITE[Pet.State().form] or SPRITE[1]]
+    return SHEETS[Sprite()]
 end
 
 local function PaintWalk()
     local sheet = Sheet()
     local file, left, right, top, bottom
+    -- An animation kept in a picture of its own says so: its cells are
+    -- counted in that picture, and may be a different size.
+    local from = sheet
     if sheet then
+        local anim = walk.act and sheet[walk.act.name]
+        if type(anim) == "table" and anim.file then from = anim end
         local cell = Pet.Cell(walk, sheet)
-        local col, row = cell % sheet.cols, math.floor(cell / sheet.cols)
-        file = MEDIA .. sheet.file
-        left, right, top, bottom = col / sheet.cols, (col + 1) / sheet.cols, row / sheet.cols, (row + 1) / sheet.cols
+        local cols = from.cols or math.floor(from.w / from.cell)
+        local col, row = cell % cols, math.floor(cell / cols)
+        file = MEDIA .. from.file
+        left, right = col * from.cell / from.w, (col + 1) * from.cell / from.w
+        top, bottom = row * from.cell / from.h, (row + 1) * from.cell / from.h
     else
-        file = MEDIA .. (SPRITE[Pet.State().form] or SPRITE[1]) .. SUFFIX[walk.frame]
+        file = MEDIA .. Sprite() .. SUFFIX[walk.frame]
         left, right, top, bottom = 0, 1, 0, 1
     end
     -- The sprite is drawn facing left; turned round, its picture is flipped.
@@ -193,8 +268,36 @@ local function PaintWalk()
         body.size = walk.size
         body:SetSize(walk.size, walk.size)
     end
+    -- The body is the 64 pixels it stands in; a larger cell's picture spills
+    -- over it evenly on every side.
+    local drawn = walk.size * (from and from.cell or 64) / 64
+    if sprite.drawn ~= drawn then
+        sprite.drawn = drawn
+        sprite:ClearAllPoints()
+        sprite:SetPoint("CENTER", body, "CENTER", 0, 0)
+        sprite:SetSize(drawn, drawn)
+    end
     body:ClearAllPoints()
     body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
+    -- Its bowl or its ball, on the grass in front of it while it eats or plays.
+    local thing = walk.act and walk.act.prop
+    if thing then
+        local file = MEDIA .. thing
+        if prop.file ~= file then
+            prop.file = file
+            prop:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+        end
+        local over, up = math.floor(walk.size * 0.2), math.floor(walk.size * 0.04)
+        prop:ClearAllPoints()
+        if walk.facing == "right" then
+            prop:SetPoint("BOTTOMLEFT", body, "BOTTOMRIGHT", -over, up)
+        else
+            prop:SetPoint("BOTTOMRIGHT", body, "BOTTOMLEFT", over, up)
+        end
+        prop:Show()
+    else
+        prop:Hide()
+    end
 end
 
 -- Its milestones, each told once: hatching, growing up, a closer bond.
@@ -252,7 +355,8 @@ end
 local function Refresh()
     local s = Rules.Advance(Pet.State(), Now())
     local _, mood = Rules.Mood(s)
-    title:SetText(("%s the %s"):format(s.name, FORMS[s.form] or FORMS[1]))
+    title:SetText(looking and (looking.own and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
+        or ("%s the %s"):format(s.name, FORMS[s.form] or FORMS[1]))
     local day = math.floor(math.max(0, Now() - s.born) / 86400) + 1
     local growing = Growing(s)
     sub:SetText(("%s · day %d%s"):format(mood, day, growing and (" · " .. growing) or " · fully grown"))
@@ -269,6 +373,12 @@ local function Refresh()
     end
     for i, heap in ipairs(heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
+    -- Asleep, the pen is the same meadow by moonlight (tools/make_pet_night.py).
+    local scene = MEDIA .. (s.asleep and "meadow_night" or "meadow")
+    if pen.scene.file ~= scene then
+        pen.scene.file = scene
+        pen.scene:SetTexture(scene, "CLAMP", "CLAMP", "NEAREST")
+    end
     if s.sick then sprite:SetVertexColor(0.78, 1, 0.78) else sprite:SetVertexColor(1, 1, 1) end
     care.meal:SetLabel(("Feed · %d"):format(s.supplies.meal))
     care.treat:SetLabel(("Treat · %d"):format(s.supplies.treat))
@@ -278,7 +388,7 @@ local function Refresh()
     care.medicine:SetEnabled(s.sick)
     care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
     -- A form that has grown is drawn larger, and starts from a spot that fits it.
-    local size = SIZES[s.form] or SIZE
+    local size = SIZES[Form()] or SIZE
     if not walk or walk.size ~= size then walk = Pet.NewWalk(math.random, size) end
     PaintWalk()
 end
@@ -288,16 +398,16 @@ Pet.Refresh = Refresh
 -- menu's badge and Today hear about it too.
 -- `show` is the animation that goes with it, played when the care was
 -- given and the creature is awake to react ("lights" picks its own: settling
--- down or getting up).
-local function Do(act, show)
+-- down or getting up). `thing` is what's set down beside it meanwhile.
+local function Do(act, show, thing)
     local s = Pet.State()
     local ok, what = act(s, Now())
     said = what
     if ok and walk and show then
         if show == "lights" then
             Pet.Play(walk, Sheet(), s.asleep and "doze" or "wake")
-        elseif not s.asleep then
-            Pet.Play(walk, Sheet(), show)
+        elseif not s.asleep and Pet.Play(walk, Sheet(), show) then
+            walk.act.prop = thing
         end
     end
     Refresh()
@@ -365,6 +475,7 @@ local function Build()
     -- The meadow: pixel art at half the pen's size, so its pixels match the
     -- creature's. It sits in the top left 170 by 100 of a 256 by 128 picture.
     local scene = pen:CreateTexture(nil, "BACKGROUND")
+    pen.scene = scene
     scene:SetAllPoints()
     scene:SetTexture(MEDIA .. "meadow", "CLAMP", "CLAMP", "NEAREST")
     scene:SetTexCoord(0, 220 / 256, 0, 100 / 128)
@@ -378,16 +489,12 @@ local function Build()
     -- Droppings: click one to scoop it.
     for i, x in ipairs(HEAP_AT) do
         local heap = CreateFrame("Button", nil, pen)
-        heap:SetSize(HEAP_W, 18)
-        heap:SetPoint("TOPLEFT", x, -(PEN_H - 34 - (i % 2) * 26))
-        local low = heap:CreateTexture(nil, "ARTWORK")
-        low:SetPoint("BOTTOMLEFT")
-        low:SetSize(HEAP_W, 9)
-        low:SetColorTexture(0.36, 0.24, 0.14)
-        local top = heap:CreateTexture(nil, "ARTWORK")
-        top:SetPoint("BOTTOM", 0, 9)
-        top:SetSize(15, 9)
-        top:SetColorTexture(0.44, 0.3, 0.18)
+        heap:SetSize(HEAP_W, HEAP_W)
+        heap:SetPoint("TOPLEFT", x, -(PEN_H - 40 - (i % 2) * 26))
+        local pile = heap:CreateTexture(nil, "ARTWORK")
+        pile:SetAllPoints()
+        pile:SetTexture(MEDIA .. "dropping", "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(pile)
         heap:SetScript("OnClick", function() Do(Rules.Scoop) end)
         heap:Hide()
         heaps[i] = heap
@@ -400,6 +507,10 @@ local function Build()
     sprite:SetAllPoints()
     Compat.Crisp(sprite)
     body:SetScript("OnClick", function() Do(Rules.Pat, "jump") end)
+    prop = pen:CreateTexture(nil, "ARTWORK")
+    prop:SetSize(HEAP_W, HEAP_W)
+    Compat.Crisp(prop)
+    prop:Hide()
     snore = Style.Text(body, 15, "secondary", nil, true)
     snore:SetPoint("BOTTOMLEFT", body, "TOPRIGHT", -26, -20)
     snore:SetText("z z z")
@@ -421,8 +532,9 @@ local function Build()
             -- Just arrived somewhere: now and then it sits, or looks about.
             local sheet = Sheet()
             if sheet and walking and walk.wait > 0 and not walk.act then
-                local pick = math.random(1, 4)
-                if pick <= 2 then Pet.Play(walk, sheet, pick == 1 and "sit" or "idle") end
+                -- One time in six each: it sits, looks about, or shows off.
+                local pick = math.random(1, 6)
+                if pick <= 3 then Pet.Play(walk, sheet, pick == 1 and "sit" or pick == 2 and "idle" or "special") end
             end
         end
         PaintWalk()
@@ -484,17 +596,17 @@ local function Build()
 
     -- Care, three to a row, each button with how many it has left.
     local count = 0
-    local function Care(key, act, show)
+    local function Care(key, act, show, thing)
         local b = Style.Button(parts, "", "plain", 141)
         b:SetHeight(28)
         b:SetPoint("TOPLEFT", (count % 3) * 149, -(146 + math.floor(count / 3) * 34))
-        b:SetScript("OnClick", function() Do(act, show) end)
+        b:SetScript("OnClick", function() Do(act, show, thing) end)
         care[key] = b
         count = count + 1
     end
-    Care("meal", Rules.Feed, "eat")
-    Care("treat", Rules.Treat, "eat")
-    Care("toy", Rules.Play, "jump")
+    Care("meal", Rules.Feed, "eat", "bowl")
+    Care("treat", Rules.Treat, "eat", "bowl")
+    Care("toy", Rules.Play, "jump", "ball")
     Care("soap", Rules.Bath)
     Care("lights", Rules.Lights, "lights")
     Care("medicine", Rules.Medicine)
@@ -594,3 +706,65 @@ function Pet:OnEnable()
 end
 
 ns.Command("pet", function() Pet.Open() end)
+
+-- /jsal pet look: its pen, with it drawn as the next form along, and after
+-- the last as itself again. For seeing what it will grow into.
+function Pet.Look()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    local s = Pet.State()
+    -- On through the list from where it is, past the companion's own form,
+    -- and off the end back to the companion itself.
+    local at = 0
+    for i, look in ipairs(LOOKS) do
+        if look == looking then at = i end
+    end
+    repeat
+        at = at + 1
+        looking = LOOKS[at]
+    until not (looking and looking.own and looking.form == s.form)
+    walk = nil      -- a new spot, of the size that's drawn now
+    said = looking and ((looking.own and "A look at it as a %s. /jsal pet look again for the next."
+        or "The %s, of a line still to come. /jsal pet look again for the next."):format(looking.name))
+        or ("Back to %s as it is."):format(s.name)
+    Refresh()
+end
+ns.Command("pet look", Pet.Look)
+
+-- /jsal pet special: whatever is in the pen shows off now, without waiting
+-- for it to feel like it.
+function Pet.ShowOff()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    if not walk then return end
+    if Pet.State().asleep then
+        said = "It's asleep."
+    elseif Pet.Play(walk, Sheet(), "special") then
+        said = nil
+    end
+    Refresh()
+end
+ns.Command("pet special", Pet.ShowOff)
+
+-- /jsal pet hatch: the first form in the pen hatches from its egg again,
+-- for a look at it. Nothing about the companion changes.
+function Pet.Hatch()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    if not walk then return end
+    if Pet.State().asleep then
+        said = "It's asleep."
+    elseif Pet.Play(walk, Sheet(), "hatch") then
+        said = nil
+    else
+        said = "Only a first form hatches. /jsal pet look shows one."
+    end
+    Refresh()
+end
+ns.Command("pet hatch", Pet.Hatch)
