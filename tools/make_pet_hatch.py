@@ -186,10 +186,10 @@ def main():
     strip = Image.new("RGBA", (1024, 128), (0, 0, 0, 0))
     for i, cell in enumerate(cells):
         strip.paste(cell, (i * SIDE, 0))
-    strip.save(MEDIA / (name + "_hatch.tga"))
+    strip.save(MEDIA / (name + "_hatch.tga"), compression="tga_rle")
     alone = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     alone.paste(egg, ((64 - egg.width) // 2, 64 - egg.height))
-    alone.save(MEDIA / (name + "_egg.tga"))
+    alone.save(MEDIA / (name + "_egg.tga"), compression="tga_rle")
     print("hatch ->", MEDIA / (name + "_hatch.tga"))
     if len(sys.argv) > 3:
         look = Image.new("RGBA", (COUNT * SIDE, SIDE), (42, 47, 58, 255))

@@ -64,7 +64,7 @@ def main():
                 px[mx + dx, my + dy] = MOONLIGHT
     sheet = Image.new("RGBA", (256, 128), (0, 0, 0, 255))
     sheet.paste(im, (0, 0))
-    sheet.save(MEDIA / (name + "_night.tga"))
+    sheet.save(MEDIA / (name + "_night.tga"), compression="tga_rle")
     print(im.size, "->", MEDIA / (name + "_night.tga"))
     if len(sys.argv) > 2:
         im.resize((W * 2, H * 2), Image.NEAREST).save(Path(sys.argv[2]) / (name + "_night.png"))

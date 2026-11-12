@@ -21,7 +21,7 @@ def main():
     for i, name in enumerate(PROPS):
         im = Image.open(folder / (name + ".png")).convert("RGBA")
         assert im.size == (32, 32), (name, im.size)
-        im.save(out / (name + ".tga"))
+        im.save(out / (name + ".tga"), compression="tga_rle")
         look.alpha_composite(im, (i * 34 + 1, 1))
         print("wrote", name)
     if len(sys.argv) > 2:
