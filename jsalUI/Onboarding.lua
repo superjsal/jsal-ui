@@ -1,7 +1,8 @@
 -- Setup: a short guided tour the first time jsal.ui runs, and any time from
--- Settings or /jsal setup. Seven steps down the side (welcome, how you play,
--- the look, your other addons, which parts of jsal.ui, your guild, done),
--- each one skippable; parts switched on or off apply after a reload, which
+-- Settings or /jsal setup. Steps down the side (welcome, how you play, the
+-- look, your other addons, which parts of jsal.ui, your guild, done), each
+-- one skippable. The look and your other addons are there only in a version
+-- with a look to install (ns.Installer.HasProfile): until then, five steps; parts switched on or off apply after a reload, which
 -- the last step offers. It closes as a fight starts, like the dashboard,
 -- since its Reload button is the game's own secure one.
 local _, ns = ...
@@ -38,6 +39,18 @@ local PRESETS = {
     { key = "everything", label = "Everything", note = "Every part: games, Journal, guild and helpers" },
     { key = "look", label = "Just the look", note = "Only the UI pack and its minimap button" },
 }
+-- With no look to install there's no "look" to step through or to choose
+-- "Just" of. A setup saved with "Just the look" keeps working as before.
+local HAS_LOOK = ns.Installer ~= nil and ns.Installer.HasProfile ~= nil and ns.Installer.HasProfile()
+if not HAS_LOOK then
+    for i = #STEPS, 1, -1 do
+        if STEPS[i].key == "look" or STEPS[i].key == "addons" then table.remove(STEPS, i) end
+    end
+    for i = #PRESETS, 1, -1 do
+        if PRESETS[i].key == "look" then table.remove(PRESETS, i) end
+    end
+end
+Setup.STEPS, Setup.PRESETS = STEPS, PRESETS
 local function PresetWants(preset, key)
     if preset == "everything" then return true end
     if preset == "look" then return key == "minimap" end
@@ -280,12 +293,15 @@ BUILD.addons = function(page)
 end
 
 BUILD.parts = function(page)
-    Heading(page, "Which parts of jsal.ui?", "Start from a set, then change any switch. You can change them later in Settings.")
+    -- One set to start from is no choice: the switches alone, nearer the top.
+    local sets = #PRESETS > 1
+    Heading(page, "Which parts of jsal.ui?", sets and "Start from a set, then change any switch. You can change them later in Settings."
+        or "Every part starts on. Switch off any you don't want; you can change them later in Settings.")
     local tileW = math.floor((innerW - 10 * (#PRESETS - 1)) / #PRESETS)
     local tiles = {}
     local switches = {}
     local function RefreshSwitches() for _, s in ipairs(switches) do s:Refresh() end end
-    for i, p in ipairs(PRESETS) do
+    for i, p in ipairs(sets and PRESETS or {}) do
         local t = Choice(page, tileW, 52, p.label, p.note)
         t:SetPoint("TOPLEFT", (i - 1) * (tileW + 10), -62)
         t:SetScript("OnClick", function()
@@ -296,7 +312,7 @@ BUILD.parts = function(page)
         t.key = p.key
         tiles[i] = t
     end
-    local y = -128
+    local y = sets and -128 or -66
     for _, group in ipairs(GROUPS) do
         local any = false
         for _, key in ipairs(group.keys) do any = any or ns.modules[key] ~= nil end

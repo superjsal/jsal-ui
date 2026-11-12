@@ -11,6 +11,13 @@ local EUI = "EllesmereUI"
 local FINISH = "Installed. Type /reload to switch to the jsal.ui look."
 local SPEC_LOCKED ="The jsal.ui look is saved, but this spec is set to use another EllesmereUI profile. Pick jsal.ui on EllesmereUI's Profiles page to switch."
 
+-- Whether this version has the look to install at all. Until it does,
+-- nothing offers it: no Install page in the menu, no look step or "Just the
+-- look" in setup (John, 12 Nov 2026: hide it "until a profile").
+function Installer.HasProfile()
+    return type(ns.Profile) == "table" and type(ns.Profile.string) == "string" and ns.Profile.string ~= ""
+end
+
 -- Where things stand, as one state the Install page and the Home card share.
 function Installer.State()
     if not Compat.AddOnExists(EUI) then return "missing" end

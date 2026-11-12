@@ -32,12 +32,14 @@ local PAGES = {
     -- Only in the menu once its part is switched on: `when` is asked as the
     -- dashboard is built, and a switch waits for a reload anyway. It has a
     -- small window of its own rather than a page here: `open` shows that.
-    { key = "pet", label = "Companion", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar.png",
+    { key = "pet", label = "Jsal's Pals", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar.png",
       when = function() return ns.Pet ~= nil and ns.Pet.running == true end,
       open = function() ns.Pet.Open() end },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },
-    -- Installing the look is done once, so it sits with the other rare ones.
-    { key = "install", label = "Install", icon = OWN .. "install", bottom = true },
+    -- Installing the look is done once, so it sits with the other rare ones;
+    -- and only in a version that has a look to install.
+    { key = "install", label = "Install", icon = OWN .. "install", bottom = true,
+      when = function() return ns.Installer ~= nil and ns.Installer.HasProfile ~= nil and ns.Installer.HasProfile() end },
     { key = "report", label = "Report a problem", icon = OWN .. "report", bottom = true },
     { key = "settings", label = "Settings", icon = OWN .. "settings", bottom = true },
 }
@@ -373,6 +375,9 @@ end
 function Window.Open(key)
     local page = byKey[key] or byKey.home
     if page.open then return page.open() end
+    -- A page that isn't in the menu just now (/jsal install with no look to
+    -- install) opens the dashboard's home instead.
+    if page.when and not page.when() then page = byKey.home end
     if page.own and page.build then return OpenOwn(page) end
     if Compat.InCombat() then
         return ns.Print("The dashboard opens once combat ends.")

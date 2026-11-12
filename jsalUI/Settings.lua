@@ -139,6 +139,16 @@ Window.Page("settings", function(page)
             ns.Window.Toggle()
             ns.Setup.Open()
         end)
+        -- And jsal.ui's own Unlock Mode, to move its pieces (/jsal unlock).
+        if ns.Unlock and ns.Unlock.Open then
+            local move = Style.Button(page, "Move pieces", "plain", 130)
+            move:SetHeight(28)
+            move:SetPoint("TOPRIGHT", again, "TOPLEFT", -8, 0)
+            move:SetScript("OnClick", function()
+                ns.Window.Toggle()
+                ns.Unlock.Open()
+            end)
+        end
     end
 
     local tabs, x = {}, 0

@@ -28,7 +28,8 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Vendor run | Repairs and sells grey items at any vendor, and says what it spent and earned. |
 | Level-up helper | Talent points and trainer ranks on each level, and what a trainer has for you. |
 | Bags and gear warnings | A heads-up when bags are nearly full or gear is close to breaking. |
-| The look | One-click install of the jsal.ui EllesmereUI profile (once it's added). |
+| Unlock Mode | `/jsal unlock`, or Move pieces in Settings: every jsal.ui piece outlined and named on a grid, to drag (snapping to the grid, the centre and each other; Shift to place freely) or to type an exact X and Y. Needs nothing else installed; with EllesmereUI on, the pieces are in its Unlock Mode too. |
+| The look | One-click install of the jsal.ui EllesmereUI profile. Not in this version yet: until it is, setup and the menu don't offer it. |
 
 ## Install
 
