@@ -440,9 +440,11 @@ local function Build()
         local e = Style.Field(panel, 60)
         e.well:SetPoint("TOPLEFT", x + 16, -75)
         e:SetJustifyH("CENTER")
+        -- Applied before the box lets go: letting go repaints the boxes with
+        -- the numbers as they were, so reading them after would undo the typing.
         e:SetScript("OnEnterPressed", function(self)
-            self:ClearFocus()
             if picked then apply() end
+            self:ClearFocus()
         end)
         e:SetScript("OnEditFocusLost", function() if Paint then Paint() end end)
         e.label = l

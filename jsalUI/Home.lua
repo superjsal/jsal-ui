@@ -8,7 +8,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Beta: /jsal unlock moves every jsal.ui piece, on a grid, with exact X and Y if you like",
+    "/jsal unlock moves every jsal.ui piece, on a grid, with exact X and Y if you like",
     "The Companion has a name of its own now: Jsal's Pals. Your pal is just as it was",
     "Setup no longer offers the jsal.ui look, which isn't ready yet",
 }
