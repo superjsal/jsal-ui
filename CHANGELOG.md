@@ -6,9 +6,14 @@ Restart the game after updating (exit and start it again): this version adds new
   - **Choose an egg.** Three are waiting, drawn from the six kinds, so yours may not be your guildmate's three. Click one to hear about it, click it again to make it yours. It hatches there and then, and you name it, once.
   - **Six kinds, three forms each.** A briar boar, a ghost monkey, a boxing dragon, a lightning lion, a fairy turtle and a steel elephant. Each grows up twice, about two well-kept days and then a well-kept week, and each form has something of its own to show off.
   - **Four needs:** fed, rested, happy and clean. Feed it, give it a treat, play, bathe it, turn the lights out, click it for a pat, and scoop the dropping that turns up a while after a meal.
-  - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine.
+  - **Food and play go where you say.** Feed, Treat and Play put the bowl, the biscuit or the ball in your hand. Click the grass and it's set down or thrown there, and your companion runs over. Leave it a few seconds and it's set down beside it for you.
+  - **Fetch.** A thrown ball is run after, carried back and laid at its feet. Click the grass again to throw it again, up to three throws for one toy.
+  - **Catch a treat.** With a treat in your hand, click your companion and the biscuit goes up over its head. Click it again as the biscuit comes down and it leaps and catches it, which it likes a little more. Miss, and it eats it off the grass: a treat is never wasted.
+  - **Call it over.** With nothing in your hand, click the grass and it walks to where you clicked.
+  - **Supplies come from your play:** a quest handed in is a meal, a flight is a toy, a new level brings treats, soap and medicine. A fish caught or a point of Cooking is a treat, and a point of First Aid is medicine, a few a day.
   - **It's forgiving.** Look in twice a day and it stays cheerful. However long you're away, only half a day passes for it, and at worst it feels poorly for a few hours.
-  - **How it is shows on it:** mud and flies when it's dirty, a tub and a sparkle for its bath, a droop and dizzy stars when it's poorly. Lights out takes its meadow through a sunset into night.
+  - **How it is shows on it:** mud and flies when it's dirty, a tub and a sparkle for its bath, a droop and dizzy stars when it's poorly. Now and then a small bubble by its head says what's on its mind.
+  - **Its pen is the country you're in:** snow, desert, swamp, coast, dark woods, savanna, a volcanic waste, jungle, or a meadow. Evening brings a sunset and then night, by the realm's clock, and Lights out does the same.
   - **A wish each day and a bond that keeps growing,** from Wary to Inseparable. Neither is ever lost, and its milestones go into your Journal.
   - **Eggs from your play.** Once yours is fully grown, a quest, a flight, a new level, a new zone, a fight won or coming back from the dead can turn up another egg. Hatch it and the grown one settles in the paddock for good.
   - **The paddock and its album.** The Paddock button shows the companions that have settled, going about their day, and an album of every form you've raised.
