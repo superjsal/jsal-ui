@@ -258,7 +258,16 @@ Window.Page("gear", function(page)
     end)
     page:HookScript("OnHide", function() panel:Hide() end)
 
-    local top = 58
+    local top = 64
+    -- Over the slots, a name for each column: without them the green numbers
+    -- beside a slot with nothing in it read as that slot's own stats.
+    local wearing = Style.Text(page, 11, "muted", nil, true)
+    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 6 + ICON + 8, -(top - 14))
+    wearing:SetText("YOU WEAR")
+    local adds = Style.Text(page, 11, "muted", nil, true)
+    adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 8, -(top - 14))
+    adds:SetJustifyH("RIGHT")
+    adds:SetText("BEST UPGRADE ADDS")
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
     -- wear and the best upgrade.
     local slotFrames = {}
