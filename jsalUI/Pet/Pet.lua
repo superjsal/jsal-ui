@@ -256,7 +256,29 @@ end
 -- Its page.
 ---------------------------------------------------------------------------
 local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine, pickLine
-local yardToggle, yardParts, yardHead, albumLine, nameBox
+local yardToggle, yardParts, yardHead, albumLine, nameBox, renameButton
+
+-- The name box and its Confirm button, there only while a new hatchling is
+-- being named: a companion is named once, as it hatches, and keeps that name.
+local function NameBox(open)
+    nameBox.open = open and true or false
+    nameBox.well:SetShown(nameBox.open)
+    renameButton:SetShown(nameBox.open)
+    if nameBox.open then
+        nameBox:SetText(Pet.State().name)
+        nameBox:SetFocus()
+        nameBox:HighlightText()
+    else
+        nameBox:ClearFocus()
+    end
+end
+
+-- Takes what's typed: Enter and the Confirm button both come here. A name
+-- that won't do leaves the box open to try again.
+local function TakeName()
+    if Pet.Rename(nameBox:GetText()) then NameBox(false) end
+end
+
 local eggSlots, picks, roamers, yardRows, album = {}, {}, {}, {}, {}
 -- Whether the pen is showing the paddock (the companions that have settled)
 -- and not the companion you look after.
@@ -670,12 +692,10 @@ local function Refresh()
     -- name it would otherwise have ready to type over.
     if s.unnamed and not nameBox.asking then
         nameBox.asking = true
-        nameBox.well:Show()
-        nameBox:SetText(s.name)
-        nameBox:SetFocus()
-        nameBox:HighlightText()
+        NameBox(true)
     elseif not s.unnamed then
         nameBox.asking = nil
+        if nameBox.open then NameBox(false) end
     end
 end
 Pet.Refresh = Refresh
@@ -1019,35 +1039,24 @@ local function Build()
         slot:Hide()
         eggSlots[i] = slot
     end
-    -- Beside the eggs: a new name for it. The box shows when Rename is
-    -- pressed; Enter takes the name, Escape leaves it as it was.
-    local rename = Style.Button(parts, "Rename", "plain", 141)
-    rename:SetHeight(28)
-    rename:SetPoint("TOPLEFT", 298, -282)
+    -- Beside the eggs, only while a new hatchling is being named: a box for
+    -- its name and a button to confirm it. Enter does the same; Escape, or
+    -- confirming the name offered, keeps that name.
+    renameButton = Style.Button(parts, "Confirm", "plain", 141)
+    renameButton:SetHeight(28)
+    renameButton:SetPoint("TOPLEFT", 298, -282)
     nameBox = Style.Field(parts, 141)
     nameBox.well:SetPoint("TOPLEFT", 149, -283)
     nameBox.well:Hide()
     nameBox:SetMaxLetters(16)
-    nameBox:SetScript("OnEnterPressed", function(self)
-        -- Naming a new hatchling, a name that won't do leaves the box open to try again.
-        local ok = Pet.Rename(self:GetText())
-        if ok or not Pet.State().unnamed then
-            self:ClearFocus()
-            self.well:Hide()
-        end
-    end)
-    nameBox:SetScript("OnEscapePressed", function(self)
+    nameBox:SetScript("OnEnterPressed", TakeName)
+    nameBox:SetScript("OnEscapePressed", function()
         -- Escape keeps the name it has, and that settles it for a new hatchling too.
         Pet.State().unnamed = nil
-        self:ClearFocus()
-        self.well:Hide()
+        NameBox(false)
     end)
-    rename:SetScript("OnClick", function()
-        nameBox.well:Show()
-        nameBox:SetText(Pet.State().name)
-        nameBox:SetFocus()
-        nameBox:HighlightText()
-    end)
+    renameButton:SetScript("OnClick", TakeName)
+    renameButton:Hide()
     Layout()
 end
 
@@ -1136,10 +1145,11 @@ function Pet.Paddock()
 end
 ns.Command("pet paddock", Pet.Paddock)
 
--- A new name for the companion, from the box in its window.
+-- The name for a new hatchling, from the box in its window. Only while
+-- it's still unnamed: once named, that's its name.
 function Pet.Rename(text)
     local s = Pet.State()
-    if s.unchosen then return false end
+    if s.unchosen or not s.unnamed then return false end
     local old = s.name
     local ok, what = Rules.Rename(s, text)
     local J = ns.Journal
