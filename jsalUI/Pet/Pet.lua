@@ -666,6 +666,17 @@ local function Refresh()
     eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
         or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone or coming back from the dead can turn one up."
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
+    -- Just hatched and not yet named: the name box opens by itself, with the
+    -- name it would otherwise have ready to type over.
+    if s.unnamed and not nameBox.asking then
+        nameBox.asking = true
+        nameBox.well:Show()
+        nameBox:SetText(s.name)
+        nameBox:SetFocus()
+        nameBox:HighlightText()
+    elseif not s.unnamed then
+        nameBox.asking = nil
+    end
 end
 Pet.Refresh = Refresh
 
@@ -1018,11 +1029,16 @@ local function Build()
     nameBox.well:Hide()
     nameBox:SetMaxLetters(16)
     nameBox:SetScript("OnEnterPressed", function(self)
-        Pet.Rename(self:GetText())
-        self:ClearFocus()
-        self.well:Hide()
+        -- Naming a new hatchling, a name that won't do leaves the box open to try again.
+        local ok = Pet.Rename(self:GetText())
+        if ok or not Pet.State().unnamed then
+            self:ClearFocus()
+            self.well:Hide()
+        end
     end)
     nameBox:SetScript("OnEscapePressed", function(self)
+        -- Escape keeps the name it has, and that settles it for a new hatchling too.
+        Pet.State().unnamed = nil
         self:ClearFocus()
         self.well:Hide()
     end)
@@ -1126,9 +1142,16 @@ function Pet.Rename(text)
     if s.unchosen then return false end
     local old = s.name
     local ok, what = Rules.Rename(s, text)
-    said = what
     local J = ns.Journal
     if ok and J and J.running then J.Note("pet", ("%s is called %s now"):format(old, s.name)) end
+    -- Naming a new hatchling, Enter on the name it came with keeps that name.
+    if s.unnamed and not ok and (tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")) == s.name then
+        ok, what = true, ("%s it is."):format(s.name)
+    elseif s.unnamed and ok then
+        what = ("%s it is."):format(s.name)
+    end
+    if ok then s.unnamed = nil end
+    said = what
     if IsOpen() then Refresh() end
     return ok
 end
@@ -1151,8 +1174,10 @@ function Pet.Choose(index)
     for supply, count in pairs(s.supplies) do
         young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
     end
+    young.unnamed = true
     ns.db.pet = young
-    looking, walk, said = nil, nil, nil
+    looking, walk = nil, nil
+    said = ("It's hatching! Name your %s: type a name and press Enter."):format(FormName(young, 1))
     if window then Refresh() end
 end
 
@@ -1186,7 +1211,8 @@ function Pet.HatchEgg(index)
             if J and J.running then
                 J.Note("pet", ("%s the %s settled in the paddock after %d day%s"):format(old, form, record.days, record.days == 1 and "" or "s"))
             end
-            said = ("%s has settled in the paddock. %s the %s hatched!"):format(old, young.name, FormName(young, 1))
+            young.unnamed = true
+            said = ("%s has settled in the paddock. Name your new %s: type a name and press Enter."):format(old, FormName(young, 1))
         end
     end
     if IsOpen() then Refresh() end
