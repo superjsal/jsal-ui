@@ -43,15 +43,23 @@ Rules.SPECIES = {
     capling = { forms = { "Capling", "Lanternshell", "Bloomsage" },
                 sprites = { "capling", "lanternshell", "bloomsage" }, name = "Morel" },
 }
--- The eggs your play can turn up, and what hatches from each.
+-- The eggs your play can turn up, and what hatches from each. `from` is
+-- the thing you do that can turn it up, and `chance` how often it does:
+-- a quest handed in, coming back from being a ghost, a new level, a
+-- flight, and arriving in another zone.
 Rules.EGGS = {
-    mossy = { name = "Mossy egg", species = "briarboar" },
-    ghostly = { name = "Ghostly egg", species = "wispkin" },
-    ember = { name = "Ember egg", species = "scrapwing" },
-    storm = { name = "Storm egg", species = "stormcub" },
-    toadstool = { name = "Toadstool egg", species = "capling" },
+    mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03 },
+    ghostly = { name = "Ghostly egg", species = "wispkin", from = "ghost", chance = 0.15 },
+    ember = { name = "Ember egg", species = "scrapwing", from = "level", chance = 0.3 },
+    storm = { name = "Storm egg", species = "stormcub", from = "flight", chance = 0.06 },
+    toadstool = { name = "Toadstool egg", species = "capling", from = "zone", chance = 0.08 },
 }
 Rules.MAX_EGGS = 3
+
+-- Grubby enough to show, and to want a bath.
+function Rules.Dirty(s)
+    return s.clean < 35
+end
 
 -- A companion's kind; one saved before there were kinds is a Briarboar.
 function Rules.Species(s)
@@ -102,7 +110,7 @@ function Rules.Wants(s)
         return "hungry", s.name .. " is hungry",
             meals > 0 and ("You have %d meal%s"):format(meals, meals == 1 and "" or "s") or "No meals left: hand in a quest for one"
     end
-    if s.clean < 35 then return "dirty", s.name .. " needs a bath", "A bath makes it spotless" end
+    if Rules.Dirty(s) then return "dirty", s.name .. " needs a bath", "A bath makes it spotless" end
     if s.fun < 25 then return "bored", s.name .. " is bored", "A pat costs nothing" end
     return nil
 end
@@ -412,6 +420,15 @@ function Rules.Succeed(s, eggs, index, now)
         young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
     end
     return Rules.Settled(s, now), young
+end
+
+-- The kind of egg that doing `source` turns up this time, or nil. `roll`
+-- is a number from 0 up to 1: the luck of it.
+function Rules.EggFrom(source, roll)
+    for kind, egg in pairs(Rules.EGGS) do
+        if egg.from == source and roll < egg.chance then return kind end
+    end
+    return nil
 end
 
 -- A found egg joins the others, if there's room. True when it's kept.

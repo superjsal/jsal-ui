@@ -26,18 +26,32 @@ local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
 -- size is better made 96 pixels to begin with.
 local PAD = 10
 local PEN_W, PEN_H, SIZE = 440, 200, 128
+-- An egg in the row under the buttons: the bottom middle 32 pixels of its
+-- 64-pixel picture, where the egg stands, at its own size.
+local EGG_W = 32
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
-local WIN_W, WIN_H = PEN_W + PAD * 2, 512
+local WIN_W, WIN_H = PEN_W + PAD * 2, 566
 local HEAP_W = 32       -- a dropping, and the bowl and ball: 32-pixel pictures
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
+local DUSK = 2.5          -- seconds the pen takes to turn from day to night, or back
+-- What's drawn over any creature, whatever its kind: flies and a smell when
+-- it's dirty, dizzy stars when it's poorly, a tub of suds and then a sparkle
+-- for a bath. One picture of 64-pixel cells, eight to a row, drawn over the
+-- 64 pixels it stands in (tools/make_pet_effects.py). The first two go
+-- round and round; the bath plays once, over as long as its animation.
+local EFFECTS = {
+    dirty = { first = 0, count = 8, time = 0.12 },
+    sick = { first = 8, count = 8, time = 0.14 },
+    bath = { first = 16, count = 16 },
+}
+local MUDDY, GREEN, PLAIN = { 0.74, 0.62, 0.46 }, { 0.78, 1, 0.78 }, { 1, 1, 1 }
+Pet.EFFECTS = EFFECTS
 Pet.PEN_W, Pet.PEN_H, Pet.SIZE, Pet.SIZES, Pet.HEAP_W = PEN_W, PEN_H, SIZE, SIZES, HEAP_W
-local FORMS = { "Briarboar", "Thornhog", "Brambletusk" }
 local NEED_NAME = { hunger = "Fed", energy = "Rested", fun = "Happy", clean = "Clean" }
--- Each form's pictures: standing, mid-step and asleep.
-local SPRITE = { "briarboar", "thornhog", "brambletusk" }
+-- A form without a sheet has three pictures: standing, mid-step and asleep.
 local SUFFIX = { stand = "", step = "_step", sleep = "_sleep" }
 -- A form with a sheet is animated instead: one picture of 64 cells, eight
 -- to a row, its animations one after another. Each is the cell it starts
@@ -58,6 +72,10 @@ local function Packed(file, lay)
         sheet[anim[1]] = { first = at, count = anim[2], time = anim[3] }
         at = at + anim[2]
     end
+    -- Sitting ends sat down, which isn't how it stands: so it stays sat a
+    -- while (`hold`, seconds), then gets up through the same frames
+    -- backwards (`back`, seconds a frame), and is standing when it's done.
+    sheet.sit.hold, sheet.sit.back = 2.4, 0.08
     -- The cells held while it stands and while it sleeps.
     sheet.stand, sheet.sleep = sheet.idle.first, sheet.doze.first + sheet.doze.count - 1
     -- One more, in a picture of its own with larger cells: the thing its
@@ -87,13 +105,12 @@ local SHEETS = {
     lanternshell = Packed("lanternshell_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     bloomsage = Packed("bloomsage_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
 }
--- Everything /jsal pet look can show, in the order it shows them: your own
--- creature's line, then a line you can't raise yet. `form` is which of the
--- three sizes it's drawn at; `own` marks the line your companion belongs to.
+-- Everything /jsal pet look can show, in the order it shows them, one line
+-- of three after another. `form` is which of the three sizes it's drawn at.
 local LOOKS = {
-    { sprite = "briarboar", name = "Briarboar", form = 1, own = true },
-    { sprite = "thornhog", name = "Thornhog", form = 2, own = true },
-    { sprite = "brambletusk", name = "Brambletusk", form = 3, own = true },
+    { sprite = "briarboar", name = "Briarboar", form = 1 },
+    { sprite = "thornhog", name = "Thornhog", form = 2 },
+    { sprite = "brambletusk", name = "Brambletusk", form = 3 },
     { sprite = "wispkin", name = "Wispkin", form = 1 },
     { sprite = "gloamtail", name = "Gloamtail", form = 2 },
     { sprite = "wispjester", name = "Wispjester", form = 3 },
@@ -134,7 +151,8 @@ end
 function Pet.Play(walk, sheet, name)
     local anim = sheet and sheet[name]
     if type(anim) ~= "table" then return false end
-    walk.act = { name = name, clock = 0, length = anim.count * anim.time }
+    walk.act = { name = name, clock = 0,
+        length = anim.count * anim.time + (anim.hold or 0) + (anim.back and anim.count * anim.back or 0) }
     return true
 end
 
@@ -143,6 +161,13 @@ function Pet.Cell(walk, sheet)
     local act = walk.act
     local anim = act and sheet[act.name]
     if anim then
+        -- Played through, then held on its last frame, then (for one that
+        -- comes back the way it went) its frames again in reverse.
+        local played = anim.count * anim.time + (anim.hold or 0)
+        if anim.back and act.clock >= played then
+            local gone = math.floor((act.clock - played) / anim.back)
+            return anim.first + math.max(0, anim.count - 1 - gone)
+        end
         return anim.first + math.min(anim.count - 1, math.floor(act.clock / anim.time))
     end
     if walk.frame == "sleep" then return sheet.sleep end
@@ -209,13 +234,15 @@ function Pet.Wants()
     local s = Rules.Advance(Pet.State(), Now())
     local key, title, sub = Rules.Wants(s)
     if not key then return nil end
-    return { key = key, title = title, sub = sub, texture = MEDIA .. (SPRITE[s.form] or SPRITE[1]) }
+    local sprites = Rules.Species(s).sprites
+    return { key = key, title = title, sub = sub, texture = MEDIA .. (sprites[s.form] or sprites[1]) }
 end
 
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, prop, snore, title, sub, message, wishLine, bondLine, walk, parts, fold
+local window, pen, body, sprite, prop, effect, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine
+local eggSlots = {}
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 30, 140, 260, 380 }
 local said
@@ -229,7 +256,35 @@ end
 
 -- The name its pictures go by: the look's, or its own form's.
 local function Sprite()
-    return looking and looking.sprite or SPRITE[Pet.State().form] or SPRITE[1]
+    if looking then return looking.sprite end
+    local s = Pet.State()
+    local sprites = Rules.Species(s).sprites
+    return sprites[s.form] or sprites[1]
+end
+
+-- What its form is called.
+local function FormName(s, form)
+    local forms = Rules.Species(s).forms
+    return forms[form or s.form] or forms[1]
+end
+
+-- Whether a look is one of the companion's own line.
+local function Own(look)
+    for _, name in ipairs(Rules.Species(Pet.State()).sprites) do
+        if name == look.sprite then return true end
+    end
+    return false
+end
+
+-- The eggs you're holding, and the companions settled in the paddock, both
+-- kept for the whole account.
+local function Eggs()
+    if type(ns.db.petEggs) ~= "table" then ns.db.petEggs = {} end
+    return ns.db.petEggs
+end
+local function Settled()
+    if type(ns.db.petSettled) ~= "table" then ns.db.petSettled = {} end
+    return ns.db.petSettled
 end
 
 -- The sheet of the form that's drawn now, if that form has one.
@@ -277,8 +332,40 @@ local function PaintWalk()
         sprite:SetPoint("CENTER", body, "CENTER", 0, 0)
         sprite:SetSize(drawn, drawn)
     end
+    -- How it is shows on it. Poorly, it's off-colour, with stars going round
+    -- its head, and standing still it shivers; dirty, it's muddy, with flies;
+    -- in the bath, the tub and suds, and the mud stays until halfway through.
+    local s, act = Pet.State(), walk.act
+    local tick = Pet.tick or 0
+    local washing = act and act.effect == "bath"
+    local dirty = Rules.Dirty(s) or (washing and act.grubby and act.clock < act.length / 2)
+    local hue = s.sick and GREEN or dirty and MUDDY or PLAIN
+    if sprite.hue ~= hue then
+        sprite.hue = hue
+        sprite:SetVertexColor(hue[1], hue[2], hue[3])
+    end
+    local which = washing and "bath" or s.sick and "sick" or dirty and "dirty" or nil
+    if which then
+        local fx = EFFECTS[which]
+        local at = fx.time and math.floor(tick / fx.time) % fx.count
+            or math.min(fx.count - 1, math.floor(act.clock / act.length * fx.count))
+        local col, row = (fx.first + at) % 8, math.floor((fx.first + at) / 8)
+        effect:SetTexCoord(col / 8, (col + 1) / 8, row / 4, (row + 1) / 4)
+        if not effect.file then
+            effect.file = MEDIA .. "effects"
+            effect:SetTexture(effect.file, "CLAMP", "CLAMP", "NEAREST")
+        end
+        effect:Show()
+    else
+        effect:Hide()
+    end
+    local shiver = 0
+    if s.sick and not s.asleep and not act then
+        local beat = math.floor(tick * 14)
+        if beat % 14 < 4 then shiver = beat % 2 == 0 and 1 or -1 end
+    end
     body:ClearAllPoints()
-    body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5), -math.floor(walk.y + 0.5))
+    body:SetPoint("TOPLEFT", pen, "TOPLEFT", math.floor(walk.x + 0.5) + shiver, -math.floor(walk.y + 0.5))
     -- Its bowl or its ball, on the grass in front of it while it eats or plays.
     local thing = walk.act and walk.act.prop
     if thing then
@@ -305,10 +392,10 @@ end
 -- for whoever is showing the pet.
 local function Milestones(s)
     local told = {}
-    local form = FORMS[s.form] or FORMS[1]
+    local form = FormName(s)
     if not s.told then
         s.told = true
-        told[#told + 1] = ("%s the %s hatched"):format(s.name, FORMS[1])
+        told[#told + 1] = ("%s the %s hatched"):format(s.name, FormName(s, 1))
     end
     if s.grew then
         s.grew = nil
@@ -355,11 +442,13 @@ end
 local function Refresh()
     local s = Rules.Advance(Pet.State(), Now())
     local _, mood = Rules.Mood(s)
-    title:SetText(looking and (looking.own and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
-        or ("%s the %s"):format(s.name, FORMS[s.form] or FORMS[1]))
+    title:SetText(looking and (Own(looking) and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
+        or ("%s the %s"):format(s.name, FormName(s)))
     local day = math.floor(math.max(0, Now() - s.born) / 86400) + 1
     local growing = Growing(s)
     sub:SetText(("%s · day %d%s"):format(mood, day, growing and (" · " .. growing) or " · fully grown"))
+    -- Not yet told of: it's new, and breaks out of its egg as you first see it.
+    local fresh = not s.told
     said = Milestones(s) or said
     message:SetText(said or "")
     local wish, granted = WishText(s)
@@ -373,13 +462,14 @@ local function Refresh()
     end
     for i, heap in ipairs(heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
-    -- Asleep, the pen is the same meadow by moonlight (tools/make_pet_night.py).
-    local scene = MEDIA .. (s.asleep and "meadow_night" or "meadow")
-    if pen.scene.file ~= scene then
-        pen.scene.file = scene
-        pen.scene:SetTexture(scene, "CLAMP", "CLAMP", "NEAREST")
+    -- Asleep, the pen is the same meadow by moonlight (tools/make_pet_night.py),
+    -- drawn over the day one: how far it has faded in is `shade`, which each
+    -- frame moves toward `dark`. First shown, it's already where it should be.
+    pen.dark = s.asleep and 1 or 0
+    if not pen.shade then
+        pen.shade = pen.dark
+        pen.night:SetAlpha(pen.shade)
     end
-    if s.sick then sprite:SetVertexColor(0.78, 1, 0.78) else sprite:SetVertexColor(1, 1, 1) end
     care.meal:SetLabel(("Feed · %d"):format(s.supplies.meal))
     care.treat:SetLabel(("Treat · %d"):format(s.supplies.treat))
     care.toy:SetLabel(("Play · %d"):format(s.supplies.toy))
@@ -390,7 +480,26 @@ local function Refresh()
     -- A form that has grown is drawn larger, and starts from a spot that fits it.
     local size = SIZES[Form()] or SIZE
     if not walk or walk.size ~= size then walk = Pet.NewWalk(math.random, size) end
+    if fresh and not looking then Pet.Play(walk, Sheet(), "hatch") end
     PaintWalk()
+    -- The eggs you hold, each with its picture, and where they came from.
+    local eggs = Eggs()
+    local names = {}
+    for i, slot in ipairs(eggSlots) do
+        local egg = eggs[i]
+        local kind = egg and Rules.EGGS[egg.kind]
+        slot:SetShown(kind ~= nil)
+        if kind then
+            local file = MEDIA .. kind.species .. "_egg"
+            if slot.file ~= file then
+                slot.file = file
+                slot.picture:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+            end
+            names[#names + 1] = ("%s (%s)"):format(kind.name, egg.from or "found")
+        end
+    end
+    eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
+        or "No eggs yet. Your play turns one up now and then.")
 end
 Pet.Refresh = Refresh
 
@@ -398,16 +507,18 @@ Pet.Refresh = Refresh
 -- menu's badge and Today hear about it too.
 -- `show` is the animation that goes with it, played when the care was
 -- given and the creature is awake to react ("lights" picks its own: settling
--- down or getting up). `thing` is what's set down beside it meanwhile.
-local function Do(act, show, thing)
+-- down or getting up). `thing` is what's set down beside it meanwhile, and
+-- `over` what's drawn over it (EFFECTS).
+local function Do(act, show, thing, over)
     local s = Pet.State()
+    local grubby = Rules.Dirty(s)
     local ok, what = act(s, Now())
     said = what
     if ok and walk and show then
         if show == "lights" then
             Pet.Play(walk, Sheet(), s.asleep and "doze" or "wake")
         elseif not s.asleep and Pet.Play(walk, Sheet(), show) then
-            walk.act.prop = thing
+            walk.act.prop, walk.act.effect, walk.act.grubby = thing, over, grubby
         end
     end
     Refresh()
@@ -480,6 +591,13 @@ local function Build()
     scene:SetTexture(MEDIA .. "meadow", "CLAMP", "CLAMP", "NEAREST")
     scene:SetTexCoord(0, 220 / 256, 0, 100 / 128)
     Compat.Crisp(scene)
+    local night = pen:CreateTexture(nil, "BACKGROUND", nil, 1)
+    pen.night = night
+    night:SetAllPoints()
+    night:SetTexture(MEDIA .. "meadow_night", "CLAMP", "CLAMP", "NEAREST")
+    night:SetTexCoord(0, 220 / 256, 0, 100 / 128)
+    night:SetAlpha(0)
+    Compat.Crisp(night)
     -- The pen can be dragged too: with only the pen showing, it's all there is to hold.
     pen:EnableMouse(true)
     pen:RegisterForDrag("LeftButton")
@@ -511,6 +629,10 @@ local function Build()
     prop:SetSize(HEAP_W, HEAP_W)
     Compat.Crisp(prop)
     prop:Hide()
+    effect = body:CreateTexture(nil, "OVERLAY")
+    effect:SetAllPoints()
+    Compat.Crisp(effect)
+    effect:Hide()
     snore = Style.Text(body, 15, "secondary", nil, true)
     snore:SetPoint("BOTTOMLEFT", body, "TOPRIGHT", -26, -20)
     snore:SetText("z z z")
@@ -518,6 +640,13 @@ local function Build()
     -- Only while the page is showing: a hidden frame gets no updates.
     local since = 0
     pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
+        Pet.tick = (Pet.tick or 0) + elapsed
+        -- Dusk and dawn: the night meadow fades in or out, a little each frame.
+        if pen.shade and pen.shade ~= pen.dark then
+            local by = math.min(elapsed, 0.1) / DUSK
+            pen.shade = pen.dark > pen.shade and math.min(pen.dark, pen.shade + by) or math.max(pen.dark, pen.shade - by)
+            pen.night:SetAlpha(pen.shade)
+        end
         if not walk then return end
         -- A long hitch (a loading screen) shouldn't fling it across the pen.
         local dt = math.min(elapsed, 0.1)
@@ -534,7 +663,12 @@ local function Build()
             if sheet and walking and walk.wait > 0 and not walk.act then
                 -- One time in six each: it sits, looks about, or shows off.
                 local pick = math.random(1, 6)
-                if pick <= 3 then Pet.Play(walk, sheet, pick == 1 and "sit" or pick == 2 and "idle" or "special") end
+                if Pet.State().sick then
+                    -- Poorly, it doesn't show off: more often than not it just sits down.
+                    if pick <= 4 then Pet.Play(walk, sheet, "sit") end
+                elseif pick <= 3 then
+                    Pet.Play(walk, sheet, pick == 1 and "sit" or pick == 2 and "idle" or "special")
+                end
             end
         end
         PaintWalk()
@@ -596,24 +730,42 @@ local function Build()
 
     -- Care, three to a row, each button with how many it has left.
     local count = 0
-    local function Care(key, act, show, thing)
+    local function Care(key, act, show, thing, over)
         local b = Style.Button(parts, "", "plain", 141)
         b:SetHeight(28)
         b:SetPoint("TOPLEFT", (count % 3) * 149, -(146 + math.floor(count / 3) * 34))
-        b:SetScript("OnClick", function() Do(act, show, thing) end)
+        b:SetScript("OnClick", function() Do(act, show, thing, over) end)
         care[key] = b
         count = count + 1
     end
     Care("meal", Rules.Feed, "eat", "bowl")
     Care("treat", Rules.Treat, "eat", "bowl")
     Care("toy", Rules.Play, "jump", "ball")
-    Care("soap", Rules.Bath)
+    Care("soap", Rules.Bath, "idle", nil, "bath")
     Care("lights", Rules.Lights, "lights")
     Care("medicine", Rules.Medicine)
     local hint = Style.Text(parts, 11, "muted")
     hint:SetPoint("TOPLEFT", 0, -220)
     hint:SetWidth(PEN_W)
     hint:SetText("Quests bring meals, flights bring toys, a new level brings the rest. Click it for a pat, and a dropping to scoop it.")
+    -- The eggs you hold: what they are, then one picture each to click.
+    eggLine = Style.Text(parts, 12, "secondary")
+    eggLine:SetPoint("TOPLEFT", 0, -258)
+    eggLine:SetWidth(PEN_W)
+    eggLine:SetWordWrap(false)
+    for i = 1, Rules.MAX_EGGS do
+        local slot = CreateFrame("Button", nil, parts)
+        slot:SetSize(EGG_W + 8, EGG_W + 4)
+        slot:SetPoint("TOPLEFT", (i - 1) * (EGG_W + 12), -278)
+        slot.picture = slot:CreateTexture(nil, "ARTWORK")
+        slot.picture:SetSize(EGG_W, EGG_W)
+        slot.picture:SetPoint("BOTTOM", 0, 0)
+        slot.picture:SetTexCoord(0.25, 0.75, 0.5, 1)
+        Compat.Crisp(slot.picture)
+        slot:SetScript("OnClick", function() Pet.HatchEgg(i) end)
+        slot:Hide()
+        eggSlots[i] = slot
+    end
     Layout()
 end
 
@@ -629,7 +781,8 @@ function Pet.Open()
     end
     if not window then Build() end
     if IsOpen() then return window:Hide() end
-    said = nil
+    said, Pet.armed = nil, nil
+    pen.shade = nil     -- opened, it's day or night at once, with no fade
     Refresh()
     window:Show()
 end
@@ -664,6 +817,63 @@ local function ZoneName()
     return zone ~= "" and zone or nil
 end
 
+-- Something you did that can turn up an egg (see Rules.EGGS). `roll` is
+-- the luck of it, from 0 up to 1; left out, it's rolled here. True when an
+-- egg was found and there was room to keep it.
+Pet.Luck = math.random
+function Pet.Found(source, roll)
+    local kind = Rules.EggFrom(source, roll or Pet.Luck())
+    if not kind then return false end
+    local where = ZoneName() or "your travels"
+    if not Rules.FindEgg(Eggs(), kind, where, Now()) then return false end
+    local name = Rules.EGGS[kind].name
+    local a = name:find("^[AEIOU]") and "an" or "a"
+    ns.Print(("You found %s %s in %s! /jsal pet shows your eggs."):format(a, name, where))
+    local J = ns.Journal
+    if J and J.running then J.Note("pet", ("Found %s %s in %s"):format(a, name, where)) end
+    if IsOpen() then
+        said = ("You found %s %s!"):format(a, name)
+        Refresh()
+    end
+    return true
+end
+
+-- A click on one of your eggs. A fully grown companion can settle in the
+-- paddock, and the egg hatches in its place: that can't be undone, so the
+-- first click only says what will happen and the second does it.
+function Pet.HatchEgg(index)
+    local s, eggs = Pet.State(), Eggs()
+    local egg = eggs[index]
+    local kind = egg and Rules.EGGS[egg.kind]
+    if not kind then return end
+    local ok, why = Rules.CanSettle(s, eggs)
+    if not ok then
+        Pet.armed = nil
+        said = ("%s Once %s is fully grown it can settle in the paddock, and this egg hatches."):format(why, s.name)
+    elseif Pet.armed ~= index then
+        Pet.armed = index
+        said = ("Click again: %s settles in the paddock for good, and the %s hatches."):format(s.name, kind.name)
+    else
+        Pet.armed = nil
+        local old, form = s.name, FormName(s)
+        local record, young = Rules.Succeed(s, eggs, index, Now())
+        if not record then
+            said = young
+        else
+            local settled = Settled()
+            settled[#settled + 1] = record
+            ns.db.pet = young
+            looking, walk = nil, nil
+            local J = ns.Journal
+            if J and J.running then
+                J.Note("pet", ("%s the %s settled in the paddock after %d day%s"):format(old, form, record.days, record.days == 1 and "" or "s"))
+            end
+            said = ("%s has settled in the paddock. %s the %s hatched!"):format(old, young.name, FormName(young, 1))
+        end
+    end
+    if IsOpen() then Refresh() end
+end
+
 function Pet:OnEnable()
     -- A hatchling from the moment the part is switched on, so what you earn
     -- before first opening its page isn't lost.
@@ -679,19 +889,29 @@ function Pet:OnEnable()
     events:RegisterEvent("PLAYER_LEVEL_UP")
     events:RegisterEvent("PLAYER_CONTROL_LOST")
     events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+    events:RegisterEvent("PLAYER_UNGHOST")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event)
         if event == "ZONE_CHANGED_NEW_AREA" then
             -- The game also says this as you log in; that isn't a trip.
             local now = ZoneName()
-            if now and zone and now ~= zone then Pet.Did("zone") end
+            local moved = now and zone and now ~= zone
             zone = now or zone
+            if moved then
+                Pet.Did("zone")
+                Pet.Found("zone")
+            end
         elseif event == "QUEST_TURNED_IN" then
             Pet.Earn("meal", 1)
             Pet.Did("quest")
+            Pet.Found("quest")
         elseif event == "PLAYER_LEVEL_UP" then
             Pet.Earn("treat", 2)
             Pet.Earn("soap", 1)
             Pet.Earn("medicine", 1)
+            Pet.Found("level")
+        elseif event == "PLAYER_UNGHOST" then
+            -- Back among the living, sometimes with something from the other side.
+            Pet.Found("ghost")
         elseif event == "PLAYER_CONTROL_LOST" then
             -- The game takes the controls away as a flight starts (and for
             -- other things): a moment later, see whether you're flying.
@@ -699,6 +919,7 @@ function Pet:OnEnable()
                 if Compat.OnTaxi() then
                     Pet.Earn("toy", 1)
                     Pet.Did("flight")
+                    Pet.Found("flight")
                 end
             end))
         end
@@ -724,9 +945,9 @@ function Pet.Look()
     repeat
         at = at + 1
         looking = LOOKS[at]
-    until not (looking and looking.own and looking.form == s.form)
+    until not (looking and Own(looking) and looking.form == s.form)
     walk = nil      -- a new spot, of the size that's drawn now
-    said = looking and ((looking.own and "A look at it as a %s. /jsal pet look again for the next."
+    said = looking and ((Own(looking) and "A look at it as a %s. /jsal pet look again for the next."
         or "The %s, of a line still to come. /jsal pet look again for the next."):format(looking.name))
         or ("Back to %s as it is."):format(s.name)
     Refresh()
@@ -768,3 +989,31 @@ function Pet.Hatch()
     Refresh()
 end
 ns.Command("pet hatch", Pet.Hatch)
+
+-- /jsal pet try: a trial run of settling and hatching. Your real companion,
+-- eggs and paddock are put aside, and in their place are a fully grown
+-- stand-in and three eggs to click. /jsal pet try again puts everything
+-- back exactly as it was; what's put aside is kept through a reload.
+function Pet.Try()
+    if not Pet.running then
+        return ns.Print("The companion is turned off. /jsal settings turns it on.")
+    end
+    local kept = ns.db.petAside
+    if type(kept) == "table" then
+        ns.db.pet, ns.db.petEggs, ns.db.petSettled, ns.db.petAside = kept.pet, kept.eggs, kept.settled, nil
+        ns.Print(("The trial is over. %s is back, with everything as it was."):format(Pet.State().name))
+    else
+        ns.db.petAside = { pet = Pet.State(), eggs = ns.db.petEggs, settled = ns.db.petSettled }
+        local now = Now()
+        local stand = Rules.New(now, "Trial")
+        stand.good, stand.form, stand.told = Rules.FULL, 3, true
+        ns.db.pet, ns.db.petEggs, ns.db.petSettled = stand, {}, {}
+        for _, kind in ipairs({ "ghostly", "ember", "toadstool" }) do
+            Rules.FindEgg(ns.db.petEggs, kind, "a trial", now)
+        end
+        ns.Print("A trial: a fully grown stand-in and three eggs. Click an egg twice to settle it and hatch the egg. /jsal pet try again puts your own companion back.")
+    end
+    looking, walk, said, Pet.armed = nil, nil, nil, nil
+    if not IsOpen() then Pet.Open() else Refresh() end
+end
+ns.Command("pet try", Pet.Try)
