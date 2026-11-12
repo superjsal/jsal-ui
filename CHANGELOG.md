@@ -21,6 +21,7 @@ Restart the game after updating (exit and start it again): this version adds new
   - **Its company counts.** The fifth quest, flight, new zone or level of a day with it on your screen brings you a little closer, and now and then it digs up a treat or a toy. Nothing is lost by leaving it in.
   - **Sounds,** small ones, with a mute button in the pen's corner and a switch in Settings.
   - **On Today:** when it wants something it's listed under Ready now, and its menu entry shows a gold 1.
+- **Gear plan: the slot list names its two columns,** "You wear" and "Best upgrade adds". The green numbers beside a slot are what its best upgrade would add, which on an empty slot had read as the slot's own stats.
 
 ## In 0.3.32
 
