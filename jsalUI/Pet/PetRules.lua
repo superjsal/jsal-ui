@@ -48,7 +48,9 @@ Rules.SPECIES = {
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
--- flight, arriving in another zone, and a dungeon or raid boss brought down.
+-- flight, arriving in another zone, and a fight you come out of alive. Fights
+-- come far oftener than the rest, so that chance is far smaller: about one
+-- egg in two hundred fights. Bosses are kept for rarer eggs to come.
 Rules.EGGS = {
     mossy = { name = "Mossy egg", species = "briarboar", from = "quest", chance = 0.03,
               hint = "It smells of rain and bramble." },
@@ -60,11 +62,26 @@ Rules.EGGS = {
               hint = "It hums, and lifts the hair on your arm." },
     toadstool = { name = "Toadstool egg", species = "capling", from = "zone", chance = 0.08,
                   hint = "Something inside it is humming a tune." },
-    steel = { name = "Steel egg", species = "boltusk", from = "boss", chance = 0.1,
+    steel = { name = "Steel egg", species = "boltusk", from = "fight", chance = 0.005,
               hint = "It's heavy, riveted shut, and now and then it clanks." },
 }
--- The three a new player chooses between. The other two are only ever found.
-Rules.STARTERS = { "mossy", "ember", "toadstool" }
+-- A new player chooses between three eggs, any three of all there are
+-- (John, 12 Nov 2026: "lets have all the eggs (3 max) be able to be onboarded
+-- randomly"). Before that it was always the first three of this list.
+Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel" }
+Rules.OFFERED = 3
+-- Three of them, no two alike. `roll(a, b)` is a whole number from a to b,
+-- as math.random gives.
+function Rules.Offer(roll)
+    local pool, offer = {}, {}
+    for i, key in ipairs(Rules.STARTERS) do pool[i] = key end
+    for i = 1, Rules.OFFERED do
+        local j = math.max(i, math.min(#pool, roll(i, #pool)))
+        pool[i], pool[j] = pool[j], pool[i]
+        offer[i] = pool[i]
+    end
+    return offer
+end
 -- The kinds in the order an album shows them.
 Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk" }
 
