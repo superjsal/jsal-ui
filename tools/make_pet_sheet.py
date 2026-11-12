@@ -5,14 +5,15 @@
     python -I tools/make_pet_sheet.py brambletusk <frames folder> [preview folder]
 
 The frames folder holds one folder per animation (Walk, Idle_Long, Eating, Jump,
-Idle_Sitting, Going_to_Sleep, Waking_Getting_Up), each with a south-west folder
+Idle_Sitting, Going_to_Sleep, Waking_Getting_Up, and Special and Poorly if it
+has them), each with a south-west folder
 of frame_000.png, frame_001.png and so on, 64 pixels square or larger, the creature
 facing down and to the left. The game flips the picture when it walks to the right.
 
-Writes jsalUI/Media/Pet/<name>_sheet.tga: the animations one after another in
+Writes jsalUI/Media/Pet/<name>_sheet.png: the animations one after another in
 the order below, which is the order jsalUI/Pet/Pet.lua counts them in. Most
 are 512 pixels square, eight 64-pixel cells to a row; a creature too large
-for that has its own layout in LAYOUT. Also writes <name>.tga, its first
+for that has its own layout in LAYOUT. Also writes <name>.png, its first
 resting frame on its own, for menus and Today.
 """
 import sys
@@ -38,6 +39,7 @@ LAYOUT = {
     # The usual cells, but an eight-frame walk makes 68 frames, four more than
     # the usual sheet holds: sixteen to a row in a wider picture.
     "thornhog": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
+    "briarboar": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "brambletusk": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     # The dragon's middle form sprawls wider than a 64 cell when it lies down.
     "jabdrake": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
@@ -91,14 +93,18 @@ def frames(folder, lay, ground=None):
 # A creature may also have a Special folder: one more animation, nine frames,
 # that shows off what kind of creature it is (a fiery punch, a burst of
 # leaves). Its effects reach well outside the creature, so it gets a picture
-# of its own, <name>_special.tga, 1024 by 128 with nine 96-pixel cells in a
+# of its own, <name>_special.png, 1024 by 128 with nine 96-pixel cells in a
 # row, the creature standing in each where it stands in the middle of a cell
 # of its sheet. What doesn't fit in a cell is cut off.
 SPECIAL = ("Special", 9, 96, (1024, 128))
+# And it may have a Poorly folder: eight frames of it drooping when it's
+# unwell, which the game plays, holds on the last and plays back. Kept the
+# same way, as <name>_poorly.png.
+POORLY = ("Poorly", 8, 96, (1024, 128))
 
 
-def special(folder, lay, ground=None):
-    name, count, side, size = SPECIAL
+def special(folder, lay, ground=None, kind=SPECIAL):
+    name, count, side, size = kind
     files = sorted((folder / name / "south-west").glob("frame_*.png"))
     if not files:
         return None
@@ -128,14 +134,22 @@ def main():
     for i, cell in enumerate(cells):
         sheet.paste(cell, (i % cols * side, i // cols * side))
     out = Path(__file__).resolve().parent.parent / "jsalUI" / "Media" / "Pet"
-    sheet.save(out / (name + "_sheet.tga"), compression="tga_rle")
+    sheet.save(out / (name + "_sheet.png"), optimize=True)
     still = cells[lay["walk"]]          # the first resting frame
-    still.save(out / (name + ".tga"), compression="tga_rle")
-    print(len(cells), "frames ->", out / (name + "_sheet.tga"))
+    still.save(out / (name + ".png"), optimize=True)
+    print(len(cells), "frames ->", out / (name + "_sheet.png"))
     extra = special(folder, lay, GROUND.get(name))
+    poorly = special(folder, lay, GROUND.get(name), POORLY)
+    if poorly:
+        poorly.save(out / (name + "_poorly.png"), optimize=True)
+        print("poorly ->", out / (name + "_poorly.png"))
+        if len(sys.argv) > 3:
+            look = Image.new("RGBA", poorly.size, (42, 47, 58, 255))
+            look.alpha_composite(poorly)
+            look.crop((0, 0, 8 * 96, 96)).resize((8 * 96 * 2, 192), Image.NEAREST).save(Path(sys.argv[3]) / (name + "_poorly.png"))
     if extra:
-        extra.save(out / (name + "_special.tga"), compression="tga_rle")
-        print("special ->", out / (name + "_special.tga"))
+        extra.save(out / (name + "_special.png"), optimize=True)
+        print("special ->", out / (name + "_special.png"))
         if len(sys.argv) > 3:
             look = Image.new("RGBA", extra.size, (42, 47, 58, 255))
             look.alpha_composite(extra)

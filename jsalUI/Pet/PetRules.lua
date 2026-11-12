@@ -295,6 +295,29 @@ function Rules.Did(s, kind, now)
     return true
 end
 
+-- Company: what you do in your own play while it's on your screen (a quest
+-- handed in, a flight, a new level, another zone). The fifth such thing in
+-- a day brings you a point closer, once; and each has a small chance that
+-- it digs up a treat or a toy, twice a day at most. Leaving it in its
+-- window costs nothing: this only ever adds. `roll` is the luck, 0 up to 1.
+-- Returns whether you grew closer, and what it found (or nil).
+Rules.COMPANY = { deeds = 5, finds = 2, chance = 0.06 }
+function Rules.Company(s, now, roll)
+    local day = math.floor(now / DAY)
+    if type(s.company) ~= "table" or s.company.day ~= day then s.company = { day = day, deeds = 0, finds = 0 } end
+    local c, rule = s.company, Rules.COMPANY
+    c.deeds = c.deeds + 1
+    local closer = c.deeds == rule.deeds
+    if closer then Closer(s, 1) end
+    local found
+    if c.finds < rule.finds and roll < rule.chance then
+        c.finds = c.finds + 1
+        found = roll < rule.chance / 2 and "treat" or "toy"
+        Rules.Earn(s, found, 1)
+    end
+    return closer, found
+end
+
 local function Use(s, supply)
     if (s.supplies[supply] or 0) < 1 then return false end
     s.supplies[supply] = s.supplies[supply] - 1

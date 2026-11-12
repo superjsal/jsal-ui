@@ -3,11 +3,11 @@
     python -I tools/make_pet_hatch.py <name> <egg.png> [preview folder]
 
 <egg.png> is the egg as it was drawn, on any canvas. The hatchling is taken
-standing from the first cell of jsalUI/Media/Pet/<name>_special.tga, which
+standing from the first cell of jsalUI/Media/Pet/<name>_special.png, which
 tools/make_pet_sheet.py must have written first, so it stands exactly where
 it does in its special. Writes, beside it:
 
-  <name>_hatch.tga   1024 by 128, ten 96-pixel cells in a row:
+  <name>_hatch.png   1024 by 128, ten 96-pixel cells in a row:
                      0     the egg, still, where the hatchling will stand
                      1-2   it rocks left, then right
                      3-4   rocking again, a jagged saw-tooth crack across
@@ -19,7 +19,7 @@ it does in its special. Writes, beside it:
                            tumbling off to one side
                      8     the bottom half falls open in two and it all fades
                      9     the hatchling, standing
-  <name>_egg.tga     64 square, the egg alone, standing on the bottom middle.
+  <name>_egg.png     64 square, the egg alone, standing on the bottom middle.
 
 Nothing is scaled or turned: the egg rocks by sliding its rows sideways, and
 the pieces of shell are the egg cut along the crack and moved.
@@ -123,7 +123,7 @@ def main():
     name = sys.argv[1]
     egg = Image.open(sys.argv[2]).convert("RGBA")
     egg = egg.crop(egg.getbbox())
-    stand = Image.open(MEDIA / (name + "_special.tga")).convert("RGBA").crop((0, 0, SIDE, SIDE))
+    stand = Image.open(MEDIA / (name + "_special.png")).convert("RGBA").crop((0, 0, SIDE, SIDE))
     box = stand.getbbox()
     mid, feet = (box[0] + box[2]) // 2, box[3]
     left, top = mid - egg.width // 2, feet - egg.height
@@ -186,11 +186,11 @@ def main():
     strip = Image.new("RGBA", (1024, 128), (0, 0, 0, 0))
     for i, cell in enumerate(cells):
         strip.paste(cell, (i * SIDE, 0))
-    strip.save(MEDIA / (name + "_hatch.tga"), compression="tga_rle")
+    strip.save(MEDIA / (name + "_hatch.png"), optimize=True)
     alone = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     alone.paste(egg, ((64 - egg.width) // 2, 64 - egg.height))
-    alone.save(MEDIA / (name + "_egg.tga"), compression="tga_rle")
-    print("hatch ->", MEDIA / (name + "_hatch.tga"))
+    alone.save(MEDIA / (name + "_egg.png"), optimize=True)
+    print("hatch ->", MEDIA / (name + "_hatch.png"))
     if len(sys.argv) > 3:
         look = Image.new("RGBA", (COUNT * SIDE, SIDE), (42, 47, 58, 255))
         look.alpha_composite(strip.crop((0, 0, COUNT * SIDE, SIDE)))

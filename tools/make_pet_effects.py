@@ -2,7 +2,7 @@
 
     python -I tools/make_pet_effects.py <washtub.png> [preview folder]
 
-Writes jsalUI/Media/Pet/effects.tga, 512 by 512: 64-pixel cells, eight to a
+Writes jsalUI/Media/Pet/effects.png, 512 by 512: 64-pixel cells, eight to a
 row, each drawn over the 64 pixels a creature stands in (so at its size).
 The same pictures do for every kind, so nothing here knows a creature's
 shape: everything sits round it or in front of its lower half.
@@ -20,7 +20,9 @@ shape: everything sits round it or in front of its lower half.
              up round it (0-7), a ring of light sweeps up it from its feet
              (4-10), and two hearts pop over its head among twinkles (10-15).
 
-Also writes mud_mask.tga, 64 square: where the mud is on a dirty creature.
+Also writes mud_mask.png, 64 square: where the mud is on a dirty creature.
+And shadow.png, 64 by 16 with a 40 by 10 oval in its corner: what the creature
+stands on when it is out of its window.
 The pen draws the creature a second time, dark and brown, and shows that
 only where this picture is solid: so the splotches are always on the
 creature and never beside it, whatever its shape or pose. White where
@@ -243,6 +245,18 @@ def mud_mask():
     return mask
 
 
+def shadow():
+    """The shadow under the creature when it is out of its window: a flat
+    oval, 40 by 10, darker in the middle, so it stands on something."""
+    im = Image.new("RGBA", (64, 16), (0, 0, 0, 0))
+    for y in range(10):
+        for x in range(40):
+            far = ((x - 19.5) / 20) ** 2 + ((y - 4.5) / 5) ** 2
+            if far <= 1:
+                im.putpixel((x, y), (0, 0, 0, 110 if far < 0.45 else 60))
+    return im
+
+
 def main():
     tub = Image.open(sys.argv[1]).convert("RGBA")
     tub = tub.crop(tub.getbbox())
@@ -251,9 +265,10 @@ def main():
              + [well(i) for i in range(16)])
     for n, cell in enumerate(cells):
         sheet.paste(cell, (n % COLS * CELL, n // COLS * CELL))
-    sheet.save(MEDIA / "effects.tga", compression="tga_rle")
-    mud_mask().save(MEDIA / "mud_mask.tga", compression="tga_rle")
-    print(len(cells), "cells ->", MEDIA / "effects.tga")
+    sheet.save(MEDIA / "effects.png", optimize=True)
+    mud_mask().save(MEDIA / "mud_mask.png", optimize=True)
+    shadow().save(MEDIA / "shadow.png", optimize=True)
+    print(len(cells), "cells ->", MEDIA / "effects.png")
     if len(sys.argv) > 2:
         look = Image.new("RGBA", sheet.size, (42, 47, 58, 255))
         look.alpha_composite(sheet)
