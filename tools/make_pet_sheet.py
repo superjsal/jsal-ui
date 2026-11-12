@@ -131,8 +131,11 @@ def special(folder, lay, ground=None, kind=SPECIAL):
 # its walk), and Cheer, Dig and Yawn (each ending as it stands). They share one
 # picture, <name>_more.png, 1024 by 512: 96-pixel cells, ten to a row, a row
 # for each in that order, the creature standing in a cell where it stands in
-# the middle of a cell of its sheet. All four must be there, or none.
+# the middle of a cell of its sheet. All four must be there, or none. A fifth,
+# Catch (a leap and a snap at a treat over its head, ending as it stands), goes
+# in the fifth row when it's there.
 MORE = ("Run", "Cheer", "Dig", "Yawn")
+ALSO = ("Catch",)
 
 
 def more(folder, lay, ground=None, walk_feet=None):
@@ -146,6 +149,13 @@ def more(folder, lay, ground=None, walk_feet=None):
         assert len(files) == per, (name, len(files), per)
         rows.append((name, [Image.open(file).convert("RGBA") for file in files]))
     assert len(rows) == len(MORE), [name for name, _ in rows]
+    for name in ALSO:
+        files = sorted((folder / name / "south-west").glob("frame_*.png"))
+        if files:
+            assert len(files) == per, (name, len(files), per)
+            rows.append((name, [Image.open(file).convert("RGBA") for file in files]))
+        else:
+            print("  no", name, "yet")
     sheet = Image.new("RGBA", (1024, 512), (0, 0, 0, 0))
     room = (side - 64) // 2 + lay["shift"]
     for row, (name, ims) in enumerate(rows):

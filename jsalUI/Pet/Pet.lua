@@ -96,12 +96,25 @@ local IDLE = { "sit", "idle", "special", "yawn", "dig" }
 -- it has brought back lies by it for AGAIN seconds, to be thrown again, up to
 -- THROWS throws of the one toy.
 local HOLD, ARC, AGAIN, THROWS = 4, 46, 4, 3
+-- A treat tossed up for it is in the air for TOSS seconds, and can be caught
+-- while it's coming down past its head: between these two parts of the way.
+local TOSS, CATCH_FROM, CATCH_TO = 1.6, 0.76, 0.96
 local IN_HAND = {
     bowl = { fly = 0, hint = "Click the grass to set its bowl down." },
     treat = { fly = 0.45, hint = "Click the grass to throw the treat, or your companion to toss it up." },
     ball = { fly = 0.5, hint = "Click the grass to throw the ball." },
 }
-Pet.HOLD, Pet.AGAIN, Pet.THROWS = HOLD, AGAIN, THROWS
+Pet.HOLD, Pet.AGAIN, Pet.THROWS, Pet.TOSS = HOLD, AGAIN, THROWS, TOSS
+
+-- Where a tossed treat is, `t` of the way through its flight (0 to 1): how
+-- far above the top of the creature's picture, in creature-sizes (below it
+-- when negative: its mouth is about 0.45 down, its feet 0.95), and whether
+-- a click now catches it. It leaves the mouth's height, goes up over its
+-- head, and comes down past the mouth to the grass.
+function Pet.Tossed(t)
+    t = math.max(0, math.min(1, t))
+    return -0.45 - 0.5 * t + 5.2 * t * (1 - t), t >= CATCH_FROM and t <= CATCH_TO
+end
 -- What can be on its mind, as a small bubble over its head: the cell of
 -- bubble.png (tools/make_pet_bubble.py) for each. A bubble comes up for
 -- BUBBLE_FOR seconds in every BUBBLE_EVERY; a wish, which is there all day
@@ -226,7 +239,8 @@ local function Packed(file, lay)
     -- run, which it goes about in as it does its walk; a happy dance; a dig
     -- at the ground; and a yawn and stretch.
     local more = (file:gsub("_sheet$", "_more"))
-    for row, anim in ipairs({ { "run", 0.08 }, { "cheer", 0.11 }, { "dig", 0.11 }, { "yawn", 0.16 } }) do
+    -- A fifth row is its catch: a leap and a snap at a treat over its head.
+    for row, anim in ipairs({ { "run", 0.08 }, { "cheer", 0.11 }, { "dig", 0.11 }, { "yawn", 0.16 }, { "catch", 0.1 } }) do
         sheet[anim[1]] = { first = (row - 1) * 10, count = 8, time = anim[2], file = more, cell = 96, w = 1024, h = 512 }
     end
     -- A first form has one more again: its egg rocking, cracking and
@@ -726,8 +740,8 @@ local function PaintWalk()
     -- Its bowl, its treat or its ball, on the grass in front of it while it eats or plays.
     -- Or in your hand, at the pointer, until you say where it goes; or on
     -- its way through the air, lying where it landed, or being brought back.
-    local errand, held = walk.errand, pen.held
-    local thing = act and act.prop or errand and errand.thing or held and held.thing
+    local errand, held, toss = walk.errand, pen.held, pen.toss
+    local thing = act and act.prop or errand and errand.thing or held and held.thing or toss and "treat"
     local seen = thing ~= nil
     if thing then
         local file = Art(thing)
@@ -737,11 +751,18 @@ local function PaintWalk()
         end
         local over, up = math.floor(walk.size * 0.2), math.floor(walk.size * 0.04)
         prop:ClearAllPoints()
+        local way = walk.facing == "right" and 1 or -1
         if act and act.toss then
-            -- Tossed up for it: it comes down to meet the jump, and is gone.
-            local t = act.clock / (act.length / 2)
+            -- Caught: from where it was in the air, into its mouth, and gone.
+            local t = act.clock / (act.length * 0.3)
             seen = t < 1
-            prop:SetPoint("BOTTOM", body, "TOP", 0, math.floor(walk.size * (0.5 - 0.95 * t)))
+            local from, lean = act.from or 0.5, act.lean or 0
+            prop:SetPoint("BOTTOM", body, "TOP", math.floor(walk.size * lean * (1 - t)) * way,
+                math.floor(walk.size * (from + (-0.45 - from) * t)))
+        elseif toss and not (act and act.prop) then
+            -- Tossed up: over its head and down again, drifting to its front.
+            local t = toss.clock / TOSS
+            prop:SetPoint("BOTTOM", body, "TOP", math.floor(walk.size * 0.3 * t) * way, math.floor(walk.size * (Pet.Tossed(t))))
         elseif (act and act.prop) or (errand and (errand.phase == "wait" or errand.phase == "back")) then
             -- Carried home, it's held a little off the ground.
             if errand and errand.phase == "back" and not act then up = up + math.floor(walk.size * 0.22) end
@@ -1180,7 +1201,7 @@ local function Do(act, show, thing, over, sound)
     -- when the creature gets to it.
     local hand = ok and walk and not s.asleep and not window.out and IN_HAND[thing] or nil
     if ok and not hand then Pet.Sound(sound == "lights" and (s.asleep and "sleep" or "wake") or sound) end
-    if ok and walk then walk.errand, pen.held = nil, nil end
+    if ok and walk then walk.errand, pen.held, pen.toss = nil, nil, nil end
     if hand then
         pen.held = { thing = thing, show = show, sound = sound, what = what, clock = 0 }
         said = hand.hint
@@ -1211,7 +1232,7 @@ end
 -- the creature after it; a ball it has brought back is thrown again; with
 -- nothing, the creature comes over.
 function Pet.Clicked(x, y)
-    if not walk or window.out or yard then return end
+    if not walk or window.out or yard or pen.toss then return end
     local s = Pet.State()
     if s.unchosen or s.asleep then return end
     if not x then x, y = Compat.CursorAt(pen) end
@@ -1239,19 +1260,45 @@ function Pet.Clicked(x, y)
     end
 end
 
--- The creature was clicked: a pat. With a treat in your hand it's tossed up
--- and caught in a jump; with its bowl or ball, that's set down by it.
+-- The creature was clicked: a pat. With its bowl or ball in your hand,
+-- that's set down by it. With a treat, the treat is tossed up over its head
+-- (`pen.toss`), and the next click on it is the catch: as the treat comes
+-- down past its head it leaps and has it, which is a little more fun than
+-- one set down; clicked too soon or too late it jumps at nothing, and the
+-- one click is all you get. A treat nobody caught lands on the grass, and
+-- it's eaten there (Tend).
 function Pet.Petted()
-    local held = pen.held
+    local held, toss = pen.held, pen.toss
+    if toss then
+        if toss.spent or not walk then return end
+        local t = toss.clock / TOSS
+        local up, good = Pet.Tossed(t)
+        local sheet = Sheet()
+        if good then
+            pen.toss = nil
+            local s = Pet.State()
+            local _, what = Rules.Caught(s, Now())
+            if Pet.Play(walk, sheet, "catch") or Pet.Play(walk, sheet, "jump") then
+                walk.act.prop, walk.act.toss, walk.act.from, walk.act.lean = "treat", true, up, 0.3 * t
+            end
+            Pet.Sound(toss.sound)
+            -- One treat too many is still the news, however it was given.
+            said = s.sick and toss.what or what
+        else
+            toss.spent = true
+            Pet.Play(walk, sheet, "jump")
+            said = t < CATCH_FROM and "Too soon! It jumps at nothing." or "Too late! It jumps at nothing."
+        end
+        return Refresh()
+    end
     if not held then return Do(Rules.Pat, "jump", nil, nil, "pat") end
     if held.thing ~= "treat" then return Pet.SetDown() end
     pen.held = nil
-    local s = Pet.State()
-    local _, what = Rules.Caught(s, Now())
-    if Pet.Play(walk, Sheet(), "jump") then walk.act.prop, walk.act.toss = "treat", true end
-    Pet.Sound(held.sound)
-    -- One treat too many is still the news, however it was given.
-    said = s.sick and held.what or what
+    pen.toss = { clock = 0, what = held.what, sound = held.sound }
+    -- It stops where it is and watches it go up.
+    walk.act, walk.errand, walk.running = nil, nil, nil
+    walk.tx, walk.ty, walk.wait = walk.x, walk.y, TOSS + 1
+    said = "Up it goes! Click your companion as the treat comes down to it."
     Refresh()
 end
 
@@ -1262,6 +1309,19 @@ local function Tend(sheet, dt)
     if held then
         held.clock = held.clock + dt
         if held.clock >= HOLD then Pet.SetDown() end
+    end
+    local toss = pen.toss
+    if toss then
+        toss.clock = toss.clock + dt
+        walk.wait = math.max(walk.wait, 0.5)
+        if toss.clock >= TOSS then
+            -- Nobody caught it: it's on the grass, and eaten there.
+            pen.toss, walk.act = nil, nil
+            if Pet.Play(walk, sheet, "eat") then walk.act.prop = "treat" end
+            Pet.Sound(toss.sound)
+            said = "Missed. It eats it off the grass."
+            Refresh()
+        end
     end
     local errand = walk.errand
     local did = Pet.Errand(walk, sheet, dt)
@@ -1531,7 +1591,7 @@ local function BuildPen()
         if pace < FRAME then return end
         elapsed, pace = pace, 0
         if window.out then
-            pen.held = nil
+            pen.held, pen.toss = nil, nil
             -- Out with you, it keeps out of a fight: faint and still until it's over.
             local quiet = Compat.InCombat() and true or false
             if quiet ~= pen.quiet then
@@ -1579,7 +1639,7 @@ local function BuildPen()
         local dt = math.min(elapsed, 0.1)
         if Pet.State().asleep then
             -- Asleep, it stays put, eyes shut, once it has settled down.
-            walk.errand, pen.held = nil, nil
+            walk.errand, pen.held, pen.toss = nil, nil, nil
             if walk.act then Pet.Step(walk, dt, math.random) end
             if not walk.act then walk.frame = "sleep" end
             walk.wait = math.max(walk.wait, 0.5)
