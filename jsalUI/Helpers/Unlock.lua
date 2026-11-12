@@ -237,6 +237,22 @@ function Unlock.Place(key, x, y)
     return true
 end
 
+-- Exact size, for a piece that can be resized (it has `resize(w, h)`, which
+-- returns the size it took): it keeps its anchor where it was.
+function Unlock.Resize(key, w, h)
+    local m = movers and movers[key]
+    if not (m and m.piece.resize and tonumber(w) and tonumber(h)) then return false end
+    w, h = m.piece.resize(tonumber(w), tonumber(h))
+    local W, H = Screen()
+    m.w, m.h = w, h
+    m:SetSize(w, h)
+    local left, bottom = Unlock.Rect(m.anchor, m.anchor, m.x, m.y, w, h, W, H)
+    Put(m, left, bottom)
+    Keep(m)
+    if Paint then Paint() end
+    return true
+end
+
 -- A drag let go (or moved to) with its bottom left at (left, bottom);
 -- `free` skips the snapping, as Shift does.
 function Unlock.Drop(key, left, bottom, free, keep)
@@ -415,24 +431,30 @@ local function Build()
     -- The picked piece: its name and anchor, and its X and Y to type into.
     panel.which = Style.Text(panel, 13, "text", nil, true)
     panel.which:SetPoint("TOPLEFT", 20, -80)
-    panel.which:SetWidth(250)
+    panel.which:SetWidth(240)
     panel.which:SetJustifyH("LEFT")
-    local function Box(label, x)
+    local function Box(label, x, apply)
         local l = Style.Text(panel, 12, "muted")
         l:SetPoint("TOPLEFT", x, -80)
         l:SetText(label)
-        local e = Style.Field(panel, 70)
+        local e = Style.Field(panel, 60)
         e.well:SetPoint("TOPLEFT", x + 16, -75)
         e:SetJustifyH("CENTER")
         e:SetScript("OnEnterPressed", function(self)
             self:ClearFocus()
-            if picked then Unlock.Place(picked.piece.key, panel.x:GetText(), panel.y:GetText()) end
+            if picked then apply() end
         end)
         e:SetScript("OnEditFocusLost", function() if Paint then Paint() end end)
+        e.label = l
         return e
     end
-    panel.x = Box("X", 290)
-    panel.y = Box("Y", 390)
+    local function Move() Unlock.Place(picked.piece.key, panel.x:GetText(), panel.y:GetText()) end
+    local function Size() Unlock.Resize(picked.piece.key, panel.w:GetText(), panel.h:GetText()) end
+    panel.x = Box("X", 270, Move)
+    panel.y = Box("Y", 355, Move)
+    -- Width and height, for a piece that can be resized (the range check).
+    panel.w = Box("W", 455, Size)
+    panel.h = Box("H", 540, Size)
 
     local function Switch(label, x, get, set)
         local s = Style.Switch(panel, set)
@@ -465,11 +487,24 @@ Paint = function()
         panel.which:SetText("Pick a piece to type its position.")
         panel.x:SetText("")
         panel.y:SetText("")
+        for _, e in ipairs({ panel.w, panel.h }) do
+            e.well:Hide()
+            e.label:Hide()
+        end
         return
     end
     panel.which:SetText(("%s  ·  %s%s"):format(Name(m.piece), m.anchor, m.hidden and "  ·  hidden for now" or ""))
     if not panel.x:HasFocus() then panel.x:SetText(tostring(m.x)) end
     if not panel.y:HasFocus() then panel.y:SetText(tostring(m.y)) end
+    local sized = m.piece.resize ~= nil
+    for _, e in ipairs({ panel.w, panel.h }) do
+        e.well:SetShown(sized)
+        e.label:SetShown(sized)
+    end
+    if sized then
+        if not panel.w:HasFocus() then panel.w:SetText(tostring(math.floor(m.w + 0.5))) end
+        if not panel.h:HasFocus() then panel.h:SetText(tostring(math.floor(m.h + 0.5))) end
+    end
 end
 
 function Unlock.Open()
