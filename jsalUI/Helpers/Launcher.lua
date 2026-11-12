@@ -289,6 +289,11 @@ function Launcher.PlacesMenu(anchor)
             items[#items + 1] = { place.label, waiting and "|cffe3b04bwaiting|r" or nil, place.open }
         end
     end
+    -- And Unlock Mode, to move jsal.ui's pieces (John, 12 Nov 2026: "Put it
+    -- on the mini map right click").
+    if ns.Unlock and ns.Unlock.Open then
+        items[#items + 1] = { "Unlock Mode", nil, function() ns.Unlock.Open() end }
+    end
     Launcher.ShowMenu(anchor, items)
 end
 

@@ -163,6 +163,20 @@ local function Place()
     end
 end
 
+-- Locked (right-click the box), it can't be dragged or resized by accident;
+-- Unlock Mode still moves it, and sets its exact width and height.
+local function Locked() return ns.db ~= nil and ns.db.rangeCheckLocked == true end
+RangeCheck.Locked = Locked
+
+-- A size, kept within MIN and MAX, to whole pixels. Returns what it took.
+function RangeCheck.Resize(w, h)
+    w = math.floor(math.max(MIN, math.min(MAX, tonumber(w) or SIZE)) + 0.5)
+    h = math.floor(math.max(MIN, math.min(MAX, tonumber(h) or SIZE)) + 0.5)
+    if box then box:SetSize(w, h) end
+    if ns.db then ns.db.rangeCheckSize = { w, h } end
+    return w, h
+end
+
 local function Save()
     if not ns.db then return end
     local point, _, relative, x, y = box:GetPoint(1)
@@ -199,7 +213,13 @@ local function Build()
     box.fill = box:CreateTexture(nil, "BACKGROUND")
     box.fill:SetAllPoints()
     Edge()
-    box:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    box:SetScript("OnDragStart", function(self) if not Locked() then self:StartMoving() end end)
+    -- Right-click: lock it, or unlock it.
+    box:SetScript("OnMouseUp", function(self, button)
+        if button ~= "RightButton" or not ns.db then return end
+        ns.db.rangeCheckLocked = not Locked() or nil
+        if self:GetScript("OnEnter") then self:GetScript("OnEnter")(self) end
+    end)
     box:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         Save()
@@ -214,19 +234,20 @@ local function Build()
     mark:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
     mark:SetAllPoints()
     grip:SetAlpha(0)
-    grip:SetScript("OnMouseDown", function() box:StartSizing("BOTTOMRIGHT") end)
+    grip:SetScript("OnMouseDown", function() if not Locked() then box:StartSizing("BOTTOMRIGHT") end end)
     grip:SetScript("OnMouseUp", function()
         box:StopMovingOrSizing()
         Save()
     end)
-    grip:SetScript("OnEnter", function() grip:SetAlpha(1) end)
+    grip:SetScript("OnEnter", function() grip:SetAlpha(Locked() and 0 or 1) end)
     grip:SetScript("OnLeave", function() if not box:IsMouseOver() then grip:SetAlpha(0) end end)
     box.grip = grip
     box:SetScript("OnEnter", function(self)
-        grip:SetAlpha(1)
+        grip:SetAlpha(Locked() and 0 or 1)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText(RangeCheck.WORDS[state] or "Range check")
-        GameTooltip:AddLine("Drag to move; drag its corner to resize.", 0.6, 0.59, 0.53)
+        GameTooltip:AddLine(Locked() and "Locked. Right-click to unlock; or set its spot and size exactly in Unlock Mode (/jsal unlock)."
+            or "Drag to move; drag its corner to resize. Right-click to lock it.", 0.6, 0.59, 0.53, true)
         GameTooltip:Show()
     end)
     box:SetScript("OnLeave", function()
@@ -278,6 +299,8 @@ function RangeCheck:OnEnable()
                 ns.db.rangeCheckAt = point and { point, relative, x, y } or nil
                 if not point then Place() end
             end,
+            -- Its width and height, typed in Unlock Mode.
+            resize = RangeCheck.Resize, bounds = { MIN, MAX },
         })
     end
     local events = self.events or CreateFrame("Frame")
