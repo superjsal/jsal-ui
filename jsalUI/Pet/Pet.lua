@@ -54,7 +54,7 @@ local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
 local WIN_W, WIN_H = PEN_W + PAD * 2, 566
-local HEAP_W = 32       -- a dropping, and the bowl and ball: 32-pixel pictures
+local HEAP_W = 32       -- a dropping, and the bowl, treat and ball: 32-pixel pictures
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
 local DUSK = 4            -- seconds the pen takes to turn from day to night, or back
@@ -90,6 +90,18 @@ local REST_NAP = 60
 -- What it may do when it gets somewhere, one time in eight each (the rest
 -- of the time it only stands): sit, look about, show off, yawn and stretch, dig.
 local IDLE = { "sit", "idle", "special", "yawn", "dig" }
+-- Food and play in its pen. A meal, a treat or a toy is in your hand for HOLD
+-- seconds: click the grass and it's set down or thrown there (in the air for
+-- `fly` seconds, ARC pixels high), and the creature goes over to it. A ball
+-- it has brought back lies by it for AGAIN seconds, to be thrown again, up to
+-- THROWS throws of the one toy.
+local HOLD, ARC, AGAIN, THROWS = 4, 46, 4, 3
+local IN_HAND = {
+    bowl = { fly = 0, hint = "Click the grass to set its bowl down." },
+    treat = { fly = 0.45, hint = "Click the grass to throw the treat, or your companion to toss it up." },
+    ball = { fly = 0.5, hint = "Click the grass to throw the ball." },
+}
+Pet.HOLD, Pet.AGAIN, Pet.THROWS = HOLD, AGAIN, THROWS
 -- What can be on its mind, as a small bubble over its head: the cell of
 -- bubble.png (tools/make_pet_bubble.py) for each. A bubble comes up for
 -- BUBBLE_FOR seconds in every BUBBLE_EVERY; a wish, which is there all day
@@ -240,6 +252,9 @@ local SHEETS = {
     capling = Packed("capling_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     lanternshell = Packed("lanternshell_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     bloomsage = Packed("bloomsage_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    boltusk = Packed("boltusk_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    rumbletrunk = Packed("rumbletrunk_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    warmammoth = Packed("warmammoth_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
 -- of three after another. `form` is which of the three sizes it's drawn at.
@@ -259,6 +274,9 @@ local LOOKS = {
     { sprite = "capling", name = "Capling", form = 1 },
     { sprite = "lanternshell", name = "Lanternshell", form = 2 },
     { sprite = "bloomsage", name = "Bloomsage", form = 3 },
+    { sprite = "boltusk", name = "Boltusk", form = 1 },
+    { sprite = "rumbletrunk", name = "Rumbletrunk", form = 2 },
+    { sprite = "warmammoth", name = "Warmammoth", form = 3 },
 }
 Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
@@ -352,6 +370,88 @@ function Pet.Step(walk, dt, random)
     walk.clock = walk.clock + dt
     walk.frame = math.floor(walk.clock / STEP_TIME) % 2 == 0 and "step" or "stand"
     return walk
+end
+
+-- Clicked on the grass with nothing in your hand, it comes over: its feet
+-- to where you clicked, as near as the pen lets it.
+function Pet.Call(walk, cx, cy)
+    local size = walk.size
+    local top = math.max(0, math.floor(GRASS - size * 0.92))
+    walk.tx = math.max(0, math.min(PEN_W - size, math.floor(cx - size / 2)))
+    walk.ty = math.max(top, math.min(PEN_H - size, math.floor(cy - size * 0.96)))
+    if walk.tx ~= walk.x then walk.facing = walk.tx > walk.x and "right" or "left" end
+    walk.wait, walk.clock = 0, 0
+    return walk
+end
+
+-- Something set down or thrown to (cx, cy) in the pen, and the creature sent
+-- after it: an errand. It's worked out here where the creature will stand to
+-- have the thing just in front of its feet, where a bowl or ball is always
+-- drawn, so the thing lands exactly where it will be when the creature gets
+-- there. `fly` is how long it's in the air; `fetch` that it's to be brought
+-- back to where the creature stood when it was first thrown.
+function Pet.Send(walk, cx, cy, thing, fly, fetch)
+    local size = walk.size
+    local over, up = math.floor(size * 0.2), math.floor(size * 0.04)
+    local top = math.max(0, math.floor(GRASS - size * 0.92))
+    local function Stand(facing)
+        local tx = facing == "left" and cx + HEAP_W / 2 - over or cx - HEAP_W / 2 - size + over
+        tx = math.max(0, math.min(PEN_W - size, math.floor(tx)))
+        return tx, facing == "left" and tx + over - HEAP_W or tx + size - over
+    end
+    local facing = cx < walk.x + size / 2 and "left" or "right"
+    local tx, px = Stand(facing)
+    if px < 0 or px > PEN_W - HEAP_W then
+        facing = facing == "left" and "right" or "left"
+        tx, px = Stand(facing)
+    end
+    local ty = math.max(top, math.min(PEN_H - size, math.floor(cy + up - size)))
+    local old = walk.errand
+    walk.errand = { thing = thing, fetch = fetch, fly = fly or 0, phase = "fly", clock = 0, facing = facing,
+        tx = tx, ty = ty, px = px, py = ty + size - up, sx = (PEN_W - HEAP_W) / 2, sy = PEN_H,
+        homeX = old and old.homeX or walk.x, homeY = old and old.homeY or walk.y,
+        throws = (old and old.throws or 0) + 1 }
+    -- It stands and watches while the thing is in the air.
+    walk.act, walk.running, walk.wait = nil, nil, (fly or 0) + 1
+    walk.facing = cx < walk.x + size / 2 and "left" or "right"
+    return walk.errand
+end
+
+-- Moves an errand on by `dt` seconds, before Pet.Step moves the walk, and
+-- says what just happened, if anything: "landed" (it sets off at a run),
+-- "there" (it has reached its food and starts on it; the errand is over),
+-- "got" (it has the ball and turns for home), "back" (it's home, the ball at
+-- its feet for another throw), "over" (nobody threw it again).
+function Pet.Errand(walk, sheet, dt)
+    local e = walk.errand
+    if not e then return nil end
+    e.clock = e.clock + dt
+    if e.phase == "fly" then
+        if e.clock < e.fly then return nil end
+        e.phase, walk.tx, walk.ty, walk.wait, walk.clock, walk.running = "go", e.tx, e.ty, 0, 0, true
+        if e.tx ~= walk.x then walk.facing = e.tx > walk.x and "right" or "left" end
+        return "landed"
+    elseif e.phase == "go" then
+        if walk.wait <= 0 then return nil end
+        walk.facing = e.facing
+        if e.fetch then
+            e.phase, walk.tx, walk.ty, walk.wait, walk.clock = "back", e.homeX, e.homeY, 0, 0
+            if e.homeX ~= walk.x then walk.facing = e.homeX > walk.x and "right" or "left" end
+            return "got"
+        end
+        walk.running, walk.errand = nil, nil
+        if Pet.Play(walk, sheet, e.show or "eat") then walk.act.prop = e.thing end
+        return "there"
+    elseif e.phase == "back" then
+        if walk.wait <= 0 then return nil end
+        walk.running = nil
+        e.phase, e.clock, walk.wait = "wait", 0, AGAIN
+        return "back"
+    elseif e.clock >= (e.throws >= THROWS and 1.5 or AGAIN) then
+        walk.errand = nil
+        return "over"
+    end
+    return nil
 end
 
 ---------------------------------------------------------------------------
@@ -623,8 +723,12 @@ local function PaintWalk()
         bubble.on = musing
         bubble:SetShown(musing)
     end
-    -- Its bowl or its ball, on the grass in front of it while it eats or plays.
-    local thing = walk.act and walk.act.prop
+    -- Its bowl, its treat or its ball, on the grass in front of it while it eats or plays.
+    -- Or in your hand, at the pointer, until you say where it goes; or on
+    -- its way through the air, lying where it landed, or being brought back.
+    local errand, held = walk.errand, pen.held
+    local thing = act and act.prop or errand and errand.thing or held and held.thing
+    local seen = thing ~= nil
     if thing then
         local file = Art(thing)
         if prop.file ~= file then
@@ -633,15 +737,31 @@ local function PaintWalk()
         end
         local over, up = math.floor(walk.size * 0.2), math.floor(walk.size * 0.04)
         prop:ClearAllPoints()
-        if walk.facing == "right" then
-            prop:SetPoint("BOTTOMLEFT", body, "BOTTOMRIGHT", -over, up)
+        if act and act.toss then
+            -- Tossed up for it: it comes down to meet the jump, and is gone.
+            local t = act.clock / (act.length / 2)
+            seen = t < 1
+            prop:SetPoint("BOTTOM", body, "TOP", 0, math.floor(walk.size * (0.5 - 0.95 * t)))
+        elseif (act and act.prop) or (errand and (errand.phase == "wait" or errand.phase == "back")) then
+            -- Carried home, it's held a little off the ground.
+            if errand and errand.phase == "back" and not act then up = up + math.floor(walk.size * 0.22) end
+            if walk.facing == "right" then
+                prop:SetPoint("BOTTOMLEFT", body, "BOTTOMRIGHT", -over, up)
+            else
+                prop:SetPoint("BOTTOMRIGHT", body, "BOTTOMLEFT", over, up)
+            end
+        elseif errand then
+            local t = errand.phase == "fly" and errand.fly > 0 and math.min(1, errand.clock / errand.fly) or 1
+            local x = errand.sx + (errand.px - errand.sx) * t
+            local y = errand.sy + (errand.py - errand.sy) * t - 4 * ARC * t * (1 - t)
+            prop:SetPoint("BOTTOMLEFT", pen, "TOPLEFT", math.floor(x + 0.5), -math.floor(y + 0.5))
         else
-            prop:SetPoint("BOTTOMRIGHT", body, "BOTTOMLEFT", over, up)
+            local x, y = Compat.CursorAt(pen)
+            seen = x ~= nil and x >= 0 and x <= PEN_W and y >= 0 and y <= PEN_H
+            if seen then prop:SetPoint("CENTER", pen, "TOPLEFT", math.floor(x), -math.floor(y)) end
         end
-        prop:Show()
-    else
-        prop:Hide()
     end
+    prop:SetShown(seen)
 end
 
 -- How you're getting about, for the companion out with you: on the move or
@@ -1029,7 +1149,7 @@ local function Refresh()
         end
     end
     eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
-        or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone or coming back from the dead can turn one up."
+        or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone, a boss or coming back from the dead can turn one up."
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
     -- Just hatched and not yet named: the name box opens by itself, with the
     -- name it would otherwise have ready to type over.
@@ -1055,8 +1175,16 @@ local function Do(act, show, thing, over, sound)
     local grubby, ill = Rules.Dirty(s), s.sick
     local ok, what = act(s, Now())
     said = what
-    if ok then Pet.Sound(sound == "lights" and (s.asleep and "sleep" or "wake") or sound) end
-    if ok and walk and show then
+    -- In its pen and awake, a meal, a treat or a toy is in your hand first:
+    -- where it goes is yours to say (Pet.Clicked, Pet.Petted), and it's heard
+    -- when the creature gets to it.
+    local hand = ok and walk and not s.asleep and not window.out and IN_HAND[thing] or nil
+    if ok and not hand then Pet.Sound(sound == "lights" and (s.asleep and "sleep" or "wake") or sound) end
+    if ok and walk then walk.errand, pen.held = nil, nil end
+    if hand then
+        pen.held = { thing = thing, show = show, sound = sound, what = what, clock = 0 }
+        said = hand.hint
+    elseif ok and walk and show then
         if show == "lights" then
             Pet.Play(walk, Sheet(), s.asleep and "doze" or "wake")
         elseif not s.asleep and Pet.Play(walk, Sheet(), show) then
@@ -1064,6 +1192,87 @@ local function Do(act, show, thing, over, sound)
         end
     end
     Refresh()
+end
+
+-- What's in your hand is set down in front of it, where it stands: when you
+-- take too long to say where, or click the creature with its bowl or ball.
+function Pet.SetDown()
+    local held = pen.held
+    if not (held and walk) then return end
+    pen.held = nil
+    if Pet.Play(walk, Sheet(), held.show) then walk.act.prop = held.thing end
+    Pet.Sound(held.sound)
+    said = held.what
+    Refresh()
+end
+
+-- The grass was clicked, at (x, y) from the pen's top left corner (where the
+-- pointer is, unless told). With something in your hand it goes there, and
+-- the creature after it; a ball it has brought back is thrown again; with
+-- nothing, the creature comes over.
+function Pet.Clicked(x, y)
+    if not walk or window.out or yard then return end
+    local s = Pet.State()
+    if s.unchosen or s.asleep then return end
+    if not x then x, y = Compat.CursorAt(pen) end
+    if not x then return end
+    local held, errand = pen.held, walk.errand
+    if held then
+        pen.held = nil
+        local sent = Pet.Send(walk, x, y, held.thing, IN_HAND[held.thing].fly, held.thing == "ball")
+        sent.show, sent.sound, sent.what = held.show, held.sound, held.what
+        if sent.fetch then Pet.Sound(held.sound) end
+        said = held.what
+        Refresh()
+    elseif errand and errand.phase == "wait" and errand.throws < THROWS then
+        local ok, what = Rules.Fetch(s, Now())
+        said = what
+        if ok then
+            Pet.Send(walk, x, y, "ball", IN_HAND.ball.fly, true)
+            Pet.Sound("play")
+        else
+            walk.errand = nil
+        end
+        Refresh()
+    elseif not errand and not walk.act then
+        Pet.Call(walk, x, y)
+    end
+end
+
+-- The creature was clicked: a pat. With a treat in your hand it's tossed up
+-- and caught in a jump; with its bowl or ball, that's set down by it.
+function Pet.Petted()
+    local held = pen.held
+    if not held then return Do(Rules.Pat, "jump", nil, nil, "pat") end
+    if held.thing ~= "treat" then return Pet.SetDown() end
+    pen.held = nil
+    local s = Pet.State()
+    local _, what = Rules.Caught(s, Now())
+    if Pet.Play(walk, Sheet(), "jump") then walk.act.prop, walk.act.toss = "treat", true end
+    Pet.Sound(held.sound)
+    -- One treat too many is still the news, however it was given.
+    said = s.sick and held.what or what
+    Refresh()
+end
+
+-- Food and play in the pen, moved on by `dt`: what's in your hand waits only
+-- so long, and an errand says what happened as it goes.
+local function Tend(sheet, dt)
+    local held = pen.held
+    if held then
+        held.clock = held.clock + dt
+        if held.clock >= HOLD then Pet.SetDown() end
+    end
+    local errand = walk.errand
+    local did = Pet.Errand(walk, sheet, dt)
+    if did == "there" then
+        Pet.Sound(errand.sound)
+        said = errand.what
+        Refresh()
+    elseif did == "back" then
+        said = errand.throws < THROWS and "It brings it back. Click the grass to throw it again." or "It brings it back, puffed and pleased."
+        Refresh()
+    end
 end
 
 -- Where you dragged it to is kept.
@@ -1245,8 +1454,19 @@ local function BuildPen()
     -- The pen can be dragged too: with only the pen showing, it's all there is to hold.
     pen:EnableMouse(true)
     pen:RegisterForDrag("LeftButton")
-    pen:SetScript("OnDragStart", function() window:StartMoving() end)
+    pen:SetScript("OnDragStart", function()
+        pen.dragged = true
+        window:StartMoving()
+    end)
     pen:SetScript("OnDragStop", Dropped)
+    -- A click on the grass (not the end of a drag) is for the creature.
+    pen:SetScript("OnMouseUp", ns.Safe(Pet, function(_, button)
+        if pen.dragged then
+            pen.dragged = nil
+        elseif button == nil or button == "LeftButton" then
+            Pet.Clicked()
+        end
+    end))
 
     -- Droppings: click one to scoop it.
     for i, x in ipairs(HEAP_AT) do
@@ -1268,7 +1488,7 @@ local function BuildPen()
     sprite = body:CreateTexture(nil, "ARTWORK")
     sprite:SetAllPoints()
     Compat.Crisp(sprite)
-    body:SetScript("OnClick", function() Do(Rules.Pat, "jump", nil, nil, "pat") end)
+    body:SetScript("OnClick", function() Pet.Petted() end)
     -- Out with you, the creature is all there is to hold: drag it to move it.
     body:RegisterForDrag("LeftButton")
     body:SetScript("OnDragStart", function() if window.out then window:StartMoving() end end)
@@ -1311,6 +1531,7 @@ local function BuildPen()
         if pace < FRAME then return end
         elapsed, pace = pace, 0
         if window.out then
+            pen.held = nil
             -- Out with you, it keeps out of a fight: faint and still until it's over.
             local quiet = Compat.InCombat() and true or false
             if quiet ~= pen.quiet then
@@ -1358,6 +1579,7 @@ local function BuildPen()
         local dt = math.min(elapsed, 0.1)
         if Pet.State().asleep then
             -- Asleep, it stays put, eyes shut, once it has settled down.
+            walk.errand, pen.held = nil, nil
             if walk.act then Pet.Step(walk, dt, math.random) end
             if not walk.act then walk.frame = "sleep" end
             walk.wait = math.max(walk.wait, 0.5)
@@ -1372,10 +1594,11 @@ local function BuildPen()
                 if not walk.act then walk.frame = "sleep" end
                 walk.wait = math.max(walk.wait, 0.5)
             else
+                if not window.out then Tend(sheet, dt) end
                 local walking = walk.wait <= 0
                 Pet.Step(walk, dt, math.random)
                 -- Just arrived somewhere, and not hurrying after you: now and then it does something.
-                if sheet and walking and walk.wait > 0 and not walk.act and not (going and going.moving) then
+                if sheet and walking and walk.wait > 0 and not walk.act and not walk.errand and not (going and going.moving) then
                     if Pet.State().sick then
                         -- Poorly, it doesn't show off: more often than not it droops
                         -- where it stands, and sometimes it just sits down.
@@ -1468,7 +1691,8 @@ local function BuildYard()
     for i = 1, #Rules.KINDS do
         local picture = yardList:CreateTexture(nil, "ARTWORK")
         picture:SetSize(64, 64)
-        picture:SetPoint("TOPLEFT", (i - 1) * 84, -(64 + YARD_MAX * 20))
+        -- Side by side across the pen, however many kinds there are.
+        picture:SetPoint("TOPLEFT", (i - 1) * math.floor((PEN_W - 64) / (#Rules.KINDS - 1)), -(64 + YARD_MAX * 20))
         Compat.Crisp(picture)
         album[i] = picture
     end
@@ -1587,7 +1811,7 @@ local function BuildParts()
         count = count + 1
     end
     Care("meal", Rules.Feed, "eat", "bowl", nil, "eat")
-    Care("treat", Rules.Treat, "eat", "bowl", nil, "eat")
+    Care("treat", Rules.Treat, "eat", "treat", nil, "eat")
     Care("toy", Rules.Play, "jump", "ball", nil, "play")
     Care("soap", Rules.Bath, "idle", nil, "bath", "bath")
     Care("lights", Rules.Lights, "lights", nil, nil, "lights")
@@ -1595,7 +1819,7 @@ local function BuildParts()
     local hint = Style.Text(parts, 11, "muted")
     hint:SetPoint("TOPLEFT", 0, -220)
     hint:SetWidth(PEN_W)
-    hint:SetText("Quests bring meals, flights bring toys, fishing and Cooking bring treats, First Aid medicine, a new level some of each. Click it for a pat, and a dropping to scoop it.")
+    hint:SetText("Quests bring meals, flights bring toys, fishing and Cooking bring treats, First Aid medicine, a new level some of each. Click it for a pat, the grass to call it over, a dropping to scoop it.")
     -- The eggs you hold: what they are, then one picture each to click.
     eggLine = Style.Text(parts, 12, "secondary")
     eggLine:SetPoint("TOPLEFT", 0, -258)
@@ -1940,10 +2164,15 @@ function Pet:OnEnable()
     events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     events:RegisterEvent("PLAYER_UNGHOST")
     events:RegisterEvent("PLAYER_DEAD")
-    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text)
+    -- A boss brought down; a client without the event has no Steel eggs.
+    pcall(events.RegisterEvent, events, "ENCOUNTER_END")
+    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text, _, _, _, won)
         -- A chat line can be hidden in a dungeon: then it's nil.
         text = Compat.Plain(text)
-        if event == "LOOT_READY" then
+        if event == "ENCOUNTER_END" then
+            -- Won, not wiped: sometimes there's something in the wreckage.
+            if Compat.Plain(won) == 1 then Pet.Found("boss") end
+        elseif event == "LOOT_READY" then
             -- A catch, not a corpse; and the game can say so twice for one catch.
             if Compat.Fished() and Now() - fished >= 2 then
                 fished = Now()

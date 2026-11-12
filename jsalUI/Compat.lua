@@ -184,6 +184,15 @@ function Compat.Cursor(frame)
     return x / scale - left
 end
 
+-- Where the pointer is over a frame: across from its left edge and down
+-- from its top, in the frame's own units. Nil when the game won't say.
+function Compat.CursorAt(frame)
+    local x, y = GetCursorPosition()
+    local scale, left, top = frame:GetEffectiveScale(), frame:GetLeft(), frame:GetTop()
+    if not (x and y and scale and left and top) or scale <= 0 then return nil end
+    return x / scale - left, top - y / scale
+end
+
 -- The flight master's map: each slot's node ID (when the client gives one)
 -- and name, which slot is where the player stands, and the map's ID.
 function Compat.TaxiNodes()
