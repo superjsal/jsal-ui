@@ -95,6 +95,27 @@ function Compat.Crisp(texture)
     end
 end
 
+-- The weather where you are, as the game tells it: "rain", "snow" or "sand"
+-- (nil when it's clear, or something this doesn't draw), and how hard, which
+-- the game gives as a number from 0. Then the game's own two numbers as they
+-- came, for a look at them. Nothing at all where the client doesn't say.
+-- (Forever, 13 Nov 2026: C_Weather.GetCurrentWeather() gives one table,
+-- { type, intensity }; Enum.WeatherType is Clear 0, Rain 1, Snow 2,
+-- Sandstorm 3, Miscellaneous 4.)
+local weatherKinds
+function Compat.Weather()
+    local W = C_Weather
+    if not (W and W.GetCurrentWeather) then return nil end
+    local ok, info = pcall(W.GetCurrentWeather)
+    if not ok or type(info) ~= "table" then return nil end
+    local raw, much = tonumber(Compat.Plain(info.type)), tonumber(Compat.Plain(info.intensity))
+    if not weatherKinds then
+        local names = Enum and Enum.WeatherType or {}
+        weatherKinds = { [names.Rain or 1] = "rain", [names.Snow or 2] = "snow", [names.Sandstorm or 3] = "sand" }
+    end
+    return raw and weatherKinds[raw] or nil, much, raw, much
+end
+
 function Compat.Money(copper)
     if GetMoneyString then return GetMoneyString(copper, true) end
     return GetCoinTextureString(copper)

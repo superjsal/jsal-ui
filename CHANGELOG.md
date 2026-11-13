@@ -1,6 +1,13 @@
-# jsal.ui 0.3.37
+# jsal.ui 0.3.38
 
-Restart the game after updating (exit and start it again): this version adds a new picture, and a /reload doesn't load it.
+Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
+
+- **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, harder when the weather is. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
+  - It isn't drawn while your pal is out with you: the real thing is all round you.
+
+## In 0.3.37
+
+Coming from 0.3.36 or earlier, restart the game after updating: 0.3.37 added a new picture.
 
 - **Jsal's Pals: watch your pal grow.** When it has had enough good days it's ready to grow, and it waits for you so you never miss it. Its pen and Today say so. Press **Grow** in its pen: a light gathers over it, and out it comes in its next form.
   - Until you press it, it stays just as it was, and what it will become isn't told.

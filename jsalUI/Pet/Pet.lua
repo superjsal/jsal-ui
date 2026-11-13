@@ -18,6 +18,9 @@ local Pet = ns.NewModule("pet", {
     options = {
         { key = "sound", title = "Sounds", default = true,
           note = "Small sounds as it eats, plays, is bathed, hatches and the rest. The button in the pen's corner is the same switch." },
+        -- New, so it starts off.
+        { key = "weather", title = "Weather in its pen", default = false,
+          note = "When it rains or snows where you are, or a sandstorm blows, it does in the pen too." },
     },
 })
 ns.Pet = Pet
@@ -698,6 +701,47 @@ local function Sheet()
     return SHEETS[Sprite()]
 end
 
+-- Weather in the pen, the same as where you are (its option, off to start):
+-- for each kind the game tells of, one 128-pixel picture that's repeated
+-- across the pen and slid (tools/make_pet_weather.py), over a wash of colour
+-- (`tint`, as faint as `dim[1]` when it's light and as strong as `dim[2]`
+-- at its hardest). Each layer slides `dx`, `dy` pixels a second and may
+-- `sway` from side to side; the second is there only from `from` on, so
+-- hard weather is thicker. `ox`, `oy` set it apart from the first.
+Pet.WEATHER = {
+    rain = { file = "weather_rain", tint = { 0.14, 0.2, 0.31 }, dim = { 0.12, 0.34 },
+        layers = { { dx = -120, dy = 440, alpha = 0.75 }, { dx = -180, dy = 600, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
+    snow = { file = "weather_snow", tint = { 0.8, 0.85, 0.93 }, dim = { 0.08, 0.14 },
+        layers = { { dx = 0, dy = 60, sway = 6, alpha = 0.8 }, { dx = 0, dy = 100, sway = -9, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
+    sand = { file = "weather_sand", tint = { 0.75, 0.58, 0.33 }, dim = { 0.14, 0.34 },
+        layers = { { dx = -420, dy = 50, alpha = 0.8 }, { dx = -600, dy = 80, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
+}
+-- Where a layer's picture lies `clock` seconds on, as the part of it the pen
+-- shows: left, right, top, bottom, in pictures (the pen is several wide).
+function Pet.WeatherCoords(layer, clock)
+    local x = math.floor((layer.ox or 0) + layer.dx * clock + (layer.sway or 0) * math.sin(clock * 0.9)) % 128
+    local y = math.floor((layer.oy or 0) + layer.dy * clock) % 128
+    local left, top = -x / 128, -y / 128
+    return left, left + PEN_W / 128, top, top + PEN_H / 128
+end
+-- The weather to draw, and how hard from 0 to 1; nil for none. A beta's
+-- /jsal pet weather shows one for a look, whatever the sky is doing.
+function Pet.Weather()
+    if pen and pen.forced then return pen.forced[1], pen.forced[2] end
+    if not ns.OptionOn("pet", "weather") then return nil end
+    local kind, much, raw, rawMuch = Compat.Weather()
+    -- A beta build says what the game told it, when that changes: some
+    -- weather has no name here yet ("Miscellaneous"), and how hard is hard
+    -- isn't known (John, 13 Nov 2026: "not sure what misc is").
+    if Pet.Trials(ns.version) and raw
+        and (raw ~= (Pet.sawWeather or 0) or (raw ~= 0 and math.abs((rawMuch or 0) - (Pet.sawMuch or 0)) >= 0.2)) then
+        Pet.sawWeather, Pet.sawMuch = raw, rawMuch
+        ns.Print(("Weather: type %s, intensity %s (%s)."):format(tostring(raw), tostring(rawMuch), raw == 0 and "clear" or kind or "nothing drawn"))
+    end
+    if not kind or not much or much <= 0 then return nil end
+    return kind, math.min(1, much)
+end
+
 -- Growing into its next form. With the good hours for it, it's "ready to
 -- grow" and waits, as it was, for you to press Grow in its pen (Pet.GrowNow),
 -- so it's never missed. Then motes of gold drift in and a ball of light grows
@@ -730,6 +774,59 @@ function Pet.Growing(walk, s)
         if not Pet.Play(walk, sheet, "special") then Pet.Play(walk, sheet, "jump") end
     end
     return false
+end
+
+-- The weather over the pen: over the creature and everything on the
+-- grass, under the pen's buttons. Nothing of it is made until there's
+-- weather to draw; it isn't shown out with you (the real thing is all
+-- round you), in the paddock, or while an egg is being chosen.
+function Pet.PaintWeather()
+    local kind, much = Pet.Weather()
+    local look = kind and Pet.WEATHER[kind]
+    local show = look ~= nil and not window.out and not window.yard and not window.picking
+    pen.weather, pen.much = show and kind or nil, show and much or nil
+    if not show then
+        if ui.weather then ui.weather:Hide() end
+        return
+    end
+    local w = ui.weather
+    if not w then
+        w = CreateFrame("Frame", nil, pen)
+        ui.weather = w
+        w:SetAllPoints()
+        w:SetFrameLevel(40)
+        w.tint = w:CreateTexture(nil, "BACKGROUND")
+        w.tint:SetAllPoints()
+        w.layers = {}
+        for i = 1, 2 do
+            local t = w:CreateTexture(nil, "ARTWORK", nil, i)
+            t:SetAllPoints()
+            Compat.Crisp(t)
+            w.layers[i] = t
+        end
+    end
+    if w.kind ~= kind then
+        w.kind = kind
+        w.tint:SetColorTexture(look.tint[1], look.tint[2], look.tint[3])
+        for _, t in ipairs(w.layers) do t:SetTexture(Art(look.file), "REPEAT", "REPEAT", "NEAREST") end
+    end
+    w.tint:SetAlpha(look.dim[1] + (look.dim[2] - look.dim[1]) * much)
+    for i, t in ipairs(w.layers) do
+        local layer = look.layers[i]
+        t:SetAlpha(layer.alpha)
+        t:SetShown(much >= (layer.from or 0))
+    end
+    w:Show()
+    Pet.SlideWeather(Pet.tick or 0)
+end
+-- Moves it on: called as often as the pen is drawn.
+function Pet.SlideWeather(clock)
+    local w = ui.weather
+    local look = w and w:IsShown() and Pet.WEATHER[w.kind]
+    if not look then return end
+    for i, t in ipairs(w.layers) do
+        t:SetTexCoord(Pet.WeatherCoords(look.layers[i], clock))
+    end
 end
 
 -- Day, sunset or night in the pen, from how far the day has gone
@@ -1360,6 +1457,7 @@ local function Refresh()
     local free = 0
     for bag = 0, 4 do free = free + (Compat.BagFree(bag) or 0) end
     pen.thought = Pet.Thought(s, Now(), free)
+    Pet.PaintWeather()
     if not pen.shade then
         pen.shade = pen.dark
         Sky()
@@ -1764,6 +1862,8 @@ function Layout()
     fold:SetShown(not picking and not out)
     mute:SetShown(not picking and not out)
     ui.outButton:SetShown(not picking and not out and not window.yard)
+    -- No weather in the paddock, out with you, or while an egg is chosen.
+    if ui.weather and (picking or out or window.yard) then ui.weather:Hide() end
     -- Ready to grow: the button for it, until it's pressed.
     ui.growButton:SetShown(Pet.State().grewFrom ~= nil and not picking and not window.yard and not looking
         and not (walk and walk.act and walk.act.name == "grow"))
@@ -1986,6 +2086,7 @@ local function BuildPen()
             end
         end
         Pet.tick = (Pet.tick or 0) + elapsed
+        Pet.SlideWeather(Pet.tick)
         -- The paddock: its settled companions go about their day, and nothing else moves.
         if yard then
             local dt = math.min(elapsed, 0.1)
@@ -2929,6 +3030,29 @@ function Pet.Grow()
     Refresh()
 end
 Trial("pet grow", Pet.Grow)
+
+-- /jsal pet weather: each kind of weather in the pen in turn, for a look,
+-- whatever the sky is doing and whether or not its option is on; then back
+-- to the weather where you are.
+Pet.TRY_WEATHER = { { "rain", 0.3, "light rain" }, { "rain", 1, "heavy rain" }, { "snow", 0.4, "light snow" },
+    { "snow", 1, "heavy snow" }, { "sand", 0.4, "a light sandstorm" }, { "sand", 1, "a heavy sandstorm" } }
+function Pet.TryWeather()
+    if not Pet.running then
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    if not pen then return end
+    pen.trying = (pen.trying or 0) + 1
+    pen.forced = Pet.TRY_WEATHER[pen.trying]
+    if pen.forced then
+        said = ("A look at %s in the pen. /jsal pet weather again for the next."):format(pen.forced[3])
+    else
+        pen.trying = nil
+        said = "Back to the weather where you are."
+    end
+    Refresh()
+end
+Trial("pet weather", Pet.TryWeather)
 
 -- /jsal pet try: a trial run of settling and hatching. Your real companion,
 -- eggs and paddock are put aside, and in their place are a fully grown
