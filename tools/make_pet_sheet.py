@@ -54,6 +54,14 @@ LAYOUT = {
     "boltusk": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "rumbletrunk": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "warmammoth": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    # The crystal camel: the calf's halo and the grown forms' long necks need the room.
+    "gemlet": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "miragehoof": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "sandseer": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    # The rock platypus: its flat tail swings wide, and the warden's hammer too.
+    "pebblebill": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "cobbleback": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "rockwarden": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
 }
 
 # A creature whose animations came out standing at different heights names the

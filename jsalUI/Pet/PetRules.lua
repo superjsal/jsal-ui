@@ -44,11 +44,16 @@ Rules.SPECIES = {
                 sprites = { "capling", "lanternshell", "bloomsage" }, name = "Morel" },
     boltusk = { forms = { "Boltusk", "Rumbletrunk", "Warmammoth" },
                 sprites = { "boltusk", "rumbletrunk", "warmammoth" }, name = "Rivet" },
+    gemlet = { forms = { "Gemlet", "Miragehoof", "Sandseer" },
+               sprites = { "gemlet", "miragehoof", "sandseer" }, name = "Mirage" },
+    pebblebill = { forms = { "Pebblebill", "Cobbleback", "Rockwarden" },
+                   sprites = { "pebblebill", "cobbleback", "rockwarden" }, name = "Flint" },
 }
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
--- flight, arriving in another zone, and a fight you come out of alive. Fights
+-- flight, arriving in another zone, a fight you come out of alive, a new
+-- spell learned, and a fish caught. Fights and fish
 -- come far oftener than the rest, so that chance is far smaller: about one
 -- egg in two hundred fights. Bosses are kept for rarer eggs to come.
 Rules.EGGS = {
@@ -64,11 +69,15 @@ Rules.EGGS = {
                   hint = "Something inside it is humming a tune." },
     steel = { name = "Steel egg", species = "boltusk", from = "fight", chance = 0.005,
               hint = "It's heavy, riveted shut, and now and then it clanks." },
+    crystal = { name = "Crystal egg", species = "gemlet", from = "learn", chance = 0.05,
+                hint = "It hums in your head before you hear it." },
+    riverstone = { name = "River Stone egg", species = "pebblebill", from = "fishing", chance = 0.01,
+                   hint = "It's smooth and cold, like a stone from the bottom of a stream." },
 }
 -- A new player chooses between three eggs, any three of all there are
 -- (John, 12 Nov 2026: "lets have all the eggs (3 max) be able to be onboarded
 -- randomly"). Before that it was always the first three of this list.
-Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel" }
+Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel", "crystal", "riverstone" }
 Rules.OFFERED = 3
 -- Three of them, no two alike. `roll(a, b)` is a whole number from a to b,
 -- as math.random gives.
@@ -83,7 +92,7 @@ function Rules.Offer(roll)
     return offer
 end
 -- The kinds in the order an album shows them.
-Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk" }
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill" }
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.

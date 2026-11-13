@@ -1,4 +1,14 @@
-# jsal.ui 0.3.35
+# jsal.ui 0.3.36
+
+Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
+
+- **Jsal's Pals: two new kinds, eight in all.**
+  - **A crystal camel.** The Gemlet, a lilac calf with a cluster of amethyst on its back, a gem on its brow and a halo, grows into the Miragehoof and then the Sandseer, an oracle who stands upright with a crystal staff. Its special: a ring of violet light, and amethyst shards spring up all round it.
+  - **A rock platypus.** The Pebblebill, with a stone bill and a mossy pebble back, grows into the Cobbleback and then the Rockwarden, who stands upright with a stone hammer. Its special: a tail slam, or at the last a hammer blow, that cracks the ground and sends pebbles flying.
+  - **Two new eggs.** A fully grown pal may turn up a Crystal egg when you learn a new spell, or a River Stone egg when you catch a fish. Either can be among the three a new player chooses from.
+- **The album turns its pages.** Four kinds to a page, with arrows at its top right, so every name fits.
+
+## In 0.3.35
 
 Coming from 0.3.34, a /reload is enough. From 0.3.33 or earlier, restart the game after updating.
 
