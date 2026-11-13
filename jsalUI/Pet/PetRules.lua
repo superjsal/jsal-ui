@@ -48,12 +48,14 @@ Rules.SPECIES = {
                sprites = { "gemlet", "miragehoof", "sandseer" }, name = "Mirage" },
     pebblebill = { forms = { "Pebblebill", "Cobbleback", "Rockwarden" },
                    sprites = { "pebblebill", "cobbleback", "rockwarden" }, name = "Flint" },
+    snowlet = { forms = { "Snowlet", "Frostmantle", "Auroracrown" },
+                sprites = { "snowlet", "frostmantle", "auroracrown" }, name = "Nova" },
 }
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
 -- flight, arriving in another zone, a fight you come out of alive, a new
--- spell learned, and a fish caught. Fights and fish
+-- spell learned, a fish caught, and Onyxia brought down. Fights and fish
 -- come far oftener than the rest, so that chance is far smaller: about one
 -- egg in two hundred fights. Bosses are kept for rarer eggs to come.
 Rules.EGGS = {
@@ -73,6 +75,11 @@ Rules.EGGS = {
                 hint = "It hums in your head before you hear it." },
     riverstone = { name = "River Stone egg", species = "pebblebill", from = "fishing", chance = 0.01,
                    hint = "It's smooth and cold, like a stone from the bottom of a stream." },
+    -- The rare one: only Onyxia's hoard holds it, one kill in ten (John, 12 Nov
+    -- 2026: "this egg will have a chance to drop when onyxia is killed by you",
+    -- then "Yes, one in ten"). Never one a new player is offered.
+    aurora = { name = "Aurora egg", species = "snowlet", from = "onyxia", chance = 0.1,
+               hint = "It frosts your fingers, and lights shimmer under its shell." },
 }
 -- A new player chooses between three eggs, any three of all there are
 -- (John, 12 Nov 2026: "lets have all the eggs (3 max) be able to be onboarded
@@ -92,7 +99,7 @@ function Rules.Offer(roll)
     return offer
 end
 -- The kinds in the order an album shows them.
-Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill" }
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill", "snowlet" }
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.
