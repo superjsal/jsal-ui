@@ -706,15 +706,18 @@ end
 -- across the pen and slid (tools/make_pet_weather.py), over a wash of colour
 -- (`tint`, as faint as `dim[1]` when it's light and as strong as `dim[2]`
 -- at its hardest). Each layer slides `dx`, `dy` pixels a second and may
--- `sway` from side to side; the second is there only from `from` on, so
--- hard weather is thicker. `ox`, `oy` set it apart from the first.
+-- `sway` from side to side; a second is there only from `from` on, and
+-- `ox`, `oy` set it apart from the first. Only snow has a heavy look, with
+-- that second layer: rain and a sandstorm are drawn one way however hard
+-- they come down (John, 13 Nov 2026: "i think we can skip the heavy on all
+-- except snow").
 Pet.WEATHER = {
-    rain = { file = "weather_rain", tint = { 0.14, 0.2, 0.31 }, dim = { 0.12, 0.34 },
-        layers = { { dx = -120, dy = 440, alpha = 0.75 }, { dx = -180, dy = 600, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
+    rain = { file = "weather_rain", tint = { 0.14, 0.2, 0.31 }, dim = { 0.12, 0.12 },
+        layers = { { dx = -120, dy = 440, alpha = 0.75 } } },
     snow = { file = "weather_snow", tint = { 0.8, 0.85, 0.93 }, dim = { 0.08, 0.14 },
         layers = { { dx = 0, dy = 60, sway = 6, alpha = 0.8 }, { dx = 0, dy = 100, sway = -9, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
-    sand = { file = "weather_sand", tint = { 0.75, 0.58, 0.33 }, dim = { 0.14, 0.34 },
-        layers = { { dx = -420, dy = 50, alpha = 0.8 }, { dx = -600, dy = 80, alpha = 1, from = 0.5, ox = 54, oy = 70 } } },
+    sand = { file = "weather_sand", tint = { 0.75, 0.58, 0.33 }, dim = { 0.14, 0.14 },
+        layers = { { dx = -420, dy = 50, alpha = 0.8 } } },
 }
 -- Where a layer's picture lies `clock` seconds on, as the part of it the pen
 -- shows: left, right, top, bottom, in pictures (the pen is several wide).
@@ -813,8 +816,8 @@ function Pet.PaintWeather()
     w.tint:SetAlpha(look.dim[1] + (look.dim[2] - look.dim[1]) * much)
     for i, t in ipairs(w.layers) do
         local layer = look.layers[i]
-        t:SetAlpha(layer.alpha)
-        t:SetShown(much >= (layer.from or 0))
+        if layer then t:SetAlpha(layer.alpha) end
+        t:SetShown(layer ~= nil and much >= (layer.from or 0))
     end
     w:Show()
     Pet.SlideWeather(Pet.tick or 0)
@@ -825,7 +828,7 @@ function Pet.SlideWeather(clock)
     local look = w and w:IsShown() and Pet.WEATHER[w.kind]
     if not look then return end
     for i, t in ipairs(w.layers) do
-        t:SetTexCoord(Pet.WeatherCoords(look.layers[i], clock))
+        if look.layers[i] then t:SetTexCoord(Pet.WeatherCoords(look.layers[i], clock)) end
     end
 end
 
@@ -3034,8 +3037,7 @@ Trial("pet grow", Pet.Grow)
 -- /jsal pet weather: each kind of weather in the pen in turn, for a look,
 -- whatever the sky is doing and whether or not its option is on; then back
 -- to the weather where you are.
-Pet.TRY_WEATHER = { { "rain", 0.3, "light rain" }, { "rain", 1, "heavy rain" }, { "snow", 0.4, "light snow" },
-    { "snow", 1, "heavy snow" }, { "sand", 0.4, "a light sandstorm" }, { "sand", 1, "a heavy sandstorm" } }
+Pet.TRY_WEATHER = { { "rain", 1, "rain" }, { "snow", 0.4, "light snow" }, { "snow", 1, "heavy snow" }, { "sand", 1, "a sandstorm" } }
 function Pet.TryWeather()
     if not Pet.running then
         return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
