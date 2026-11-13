@@ -8,9 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "When your pal has had enough good days it's ready to grow, and waits for you. Press Grow in its pen to watch",
-    "A rare egg in Jsal's Pals is never lost for want of room, and can turn up while your pal is still growing",
-    "The pals' pictures take a third less room on your disk",
+    "Beta: weather in your pal's pen. When it rains or snows where you are, it does there too",
+    "It's off to start: turn on Weather in its pen under Jsal's Pals in /jsal settings",
 }
 
 local function NewsWanted()
