@@ -2,7 +2,7 @@
 
 Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
 
-- **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, harder when the weather is. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
+- **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
 
 ## In 0.3.37
