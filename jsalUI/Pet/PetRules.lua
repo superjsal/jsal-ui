@@ -50,12 +50,14 @@ Rules.SPECIES = {
                    sprites = { "pebblebill", "cobbleback", "rockwarden" }, name = "Flint" },
     snowlet = { forms = { "Snowlet", "Frostmantle", "Auroracrown" },
                 sprites = { "snowlet", "frostmantle", "auroracrown" }, name = "Nova" },
+    starwhelp = { forms = { "Starwhelp", "Moondrake", "Eclipselord" },
+                  sprites = { "starwhelp", "moondrake", "eclipselord" }, name = "Umbra" },
 }
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
 -- flight, arriving in another zone, a fight you come out of alive, a new
--- spell learned, a fish caught, and Onyxia brought down. Fights and fish
+-- spell learned, a fish caught, and Onyxia or Ragnaros brought down. Fights and fish
 -- come far oftener than the rest, so that chance is far smaller: about one
 -- egg in two hundred fights. Bosses are kept for rarer eggs to come.
 Rules.EGGS = {
@@ -80,7 +82,15 @@ Rules.EGGS = {
     -- then "Yes, one in ten"). Never one a new player is offered.
     aurora = { name = "Aurora egg", species = "snowlet", from = "onyxia", chance = 0.1,
                hint = "It frosts your fingers, and lights shimmer under its shell." },
+    -- The legendary one: only Ragnaros leaves it, one kill in ten (John, 13 Nov
+    -- 2026: "a legendary dark type dragon", and of the boss to drop it,
+    -- "Ragnaros"). Never one a new player is offered.
+    eclipse = { name = "Eclipse egg", species = "starwhelp", from = "ragnaros", chance = 0.1,
+                hint = "It's darker than its own shadow, with a ring of gold light on it." },
 }
+-- The bosses whose fall can leave an egg, by the game's own number for the
+-- fight (the same in every language), and the `from` their egg names.
+Rules.BOSSES = { [1084] = "onyxia", [672] = "ragnaros" }
 -- A new player chooses between three eggs, any three of all there are
 -- (John, 12 Nov 2026: "lets have all the eggs (3 max) be able to be onboarded
 -- randomly"). Before that it was always the first three of this list.
@@ -99,7 +109,7 @@ function Rules.Offer(roll)
     return offer
 end
 -- The kinds in the order an album shows them.
-Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill", "snowlet" }
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill", "snowlet", "starwhelp" }
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.

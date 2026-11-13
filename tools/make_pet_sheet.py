@@ -70,6 +70,14 @@ LAYOUT = {
     "snowlet": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "frostmantle": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "auroracrown": {"cell": 112, "cols": 9, "sheet": (1024, 1024), "walk": 8, "shift": 0, "special": 112},
+    # The dark dragon. Its last form, the Eclipselord, opens its wings to 120
+    # pixels across: 128 cells, sixteen to a row in a 2048-wide picture, and its
+    # special picture is 2048 wide too, for nine 128 cells. Its folded clips
+    # (poorly, and the run, dance and the rest) still fit the usual 96 cells.
+    "starwhelp": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "moondrake": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "eclipselord": {"cell": 128, "cols": 16, "sheet": (2048, 1024), "walk": 8, "shift": 0,
+                    "special": 128, "special_size": (2048, 128)},
 }
 
 # A creature whose animations came out standing at different heights names the
@@ -127,6 +135,7 @@ def special(folder, lay, ground=None, kind=SPECIAL):
     if kind is SPECIAL:
         # A creature whose special is wider than the usual cell names its own.
         side = lay.get("special", side)
+        size = lay.get("special_size", size)
         assert count * side <= size[0] and side <= size[1], (count, side, size)
     files = sorted((folder / name / "south-west").glob("frame_*.png"))
     if not files:

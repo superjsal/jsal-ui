@@ -2,8 +2,8 @@
 
 Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
 
-- **Jsal's Pals: three new pals to discover, nine kinds in all.** What they are, how they grow up and what they can do is for you to find out.
-  - **Three new eggs** are out there for a fully grown pal to turn up as you play. Two of them can be among the three a new player chooses from. The third is rare, and you'll have to earn it.
+- **Jsal's Pals: four new pals to discover, ten kinds in all.** What they are, how they grow up and what they can do is for you to find out.
+  - **Four new eggs** are out there for a fully grown pal to turn up as you play. Two of them can be among the three a new player chooses from. The other two are rare, and you'll have to earn them.
   - **Smoother walks** for two pals whose step had a hitch in it.
 - **The album turns its pages.** Four kinds to a page, with arrows at its top right, so every name fits.
 
