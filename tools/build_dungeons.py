@@ -17,6 +17,10 @@ uncommon and better, with the drop chance Wowhead has seen, and each dungeon's q
 lists are by zone and NPC name; a boss here is matched by name (an encounter of several NPCs, like
 The Lost Dwarves, by theirs), and Blackrock Spire's and Dire Maul's quests go to each of its wings.
 
+Where each quest starts, and the quest before it, comes from data/dungeons/quest-starts.json
+(tools/wowhead/quests.js) and the game's UiMapAssignment table in data/maps/, from
+https://wago.tools/db2/UiMapAssignment/csv?build=<the build below>.
+
 Run: python -I tools/build_dungeons.py
 """
 
@@ -167,6 +171,82 @@ def main():
     build_loot(rows)
 
 
+def build_starts():
+    """Where each dungeon quest starts, and the quest before it in its chain, from
+    data/dungeons/quest-starts.json (tools/wowhead/quests.js). The zone's map for the
+    map pin comes from the game's UiMapAssignment table (data/maps/, same build). A start
+    inside a dungeon or raid gets no map: the game can't pin a spot in one.
+
+    A quest Wowhead names no starter for may start from an item: the game's ItemSparse table
+    (data/professions/, StartQuestID) says which, and data/dungeons/quest-items.json
+    (tools/wowhead/items.js) who drops it and in which zone, when it's been read."""
+    path = SRC / "quest-starts.json"
+    if not path.exists():
+        print("No data/dungeons/quest-starts.json: no quest starts written")
+        return []
+    starts = json.loads(path.read_text(encoding="utf-8"))
+    ui_map = {}
+    with open(ROOT / "data" / "maps" / "UiMapAssignment.csv", newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            area, m = int(r["AreaID"]), int(r["UiMapID"])
+            if area and (area not in ui_map or int(r["OrderIndex"]) == 0):
+                ui_map[area] = m
+    inside = set(WOWHEAD_ZONE.values())
+    items = {}
+    with open(ROOT / "data" / "professions" / "ItemSparse.csv", newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r["StartQuestID"] not in ("0", ""):
+                items[r["StartQuestID"]] = (int(r["ID"]), r["Display_lang"])
+    drops_path = SRC / "quest-items.json"
+    drops = json.loads(drops_path.read_text(encoding="utf-8"))["items"] if drops_path.exists() else {}
+    lines, spots, from_items = [], 0, 0
+    for qid in sorted(starts["quests"], key=int):
+        q = starts["quests"][qid]
+        parts = [lua_string(q.get("n") or "")]
+        s, z, dropper, found = q.get("s"), q.get("z"), None, False
+        if not s and qid in items:
+            # Started by an item: its name, and where it drops (the first dropper Wowhead lists).
+            item_id, item_name = items[qid]
+            s = ["item", item_id, item_name]
+            drop = drops.get(str(item_id))
+            z = [drop[1], "", 0, 0] if drop and drop[1] else None
+            dropper = drop[0] if drop else None
+            found = bool(drop and len(drop) > 2 and drop[2] == 2)
+            if found and dropper == item_name:
+                dropper = None  # the item lies about as itself: just where
+            from_items += 1
+        if s:
+            kind = {"npc": 1, "object": 2, "item": 3}[s[0]]
+            parts += [lua_string(s[2]), str(kind)]
+        else:
+            parts += ["nil", "nil"]
+        if z and z[0]:
+            area = z[0]
+            m = 0 if area in inside or (s and s[0] == "item") else ui_map.get(area, 0)
+            parts += [str(area), str(m), f"{z[2]:g}", f"{z[3]:g}"]
+            spots += 1 if m and z[2] else 0
+        else:
+            parts += ["nil", "nil", "nil", "nil"]
+        parts.append(str(q["prev"]) if q.get("prev") else "nil")
+        parts.append(lua_string(dropper) if dropper else "nil")
+        parts.append("true" if found else "nil")
+        while parts and parts[-1] == "nil":
+            parts.pop()
+        lines.append(f"    [{qid}] = {{ {', '.join(parts)} }},")
+    print(f"{len(lines)} quest starts ({spots} with a map spot; {from_items} from an item, "
+          f"{sum(1 for i in items.values() if str(i[0]) in drops)} drop places known)")
+    return [
+        "",
+        "-- By quest ID: { name, who or what starts it, kind (1 NPC, 2 object, 3 item), the area it's in,",
+        "-- the map for a pin (0 inside a dungeon), x, y (0 to 100), the quest before it in its chain,",
+        "-- and for an item, who drops it (in that area), and true when that's an object it's found in }.",
+        f"-- Read from Wowhead Forever's quest pages on {starts['fetched']}.",
+        "ns.DungeonQuestStarts = {",
+        *lines,
+        "}",
+    ]
+
+
 def build_loot(rows):
     path = SRC / "wowhead.json"
     if not path.exists():
@@ -222,6 +302,7 @@ def build_loot(rows):
         "ns.DungeonQuests = {",
         *quest_lines,
         "}",
+        *build_starts(),
     ]
     LOOT_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print(f"{items} drops and {quests} quests -> {LOOT_OUT.relative_to(ROOT)}")
