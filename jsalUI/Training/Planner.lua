@@ -184,7 +184,10 @@ Window.Page("training", function(page)
     priceNote:SetPoint("TOPLEFT", 0, -118)
     priceNote:SetWidth(CART_W - CART_PAD * 2)
     -- A spell in the visit: its icon, name and rank, its price, and Skip.
-    local cards = {}
+    -- The rows this page has made and reuses, by kind, in one table: Paint
+    -- below uses so much from outside itself that it was at the edge of what
+    -- the game's Lua allows one function (60; limits_test.lua).
+    local made = { cards = {}, stops = {}, chips = {}, heads = {}, weaponRows = {}, subs = {} }
     local function Card(i)
         local c = CreateFrame("Frame", nil, cardList)
         c:SetSize(CART_W - CART_PAD * 2, VISIT_H)
@@ -246,12 +249,11 @@ Window.Page("training", function(page)
     local lowerScroll, lower = Style.Scroller(page, roadW - 8, height - lowerTop, nil, 6)
     lowerScroll:SetPoint("TOPLEFT", CART_W + GAP, -lowerTop)
 
-    local stops, chips, heads, weaponRows, subs = {}, {}, {}, {}, {}
     local used
 
     local function Take(pool, make)
         used[pool] = (used[pool] or 0) + 1
-        local list = ({ stops = stops, chips = chips, heads = heads, weapons = weaponRows, subs = subs })[pool]
+        local list = ({ stops = made.stops, chips = made.chips, heads = made.heads, weapons = made.weaponRows, subs = made.subs })[pool]
         local item = list[used[pool]]
         if not item then
             item = make()
@@ -484,8 +486,8 @@ Window.Page("training", function(page)
         local at, shown = 0, 0
         local function Put(spell)
             shown = shown + 1
-            local c = cards[shown] or Card(shown)
-            cards[shown] = c
+            local c = made.cards[shown] or Card(shown)
+            made.cards[shown] = c
             c.spellID = spell.id
             c.icon:SetTexture(spell.icon)
             c.name:SetText(spell.name)
@@ -527,7 +529,7 @@ Window.Page("training", function(page)
                 for _, spell in ipairs(skipped) do Put(spell) end
             end
         end
-        for i = shown + 1, #cards do cards[i]:Hide() end
+        for i = shown + 1, #made.cards do made.cards[i]:Hide() end
         empty:SetShown(#now == 0)
         empty:SetText("Nothing to train right now. The road on the right shows what's next.")
         cardList:SetHeight(math.max(1, at))
@@ -699,7 +701,7 @@ Window.Page("training", function(page)
             y = y + ROW_H
         end
 
-        for pool, list in pairs({ stops = stops, chips = chips, heads = heads, weapons = weaponRows, subs = subs }) do
+        for pool, list in pairs({ stops = made.stops, chips = made.chips, heads = made.heads, weapons = made.weaponRows, subs = made.subs }) do
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
         end
         lower:SetHeight(math.max(1, y))

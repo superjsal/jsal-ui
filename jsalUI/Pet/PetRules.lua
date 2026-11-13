@@ -113,8 +113,10 @@ Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "bol
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.
-function Rules.CanFind(s)
-    return not s.unchosen and s.form >= 3
+-- (A boss's egg is the exception: it's too rare to miss because yours is
+-- still growing. `source` is what you did, as an egg's `from` names it.)
+function Rules.CanFind(s, source)
+    return not s.unchosen and (s.form >= 3 or Rules.Rare(source))
 end
 
 -- Gives it the name you typed, tidied: two to sixteen letters, with spaces,
@@ -133,6 +135,8 @@ function Rules.Rename(s, text)
     return true, ("%s is called %s now."):format(old, text)
 end
 Rules.MAX_EGGS = 3
+-- A boss's egg is kept aside when those three are held: this many at most.
+Rules.MAX_KEPT = 3
 
 -- Grubby enough to show, and to want a bath.
 function Rules.Dirty(s)
@@ -626,11 +630,25 @@ function Rules.EggFrom(source, roll)
     return nil
 end
 
--- A found egg joins the others, if there's room. True when it's kept.
+-- Whether this is a boss's doing, whose egg is rare.
+function Rules.Rare(source)
+    for _, from in pairs(Rules.BOSSES) do
+        if from == source then return true end
+    end
+    return false
+end
+
+-- A found egg joins the others, if there's room. True when it's kept. A
+-- boss's egg has room past the three you hold: it waits at the end of the
+-- list, kept aside, and moves up as the ones before it hatch. Then the
+-- second answer is true.
 function Rules.FindEgg(eggs, kind, from, now)
-    if not Rules.EGGS[kind] or #eggs >= Rules.MAX_EGGS then return false end
+    local egg = Rules.EGGS[kind]
+    if not egg then return false end
+    local room = Rules.MAX_EGGS + (Rules.Rare(egg.from) and Rules.MAX_KEPT or 0)
+    if #eggs >= room then return false end
     eggs[#eggs + 1] = { kind = kind, from = from, found = now }
-    return true
+    return true, #eggs > Rules.MAX_EGGS
 end
 
 -- Supplies your play brings in.

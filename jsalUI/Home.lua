@@ -8,9 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Four new pals to discover in Jsal's Pals, with four new eggs, two of them rare. What they are is for you to find out",
-    "The dungeon guide's quests say where each one starts and what to do first; click one to pin it on your map",
-    "A map pin from a quest or a trainer now stays put while you follow your RestedXP guide",
+    "Beta: a rare egg in Jsal's Pals is never lost for want of room. It's kept safe until you hatch one of yours",
+    "A rare egg can turn up while your pal is still growing, too",
 }
 
 local function NewsWanted()

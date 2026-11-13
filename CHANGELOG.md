@@ -1,6 +1,13 @@
-# jsal.ui 0.3.36
+# jsal.ui 0.3.37
 
-Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
+Coming from 0.3.36, a /reload is enough. From 0.3.35 or earlier, restart the game after updating.
+
+- **Jsal's Pals: a rare egg is never lost for want of room.** With three eggs in hand, a rare one used to be left behind without a word. Now it's kept safe, and takes the place of the next egg you hatch.
+  - **And it can turn up while your pal is still growing.** Everyday eggs still wait until your pal is fully grown.
+
+## In 0.3.36
+
+Coming from 0.3.35 or earlier, restart the game after updating: 0.3.36 added new pictures.
 
 - **Jsal's Pals: four new pals to discover, ten kinds in all.** What they are, how they grow up and what they can do is for you to find out.
   - **Four new eggs** are out there for a fully grown pal to turn up as you play. Two of them can be among the three a new player chooses from. The other two are rare, and you'll have to earn them.
