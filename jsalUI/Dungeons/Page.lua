@@ -3,7 +3,8 @@
 -- the chosen one fills the window below in two tabs. Bosses and loot: a card per boss, two to a row in
 -- the game's order, ticked once you've killed it, with its loot listed on
 -- it (Wowhead's list with drop chances, and what you and the guild have seen it drop).
--- Quests: the dungeon's quests for your faction, ticked once done.
+-- Quests: the dungeon's quests for your faction, ticked once done, each with
+-- where it starts and the quest to do first; a click pins the start on the map.
 -- Loot starred in the gear plan has a gold star and edge, and the picker
 -- counts each dungeon's starred loot.
 local _, ns = ...
@@ -31,6 +32,80 @@ local function QuestHeld(id)
         if select(8, GetQuestLogTitle(i)) == id then return true end
     end
     return false
+end
+
+-- Where a quest starts, and the quest before it, from ns.DungeonQuestStarts:
+-- { name, who or what starts it, kind (1 NPC, 2 object, 3 item), area, map
+-- for a pin (0 inside a dungeon), x, y (0 to 100), the quest before it, and
+-- for an item, who drops it and true when that's an object it's found in }.
+-- One table, so the page's long functions gain a single upvalue.
+local Starts = {}
+
+function Starts.Get(id) return ns.DungeonQuestStarts and ns.DungeonQuestStarts[id] end
+
+function Starts.Area(area)
+    if not area or area <= 0 then return nil end
+    local name = C_Map and C_Map.GetAreaInfo and Compat.Plain(C_Map.GetAreaInfo(area))
+    return name ~= "" and name or nil
+end
+
+-- "Gerrig Bonegrip, Ironforge (50, 6)", "Argent Guard Thaelrid, inside
+-- Blackfathom Deeps", "from Head of Balnazzar, dropped by Balnazzar in
+-- Stratholme"; nil when nothing is known.
+function Starts.Where(s)
+    if not (s and s[2]) then return nil end
+    local who = "|cffc4bfb0" .. s[2] .. "|r"
+    local zone = Starts.Area(s[4])
+    if s[3] == 3 then
+        local by = s[10] and "found in" or "dropped by"
+        if s[9] and zone then return ("from %s, %s %s in %s"):format(who, by, s[9], zone) end
+        if s[9] then return ("from %s, %s %s"):format(who, by, s[9]) end
+        if zone then return ("from %s, %s %s"):format(who, s[10] and "found in" or "dropped in", zone) end
+        return ("from %s, a dropped item"):format(who)
+    end
+    if not zone then return who end
+    if s[5] == 0 then return ("%s, inside %s"):format(who, zone) end
+    if s[6] and s[6] > 0 then return ("%s, %s (%.0f, %.0f)"):format(who, zone, s[6], s[7] or 0) end
+    return ("%s, %s"):format(who, zone)
+end
+
+function Starts.Line(id)
+    if not ns.DungeonQuestStarts then return nil end
+    local where = Starts.Where(Starts.Get(id))
+    return "Starts: " .. (where or "not on Wowhead yet")
+end
+
+-- The quest before it, when there is one: on this list, or where it starts.
+function Starts.First(id, onList, done)
+    local s = Starts.Get(id)
+    local prev = s and s[8]
+    if not prev then return nil end
+    local p = Starts.Get(prev)
+    local text = "|cffe3b04bFirst:|r |cffece6d6" .. (p and p[1] ~= "" and p[1] or ("quest " .. prev)) .. "|r"
+    if done(prev) then return text .. ", done" end
+    if onList[prev] then return text .. ", on this list" end
+    local where = Starts.Where(p)
+    return where and (text .. ", from " .. where) or text
+end
+
+-- The spot to pin for a quest: its own start, or the start of the quest
+-- before it while that one isn't done. Nil when neither has a spot.
+function Starts.Spot(id, done)
+    local s = Starts.Get(id)
+    if s and s[5] and s[5] > 0 and s[6] and s[6] > 0 then return s end
+    local p = s and s[8] and not done(s[8]) and Starts.Get(s[8])
+    if p and p[5] and p[5] > 0 and p[6] and p[6] > 0 then return p end
+    return nil
+end
+
+function Starts.Pin(s)
+    local set = ns.Waypoint and ns.Waypoint.Set or function(map, x, y) return Compat.SetWaypoint(map, x, y) end
+    local zone = Starts.Area(s[4]) or "?"
+    if set(s[5], s[6] / 100, s[7] / 100, s[2], "quest") then
+        ns.Print(("Map pin set on %s, %s."):format(s[2], zone))
+    else
+        ns.Print(("%s is at %.0f, %.0f in %s."):format(s[2], s[6], s[7], zone))
+    end
 end
 
 -- Right for your level: from the level it's tuned to, up to five above.
@@ -218,7 +293,7 @@ Window.Page("dungeons", function(page)
     -- Under each tab: where its lists come from, and that they're incomplete.
     local NOTE = {
         bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.",
-        quests = "Quests come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
+        quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
     }
     local note = Style.Text(bossList, 12, "muted")
     note:SetWidth(rightW - 8)
@@ -281,7 +356,7 @@ Window.Page("dungeons", function(page)
         q:SetSize(rightW, QUEST_H)
         q.box = CreateFrame("Frame", nil, q)
         q.box:SetSize(16, 16)
-        q.box:SetPoint("LEFT", 8, 0)
+        q.box:SetPoint("TOPLEFT", 8, -16)
         q.boxFill = Style.Fill(q.box, "wordGreen")
         q.boxEdges = Style.Border(q.box, "lineStrong")
         q.tick = q.box:CreateTexture(nil, "OVERLAY")
@@ -299,6 +374,17 @@ Window.Page("dungeons", function(page)
         q.detail:SetPoint("TOPLEFT", q.name, "BOTTOMLEFT", 0, -3)
         q.detail:SetWidth(rightW - 130)
         q.detail:SetJustifyH("LEFT")
+        -- Where it starts, and the quest to do before it, a line each.
+        q.starts = Style.Text(q, 12, "muted")
+        q.starts:SetPoint("TOPLEFT", q.detail, "BOTTOMLEFT", 0, -3)
+        q.starts:SetWidth(rightW - 130)
+        q.starts:SetJustifyH("LEFT")
+        q.starts:SetWordWrap(false)
+        q.first = Style.Text(q, 12, "muted")
+        q.first:SetPoint("TOPLEFT", q.starts, "BOTTOMLEFT", 0, -3)
+        q.first:SetWidth(rightW - 130)
+        q.first:SetJustifyH("LEFT")
+        q.first:SetWordWrap(false)
         q.level = Style.Text(q, 13, "muted")
         q.level:SetPoint("RIGHT", -10, 0)
         Style.Rule(q, "BOTTOM", "line")
@@ -307,7 +393,14 @@ Window.Page("dungeons", function(page)
             if not self.quest then return end
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetHyperlink(("quest:%d"):format(self.quest))
+            if self.spot then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine(("Click to pin %s on your map"):format(self.spot[2]), 0.89, 0.69, 0.29)
+            end
             GameTooltip:Show()
+        end)
+        q:SetScript("OnMouseUp", function(self, button)
+            if button == "LeftButton" and self.spot then Starts.Pin(self.spot) end
         end)
         q:SetScript("OnLeave", function() GameTooltip:Hide() end)
         Style.Hover(q)
@@ -546,7 +639,10 @@ Window.Page("dungeons", function(page)
         tabs.quests:SetSelected(tab == "quests")
         local by = 0
         if tab == "quests" then
-            hint:SetText(#quests > 0 and "hover one for its details" or "")
+            hint:SetText(#quests > 0 and (ns.DungeonQuestStarts and "hover one for its details · click to pin where it starts"
+                or "hover one for its details") or "")
+            local onList = {}
+            for _, q in ipairs(quests) do onList[q[1]] = true end
             for k, q in ipairs(quests) do
                 local row = QuestRow(k)
                 row.quest = q[1]
@@ -566,14 +662,20 @@ Window.Page("dungeons", function(page)
                 row.box:SetShown(done)
                 -- Without a tick the name starts at the row's edge.
                 row.name:ClearAllPoints()
-                if done then
-                    row.name:SetPoint("TOPLEFT", row.box, "TOPRIGHT", 10, 4)
-                else
-                    row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 8, -12)
-                end
+                row.name:SetPoint("TOPLEFT", row, "TOPLEFT", done and 34 or 8, -12)
                 Style.SetBorder(row.boxEdges, "wordGreen")
+                -- Where it starts, and what comes first, a line each; the row
+                -- grows to fit them.
+                local starts, first = Starts.Line(q[1]), Starts.First(q[1], onList, QuestDone)
+                row.starts:SetText(starts or "")
+                row.first:SetText(first or "")
+                row.starts:SetShown(starts ~= nil)
+                row.first:SetShown(first ~= nil)
+                row.spot = not done and Starts.Spot(q[1], QuestDone) or nil
+                local h = QUEST_H + (starts and 17 or 0) + (first and 17 or 0)
+                row:SetHeight(h)
                 row:Show()
-                by = by + QUEST_H
+                by = by + h
             end
             if #quests == 0 then
                 none:ClearAllPoints()

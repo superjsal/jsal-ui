@@ -33,6 +33,23 @@ same script again carries on. Never try to get past the check another way.
      `data/dungeons/wowhead.json` (bosses not reached keep their old loot), then
      `python -I tools/build_dungeons.py` (writes `DungeonLoot.lua`). `__dungeons.unmatched`
      names bosses Wowhead lists under another name: add them to `ALIAS` in `bosses.py`.
+   - **Where each dungeon quest starts (about 500 pages at one every 10 seconds, in batches):**
+     after `build_dungeons.py`, for each batch: start the receiver writing to a scratch file
+     (`python -I tools/wowhead/receive.py <scratchpad>/batch.json`), then in the pane on a
+     wowhead.com/forever page run the two lines `python -I tools/wowhead/quest_ids.py --missing`
+     prints, then the whole of `quests.js`. Keep the pane showing: hidden, it slows to a page a
+     minute. Wowhead challenges it about every 25 pages; the batch then sends what it read to the
+     receiver. `python -I tools/wowhead/merge_quests.py <scratchpad>/batch.json` folds it into
+     `data/dungeons/quest-starts.json` and says where it stopped; John clears the check in the
+     pane, and the next batch carries on. When a batch ends with nothing missing, run
+     `build_dungeons.py` again (it writes the starts into `DungeonLoot.lua`).
+   - **Who drops the items that start quests (about 40 pages):** after the quest starts, for a
+     quest Wowhead names no starter for, the game's item table may say which item starts it. Start
+     the receiver writing to `<scratchpad>/items.json`, run the line
+     `python -I tools/wowhead/quest_items.py` prints and the whole of `items.js` in the pane, then
+     `python -I tools/wowhead/merge_quests.py <scratchpad>/items.json --items` (it writes
+     `data/dungeons/quest-items.json`). Repeat after a check until the list is empty, then run
+     `build_dungeons.py` again.
 3. **Pet abilities (one page, from Petopia, not Wowhead; when a patch changes pets or beasts):**
    - Start the receiver: `python -I tools/wowhead/receive.py data/pets/petopia.json`
    - Open `https://www.wow-petopia.com/forever/abilities.php` in the pane and run the whole of

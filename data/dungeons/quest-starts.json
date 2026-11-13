@@ -1,0 +1,6741 @@
+{
+ "fetched": "2026-11-13",
+ "quests": {
+  "1013": {
+   "n": "The Book of Ur",
+   "prev": null,
+   "s": [
+    "npc",
+    2934,
+    "Keeper Bel'dugur"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    53.6,
+    54
+   ]
+  },
+  "1014": {
+   "n": "Arugal Must Die",
+   "prev": null,
+   "s": [
+    "npc",
+    1938,
+    "Dalar Dawnweaver"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    44.2,
+    39.8
+   ]
+  },
+  "1048": {
+   "n": "Into The Scarlet Monastery",
+   "prev": null,
+   "s": [
+    "npc",
+    2425,
+    "Varimathras"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    56.2,
+    92.6
+   ]
+  },
+  "1049": {
+   "n": "Compendium of the Fallen",
+   "prev": null,
+   "s": [
+    "npc",
+    3978,
+    "Sage Truthseeker"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    34.6,
+    47.2
+   ]
+  },
+  "1050": {
+   "n": "Mythology of the Titans",
+   "prev": null,
+   "s": [
+    "npc",
+    3979,
+    "Librarian Mae Paledust"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    74.6,
+    12.6
+   ]
+  },
+  "1051": {
+   "n": "Vorrel's Revenge",
+   "prev": null,
+   "s": [
+    "npc",
+    3981,
+    "Vorrel Sengutz"
+   ],
+   "z": [
+    796,
+    "Scarlet Monastery",
+    0,
+    0
+   ]
+  },
+  "1053": {
+   "n": "In the Name of the Light",
+   "prev": null,
+   "s": [
+    "npc",
+    3980,
+    "Raleigh the Devout"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    51.4,
+    58.4
+   ]
+  },
+  "1098": {
+   "n": "Deathstalkers in Shadowfang",
+   "prev": null,
+   "s": [
+    "npc",
+    1952,
+    "High Executor Hadrec"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    43.4,
+    40.8
+   ]
+  },
+  "1100": {
+   "n": "Lonebrow's Journal",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "1101": {
+   "n": "The Crone of the Kraul",
+   "prev": 1100,
+   "s": [
+    "npc",
+    4048,
+    "Falfindel Waywarder"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    89.6,
+    46.4
+   ]
+  },
+  "1102": {
+   "n": "A Vengeful Fate",
+   "prev": null,
+   "s": [
+    "npc",
+    4451,
+    "Auld Stonespire"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    36.2,
+    59.8
+   ]
+  },
+  "1109": {
+   "n": "Going, Going, Guano!",
+   "prev": null,
+   "s": [
+    "npc",
+    2055,
+    "Master Apothecary Faranell"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    48.4,
+    69.4
+   ]
+  },
+  "1113": {
+   "n": "Hearts of Zeal",
+   "prev": 1109,
+   "s": [
+    "npc",
+    2055,
+    "Master Apothecary Faranell"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    48.4,
+    69.4
+   ]
+  },
+  "1139": {
+   "n": "The Lost Tablets of Will",
+   "prev": null,
+   "s": [
+    "npc",
+    2918,
+    "Advisor Belgrum"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    77.2,
+    10
+   ]
+  },
+  "1142": {
+   "n": "Mortality Wanes",
+   "prev": null,
+   "s": [
+    "npc",
+    4510,
+    "Heralath Fallowbrook"
+   ],
+   "z": [
+    491,
+    "Razorfen Kraul",
+    0,
+    0
+   ]
+  },
+  "1144": {
+   "n": "Willix the Importer",
+   "prev": null,
+   "s": [
+    "npc",
+    4508,
+    "Willix the Importer"
+   ],
+   "z": [
+    491,
+    "Razorfen Kraul",
+    0,
+    0
+   ]
+  },
+  "1149": {
+   "n": "Test of Faith",
+   "prev": null,
+   "s": [
+    "npc",
+    2986,
+    "Dorn Plainstalker"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    53.8,
+    41.6
+   ]
+  },
+  "1150": {
+   "n": "Test of Endurance",
+   "prev": 1149,
+   "s": [
+    "npc",
+    2986,
+    "Dorn Plainstalker"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    53.8,
+    41.6
+   ]
+  },
+  "1151": {
+   "n": "Test of Strength",
+   "prev": 1150,
+   "s": [
+    "npc",
+    2986,
+    "Dorn Plainstalker"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    53.8,
+    41.6
+   ]
+  },
+  "1152": {
+   "n": "Test of Lore",
+   "prev": 1151,
+   "s": [
+    "npc",
+    2986,
+    "Dorn Plainstalker"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    53.8,
+    41.6
+   ]
+  },
+  "1154": {
+   "n": "Test of Lore",
+   "prev": 1152,
+   "s": [
+    "npc",
+    4489,
+    "Braug Dimspirit"
+   ],
+   "z": [
+    406,
+    "Stonetalon Mountains",
+    78.6,
+    45.6
+   ]
+  },
+  "1159": {
+   "n": "Test of Lore",
+   "prev": 6627,
+   "s": [
+    "npc",
+    4489,
+    "Braug Dimspirit"
+   ],
+   "z": [
+    406,
+    "Stonetalon Mountains",
+    78.6,
+    45.6
+   ]
+  },
+  "1160": {
+   "n": "Test of Lore",
+   "prev": 1159,
+   "s": [
+    "npc",
+    4488,
+    "Parqual Fintallas"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    57.8,
+    65
+   ]
+  },
+  "1193": {
+   "n": "A Broken Trap",
+   "prev": null,
+   "s": [
+    "object",
+    179485,
+    "Broken Trap"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "1198": {
+   "n": "In Search of Thaelrid",
+   "prev": null,
+   "s": [
+    "npc",
+    4786,
+    "Dawnwatcher Shaedlass"
+   ],
+   "z": [
+    1657,
+    "Darnassus",
+    55.4,
+    24.6
+   ]
+  },
+  "1199": {
+   "n": "Twilight Falls",
+   "prev": null,
+   "s": [
+    "npc",
+    4784,
+    "Argent Guard Manados"
+   ],
+   "z": [
+    1657,
+    "Darnassus",
+    55.2,
+    23.6
+   ]
+  },
+  "1200": {
+   "n": "Blackfathom Villainy",
+   "prev": 1198,
+   "s": [
+    "npc",
+    4787,
+    "Argent Guard Thaelrid"
+   ],
+   "z": [
+    719,
+    "Blackfathom Deeps",
+    0,
+    0
+   ]
+  },
+  "1221": {
+   "n": "Blueleaf Tubers",
+   "prev": null,
+   "s": [
+    "npc",
+    3446,
+    "Mebok Mizzyrix"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    62.4,
+    37.6
+   ]
+  },
+  "1275": {
+   "n": "Researching the Corruption",
+   "prev": 3765,
+   "s": [
+    "npc",
+    8997,
+    "Gershala Nightwhisper"
+   ],
+   "z": [
+    148,
+    "Darkshore",
+    38.4,
+    43
+   ]
+  },
+  "1318": {
+   "n": "Unfinished Gordok Business",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "1360": {
+   "n": "Reclaimed Treasures",
+   "prev": null,
+   "s": [
+    "npc",
+    6294,
+    "Krom Stoutarm"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    74.2,
+    9.8
+   ]
+  },
+  "1424": {
+   "n": "Pool of Tears",
+   "prev": null,
+   "s": [
+    "npc",
+    1443,
+    "Fel'zerul"
+   ],
+   "z": [
+    8,
+    "Swamp of Sorrows",
+    48,
+    55
+   ]
+  },
+  "1429": {
+   "n": "The Atal'ai Exile",
+   "prev": 1424,
+   "s": [
+    "npc",
+    1443,
+    "Fel'zerul"
+   ],
+   "z": [
+    8,
+    "Swamp of Sorrows",
+    48,
+    55
+   ]
+  },
+  "1444": {
+   "n": "Return to Fel'Zerul",
+   "prev": 1429,
+   "s": [
+    "npc",
+    5598,
+    "Atal'ai Exile"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    33.6,
+    75.2
+   ]
+  },
+  "1445": {
+   "n": "The Temple of Atal'Hakkar",
+   "prev": 1444,
+   "s": [
+    "npc",
+    1443,
+    "Fel'zerul"
+   ],
+   "z": [
+    8,
+    "Swamp of Sorrows",
+    48,
+    55
+   ]
+  },
+  "1446": {
+   "n": "Jammal'an the Prophet",
+   "prev": null,
+   "s": [
+    "npc",
+    5598,
+    "Atal'ai Exile"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    33.6,
+    75.2
+   ]
+  },
+  "1469": {
+   "n": "Rhapsody's Tale",
+   "prev": null,
+   "s": [
+    "npc",
+    5634,
+    "Rhapsody Shindigger"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    26.8,
+    48.4
+   ]
+  },
+  "1475": {
+   "n": "Into The Temple of Atal'Hakkar",
+   "prev": 1469,
+   "s": [
+    "npc",
+    5384,
+    "Brohann Caskbelly"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    64.2,
+    20.8
+   ]
+  },
+  "1486": {
+   "n": "Deviate Hides",
+   "prev": null,
+   "s": [
+    "npc",
+    5767,
+    "Nalpak"
+   ],
+   "z": null
+  },
+  "1487": {
+   "n": "Deviate Eradication",
+   "prev": null,
+   "s": [
+    "npc",
+    5768,
+    "Ebru"
+   ],
+   "z": null
+  },
+  "1489": {
+   "n": "Hamuul Runetotem",
+   "prev": null,
+   "s": [
+    "npc",
+    3448,
+    "Tonga Runetotem"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    52.2,
+    31.8
+   ]
+  },
+  "1490": {
+   "n": "Nara Wildmane",
+   "prev": 1489,
+   "s": [
+    "npc",
+    5769,
+    "Arch Druid Hamuul Runetotem"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    78.2,
+    28.4
+   ]
+  },
+  "1491": {
+   "n": "Smart Drinks",
+   "prev": null,
+   "s": [
+    "npc",
+    3446,
+    "Mebok Mizzyrix"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    62.4,
+    37.6
+   ]
+  },
+  "1500": {
+   "n": "Waking Naralex",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "155": {
+   "n": "The Defias Brotherhood",
+   "prev": null,
+   "s": [
+    "npc",
+    467,
+    "The Defias Traitor"
+   ],
+   "z": [
+    40,
+    "Westfall",
+    55.6,
+    47.4
+   ]
+  },
+  "166": {
+   "n": "The Defias Brotherhood",
+   "prev": 155,
+   "s": [
+    "npc",
+    234,
+    "Gryan Stoutmantle"
+   ],
+   "z": [
+    40,
+    "Westfall",
+    56.2,
+    47.6
+   ]
+  },
+  "167": {
+   "n": "Oh Brother...",
+   "prev": null,
+   "s": [
+    "npc",
+    656,
+    "Wilder Thistlenettle"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    65.2,
+    21.2
+   ]
+  },
+  "168": {
+   "n": "Collecting Memories",
+   "prev": null,
+   "s": [
+    "npc",
+    656,
+    "Wilder Thistlenettle"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    65.2,
+    21.2
+   ]
+  },
+  "17": {
+   "n": "Uldaman Reagent Run",
+   "prev": null,
+   "s": [
+    "npc",
+    1470,
+    "Ghak Healtouch"
+   ],
+   "z": [
+    38,
+    "Loch Modan",
+    37,
+    49.2
+   ]
+  },
+  "2040": {
+   "n": "Underground Assault",
+   "prev": 2041,
+   "s": [
+    "npc",
+    6579,
+    "Shoni the Shilent"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    55.4,
+    12.6
+   ]
+  },
+  "2041": {
+   "n": "Speak with Shoni",
+   "prev": null,
+   "s": [
+    "npc",
+    6569,
+    "Gnoarn"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    69.4,
+    50.6
+   ]
+  },
+  "214": {
+   "n": "Red Silk Bandanas",
+   "prev": null,
+   "s": [
+    "npc",
+    820,
+    "Scout Riell"
+   ],
+   "z": [
+    40,
+    "Westfall",
+    56.6,
+    47.4
+   ]
+  },
+  "2198": {
+   "n": "The Shattered Necklace",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "2199": {
+   "n": "Lore for a Price",
+   "prev": 2198,
+   "s": [
+    "npc",
+    6826,
+    "Talvash del Kissel"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    36,
+    4
+   ]
+  },
+  "2200": {
+   "n": "Back to Uldaman",
+   "prev": 2199,
+   "s": [
+    "npc",
+    6826,
+    "Talvash del Kissel"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    36,
+    4
+   ]
+  },
+  "2201": {
+   "n": "Find the Gems",
+   "prev": 2200,
+   "s": [
+    "npc",
+    6912,
+    "Remains of a Paladin"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2202": {
+   "n": "Uldaman Reagent Run",
+   "prev": 2258,
+   "s": [
+    "npc",
+    6868,
+    "Jarkal Mossmeld"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    2.6,
+    46
+   ]
+  },
+  "2204": {
+   "n": "Restoring the Necklace",
+   "prev": 2201,
+   "s": [
+    "object",
+    112877,
+    "Talvash's Scrying Bowl"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    44.7,
+    12.6
+   ]
+  },
+  "2240": {
+   "n": "The Hidden Chamber",
+   "prev": 2398,
+   "s": [
+    "npc",
+    6906,
+    "Baelog"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2258": {
+   "n": "Badlands Reagent Run",
+   "prev": null,
+   "s": [
+    "npc",
+    6868,
+    "Jarkal Mossmeld"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    2.6,
+    46
+   ]
+  },
+  "2278": {
+   "n": "The Platinum Discs",
+   "prev": null,
+   "s": [
+    "object",
+    131474,
+    "The Discs of Norgannon"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2279": {
+   "n": "The Platinum Discs",
+   "prev": null,
+   "s": [
+    "object",
+    131474,
+    "The Discs of Norgannon"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2280": {
+   "n": "The Platinum Discs",
+   "prev": null,
+   "s": [
+    "object",
+    131474,
+    "The Discs of Norgannon"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2283": {
+   "n": "Necklace Recovery",
+   "prev": null,
+   "s": [
+    "npc",
+    6986,
+    "Dran Droffers"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    59.4,
+    36.8
+   ]
+  },
+  "2284": {
+   "n": "Necklace Recovery, Take 2",
+   "prev": 2283,
+   "s": [
+    "npc",
+    6986,
+    "Dran Droffers"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    59.4,
+    36.8
+   ]
+  },
+  "2318": {
+   "n": "Translating the Journal",
+   "prev": 2284,
+   "s": [
+    "npc",
+    6912,
+    "Remains of a Paladin"
+   ],
+   "z": [
+    1337,
+    "Uldaman",
+    0,
+    0
+   ]
+  },
+  "2339": {
+   "n": "Find the Gems and Power Source",
+   "prev": null,
+   "s": [
+    "npc",
+    6868,
+    "Jarkal Mossmeld"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    2.6,
+    46
+   ]
+  },
+  "2340": {
+   "n": "Deliver the Gems",
+   "prev": null,
+   "s": [
+    "npc",
+    6868,
+    "Jarkal Mossmeld"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    2.6,
+    46
+   ]
+  },
+  "2341": {
+   "n": "Necklace Recovery, Take 3",
+   "prev": 2340,
+   "s": [
+    "npc",
+    6986,
+    "Dran Droffers"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    59.4,
+    36.8
+   ]
+  },
+  "2342": {
+   "n": "Reclaimed Treasures",
+   "prev": null,
+   "s": [
+    "npc",
+    5651,
+    "Patrick Garrett"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    62.6,
+    48.4
+   ]
+  },
+  "2398": {
+   "n": "The Lost Dwarves",
+   "prev": null,
+   "s": [
+    "npc",
+    1356,
+    "Prospector Stormpike"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    74.4,
+    12
+   ]
+  },
+  "2418": {
+   "n": "Power Stones",
+   "prev": null,
+   "s": [
+    "npc",
+    2817,
+    "Rigglefuzz"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    42.4,
+    52.8
+   ]
+  },
+  "2768": {
+   "n": "Divino-matic Rod",
+   "prev": null,
+   "s": [
+    "npc",
+    7407,
+    "Chief Engineer Bilgewhizzle"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    52.4,
+    28.4
+   ]
+  },
+  "2769": {
+   "n": "The Brassbolts Brothers",
+   "prev": null,
+   "s": [
+    "npc",
+    6169,
+    "Klockmort Spannerspan"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    68.2,
+    46.2
+   ]
+  },
+  "2770": {
+   "n": "Gahz'rilla",
+   "prev": 2769,
+   "s": [
+    "npc",
+    4453,
+    "Wizzle Brassbolts"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    78,
+    77
+   ]
+  },
+  "2841": {
+   "n": "Rig Wars",
+   "prev": null,
+   "s": [
+    "npc",
+    3412,
+    "Nogg"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    75.8,
+    25.2
+   ]
+  },
+  "2842": {
+   "n": "Chief Engineer Scooty",
+   "prev": null,
+   "s": [
+    "npc",
+    3413,
+    "Sovik"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    75.6,
+    25.2
+   ]
+  },
+  "2843": {
+   "n": "Gnomer-gooooone!",
+   "prev": 2842,
+   "s": [
+    "npc",
+    7853,
+    "Scooty"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    27.6,
+    77.4
+   ]
+  },
+  "2846": {
+   "n": "Tiara of the Deep",
+   "prev": 2861,
+   "s": [
+    "npc",
+    6546,
+    "Tabetha"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    46,
+    57
+   ]
+  },
+  "2861": {
+   "n": "Tabetha's Task",
+   "prev": null,
+   "s": null,
+   "z": [
+    1497,
+    "Undercity",
+    85,
+    10.2
+   ]
+  },
+  "2864": {
+   "n": "Tran'rek",
+   "prev": null,
+   "s": [
+    "npc",
+    773,
+    "Krazek"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    27,
+    77.2
+   ]
+  },
+  "2865": {
+   "n": "Scarab Shells",
+   "prev": 2864,
+   "s": [
+    "npc",
+    7876,
+    "Tran'rek"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    51.6,
+    26.8
+   ]
+  },
+  "2904": {
+   "n": "A Fine Mess",
+   "prev": null,
+   "s": [
+    "npc",
+    7850,
+    "Kernobee"
+   ],
+   "z": [
+    721,
+    "Gnomeregan",
+    0,
+    0
+   ]
+  },
+  "2922": {
+   "n": "Save Techbot's Brain!",
+   "prev": 2923,
+   "s": [
+    "npc",
+    7944,
+    "Tinkmaster Overspark"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    69.8,
+    50.2
+   ]
+  },
+  "2923": {
+   "n": "Tinkmaster Overspark",
+   "prev": null,
+   "s": [
+    "npc",
+    7917,
+    "Brother Sarno"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    40.6,
+    30.8
+   ]
+  },
+  "2924": {
+   "n": "Essential Artificials",
+   "prev": 2925,
+   "s": [
+    "npc",
+    6169,
+    "Klockmort Spannerspan"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    68.2,
+    46.2
+   ]
+  },
+  "2925": {
+   "n": "Klockmort's Essentials",
+   "prev": null,
+   "s": [
+    "npc",
+    6142,
+    "Mathiel"
+   ],
+   "z": [
+    1657,
+    "Darnassus",
+    59.2,
+    45.4
+   ]
+  },
+  "2926": {
+   "n": "Gnogaine",
+   "prev": null,
+   "s": [
+    "npc",
+    1268,
+    "Ozzie Togglevolt"
+   ],
+   "z": [
+    1,
+    "Dun Morogh",
+    45.8,
+    49.2
+   ]
+  },
+  "2927": {
+   "n": "The Day After",
+   "prev": null,
+   "s": [
+    "npc",
+    6569,
+    "Gnoarn"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    69.4,
+    50.6
+   ]
+  },
+  "2928": {
+   "n": "Gyrodrillmatic Excavationators",
+   "prev": null,
+   "s": [
+    "npc",
+    6579,
+    "Shoni the Shilent"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    55.4,
+    12.6
+   ]
+  },
+  "2929": {
+   "n": "The Grand Betrayal",
+   "prev": null,
+   "s": [
+    "npc",
+    7937,
+    "High Tinker Mekkatorque"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    69,
+    49
+   ]
+  },
+  "2930": {
+   "n": "Data Rescue",
+   "prev": 2931,
+   "s": [
+    "npc",
+    7950,
+    "Master Mechanic Castpipe"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    69.8,
+    48.4
+   ]
+  },
+  "2931": {
+   "n": "Castpipe's Task",
+   "prev": null,
+   "s": [
+    "npc",
+    4077,
+    "Gaxim Rustfizzle"
+   ],
+   "z": [
+    406,
+    "Stonetalon Mountains",
+    59.4,
+    67.2
+   ]
+  },
+  "2933": {
+   "n": "Venom Bottles",
+   "prev": null,
+   "s": [
+    "object",
+    142702,
+    "Venom Bottle"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    23.6,
+    58.7
+   ]
+  },
+  "2934": {
+   "n": "Undamaged Venom Sac",
+   "prev": 2933,
+   "s": [
+    "npc",
+    2216,
+    "Apothecary Lydon"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.4,
+    19.2
+   ]
+  },
+  "2935": {
+   "n": "Consult Master Gadrin",
+   "prev": 2934,
+   "s": [
+    "npc",
+    2216,
+    "Apothecary Lydon"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.4,
+    19.2
+   ]
+  },
+  "2936": {
+   "n": "The Spider God",
+   "prev": 2935,
+   "s": [
+    "npc",
+    3188,
+    "Master Gadrin"
+   ],
+   "z": [
+    14,
+    "Durotar",
+    56,
+    74.6
+   ]
+  },
+  "2945": {
+   "n": "Grime-Encrusted Ring",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "2947": {
+   "n": "Return of the Ring",
+   "prev": null,
+   "s": [
+    "object",
+    142487,
+    "The Sparklematic 5200"
+   ],
+   "z": [
+    721,
+    "Gnomeregan",
+    0,
+    0
+   ]
+  },
+  "2949": {
+   "n": "Return of the Ring",
+   "prev": null,
+   "s": [
+    "object",
+    142487,
+    "The Sparklematic 5200"
+   ],
+   "z": [
+    721,
+    "Gnomeregan",
+    0,
+    0
+   ]
+  },
+  "2951": {
+   "n": "The Sparklematic 5200!",
+   "prev": null,
+   "s": [
+    "object",
+    142487,
+    "The Sparklematic 5200"
+   ],
+   "z": [
+    721,
+    "Gnomeregan",
+    0,
+    0
+   ]
+  },
+  "2953": {
+   "n": "More Sparklematic Action",
+   "prev": null,
+   "s": [
+    "object",
+    142487,
+    "The Sparklematic 5200"
+   ],
+   "z": [
+    721,
+    "Gnomeregan",
+    0,
+    0
+   ]
+  },
+  "2962": {
+   "n": "The Only Cure is More Green Glow",
+   "prev": null,
+   "s": [
+    "npc",
+    1268,
+    "Ozzie Togglevolt"
+   ],
+   "z": [
+    1,
+    "Dun Morogh",
+    45.8,
+    49.2
+   ]
+  },
+  "2988": {
+   "n": "Witherbark Cages",
+   "prev": null,
+   "s": [
+    "npc",
+    5636,
+    "Gryphon Master Talonaxe"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    9.8,
+    44.4
+   ]
+  },
+  "2989": {
+   "n": "The Altar of Zul",
+   "prev": 2988,
+   "s": [
+    "npc",
+    5636,
+    "Gryphon Master Talonaxe"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    9.8,
+    44.4
+   ]
+  },
+  "2990": {
+   "n": "Thadius Grimshade",
+   "prev": 2989,
+   "s": [
+    "npc",
+    5636,
+    "Gryphon Master Talonaxe"
+   ],
+   "z": [
+    47,
+    "The Hinterlands",
+    9.8,
+    44.4
+   ]
+  },
+  "2991": {
+   "n": "Nekrum's Medallion",
+   "prev": 2990,
+   "s": [
+    "npc",
+    8022,
+    "Thadius Grimshade"
+   ],
+   "z": [
+    4,
+    "Blasted Lands",
+    67,
+    19.4
+   ]
+  },
+  "3042": {
+   "n": "Troll Temper",
+   "prev": null,
+   "s": [
+    "npc",
+    7804,
+    "Trenton Lighthammer"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    51.4,
+    28.6
+   ]
+  },
+  "3341": {
+   "n": "Bring the End",
+   "prev": null,
+   "s": [
+    "npc",
+    2308,
+    "Andrew Brownell"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    74,
+    32.8
+   ]
+  },
+  "3366": {
+   "n": "The Glowing Shard",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "3373": {
+   "n": "The Essence of Eranikus",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "3375": {
+   "n": "Replacement Phial",
+   "prev": null,
+   "s": [
+    "npc",
+    6826,
+    "Talvash del Kissel"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    36,
+    4
+   ]
+  },
+  "3380": {
+   "n": "The Sunken Temple",
+   "prev": null,
+   "s": [
+    "npc",
+    8115,
+    "Witch Doctor Uzer'i"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    74.4,
+    43.4
+   ]
+  },
+  "3446": {
+   "n": "Into the Depths",
+   "prev": null,
+   "s": [
+    "npc",
+    7771,
+    "Marvon Rivetseeker"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    52.6,
+    45.8
+   ]
+  },
+  "3447": {
+   "n": "Secret of the Circle",
+   "prev": null,
+   "s": [
+    "npc",
+    7771,
+    "Marvon Rivetseeker"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    52.6,
+    45.8
+   ]
+  },
+  "3520": {
+   "n": "Screecher Spirits",
+   "prev": null,
+   "s": [
+    "npc",
+    8579,
+    "Yeh'kinya"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    67,
+    22.4
+   ]
+  },
+  "3523": {
+   "n": "Scourge of the Downs",
+   "prev": null,
+   "s": [
+    "npc",
+    8516,
+    "Belnistrasz"
+   ],
+   "z": [
+    722,
+    "Razorfen Downs",
+    0,
+    0
+   ]
+  },
+  "3525": {
+   "n": "Extinguishing the Idol",
+   "prev": 3523,
+   "s": [
+    "npc",
+    8516,
+    "Belnistrasz"
+   ],
+   "z": [
+    722,
+    "Razorfen Downs",
+    0,
+    0
+   ]
+  },
+  "3527": {
+   "n": "The Prophecy of Mosh'aru",
+   "prev": 3520,
+   "s": [
+    "npc",
+    8579,
+    "Yeh'kinya"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    67,
+    22.4
+   ]
+  },
+  "3528": {
+   "n": "The God Hakkar",
+   "prev": 4787,
+   "s": [
+    "npc",
+    8579,
+    "Yeh'kinya"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    67,
+    22.4
+   ]
+  },
+  "3636": {
+   "n": "Bring the Light",
+   "prev": null,
+   "s": [
+    "npc",
+    1284,
+    "Archbishop Benedictus"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    39.6,
+    27.4
+   ]
+  },
+  "373": {
+   "n": "The Unsent Letter",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "3765": {
+   "n": "The Corruption Abroad",
+   "prev": null,
+   "s": [
+    "npc",
+    4984,
+    "Argos Nightwhisper"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    21.4,
+    55.6
+   ]
+  },
+  "377": {
+   "n": "Crime and Punishment",
+   "prev": null,
+   "s": [
+    "npc",
+    270,
+    "Councilman Millstipe"
+   ],
+   "z": [
+    10,
+    "Duskwood",
+    72,
+    47.8
+   ]
+  },
+  "378": {
+   "n": "The Fury Runs Deep",
+   "prev": null,
+   "s": [
+    "npc",
+    1074,
+    "Motley Garmason"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    49.6,
+    18.2
+   ]
+  },
+  "3801": {
+   "n": "Dark Iron Legacy",
+   "prev": null,
+   "s": [
+    "npc",
+    8888,
+    "Franclorn Forgewright"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    29,
+    29
+   ]
+  },
+  "386": {
+   "n": "What Comes Around...",
+   "prev": null,
+   "s": [
+    "npc",
+    859,
+    "Guard Berton"
+   ],
+   "z": [
+    44,
+    "Redridge Mountains",
+    26.4,
+    46.6
+   ]
+  },
+  "387": {
+   "n": "Quell the Uprising",
+   "prev": null,
+   "s": [
+    "npc",
+    1719,
+    "Warden Thelwater"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    41.2,
+    58
+   ]
+  },
+  "388": {
+   "n": "The Color of Blood",
+   "prev": null,
+   "s": [
+    "npc",
+    1721,
+    "Nikova Raskol"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    73.4,
+    46.6
+   ]
+  },
+  "389": {
+   "n": "Bazil Thredd",
+   "prev": 373,
+   "s": [
+    "npc",
+    1646,
+    "Baros Alexston"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    49,
+    30.2
+   ]
+  },
+  "3906": {
+   "n": "Disharmony of Flame",
+   "prev": null,
+   "s": [
+    "npc",
+    9084,
+    "Thunderheart"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3.4,
+    48.2
+   ]
+  },
+  "3907": {
+   "n": "Disharmony of Fire",
+   "prev": 3906,
+   "s": [
+    "npc",
+    9084,
+    "Thunderheart"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3.4,
+    48.2
+   ]
+  },
+  "391": {
+   "n": "The Stockade Riots",
+   "prev": 389,
+   "s": [
+    "npc",
+    1719,
+    "Warden Thelwater"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    41.2,
+    58
+   ]
+  },
+  "3911": {
+   "n": "The Last Element",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "3981": {
+   "n": "Commander Gor'shak",
+   "prev": null,
+   "s": [
+    "npc",
+    9081,
+    "Galamav the Marksman"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.6
+   ]
+  },
+  "3982": {
+   "n": "What Is Going On?",
+   "prev": 3981,
+   "s": [
+    "npc",
+    9020,
+    "Commander Gor'shak"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4001": {
+   "n": "What Is Going On?",
+   "prev": 3982,
+   "s": [
+    "npc",
+    9020,
+    "Commander Gor'shak"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4002": {
+   "n": "The Eastern Kingdoms",
+   "prev": 4001,
+   "s": [
+    "npc",
+    4949,
+    "Thrall"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32,
+    37.8
+   ]
+  },
+  "4003": {
+   "n": "The Royal Rescue",
+   "prev": 4002,
+   "s": [
+    "npc",
+    4949,
+    "Thrall"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32,
+    37.8
+   ]
+  },
+  "4004": {
+   "n": "The Princess Saved?",
+   "prev": 4003,
+   "s": [
+    "npc",
+    8929,
+    "Princess Moira Bronzebeard"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4022": {
+   "n": "A Taste of Flame",
+   "prev": null,
+   "s": [
+    "npc",
+    9459,
+    "Cyrus Therepentous"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    94.8,
+    31.6
+   ]
+  },
+  "4024": {
+   "n": "A Taste of Flame",
+   "prev": 4022,
+   "s": [
+    "npc",
+    9459,
+    "Cyrus Therepentous"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    94.8,
+    31.6
+   ]
+  },
+  "4061": {
+   "n": "The Rise of the Machines",
+   "prev": null,
+   "s": [
+    "npc",
+    9079,
+    "Hierophant Theodora Mulvadania"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3,
+    47.8
+   ]
+  },
+  "4062": {
+   "n": "The Rise of the Machines",
+   "prev": 4061,
+   "s": [
+    "npc",
+    9079,
+    "Hierophant Theodora Mulvadania"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3,
+    47.8
+   ]
+  },
+  "4063": {
+   "n": "The Rise of the Machines",
+   "prev": 4062,
+   "s": [
+    "npc",
+    2921,
+    "Lotwil Veriatus"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    25.8,
+    45
+   ]
+  },
+  "4081": {
+   "n": "KILL ON SIGHT: Dark Iron Dwarves",
+   "prev": null,
+   "s": [
+    "object",
+    164867,
+    "WANTED"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3.8,
+    47.5
+   ]
+  },
+  "4082": {
+   "n": "KILL ON SIGHT: High Ranking Dark Iron Officials",
+   "prev": null,
+   "s": [
+    "object",
+    164868,
+    "KILL ON SIGHT"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    4,
+    46.8
+   ]
+  },
+  "4083": {
+   "n": "The Spectral Chalice",
+   "prev": null,
+   "s": [
+    "object",
+    164869,
+    "Spectral Chalice"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4121": {
+   "n": "Precarious Predicament",
+   "prev": null,
+   "s": [
+    "npc",
+    9520,
+    "Grark Lorkrub"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    40.2,
+    34.2
+   ]
+  },
+  "4122": {
+   "n": "Grark Lorkrub",
+   "prev": null,
+   "s": [
+    "npc",
+    9080,
+    "Lexlort"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.6
+   ]
+  },
+  "4123": {
+   "n": "The Heart of the Mountain",
+   "prev": null,
+   "s": [
+    "npc",
+    9536,
+    "Maxwort Uberglint"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.2,
+    23.8
+   ]
+  },
+  "4126": {
+   "n": "Hurley Blackbreath",
+   "prev": 4128,
+   "s": [
+    "npc",
+    1267,
+    "Ragnar Thunderbrew"
+   ],
+   "z": [
+    1,
+    "Dun Morogh",
+    46.8,
+    52.4
+   ]
+  },
+  "4128": {
+   "n": "Ragnar Thunderbrew",
+   "prev": null,
+   "s": [
+    "npc",
+    9540,
+    "Enohar Thunderbrew"
+   ],
+   "z": [
+    4,
+    "Blasted Lands",
+    63.6,
+    20.4
+   ]
+  },
+  "4132": {
+   "n": "Operation: Death to Angerforge",
+   "prev": null,
+   "s": [
+    "npc",
+    9077,
+    "Warlord Goretooth"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.4
+   ]
+  },
+  "4133": {
+   "n": "Vivian Lagrave",
+   "prev": null,
+   "s": [
+    "npc",
+    5204,
+    "Apothecary Zinge"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    49.8,
+    68.2
+   ]
+  },
+  "4134": {
+   "n": "Lost Thunderbrew Recipe",
+   "prev": 4133,
+   "s": [
+    "npc",
+    9078,
+    "Shadowmage Vivian Lagrave"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3,
+    47.6
+   ]
+  },
+  "4136": {
+   "n": "Ribbly Screwspigot",
+   "prev": 4324,
+   "s": [
+    "npc",
+    9544,
+    "Yuka Screwspigot"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    66,
+    22
+   ]
+  },
+  "4182": {
+   "n": "Dragonkin Menace",
+   "prev": null,
+   "s": [
+    "npc",
+    9562,
+    "Helendis Riverhorn"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    85.6,
+    69
+   ]
+  },
+  "4183": {
+   "n": "The True Masters",
+   "prev": 4182,
+   "s": [
+    "npc",
+    9562,
+    "Helendis Riverhorn"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    85.6,
+    69
+   ]
+  },
+  "4184": {
+   "n": "The True Masters",
+   "prev": 4183,
+   "s": [
+    "npc",
+    344,
+    "Magistrate Solomon"
+   ],
+   "z": [
+    44,
+    "Redridge Mountains",
+    30,
+    44.2
+   ]
+  },
+  "4185": {
+   "n": "The True Masters",
+   "prev": 4184,
+   "s": [
+    "npc",
+    1748,
+    "Highlord Bolvar Fordragon"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    78,
+    18
+   ]
+  },
+  "4186": {
+   "n": "The True Masters",
+   "prev": 4185,
+   "s": [
+    "npc",
+    1748,
+    "Highlord Bolvar Fordragon"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    78,
+    18
+   ]
+  },
+  "4201": {
+   "n": "The Love Potion",
+   "prev": null,
+   "s": [
+    "npc",
+    9500,
+    "Mistress Nagmara"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4223": {
+   "n": "The True Masters",
+   "prev": 4186,
+   "s": [
+    "npc",
+    344,
+    "Magistrate Solomon"
+   ],
+   "z": [
+    44,
+    "Redridge Mountains",
+    30,
+    44.2
+   ]
+  },
+  "4224": {
+   "n": "The True Masters",
+   "prev": 4223,
+   "s": [
+    "npc",
+    9560,
+    "Marshal Maxwell"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.6,
+    68.8
+   ]
+  },
+  "4241": {
+   "n": "Marshal Windsor",
+   "prev": 4224,
+   "s": [
+    "npc",
+    9560,
+    "Marshal Maxwell"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.6,
+    68.8
+   ]
+  },
+  "4242": {
+   "n": "Abandoned Hope",
+   "prev": 4241,
+   "s": [
+    "npc",
+    9023,
+    "Marshal Windsor"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4262": {
+   "n": "Overmaster Pyron",
+   "prev": null,
+   "s": [
+    "npc",
+    9561,
+    "Jalinda Sprig"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    85.4,
+    70
+   ]
+  },
+  "4263": {
+   "n": "Incendius!",
+   "prev": 4262,
+   "s": [
+    "npc",
+    9561,
+    "Jalinda Sprig"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    85.4,
+    70
+   ]
+  },
+  "4264": {
+   "n": "A Crumpled Up Note",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "4282": {
+   "n": "A Shred of Hope",
+   "prev": 4264,
+   "s": [
+    "npc",
+    9023,
+    "Marshal Windsor"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4286": {
+   "n": "The Good Stuff",
+   "prev": null,
+   "s": [
+    "npc",
+    9177,
+    "Oralius"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.6,
+    68.6
+   ]
+  },
+  "4295": {
+   "n": "Rocknot's Ale",
+   "prev": null,
+   "s": [
+    "npc",
+    9503,
+    "Private Rocknot"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4322": {
+   "n": "Jail Break!",
+   "prev": null,
+   "s": [
+    "npc",
+    9023,
+    "Marshal Windsor"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4324": {
+   "n": "Yuka Screwspigot",
+   "prev": null,
+   "s": [
+    "npc",
+    9706,
+    "Yorba Screwspigot"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    67,
+    24
+   ]
+  },
+  "4341": {
+   "n": "Kharan Mighthammer",
+   "prev": null,
+   "s": [
+    "npc",
+    2784,
+    "King Magni Bronzebeard"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    39.4,
+    55.8
+   ]
+  },
+  "4342": {
+   "n": "Kharan's Tale",
+   "prev": null,
+   "s": [
+    "npc",
+    9021,
+    "Kharan Mighthammer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4361": {
+   "n": "The Bearer of Bad News",
+   "prev": 4342,
+   "s": [
+    "npc",
+    9021,
+    "Kharan Mighthammer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4362": {
+   "n": "The Fate of the Kingdom",
+   "prev": 4361,
+   "s": [
+    "npc",
+    2784,
+    "King Magni Bronzebeard"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    39.4,
+    55.8
+   ]
+  },
+  "4363": {
+   "n": "The Princess's Surprise",
+   "prev": 4362,
+   "s": [
+    "npc",
+    8929,
+    "Princess Moira Bronzebeard"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "4701": {
+   "n": "Put Her Down",
+   "prev": null,
+   "s": [
+    "npc",
+    9562,
+    "Helendis Riverhorn"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    85.6,
+    69
+   ]
+  },
+  "4724": {
+   "n": "The Pack Mistress",
+   "prev": null,
+   "s": [
+    "npc",
+    9081,
+    "Galamav the Marksman"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.6
+   ]
+  },
+  "4729": {
+   "n": "Kibler's Exotic Pets",
+   "prev": null,
+   "s": [
+    "npc",
+    10260,
+    "Kibler"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.8,
+    22
+   ]
+  },
+  "4734": {
+   "n": "Egg Freezing",
+   "prev": 4907,
+   "s": [
+    "npc",
+    10267,
+    "Tinkee Steamboil"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.2,
+    23.8
+   ]
+  },
+  "4735": {
+   "n": "Egg Collection",
+   "prev": null,
+   "s": [
+    "npc",
+    10267,
+    "Tinkee Steamboil"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.2,
+    23.8
+   ]
+  },
+  "4742": {
+   "n": "Seal of Ascension",
+   "prev": null,
+   "s": [
+    "npc",
+    10299,
+    "Scarshield Infiltrator"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "4764": {
+   "n": "Doomrigger's Clasp",
+   "prev": 4766,
+   "s": [
+    "npc",
+    9565,
+    "Mayara Brightwing"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.8,
+    69
+   ]
+  },
+  "4765": {
+   "n": "Delivery to Ridgewell",
+   "prev": 4764,
+   "s": [
+    "npc",
+    9565,
+    "Mayara Brightwing"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.8,
+    69
+   ]
+  },
+  "4766": {
+   "n": "Mayara Brightwing",
+   "prev": null,
+   "s": [
+    "npc",
+    2285,
+    "Count Remington Ridgewell"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    74,
+    30
+   ]
+  },
+  "4768": {
+   "n": "The Darkstone Tablet",
+   "prev": 4769,
+   "s": [
+    "npc",
+    9078,
+    "Shadowmage Vivian Lagrave"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3,
+    47.6
+   ]
+  },
+  "4769": {
+   "n": "Vivian Lagrave and the Darkstone Tablet",
+   "prev": null,
+   "s": [
+    "npc",
+    5204,
+    "Apothecary Zinge"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    49.8,
+    68.2
+   ]
+  },
+  "4771": {
+   "n": "Dawn's Gambit",
+   "prev": 5531,
+   "s": [
+    "npc",
+    11035,
+    "Betina Bigglezink"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.6
+   ]
+  },
+  "4787": {
+   "n": "The Ancient Egg",
+   "prev": 3527,
+   "s": [
+    "npc",
+    8579,
+    "Yeh'kinya"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    67,
+    22.4
+   ]
+  },
+  "4788": {
+   "n": "The Final Tablets",
+   "prev": 5065,
+   "s": [
+    "npc",
+    10460,
+    "Prospector Ironboot"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    66.8,
+    24
+   ]
+  },
+  "4862": {
+   "n": "En-Ay-Es-Tee-Why",
+   "prev": null,
+   "s": [
+    "npc",
+    10260,
+    "Kibler"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.8,
+    22
+   ]
+  },
+  "4866": {
+   "n": "Mother's Milk",
+   "prev": null,
+   "s": [
+    "npc",
+    9563,
+    "Ragged John"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65,
+    23.6
+   ]
+  },
+  "4867": {
+   "n": "Urok Doomhowl",
+   "prev": null,
+   "s": [
+    "npc",
+    10799,
+    "Warosh"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "4903": {
+   "n": "Warlord's Command",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "4907": {
+   "n": "Tinkee Steamboil",
+   "prev": null,
+   "s": [
+    "npc",
+    10468,
+    "Felnok Steelspring"
+   ],
+   "z": [
+    618,
+    "Winterspring",
+    61.6,
+    38.6
+   ]
+  },
+  "4941": {
+   "n": "Eitrigg's Wisdom",
+   "prev": 4903,
+   "s": [
+    "npc",
+    9077,
+    "Warlord Goretooth"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.4
+   ]
+  },
+  "4974": {
+   "n": "For The Horde!",
+   "prev": 4941,
+   "s": [
+    "npc",
+    4949,
+    "Thrall"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32,
+    37.8
+   ]
+  },
+  "4981": {
+   "n": "Operative Bijou",
+   "prev": null,
+   "s": [
+    "npc",
+    9080,
+    "Lexlort"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.6
+   ]
+  },
+  "4982": {
+   "n": "Bijou's Belongings",
+   "prev": 4981,
+   "s": [
+    "npc",
+    10257,
+    "Bijou"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "4983": {
+   "n": "Bijou's Reconnaissance Report",
+   "prev": 4982,
+   "s": [
+    "npc",
+    10257,
+    "Bijou"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5001": {
+   "n": "Bijou's Belongings",
+   "prev": null,
+   "s": [
+    "npc",
+    10257,
+    "Bijou"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5002": {
+   "n": "Message to Maxwell",
+   "prev": 5001,
+   "s": [
+    "npc",
+    10257,
+    "Bijou"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5047": {
+   "n": "Pip Quickwit, At Your Service!",
+   "prev": null,
+   "s": [
+    "npc",
+    10776,
+    "Pip Quickwit"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5065": {
+   "n": "The Lost Tablets of Mosh'aru",
+   "prev": null,
+   "s": [
+    "npc",
+    10460,
+    "Prospector Ironboot"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    66.8,
+    24
+   ]
+  },
+  "5081": {
+   "n": "Maxwell's Mission",
+   "prev": 5002,
+   "s": [
+    "npc",
+    9560,
+    "Marshal Maxwell"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.6,
+    68.8
+   ]
+  },
+  "5089": {
+   "n": "General Drakkisath's Command",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "5102": {
+   "n": "General Drakkisath's Demise",
+   "prev": 5089,
+   "s": [
+    "npc",
+    9560,
+    "Marshal Maxwell"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    84.6,
+    68.8
+   ]
+  },
+  "5103": {
+   "n": "Hot Fiery Death",
+   "prev": null,
+   "s": [
+    "object",
+    176090,
+    "Human Remains"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5122": {
+   "n": "The Medallion of Faith",
+   "prev": null,
+   "s": [
+    "npc",
+    10917,
+    "Aurius"
+   ],
+   "z": [
+    2017,
+    "Stratholme",
+    0,
+    0
+   ]
+  },
+  "5125": {
+   "n": "Aurius' Reckoning",
+   "prev": null,
+   "s": [
+    "npc",
+    10917,
+    "Aurius"
+   ],
+   "z": [
+    2017,
+    "Stratholme",
+    0,
+    0
+   ]
+  },
+  "5127": {
+   "n": "The Demon Forge",
+   "prev": null,
+   "s": [
+    "npc",
+    10918,
+    "Lorax"
+   ],
+   "z": [
+    618,
+    "Winterspring",
+    63.8,
+    73.8
+   ]
+  },
+  "5160": {
+   "n": "The Matron Protectorate",
+   "prev": null,
+   "s": [
+    "npc",
+    10740,
+    "Awbee"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "5212": {
+   "n": "The Flesh Does Not Lie",
+   "prev": null,
+   "s": [
+    "npc",
+    11035,
+    "Betina Bigglezink"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.6
+   ]
+  },
+  "5213": {
+   "n": "The Active Agent",
+   "prev": 5212,
+   "s": [
+    "npc",
+    11035,
+    "Betina Bigglezink"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.6
+   ]
+  },
+  "5214": {
+   "n": "The Great Ezra Grimm",
+   "prev": null,
+   "s": [
+    "npc",
+    11033,
+    "Smokey LaRue"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    80.6,
+    58
+   ]
+  },
+  "5243": {
+   "n": "Houses of the Holy",
+   "prev": null,
+   "s": [
+    "npc",
+    11036,
+    "Leonid Barthalomew the Revered"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.6,
+    57.8
+   ]
+  },
+  "5251": {
+   "n": "The Archivist",
+   "prev": null,
+   "s": [
+    "npc",
+    11039,
+    "Duke Nicholas Zverenhoff"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.8
+   ]
+  },
+  "5262": {
+   "n": "The Truth Comes Crashing Down",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "5263": {
+   "n": "Above and Beyond",
+   "prev": 5262,
+   "s": [
+    "npc",
+    11039,
+    "Duke Nicholas Zverenhoff"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.8
+   ]
+  },
+  "5281": {
+   "n": "The Restless Souls",
+   "prev": null,
+   "s": [
+    "npc",
+    11038,
+    "Caretaker Alen"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    79.4,
+    63.8
+   ]
+  },
+  "5282": {
+   "n": "The Restless Souls",
+   "prev": 5281,
+   "s": [
+    "npc",
+    11140,
+    "Egan"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    14.4,
+    33.6
+   ]
+  },
+  "5341": {
+   "n": "Barov Family Fortune",
+   "prev": null,
+   "s": [
+    "npc",
+    11022,
+    "Alexi Barov"
+   ],
+   "z": [
+    85,
+    "Tirisfal Glades",
+    83,
+    71.4
+   ]
+  },
+  "5343": {
+   "n": "Barov Family Fortune",
+   "prev": null,
+   "s": [
+    "npc",
+    11023,
+    "Weldon Barov"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    43.4,
+    83.6
+   ]
+  },
+  "5382": {
+   "n": "Doctor Theolen Krastinov, the Butcher",
+   "prev": null,
+   "s": [
+    "npc",
+    11216,
+    "Eva Sarkhoff"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.2,
+    73.8
+   ]
+  },
+  "5384": {
+   "n": "Kirtonos the Herald",
+   "prev": 5515,
+   "s": [
+    "npc",
+    11216,
+    "Eva Sarkhoff"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.2,
+    73.8
+   ]
+  },
+  "5461": {
+   "n": "The Human, Ras Frostwhisper",
+   "prev": null,
+   "s": [
+    "npc",
+    11286,
+    "Magistrate Marduke"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.4,
+    74
+   ]
+  },
+  "5462": {
+   "n": "The Dying, Ras Frostwhisper",
+   "prev": 5461,
+   "s": [
+    "npc",
+    11286,
+    "Magistrate Marduke"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.4,
+    74
+   ]
+  },
+  "5463": {
+   "n": "Menethil's Gift",
+   "prev": 5462,
+   "s": [
+    "npc",
+    11036,
+    "Leonid Barthalomew the Revered"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.6,
+    57.8
+   ]
+  },
+  "5464": {
+   "n": "Menethil's Gift",
+   "prev": 5463,
+   "s": [
+    "object",
+    176631,
+    "Menethil's Gift"
+   ],
+   "z": [
+    2017,
+    "Stratholme",
+    0,
+    0
+   ]
+  },
+  "5465": {
+   "n": "Soulbound Keepsake",
+   "prev": 5464,
+   "s": [
+    "npc",
+    11036,
+    "Leonid Barthalomew the Revered"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.6,
+    57.8
+   ]
+  },
+  "5466": {
+   "n": "The Lich, Ras Frostwhisper",
+   "prev": 5465,
+   "s": [
+    "npc",
+    11286,
+    "Magistrate Marduke"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.4,
+    74
+   ]
+  },
+  "5515": {
+   "n": "Krastinov's Bag of Horrors",
+   "prev": 5382,
+   "s": [
+    "npc",
+    11216,
+    "Eva Sarkhoff"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    70.2,
+    73.8
+   ]
+  },
+  "5518": {
+   "n": "The Gordok Ogre Suit",
+   "prev": null,
+   "s": [
+    "npc",
+    14338,
+    "Knot Thimblejack"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "5522": {
+   "n": "Leonid Barthalomew",
+   "prev": null,
+   "s": [
+    "npc",
+    10267,
+    "Tinkee Steamboil"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    65.2,
+    23.8
+   ]
+  },
+  "5525": {
+   "n": "Free Knot!",
+   "prev": null,
+   "s": [
+    "npc",
+    14338,
+    "Knot Thimblejack"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "5528": {
+   "n": "The Gordok Taste Test",
+   "prev": null,
+   "s": [
+    "npc",
+    14322,
+    "Stomper Kreeg"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "5529": {
+   "n": "Plagued Hatchlings",
+   "prev": null,
+   "s": [
+    "npc",
+    11035,
+    "Betina Bigglezink"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.4,
+    59.6
+   ]
+  },
+  "5531": {
+   "n": "Betina Bigglezink",
+   "prev": 5522,
+   "s": [
+    "npc",
+    11036,
+    "Leonid Barthalomew the Revered"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    81.6,
+    57.8
+   ]
+  },
+  "5582": {
+   "n": "Healthy Dragon Scale",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "5722": {
+   "n": "Searching for the Lost Satchel",
+   "prev": null,
+   "s": [
+    "npc",
+    11833,
+    "Rahauro"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    70.4,
+    29.6
+   ]
+  },
+  "5723": {
+   "n": "Testing an Enemy's Strength",
+   "prev": null,
+   "s": [
+    "npc",
+    11833,
+    "Rahauro"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    70.4,
+    29.6
+   ]
+  },
+  "5724": {
+   "n": "Returning the Lost Satchel",
+   "prev": 5722,
+   "s": [
+    "npc",
+    11834,
+    "Maur Grimtotem"
+   ],
+   "z": [
+    2437,
+    "Ragefire Chasm",
+    0,
+    0
+   ]
+  },
+  "5725": {
+   "n": "The Power to Destroy...",
+   "prev": null,
+   "s": [
+    "npc",
+    2425,
+    "Varimathras"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    56.2,
+    92.6
+   ]
+  },
+  "5727": {
+   "n": "Hidden Enemies",
+   "prev": null,
+   "s": [
+    "npc",
+    4949,
+    "Thrall"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32,
+    37.8
+   ]
+  },
+  "5728": {
+   "n": "Hidden Enemies",
+   "prev": 5727,
+   "s": [
+    "npc",
+    4949,
+    "Thrall"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32,
+    37.8
+   ]
+  },
+  "5742": {
+   "n": "Redemption",
+   "prev": null,
+   "s": [
+    "npc",
+    1855,
+    "Tirion Fordring"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    7.4,
+    43.6
+   ]
+  },
+  "5761": {
+   "n": "Slaying the Beast",
+   "prev": null,
+   "s": [
+    "npc",
+    3216,
+    "Neeru Fireblade"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    49.6,
+    50.4
+   ]
+  },
+  "5781": {
+   "n": "Of Forgotten Memories",
+   "prev": 5742,
+   "s": [
+    "npc",
+    1855,
+    "Tirion Fordring"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    7.4,
+    43.6
+   ]
+  },
+  "5845": {
+   "n": "Of Lost Honor",
+   "prev": 5781,
+   "s": [
+    "npc",
+    1855,
+    "Tirion Fordring"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    7.4,
+    43.6
+   ]
+  },
+  "5846": {
+   "n": "Of Love and Family",
+   "prev": 5845,
+   "s": [
+    "npc",
+    1855,
+    "Tirion Fordring"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    7.4,
+    43.6
+   ]
+  },
+  "5848": {
+   "n": "Of Love and Family",
+   "prev": 5846,
+   "s": [
+    "npc",
+    11936,
+    "Artist Renfray"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    65.6,
+    75.4
+   ]
+  },
+  "6163": {
+   "n": "Ramstein",
+   "prev": null,
+   "s": [
+    "npc",
+    11878,
+    "Nathanos Blightcaller"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    26.6,
+    74.8
+   ]
+  },
+  "6403": {
+   "n": "The Great Masquerade",
+   "prev": null,
+   "s": [
+    "npc",
+    12580,
+    "Reginald Windsor"
+   ],
+   "z": [
+    12,
+    "Elwynn Forest",
+    32,
+    49.2
+   ]
+  },
+  "6501": {
+   "n": "The Dragon's Eye",
+   "prev": 6403,
+   "s": [
+    "npc",
+    1748,
+    "Highlord Bolvar Fordragon"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    78,
+    18
+   ]
+  },
+  "6502": {
+   "n": "Drakefire Amulet",
+   "prev": 6501,
+   "s": [
+    "npc",
+    10929,
+    "Haleh"
+   ],
+   "z": [
+    618,
+    "Winterspring",
+    54.4,
+    51.2
+   ]
+  },
+  "6521": {
+   "n": "An Unholy Alliance",
+   "prev": 6522,
+   "s": [
+    "npc",
+    2425,
+    "Varimathras"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    56.2,
+    92.6
+   ]
+  },
+  "6522": {
+   "n": "An Unholy Alliance",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "6561": {
+   "n": "Blackfathom Villainy",
+   "prev": null,
+   "s": [
+    "npc",
+    4787,
+    "Argent Guard Thaelrid"
+   ],
+   "z": [
+    719,
+    "Blackfathom Deeps",
+    0,
+    0
+   ]
+  },
+  "6562": {
+   "n": "Trouble in the Deeps",
+   "prev": null,
+   "s": [
+    "npc",
+    11862,
+    "Tsunaman"
+   ],
+   "z": [
+    406,
+    "Stonetalon Mountains",
+    47.2,
+    64.2
+   ]
+  },
+  "6563": {
+   "n": "The Essence of Aku'Mai",
+   "prev": 6562,
+   "s": [
+    "npc",
+    12736,
+    "Je'neu Sancrea"
+   ],
+   "z": [
+    331,
+    "Ashenvale",
+    11.6,
+    34.2
+   ]
+  },
+  "6564": {
+   "n": "Allegiance to the Old Gods",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "6569": {
+   "n": "Oculus Illusions",
+   "prev": 6568,
+   "s": [
+    "npc",
+    11872,
+    "Myranda the Hag"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    50.8,
+    77.8
+   ]
+  },
+  "6585": {
+   "n": "The Test of Skulls, Axtroz",
+   "prev": null,
+   "s": [
+    "npc",
+    10321,
+    "Emberstrife"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    56.6,
+    87.6
+   ]
+  },
+  "6601": {
+   "n": "Ascension...",
+   "prev": 6585,
+   "s": [
+    "npc",
+    10321,
+    "Emberstrife"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    56.6,
+    87.6
+   ]
+  },
+  "6602": {
+   "n": "Blood of the Black Dragon Champion",
+   "prev": 6601,
+   "s": [
+    "npc",
+    10182,
+    "Rexxar"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    45.2,
+    2.6
+   ]
+  },
+  "6626": {
+   "n": "A Host of Evil",
+   "prev": null,
+   "s": [
+    "npc",
+    12866,
+    "Myriam Moonsinger"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    49,
+    94.8
+   ]
+  },
+  "6627": {
+   "n": "Test of Lore",
+   "prev": 1154,
+   "s": [
+    "npc",
+    4489,
+    "Braug Dimspirit"
+   ],
+   "z": [
+    406,
+    "Stonetalon Mountains",
+    78.6,
+    45.6
+   ]
+  },
+  "6642": {
+   "n": "Favor Amongst the Brotherhood, Dark Iron Ore",
+   "prev": null,
+   "s": [
+    "npc",
+    12944,
+    "Lokhtos Darkbargainer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "6643": {
+   "n": "Favor Amongst the Brotherhood, Fiery Core",
+   "prev": null,
+   "s": [
+    "npc",
+    12944,
+    "Lokhtos Darkbargainer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "6644": {
+   "n": "Favor Amongst the Brotherhood, Lava Core",
+   "prev": null,
+   "s": [
+    "npc",
+    12944,
+    "Lokhtos Darkbargainer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "6645": {
+   "n": "Favor Amongst the Brotherhood, Core Leather",
+   "prev": null,
+   "s": [
+    "npc",
+    12944,
+    "Lokhtos Darkbargainer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "6646": {
+   "n": "Favor Amongst the Brotherhood, Blood of the Mountain",
+   "prev": null,
+   "s": [
+    "npc",
+    12944,
+    "Lokhtos Darkbargainer"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "6921": {
+   "n": "Amongst the Ruins",
+   "prev": null,
+   "s": [
+    "npc",
+    12736,
+    "Je'neu Sancrea"
+   ],
+   "z": [
+    331,
+    "Ashenvale",
+    11.6,
+    34.2
+   ]
+  },
+  "7028": {
+   "n": "Twisted Evils",
+   "prev": null,
+   "s": [
+    "npc",
+    13656,
+    "Willow"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    62.2,
+    39.6
+   ]
+  },
+  "7029": {
+   "n": "Vyletongue Corruption",
+   "prev": null,
+   "s": [
+    "npc",
+    11823,
+    "Vark Battlescar"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    23.2,
+    70.2
+   ]
+  },
+  "704": {
+   "n": "Agmond's Fate",
+   "prev": 739,
+   "s": [
+    "npc",
+    1344,
+    "Prospector Ironband"
+   ],
+   "z": [
+    38,
+    "Loch Modan",
+    65.8,
+    65.6
+   ]
+  },
+  "7041": {
+   "n": "Vyletongue Corruption",
+   "prev": null,
+   "s": [
+    "npc",
+    11715,
+    "Talendria"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    68.4,
+    8.8
+   ]
+  },
+  "7044": {
+   "n": "Legends of Maraudon",
+   "prev": null,
+   "s": [
+    "npc",
+    13697,
+    "Cavindra"
+   ],
+   "z": null
+  },
+  "7046": {
+   "n": "The Scepter of Celebras",
+   "prev": null,
+   "s": [
+    "npc",
+    13716,
+    "Celebras the Redeemed"
+   ],
+   "z": [
+    2100,
+    "Maraudon",
+    0,
+    0
+   ]
+  },
+  "7064": {
+   "n": "Corruption of Earth and Seed",
+   "prev": null,
+   "s": [
+    "npc",
+    13699,
+    "Selendra"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    26.8,
+    77.6
+   ]
+  },
+  "7065": {
+   "n": "Corruption of Earth and Seed",
+   "prev": null,
+   "s": [
+    "npc",
+    13698,
+    "Keeper Marandis"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    63.8,
+    10.6
+   ]
+  },
+  "7066": {
+   "n": "Seed of Life",
+   "prev": null,
+   "s": [
+    "npc",
+    12238,
+    "Zaetar's Spirit"
+   ],
+   "z": [
+    2100,
+    "Maraudon",
+    0,
+    0
+   ]
+  },
+  "7067": {
+   "n": "The Pariah's Instructions",
+   "prev": null,
+   "s": [
+    "npc",
+    13717,
+    "Centaur Pariah"
+   ],
+   "z": [
+    405,
+    "Desolace",
+    50.4,
+    86.6
+   ]
+  },
+  "7068": {
+   "n": "Shadowshard Fragments",
+   "prev": null,
+   "s": [
+    "npc",
+    7311,
+    "Uthel'nay"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    39,
+    86
+   ]
+  },
+  "707": {
+   "n": "Ironband Wants You!",
+   "prev": null,
+   "s": [
+    "npc",
+    1356,
+    "Prospector Stormpike"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    74.4,
+    12
+   ]
+  },
+  "7070": {
+   "n": "Shadowshard Fragments",
+   "prev": null,
+   "s": [
+    "npc",
+    4967,
+    "Archmage Tervosh"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    59.6,
+    41.2
+   ]
+  },
+  "709": {
+   "n": "Solution to Doom",
+   "prev": null,
+   "s": [
+    "npc",
+    2785,
+    "Theldurin the Lost"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    51.4,
+    76.8
+   ]
+  },
+  "720": {
+   "n": "A Sign of Hope",
+   "prev": null,
+   "s": [
+    "object",
+    2868,
+    "Crumpled Map"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    53,
+    34.1
+   ]
+  },
+  "7201": {
+   "n": "The Last Element",
+   "prev": null,
+   "s": [
+    "npc",
+    9078,
+    "Shadowmage Vivian Lagrave"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    3,
+    47.6
+   ]
+  },
+  "721": {
+   "n": "A Sign of Hope",
+   "prev": 720,
+   "s": [
+    "npc",
+    2910,
+    "Prospector Ryedol"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    53.4,
+    43.2
+   ]
+  },
+  "722": {
+   "n": "Amulet of Secrets",
+   "prev": 721,
+   "s": [
+    "npc",
+    2909,
+    "Hammertoe Grez"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    37.9,
+    10.6
+   ]
+  },
+  "738": {
+   "n": "Find Agmond",
+   "prev": 707,
+   "s": [
+    "npc",
+    1344,
+    "Prospector Ironband"
+   ],
+   "z": [
+    38,
+    "Loch Modan",
+    65.8,
+    65.6
+   ]
+  },
+  "739": {
+   "n": "Murdaloc",
+   "prev": 738,
+   "s": [
+    "object",
+    2875,
+    "Battered Dwarven Skeleton"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    50.9,
+    62.2
+   ]
+  },
+  "7441": {
+   "n": "Pusillin and the Elder Azj'Tordin",
+   "prev": null,
+   "s": [
+    "npc",
+    14355,
+    "Azj'Tordin"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    76.8,
+    37.4
+   ]
+  },
+  "7461": {
+   "n": "The Madness Within",
+   "prev": null,
+   "s": [
+    "npc",
+    14358,
+    "Shen'dralar Ancient"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7462": {
+   "n": "The Treasure of the Shen'dralar",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7463": {
+   "n": "Arcane Refreshment",
+   "prev": null,
+   "s": [
+    "npc",
+    14368,
+    "Lorekeeper Lydros"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7481": {
+   "n": "Elven Legends",
+   "prev": null,
+   "s": [
+    "npc",
+    14373,
+    "Sage Korolusk"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    75,
+    43.8
+   ]
+  },
+  "7482": {
+   "n": "Elven Legends",
+   "prev": null,
+   "s": [
+    "npc",
+    14374,
+    "Scholar Runethorn"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    31.2,
+    43.4
+   ]
+  },
+  "7483": {
+   "n": "Libram of Rapidity",
+   "prev": null,
+   "s": [
+    "npc",
+    14368,
+    "Lorekeeper Lydros"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7484": {
+   "n": "Libram of Focus",
+   "prev": null,
+   "s": [
+    "npc",
+    14368,
+    "Lorekeeper Lydros"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7485": {
+   "n": "Libram of Protection",
+   "prev": null,
+   "s": [
+    "npc",
+    14368,
+    "Lorekeeper Lydros"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7487": {
+   "n": "Attunement to the Core",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7488": {
+   "n": "Lethtendris's Web",
+   "prev": 7494,
+   "s": [
+    "npc",
+    7877,
+    "Latronicus Moonspear"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    30.4,
+    46
+   ]
+  },
+  "7489": {
+   "n": "Lethtendris's Web",
+   "prev": 7492,
+   "s": [
+    "npc",
+    7776,
+    "Talo Thornhoof"
+   ],
+   "z": [
+    357,
+    "Feralas",
+    76,
+    43.8
+   ]
+  },
+  "7492": {
+   "n": "Camp Mojache",
+   "prev": null,
+   "s": [
+    "npc",
+    10879,
+    "Harbinger Balthazad"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    68.2,
+    47.6
+   ]
+  },
+  "7494": {
+   "n": "Feathermoon Stronghold",
+   "prev": null,
+   "s": [
+    "npc",
+    2198,
+    "Crier Goodman"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    55,
+    62.8
+   ]
+  },
+  "7498": {
+   "n": "Garona: A Study on Stealth and Treachery",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7499": {
+   "n": "Codex of Defense",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7500": {
+   "n": "The Arcanist's Cookbook",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7501": {
+   "n": "The Light and How To Swing It",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7502": {
+   "n": "Harnessing Shadows",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7503": {
+   "n": "The Greatest Race of Hunters",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7504": {
+   "n": "Holy Bologna: What the Light Won't Tell You",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7505": {
+   "n": "Frost Shock and You",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7506": {
+   "n": "The Emerald Dream...",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7507": {
+   "n": "Nostro's Compendium",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7508": {
+   "n": "The Forging of Quel'Serrar",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7604": {
+   "n": "A Binding Contract",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7631": {
+   "n": "Dreadsteed of Xoroth",
+   "prev": null,
+   "s": [
+    "npc",
+    14436,
+    "Mor'zul Bloodbringer"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    12.6,
+    31.6
+   ]
+  },
+  "7632": {
+   "n": "The Ancient Leaf",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7643": {
+   "n": "Ancient Equine Spirit",
+   "prev": null,
+   "s": [
+    "npc",
+    928,
+    "Lord Grayson Shadowbreaker"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    37.2,
+    33
+   ]
+  },
+  "7644": {
+   "n": "Blessed Arcanite Barding",
+   "prev": 7643,
+   "s": [
+    "npc",
+    14566,
+    "Ancient Equine Spirit"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "7646": {
+   "n": "The Divination Scryer",
+   "prev": 7644,
+   "s": [
+    "npc",
+    928,
+    "Lord Grayson Shadowbreaker"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    37.2,
+    33
+   ]
+  },
+  "7647": {
+   "n": "Judgment and Redemption",
+   "prev": 7646,
+   "s": [
+    "npc",
+    928,
+    "Lord Grayson Shadowbreaker"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    37.2,
+    33
+   ]
+  },
+  "7649": {
+   "n": "Enchanted Thorium Platemail: Volume I",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7650": {
+   "n": "Enchanted Thorium Platemail: Volume II",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7651": {
+   "n": "Enchanted Thorium Platemail: Volume III",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7761": {
+   "n": "Blackhand's Command",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7781": {
+   "n": "The Lord of Blackrock",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "7783": {
+   "n": "The Lord of Blackrock",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "78916": {
+   "n": "The Heart of the Void",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "78917": {
+   "n": "The Heart of the Void",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "8041": {
+   "n": "Strength of Mount Mugamba",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8044": {
+   "n": "The Rage of Mugamba",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8045": {
+   "n": "The Heathen's Brand",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8048": {
+   "n": "The Hero's Brand",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8049": {
+   "n": "The Eye of Zuldazar",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8052": {
+   "n": "The All-Seeing Eye of Zuldazar",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8053": {
+   "n": "Paragons of Power: The Freethinker's Armguards",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8054": {
+   "n": "Paragons of Power: The Freethinker's Belt",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8055": {
+   "n": "Paragons of Power: The Freethinker's Breastplate",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8056": {
+   "n": "Paragons of Power: The Augur's Bracers",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8057": {
+   "n": "Paragons of Power: The Haruspex's Bracers",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8058": {
+   "n": "Paragons of Power: The Vindicator's Armguards",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8059": {
+   "n": "Paragons of Power: The Demoniac's Wraps",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8060": {
+   "n": "Paragons of Power: The Illusionist's Wraps",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8061": {
+   "n": "Paragons of Power: The Confessor's Wraps",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8062": {
+   "n": "Paragons of Power: The Predator's Bracers",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8063": {
+   "n": "Paragons of Power: The Madcap's Bracers",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8064": {
+   "n": "Paragons of Power: The Haruspex's Belt",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8065": {
+   "n": "Paragons of Power: The Haruspex's Tunic",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8066": {
+   "n": "Paragons of Power: The Predator's Belt",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8067": {
+   "n": "Paragons of Power: The Predator's Mantle",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8068": {
+   "n": "Paragons of Power: The Illusionist's Mantle",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8069": {
+   "n": "Paragons of Power: The Illusionist's Robes",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8070": {
+   "n": "Paragons of Power: The Confessor's Bindings",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8071": {
+   "n": "Paragons of Power: The Confessor's Mantle",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8072": {
+   "n": "Paragons of Power: The Madcap's Mantle",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8073": {
+   "n": "Paragons of Power: The Madcap's Tunic",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8074": {
+   "n": "Paragons of Power: The Augur's Belt",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8075": {
+   "n": "Paragons of Power: The Augur's Hauberk",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8076": {
+   "n": "Paragons of Power: The Demoniac's Mantle",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8077": {
+   "n": "Paragons of Power: The Demoniac's Robes",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8078": {
+   "n": "Paragons of Power: The Vindicator's Belt",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8079": {
+   "n": "Paragons of Power: The Vindicator's Breastplate",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
+  "8101": {
+   "n": "The Pebble of Kajaro",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8104": {
+   "n": "The Jewel of Kajaro",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8106": {
+   "n": "Kezan's Taint",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8109": {
+   "n": "Kezan's Unstoppable Taint",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8110": {
+   "n": "Enchanted South Seas Kelp",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8113": {
+   "n": "Pristine Enchanted South Seas Kelp",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8116": {
+   "n": "Vision of Voodress",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8119": {
+   "n": "The Unmarred Vision of Voodress",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8141": {
+   "n": "Zandalarian Shadow Talisman",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8144": {
+   "n": "Zandalarian Shadow Mastery Talisman",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8145": {
+   "n": "The Maelstrom's Tendril",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8148": {
+   "n": "Maelstrom's Wrath",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8181": {
+   "n": "Confront Yeh'kinya",
+   "prev": null,
+   "s": [
+    "npc",
+    10460,
+    "Prospector Ironboot"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    66.8,
+    24
+   ]
+  },
+  "8183": {
+   "n": "The Heart of Hakkar",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "8184": {
+   "n": "Presence of Might",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8185": {
+   "n": "Syncretist's Sigil",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8186": {
+   "n": "Death's Embrace",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8187": {
+   "n": "Falcon's Call",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8188": {
+   "n": "Vodouisant's Vigilant Embrace",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8189": {
+   "n": "Presence of Sight",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8190": {
+   "n": "Hoodoo Hex",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8191": {
+   "n": "Prophetic Aura",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8192": {
+   "n": "Animist's Caress",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8195": {
+   "n": "Zulian, Razzashi, and Hakkari Coins",
+   "prev": null,
+   "s": [
+    "npc",
+    15070,
+    "Vinchaxa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14.4,
+    15.8
+   ]
+  },
+  "8196": {
+   "n": "Essence Mangoes",
+   "prev": null,
+   "s": [
+    "npc",
+    14921,
+    "Rin'wosho the Trader"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15,
+    16
+   ]
+  },
+  "8201": {
+   "n": "A Collection of Heads",
+   "prev": null,
+   "s": [
+    "npc",
+    14910,
+    "Exzhal"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    15.4
+   ]
+  },
+  "8227": {
+   "n": "Nat's Measuring Tape",
+   "prev": null,
+   "s": [
+    "object",
+    180366,
+    "Battered Tackle Box"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "8238": {
+   "n": "Gurubashi, Vilebranch, and Witherbark Coins",
+   "prev": null,
+   "s": [
+    "npc",
+    15070,
+    "Vinchaxa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14.4,
+    15.8
+   ]
+  },
+  "8239": {
+   "n": "Sandfury, Skullsplitter, and Bloodscalp Coins",
+   "prev": null,
+   "s": [
+    "npc",
+    15070,
+    "Vinchaxa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14.4,
+    15.8
+   ]
+  },
+  "8240": {
+   "n": "A Bijou for Zanza",
+   "prev": null,
+   "s": [
+    "npc",
+    15070,
+    "Vinchaxa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14.4,
+    15.8
+   ]
+  },
+  "8243": {
+   "n": "Zanza's Potent Potables",
+   "prev": null,
+   "s": [
+    "npc",
+    14921,
+    "Rin'wosho the Trader"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15,
+    16
+   ]
+  },
+  "8246": {
+   "n": "Signets of the Zandalar",
+   "prev": null,
+   "s": [
+    "npc",
+    14921,
+    "Rin'wosho the Trader"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15,
+    16
+   ]
+  },
+  "8288": {
+   "n": "Only One May Rise",
+   "prev": null,
+   "s": [
+    "npc",
+    15180,
+    "Baristolth of the Shifting Sands"
+   ],
+   "z": [
+    1377,
+    "Silithus",
+    49.4,
+    36.6
+   ]
+  },
+  "8577": {
+   "n": "Stewvul, Ex-B.F.F.",
+   "prev": null,
+   "s": [
+    "npc",
+    11811,
+    "Narain Soothfancy"
+   ],
+   "z": [
+    440,
+    "Tanaris",
+    65.2,
+    18.6
+   ]
+  },
+  "8578": {
+   "n": "Scrying Goggles? No Problem!",
+   "prev": 8577,
+   "s": [
+    "object",
+    180642,
+    "Inconspicuous Crate"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    46.2,
+    86.6
+   ]
+  },
+  "8730": {
+   "n": "Nefarius's Corruption",
+   "prev": null,
+   "s": [
+    "npc",
+    13020,
+    "Vaelastrasz the Corrupt"
+   ],
+   "z": [
+    2677,
+    "Blackwing Lair",
+    0,
+    0
+   ]
+  },
+  "8733": {
+   "n": "Eranikus, Tyrant of the Dream",
+   "prev": null,
+   "s": [
+    "npc",
+    15362,
+    "Malfurion Stormrage"
+   ],
+   "z": [
+    1477,
+    "The Temple of Atal'Hakkar",
+    0,
+    0
+   ]
+  },
+  "8929": {
+   "n": "In Search of Anthion",
+   "prev": null,
+   "s": [
+    "npc",
+    16013,
+    "Deliana"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    43.4,
+    52.2
+   ]
+  },
+  "8945": {
+   "n": "Dead Man's Plea",
+   "prev": 8929,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8946": {
+   "n": "Proof of Life",
+   "prev": 8945,
+   "s": [
+    "npc",
+    16031,
+    "Ysida Harmon"
+   ],
+   "z": [
+    2017,
+    "Stratholme",
+    0,
+    0
+   ]
+  },
+  "8947": {
+   "n": "Anthion's Strange Request",
+   "prev": 8946,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8948": {
+   "n": "Anthion's Old Friend",
+   "prev": 8947,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8949": {
+   "n": "Falrin's Vendetta",
+   "prev": 8948,
+   "s": [
+    "npc",
+    16032,
+    "Falrin Treeshaper"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "8950": {
+   "n": "The Instigator's Enchantment",
+   "prev": 8949,
+   "s": [
+    "npc",
+    16032,
+    "Falrin Treeshaper"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "8951": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8953": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8957": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "8966": {
+   "n": "The Left Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8967": {
+   "n": "The Left Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8968": {
+   "n": "The Left Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8969": {
+   "n": "The Left Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8970": {
+   "n": "I See Alcaz Island In Your Future...",
+   "prev": 8966,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8989": {
+   "n": "The Right Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8990": {
+   "n": "The Right Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8991": {
+   "n": "The Right Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8992": {
+   "n": "The Right Piece of Lord Valthalak's Amulet",
+   "prev": null,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8994": {
+   "n": "Final Preparations",
+   "prev": 8989,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8995": {
+   "n": "Mea Culpa, Lord Valthalak",
+   "prev": 8994,
+   "s": [
+    "npc",
+    16033,
+    "Bodley"
+   ],
+   "z": null
+  },
+  "8996": {
+   "n": "Return to Bodley",
+   "prev": 8995,
+   "s": [
+    "npc",
+    16073,
+    "Spirit of Lord Valthalak"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
+    0,
+    0
+   ]
+  },
+  "9015": {
+   "n": "The Challenge",
+   "prev": null,
+   "s": [
+    "npc",
+    16032,
+    "Falrin Treeshaper"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
+  "909": {
+   "n": "Baron Aquanis",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "914": {
+   "n": "Leaders of the Fang",
+   "prev": 1490,
+   "s": [
+    "npc",
+    5770,
+    "Nara Wildmane"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    75.6,
+    31.2
+   ]
+  },
+  "9208": {
+   "n": "The Savage Guard - Arcanum of Protection",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "9209": {
+   "n": "The Savage Guard - Arcanum of Rapidity",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "9210": {
+   "n": "The Savage Guard - Arcanum of Focus",
+   "prev": null,
+   "s": [
+    "npc",
+    15042,
+    "Zanza the Restless"
+   ],
+   "z": [
+    1977,
+    "Zul'Gurub",
+    0,
+    0
+   ]
+  },
+  "92401": {
+   "n": "A Frightened Request",
+   "prev": null,
+   "s": [
+    "npc",
+    250686,
+    "Tabitha Heartweaver"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    44.4,
+    42.8
+   ]
+  },
+  "92415": {
+   "n": "Remember That I Love You",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "92421": {
+   "n": "Light's Justice",
+   "prev": null,
+   "s": [
+    "npc",
+    266484,
+    "Morbin Lightbane"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    57.8,
+    89.8
+   ]
+  },
+  "92422": {
+   "n": "The Wrath of Rath'mael",
+   "prev": null,
+   "s": [
+    "npc",
+    251001,
+    "Deathguard Kristof"
+   ],
+   "z": [
+    85,
+    "Tirisfal Glades",
+    65.2,
+    60.2
+   ]
+  },
+  "92432": {
+   "n": "An Alarming Request",
+   "prev": null,
+   "s": [
+    "npc",
+    247264,
+    "Emissary Jacques"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    48.3,
+    60.1
+   ]
+  },
+  "92434": {
+   "n": "Blood in the Streets",
+   "prev": null,
+   "s": [
+    "npc",
+    2410,
+    "Magus Wordeen Voidglare"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.6,
+    20.8
+   ]
+  },
+  "92456": {
+   "n": "A Green Sample",
+   "prev": null,
+   "s": [
+    "npc",
+    5502,
+    "Shylamiir"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    31.4,
+    63
+   ]
+  },
+  "92457": {
+   "n": "Starving Arcane",
+   "prev": null,
+   "s": [
+    "npc",
+    269127,
+    "Image of Archmage Modera"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    68.6,
+    45.2
+   ]
+  },
+  "92458": {
+   "n": "Heart of Disruption",
+   "prev": 92432,
+   "s": [
+    "npc",
+    269127,
+    "Image of Archmage Modera"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    68.6,
+    45.2
+   ]
+  },
+  "92459": {
+   "n": "Friend of the Kirin Tor",
+   "prev": 92458,
+   "s": [
+    "npc",
+    269127,
+    "Image of Archmage Modera"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    68.6,
+    45.2
+   ]
+  },
+  "92489": {
+   "n": "Power Overwhelming",
+   "prev": null,
+   "s": [
+    "npc",
+    5694,
+    "High Sorcerer Andromath"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    48.8,
+    87.6
+   ]
+  },
+  "92753": {
+   "n": "Destruction in Deadmines",
+   "prev": null,
+   "s": [
+    "npc",
+    253092,
+    "Alba Fairmoon"
+   ],
+   "z": [
+    40,
+    "Westfall",
+    52.4,
+    53
+   ]
+  },
+  "93404": {
+   "n": "Rot and Regret",
+   "prev": 93594,
+   "s": [
+    "npc",
+    254674,
+    "Woodwyrd"
+   ],
+   "z": [
+    16651,
+    "Shen'dralas",
+    69.4,
+    71.8
+   ]
+  },
+  "93594": {
+   "n": "Word of the Woods",
+   "prev": null,
+   "s": [
+    "npc",
+    254578,
+    "Mithera"
+   ],
+   "z": [
+    16651,
+    "Shen'dralas",
+    53,
+    75.8
+   ]
+  },
+  "95189": {
+   "n": "Crest of Lordaeron",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95195": {
+   "n": "Bloodied Insignia",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95204": {
+   "n": "Crest of Lordaeron",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95216": {
+   "n": "The New Plague",
+   "prev": null,
+   "s": [
+    "npc",
+    11835,
+    "Theodore Griffs"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    46.6,
+    71.8
+   ]
+  },
+  "95250": {
+   "n": "Abominable Creatures",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95646": {
+   "n": "Horrors in the Highland",
+   "prev": null,
+   "s": [
+    "npc",
+    1244,
+    "Rethiel the Greenwarden"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    56.2,
+    40.4
+   ]
+  },
+  "95647": {
+   "n": "Lost in the Thicket Things",
+   "prev": null,
+   "s": [
+    "npc",
+    1480,
+    "Caitlin Grassman"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    11.8,
+    58.8
+   ]
+  },
+  "95663": {
+   "n": "Dragonmaw Rumors",
+   "prev": null,
+   "s": [
+    "npc",
+    2787,
+    "Zaruk"
+   ],
+   "z": [
+    45,
+    "Arathi Highlands",
+    74.4,
+    35.6
+   ]
+  },
+  "95664": {
+   "n": "Elder Knowledge",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95682": {
+   "n": "Open the Maw",
+   "prev": 95663,
+   "s": [
+    "npc",
+    13155,
+    "Deathstalker Agent"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    51.4,
+    59.2
+   ]
+  },
+  "95697": {
+   "n": "Changing Tastes",
+   "prev": null,
+   "s": [
+    "npc",
+    3368,
+    "Borstan"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    57.4,
+    53.4
+   ]
+  },
+  "95737": {
+   "n": "Seeking Caitlin",
+   "prev": null,
+   "s": [
+    "npc",
+    3970,
+    "Llana"
+   ],
+   "z": [
+    331,
+    "Ashenvale",
+    35,
+    48.4
+   ]
+  },
+  "95772": {
+   "n": "Songblade Search",
+   "prev": null,
+   "s": [
+    "npc",
+    956,
+    "Dorin Songblade"
+   ],
+   "z": [
+    44,
+    "Redridge Mountains",
+    30.8,
+    46.6
+   ]
+  },
+  "95795": {
+   "n": "Fallen in the Fen",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95809": {
+   "n": "Heartwoven",
+   "prev": 95647,
+   "s": null,
+   "z": null
+  },
+  "95810": {
+   "n": "Lost Relic Carry",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "959": {
+   "n": "Trouble at the Docks",
+   "prev": null,
+   "s": [
+    "npc",
+    3665,
+    "Crane Operator Bigglefuzz"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    63,
+    37.6
+   ]
+  },
+  "962": {
+   "n": "Serpentbloom",
+   "prev": null,
+   "s": [
+    "npc",
+    3419,
+    "Apothecary Zamah"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    23,
+    21
+   ]
+  },
+  "96391": {
+   "n": "Underground Map",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "96393": {
+   "n": "Old Ironforge Incursion",
+   "prev": 96391,
+   "s": [
+    "npc",
+    264936,
+    "Earthseer Farsen"
+   ],
+   "z": [
+    1,
+    "Dun Morogh",
+    64.8,
+    58.4
+   ]
+  },
+  "96394": {
+   "n": "The Restless Dead",
+   "prev": null,
+   "s": [
+    "npc",
+    264943,
+    "Afadra Dunwall"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    33.2,
+    47.4
+   ]
+  },
+  "96395": {
+   "n": "An Ancient Grudge",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "96403": {
+   "n": "Important Heirlooms",
+   "prev": null,
+   "s": [
+    "npc",
+    265003,
+    "Thom Filch"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    32.4,
+    44.8
+   ]
+  },
+  "96770": {
+   "n": "The Witch Doctor's Head",
+   "prev": null,
+   "s": [
+    "npc",
+    20735,
+    "Archmage Lan'dalock"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    15.4,
+    73.8
+   ]
+  },
+  "96773": {
+   "n": "The Coldbringer's Eye",
+   "prev": null,
+   "s": [
+    "npc",
+    20735,
+    "Archmage Lan'dalock"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    15.4,
+    73.8
+   ]
+  },
+  "96775": {
+   "n": "Zum'rah's Head",
+   "prev": null,
+   "s": [
+    "npc",
+    264074,
+    "Mazu'kon"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    32.6,
+    20.6
+   ]
+  },
+  "96800": {
+   "n": "Past Due",
+   "prev": null,
+   "s": [
+    "npc",
+    264265,
+    "Magus Olvek"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    10,
+    63.8
+   ]
+  },
+  "96984": {
+   "n": "Heart of Disruption",
+   "prev": 92434,
+   "s": [
+    "npc",
+    269127,
+    "Image of Archmage Modera"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    68.6,
+    45.2
+   ]
+  },
+  "96986": {
+   "n": "The Grave Knight",
+   "prev": null,
+   "s": [
+    "npc",
+    2278,
+    "Melisara"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    62.6,
+    20.6
+   ]
+  },
+  "96987": {
+   "n": "Opportunistic Education",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "96988": {
+   "n": "Source of Power",
+   "prev": null,
+   "s": [
+    "npc",
+    11044,
+    "Doctor Martin Felben"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    46.6,
+    74.4
+   ]
+  },
+  "971": {
+   "n": "Knowledge in the Deeps",
+   "prev": null,
+   "s": [
+    "npc",
+    2786,
+    "Gerrig Bonegrip"
+   ],
+   "z": [
+    1537,
+    "Ironforge",
+    50.4,
+    6
+   ]
+  },
+  "97196": {
+   "n": "The Coldbringer's Eye",
+   "prev": null,
+   "s": [
+    "npc",
+    264078,
+    "Sutara Plainstalker"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    34.4,
+    22.8
+   ]
+  },
+  "97197": {
+   "n": "Fragment of the Firelands",
+   "prev": null,
+   "s": [
+    "npc",
+    259119,
+    "Alaana Stormwalker"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    33.4,
+    22.4
+   ]
+  },
+  "97287": {
+   "n": "Shrewd Negotiations",
+   "prev": 96984,
+   "s": [
+    "npc",
+    2410,
+    "Magus Wordeen Voidglare"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.6,
+    20.8
+   ]
+  },
+  "97288": {
+   "n": "Unending Torment",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "98815": {
+   "n": "Highland Hides",
+   "prev": null,
+   "s": [
+    "npc",
+    2094,
+    "James Halloran"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    8.6,
+    55.6
+   ]
+  },
+  "98823": {
+   "n": "Earthen Echo",
+   "prev": 95664,
+   "s": [
+    "npc",
+    9087,
+    "Bashana Runetotem"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    70.8,
+    33.8
+   ]
+  },
+  "98824": {
+   "n": "Prehistoric Prism",
+   "prev": 95810,
+   "s": [
+    "npc",
+    1077,
+    "Prospector Whelgar"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    38.8,
+    52.2
+   ]
+  },
+  "999": {
+   "n": "When Dreams Turn to Nightmares",
+   "prev": null,
+   "s": null,
+   "z": null
+  }
+ }
+}

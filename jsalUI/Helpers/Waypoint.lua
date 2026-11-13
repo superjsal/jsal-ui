@@ -117,6 +117,9 @@ local function FollowGuide()
         return
     end
     if not Ours() then return end
+    -- A pin asked for from a trainer, a vendor or a quest stays while it's on
+    -- the map, until it's reached or cleared; then the guide takes over again.
+    if ours and ours.source and ours.source ~= "guide" and Same(Current(), ours) then return end
     local spot = { map = map, x = x, y = y }
     -- Already there, unless the game took the pin away itself (a loading
     -- screen can): then it's put back.
@@ -182,7 +185,10 @@ local function Paint()
     end
     title:SetText(ours.label or "Waypoint")
     local yards = C_Navigation.GetDistance and C_Navigation.GetDistance()
-    if yards and yards <= ARRIVED then
+    -- Arrived only on the pin's own map: for a spot in another zone the game
+    -- can say 0 yards, which isn't being there.
+    local here = Compat.PlayerPosition and Compat.PlayerPosition()
+    if yards and yards > 0 and yards <= ARRIVED and (not here or here == ours.map) then
         distance:SetText("Arrived")
         arrivedAt = arrivedAt or GetTime()
         if ours.source ~= "guide" and GetTime() - arrivedAt >= LINGER then
