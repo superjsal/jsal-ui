@@ -609,42 +609,44 @@ end
 ---------------------------------------------------------------------------
 -- Its page.
 ---------------------------------------------------------------------------
-local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, wishLine, bondLine, walk, parts, fold, eggLine, pickLine
-local yardToggle, yardParts, yardHead, albumLine, nameBox, renameButton
-local yardList, yardBook, bookToggle, bookHead, mute, outButton, ground, sizeButton, bubble
+local window, pen, body, sprite, prop, effect, mud, snore, title, sub, message, walk, parts, fold
+local mute, ground, bubble
+-- The window's lesser parts, gathered in one table: the game's Lua lets a
+-- file declare 200 local variables and a function use 60 from outside
+-- itself, and this file was at the edge of both (limits_test.lua). A new
+-- part of the window goes in here, not in a local of its own.
+local ui = { chrome = {}, eggSlots = {}, picks = {}, roamers = {}, yardRows = {}, album = {}, book = {},
+    bookTurn = {}, bars = {}, care = {}, heaps = {} }
 -- The parts of the window that make it a window (its fill, edges and shadow,
 -- the pen's edges and meadows): all hidden while it's out with you.
-local chrome = {}
 
 -- The name box and its Confirm button, there only while a new hatchling is
 -- being named: a companion is named once, as it hatches, and keeps that name.
 local function NameBox(open)
-    nameBox.open = open and true or false
-    nameBox.well:SetShown(nameBox.open)
-    renameButton:SetShown(nameBox.open)
-    if nameBox.open then
-        nameBox:SetText(Pet.State().name)
-        nameBox:SetFocus()
-        nameBox:HighlightText()
+    ui.nameBox.open = open and true or false
+    ui.nameBox.well:SetShown(ui.nameBox.open)
+    ui.renameButton:SetShown(ui.nameBox.open)
+    if ui.nameBox.open then
+        ui.nameBox:SetText(Pet.State().name)
+        ui.nameBox:SetFocus()
+        ui.nameBox:HighlightText()
     else
-        nameBox:ClearFocus()
+        ui.nameBox:ClearFocus()
     end
 end
 
 -- Takes what's typed: Enter and the Confirm button both come here. A name
 -- that won't do leaves the box open to try again.
 local function TakeName()
-    if Pet.Rename(nameBox:GetText()) then NameBox(false) end
+    if Pet.Rename(ui.nameBox:GetText()) then NameBox(false) end
 end
 
-local eggSlots, picks, roamers, yardRows, album, book = {}, {}, {}, {}, {}, {}
 -- Whether the pen is showing the paddock (the companions that have settled)
 -- and not the companion you look after; and whether, under the paddock, the
 -- album is open and not the list of who has settled.
 local yard, albumOpen = false, false
 -- Which page of the album is showing, and its arrows and "1 / 2".
-local albumPage, bookTurn = 1, {}
-local bars, care, heaps = {}, {}, {}
+local albumPage = 1
 local HEAP_AT = { 30, 140, 260, 380 }
 local said
 
@@ -702,7 +704,7 @@ local function Sky()
     pen.dusk:SetAlpha(math.min(1, shade * 2))
     pen.night:SetAlpha(math.max(0, shade * 2 - 1))
     local r, g, b = Pet.Light(shade)
-    for _, heap in ipairs(heaps) do heap.pile:SetVertexColor(r, g, b) end
+    for _, heap in ipairs(ui.heaps) do heap.pile:SetVertexColor(r, g, b) end
     prop:SetVertexColor(r, g, b)
     effect:SetVertexColor(r, g, b)
 end
@@ -1111,7 +1113,7 @@ local function PaintYard(s)
     local first = math.max(1, #settled - YARD_MAX + 1)
     for i = 1, YARD_MAX do
         local record = settled[first + i - 1]
-        local r = roamers[i]
+        local r = ui.roamers[i]
         if record then
             if not r then
                 r = { body = CreateFrame("Frame", nil, pen) }
@@ -1122,7 +1124,7 @@ local function PaintYard(s)
                 r.snore = Style.Text(r.body, 11, "secondary", nil, true)
                 r.snore:SetPoint("BOTTOMLEFT", r.body, "TOPRIGHT", -22, -14)
                 r.snore:SetText("z z")
-                roamers[i] = r
+                ui.roamers[i] = r
             end
             if r.record ~= record then
                 r.record = record
@@ -1132,23 +1134,23 @@ local function PaintYard(s)
             end
             r.body:Show()
             PaintRoamer(r)
-            yardRows[i]:SetText(("%s the %s · %d day%s together · %s"):format(record.name, FormName(record, record.form),
+            ui.yardRows[i]:SetText(("%s the %s · %d day%s together · %s"):format(record.name, FormName(record, record.form),
                 record.days or 1, (record.days or 1) == 1 and "" or "s", record.bond or "Wary"))
         else
             if r then
                 r.record = nil
                 r.body:Hide()
             end
-            yardRows[i]:SetText("")
+            ui.yardRows[i]:SetText("")
         end
     end
-    yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown pal settles when you hatch an egg."
+    ui.yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown pal settles when you hatch an egg."
         or #settled > YARD_MAX and ("%d have settled here. The last %d:"):format(#settled, YARD_MAX)
         or #settled == 1 and "One has settled here." or ("%d have settled here."):format(#settled))
     -- Under the list, every kind's first form, in shadow until you've raised one.
     local raised, count = Pet.Raised(s, settled), 0
     for i, kind in ipairs(Rules.KINDS) do
-        local picture = album[i]
+        local picture = ui.album[i]
         if not picture.file then
             picture.file = Art(Rules.SPECIES[kind].sprites[1])
             picture:SetTexture(picture.file, "CLAMP", "CLAMP", "NEAREST")
@@ -1162,25 +1164,25 @@ local function PaintYard(s)
             picture:SetAlpha(0.5)
         end
     end
-    albumLine:SetText(("Kinds raised: %d of %d"):format(count, #Rules.KINDS))
+    ui.albumLine:SetText(("Kinds raised: %d of %d"):format(count, #Rules.KINDS))
     -- The album, in the list's place: every form of every kind, a kind to a
     -- column with its three forms down it, each in shadow and unnamed until
     -- one of yours has been it. Its pictures load the first time it's opened.
-    yardList:SetShown(not albumOpen)
-    yardBook:SetShown(albumOpen)
-    bookToggle:SetLabel(albumOpen and "List" or "Album")
+    ui.yardList:SetShown(not albumOpen)
+    ui.yardBook:SetShown(albumOpen)
+    ui.bookToggle:SetLabel(albumOpen and "List" or "Album")
     if not albumOpen then return end
     local seen = 0
     local pages = math.ceil(#Rules.KINDS / BOOK_PAGE)
     albumPage = math.max(1, math.min(pages, albumPage))
-    bookTurn.count:SetText(("%d / %d"):format(albumPage, pages))
-    bookTurn.count:SetShown(pages > 1)
-    bookTurn.back:SetShown(pages > 1)
-    bookTurn.on:SetShown(pages > 1)
+    ui.bookTurn.count:SetText(("%d / %d"):format(albumPage, pages))
+    ui.bookTurn.count:SetShown(pages > 1)
+    ui.bookTurn.back:SetShown(pages > 1)
+    ui.bookTurn.on:SetShown(pages > 1)
     for i, kind in ipairs(Rules.KINDS) do
         local species = Rules.SPECIES[kind]
-        local here = book[i].page == albumPage
-        for form, page in ipairs(book[i]) do
+        local here = ui.book[i].page == albumPage
+        for form, page in ipairs(ui.book[i]) do
             page.picture:SetShown(here)
             page.name:SetShown(here)
             if not page.file then
@@ -1195,7 +1197,7 @@ local function PaintYard(s)
             page.name:SetText(have and species.forms[form] or "? ? ?")
         end
     end
-    bookHead:SetText(("Forms seen: %d of %d. Each kind grows down its column."):format(seen, #Rules.KINDS * 3))
+    ui.bookHead:SetText(("Forms seen: %d of %d. Each kind grows down its column."):format(seen, #Rules.KINDS * 3))
 end
 
 local Layout
@@ -1209,7 +1211,7 @@ local function Refresh()
         Layout()
     end
     local offer = picking and Offer() or nil
-    for i, pick in ipairs(picks) do
+    for i, pick in ipairs(ui.picks) do
         pick:SetShown(picking)
         local kind = offer and Rules.EGGS[offer[i]]
         local file = kind and Art(kind.species .. "_egg")
@@ -1220,12 +1222,12 @@ local function Refresh()
         end
     end
     body:SetShown(not picking and not yard)
-    yardToggle:SetShown(not picking and not window.out)
+    ui.yardToggle:SetShown(not picking and not window.out)
     if picking then
         yard = false
         title:SetText("Choose your pal")
-        pickLine:SetText(said or "Three eggs have turned up. Click one for a closer look.")
-        for _, heap in ipairs(heaps) do heap:Hide() end
+        ui.pickLine:SetText(said or "Three eggs have turned up. Click one for a closer look.")
+        for _, heap in ipairs(ui.heaps) do heap:Hide() end
         pen.dark, pen.shade, walk = 0, 0, nil
         Sky()
         return
@@ -1235,17 +1237,17 @@ local function Refresh()
         window.yard = yard
         Layout()
     end
-    yardToggle:SetLabel(yard and "Back" or ("Paddock · %d"):format(#Settled()))
+    ui.yardToggle:SetLabel(yard and "Back" or ("Paddock · %d"):format(#Settled()))
     if yard then
         title:SetText("The paddock")
-        for _, heap in ipairs(heaps) do heap:Hide() end
+        for _, heap in ipairs(ui.heaps) do heap:Hide() end
         prop:Hide()
         -- The paddock is always by day, whatever the hour in the pen.
         pen.dark, pen.shade = 0, 0
         Sky()
         return PaintYard(s)
     end
-    for _, r in ipairs(roamers) do r.body:Hide() end
+    for _, r in ipairs(ui.roamers) do r.body:Hide() end
     local _, mood = Rules.Mood(s)
     title:SetText(looking and (Own(looking) and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
         or ("%s the %s"):format(s.name, FormName(s)))
@@ -1257,15 +1259,15 @@ local function Refresh()
     said = Milestones(s) or said
     message:SetText(said or "")
     local wish, granted = WishText(s)
-    wishLine:SetText(wish)
-    wishLine:SetTextColor(Style.Color(granted and "muted" or "text"))
-    bondLine:SetText(BondText(s))
+    ui.wishLine:SetText(wish)
+    ui.wishLine:SetTextColor(Style.Color(granted and "muted" or "text"))
+    ui.bondLine:SetText(BondText(s))
     for _, need in ipairs(Rules.NEEDS) do
-        local bar = bars[need]
+        local bar = ui.bars[need]
         bar.fill:SetWidth(math.max(1, bar.width * s[need] / 100))
         bar.fill:SetColorTexture(Style.Color(s[need] < 20 and "red" or "gold"))
     end
-    for i, heap in ipairs(heaps) do heap:SetShown(i <= s.droppings) end
+    for i, heap in ipairs(ui.heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
     -- Asleep, the pen is the same meadow by moonlight, and on the way there
     -- at sunset (tools/make_pet_night.py makes both), drawn over the day one:
@@ -1290,16 +1292,16 @@ local function Refresh()
         pen.shade = pen.dark
         Sky()
     end
-    care.meal:SetLabel(("Feed · %d"):format(s.supplies.meal))
-    care.treat:SetLabel(("Treat · %d"):format(s.supplies.treat))
-    care.toy:SetLabel(("Play · %d"):format(s.supplies.toy))
-    care.soap:SetLabel(("Bath · %d"):format(s.supplies.soap))
-    care.medicine:SetLabel(("Medicine · %d"):format(s.supplies.medicine))
-    care.medicine:SetEnabled(s.sick)
+    ui.care.meal:SetLabel(("Feed · %d"):format(s.supplies.meal))
+    ui.care.treat:SetLabel(("Treat · %d"):format(s.supplies.treat))
+    ui.care.toy:SetLabel(("Play · %d"):format(s.supplies.toy))
+    ui.care.soap:SetLabel(("Bath · %d"):format(s.supplies.soap))
+    ui.care.medicine:SetLabel(("Medicine · %d"):format(s.supplies.medicine))
+    ui.care.medicine:SetEnabled(s.sick)
     -- Newly poorly, or found so as its window opens: a small sad sound, once.
     if s.sick and not pen.sick then Pet.Sound("poorly") end
     pen.sick = s.sick and true or false
-    care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
+    ui.care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
     -- A form that has grown is drawn larger, and starts from a spot that fits it.
     -- Out with you, every form is at the art's own size, and keeps to its strip.
     local size, strip = SIZES[Form()] or SIZE, nil
@@ -1310,7 +1312,7 @@ local function Refresh()
     -- The eggs you hold, each with its picture, and where they came from.
     local eggs = Eggs()
     local names = {}
-    for i, slot in ipairs(eggSlots) do
+    for i, slot in ipairs(ui.eggSlots) do
         local egg = eggs[i]
         local kind = egg and Rules.EGGS[egg.kind]
         slot:SetShown(kind ~= nil)
@@ -1323,17 +1325,20 @@ local function Refresh()
             names[#names + 1] = ("%s (%s)"):format(kind.name, egg.from or "found")
         end
     end
-    eggLine:SetText(#names > 0 and ("Eggs: " .. table.concat(names, ", "))
+    -- (A boss's egg kept aside, past the three shown, is counted at the front,
+    -- where a long line isn't cut.)
+    local aside = #eggs - #ui.eggSlots
+    ui.eggLine:SetText(#names > 0 and ((aside > 0 and ("Eggs (%d more kept safe): "):format(aside) or "Eggs: ") .. table.concat(names, ", "))
         or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone, a fight won or coming back from the dead can turn one up."
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
     -- Just hatched and not yet named: the name box opens by itself, with the
     -- name it would otherwise have ready to type over.
-    if s.unnamed and not nameBox.asking then
-        nameBox.asking = true
+    if s.unnamed and not ui.nameBox.asking then
+        ui.nameBox.asking = true
         NameBox(true)
     elseif not s.unnamed then
-        nameBox.asking = nil
-        if nameBox.open then NameBox(false) end
+        ui.nameBox.asking = nil
+        if ui.nameBox.open then NameBox(false) end
     end
 end
 Pet.Refresh = Refresh
@@ -1668,20 +1673,20 @@ function Layout()
     window.out = out
     window.bar:SetShown(not small and not out)
     parts:SetShown(not small and not out and not picking and not window.yard)
-    yardParts:SetShown(window.yard == true and not small and not out and not picking)
-    bookToggle:SetShown(window.yard == true and not small and not out and not picking)
-    pickLine:SetShown(picking)
+    ui.yardParts:SetShown(window.yard == true and not small and not out and not picking)
+    ui.bookToggle:SetShown(window.yard == true and not small and not out and not picking)
+    ui.pickLine:SetShown(picking)
     -- Out with you, its buttons are only there while the pointer is over it.
     pen.over = nil
     fold:SetShown(not picking and not out)
     mute:SetShown(not picking and not out)
-    outButton:SetShown(not picking and not out and not window.yard)
-    sizeButton:Hide()
-    sizeButton:SetLabel(("%dx"):format(Pet.OutScale()))
+    ui.outButton:SetShown(not picking and not out and not window.yard)
+    ui.sizeButton:Hide()
+    ui.sizeButton:SetLabel(("%dx"):format(Pet.OutScale()))
     PaintMute()
     -- Nothing of a window is left then: no fill, no edges, no meadow, and
     -- nothing that would catch a click meant for the game but the creature.
-    for _, piece in ipairs(chrome) do piece:SetShown(not out) end
+    for _, piece in ipairs(ui.chrome) do piece:SetShown(not out) end
     ground:SetShown(out)
     pen:SetClipsChildren(not out)
     pen:EnableMouse(not out)
@@ -1707,7 +1712,7 @@ function Layout()
         window:SetSize(WIN_W, WIN_H)
     end
     -- Droppings: on the grass of the pen, or in a row along the strip.
-    for i, heap in ipairs(heaps) do
+    for i, heap in ipairs(ui.heaps) do
         heap:ClearAllPoints()
         if out then
             heap:SetPoint("BOTTOMLEFT", 8 + (i - 1) * 62, 0)
@@ -1808,7 +1813,7 @@ local function BuildPen()
         heap.pile = pile
         heap:SetScript("OnClick", function() Do(Rules.Scoop, nil, nil, nil, "scoop") end)
         heap:Hide()
-        heaps[i] = heap
+        ui.heaps[i] = heap
     end
 
     -- The creature: click it for a pat.
@@ -1831,10 +1836,10 @@ local function BuildPen()
     ground:SetTexCoord(0, 40 / 64, 0, 10 / 16)     -- the oval is in the corner of a 64 by 16 picture
     Compat.Crisp(ground)
     ground:Hide()
-    chrome = { pen.scene, pen.dusk, pen.night }
-    chrome[#chrome + 1] = window.fill
+    ui.chrome = { pen.scene, pen.dusk, pen.night }
+    ui.chrome[#ui.chrome + 1] = window.fill
     for _, pieces in ipairs({ window.edges or {}, window.shadow or {}, pen.edges or {} }) do
-        for _, piece in ipairs(pieces) do chrome[#chrome + 1] = piece end
+        for _, piece in ipairs(pieces) do ui.chrome[#ui.chrome + 1] = piece end
     end
     prop = pen:CreateTexture(nil, "ARTWORK")
     prop:SetSize(HEAP_W, HEAP_W)
@@ -1886,7 +1891,7 @@ local function BuildPen()
                 pen.over = over
                 fold:SetShown(over)
                 mute:SetShown(over)
-                sizeButton:SetShown(over)
+                ui.sizeButton:SetShown(over)
             end
             -- Standing about, it turns to look at the pointer when that comes near.
             if over and walk and walk.wait > 0 and not walk.act and not walk.nap then
@@ -1898,7 +1903,7 @@ local function BuildPen()
         -- The paddock: its settled companions go about their day, and nothing else moves.
         if yard then
             local dt = math.min(elapsed, 0.1)
-            for _, r in ipairs(roamers) do
+            for _, r in ipairs(ui.roamers) do
                 if r.record then
                     Pet.Roam(r, dt, math.random)
                     PaintRoamer(r)
@@ -1982,107 +1987,107 @@ local function BuildPen()
     mute:SetScript("OnClick", function() Pet.Mute() end)
 
     -- And beside that: out of its window, to walk about with you as you play.
-    outButton = Style.Button(pen, "Out", "plain", 36)
-    outButton:SetHeight(20)
-    outButton:SetPoint("TOPRIGHT", -52, -4)
-    outButton:SetFrameLevel(50)
-    outButton:SetAlpha(0.75)
-    outButton:SetScript("OnClick", function() Pet.Out() end)
+    ui.outButton = Style.Button(pen, "Out", "plain", 36)
+    ui.outButton:SetHeight(20)
+    ui.outButton:SetPoint("TOPRIGHT", -52, -4)
+    ui.outButton:SetFrameLevel(50)
+    ui.outButton:SetAlpha(0.75)
+    ui.outButton:SetScript("OnClick", function() Pet.Out() end)
 
     -- Out with you, in that button's place while the pointer is over it: how
     -- large it's drawn, once, twice or three times its art. A click goes round them.
-    sizeButton = Style.Button(pen, "1x", "plain", 28)
-    sizeButton:SetHeight(20)
-    sizeButton:SetPoint("TOPRIGHT", -52, -4)
-    sizeButton:SetFrameLevel(50)
-    sizeButton:SetAlpha(0.75)
-    sizeButton:SetScript("OnClick", function() Pet.Resize() end)
-    sizeButton:Hide()
+    ui.sizeButton = Style.Button(pen, "1x", "plain", 28)
+    ui.sizeButton:SetHeight(20)
+    ui.sizeButton:SetPoint("TOPRIGHT", -52, -4)
+    ui.sizeButton:SetFrameLevel(50)
+    ui.sizeButton:SetAlpha(0.75)
+    ui.sizeButton:SetScript("OnClick", function() Pet.Resize() end)
+    ui.sizeButton:Hide()
 
     -- In the pen's other corner: over to the paddock, and back.
-    yardToggle = Style.Button(pen, "Paddock", "plain", 92)
-    yardToggle:SetHeight(20)
-    yardToggle:SetPoint("TOPLEFT", 4, -4)
-    yardToggle:SetFrameLevel(50)
-    yardToggle:SetAlpha(0.85)
-    yardToggle:SetScript("OnClick", function() Pet.Paddock() end)
+    ui.yardToggle = Style.Button(pen, "Paddock", "plain", 92)
+    ui.yardToggle:SetHeight(20)
+    ui.yardToggle:SetPoint("TOPLEFT", 4, -4)
+    ui.yardToggle:SetFrameLevel(50)
+    ui.yardToggle:SetAlpha(0.85)
+    ui.yardToggle:SetScript("OnClick", function() Pet.Paddock() end)
 
 end
 
 local function BuildYard()
     -- Under the pen while the paddock shows: who has settled, then the album.
-    yardParts = CreateFrame("Frame", nil, window)
-    yardParts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
-    yardParts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
-    yardParts:Hide()
-    yardList = CreateFrame("Frame", nil, yardParts)
-    yardList:SetAllPoints()
-    yardHead = Style.Text(yardList, 12, "text")
-    yardHead:SetPoint("TOPLEFT", 0, -10)
-    yardHead:SetWidth(PEN_W)
+    ui.yardParts = CreateFrame("Frame", nil, window)
+    ui.yardParts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
+    ui.yardParts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
+    ui.yardParts:Hide()
+    ui.yardList = CreateFrame("Frame", nil, ui.yardParts)
+    ui.yardList:SetAllPoints()
+    ui.yardHead = Style.Text(ui.yardList, 12, "text")
+    ui.yardHead:SetPoint("TOPLEFT", 0, -10)
+    ui.yardHead:SetWidth(PEN_W)
     for i = 1, YARD_MAX do
-        local row = Style.Text(yardList, 12, "secondary")
+        local row = Style.Text(ui.yardList, 12, "secondary")
         row:SetPoint("TOPLEFT", 0, -(34 + (i - 1) * 20))
         row:SetWidth(PEN_W)
         row:SetWordWrap(false)
-        yardRows[i] = row
+        ui.yardRows[i] = row
     end
-    albumLine = Style.Text(yardList, 12, "text")
-    albumLine:SetPoint("TOPLEFT", 0, -(44 + YARD_MAX * 20))
+    ui.albumLine = Style.Text(ui.yardList, 12, "text")
+    ui.albumLine:SetPoint("TOPLEFT", 0, -(44 + YARD_MAX * 20))
     for i = 1, #Rules.KINDS do
-        local picture = yardList:CreateTexture(nil, "ARTWORK")
+        local picture = ui.yardList:CreateTexture(nil, "ARTWORK")
         picture:SetSize(64, 64)
         -- Side by side across the pen, however many kinds there are.
         picture:SetPoint("TOPLEFT", (i - 1) * math.floor((PEN_W - 64) / (#Rules.KINDS - 1)), -(64 + YARD_MAX * 20))
         Compat.Crisp(picture)
-        album[i] = picture
+        ui.album[i] = picture
     end
 
     -- The album, in the list's place when its button is pressed: a column
     -- for each kind, its three forms down it at the art's own size (a still
     -- is as large as a cell of its sheet), each with its name under it.
-    bookToggle = Style.Button(pen, "Album", "plain", 64)
-    bookToggle:SetHeight(20)
-    bookToggle:SetPoint("TOPLEFT", 100, -4)
-    bookToggle:SetFrameLevel(50)
-    bookToggle:SetAlpha(0.85)
-    bookToggle:SetScript("OnClick", function() Pet.Album() end)
-    bookToggle:Hide()
-    yardBook = CreateFrame("Frame", nil, yardParts)
-    yardBook:SetAllPoints()
-    yardBook:Hide()
-    bookHead = Style.Text(yardBook, 12, "text")
-    bookHead:SetPoint("TOPLEFT", 0, -10)
+    ui.bookToggle = Style.Button(pen, "Album", "plain", 64)
+    ui.bookToggle:SetHeight(20)
+    ui.bookToggle:SetPoint("TOPLEFT", 100, -4)
+    ui.bookToggle:SetFrameLevel(50)
+    ui.bookToggle:SetAlpha(0.85)
+    ui.bookToggle:SetScript("OnClick", function() Pet.Album() end)
+    ui.bookToggle:Hide()
+    ui.yardBook = CreateFrame("Frame", nil, ui.yardParts)
+    ui.yardBook:SetAllPoints()
+    ui.yardBook:Hide()
+    ui.bookHead = Style.Text(ui.yardBook, 12, "text")
+    ui.bookHead:SetPoint("TOPLEFT", 0, -10)
     -- Four kinds to a page, each in a column a quarter of the pen wide, and
     -- arrows at the top right to turn the page.
     local wide = math.floor(PEN_W / BOOK_PAGE)
-    bookTurn.on = Style.Button(yardBook, ">", "plain", 24)
-    bookTurn.on:SetHeight(20)
-    bookTurn.on:SetPoint("TOPRIGHT", 0, -6)
-    bookTurn.on:SetScript("OnClick", function() Pet.AlbumPage(1) end)
-    bookTurn.count = Style.Text(yardBook, 12, "secondary")
-    bookTurn.count:SetPoint("RIGHT", bookTurn.on, "LEFT", -6, 0)
-    bookTurn.back = Style.Button(yardBook, "<", "plain", 24)
-    bookTurn.back:SetHeight(20)
-    bookTurn.back:SetPoint("RIGHT", bookTurn.count, "LEFT", -6, 0)
-    bookTurn.back:SetScript("OnClick", function() Pet.AlbumPage(-1) end)
+    ui.bookTurn.on = Style.Button(ui.yardBook, ">", "plain", 24)
+    ui.bookTurn.on:SetHeight(20)
+    ui.bookTurn.on:SetPoint("TOPRIGHT", 0, -6)
+    ui.bookTurn.on:SetScript("OnClick", function() Pet.AlbumPage(1) end)
+    ui.bookTurn.count = Style.Text(ui.yardBook, 12, "secondary")
+    ui.bookTurn.count:SetPoint("RIGHT", ui.bookTurn.on, "LEFT", -6, 0)
+    ui.bookTurn.back = Style.Button(ui.yardBook, "<", "plain", 24)
+    ui.bookTurn.back:SetHeight(20)
+    ui.bookTurn.back:SetPoint("RIGHT", ui.bookTurn.count, "LEFT", -6, 0)
+    ui.bookTurn.back:SetScript("OnClick", function() Pet.AlbumPage(-1) end)
     for i, kind in ipairs(Rules.KINDS) do
         local slot = (i - 1) % BOOK_PAGE
-        book[i] = { page = math.floor((i - 1) / BOOK_PAGE) + 1 }
+        ui.book[i] = { page = math.floor((i - 1) / BOOK_PAGE) + 1 }
         for form, foot in ipairs(BOOK_ROWS) do
             local size = SHEETS[Rules.SPECIES[kind].sprites[form]].cell
-            local picture = yardBook:CreateTexture(nil, "ARTWORK")
+            local picture = ui.yardBook:CreateTexture(nil, "ARTWORK")
             picture:SetSize(size, size)
             -- A cell larger than 80 has that much more empty round the creature:
             -- lowered by half of it, its feet stand where the others' do.
-            picture:SetPoint("BOTTOM", yardBook, "TOPLEFT", slot * wide + wide / 2, -foot - math.max(0, size - 80) / 2)
+            picture:SetPoint("BOTTOM", ui.yardBook, "TOPLEFT", slot * wide + wide / 2, -foot - math.max(0, size - 80) / 2)
             Compat.Crisp(picture)
-            local name = Style.Text(yardBook, 11, "secondary")
-            name:SetPoint("TOP", yardBook, "TOPLEFT", slot * wide + wide / 2, -(foot + 2))
+            local name = Style.Text(ui.yardBook, 11, "secondary")
+            name:SetPoint("TOP", ui.yardBook, "TOPLEFT", slot * wide + wide / 2, -(foot + 2))
             name:SetWidth(wide)
             name:SetJustifyH("CENTER")
             name:SetWordWrap(false)
-            book[i][form] = { picture = picture, name = name }
+            ui.book[i][form] = { picture = picture, name = name }
         end
     end
 
@@ -2091,10 +2096,10 @@ end
 local function BuildPicks()
     -- For a new player: three eggs on the grass, each with its name over it,
     -- and a line under the pen that says what to do and what a click found.
-    pickLine = Style.Text(window, 12, "text")
-    pickLine:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, -12)
-    pickLine:SetWidth(PEN_W)
-    pickLine:Hide()
+    ui.pickLine = Style.Text(window, 12, "text")
+    ui.pickLine:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, -12)
+    ui.pickLine:SetWidth(PEN_W)
+    ui.pickLine:Hide()
     for i = 1, Rules.OFFERED do
         local pick = CreateFrame("Button", nil, pen)
         pick:SetSize(64, 84)
@@ -2110,7 +2115,7 @@ local function BuildPicks()
         pick.name:SetPoint("TOP", 0, 0)
         pick:SetScript("OnClick", function() Pet.Choose(i) end)
         pick:Hide()
-        picks[i] = pick
+        ui.picks[i] = pick
     end
 
 end
@@ -2141,16 +2146,16 @@ local function BuildParts()
         local fill = parts:CreateTexture(nil, "OVERLAY")
         fill:SetPoint("TOPLEFT", track, "TOPLEFT")
         fill:SetHeight(6)
-        bars[need] = { fill = fill, width = half - 66 }
+        ui.bars[need] = { fill = fill, width = half - 66 }
     end
 
     -- Today's wish, then the bond, then what just happened.
-    wishLine = Style.Text(parts, 12, "text")
-    wishLine:SetPoint("TOPLEFT", 0, -84)
-    wishLine:SetWidth(PEN_W)
-    wishLine:SetWordWrap(false)
-    bondLine = Style.Text(parts, 12, "secondary")
-    bondLine:SetPoint("TOPLEFT", 0, -102)
+    ui.wishLine = Style.Text(parts, 12, "text")
+    ui.wishLine:SetPoint("TOPLEFT", 0, -84)
+    ui.wishLine:SetWidth(PEN_W)
+    ui.wishLine:SetWordWrap(false)
+    ui.bondLine = Style.Text(parts, 12, "secondary")
+    ui.bondLine:SetPoint("TOPLEFT", 0, -102)
     message = Style.Text(parts, 12, "gold")
     message:SetPoint("TOPLEFT", 0, -122)
     message:SetWidth(PEN_W)
@@ -2163,7 +2168,7 @@ local function BuildParts()
         b:SetHeight(28)
         b:SetPoint("TOPLEFT", (count % 3) * 149, -(146 + math.floor(count / 3) * 34))
         b:SetScript("OnClick", function() Do(act, show, thing, over, sound) end)
-        care[key] = b
+        ui.care[key] = b
         count = count + 1
     end
     Care("meal", Rules.Feed, "eat", "bowl", nil, "eat")
@@ -2177,10 +2182,10 @@ local function BuildParts()
     hint:SetWidth(PEN_W)
     hint:SetText("Quests bring meals, flights bring toys, fishing and Cooking bring treats, First Aid medicine, a new level some of each. Click it for a pat, right-click for a trick, the grass to call it over, a dropping to scoop it.")
     -- The eggs you hold: what they are, then one picture each to click.
-    eggLine = Style.Text(parts, 12, "secondary")
-    eggLine:SetPoint("TOPLEFT", 0, -258)
-    eggLine:SetWidth(PEN_W)
-    eggLine:SetWordWrap(false)
+    ui.eggLine = Style.Text(parts, 12, "secondary")
+    ui.eggLine:SetPoint("TOPLEFT", 0, -258)
+    ui.eggLine:SetWidth(PEN_W)
+    ui.eggLine:SetWordWrap(false)
     for i = 1, Rules.MAX_EGGS do
         local slot = CreateFrame("Button", nil, parts)
         slot:SetSize(EGG_W + 8, EGG_W + 4)
@@ -2192,26 +2197,26 @@ local function BuildParts()
         Compat.Crisp(slot.picture)
         slot:SetScript("OnClick", function() Pet.HatchEgg(i) end)
         slot:Hide()
-        eggSlots[i] = slot
+        ui.eggSlots[i] = slot
     end
     -- Beside the eggs, only while a new hatchling is being named: a box for
     -- its name and a button to confirm it. Enter does the same; Escape, or
     -- confirming the name offered, keeps that name.
-    renameButton = Style.Button(parts, "Confirm", "plain", 141)
-    renameButton:SetHeight(28)
-    renameButton:SetPoint("TOPLEFT", 298, -282)
-    nameBox = Style.Field(parts, 141)
-    nameBox.well:SetPoint("TOPLEFT", 149, -283)
-    nameBox.well:Hide()
-    nameBox:SetMaxLetters(16)
-    nameBox:SetScript("OnEnterPressed", TakeName)
-    nameBox:SetScript("OnEscapePressed", function()
+    ui.renameButton = Style.Button(parts, "Confirm", "plain", 141)
+    ui.renameButton:SetHeight(28)
+    ui.renameButton:SetPoint("TOPLEFT", 298, -282)
+    ui.nameBox = Style.Field(parts, 141)
+    ui.nameBox.well:SetPoint("TOPLEFT", 149, -283)
+    ui.nameBox.well:Hide()
+    ui.nameBox:SetMaxLetters(16)
+    ui.nameBox:SetScript("OnEnterPressed", TakeName)
+    ui.nameBox:SetScript("OnEscapePressed", function()
         -- Escape keeps the name it has, and that settles it for a new hatchling too.
         Pet.State().unnamed = nil
         NameBox(false)
     end)
-    renameButton:SetScript("OnClick", TakeName)
-    renameButton:Hide()
+    ui.renameButton:SetScript("OnClick", TakeName)
+    ui.renameButton:Hide()
 end
 
 local function Build()
@@ -2294,14 +2299,23 @@ end
 Pet.Luck = math.random
 function Pet.Found(source, roll)
     -- Not while it's still growing: there aren't so many kinds that eggs should pile up.
-    if not Rules.CanFind(Pet.State()) then return false end
+    -- (A boss's egg is found all the same, and kept aside when your hands are full.)
+    if not Rules.CanFind(Pet.State(), source) then return false end
     local kind = Rules.EggFrom(source, roll or Pet.Luck())
     if not kind then return false end
     local where = ZoneName() or "your travels"
-    if not Rules.FindEgg(Eggs(), kind, where, Now()) then return false end
     local name = Rules.EGGS[kind].name
     local a = name:find("^[AEIOU]") and "an" or "a"
-    ns.Print(("You found %s %s in %s! /jsal pet shows your eggs."):format(a, name, where))
+    local kept, aside = Rules.FindEgg(Eggs(), kind, where, Now())
+    if not kept then
+        -- Everyday eggs come and go unseen; a rare one left behind is worth a line.
+        if Rules.Rare(source) then
+            ns.Print(("There was %s %s in %s, but you can't carry another egg. Hatch one of yours to make room."):format(a, name, where))
+        end
+        return false
+    end
+    ns.Print(aside and ("You found %s %s in %s! Your hands are full, so it's kept safe: it takes the place of the next egg you hatch."):format(a, name, where)
+        or ("You found %s %s in %s! /jsal pet shows your eggs."):format(a, name, where))
     Pet.Sound("fanfare")
     Pet.React("glad")
     local J = ns.Journal
@@ -2613,7 +2627,14 @@ function Pet:OnEnable()
         elseif event == "ENCOUNTER_END" then
             -- encounterID, encounterName, difficultyID, groupSize, success
             local boss = Rules.BOSSES[tonumber(text) or 0]
-            if boss and Compat.Plain(select(4, ...)) == 1 then Pet.Found(boss) end
+            local won = Compat.Plain(select(4, ...)) == 1
+            -- A beta build says what the game called the fight, so the numbers
+            -- the boss eggs go by can be checked on a kill ("hidden": the game
+            -- kept it back, and no egg can come of it).
+            if Pet.Trials(ns.version) then
+                ns.Print(("Boss fight %s (%s): %s."):format(tostring(text or "hidden"), tostring(Compat.Plain((...)) or "hidden"), won and "won" or "not won"))
+            end
+            if boss and won then Pet.Found(boss) end
         elseif event == "LEARNED_SPELL_IN_SKILL_LINE" then
             if Now() >= learnAfter then Pet.Found("learn") end
         elseif event == "LOOT_READY" then
@@ -2879,6 +2900,23 @@ function Pet.Stock()
     if IsOpen() then Refresh() else Pet.Open() end
 end
 Trial("pet stock", Pet.Stock)
+
+-- /jsal pet boss onyxia, /jsal pet boss ragnaros: as if that boss had just
+-- fallen with the luck on your side, so its egg and what's said of it can be
+-- seen without a raid and a one-in-ten roll. The egg is a real one. Beta
+-- builds only.
+function Pet.Boss(source)
+    if not Pet.running then
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
+    end
+    if Pet.State().unchosen then return ns.Print("Choose an egg first.") end
+    if not Rules.Rare(source) then return ns.Print("No boss of that name leaves an egg.") end
+    -- (Found says what happened, kept or left behind.)
+    Pet.Found(source, 0)
+end
+for _, source in pairs(Rules.BOSSES) do
+    Trial("pet boss " .. source, function() Pet.Boss(source) end)
+end
 
 -- /jsal pet wish: today's wish is swapped for the next kind in the list,
 -- not yet granted, so a wish can be tried on a day it didn't fall on (or
