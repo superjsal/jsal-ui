@@ -51,6 +51,9 @@ local YARD_MAX = 6        -- how many settled companions wander the paddock, and
 -- In the album, how far down its page each row of pictures stands: first
 -- forms, then middle ones, then last, the larger ones with more room.
 local BOOK_ROWS = { 94, 196, 298 }
+-- And how many kinds it shows side by side: more than that and it turns
+-- over to another page (John, 12 Nov 2026, with eight kinds: "Two pages of four").
+local BOOK_PAGE = 4
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
@@ -317,6 +320,12 @@ local SHEETS = {
     boltusk = Packed("boltusk_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     rumbletrunk = Packed("rumbletrunk_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     warmammoth = Packed("warmammoth_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    gemlet = Packed("gemlet_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    miragehoof = Packed("miragehoof_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    sandseer = Packed("sandseer_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    pebblebill = Packed("pebblebill_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    cobbleback = Packed("cobbleback_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    rockwarden = Packed("rockwarden_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
 -- of three after another. `form` is which of the three sizes it's drawn at.
@@ -339,6 +348,12 @@ local LOOKS = {
     { sprite = "boltusk", name = "Boltusk", form = 1 },
     { sprite = "rumbletrunk", name = "Rumbletrunk", form = 2 },
     { sprite = "warmammoth", name = "Warmammoth", form = 3 },
+    { sprite = "gemlet", name = "Gemlet", form = 1 },
+    { sprite = "miragehoof", name = "Miragehoof", form = 2 },
+    { sprite = "sandseer", name = "Sandseer", form = 3 },
+    { sprite = "pebblebill", name = "Pebblebill", form = 1 },
+    { sprite = "cobbleback", name = "Cobbleback", form = 2 },
+    { sprite = "rockwarden", name = "Rockwarden", form = 3 },
 }
 Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
@@ -606,6 +621,8 @@ local eggSlots, picks, roamers, yardRows, album, book = {}, {}, {}, {}, {}, {}
 -- and not the companion you look after; and whether, under the paddock, the
 -- album is open and not the list of who has settled.
 local yard, albumOpen = false, false
+-- Which page of the album is showing, and its arrows and "1 / 2".
+local albumPage, bookTurn = 1, {}
 local bars, care, heaps = {}, {}, {}
 local HEAP_AT = { 30, 140, 260, 380 }
 local said
@@ -1133,9 +1150,18 @@ local function PaintYard(s)
     bookToggle:SetLabel(albumOpen and "List" or "Album")
     if not albumOpen then return end
     local seen = 0
+    local pages = math.ceil(#Rules.KINDS / BOOK_PAGE)
+    albumPage = math.max(1, math.min(pages, albumPage))
+    bookTurn.count:SetText(("%d / %d"):format(albumPage, pages))
+    bookTurn.count:SetShown(pages > 1)
+    bookTurn.back:SetShown(pages > 1)
+    bookTurn.on:SetShown(pages > 1)
     for i, kind in ipairs(Rules.KINDS) do
         local species = Rules.SPECIES[kind]
+        local here = book[i].page == albumPage
         for form, page in ipairs(book[i]) do
+            page.picture:SetShown(here)
+            page.name:SetShown(here)
             if not page.file then
                 page.file = Art(species.sprites[form])
                 page.picture:SetTexture(page.file, "CLAMP", "CLAMP", "NEAREST")
@@ -2006,17 +2032,30 @@ local function BuildYard()
     yardBook:Hide()
     bookHead = Style.Text(yardBook, 12, "text")
     bookHead:SetPoint("TOPLEFT", 0, -10)
-    local wide = math.floor(PEN_W / #Rules.KINDS)
+    -- Four kinds to a page, each in a column a quarter of the pen wide, and
+    -- arrows at the top right to turn the page.
+    local wide = math.floor(PEN_W / BOOK_PAGE)
+    bookTurn.on = Style.Button(yardBook, ">", "plain", 24)
+    bookTurn.on:SetHeight(20)
+    bookTurn.on:SetPoint("TOPRIGHT", 0, -6)
+    bookTurn.on:SetScript("OnClick", function() Pet.AlbumPage(1) end)
+    bookTurn.count = Style.Text(yardBook, 12, "secondary")
+    bookTurn.count:SetPoint("RIGHT", bookTurn.on, "LEFT", -6, 0)
+    bookTurn.back = Style.Button(yardBook, "<", "plain", 24)
+    bookTurn.back:SetHeight(20)
+    bookTurn.back:SetPoint("RIGHT", bookTurn.count, "LEFT", -6, 0)
+    bookTurn.back:SetScript("OnClick", function() Pet.AlbumPage(-1) end)
     for i, kind in ipairs(Rules.KINDS) do
-        book[i] = {}
+        local slot = (i - 1) % BOOK_PAGE
+        book[i] = { page = math.floor((i - 1) / BOOK_PAGE) + 1 }
         for form, foot in ipairs(BOOK_ROWS) do
             local size = SHEETS[Rules.SPECIES[kind].sprites[form]].cell
             local picture = yardBook:CreateTexture(nil, "ARTWORK")
             picture:SetSize(size, size)
-            picture:SetPoint("BOTTOM", yardBook, "TOPLEFT", (i - 1) * wide + wide / 2, -foot)
+            picture:SetPoint("BOTTOM", yardBook, "TOPLEFT", slot * wide + wide / 2, -foot)
             Compat.Crisp(picture)
             local name = Style.Text(yardBook, 11, "secondary")
-            name:SetPoint("TOP", yardBook, "TOPLEFT", (i - 1) * wide + wide / 2, -(foot + 2))
+            name:SetPoint("TOP", yardBook, "TOPLEFT", slot * wide + wide / 2, -(foot + 2))
             name:SetWidth(wide)
             name:SetJustifyH("CENTER")
             name:SetWordWrap(false)
@@ -2394,6 +2433,15 @@ end
 function Pet.Album()
     if not (window and window:IsShown() and yard) then return end
     albumOpen = not albumOpen
+    if albumOpen then albumPage = 1 end
+    Refresh()
+end
+
+-- The album's arrows: the next page or the one before, round again past the ends.
+function Pet.AlbumPage(step)
+    if not albumOpen then return end
+    local pages = math.ceil(#Rules.KINDS / BOOK_PAGE)
+    albumPage = (albumPage - 1 + (step or 1)) % pages + 1
     Refresh()
 end
 
@@ -2526,6 +2574,10 @@ function Pet:OnEnable()
     -- Out of a fight. (A boss brought down, ENCOUNTER_END, is kept for rarer
     -- eggs to come: John, 12 Nov 2026.)
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
+    -- A new spell learned (from a trainer, mostly): the Crystal egg's source.
+    -- Not in the first moments after logging in, in case the game says so then.
+    events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
+    local learnAfter = Now() + 10
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, text)
         -- A chat line can be hidden in a dungeon: then it's nil.
         text = Compat.Plain(text)
@@ -2533,11 +2585,14 @@ function Pet:OnEnable()
             -- A fight you walked away from: once in a long while there's
             -- something in the wreckage.
             if not Compat.Dead() then Pet.Found("fight") end
+        elseif event == "LEARNED_SPELL_IN_SKILL_LINE" then
+            if Now() >= learnAfter then Pet.Found("learn") end
         elseif event == "LOOT_READY" then
             -- A catch, not a corpse; and the game can say so twice for one catch.
             if Compat.Fished() and Now() - fished >= 2 then
                 fished = Now()
                 Pet.Extra("fishing")
+                Pet.Found("fishing")
             end
         elseif event == "CHAT_MSG_SKILL" then
             -- "Your skill in Cooking has increased to 76."

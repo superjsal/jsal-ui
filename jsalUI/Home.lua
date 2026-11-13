@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "/jsal unlock moves every jsal.ui piece, on a grid, with exact X and Y if you like",
-    "The Companion has a name of its own now: Jsal's Pals. Your pal is just as it was",
-    "Setup no longer offers the jsal.ui look, which isn't ready yet",
+    "Beta: two new kinds to raise in Jsal's Pals, a crystal camel and a rock platypus",
+    "The Crystal egg comes from learning a spell, and the River Stone egg from fishing",
+    "The album of every form you've raised turns its pages now, four kinds to a page",
 }
 
 local function NewsWanted()
