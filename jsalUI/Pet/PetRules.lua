@@ -184,6 +184,9 @@ function Rules.Wants(s)
         return "poorly", s.name .. " is poorly", "Medicine mends it at once; a few hours' rest does too"
     end
     if s.asleep then return nil end
+    if s.grewFrom then
+        return "grow", s.name .. " is ready to grow", "Open its pen and press Grow to watch"
+    end
     if s.droppings > 0 then
         return "scoop", s.name .. "'s pen needs scooping", "Left lying, it slowly dirties the pen"
     end
@@ -265,6 +268,10 @@ function Rules.Advance(s, now)
     s.stamp = now
     local form = Rules.FormFor(s.good)
     if form > s.form then
+        -- The form it was, kept until you've pressed Grow in its pen and
+        -- seen it grow (the earliest, if it was ready twice over): till then
+        -- it's drawn and named as it was, and it's "ready to grow".
+        s.grewFrom = s.grewFrom or s.form
         s.form, s.grew = form, true
     end
     return s
@@ -590,6 +597,7 @@ end
 ---------------------------------------------------------------------------
 function Rules.CanSettle(s, eggs)
     if s.form < 3 then return false, "It isn't fully grown yet." end
+    if s.grewFrom then return false, "It's ready to grow: press Grow in its pen first." end
     if #(eggs or {}) < 1 then return false, "Find an egg first, so you're never without a pal." end
     return true
 end
