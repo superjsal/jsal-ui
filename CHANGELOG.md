@@ -1,9 +1,13 @@
 # jsal.ui 0.3.37
 
-Coming from 0.3.36, a /reload is enough. From 0.3.35 or earlier, restart the game after updating.
+Restart the game after updating (exit and start it again): this version adds a new picture, and a /reload doesn't load it.
 
+- **Jsal's Pals: watch your pal grow.** When it has had enough good days it's ready to grow, and it waits for you so you never miss it. Its pen and Today say so. Press **Grow** in its pen: a light gathers over it, and out it comes in its next form.
+  - Until you press it, it stays just as it was, and what it will become isn't told.
 - **Jsal's Pals: a rare egg is never lost for want of room.** With three eggs in hand, a rare one used to be left behind without a word. Now it's kept safe, and takes the place of the next egg you hatch.
   - **And it can turn up while your pal is still growing.** Everyday eggs still wait until your pal is fully grown.
+
+- **A smaller download.** The pals' pictures take about a third less room, with not a pixel changed.
 
 ## In 0.3.36
 

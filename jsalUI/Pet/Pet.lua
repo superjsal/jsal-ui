@@ -603,7 +603,7 @@ function Pet.Wants()
     local key, title, sub = Rules.Wants(s)
     if not key then return nil end
     local sprites = Rules.Species(s).sprites
-    return { key = key, title = title, sub = sub, texture = Art(sprites[s.form] or sprites[1]) }
+    return { key = key, title = title, sub = sub, texture = Art(sprites[s.grewFrom or s.form] or sprites[1]) }
 end
 
 ---------------------------------------------------------------------------
@@ -654,7 +654,8 @@ local said
 -- changes, nothing saved does, and a reload forgets it.
 local looking       -- an entry of LOOKS, or nil for the companion as it is
 local function Form()
-    return looking and looking.form or Pet.State().form
+    local s = Pet.State()
+    return looking and looking.form or s.grewFrom or s.form
 end
 
 -- The name its pictures go by: the look's, or its own form's.
@@ -662,13 +663,15 @@ local function Sprite()
     if looking then return looking.sprite end
     local s = Pet.State()
     local sprites = Rules.Species(s).sprites
-    return sprites[s.form] or sprites[1]
+    -- Ready to grow, and not yet seen growing: it's drawn as it was until
+    -- the light has closed over it (Pet.Growing).
+    return sprites[s.grewFrom or s.form] or sprites[1]
 end
 
 -- What its form is called.
 local function FormName(s, form)
     local forms = Rules.Species(s).forms
-    return forms[form or s.form] or forms[1]
+    return forms[form or s.grewFrom or s.form] or forms[1]
 end
 
 -- Whether a look is one of the companion's own line.
@@ -693,6 +696,40 @@ end
 -- The sheet of the form that's drawn now, if that form has one.
 local function Sheet()
     return SHEETS[Sprite()]
+end
+
+-- Growing into its next form. With the good hours for it, it's "ready to
+-- grow" and waits, as it was, for you to press Grow in its pen (Pet.GrowNow),
+-- so it's never missed. Then motes of gold drift in and a ball of light grows
+-- over it (`gather` seconds), the ball throbs while it changes underneath
+-- (it's the new form from `turn` on), then bursts (from `burst`) and there
+-- it is, grown. One picture of sixteen 128-pixel cells, eight to a row
+-- (tools/make_pet_grow.py), drawn over it at twice the size it stands in.
+Pet.GROW = { file = "grow", gather = 1.4, turn = 1.7, burst = 2, length = 2.96 }
+-- The cell of that picture to show, `clock` seconds in.
+function Pet.GrowCell(clock)
+    local g = Pet.GROW
+    if clock < g.gather then return math.floor(clock / 0.2) end
+    if clock < g.burst then return 7 - math.floor((clock - g.gather) / 0.1) % 2 end
+    return 8 + math.min(7, math.floor((clock - g.burst) / 0.12))
+end
+-- Called as its window moves it on, awake. Turns it into its new form once
+-- the light has closed over it (true then, once: its window has more to
+-- say), and has it show off when the light has gone.
+function Pet.Growing(walk, s)
+    local act = walk.act
+    if act and act.name == "grow" then
+        if s.grewFrom and act.clock >= Pet.GROW.turn then
+            s.grewFrom, s.grown, walk.grown = nil, true, true
+            Pet.Sound("fanfare")
+            return true
+        end
+    elseif walk.grown and not act then
+        walk.grown = nil
+        local sheet = Sheet()
+        if not Pet.Play(walk, sheet, "special") then Pet.Play(walk, sheet, "jump") end
+    end
+    return false
 end
 
 -- Day, sunset or night in the pen, from how far the day has gone
@@ -820,6 +857,28 @@ local function PaintWalk()
         effect:Show()
     else
         effect:Hide()
+    end
+    -- Growing: the light over it, and over everything else on it. It keeps
+    -- its own colour at night: it's light.
+    if act and act.name == "grow" then
+        if not ui.grow then
+            ui.grow = body:CreateTexture(nil, "OVERLAY", nil, 3)
+            ui.grow:SetTexture(Art(Pet.GROW.file), "CLAMP", "CLAMP", "NEAREST")
+            Compat.Crisp(ui.grow)
+        end
+        -- It stays where it started, whatever size the creature under it becomes.
+        if ui.grow.wide ~= act.wide or ui.grow.cx ~= act.cx or ui.grow.cy ~= act.cy then
+            ui.grow.wide, ui.grow.cx, ui.grow.cy = act.wide, act.cx, act.cy
+            ui.grow:ClearAllPoints()
+            ui.grow:SetPoint("CENTER", pen, "TOPLEFT", act.cx, -act.cy)
+            ui.grow:SetSize(act.wide, act.wide)
+        end
+        local cell = Pet.GrowCell(act.clock)
+        local col, row = cell % 8, math.floor(cell / 8)
+        ui.grow:SetTexCoord(col / 8, (col + 1) / 8, row / 2, (row + 1) / 2)
+        ui.grow:Show()
+    elseif ui.grow then
+        ui.grow:Hide()
     end
     -- Standing still, or drooped, it shivers now and then.
     local shiver = 0
@@ -988,8 +1047,18 @@ local function Milestones(s)
     end
     if s.grew then
         s.grew = nil
+        if s.grewFrom then
+            -- Ready, and waiting for you: what it grows into isn't said yet.
+            told[#told + 1] = ("%s is ready to grow! Press Grow in its pen to watch."):format(s.name)
+        else
+            told[#told + 1] = ("%s has grown into a %s!"):format(s.name, form)
+            Pet.Sound("fanfare")
+        end
+    end
+    -- Seen growing, a moment ago (its fanfare went with that).
+    if s.grown then
+        s.grown = nil
         told[#told + 1] = ("%s has grown into a %s!"):format(s.name, form)
-        Pet.Sound("fanfare")
     end
     if s.bonded then
         -- Each level after the first teaches it a trick.
@@ -1030,6 +1099,7 @@ end
 
 -- How long until it grows, in words; nil once it's fully grown.
 local function Growing(s)
+    if s.grewFrom then return "ready to grow" end
     local goal = s.form == 1 and Rules.GROWN or s.form == 2 and Rules.FULL or nil
     if not goal then return nil end
     local days = math.max(1, math.ceil((goal - s.good) / 24))
@@ -1101,7 +1171,7 @@ function Pet.Raised(s, settled)
         kind = kind or "briarboar"
         raised[kind] = math.max(raised[kind] or 0, form or 1)
     end
-    if not s.unchosen then Note(s.species, s.form) end
+    if not s.unchosen then Note(s.species, s.grewFrom or s.form) end
     for _, record in ipairs(settled) do Note(record.species, record.form or 3) end
     return raised
 end
@@ -1269,6 +1339,8 @@ local function Refresh()
     end
     for i, heap in ipairs(ui.heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
+    -- Ready to grow: the button for it, until it is pressed.
+    ui.growButton:SetShown(s.grewFrom ~= nil and not s.unchosen and not looking and not (walk and walk.act and walk.act.name == "grow"))
     -- Asleep, the pen is the same meadow by moonlight, and on the way there
     -- at sunset (tools/make_pet_night.py makes both), drawn over the day one:
     -- how far the day has gone is `shade`, which each frame moves toward
@@ -1306,7 +1378,18 @@ local function Refresh()
     -- Out with you, every form is at the art's own size, and keeps to its strip.
     local size, strip = SIZES[Form()] or SIZE, nil
     if window.out then size, strip = outSize, stripW end
-    if not walk or walk.size ~= size or walk.strip ~= strip then walk = Pet.NewWalk(math.random, size, strip) end
+    if not walk or walk.size ~= size or walk.strip ~= strip then
+        local was = walk
+        walk = Pet.NewWalk(math.random, size, strip)
+        -- Changing under the light it grows in: it stays where it stands, its
+        -- feet where they were, and goes on with what it was about.
+        if was and was.act and was.act.name == "grow" and was.strip == strip then
+            local x = math.max(0, math.min((strip or PEN_W) - size, was.x + (was.size - size) / 2))
+            local y = strip and walk.y or math.max(0, math.min(PEN_H - size, was.y + was.size - size))
+            walk.x, walk.y, walk.tx, walk.ty = x, y, x, y
+            walk.act, walk.grown, walk.facing, walk.wait = was.act, was.grown, was.facing, 1
+        end
+    end
     if fresh and not looking and Pet.Play(walk, Sheet(), "hatch") then Pet.Sound("hatch") end
     PaintWalk()
     -- The eggs you hold, each with its picture, and where they came from.
@@ -1681,6 +1764,9 @@ function Layout()
     fold:SetShown(not picking and not out)
     mute:SetShown(not picking and not out)
     ui.outButton:SetShown(not picking and not out and not window.yard)
+    -- Ready to grow: the button for it, until it's pressed.
+    ui.growButton:SetShown(Pet.State().grewFrom ~= nil and not picking and not window.yard and not looking
+        and not (walk and walk.act and walk.act.name == "grow"))
     ui.sizeButton:Hide()
     ui.sizeButton:SetLabel(("%dx"):format(Pet.OutScale()))
     PaintMute()
@@ -1940,6 +2026,7 @@ local function BuildPen()
                 if not window.out then Tend(sheet, dt) end
                 local walking = walk.wait <= 0
                 Pet.Step(walk, dt, math.random)
+                if Pet.Growing(walk, Pet.State()) then Refresh() end
                 -- Just arrived somewhere, and not hurrying after you: now and then it does something.
                 local moving = going and going.moving
                 if not moving then walk.whim = nil end
@@ -1985,6 +2072,13 @@ local function BuildPen()
     mute.icon:SetPoint("CENTER")
     Compat.Crisp(mute.icon)
     mute:SetScript("OnClick", function() Pet.Mute() end)
+
+    -- In the middle of the pen, only while it's ready to grow: it waits for this.
+    ui.growButton = Style.Button(pen, "Grow", "primary", 96)
+    ui.growButton:SetPoint("TOP", 0, -30)
+    ui.growButton:SetFrameLevel(50)
+    ui.growButton:SetScript("OnClick", function() Pet.GrowNow() end)
+    ui.growButton:Hide()
 
     -- And beside that: out of its window, to walk about with you as you play.
     ui.outButton = Style.Button(pen, "Out", "plain", 36)
@@ -2786,6 +2880,55 @@ function Pet.Hatch()
     Refresh()
 end
 Trial("pet hatch", Pet.Hatch)
+
+-- The Grow button: ready to grow, it does, there in its pen as you watch.
+-- False when it isn't ready, is asleep, or is already about it.
+function Pet.GrowNow()
+    local s = Pet.State()
+    if not walk or not s.grewFrom or (walk.act and walk.act.name == "grow") then return false end
+    if s.asleep then
+        said = ("%s is asleep. It can grow when it wakes."):format(s.name)
+        Refresh()
+        return false
+    end
+    -- The light is as large as the larger of the two forms needs, twice as
+    -- wide as that form is drawn, and is over where that form will stand:
+    -- on the same feet.
+    local sprites = Rules.Species(s).sprites
+    local was, now = SHEETS[sprites[s.grewFrom] or ""], SHEETS[sprites[s.form] or ""]
+    local cell = math.max(was and was.cell or 64, now and now.cell or 64)
+    local big = window.out and walk.size or math.max(SIZES[s.grewFrom] or SIZE, SIZES[s.form] or SIZE)
+    looking, said = nil, nil
+    walk.errand, walk.chase, walk.nap, pen.held, pen.toss = nil, nil, nil, nil, nil
+    walk.act = { name = "grow", clock = 0, length = Pet.GROW.length, wide = big * 2 * cell / 64,
+        cx = walk.x + walk.size / 2, cy = walk.y + walk.size - big / 2 }
+    walk.wait = math.max(walk.wait, 1)
+    Pet.Sound("sparkle")
+    Refresh()
+    return true
+end
+
+-- /jsal pet grow: it's ready to grow again into the form it has, from the
+-- one before, for a look at it. Nothing else about the companion changes.
+function Pet.Grow()
+    if not Pet.running then
+        return ns.Print("Jsal's Pals is turned off. /jsal settings turns it on.")
+    end
+    if not IsOpen() then Pet.Open() end
+    if not walk then return end
+    local s = Pet.State()
+    if s.asleep then
+        said = "It's asleep."
+    elseif s.form < 2 then
+        said = "It hasn't grown yet. /jsal pet try gives you a grown one to try this on."
+    else
+        looking = nil
+        s.grewFrom = s.form - 1
+        said = ("%s is ready to grow again. Press Grow."):format(s.name)
+    end
+    Refresh()
+end
+Trial("pet grow", Pet.Grow)
 
 -- /jsal pet try: a trial run of settling and hatching. Your real companion,
 -- eggs and paddock are put aside, and in their place are a fully grown
