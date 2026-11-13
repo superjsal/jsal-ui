@@ -284,7 +284,9 @@ local function Packed(file, lay)
     -- The Auroracrown's open wings may be cut by the pen's top when it stands
     -- high: John, 12 Nov 2026, "I think its okay if it clips on ocassion",
     -- "Let it roam".)
-    sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = lay.special or 96, w = 1024, h = 128 }
+    -- (`lay.specialW`: a wider picture, for nine cells too large for 1024.)
+    sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = lay.special or 96,
+        w = lay.specialW or 1024, h = 128 }
     -- And one for when it's poorly, kept the same way, eight frames: it
     -- droops, stays drooped a while, and straightens up again as sitting does.
     sheet.poorly = { first = 0, count = 8, time = 0.14, hold = 2.6, back = 0.1,
@@ -334,6 +336,11 @@ local SHEETS = {
     frostmantle = Packed("frostmantle_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     -- Its wings open wide in its idle and its special: larger cells for both.
     auroracrown = Packed("auroracrown_sheet", { cell = 112, cols = 9, w = 1024, h = 1024, walk = 8, walkTime = 0.1, special = 112 }),
+    starwhelp = Packed("starwhelp_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    moondrake = Packed("moondrake_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    -- The largest of them all: its open wings are 120 pixels across.
+    eclipselord = Packed("eclipselord_sheet", { cell = 128, cols = 16, w = 2048, h = 1024, walk = 8, walkTime = 0.1,
+        special = 128, specialW = 2048 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
 -- of three after another. `form` is which of the three sizes it's drawn at.
@@ -365,6 +372,9 @@ local LOOKS = {
     { sprite = "snowlet", name = "Snowlet", form = 1 },
     { sprite = "frostmantle", name = "Frostmantle", form = 2 },
     { sprite = "auroracrown", name = "Auroracrown", form = 3 },
+    { sprite = "starwhelp", name = "Starwhelp", form = 1 },
+    { sprite = "moondrake", name = "Moondrake", form = 2 },
+    { sprite = "eclipselord", name = "Eclipselord", form = 3 },
 }
 Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
@@ -2063,7 +2073,9 @@ local function BuildYard()
             local size = SHEETS[Rules.SPECIES[kind].sprites[form]].cell
             local picture = yardBook:CreateTexture(nil, "ARTWORK")
             picture:SetSize(size, size)
-            picture:SetPoint("BOTTOM", yardBook, "TOPLEFT", slot * wide + wide / 2, -foot)
+            -- A cell larger than 80 has that much more empty round the creature:
+            -- lowered by half of it, its feet stand where the others' do.
+            picture:SetPoint("BOTTOM", yardBook, "TOPLEFT", slot * wide + wide / 2, -foot - math.max(0, size - 80) / 2)
             Compat.Crisp(picture)
             local name = Style.Text(yardBook, 11, "secondary")
             name:SetPoint("TOP", yardBook, "TOPLEFT", slot * wide + wide / 2, -(foot + 2))
@@ -2589,7 +2601,7 @@ function Pet:OnEnable()
     -- Not in the first moments after logging in, in case the game says so then.
     events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     local learnAfter = Now() + 10
-    -- A boss brought down: Onyxia (encounter 1084) may leave the Aurora egg.
+    -- A boss brought down: Onyxia may leave the Aurora egg, Ragnaros the Eclipse egg.
     pcall(events.RegisterEvent, events, "ENCOUNTER_END")
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, text, ...)
         -- A chat line can be hidden in a dungeon: then it's nil.
@@ -2600,7 +2612,8 @@ function Pet:OnEnable()
             if not Compat.Dead() then Pet.Found("fight") end
         elseif event == "ENCOUNTER_END" then
             -- encounterID, encounterName, difficultyID, groupSize, success
-            if tonumber(text) == 1084 and Compat.Plain(select(4, ...)) == 1 then Pet.Found("onyxia") end
+            local boss = Rules.BOSSES[tonumber(text) or 0]
+            if boss and Compat.Plain(select(4, ...)) == 1 then Pet.Found(boss) end
         elseif event == "LEARNED_SPELL_IN_SKILL_LINE" then
             if Now() >= learnAfter then Pet.Found("learn") end
         elseif event == "LOOT_READY" then
