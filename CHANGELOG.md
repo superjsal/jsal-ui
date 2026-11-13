@@ -6,6 +6,10 @@ Restart the game after updating (exit and start it again): this version adds new
   - **Four new eggs** are out there for a fully grown pal to turn up as you play. Two of them can be among the three a new player chooses from. The other two are rare, and you'll have to earn them.
   - **Smoother walks** for two pals whose step had a hitch in it.
 - **The album turns its pages.** Four kinds to a page, with arrows at its top right, so every name fits.
+- **Dungeon guide: where each quest starts.** On a dungeon's Quests tab, every quest now says who gives it and where, with the spot on the map ("Gerrig Bonegrip, Ironforge (50, 6)"), or that the giver is inside the dungeon. A quest that starts from an item names it and who drops it ("from An Unsent Letter, dropped by Edwin VanCleef in The Deadmines").
+  - **What to do first.** A quest that needs another one before it says so in gold, with where that one starts, or that it's on the same list or already done.
+  - **Click to pin.** Clicking a quest puts the map pin on its start; for one that starts inside the dungeon, on the start of the quest before it.
+- **Map pins stay put.** A pin from a quest or a trainer is no longer swapped for your RestedXP guide's next step while the waypoint label follows the guide, and one in another zone no longer clears itself as if you'd arrived.
 
 ## In 0.3.35
 
