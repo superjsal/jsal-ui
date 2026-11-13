@@ -49,6 +49,8 @@ LAYOUT = {
     "lanternshell": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "capling": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "stormcub": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
+    # The dragon hatchling's four-frame walk limped; it walks in eight now.
+    "scrapwing": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
     "flarechamp": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "wispjester": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 4, "shift": 0},
     "boltusk": {"cell": 64, "cols": 16, "sheet": (1024, 512), "walk": 8, "shift": 2},
@@ -62,6 +64,12 @@ LAYOUT = {
     "pebblebill": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "cobbleback": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "rockwarden": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    # The frost owl. Its last form, the Auroracrown, opens its wings in its idle
+    # and its special to about 100 pixels across: 112 cells, nine to a row, and
+    # its special picture has 112 cells too (nine still fit 1024 across).
+    "snowlet": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "frostmantle": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "auroracrown": {"cell": 112, "cols": 9, "sheet": (1024, 1024), "walk": 8, "shift": 0, "special": 112},
 }
 
 # A creature whose animations came out standing at different heights names the
@@ -116,6 +124,10 @@ POORLY = ("Poorly", 8, 96, (1024, 128))
 
 def special(folder, lay, ground=None, kind=SPECIAL):
     name, count, side, size = kind
+    if kind is SPECIAL:
+        # A creature whose special is wider than the usual cell names its own.
+        side = lay.get("special", side)
+        assert count * side <= size[0] and side <= size[1], (count, side, size)
     files = sorted((folder / name / "south-west").glob("frame_*.png"))
     if not files:
         return None

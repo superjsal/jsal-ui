@@ -280,7 +280,11 @@ local function Packed(file, lay)
     sheet.stand, sheet.sleep = sheet.idle.first, sheet.doze.first + sheet.doze.count - 1
     -- One more, in a picture of its own with larger cells: the thing its
     -- kind can do (a fiery punch, a burst of leaves), nine frames in a row.
-    sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = 96, w = 1024, h = 128 }
+    -- (`lay.special` names larger cells for one whose special reaches wider.
+    -- The Auroracrown's open wings may be cut by the pen's top when it stands
+    -- high: John, 12 Nov 2026, "I think its okay if it clips on ocassion",
+    -- "Let it roam".)
+    sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = lay.special or 96, w = 1024, h = 128 }
     -- And one for when it's poorly, kept the same way, eight frames: it
     -- droops, stays drooped a while, and straightens up again as sitting does.
     sheet.poorly = { first = 0, count = 8, time = 0.14, hold = 2.6, back = 0.1,
@@ -308,7 +312,7 @@ local SHEETS = {
     wispkin = Packed("wispkin_sheet", { hatch = true }),
     gloamtail = Packed("gloamtail_sheet"),
     wispjester = Packed("wispjester_sheet", { cell = 80, cols = 12, w = 1024, h = 512 }),
-    scrapwing = Packed("scrapwing_sheet", { hatch = true }),
+    scrapwing = Packed("scrapwing_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     jabdrake = Packed("jabdrake_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     flarechamp = Packed("flarechamp_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     stormcub = Packed("stormcub_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
@@ -326,6 +330,10 @@ local SHEETS = {
     pebblebill = Packed("pebblebill_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     cobbleback = Packed("cobbleback_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     rockwarden = Packed("rockwarden_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    snowlet = Packed("snowlet_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    frostmantle = Packed("frostmantle_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    -- Its wings open wide in its idle and its special: larger cells for both.
+    auroracrown = Packed("auroracrown_sheet", { cell = 112, cols = 9, w = 1024, h = 1024, walk = 8, walkTime = 0.1, special = 112 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
 -- of three after another. `form` is which of the three sizes it's drawn at.
@@ -354,6 +362,9 @@ local LOOKS = {
     { sprite = "pebblebill", name = "Pebblebill", form = 1 },
     { sprite = "cobbleback", name = "Cobbleback", form = 2 },
     { sprite = "rockwarden", name = "Rockwarden", form = 3 },
+    { sprite = "snowlet", name = "Snowlet", form = 1 },
+    { sprite = "frostmantle", name = "Frostmantle", form = 2 },
+    { sprite = "auroracrown", name = "Auroracrown", form = 3 },
 }
 Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
@@ -2578,13 +2589,18 @@ function Pet:OnEnable()
     -- Not in the first moments after logging in, in case the game says so then.
     events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     local learnAfter = Now() + 10
-    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text)
+    -- A boss brought down: Onyxia (encounter 1084) may leave the Aurora egg.
+    pcall(events.RegisterEvent, events, "ENCOUNTER_END")
+    events:SetScript("OnEvent", ns.Safe(self, function(_, event, text, ...)
         -- A chat line can be hidden in a dungeon: then it's nil.
         text = Compat.Plain(text)
         if event == "PLAYER_REGEN_ENABLED" then
             -- A fight you walked away from: once in a long while there's
             -- something in the wreckage.
             if not Compat.Dead() then Pet.Found("fight") end
+        elseif event == "ENCOUNTER_END" then
+            -- encounterID, encounterName, difficultyID, groupSize, success
+            if tonumber(text) == 1084 and Compat.Plain(select(4, ...)) == 1 then Pet.Found("onyxia") end
         elseif event == "LEARNED_SPELL_IN_SKILL_LINE" then
             if Now() >= learnAfter then Pet.Found("learn") end
         elseif event == "LOOT_READY" then
