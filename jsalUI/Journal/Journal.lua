@@ -132,9 +132,23 @@ local function Characters()
 end
 Journal.Characters = Characters
 
-function Journal.SaveCharacter()
+-- `leaving`: you're logging out, or reloading. The game then answers with
+-- nothing (no gold, an XP bar of 0, no rested XP, no professions), and
+-- saving that wiped the character's line: every character but the one you
+-- were on read "none", "none yet" and "not known yet". So as you leave,
+-- what was last known is kept, and only when you were last on it is noted;
+-- the line is saved once a minute as you play, so it's never far behind.
+-- (John, 16 Nov 2026: "the journal doesnt seem to track rested xp, i logged
+-- into neon relish and it had a lot of rested"; his saved file had 0 gold
+-- and 0 XP for all five characters.)
+function Journal.SaveCharacter(leaving)
     local name = Compat.MyName()
     if not name then return end
+    if leaving then
+        local known = Characters()[name]
+        if known then known.updated = Compat.ServerTime() end
+        return
+    end
     local className, classFile = UnitClass("player")
     local profs = {}
     if ns.Professions then
@@ -223,6 +237,13 @@ local function Tick(_, elapsed)
     if tick < 1 then return end
     local seconds = tick
     tick = 0
+    -- The Characters line, once a minute: your gold and rested XP as they
+    -- are, since nothing can be read as you log out.
+    Journal.sinceSave = (Journal.sinceSave or 0) + seconds
+    if Journal.sinceSave >= 60 then
+        Journal.sinceSave = 0
+        Journal.SaveCharacter()
+    end
     local j = Book()
     Add("seconds", seconds)
     CountKills()
@@ -530,7 +551,7 @@ function Journal:OnEnable()
             window = nil
         else
             -- Logging out, a new zone or resting changed: the Characters line.
-            Journal.SaveCharacter()
+            Journal.SaveCharacter(event == "PLAYER_LOGOUT")
         end
     end))
     f:SetScript("OnUpdate", ns.Safe(self, Tick))
