@@ -1214,7 +1214,7 @@ function Pet.PaintBond(s)
     local level, name, points, next = Rules.Bond(s)
     for i, heart in ipairs(ui.hearts) do
         heart:SetDesaturated(i > level)
-        heart:SetAlpha(i > level and 0.3 or 1)
+        heart:SetAlpha(i > level and 0.5 or 1)
     end
     local after = Rules.BONDS[level + 1]
     ui.bondLine:SetText((next and after) and ("%s  |cff9a9688%d more to %s|r"):format(name, next - points, after[2])
@@ -1477,6 +1477,16 @@ end
 
 local Layout
 local function Refresh()
+    -- What it wants has changed (its pen scooped, fed, well again): Home
+    -- says what it wants, so an open dashboard is told. (John, 15 Nov 2026:
+    -- "after i cleaned the poop it was still saying it needed poop cleaning
+    -- on the homepage, it's because i left it open".)
+    local want = Pet.Wants()
+    local wanted = want and want.key or false
+    if wanted ~= ui.wanted then
+        ui.wanted = wanted
+        if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
+    end
     -- A new player has no companion yet: three eggs stand on the grass to
     -- choose from, and nothing else of the window is there.
     local s = Pet.State()
@@ -1548,7 +1558,10 @@ local function Refresh()
         local low = s[need] < 20
         for i, pip in ipairs(bar.pips) do
             if i > full then
-                pip:SetColorTexture(Style.Color("titleBar"))
+                -- An empty pip is a grey you can see: the title bar's colour
+                -- was a shade off the window's (John, 15 Nov 2026: "hard to
+                -- see the black squares").
+                pip:SetColorTexture(Style.Color("lineStrong"))
             elseif low then
                 pip:SetColorTexture(Style.Color("red"))
             else
@@ -1560,8 +1573,11 @@ local function Refresh()
     end
     for i, heap in ipairs(ui.heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
-    -- Ready to grow: the button for it, until it is pressed.
-    ui.growButton:SetShown(s.grewFrom ~= nil and not s.unchosen and not looking and not (walk and walk.act and walk.act.name == "grow"))
+    -- Ready to grow: the button for it, until it is pressed. Only in its
+    -- pen: out with you it waits (John, 15 Nov 2026, of a Grow button over
+    -- it as it walked his screen: "i'd like grow to only happen in the pen").
+    ui.growButton:SetShown(s.grewFrom ~= nil and not s.unchosen and not looking and not window.out
+        and not (walk and walk.act and walk.act.name == "grow"))
     -- Asleep, the pen is the same meadow by moonlight, and on the way there
     -- at sunset (tools/make_pet_night.py makes both), drawn over the day one:
     -- how far the day has gone is `shade`, which each frame moves toward
@@ -1991,7 +2007,7 @@ function Layout()
     -- No weather in the paddock, out with you, or while an egg is chosen.
     if ui.weather and (picking or out or window.yard) then ui.weather:Hide() end
     -- Ready to grow: the button for it, until it's pressed.
-    ui.growButton:SetShown(Pet.State().grewFrom ~= nil and not picking and not window.yard and not looking
+    ui.growButton:SetShown(Pet.State().grewFrom ~= nil and not picking and not out and not window.yard and not looking
         and not (walk and walk.act and walk.act.name == "grow"))
     ui.sizeButton:Hide()
     ui.sizeButton:SetLabel(("%dx"):format(Pet.OutScale()))
@@ -3217,6 +3233,8 @@ Trial("pet hatch", Pet.Hatch)
 function Pet.GrowNow()
     local s = Pet.State()
     if not walk or not s.grewFrom or (walk.act and walk.act.name == "grow") then return false end
+    -- It grows in its pen, where there's room for the light and you're watching.
+    if window and window.out then return false end
     if s.asleep then
         said = ("%s is asleep. It can grow when it wakes."):format(s.name)
         Refresh()

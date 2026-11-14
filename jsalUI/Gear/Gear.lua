@@ -346,8 +346,9 @@ end
 -- asked.
 local madeBy, droppedBy
 local function OtherSources()
-    if madeBy then return end
-    madeBy, droppedBy = {}, {}
+    -- Read once, and again only if the data it was read from is replaced.
+    if madeBy and madeBy.from == ns.ProfessionData and droppedBy.from == ns.DungeonLoot then return end
+    madeBy, droppedBy = { from = ns.ProfessionData }, { from = ns.DungeonLoot }
     for _, source in pairs(ns.ProfessionData or {}) do
         if type(source) == "table" and type(source.recipes) == "table" then
             for _, r in ipairs(source.recipes) do
@@ -455,7 +456,25 @@ local function SideNumber()
     return faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
 end
 
+-- The two-hander in your main hand, when that's what is there: its link.
+function Gear.TwoHander()
+    local link = GetInventoryItemLink and GetInventoryItemLink("player", 16)
+    if not link then return nil end
+    local info = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local _, _, _, _, _, _, _, _, equipLoc = info(link)
+    return equipLoc == "INVTYPE_2HWEAPON" and link or nil
+end
+
 function Gear.Plan(slot, spec, only)
+    -- With a two-hander in the main hand, nothing can go in the off hand,
+    -- so nothing is better for it: the plan read the hand as empty and
+    -- offered every off-hand piece as an upgrade. (John, 15 Nov 2026, of a
+    -- list of them: "i dont have that offhand equipped i'm wearing a
+    -- 2hander".) `twoHand` is the two-hander's link.
+    if slot.key == "off" then
+        local both = Gear.TwoHander()
+        if both then return { worn = { stats = {}, score = 0 }, options = {}, waiting = 0, twoHand = both } end
+    end
     local weights = Gear.Weights(spec)
     local level = UnitLevel("player") or 1
     local _, classFile, classID = UnitClass("player")
@@ -524,19 +543,31 @@ function Gear.Plan(slot, spec, only)
         end
         return false
     end
-    local best, anyMain = 0, false
+    -- The best is the best you can go and get: a piece with no source known
+    -- doesn't set the bar the rest are measured against, or one great item
+    -- nobody can find would push real upgrades off the list.
+    local best, bestOfAll, anyMain = 0, 0, false
     for _, o in ipairs(options) do
-        best = math.max(best, o.score - worn.score)
+        o.unknown = Gear.Source(o) == ""
+        bestOfAll = math.max(bestOfAll, o.score - worn.score)
+        if not o.unknown then best = math.max(best, o.score - worn.score) end
         anyMain = anyMain or Main(o)
     end
+    if best == 0 then best = bestOfAll end
     local kept = {}
     for _, o in ipairs(options) do
         if o.starred or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
     end
     options = kept
+    -- One you can go and get now comes before one you can't yet: above your
+    -- level, or with no source known (about one item in seven on Wowhead's
+    -- lists has none, Forever's new ones among them). Such a piece headed a
+    -- slot as its best upgrade with nowhere to send you. (John, 15 Nov 2026:
+    -- "there are items that do not list where they come from".)
+    local function Later(o) return (o.soon or o.unknown) and true or false end
     table.sort(options, function(a, b)
         if a.starred ~= b.starred then return a.starred end
-        if a.soon ~= b.soon then return not a.soon end
+        if Later(a) ~= Later(b) then return not Later(a) end
         if a.score ~= b.score then return a.score > b.score end
         return a.id < b.id
     end)

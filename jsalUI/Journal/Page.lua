@@ -1,10 +1,11 @@
 -- The Journal page, in three tabs: Summary (who you are, your numbers and
 -- favourites), Story (the moments, newest first, by kind) and Characters
--- (every character on the account, with gold and rested XP).
+-- (every character on the account, a row each: level, where it is, its
+-- gold, its professions and its rested XP).
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local TAB_W, GAP, TILE_H, ROW_H, CARD_H = 130, 8, 70, 26, 86
+local TAB_W, GAP, TILE_H, ROW_H = 130, 8, 70, 26
 local MODEL_W, HERO_H = 170, 210
 
 local function Hours(seconds)
@@ -53,6 +54,17 @@ local function Day(t)
     if date("%Y%m%d", t) == today then return "today" end
     if date("%Y%m%d", t + 86400) == today then return "yesterday" end
     return (date("%d %b", t):gsub("^0", ""))
+end
+
+-- How long ago a time was, in the words you'd use: "today", "3 days ago",
+-- "2 weeks ago", "4 months ago".
+local function Ago(t)
+    local days = math.floor((Compat.ServerTime() - t) / 86400)
+    if days <= 0 then return "today" end
+    if days == 1 then return "yesterday" end
+    if days < 14 then return days .. " days ago" end
+    if days < 60 then return math.floor(days / 7) .. " weeks ago" end
+    return math.floor(days / 30) .. " months ago"
 end
 
 local function ClassColor(classFile)
@@ -380,43 +392,91 @@ Window.Page("journal", function(page)
     -- Characters.
     -----------------------------------------------------------------
     local chars = View("characters")
-    local charHead = Style.Text(chars, 13, "muted")
-    charHead:SetPoint("TOPLEFT")
-    local cardW = math.floor((width - GAP) / 2)
-    local cardRows = math.floor((height - 52 - 30) / (CARD_H + GAP))
+    -- A table, one row a character, the same thing in the same place down
+    -- the list: who it is, its level, where it is, its gold, its professions
+    -- and its rested XP. (They were cards, two across, most of them "0
+    -- copper" and "No professions", and "you're on this one" ran past its
+    -- card's edge: John's screenshot, 15 Nov 2026.)
+    local CHAR_H = 54
+    local COL = { name = 14, level = 232, where = 268, gold = 466, profs = 486, rest = width - 90 }
+    local charCount = Style.Text(chars, 17, "text", nil, true)
+    charCount:SetPoint("TOPLEFT", 0, 0)
+    local charGold = Style.Text(chars, 13, "muted")
+    charGold:SetPoint("BOTTOMLEFT", charCount, "BOTTOMRIGHT", 12, 1)
+    local charCols = CreateFrame("Frame", nil, chars)
+    charCols:SetSize(width, 18)
+    charCols:SetPoint("TOPLEFT", 0, -36)
+    for _, label in ipairs({ { "CHARACTER", COL.name }, { "LEVEL", COL.level, true }, { "WHERE", COL.where }, { "GOLD", COL.gold, true },
+                             { "PROFESSIONS", COL.profs }, { "RESTED", COL.rest } }) do
+        local t = Style.Text(charCols, 10, "muted", nil, true)
+        if label[3] then
+            t:SetPoint("TOPRIGHT", charCols, "TOPLEFT", label[2], 0)
+            t:SetJustifyH("RIGHT")
+        else
+            t:SetPoint("TOPLEFT", label[2], 0)
+        end
+        t:SetText(label[1])
+    end
+    Style.Rule(charCols, "BOTTOM", "lineStrong")
+    local charRows = math.max(1, math.floor((height - 52 - 58 - 30) / CHAR_H))
     local cards = {}
-    for i = 1, cardRows * 2 do
+    for i = 1, charRows do
         local c = CreateFrame("Frame", nil, chars)
-        c:SetSize(cardW, CARD_H)
-        c:SetPoint("TOPLEFT", ((i - 1) % 2) * (cardW + GAP), -(28 + math.floor((i - 1) / 2) * (CARD_H + GAP)))
-        Style.Fill(c, "well")
-        c.edges = Style.Border(c, "cardLine")
+        c:SetSize(width, CHAR_H)
+        c:SetPoint("TOPLEFT", 0, -(58 + (i - 1) * CHAR_H))
+        -- The one you're on has a fill and a gold edge.
+        c.fill = Style.Fill(c, "well")
+        c.edge = c:CreateTexture(nil, "ARTWORK")
+        c.edge:SetColorTexture(Style.Color("gold"))
+        c.edge:SetPoint("TOPLEFT")
+        c.edge:SetPoint("BOTTOMLEFT")
+        c.edge:SetWidth(3)
+        Style.Rule(c, "BOTTOM", "line")
         c.name = Style.Text(c, 14, "text", nil, true)
-        c.name:SetPoint("TOPLEFT", 12, -10)
-        c.sub = Style.Text(c, 12, "muted")
-        c.sub:SetPoint("LEFT", c.name, "RIGHT", 8, 0)
-        c.line = Style.Text(c, 12, "muted")
-        c.line:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -5)
-        c.line:SetWidth(cardW - 24)
-        c.line:SetWordWrap(false)
-        c.line:SetJustifyH("LEFT")
-        c.profs = Style.Text(c, 11, "muted")
-        c.profs:SetPoint("TOPLEFT", c.line, "BOTTOMLEFT", 0, -4)
-        c.profs:SetWidth(cardW - 24)
-        c.profs:SetWordWrap(false)
+        c.name:SetPoint("TOPLEFT", COL.name, -9)
+        c.name:SetWidth(COL.level - COL.name - 34)
+        c.name:SetJustifyH("LEFT")
+        c.name:SetWordWrap(false)
+        -- Under the name: its class, and when you last played it, or a tag
+        -- for the one you're on.
+        c.sub = Style.Text(c, 11, "muted")
+        c.sub:SetPoint("TOPLEFT", COL.name, -30)
+        c.now = CreateFrame("Frame", nil, c)
+        c.now:SetPoint("LEFT", c.sub, "RIGHT", 6, 0)
+        Style.Fill(c.now, "gold")
+        c.now.text = Style.Text(c.now, 10, "onGold", nil, true)
+        c.now.text:SetPoint("CENTER")
+        c.now.text:SetText("playing now")
+        local wide = c.now.text.GetStringWidth and c.now.text:GetStringWidth()
+        c.now:SetSize(((type(wide) == "number" and wide > 0) and wide or 62) + 14, 17)
+        c.level = Style.Text(c, 15, "text", nil, true)
+        c.level:SetPoint("RIGHT", c, "LEFT", COL.level, 0)
+        c.level:SetJustifyH("RIGHT")
+        c.where = Style.Text(c, 12, "secondary")
+        c.where:SetPoint("LEFT", COL.where, 0)
+        c.where:SetWidth(COL.gold - COL.where - 84)
+        c.where:SetJustifyH("LEFT")
+        c.where:SetWordWrap(false)
+        c.gold = Style.Text(c, 12, "text")
+        c.gold:SetPoint("RIGHT", c, "LEFT", COL.gold, 0)
+        c.gold:SetJustifyH("RIGHT")
+        c.profs = Style.Text(c, 11, "secondary")
+        c.profs:SetPoint("LEFT", COL.profs, 0)
+        c.profs:SetWidth(COL.rest - COL.profs - 10)
         c.profs:SetJustifyH("LEFT")
+        if c.profs.SetMaxLines then c.profs:SetMaxLines(3) end
         c.track = CreateFrame("Frame", nil, c)
-        c.track:SetSize(cardW - 24, 4)
-        c.track:SetPoint("BOTTOMLEFT", 12, 10)
+        c.track:SetSize(80, 5)
+        c.track:SetPoint("TOPLEFT", COL.rest, -17)
         Style.Fill(c.track, "line")
-        c.fill = c.track:CreateTexture(nil, "ARTWORK")
-        c.fill:SetPoint("TOPLEFT")
-        c.fill:SetPoint("BOTTOMLEFT")
-        c.fill:SetColorTexture(Style.Color("blue"))
+        c.bar = c.track:CreateTexture(nil, "ARTWORK")
+        c.bar:SetPoint("TOPLEFT")
+        c.bar:SetPoint("BOTTOMLEFT")
+        c.bar:SetColorTexture(Style.Color("blue"))
         c.rest = Style.Text(c, 11, "muted")
-        c.rest:SetPoint("BOTTOMRIGHT", c.track, "TOPRIGHT", 0, 4)
         cards[i] = c
     end
+    local charFoot = Style.Text(chars, 11, "muted")
 
     local function PaintCharacters()
         J.SaveCharacter()
@@ -429,29 +489,56 @@ Window.Page("journal", function(page)
             if (a.level or 0) ~= (b.level or 0) then return (a.level or 0) > (b.level or 0) end
             return (a.name or "") < (b.name or "")
         end)
-        charHead:SetText(("%d character%s, %s in all. Each joins the list the first time you log in on it.")
-            :format(#list, #list == 1 and "" or "s", Compat.Money(total)))
+        charCount:SetText(("%d character%s"):format(#list, #list == 1 and "" or "s"))
+        charGold:SetText(#list > 1 and (Compat.Money(total) .. " between them") or "")
         local me = Compat.MyName()
         for i, card in ipairs(cards) do
             local c = list[i]
             card:SetShown(c ~= nil)
             if c then
+                local mine = c.name == me
+                card.fill:SetShown(mine)
+                card.edge:SetShown(mine)
                 card.name:SetText(ClassColor(c.classFile) .. (c.name or "?") .. "|r")
-                card.sub:SetText(("Level %d %s%s"):format(c.level or 0, c.class or "", c.name == me and " · you're on this one" or ""))
-                Style.SetBorder(card.edges, c.name == me and "gold" or "cardLine")
-                card.line:SetText(("%s · %s"):format(c.zone or "somewhere", Compat.Money(c.money or 0)))
+                card.now:SetShown(mine)
+                card.sub:SetText((c.class or "") .. ((mine or c.updated) and "  ·  " or "")
+                    .. ((not mine and c.updated) and ("played " .. Ago(c.updated)) or ""))
+                card.level:SetText(c.level or "?")
+                -- A character too low to have done much is quieter.
+                card.level:SetTextColor(Style.Color((c.level or 0) >= 10 and "text" or "muted"))
+                card.where:SetText(c.zone or "somewhere")
+                -- Nothing to show is said in grey, so it steps back.
+                local money = c.money or 0
+                card.gold:SetText(money > 0 and Compat.Money(money) or "none")
+                card.gold:SetTextColor(Style.Color(money > 0 and "text" or "muted"))
+                card.gold:SetAlpha(money > 0 and 1 or 0.6)
                 local profs = {}
                 for _, p in ipairs(c.professions or {}) do profs[#profs + 1] = ("%s %d"):format(p.name, p.skill or 0) end
-                card.profs:SetText(#profs > 0 and table.concat(profs, ", ") or "No professions")
+                card.profs:SetText(#profs > 0 and table.concat(profs, ", ") or "none yet")
+                card.profs:SetTextColor(Style.Color(#profs > 0 and "secondary" or "muted"))
+                card.profs:SetAlpha(#profs > 0 and 1 or 0.6)
+                -- Rested: a bar, and how much of a level it is. Nothing at
+                -- 60, where there's no level left to rest for.
                 local rested = J.RestedNow(c)
                 card.track:SetShown(rested ~= nil)
-                card.rest:SetShown(rested ~= nil)
+                card.rest:ClearAllPoints()
                 if rested then
-                    card.fill:SetWidth(math.max(1, (cardW - 24) * math.min(1, rested / 1.5)))
-                    card.rest:SetText(rested >= 1.5 and "Fully rested" or ("Rested %d%%"):format(math.floor(rested * 100)))
+                    card.bar:SetWidth(math.max(1, 80 * math.min(1, rested / 1.5)))
+                    card.rest:SetPoint("TOPLEFT", COL.rest, -27)
+                    card.rest:SetText(rested >= 1.5 and ("|cff" .. Style.Quality(3) .. "fully rested|r") or ("%d%% of a level"):format(math.floor(rested * 100)))
+                    card.rest:SetAlpha(1)
+                else
+                    card.rest:SetPoint("LEFT", COL.rest, 0)
+                    card.rest:SetText((c.level or 0) >= 60 and "" or "not known yet")
+                    card.rest:SetAlpha(0.6)
                 end
             end
         end
+        local shown = math.min(#list, #cards)
+        charFoot:ClearAllPoints()
+        charFoot:SetPoint("TOPLEFT", 0, -(58 + shown * CHAR_H + 12))
+        charFoot:SetText((#list > #cards and ("And %d more. "):format(#list - #cards) or "")
+            .. "A character joins the list the first time you log in on it.")
     end
 
     Paint = function()
