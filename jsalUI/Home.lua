@@ -8,8 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Beta: weather in your pal's pen. When it rains or snows where you are, it does there too",
+    "Weather in your pal's pen. When it rains or snows where you are, it does there too",
     "It's off to start: turn on Weather in its pen under Jsal's Pals in /jsal settings",
+    "Trainers offer a talent's later ranks only once you have the talent, and a pet trainer is no longer taken for your class trainer",
 }
 
 local function NewsWanted()
