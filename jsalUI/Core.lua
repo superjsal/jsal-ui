@@ -43,7 +43,7 @@ end
 -- started with means an update came in: a /reload was enough unless it
 -- added files since, which load only after a restart.
 ns.codeVersion = "0.3.39-beta.2"
-ns.restartSince = "0.3.39-beta.1"
+ns.restartSince = "0.3.39-beta.2"
 ns.startedVersion = Compat.Metadata(addonName, "Version") or ns.codeVersion
 ns.needsRestart = ns.Newer(ns.restartSince, ns.startedVersion)
 ns.version = (not ns.needsRestart and ns.Newer(ns.codeVersion, ns.startedVersion)) and ns.codeVersion or ns.startedVersion
