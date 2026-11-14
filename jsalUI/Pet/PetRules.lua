@@ -640,7 +640,7 @@ end
 -- and faster with a closer bond. Warm enough, it's ready to hatch, and waits
 -- for you as long as you like. When it hatches the companion settles in the
 -- paddock, and comes back to the pen now and then to see the one it
--- looked after. (John, 16 Nov 2026: "i think we should add functionality to
+-- looked after. (John, 14 Nov 2026: "i think we should add functionality to
 -- the egg itself, like your pal taking care of the egg until it is ready to
 -- hatch", and "the caretaker pal should show up in the pen every once in a
 -- while".)
@@ -729,7 +729,7 @@ end
 
 -- The nest it hatched in is a hatchling's bed: it sleeps and naps there
 -- for as long as it's a hatchling, and that includes one ready to grow
--- that hasn't yet. (John, 16 Nov 2026, asked what to do about the empty
+-- that hasn't yet. (John, 14 Nov 2026, asked what to do about the empty
 -- nest: "Bed version sounds great good idea".)
 function Rules.Bed(s)
     return s.nested ~= nil and (s.grewFrom or s.form) == 1

@@ -438,7 +438,7 @@ Window.Page("gear", function(page)
         r.best.text:SetText("best for you")
         -- As wide as its words, with room each side: the window draws
         -- small text larger than asked, and a box of a set width was
-        -- overrun by it (John's screenshot, 15 Nov 2026: "best for you
+        -- overrun by it (John's screenshot, 14 Nov 2026: "best for you
         -- should look a bit better").
         local wide = r.best.text.GetStringWidth and r.best.text:GetStringWidth()
         r.best:SetSize(((type(wide) == "number" and wide > 0) and wide or 64) + 16, 18)
@@ -591,7 +591,7 @@ Window.Page("gear", function(page)
             end
             -- That line has the row to itself, so it gets the room: in the
             -- column for what you wear it was cut short ("Taken by your
-            -- two-hand...", John's screenshot, 15 Nov 2026).
+            -- two-hand...", John's screenshot, 14 Nov 2026).
             b.worn:SetWidth(plan.twoHand and (SLOT_W - ICON - 30) or (UP_X - ICON - 14 - 10))
             if best then
                 better = better + 1

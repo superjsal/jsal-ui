@@ -138,7 +138,7 @@ Journal.Characters = Characters
 -- were on read "none", "none yet" and "not known yet". So as you leave,
 -- what was last known is kept, and only when you were last on it is noted;
 -- the line is saved once a minute as you play, so it's never far behind.
--- (John, 16 Nov 2026: "the journal doesnt seem to track rested xp, i logged
+-- (John, 14 Nov 2026: "the journal doesnt seem to track rested xp, i logged
 -- into neon relish and it had a lot of rested"; his saved file had 0 gold
 -- and 0 XP for all five characters.)
 function Journal.SaveCharacter(leaving)
@@ -365,7 +365,7 @@ end
 -- combat log; what you were fighting is: your target as you died, when it's
 -- something alive that you can attack. That's counted by name, for the
 -- Summary's nemesis. (Nothing was, and the card said "No one yet" beside 22
--- deaths: John's screenshot, 16 Nov 2026.)
+-- deaths: John's screenshot, 14 Nov 2026.)
 local diedAt
 local function Dead()
     -- The game can say it twice for one death, in the same moment.

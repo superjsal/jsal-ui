@@ -104,7 +104,7 @@ Window.Page("journal", function(page)
     -- Summary: who you are, how far to the next level, three things about
     -- you, your levels as a chart, your numbers with a picture each, and
     -- your favourites as bars. (It was a block of grey words beside the
-    -- model and nine boxes of numbers. John, 16 Nov 2026: "anything we can
+    -- model and nine boxes of numbers. John, 14 Nov 2026: "anything we can
     -- do to make this more fun to look at as well?")
     local M = { cards = {}, bars = {}, tiles = {}, HERO_H = 196, CHART_H = 64, TILE_H = 54, LIST_H = 26,
                 ICONS = "Interface\\Icons\\" }
@@ -478,7 +478,7 @@ Window.Page("journal", function(page)
     -- don't already say. The same thing several times in a day is one row
     -- that says how many. (It was one flat list with "today" down the left
     -- of every row and the place on all of them: John's screenshot,
-    -- 15 Nov 2026.)
+    -- 14 Nov 2026.)
     -----------------------------------------------------------------
     local story = View("story")
     local S = { filters = {}, rows = {}, heads = {}, offset = 0, TOP = 30, HEAD_H = 34, ROW_H = 26, TALL_H = 42, TEXT_X = 86 }
@@ -695,7 +695,7 @@ Window.Page("journal", function(page)
     -----------------------------------------------------------------
     -- By level: the levels in tens, newest first, each ten a line with its
     -- own sums that opens to a row a level; the ten you're in starts open.
-    -- Then the totals. (John, 16 Nov 2026, of thirty rows: "i think we can
+    -- Then the totals. (John, 14 Nov 2026, of thirty rows: "i think we can
     -- sort the levels by 10s and have drop downs so it doesnt get too hard
     -- to read".) With the tens to break the page up there's room to
     -- breathe: a ten's line is taller with a gap over it, a level has a thin
@@ -705,7 +705,7 @@ Window.Page("journal", function(page)
     -- you're on is marked, XP an hour has a bar beside it, gold and silver
     -- each have a place of their own so a column reads down, the net has
     -- its sign and colour, and a death is red. (John's screenshot,
-    -- 15 Nov 2026: ten columns of grey numbers, "4g 31s" beside "84s 10c".)
+    -- 14 Nov 2026: ten columns of grey numbers, "4g 31s" beside "84s 10c".)
     -----------------------------------------------------------------
     local levels = View("levels")
     local L = { rows = {}, open = {}, offset = 0, ROW_H = 30, GROUP_H = 36, GROUP_GAP = 12, TOP = 24, BAR_W = 36, GOLD = 34 }
@@ -957,7 +957,7 @@ Window.Page("journal", function(page)
     -- the list: who it is, its level, where it is, its gold, its professions
     -- and its rested XP. (They were cards, two across, most of them "0
     -- copper" and "No professions", and "you're on this one" ran past its
-    -- card's edge: John's screenshot, 15 Nov 2026.)
+    -- card's edge: John's screenshot, 14 Nov 2026.)
     local CHAR_H = 54
     local COL = { name = 14, level = 232, where = 268, gold = 466, profs = 486, rest = width - 90 }
     local charCount = Style.Text(chars, 17, "text", nil, true)
