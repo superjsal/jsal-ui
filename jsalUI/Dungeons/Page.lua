@@ -781,9 +781,19 @@ Window.Page("dungeons", function(page)
             -- Who starts it; for a later part that starts somewhere else,
             -- where that is, as its heading isn't the one above it.
             local who = Starts.Who(s)
+            -- With neither known it says nothing: its place under its
+            -- first part says it follows (it read "then:" and stopped, for
+            -- a quest Wowhead has no start for: John's screenshot, 13 Nov
+            -- 2026).
             if parent and e.place ~= parent.place then
                 local where = Starts.In(e.place, e.kind)
-                who = where and ("then, %s: %s"):format(where, who) or ("then: " .. who)
+                if where and who ~= "" then
+                    who = ("then, %s: %s"):format(where, who)
+                elseif where then
+                    who = "then, " .. where
+                elseif who ~= "" then
+                    who = "then: " .. who
+                end
             end
             row.who:SetText(who)
             -- What to know before going: it's in your log, you're too low
@@ -798,6 +808,17 @@ Window.Page("dungeons", function(page)
                 local where
                 if first then where = Starts.In(Starts.Place(first)) end
                 notes[#notes + 1] = where and ("first %s, %s"):format(name, where) or ("first " .. name)
+            end
+            -- A chain that goes on past this list says so on its last part
+            -- here: with the "2 of 3" tag gone, nothing else would (John,
+            -- 13 Nov 2026: "should we add something for that then?").
+            local after = Starts.Next(q[1])
+            if after and not byId[after] and not under[q[1]] and not QuestDone(after) then
+                local following = Starts.Get(after)
+                if following and following[1] ~= "" then
+                    local where = Starts.In(Starts.Place(following))
+                    notes[#notes + 1] = "|cff9a9688then " .. following[1] .. (where and (", " .. where) or "") .. ", not for this dungeon|r"
+                end
             end
             row.note:SetText(table.concat(notes, " · "))
             row.level:SetText(("level %d"):format(q[3]))
