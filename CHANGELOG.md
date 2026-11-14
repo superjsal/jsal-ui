@@ -1,6 +1,6 @@
-# jsal.ui 0.3.38
+# jsal.ui 0.3.39
 
-Restart the game after updating (exit and start it again): this version adds new pictures and files, and a /reload doesn't load them.
+Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load them.
 
 - **Quest tags (new, off to start).** For when you're ahead of your guide and want to drop the slow quests. Left of each quest in your tracker, a small tag with two things:
   - **Its place in a chain.** "1/4" is the first of four, so skipping it loses the three after it. No tag means it stands alone.
@@ -25,6 +25,10 @@ Restart the game after updating (exit and start it again): this version adds new
 
 - **The craft timer no longer stays up when a run ends early.** Ask for seven with materials for one and the game makes one and stops without a word; the timer sat there counting nothing. It now goes a few seconds after the last craft.
 - **The shopping list no longer jumps when you drag it.** It also keeps its title bar where you put it when the list gets longer or shorter.
+
+## In 0.3.38
+
+Coming from 0.3.37 or earlier, restart the game after updating: 0.3.38 added new pictures.
 
 - **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
