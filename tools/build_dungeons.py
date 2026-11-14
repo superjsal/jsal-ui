@@ -27,6 +27,11 @@ Run: python -I tools/build_dungeons.py
 import csv
 import json
 import pathlib
+import sys
+
+# python -I leaves this folder off the path, so it's put there for maps.py.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from maps import forever_spot  # noqa: E402
 
 BUILD = "1.60.1.70790"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -223,7 +228,9 @@ def build_starts():
         if z and z[0]:
             area = z[0]
             m = 0 if area in inside or (s and s[0] == "item") else ui_map.get(area, 0)
-            parts += [str(area), str(m), f"{z[2]:g}", f"{z[3]:g}"]
+            # Wowhead's spot is on Classic's map; Forever draws a few zones differently.
+            spot_x, spot_y = forever_spot(m, z[2], z[3]) if m else (z[2], z[3])
+            parts += [str(area), str(m), f"{spot_x:g}", f"{spot_y:g}"]
             spots += 1 if m and z[2] else 0
         else:
             parts += ["nil", "nil", "nil", "nil"]

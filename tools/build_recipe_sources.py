@@ -11,6 +11,11 @@ import csv
 import json
 import pathlib
 import re
+import sys
+
+# python -I leaves this folder off the path, so it's put there for maps.py.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from maps import forever_spot  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPELLS = ROOT / "data" / "spells"
@@ -110,7 +115,9 @@ def main():
         zone = ZONE_FIX.get(npc_id) or (npc["loc"][0] if npc["loc"] else 0)
         parts = [lua_string(npc["n"]), str(zone), str(side(npc["react"]))]
         if len(npc["spot"]) == 3 and npc["spot"][0]:
-            parts += [str(npc["spot"][0]), str(npc["spot"][1]), str(npc["spot"][2])]
+            # Wowhead's spot is on Classic's map; Forever draws a few zones differently.
+            spot_x, spot_y = forever_spot(npc["spot"][0], npc["spot"][1], npc["spot"][2])
+            parts += [str(npc["spot"][0]), f"{spot_x:g}", f"{spot_y:g}"]
         lines.append(f"        [{npc_id}] = {{ " + ", ".join(parts) + " },")
     lines += [
         "    },",
