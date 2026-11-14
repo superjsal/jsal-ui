@@ -62,6 +62,28 @@ function Sources.Vendors(spell, faction)
     return mine, others
 end
 
+-- How a recipe is come by, for sorting the ones not learned yet: "vendor"
+-- (someone sells it to your side for coin alone; that vendor comes back
+-- too), "other" (only the other side can get it), or "hard" (a drop, a
+-- quest, a vendor who wants a standing or another currency, or nothing
+-- known).
+function Sources.Kind(spell, faction)
+    local data = Data()
+    local entry = data and data.recipes[spell]
+    if not entry then return "hard" end
+    local mine, others = Sources.Vendors(spell, faction)
+    if entry.n == nil then
+        for _, v in ipairs(mine) do
+            if v.copper > 0 then return "vendor", v end
+        end
+    end
+    if mine[1] then return "hard" end
+    local quest, open = Quest(entry, faction)
+    if (quest and open) or entry.d or entry.w then return "hard" end
+    if others > 0 or quest then return "other" end
+    return "hard"
+end
+
 -- The one line under a recipe: the first thing you can act on. Nil when
 -- the data has nothing more exact than the kind of source.
 function Sources.Line(spell, faction)

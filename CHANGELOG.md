@@ -15,6 +15,12 @@ Restart the game after updating (exit and start it again): this version adds new
   - **The road weighs what materials are worth, not how many there are.** It used to count a hide, an elixir or a Righteous Orb the same as one piece of leather, so it sent leatherworkers through dozens of hides. It now stays on plain materials and trainer recipes where it can.
   - **It only has you buy patterns a vendor sells for coin.** Patterns that need a reputation or a special currency are on the road only once you have them.
   - **It says how many to make to be safe**, beside the average, for steps that don't give a point every craft.
+  - **Leather is asked for as itself.** A road that needs Heavy Leather no longer also lists the Medium and Light it could be made from.
+  - **First Aid's road reaches 300**, through the bandages the Triage doctors teach; and it says its Expert rank is a book and its Artisan rank a quest.
+  - **The panel and the shopping list sit above other addons' bars**, which could draw over them.
+  - **Recipes to learn are in groups** (with "Where recipes come from" on): what your trainer teaches now, what a vendor sells for gold under each vendor's name, what's coming up, and everything harder to get behind one block you can open. Recipes only the other side can get are left out.
+  - **The shopping list shows an item's name once the game has loaded it**, instead of leaving a row of dots.
+  - **Cooking and First Aid are counted as professions** even when you have no Fishing; the Professions page left out whatever came after a profession you don't have.
   - **The panel reads top to bottom:** one bar for where you stand with the next rank marked on it, the step to do now as a card with each material as have / need, the steps after it one line each, when to train the next rank as a row of its own, then everything you need to the rank's cap.
 
 - **The craft timer no longer stays up when a run ends early.** Ask for seven with materials for one and the game makes one and stops without a word; the timer sat there counting nothing. It now goes a few seconds after the last craft.
