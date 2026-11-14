@@ -10,7 +10,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local NEWS = {
     "Beta: quest tags. Beside each quest in your tracker, its place in a chain and about how many minutes it will take",
     "Quest tags are off to start: turn them on under Leveling in /jsal settings",
-    "Beta: a better profession road, and a profession panel that's easier to read",
+    "Beta: easier to read, in dungeon quests, training and professions",
 }
 
 local function NewsWanted()

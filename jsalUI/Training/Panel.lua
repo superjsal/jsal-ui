@@ -1,7 +1,8 @@
 -- A small Training panel that opens beside the spellbook, a class, pet or
--- weapon trainer and Beast Training: what you can train now and what it
--- costs against your gold, what the next level brings, and where you trained
--- last, with a map pin and a way into the Training Planner. Beside a trainer
+-- weapon trainer and Beast Training: how many spells you can train now and
+-- what they cost, whether your gold covers it, the spells under column
+-- headings, what the next level brings, and where you trained last, with a
+-- map pin and a way into the Training Planner. Beside a trainer
 -- it shows only what that trainer teaches; with its Settings switch on, it
 -- stands in for the class, pet or weapon trainer's window, with a Train
 -- button on each spell.
@@ -18,6 +19,7 @@ local Panel = ns.NewModule("trainingpanel", {
 })
 
 local WIDTH, PAD, ROW_H, MAX_ROWS = 330, 14, 30, 8
+local TALL_H, LATER_H = 40, 26   -- a spell with its Train button; one of the next level's
 -- The windows it opens beside. Forever's spellbook is the book inside
 -- PlayerSpellsFrame, which loads on demand; older clients' is SpellBookFrame.
 -- Class, pet and weapon trainers share the trainer window, and so does
@@ -82,6 +84,23 @@ end
 ---------------------------------------------------------------------------
 local rows, used = {}, 0
 
+-- How wide a line of text is drawn, or a guess where that isn't known.
+local function Wide(text, guess)
+    local w = text.GetStringWidth and text:GetStringWidth()
+    return (type(w) == "number" and w > 0) and w or guess
+end
+
+-- The rank number of a spell ("Rank 3" -> 3); none for one-rank spells.
+local function RankNumber(rank)
+    return rank and tonumber(rank:match("(%d+)")) or nil
+end
+
+-- A spell you don't have in any rank yet: tagged "new", where a higher rank
+-- says which rank. A weapon master's skills are all new, so none is tagged.
+local function New(spell)
+    return context ~= "weapons" and (RankNumber(spell.rank) or 1) == 1
+end
+
 local function Row()
     used = used + 1
     local r = rows[used]
@@ -89,17 +108,21 @@ local function Row()
         r = CreateFrame("Frame", nil, panel)
         r:SetSize(WIDTH - PAD * 2, ROW_H)
         r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(22, 22)
         r.icon:SetPoint("LEFT")
         r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         r.name = Style.Text(r, 13, "text")
-        r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
         r.name:SetWordWrap(false)
         r.rank = Style.Text(r, 12, "muted")
-        r.rank:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
+        r.new = CreateFrame("Frame", nil, r)
+        r.new.fill = Style.Fill(r.new, "gold")
+        r.new.text = Style.Text(r.new, 10, "onGold", nil, true)
+        r.new.text:SetPoint("CENTER")
+        r.new.text:SetText("new")
+        r.new:SetSize(Wide(r.new.text, 17) + 12, 15)
         r.price = Style.Text(r, 12, "text", nil, true)
         r.price:SetPoint("RIGHT")
         r.price:SetJustifyH("RIGHT")
+        r.line = Style.Rule(r, "BOTTOM", "line")
         r:EnableMouse(true)
         r:SetScript("OnEnter", function(self)
             if not self.spellID then return end
@@ -109,21 +132,52 @@ local function Row()
         end)
         r:SetScript("OnLeave", function() GameTooltip:Hide() end)
         Style.Hover(r, 6)
-        -- Standing in for the trainer, each row has its own Train button and
-        -- a Skip (or what it waits on, for later spells).
-        r.train = Style.Button(r, "Train", "plain", 50)
-        r.train:SetHeight(22)
-        r.train:SetPoint("RIGHT", -36, 0)
+        -- Standing in for the trainer, a spell you can learn has its own
+        -- Train button, and "skip" under its name; a skipped one, Unskip.
+        r.train = Style.Button(r, "Train", "plain", 52)
+        r.train:SetHeight(24)
+        r.train:SetPoint("RIGHT")
         r.skip = CreateFrame("Button", nil, r)
-        r.skip:SetSize(34, 22)
-        r.skip:SetPoint("RIGHT")
+        r.skip:SetSize(44, 18)
         r.skip.text = Style.Text(r.skip, 12, "muted")
-        r.skip.text:SetPoint("RIGHT")
-        r.skip.text:SetJustifyH("RIGHT")
-        r.skip:SetScript("OnEnter", function(self) if self:IsMouseEnabled() then self.text:SetTextColor(Style.Color("text")) end end)
+        r.skip:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("gold")) end)
         r.skip:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("muted")) end)
+        -- A spell's name, and that it's new or its rank. `tall`: on two
+        -- lines, the name over the rest, as a row with a Train button is.
+        function r:Lay(spell, tall, nameW)
+            self:SetHeight(tall and TALL_H or (self.later and LATER_H or ROW_H))
+            self.icon:SetSize(tall and 26 or 20, tall and 26 or 20)
+            self.icon:SetTexture(spell.icon)
+            self.spellID = spell.id
+            self.name:SetWidth(0)
+            self.name:SetText(spell.name)
+            self.name:SetWidth(math.min(Wide(self.name, #spell.name * 7) + 2, nameW))
+            local fresh = New(spell)
+            self.new:SetShown(fresh)
+            self.rank:SetText(not fresh and spell.rank or "")
+            self.name:ClearAllPoints()
+            self.rank:ClearAllPoints()
+            self.new:ClearAllPoints()
+            if tall then
+                self.name:SetPoint("BOTTOMLEFT", self.icon, "RIGHT", 10, 1)
+                self.rank:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -3)
+                self.new:SetPoint("TOPLEFT", self.name, "BOTTOMLEFT", 0, -2)
+            else
+                self.name:SetPoint("LEFT", self.icon, "RIGHT", 10, 0)
+                self.rank:SetPoint("LEFT", self.name, "RIGHT", 8, 0)
+                self.new:SetPoint("LEFT", self.name, "RIGHT", 8, 0)
+            end
+            self.line:SetShown(tall and true or false)
+            self.price:SetText(PriceText(spell))
+            self.price:ClearAllPoints()
+            self.price:SetPoint("RIGHT")
+            self.train:Hide()
+            self.skip:Hide()
+            self:SetAlpha(1)
+        end
         rows[used] = r
     end
+    r.later = nil
     r:Show()
     return r
 end
@@ -166,40 +220,43 @@ local function Build()
     panel.sub = Style.Text(panel, 12, "muted")
     panel.sub:SetWidth(WIDTH - PAD * 2)
     panel.sub:SetWordWrap(false)
-    -- "2 skipped · Show": the skipped spells, to take back.
+    -- "+ 2 skipped ... show": the skipped spells, to take back.
     panel.skipped = CreateFrame("Button", nil, panel)
-    panel.skipped:SetSize(WIDTH - PAD * 2, 18)
-    panel.skipped.text = Style.Text(panel.skipped, 12, "muted")
-    panel.skipped.text:SetPoint("LEFT")
+    panel.skipped:SetSize(WIDTH - PAD * 2, 20)
+    panel.skipped.sign = Style.Text(panel.skipped, 14, "gold", nil, true)
+    panel.skipped.sign:SetPoint("LEFT")
+    panel.skipped.text = Style.Text(panel.skipped, 12, "secondary")
+    panel.skipped.text:SetPoint("LEFT", 16, 0)
+    panel.skipped.act = Style.Text(panel.skipped, 12, "muted")
+    panel.skipped.act:SetPoint("RIGHT")
+    panel.skipped.act:SetJustifyH("RIGHT")
+    Style.Hover(panel.skipped, 6)
 
-    panel.nowHead = Style.Text(panel, 12, "gold", nil, true)
-    panel.nowCost = Style.Text(panel, 13, "text", nil, true)
+    -- The top: how many there are to train and what they cost, in a line you
+    -- can read at a glance; under it, whether your gold covers it.
+    panel.count = Style.Text(panel, 15, "text", nil, true)
+    panel.nowCost = Style.Text(panel, 15, "gold", nil, true)
     panel.nowCost:SetJustifyH("RIGHT")
-    panel.empty = Style.Text(panel, 12, "muted")
-    panel.empty:SetWidth(WIDTH - PAD * 2)
+    panel.gold = Style.Text(panel, 12, "muted")
+    panel.gold:SetWidth(WIDTH - PAD * 2)
+    panel.gold:SetWordWrap(false)
+    -- The column headings over the spells.
+    panel.cols = CreateFrame("Frame", nil, panel)
+    panel.cols:SetSize(WIDTH - PAD * 2, 18)
+    local spellCol = Style.Text(panel.cols, 10, "muted", nil, true)
+    spellCol:SetPoint("TOPLEFT")
+    spellCol:SetText("SPELL")
+    panel.cols.cost = Style.Text(panel.cols, 10, "muted", nil, true)
+    panel.cols.cost:SetJustifyH("RIGHT")
+    panel.cols.cost:SetText("COST")
+    Style.Rule(panel.cols, "BOTTOM", "lineStrong")
 
-    panel.track = CreateFrame("Frame", nil, panel)
-    panel.track:SetSize(WIDTH - PAD * 2, 5)
-    Style.Fill(panel.track, "line")
-    panel.fill = panel.track:CreateTexture(nil, "ARTWORK")
-    panel.fill:SetPoint("TOPLEFT")
-    panel.fill:SetPoint("BOTTOMLEFT")
-    panel.fill:SetColorTexture(Style.Color("gold"))
-    -- Your gold and what's left after the visit, each a label and an amount.
-    panel.have = Style.Text(panel, 12, "muted")
-    panel.have:SetText("You have")
-    panel.haveAmount = Style.Text(panel, 12, "text")
-    panel.haveAmount:SetJustifyH("RIGHT")
-    panel.spareLabel = Style.Text(panel, 12, "muted")
-    panel.spare = Style.Text(panel, 12, "text")
-    panel.spare:SetJustifyH("RIGHT")
-
-    panel.rule1 = panel:CreateTexture(nil, "BORDER")
-    panel.rule1:SetColorTexture(Style.Color("line"))
-    panel.rule1:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
     panel.nextHead = Style.Text(panel, 12, "gold", nil, true)
     panel.nextCost = Style.Text(panel, 13, "text", nil, true)
     panel.nextCost:SetJustifyH("RIGHT")
+    panel.rule1 = panel:CreateTexture(nil, "BORDER")
+    panel.rule1:SetColorTexture(Style.Color("lineStrong"))
+    panel.rule1:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
     panel.more = Style.Text(panel, 12, "muted")
 
     panel.rule2 = panel:CreateTexture(nil, "BORDER")
@@ -214,7 +271,11 @@ local function Build()
     panel.open:SetHeight(28)
     panel.open:SetScript("OnClick", function() Window.Open("training") end)
     panel.train = Style.Button(panel, "Train all", "primary", 100)
-    panel.train:SetHeight(28)
+    panel.train:SetHeight(32)
+    -- Beside Open planner, at a trainer: what Train all leaves out.
+    panel.note = Style.Text(panel, 11, "muted")
+    panel.note:SetJustifyH("RIGHT")
+    panel.note:SetText("skipped spells are left out")
 end
 
 -- Buying needs the rows that can be learned listed; the player's other two
@@ -338,16 +399,16 @@ local function Reveal()
 end
 
 -- The panel's width: 330 beside a window, and wider standing in for the
--- trainer, where each row also holds Train and Skip: wide enough for the
+-- trainer, where a spell also has its Train button: wide enough for the
 -- longest trainer spell's name (Improved Demoralizing Shout, about 167px)
--- beside its rank and a price in gold and silver.
-local STAND_W = 452
+-- beside a price in gold and silver and the button.
+local STAND_W = 390
 local NAME_W = 172
 local inner = WIDTH - PAD * 2
 local function SetWidths(w)
     inner = w - PAD * 2
     panel:SetWidth(w)
-    for _, f in ipairs({ panel.track, panel.empty, panel.where, panel.sub, panel.skipped, panel.rule1, panel.rule2 }) do
+    for _, f in ipairs({ panel.cols, panel.gold, panel.where, panel.sub, panel.skipped, panel.rule1, panel.rule2 }) do
         f:SetWidth(inner)
     end
     for _, r in ipairs(rows) do r:SetWidth(inner) end
@@ -371,28 +432,91 @@ local function PlaceRight(region, y)
     region:Show()
 end
 
-local function SpellRows(list, y)
-    for i, spell in ipairs(list) do
-        if i > MAX_ROWS then break end
-        local r = Row()
-        r:SetWidth(inner)
-        Place(r, y)
-        r.spellID = spell.id
-        r.icon:SetTexture(spell.icon)
-        -- A long name gives way before the rank and price.
-        r.name:SetWidth(0)
-        r.name:SetText(spell.name)
-        r.name:SetWidth(math.min(r.name:GetStringWidth() + 2, 170))
-        r.rank:SetText(spell.rank or "")
-        r.price:SetText(PriceText(spell))
-        r.price:ClearAllPoints()
-        r.price:SetPoint("RIGHT")
-        r.train:Hide()
-        r.skip:Hide()
-        r:SetAlpha(1)
-        y = y + ROW_H
+-- The top of the list, from y: how many there are to train and what they
+-- cost; whether your gold covers it, said once in a colour, where it was a
+-- bar to read against two numbers; and the column headings. Returns the y
+-- under it. `words` says what `count` things are; `costX` is how far in from
+-- the right the prices are.
+local function Head(y, count, words, cost, money, costX)
+    panel.count:SetText(count > 0 and words or "Nothing to train right now")
+    Place(panel.count, y)
+    panel.nowCost:SetText(cost > 0 and Compat.Money(cost) or "")
+    PlaceRight(panel.nowCost, y)
+    y = y + 24
+    if cost > 0 then
+        local short = money < cost
+        panel.gold:SetText(("You have %s:  %s"):format(Compat.Money(money), short
+            and (Style.Tint("red") .. "short by " .. Compat.Money(cost - money) .. "|r")
+            or (Style.Tint("green") .. "enough, " .. Compat.Money(money - cost) .. " left after|r")))
+        Place(panel.gold, y)
+        y = y + 22
+    else
+        panel.gold:Hide()
+    end
+    if count > 0 then
+        y = y + 6
+        panel.cols.cost:ClearAllPoints()
+        panel.cols.cost:SetPoint("TOPRIGHT", -(costX or 0), 0)
+        Place(panel.cols, y)
+        y = y + 20
+    else
+        panel.cols:Hide()
     end
     return y
+end
+
+-- What there is to train, in words.
+local function Count(n, pet)
+    if context == "weapons" then return ("%d weapon skill%s to learn"):format(n, n == 1 and "" or "s") end
+    if context == "beast" then return ("%d abilit%s to teach %s"):format(n, n == 1 and "y" or "ies", pet or "your pet") end
+    return ("%d spell%s to train"):format(n, n == 1 and "" or "s")
+end
+
+-- What the next level brings: its heading, said once, with its cost, and a
+-- greyed line for each spell. Returns the y under it.
+local function Later(y, head, cost, list, most)
+    panel.nextHead:SetText(head)
+    Place(panel.nextHead, y + 1)
+    panel.nextCost:SetText(cost > 0 and Compat.Money(cost) or "")
+    PlaceRight(panel.nextCost, y)
+    y = y + 22
+    Place(panel.rule1, y)
+    y = y + 4
+    for i, spell in ipairs(list) do
+        if i > most then break end
+        local r = Row()
+        r.later = true
+        r:SetWidth(inner)
+        Place(r, y)
+        r:Lay(spell, false, 170)
+        r:SetAlpha(0.7)
+        y = y + LATER_H
+    end
+    return y
+end
+
+-- Train all, saying how many and for how much, and under it the planner.
+local function Foot(y, data, count, cost)
+    local skippedIDs, skippedNames = {}, {}
+    for _, list in ipairs({ data.spells, data.weapons }) do
+        for _, spell in ipairs(list) do
+            if spell.skipped then
+                skippedIDs[spell.id] = true
+                skippedNames[spell.name .. "|" .. (spell.rank or "")] = true
+            end
+        end
+    end
+    panel.train:SetLabel(count > 0 and (("Train all %d"):format(count) .. (cost > 0 and ("  ·  " .. Compat.Money(cost)) or "")) or "Train all")
+    panel.train:SetEnabled(count > 0)
+    panel.train:SetScript("OnClick", function() TrainAll(skippedIDs, skippedNames) end)
+    panel.train:SetWidth(inner)
+    Place(panel.train, y)
+    y = y + 32 + 8
+    panel.open:SetWidth(110)
+    panel.open:SetKind("plain")
+    Place(panel.open, y)
+    PlaceRight(panel.note, y + 7)
+    return y + 28 + PAD
 end
 
 local PaintTrainer
@@ -422,7 +546,7 @@ local function Paint()
     -- Ready now, and the spells of the next even level.
     local now, nextLevel, nextList = {}, nil, {}
     local nowCost, nextCost = 0, 0
-    local nowHead, nextHead = ("READY NOW · LEVEL %d"):format(level), "NEXT · LEVEL %d"
+    local nextHead, petName = "AT LEVEL %d", nil
     for _, spell in ipairs(data.spells) do
         if not spell.known and not spell.skipped and Belongs(spell) then
             if spell.level <= level then
@@ -464,8 +588,8 @@ local function Paint()
             if row.state == "ready" and not row.skipped then now[#now + 1] = Entry(row) end
         end
         if pet and not pet.none then
-            nowHead = ("READY NOW · %s, LEVEL %d"):format((pet.name or "PET"):upper(), pet.level or 0)
-            nextHead = "NEXT · PET LEVEL %d"
+            petName = pet.name
+            nextHead = "AT PET LEVEL %d"
             for _, row in ipairs(pet.rows) do
                 if row.state == "level" and not row.skipped and (not nextLevel or row.spell.level < nextLevel) then
                     nextLevel = row.spell.level
@@ -483,106 +607,49 @@ local function Paint()
         return PaintTrainer(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs)
     end
 
-    local y = 36 + 12
-    panel.nowHead:SetText(nowHead)
-    Place(panel.nowHead, y + 2)
-    panel.nowCost:SetText(nowCost > 0 and Compat.Money(nowCost) or "")
-    PlaceRight(panel.nowCost, y)
-    y = y + 24
-    if #now == 0 then
-        panel.empty:SetText("Nothing to train right now.")
-        Place(panel.empty, y)
-        y = y + 22
-        panel.track:Hide()
-        panel.have:Hide()
-        panel.haveAmount:Hide()
-        panel.spareLabel:Hide()
-        panel.spare:Hide()
+    local y = Head(36 + 12, #now, Count(#now, petName), nowCost, money)
+    for i, spell in ipairs(now) do
+        if i > MAX_ROWS then break end
+        local r = Row()
+        r:SetWidth(inner)
+        Place(r, y)
+        r:Lay(spell, false, 170)
+        y = y + ROW_H
+    end
+    if #now > MAX_ROWS then
+        panel.more:SetText(("And %d more in the planner."):format(#now - MAX_ROWS))
+        Place(panel.more, y + 2)
+        y = y + 20
     else
-        panel.empty:Hide()
-        y = SpellRows(now, y)
-        if #now > MAX_ROWS then
-            panel.more:SetText(("And %d more in the planner."):format(#now - MAX_ROWS))
-            Place(panel.more, y)
-            y = y + 18
-        end
-        -- The visit's total against your gold.
-        y = y + 6
-        Place(panel.track, y)
-        panel.fill:SetWidth(math.max(1, (WIDTH - PAD * 2) * (nowCost > 0 and math.min(1, money / nowCost) or 1)))
-        y = y + 11
-        Place(panel.have, y)
-        panel.haveAmount:SetText(Compat.Money(money))
-        PlaceRight(panel.haveAmount, y)
-        y = y + 18
-        if nowCost == 0 then
-            panel.spareLabel:Hide()
-            panel.spare:Hide()
-        else
-            local short = money < nowCost
-            panel.spareLabel:SetText(short and "Short by" or "Left after")
-            panel.spareLabel:SetTextColor(Style.Color(short and "gold" or "muted"))
-            panel.spare:SetText(Compat.Money(math.abs(money - nowCost)))
-            panel.spare:SetTextColor(Style.Color(short and "gold" or "text"))
-            Place(panel.spareLabel, y)
-            PlaceRight(panel.spare, y)
-            y = y + 18
-        end
+        panel.more:Hide()
     end
 
-    -- Next.
+    -- What the next level brings.
     if nextLevel then
-        y = y + 8
-        Place(panel.rule1, y)
-        y = y + 12
-        panel.nextHead:SetText(nextHead:format(nextLevel))
-        Place(panel.nextHead, y + 2)
-        panel.nextCost:SetText(nextCost > 0 and Compat.Money(nextCost) or "")
-        PlaceRight(panel.nextCost, y)
-        y = y + 24
-        y = SpellRows(nextList, y)
+        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList, MAX_ROWS)
     else
         panel.rule1:Hide()
         panel.nextHead:Hide()
         panel.nextCost:Hide()
     end
-    if #now <= MAX_ROWS then panel.more:Hide() end
 
-    y = y + 8
-    Place(panel.rule2, y)
-    y = y + 12
-    local half = (WIDTH - PAD * 2 - 8) / 2
-
+    y = y + 10
     -- At a class, pet or weapon trainer: train everything not skipped, and
     -- the planner.
     if context == "class" or context == "pet" or context == "weapons" then
-        local skippedIDs, skippedNames = {}, {}
-        for _, list in ipairs({ data.spells, data.weapons }) do
-            for _, spell in ipairs(list) do
-                if spell.skipped then
-                    skippedIDs[spell.id] = true
-                    skippedNames[spell.name .. "|" .. (spell.rank or "")] = true
-                end
-            end
-        end
-        panel.where:SetText("Train all buys everything here you haven't skipped.")
-        Place(panel.where, y)
-        y = y + 26
+        panel.rule2:Hide()
+        panel.where:Hide()
         panel.map:Hide()
-        panel.train:SetLabel(nowCost > 0 and ("Train all · " .. Compat.Money(nowCost)) or "Train all")
-        panel.train:SetEnabled(#now > 0)
-        panel.train:SetScript("OnClick", function() TrainAll(skippedIDs, skippedNames) end)
-        panel.train:SetWidth(WIDTH - PAD * 2 - 8 - 110)
-        panel.open:SetWidth(110)
-        panel.open:SetKind("plain")
-        Place(panel.train, y)
-        Place(panel.open, y, WIDTH - PAD - 110)
-        y = y + 28 + PAD
+        y = Foot(y + 4, data, #now, nowCost)
         for i = used + 1, #rows do rows[i]:Hide() end
         panel:SetHeight(y)
         return
     end
     panel.train:Hide()
+    panel.note:Hide()
+    Place(panel.rule2, y)
+    y = y + 12
+    local half = (WIDTH - PAD * 2 - 8) / 2
 
     -- Elsewhere: your nearest class trainer with a map pin to them, or where
     -- you trained last, and the planner.
@@ -629,31 +696,13 @@ end
 
 ---------------------------------------------------------------------------
 -- Standing in for the trainer: who's teaching, each spell you can learn
--- with Train and Skip, your gold and Train all, what the next level brings,
--- and the skipped spells to take back.
+-- with its Train button and "skip" under its name, the skipped spells to
+-- take back, what the next level brings, and Train all.
 ---------------------------------------------------------------------------
-local TRAIN_ROWS, LATER_ROWS = 14, 8
+-- The most spells listed with a Train button: Train all covers the rest,
+-- and the panel stays on the screen.
+local TRAIN_ROWS = 8
 local showSkipped = false
-
-local function TrainerRow(spell, y, later)
-    local r = Row()
-    r:SetWidth(inner)
-    Place(r, y)
-    r.spellID = spell.id
-    r.icon:SetTexture(spell.icon)
-    r.name:SetWidth(0)
-    r.name:SetText(spell.name)
-    r.name:SetWidth(math.min(r.name:GetStringWidth() + 2, NAME_W))
-    r.rank:SetText(spell.rank or "")
-    r.price:SetText(PriceText(spell))
-    r.price:ClearAllPoints()
-    r.price:SetPoint("RIGHT", r.train, "LEFT", -8, 0)
-    r:SetAlpha(later and 0.45 or 1)
-    r.train:SetShown(not later)
-    r.train:SetScript("OnClick", function() TrainOne(spell) end)
-    r.skip:Show()
-    return r
-end
 
 PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs)
     local level, money = UnitLevel("player"), GetMoney()
@@ -663,107 +712,53 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
     local npc = ns.Compat.Name("npc")
     local zone = GetSubZoneText and GetSubZoneText() ~= "" and GetSubZoneText() or (GetZoneText and GetZoneText()) or nil
     local y = 36 + 10
-    panel.sub:SetText(("%s%s · level %d"):format(npc or "Trainer", zone and (", " .. zone) or "", level))
+    panel.sub:SetText(("%s%s"):format(npc or "Trainer", zone and (", " .. zone) or ""))
     Place(panel.sub, y)
-    y = y + 22
-
-    -- Ready now, each with Train and Skip.
-    panel.nowHead:SetText(("READY NOW · %d"):format(#now))
-    Place(panel.nowHead, y + 2)
-    panel.nowCost:SetText(nowCost > 0 and Compat.Money(nowCost) or "")
-    PlaceRight(panel.nowCost, y)
     y = y + 24
-    if #now == 0 then
-        panel.empty:SetText("Nothing to train right now.")
-        Place(panel.empty, y)
-        y = y + 22
-    else
-        panel.empty:Hide()
-        for i, spell in ipairs(now) do
-            if i > TRAIN_ROWS then break end
-            local r = TrainerRow(spell, y, false)
-            r.skip.text:SetText("Skip")
-            r.skip:EnableMouse(true)
-            r.skip:SetScript("OnClick", function()
-                Training.Skip(spell.id, true)
-                xpcall(Paint, ns.Report)
-            end)
-            y = y + ROW_H
+
+    -- Ready now: the name over its rank and "skip", its price, and Train.
+    y = Head(y, #now, Count(#now), nowCost, money, 60)
+    for i, spell in ipairs(now) do
+        if i > TRAIN_ROWS then break end
+        local r = Row()
+        r:SetWidth(inner)
+        Place(r, y)
+        r:Lay(spell, true, NAME_W)
+        r.price:ClearAllPoints()
+        r.price:SetPoint("RIGHT", r.train, "LEFT", -8, 0)
+        r.train:Show()
+        r.train:SetScript("OnClick", function() TrainOne(spell) end)
+        -- "skip" goes after the tag or the rank, on the line under the name.
+        local fresh = r.new:IsShown()
+        r.skip.text:ClearAllPoints()
+        r.skip.text:SetPoint("LEFT")
+        r.skip.text:SetJustifyH("LEFT")
+        r.skip.text:SetText((fresh or not spell.rank) and "skip" or "·  skip")
+        r.skip:ClearAllPoints()
+        if fresh then
+            r.skip:SetPoint("LEFT", r.new, "RIGHT", 8, 0)
+        elseif spell.rank then
+            r.skip:SetPoint("LEFT", r.rank, "RIGHT", 6, 0)
+        else
+            r.skip:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -1)
         end
+        r.skip:Show()
+        r.skip:SetScript("OnClick", function()
+            Training.Skip(spell.id, true)
+            xpcall(Paint, ns.Report)
+        end)
+        y = y + TALL_H
     end
     if #now > TRAIN_ROWS then
         panel.more:SetText(("And %d more: Train all covers them."):format(#now - TRAIN_ROWS))
-        Place(panel.more, y)
-        y = y + 18
+        Place(panel.more, y + 4)
+        y = y + 22
     else
         panel.more:Hide()
     end
-
-    -- Your gold against the visit, and Train all.
-    y = y + 6
-    Place(panel.track, y)
-    panel.fill:SetWidth(math.max(1, inner * (nowCost > 0 and math.min(1, money / nowCost) or 1)))
-    y = y + 11
-    Place(panel.have, y)
-    panel.haveAmount:SetText(Compat.Money(money))
-    PlaceRight(panel.haveAmount, y)
-    y = y + 18
-    if nowCost > 0 then
-        local short = money < nowCost
-        panel.spareLabel:SetText(short and "Short by" or "Left after")
-        panel.spareLabel:SetTextColor(Style.Color(short and "gold" or "muted"))
-        panel.spare:SetText(Compat.Money(math.abs(money - nowCost)))
-        panel.spare:SetTextColor(Style.Color(short and "gold" or "text"))
-        Place(panel.spareLabel, y)
-        PlaceRight(panel.spare, y)
-        y = y + 18
-    else
-        panel.spareLabel:Hide()
-        panel.spare:Hide()
-    end
-    local skippedIDs, skippedNames = {}, {}
-    for _, list in ipairs({ data.spells, data.weapons }) do
-        for _, spell in ipairs(list) do
-            if spell.skipped then
-                skippedIDs[spell.id] = true
-                skippedNames[spell.name .. "|" .. (spell.rank or "")] = true
-            end
-        end
-    end
-    y = y + 8
-    panel.train:SetLabel(nowCost > 0 and ("Train all · " .. Compat.Money(nowCost)) or "Train all")
-    panel.train:SetEnabled(#now > 0)
-    panel.train:SetScript("OnClick", function() TrainAll(skippedIDs, skippedNames) end)
-    panel.train:SetWidth(inner)
-    Place(panel.train, y)
-    y = y + 28
-    panel.open:Hide()
     panel.map:Hide()
     panel.where:Hide()
     panel.rule2:Hide()
-
-    -- What the next level brings, greyed, with the level it waits on.
-    if nextLevel then
-        y = y + 12
-        Place(panel.rule1, y)
-        y = y + 12
-        panel.nextHead:SetText(("LATER · LEVEL %d"):format(nextLevel))
-        Place(panel.nextHead, y + 2)
-        panel.nextCost:SetText(nextCost > 0 and Compat.Money(nextCost) or "")
-        PlaceRight(panel.nextCost, y)
-        y = y + 24
-        for i, spell in ipairs(nextList) do
-            if i > LATER_ROWS then break end
-            local r = TrainerRow(spell, y, true)
-            r.skip.text:SetText("level " .. nextLevel)
-            r.skip:EnableMouse(false)
-            y = y + ROW_H
-        end
-    else
-        panel.rule1:Hide()
-        panel.nextHead:Hide()
-        panel.nextCost:Hide()
-    end
 
     -- The spells skipped here that you could learn now, to take back.
     local skipped = {}
@@ -776,20 +771,32 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
         end
     end
     if #skipped > 0 then
-        y = y + 10
-        panel.skipped.text:SetText(("%d skipped · %s"):format(#skipped, showSkipped and "Hide" or "Show"))
+        y = y + 6
+        panel.skipped.sign:SetText(showSkipped and "-" or "+")
+        panel.skipped.text:SetText(("%d skipped"):format(#skipped))
+        panel.skipped.act:SetText(showSkipped and "hide" or "show")
         panel.skipped:SetScript("OnClick", function()
             showSkipped = not showSkipped
             xpcall(Paint, ns.Report)
         end)
         Place(panel.skipped, y)
-        y = y + 20
+        y = y + 24
         if showSkipped then
             for _, spell in ipairs(skipped) do
-                local r = TrainerRow(spell, y, true)
-                r.train:Hide()
+                local r = Row()
+                r:SetWidth(inner)
+                Place(r, y)
+                r:Lay(spell, false, NAME_W)
+                r:SetAlpha(0.7)
+                r.price:ClearAllPoints()
+                r.price:SetPoint("RIGHT", -52, 0)
+                r.skip.text:ClearAllPoints()
+                r.skip.text:SetPoint("RIGHT")
+                r.skip.text:SetJustifyH("RIGHT")
                 r.skip.text:SetText("Unskip")
-                r.skip:EnableMouse(true)
+                r.skip:ClearAllPoints()
+                r.skip:SetPoint("RIGHT")
+                r.skip:Show()
                 r.skip:SetScript("OnClick", function()
                     Training.Skip(spell.id, false)
                     xpcall(Paint, ns.Report)
@@ -799,7 +806,17 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
         end
     end
 
-    y = y + PAD
+    -- What the next level brings, greyed: fewer of them when there's a lot
+    -- to train now, so the panel stays on the screen.
+    if nextLevel then
+        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList, math.max(2, math.min(5, 11 - math.min(#now, TRAIN_ROWS))))
+    else
+        panel.rule1:Hide()
+        panel.nextHead:Hide()
+        panel.nextCost:Hide()
+    end
+
+    y = Foot(y + 14, data, #now, nowCost)
     for i = used + 1, #rows do rows[i]:Hide() end
     panel:SetHeight(y)
 end
