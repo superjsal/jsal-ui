@@ -172,25 +172,32 @@ end
 
 local function Rgb(key) local r, g, b = Style.Color(key); return r, g, b end
 
+-- A line in a colour, wrapped. Rgb's three numbers only all arrive when they come last in a
+-- call, so a wrapped line can't take Rgb(key) followed by true.
+local function Add(tip, text, key)
+    local r, g, b = Style.Color(key)
+    tip:AddLine(text, r, g, b, true)
+end
+
 function QuestTags.ShowCard(owner, questID)
     local tip = GameTooltip
     tip:SetOwner(owner, "ANCHOR_LEFT")
     tip:SetText(C_QuestLog.GetTitleForQuestID(questID) or "Quest", Rgb("text"))
-    tip:AddLine(QuestTags.ChainLine(questID), Rgb("muted"), true)
+    Add(tip, QuestTags.ChainLine(questID), "muted")
     local rows, total, unknown = QuestTags.Work(questID)
     local seconds, fights = QuestTags.FightSeconds()
     local _, _, colour, minutes = QuestTags.Tags(questID)
     tip:AddLine(" ")
     if unknown then
-        tip:AddLine(("Annoyance: unknown. How often %s drops isn't known."):format(unknown), Rgb("muted"), true)
+        Add(tip, ("Annoyance: unknown. How often %s drops isn't known."):format(unknown), "muted")
     elseif total <= 0 then
-        tip:AddLine(C_QuestLog.IsComplete(questID) and "Ready to turn in." or "Nothing to fight for.", Rgb("muted"))
+        Add(tip, C_QuestLog.IsComplete(questID) and "Ready to turn in." or "Nothing to fight for.", "muted")
     else
         local whole = math.max(1, math.floor(minutes + 0.5))
-        tip:AddLine(("Annoyance: about %s"):format(whole == 1 and "a minute" or (whole .. " minutes")), Rgb(colour))
-        tip:AddLine(("About %d kills at %d seconds a fight, your average%s"):format(math.floor(total + 0.5),
+        Add(tip, ("Annoyance: about %s"):format(whole == 1 and "a minute" or (whole .. " minutes")), colour)
+        Add(tip, ("About %d kills at %d seconds a fight, your average%s"):format(math.floor(total + 0.5),
             math.floor(seconds + 0.5), fights < GUESS and " (a guess until you've had a few fights)" or ""),
-            Rgb("muted"), true)
+            "muted")
     end
     for _, r in ipairs(rows) do
         local lr, lg, lb = Rgb("secondary")
