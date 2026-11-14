@@ -11,6 +11,12 @@ Restart the game after updating (exit and start it again): this version adds new
 
 - **Map pins in Stormwind point at the right spot.** Forever draws Stormwind over a bigger stretch of the world than Classic does, and the pins for its trainers, recipe vendors and dungeon quest givers were still on Classic's map, so "Arrived" came up streets away. The same is fixed for Mulgore, Redridge and Eastern Plaguelands.
 
+- **Professions: a better road, and a panel that's easier to read.**
+  - **The road weighs what materials are worth, not how many there are.** It used to count a hide, an elixir or a Righteous Orb the same as one piece of leather, so it sent leatherworkers through dozens of hides. It now stays on plain materials and trainer recipes where it can.
+  - **It only has you buy patterns a vendor sells for coin.** Patterns that need a reputation or a special currency are on the road only once you have them.
+  - **It says how many to make to be safe**, beside the average, for steps that don't give a point every craft.
+  - **The panel reads top to bottom:** one bar for where you stand with the next rank marked on it, the step to do now as a card with each material as have / need, the steps after it one line each, when to train the next rank as a row of its own, then everything you need to the rank's cap.
+
 - **The craft timer no longer stays up when a run ends early.** Ask for seven with materials for one and the game makes one and stops without a word; the timer sat there counting nothing. It now goes a few seconds after the last craft.
 - **The shopping list no longer jumps when you drag it.** It also keeps its title bar where you put it when the list gets longer or shorter.
 

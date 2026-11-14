@@ -1,6 +1,7 @@
--- A panel beside the profession window: your skill and the next rank, a
--- road there step by step (which recipe, how many, when to learn it), and
--- everything that road needs against what you have.
+-- A panel beside the profession window: where you stand in the rank, the
+-- one thing to make now with what it takes, the steps after it one line
+-- each (and when to train the next rank), and everything the road needs
+-- against what you have.
 local _, ns = ...
 local Style, Compat, Professions = ns.Style, ns.Compat, ns.Professions
 
@@ -9,7 +10,10 @@ local Panel = ns.NewModule("professionpanel", {
     note = "Beside the profession window: what to craft to reach the next rank.",
 })
 
-local WIDTH, PAD, STEP_H, ROW_H = 360, 14, 46, 30
+local WIDTH, PAD, STEP_H, ROW_H = 360, 14, 30, 30
+-- A step's line with a note under it, a material's line in the card, a line
+-- of everything the road needs, and the row for training the next rank.
+local NOTE_H, MAT_H, NEED_H, RANK_H = 14, 36, 22, 38
 local TAB_H = 24
 local MAX_STEPS, MAX_ITEMS = 6, 8
 -- The profession window, newer and older.
@@ -71,20 +75,30 @@ local function Build()
         panel:Hide()
     end):SetPoint("TOPRIGHT")
 
+    -- Where you stand: the rank's name, your skill, and one bar from the
+    -- rank's first point to its cap with the next rank's training marked.
     panel.skill = Style.Text(panel, 12, "muted")
-    panel.skill:SetPoint("TOPLEFT", PAD, -(36 + 12))
-    panel.skill:SetWidth(WIDTH - PAD * 2)
+    panel.skill:SetPoint("TOPLEFT", PAD, -(36 + 14))
+    panel.points = Style.Text(panel, 17, "text", nil, true)
+    panel.points:SetPoint("TOPRIGHT", -PAD, -(36 + 9))
+    panel.points:SetJustifyH("RIGHT")
     panel.track = CreateFrame("Frame", nil, panel)
     panel.track:SetSize(WIDTH - PAD * 2, 6)
-    panel.track:SetPoint("TOPLEFT", PAD, -(36 + 32))
+    panel.track:SetPoint("TOPLEFT", PAD, -(36 + 36))
     Style.Fill(panel.track, "line")
     panel.fill = panel.track:CreateTexture(nil, "ARTWORK")
     panel.fill:SetPoint("TOPLEFT")
     panel.fill:SetPoint("BOTTOMLEFT")
     panel.fill:SetColorTexture(Style.Color("gold"))
     panel.marker = panel.track:CreateTexture(nil, "OVERLAY")
-    panel.marker:SetColorTexture(Style.Color("text"))
-    panel.marker:SetSize(2, 12)
+    panel.marker:SetColorTexture(Style.Color("muted"))
+    panel.marker:SetSize(Compat.OnePixel(panel), 12)
+    panel.from = Style.Text(panel, 11, "muted")
+    panel.from:SetPoint("TOPLEFT", panel.track, "BOTTOMLEFT", 0, -5)
+    panel.cap = Style.Text(panel, 11, "muted")
+    panel.cap:SetPoint("TOPRIGHT", panel.track, "BOTTOMRIGHT", 0, -5)
+    panel.cap:SetJustifyH("RIGHT")
+    panel.markText = Style.Text(panel, 11, "muted")
 
     -- Two tabs, when there are recipes to learn: the panel shows one list
     -- at a time, so it stays shorter than the screen.
@@ -93,7 +107,7 @@ local function Build()
     for i, key in ipairs({ "road", "recipes" }) do
         local b = Style.Button(panel, key == "road" and "Your road" or "Recipes to learn", "tab", tabW)
         b:SetHeight(TAB_H)
-        b:SetPoint("TOPLEFT", PAD + (i - 1) * (tabW + 6), -(36 + 50))
+        b:SetPoint("TOPLEFT", PAD + (i - 1) * (tabW + 6), -(36 + 68))
         b:SetScript("OnClick", function()
             tab = key
             xpcall(Paint, ns.Report)
@@ -104,16 +118,19 @@ local function Build()
     panel.roadHead = Style.Text(panel, 12, "gold", nil, true)
     panel.roadNote = Style.Text(panel, 12, "muted")
     panel.roadNote:SetJustifyH("RIGHT")
+    panel.thenHead = Style.Text(panel, 12, "gold", nil, true)
+    panel.thenHead:SetText("THEN")
+    panel.thenNote = Style.Text(panel, 12, "muted")
+    panel.thenNote:SetJustifyH("RIGHT")
     panel.note = Style.Text(panel, 12, "muted")
     panel.note:SetWidth(WIDTH - PAD * 2)
     panel.rule = panel:CreateTexture(nil, "BORDER")
     panel.rule:SetColorTexture(Style.Color("line"))
     panel.rule:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
     panel.needHead = Style.Text(panel, 12, "gold", nil, true)
-    panel.needHead:SetText("ALL YOU NEED")
     panel.needNote = Style.Text(panel, 12, "muted")
     panel.needNote:SetJustifyH("RIGHT")
-    panel.needNote:SetText("bags and bank / need")
+    panel.needNote:SetText("have / need")
     panel.where = Style.Text(panel, 12, "muted")
     panel.where:SetWidth(WIDTH - PAD * 2)
     panel.pin = Style.Button(panel, "Show trainer on map", "primary", WIDTH - PAD * 2)
@@ -242,52 +259,156 @@ local function Tooltip(frame)
     Style.Hover(frame, 6)
 end
 
+-- A later step, on one line: the skill it covers, what to make and how
+-- many; a line under it only when there's something to do first (learn it,
+-- buy its pattern).
 local function Step(i)
     local s = steps[i]
     if s then return s end
     s = CreateFrame("Frame", nil, panel)
     s:SetSize(WIDTH - PAD * 2, STEP_H)
-    s.icon = s:CreateTexture(nil, "ARTWORK")
-    s.icon:SetSize(24, 24)
-    s.icon:SetPoint("LEFT")
-    s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    -- A + puts the step's crafts on the shopping list.
-    s.add = Style.Button(s, "+", "plain", 20)
-    s.add:SetHeight(20)
-    s.add:SetPoint("TOPRIGHT", 0, -5)
     s.levels = Style.Text(s, 12, "muted")
-    s.levels:SetPoint("RIGHT", s.add, "LEFT", -8, 0)
-    s.levels:SetJustifyH("RIGHT")
+    s.levels:SetPoint("TOPLEFT", 0, -6)
+    s.icon = s:CreateTexture(nil, "ARTWORK")
+    s.icon:SetSize(22, 22)
+    s.icon:SetPoint("TOPLEFT", 74, -2)
+    s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    s.count = Style.Text(s, 13, "text", nil, true)
+    s.count:SetPoint("TOPRIGHT", 0, -5)
+    s.count:SetJustifyH("RIGHT")
     s.name = Style.Text(s, 13, "text")
-    s.name:SetPoint("TOPLEFT", s.icon, "TOPRIGHT", 10, 3)
-    s.name:SetPoint("RIGHT", s.levels, "LEFT", -8, 0)
+    s.name:SetPoint("TOPLEFT", 104, -5)
+    s.name:SetPoint("RIGHT", s.count, "LEFT", -8, 0)
     s.name:SetJustifyH("LEFT")
     s.name:SetWordWrap(false)
-    -- Under the name and the +, so it has the row's whole width.
-    s.detail = Style.Text(s, 12, "muted")
-    s.detail:SetPoint("TOPLEFT", s.name, "BOTTOMLEFT", 0, -3)
-    s.detail:SetWidth(WIDTH - PAD * 2 - 34)
+    s.detail = Style.Text(s, 11, "gold")
+    s.detail:SetPoint("TOPLEFT", 104, -23)
+    s.detail:SetWidth(WIDTH - PAD * 2 - 104)
     s.detail:SetJustifyH("LEFT")
     s.detail:SetWordWrap(false)
+    s.rule = s:CreateTexture(nil, "BORDER")
+    s.rule:SetColorTexture(Style.Color("line"))
+    s.rule:SetPoint("BOTTOMLEFT")
+    s.rule:SetPoint("BOTTOMRIGHT")
+    s.rule:SetHeight(Compat.OnePixel(s))
     Tooltip(s)
     steps[i] = s
     return s
 end
 
+-- The step in hand, as a card: what to make, how many (and how many to be
+-- safe), and each thing it takes with what you have of it.
+local function Card()
+    if panel.card then return panel.card end
+    local card = CreateFrame("Frame", nil, panel)
+    card:SetWidth(WIDTH - PAD * 2)
+    Style.Fill(card, "well")
+    card.edge = card:CreateTexture(nil, "ARTWORK")
+    card.edge:SetColorTexture(Style.Color("gold"))
+    card.edge:SetPoint("TOPLEFT")
+    card.edge:SetPoint("BOTTOMLEFT")
+    card.edge:SetWidth(3)
+    card.icon = card:CreateTexture(nil, "ARTWORK")
+    card.icon:SetSize(36, 36)
+    card.icon:SetPoint("TOPLEFT", 14, -12)
+    card.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    card.count = Style.Text(card, 20, "gold", nil, true)
+    card.count:SetPoint("TOPRIGHT", -12, -10)
+    card.count:SetJustifyH("RIGHT")
+    card.safe = Style.Text(card, 11, "muted")
+    card.safe:SetPoint("TOPRIGHT", -12, -36)
+    card.safe:SetJustifyH("RIGHT")
+    card.name = Style.Text(card, 15, "text", nil, true)
+    card.name:SetPoint("TOPLEFT", 60, -11)
+    card.name:SetPoint("RIGHT", card.count, "LEFT", -8, 0)
+    card.name:SetJustifyH("LEFT")
+    card.name:SetWordWrap(false)
+    card.detail = Style.Text(card, 12, "muted")
+    card.detail:SetPoint("TOPLEFT", 60, -33)
+    card.detail:SetWidth(WIDTH - PAD * 2 - 60 - 12)
+    card.detail:SetJustifyH("LEFT")
+    card.detail:SetWordWrap(false)
+    card.rule = card:CreateTexture(nil, "BORDER")
+    card.rule:SetColorTexture(Style.Color("line"))
+    card.rule:SetPoint("TOPLEFT", 14, -60)
+    card.rule:SetSize(WIDTH - PAD * 2 - 28, Compat.OnePixel(card))
+    card.mats = {}
+    Tooltip(card)
+    panel.card = card
+    return card
+end
+
+local function Mat(card, i)
+    local m = card.mats[i]
+    if m then return m end
+    m = CreateFrame("Frame", nil, card)
+    m:SetSize(WIDTH - PAD * 2 - 28, MAT_H)
+    m.icon = m:CreateTexture(nil, "ARTWORK")
+    m.icon:SetSize(18, 18)
+    m.icon:SetPoint("TOPLEFT", 0, -2)
+    m.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    m.count = Style.Text(m, 13, "muted")
+    m.count:SetPoint("TOPRIGHT", 0, -2)
+    m.count:SetJustifyH("RIGHT")
+    m.name = Style.Text(m, 13, "text")
+    m.name:SetPoint("TOPLEFT", 26, -2)
+    m.name:SetPoint("RIGHT", m.count, "LEFT", -8, 0)
+    m.name:SetJustifyH("LEFT")
+    m.name:SetWordWrap(false)
+    m.note = Style.Text(m, 11, "muted")
+    m.note:SetPoint("TOPLEFT", 26, -19)
+    m.note:SetWidth(WIDTH - PAD * 2 - 28 - 26)
+    m.note:SetJustifyH("LEFT")
+    m.note:SetWordWrap(false)
+    Tooltip(m)
+    card.mats[i] = m
+    return m
+end
+
+-- Training the next rank, as a row of its own on the road at the skill
+-- it's open from. A click pins the nearest trainer who teaches it.
+local function RankRow()
+    if panel.rankRow then return panel.rankRow end
+    local r = CreateFrame("Button", nil, panel)
+    r:SetSize(WIDTH - PAD * 2, RANK_H - 4)
+    Style.Fill(r, "well")
+    r.edge = r:CreateTexture(nil, "ARTWORK")
+    r.edge:SetColorTexture(Style.Color("gold"))
+    r.edge:SetPoint("TOPLEFT")
+    r.edge:SetPoint("BOTTOMLEFT")
+    r.edge:SetWidth(3)
+    r.title = Style.Text(r, 12, "gold", nil, true)
+    r.title:SetPoint("TOPLEFT", 14, -4)
+    r.sub = Style.Text(r, 11, "muted")
+    r.sub:SetPoint("TOPLEFT", 14, -19)
+    r.sub:SetWidth(WIDTH - PAD * 2 - 28)
+    r.sub:SetJustifyH("LEFT")
+    r.sub:SetWordWrap(false)
+    r:SetScript("OnClick", function(self)
+        if self.trainer and ns.Trainers then ns.Trainers.Pin(self.trainer) end
+    end)
+    r:SetScript("OnEnter", function(self)
+        if not self.trainer then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine("Click to show the trainer on your map.", 0.6, 0.59, 0.53)
+        GameTooltip:Show()
+    end)
+    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    panel.rankRow = r
+    return r
+end
+
+-- One line of everything the road needs: its name, and have / need.
 local function Item(i)
     local r = items[i]
     if r then return r end
     r = CreateFrame("Frame", nil, panel)
-    r:SetSize(WIDTH - PAD * 2, ROW_H)
-    r.icon = r:CreateTexture(nil, "ARTWORK")
-    r.icon:SetSize(22, 22)
-    r.icon:SetPoint("LEFT")
-    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r:SetSize(WIDTH - PAD * 2, NEED_H)
     r.count = Style.Text(r, 12, "muted")
     r.count:SetPoint("RIGHT")
     r.count:SetJustifyH("RIGHT")
-    r.name = Style.Text(r, 13, "text")
-    r.name:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
+    r.name = Style.Text(r, 12, "text")
+    r.name:SetPoint("LEFT")
     r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
     r.name:SetJustifyH("LEFT")
     r.name:SetWordWrap(false)
@@ -329,17 +450,29 @@ function Paint()
     -- Where the road goes: the skill the next rank is learned at while
     -- you're below it, else this rank's cap.
     local rank = Professions.Rank(cap)
-    local target = (rank.at and skill < rank.at) and rank.at or cap
-    local text = ("%d of %d · %s"):format(skill, cap, rank.name)
-    if rank.at then
-        text = text .. (" · %s from %d, level %d"):format(rank.next, rank.at, rank.level)
-    end
-    panel.skill:SetText(text)
+    local rankIndex = 1
+    for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
+    local floor = rankIndex > 1 and Professions.RANKS[rankIndex - 1].cap or 0
+    panel.skill:SetText(rank.name)
+    panel.points:SetText(skill)
     local width = WIDTH - PAD * 2
-    panel.fill:SetWidth(math.max(1, width * math.min(1, skill / cap)))
-    panel.marker:ClearAllPoints()
-    panel.marker:SetPoint("CENTER", panel.track, "LEFT", width * target / cap, 0)
-    panel.marker:SetShown(target < cap)
+    local span = math.max(1, cap - floor)
+    panel.fill:SetWidth(math.max(1, width * math.max(0, math.min(1, (skill - floor) / span))))
+    panel.from:SetText(floor)
+    panel.cap:SetText(cap)
+    -- The next rank can be trained before this one's cap: marked on the bar
+    -- until you're there.
+    local ahead = rank.at ~= nil and skill < rank.at
+    panel.marker:SetShown(ahead)
+    panel.markText:SetShown(ahead)
+    if ahead then
+        local x = width * (rank.at - floor) / span
+        panel.marker:ClearAllPoints()
+        panel.marker:SetPoint("CENTER", panel.track, "LEFT", x, 0)
+        panel.markText:SetText(("%d · train %s"):format(rank.at, rank.next))
+        panel.markText:ClearAllPoints()
+        panel.markText:SetPoint("TOP", panel.track, "BOTTOMLEFT", x, -5)
+    end
 
     -- What you know, asked once for the whole list, and kept for the
     -- Professions page, which can't ask while this window is closed.
@@ -349,7 +482,9 @@ function Paint()
         if known[recipe.spell] then saved[#saved + 1] = recipe.spell end
     end
     Professions.Remember(line, skill, cap, saved)
-    local road, totals, stuck, made = Professions.Plan(line, skill, target, function(spell) return known[spell] end)
+    -- The road runs to this rank's cap, and no step runs across the skill
+    -- the next rank is trained at, so that has a place of its own on it.
+    local road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rank.at)
 
     -- Recipes not learned yet, with where each comes from: starred ones
     -- first, then by the skill they're learned at.
@@ -382,7 +517,7 @@ function Paint()
 
     -- With recipes to learn there are two tabs; without, only the road.
     local view = (#missing > 0 and tab == "recipes") and "recipes" or "road"
-    local y = 36 + 50
+    local y = 36 + 68
     for key, b in pairs(panel.tabs) do
         b:SetShown(#missing > 0)
         b:SetSelected(key == view)
@@ -390,64 +525,161 @@ function Paint()
     panel.tabs.recipes:SetLabel(("Recipes to learn  |cff9a9688%d|r"):format(#missing))
     if #missing > 0 then y = y + TAB_H + 12 end
 
-    local shown, count, listed, later = 0, 0, 0, false
+    local shown, count, listed, later, mats, ranked = 0, 0, 0, false, 0, false
     if view == "road" then
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
-        panel.roadHead:SetText(skill >= cap and "AT THE CAP" or ("YOUR WAY TO %d"):format(target))
-        Place(panel.roadHead, y + 2)
         local unit = Professions.IsGathering(line) and "vein" or "craft"
-        panel.roadNote:SetText(crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or "")
+
+        -- Training the next rank: from the skill it opens at, or now.
+        local function Rank(y)
+            local r = RankRow()
+            local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)
+            local place = trainer and ns.Trainers.Zone(trainer)
+            r.trainer = trainer
+            r.title:SetText(skill >= rank.at and ("Train %s now"):format(rank.next) or ("At %d, train %s"):format(rank.at, rank.next))
+            local parts = {}
+            if trainer then parts[#parts + 1] = trainer.name .. (place and (", " .. place) or "") end
+            if (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
+            if #parts == 0 then parts[1] = "Any trainer for it can teach you" end
+            r.sub:SetText(table.concat(parts, " · "))
+            Place(r, y)
+            ranked = true
+            return RANK_H
+        end
+
+        -- The step in hand.
+        local first = road[1]
+        panel.roadHead:SetText(first and "DO THIS NOW" or (skill >= cap and "AT THE CAP" or "NOTHING TO MAKE YET"))
+        Place(panel.roadHead, y + 2)
+        panel.roadNote:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
         PlaceRight(panel.roadNote, y + 2)
         y = y + 24
+        if rank.at and skill >= rank.at then y = y + Rank(y) + 4 end
+        if first then
+            local card = Card()
+            local recipe = first.recipe
+            card.item, card.spell = recipe.item, recipe.spell
+            card.needs, card.crafts = not recipe.vein and recipe.reagents or nil, first.crafts
+            card.icon:SetTexture(RecipeIcon(recipe))
+            card.name:SetText(RecipeName(recipe))
+            card.count:SetText(("×%d"):format(first.crafts))
+            card.safe:SetText((first.safe or 0) > first.crafts and ("%d to be safe"):format(first.safe) or "")
+            if recipe.vein then
+                card.detail:SetText(("Mine them: a sure point each until %d"):format(recipe.yellow))
+            elseif first.buy then
+                card.detail:SetText(ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
+                    or ("Buy the pattern from a vendor, from %d"):format(recipe.learn))
+            elseif first.learn then
+                card.detail:SetText(("Learn it at the trainer, from %d"):format(recipe.learn))
+            elseif skill < recipe.yellow then
+                card.detail:SetText(("a point every craft until %d"):format(recipe.yellow))
+            else
+                local odds = math.max(1, math.floor(Professions.Chance(recipe, skill) * 10 + 0.5))
+                card.detail:SetText(odds >= 10 and "a point from nearly every craft" or ("a point from about %d crafts in 10"):format(odds))
+            end
+            local my = 68
+            for i, reagent in ipairs(recipe.reagents) do
+                mats = i
+                local m = Mat(card, i)
+                m:ClearAllPoints()
+                m:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -my)
+                m:Show()
+                m.item, m.spell = reagent.item, nil
+                local need = reagent.count * first.crafts
+                local have = Compat.ItemCount(reagent.item, true)
+                m.icon:SetTexture(Compat.ItemIcon(reagent.item))
+                m.name:SetText(Compat.ItemName(reagent.item) or "...")
+                m.count:SetText(("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need))
+                local price = Professions.IsVendor(reagent.item)
+                if have >= need then
+                    m.note:SetText("you have enough")
+                elseif price then
+                    m.note:SetText(("vendor · %d more for %s"):format(need - have, Compat.Money((need - have) * price)))
+                elseif Professions.MadeBy(line, reagent.item) then
+                    m.note:SetText(("%d short · you can make it"):format(need - have))
+                else
+                    m.note:SetText(("%d short"):format(need - have))
+                end
+                my = my + MAT_H
+            end
+            card.rule:SetShown(mats > 0)
+            card:SetHeight(mats > 0 and (my + 6) or 60)
+            Place(card, y)
+            y = y + card:GetHeight() + 8
+            -- The step's crafts onto the shopping list.
+            local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
+            if shop then
+                if not panel.addStep then
+                    panel.addStep = Style.Button(panel, "Add this step to my shopping list", "plain", WIDTH - PAD * 2)
+                    panel.addStep:SetHeight(26)
+                end
+                panel.addStep:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
+                Place(panel.addStep, y)
+                y = y + 34
+            elseif panel.addStep then
+                panel.addStep:Hide()
+            end
+        else
+            if panel.card then panel.card:Hide() end
+            if panel.addStep then panel.addStep:Hide() end
+        end
 
-        for i, step in ipairs(road) do
-            if i > MAX_STEPS then break end
-            shown = i
-            local s = Step(i)
-            Place(s, y)
+        -- The steps after it, one line each, with the next rank's training
+        -- where it falls among them.
+        local more = #road > 1 or (rank.at ~= nil and skill < rank.at)
+        if more then
+            y = y + 8
+            Place(panel.thenHead, y + 2)
+            panel.thenNote:SetText(crafts > 0 and ("to %d · about %d %s%s"):format(cap, crafts, unit, crafts == 1 and "" or "s") or "")
+            PlaceRight(panel.thenNote, y + 2)
+            y = y + 24
+        else
+            panel.thenHead:Hide()
+            panel.thenNote:Hide()
+        end
+        for i = 2, #road do
+            if i - 1 > MAX_STEPS then break end
+            local step = road[i]
+            if not ranked and rank.at and step.from >= rank.at then y = y + Rank(y) end
+            shown = i - 1
+            local s = Step(shown)
             s.item, s.spell = step.recipe.item, step.recipe.spell
             s.needs, s.crafts = not step.recipe.vein and step.recipe.reagents or nil, step.crafts
-            local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
-            s.add:SetShown(shop and true or false)
-            s.add:SetScript("OnClick", function() ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end)
             s.levels:SetText(("%d → %d"):format(step.from, step.to))
             s.icon:SetTexture(RecipeIcon(step.recipe))
-            s.name:SetText(("%s ×%d"):format(RecipeName(step.recipe), step.crafts))
-            if step.recipe.vein then
-                s.detail:SetText(("Mine them: a sure point each until %d"):format(step.recipe.yellow))
-            elseif step.buy then
-                s.detail:SetText(ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(step.recipe.spell)
-                or ("Buy the pattern from a vendor, from %d"):format(step.recipe.learn))
+            s.name:SetText(RecipeName(step.recipe))
+            s.count:SetText(("×%d"):format(step.crafts))
+            local todo
+            if step.buy then
+                todo = ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(step.recipe.spell)
+                    or ("buy the pattern from a vendor, from %d"):format(step.recipe.learn)
             elseif step.learn then
-                s.detail:SetText(("Learn it at the trainer, from %d"):format(step.recipe.learn))
-            elseif i == 1 then
-                local can = Professions.CanMake(step.recipe)
-                s.detail:SetText(can > 0 and (Style.Tint("green") .. "You can make %d|r"):format(can) or "Gather what it needs below")
-            else
-                local parts = {}
-                for _, reagent in ipairs(step.recipe.reagents) do
-                    parts[#parts + 1] = ("%d %s"):format(reagent.count * step.crafts, Compat.ItemName(reagent.item) or "...")
-                end
-                s.detail:SetText("needs " .. table.concat(parts, ", "))
+                todo = ("learn it at the trainer, from %d"):format(step.recipe.learn)
             end
-            y = y + STEP_H
+            s.detail:SetText(todo or "")
+            s.detail:SetShown(todo ~= nil)
+            s:SetHeight(STEP_H + (todo and NOTE_H or 0))
+            Place(s, y)
+            y = y + STEP_H + (todo and NOTE_H or 0)
         end
+        -- A road that ends before the next rank opens still says when it does.
+        if not ranked and rank.at and skill < rank.at and #road - 1 <= MAX_STEPS then y = y + Rank(y) end
 
         -- More steps than fit, or a road that stops short.
         local note
-        if #road > MAX_STEPS then
-            note = ("Then %d more step%s."):format(#road - MAX_STEPS, #road - MAX_STEPS == 1 and "" or "s")
+        if #road - 1 > MAX_STEPS then
+            note = ("Then %d more step%s."):format(#road - 1 - MAX_STEPS, #road - 1 - MAX_STEPS == 1 and "" or "s")
         end
         if stuck then
-            note = (note and (note .. " ") or "") .. ("Past %d, only dropped or quest patterns give skill."):format(stuck)
-        elseif skill >= cap then
-            note = rank.at and ("Learn %s at the trainer, at level %d, to go on."):format(rank.next, rank.level) or "That's as far as it goes."
+            note = (note and (note .. " ") or "") .. ("Past %d, only patterns you'd have to find give skill."):format(stuck)
+        elseif skill >= cap and not rank.at then
+            note = "That's as far as it goes."
         end
         if note then
             panel.note:SetText(note)
-            Place(panel.note, y + 2)
-            y = y + panel.note:GetStringHeight() + 8
+            Place(panel.note, y + 4)
+            y = y + panel.note:GetStringHeight() + 10
         else
             panel.note:Hide()
         end
@@ -457,7 +689,7 @@ function Paint()
         for _, step in ipairs(road) do
             if not step.recipe.vein then crafting[#crafting + 1] = step end
         end
-        if ns.Shopping and ns.Shopping.running and #crafting > 0 then
+        if ns.Shopping and ns.Shopping.running and #crafting > 1 then
             if not panel.addRoad then
                 panel.addRoad = Style.Button(panel, "Add the whole road to my shopping list", "plain", WIDTH - PAD * 2)
                 panel.addRoad:SetHeight(26)
@@ -485,6 +717,7 @@ function Paint()
             y = y + 8
             Place(panel.rule, y)
             y = y + 12
+            panel.needHead:SetText(("EVERYTHING TO %d"):format(cap))
             Place(panel.needHead, y + 2)
             PlaceRight(panel.needNote, y + 2)
             y = y + 24
@@ -494,30 +727,36 @@ function Paint()
                 local r = Item(i)
                 Place(r, y)
                 r.item, r.spell = entry.item, nil
-                r.icon:SetTexture(Compat.ItemIcon(entry.item))
                 r.name:SetText(Compat.ItemName(entry.item) or "...")
                 local color = entry.have >= entry.need and Style.hex.green or Style.hex.red
-                -- Where more comes from goes before the numbers, so the
-                -- numbers stay in line at the right.
-                local price = Professions.IsVendor(entry.item)
-                local from = price and ("vendor " .. Compat.Money(price) .. "   ")
-                    or (made[entry.item] and "to make more   " or "")
-                r.count:SetText(("%s|cff%s%d|r / %d"):format(from, color, entry.have, entry.need))
-                y = y + ROW_H
+                r.count:SetText(("|cff%s%d|r / %d"):format(color, entry.have, entry.need))
+                y = y + NEED_H
+            end
+            if #list > MAX_ITEMS then
+                panel.needMore = panel.needMore or Style.Text(panel, 11, "muted")
+                panel.needMore:SetText(("and %d more, in the shopping list"):format(#list - MAX_ITEMS))
+                Place(panel.needMore, y + 2)
+                y = y + 18
+            elseif panel.needMore then
+                panel.needMore:Hide()
             end
         else
             panel.rule:Hide()
             panel.needHead:Hide()
             panel.needNote:Hide()
+            if panel.needMore then panel.needMore:Hide() end
         end
         panel.unlearnedHead:Hide()
         panel.unlearnedCount:Hide()
         panel.showAll:Hide()
     else
-        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.note, panel.rule, panel.needHead, panel.needNote }) do
+        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.thenNote, panel.note, panel.rule,
+                                  panel.needHead, panel.needNote }) do
             region:Hide()
         end
-        if panel.addRoad then panel.addRoad:Hide() end
+        for _, key in ipairs({ "addRoad", "addStep", "card", "needMore" }) do
+            if panel[key] then panel[key]:Hide() end
+        end
 
         Place(panel.unlearnedHead, y + 2)
         panel.unlearnedHead:SetText(ready > 0 and "READY TO LEARN" or "NOT LEARNED YET")
@@ -580,6 +819,10 @@ function Paint()
         end
     end
     for i = shown + 1, #steps do steps[i]:Hide() end
+    if panel.card then
+        for i = mats + 1, #panel.card.mats do panel.card.mats[i]:Hide() end
+    end
+    if panel.rankRow and not ranked then panel.rankRow:Hide() end
     for i = count + 1, #items do items[i]:Hide() end
     for i = listed + 1, #unlearned do unlearned[i]:Hide() end
     panel.rule2:Hide()
@@ -590,8 +833,6 @@ function Paint()
 
     -- The nearest trainer who teaches your rank, or the next one once
     -- you're ready for it, with a map pin.
-    local rankIndex = 1
-    for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
     local needed = (rank.at and skill >= rank.at) and rankIndex + 1 or rankIndex
     local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
     if trainer then
@@ -696,6 +937,11 @@ local function Hook()
             if frame:IsShown() then OpenBeside(frame) end
         end
     end
+end
+
+-- Paints the panel again, if it is up.
+function Panel.Refresh()
+    if panel and panel:IsShown() then xpcall(Paint, ns.Report) end
 end
 
 function Panel:OnEnable()
