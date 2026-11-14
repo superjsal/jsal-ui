@@ -1,6 +1,6 @@
 {
  "fetched": "2026-11-14",
- "note": "Class quests that Wowhead Forever types as dungeon or raid quests but files under the class, not the dungeon, so the dungeon zone pages (wowhead.json) don't list them: the 33 found on https://www.wowhead.com/forever/quests/classes that weren't on a dungeon's list. 'quests' are the ones whose own page's map names one of the guide's dungeons ('areas' is that map's places; 'zones' the dungeons among them, by Wowhead's zone number), each as a row like wowhead.json's with its class as a sixth value. 'unplaced' were read and their map names no dungeon of the guide's (Sunken Temple's feather quests have nothing on the map inside it; The Reliquary of Tyr is in Blackmaw Hold, which isn't one of the guide's). All 33 are read: the bot check stopped the reading at the 28th, and the last six were read once it passed.",
+ "note": "Class quests that Wowhead Forever types as dungeon or raid quests but files under the class, not the dungeon, so the dungeon zone pages (wowhead.json) don't list them: the 33 found on https://www.wowhead.com/forever/quests/classes that weren't on a dungeon's list. Each quest's own page was read (14 and 15 Nov 2026). 'quests' are on a dungeon's list: 'zones' is the dungeon, by Wowhead's zone number, and each is a row like wowhead.json's with its class as a sixth value. 19 are placed by their page's map ('areas' is that map's places); 10 more whose map names no dungeon are placed by what the quest's text says, or by what it asks for, and 'why' says which. 'unplaced' are the four that belong to none of the guide's dungeons, each with why.",
  "quests": {
   "1442": {
    "row": [
@@ -330,6 +330,177 @@
    "zones": [
     2057
    ]
+  },
+  "8425": {
+   "row": [
+    8425,
+    "Voodoo Feathers",
+    52,
+    50,
+    3,
+    1
+   ],
+   "areas": {
+    "8": "Swamp of Sorrows"
+   },
+   "zones": [
+    1477
+   ],
+   "why": "its text: \"Bring the Voodoo Feathers from the trolls in the Sunken Temple\""
+  },
+  "8422": {
+   "row": [
+    8422,
+    "Trolls of a Feather",
+    52,
+    50,
+    3,
+    256
+   ],
+   "areas": {
+    "361": "Felwood"
+   },
+   "zones": [
+    1477
+   ],
+   "why": "its text: \"Bring a total of 6 Voodoo Feathers from the trolls in sunken temple\""
+  },
+  "8413": {
+   "row": [
+    8413,
+    "Da Voodoo",
+    52,
+    50,
+    2,
+    64
+   ],
+   "areas": {
+    "36": "Alterac Mountains"
+   },
+   "zones": [
+    1477
+   ],
+   "why": "asks for the same six Voodoo Feathers as Voodoo Feathers (8425), which come from the trolls in the Sunken Temple"
+  },
+  "8418": {
+   "row": [
+    8418,
+    "Forging the Mightstone",
+    52,
+    50,
+    1,
+    2
+   ],
+   "areas": {
+    "28": "Western Plaguelands"
+   },
+   "zones": [
+    1477
+   ],
+   "why": "asks for the same six Voodoo Feathers as Voodoo Feathers (8425), which come from the trolls in the Sunken Temple"
+  },
+  "1951": {
+   "row": [
+    1951,
+    "Rituals of Power",
+    40,
+    30,
+    3,
+    128
+   ],
+   "areas": {
+    "15": "Dustwallow Marsh",
+    "400": "Thousand Needles"
+   },
+   "zones": [
+    796
+   ],
+   "why": "its text: \"He must have taken it to their library in the Scarlet Monastery in Tirisfal Glades\""
+  },
+  "7581": {
+   "row": [
+    7581,
+    "The Prison's Bindings",
+    60,
+    60,
+    3,
+    256
+   ],
+   "areas": {
+    "4": "Blasted Lands"
+   },
+   "zones": [
+    2557
+   ],
+   "why": "its text: \"Travel to Dire Maul in Feralas and recover 15 Satyr Blood\""
+  },
+  "7642": {
+   "row": [
+    7642,
+    "Collection of Goods",
+    60,
+    60,
+    1,
+    2
+   ],
+   "areas": {
+    "1519": "Stormwind City"
+   },
+   "zones": [
+    2017
+   ],
+   "why": "asks for 5 Stratholme Holy Water"
+  },
+  "97179": {
+   "row": [
+    97179,
+    "Collection of Goods",
+    60,
+    60,
+    2,
+    2
+   ],
+   "areas": {
+    "267": "Hillsbrad Foothills"
+   },
+   "zones": [
+    2017
+   ],
+   "why": "asks for 5 Stratholme Holy Water"
+  },
+  "7666": {
+   "row": [
+    7666,
+    "Again Into the Great Ossuary",
+    60,
+    60,
+    1,
+    2
+   ],
+   "areas": {
+    "1519": "Stormwind City"
+   },
+   "zones": [
+    2057
+   ],
+   "why": "its text: \"Are you headed back into the Scholomance\""
+  },
+  "7635": {
+   "row": [
+    7635,
+    "A Proper String",
+    60,
+    60,
+    3,
+    4
+   ],
+   "areas": {
+    "361": "Felwood"
+   },
+   "zones": [
+    2159
+   ],
+   "why": "asks for a Mature Black Dragon Sinew, which Wowhead's item page has dropping from Onyxia alone"
   }
  },
  "unplaced": {
@@ -345,34 +516,8 @@
    "areas": {
     "1": "Dun Morogh",
     "1519": "Stormwind City"
-   }
-  },
-  "1951": {
-   "row": [
-    1951,
-    "Rituals of Power",
-    40,
-    30,
-    3,
-    128
-   ],
-   "areas": {
-    "15": "Dustwallow Marsh",
-    "400": "Thousand Needles"
-   }
-  },
-  "7581": {
-   "row": [
-    7581,
-    "The Prison's Bindings",
-    60,
-    60,
-    3,
-    256
-   ],
-   "areas": {
-    "4": "Blasted Lands"
-   }
+   },
+   "why": "a step of talking: \"Speak to Jordan Stilwell in Ironforge\""
   },
   "7634": {
    "row": [
@@ -387,72 +532,8 @@
     "16": "Azshara",
     "361": "Felwood",
     "15532": "Storm Cliffs"
-   }
-  },
-  "7635": {
-   "row": [
-    7635,
-    "A Proper String",
-    60,
-    60,
-    3,
-    4
-   ],
-   "areas": {
-    "361": "Felwood"
-   }
-  },
-  "8413": {
-   "row": [
-    8413,
-    "Da Voodoo",
-    52,
-    50,
-    2,
-    64
-   ],
-   "areas": {
-    "36": "Alterac Mountains"
-   }
-  },
-  "8418": {
-   "row": [
-    8418,
-    "Forging the Mightstone",
-    52,
-    50,
-    1,
-    2
-   ],
-   "areas": {
-    "28": "Western Plaguelands"
-   }
-  },
-  "8422": {
-   "row": [
-    8422,
-    "Trolls of a Feather",
-    52,
-    50,
-    3,
-    256
-   ],
-   "areas": {
-    "361": "Felwood"
-   }
-  },
-  "8425": {
-   "row": [
-    8425,
-    "Voodoo Feathers",
-    52,
-    50,
-    3,
-    1
-   ],
-   "areas": {
-    "8": "Swamp of Sorrows"
-   }
+   },
+   "why": "asks for a Mature Blue Dragon Sinew, which drops from Azuregos and Winterspring's dragons, outside any dungeon"
   },
   "81790": {
    "row": [
@@ -465,7 +546,8 @@
    ],
    "areas": {
     "361": "Felwood"
-   }
+   },
+   "why": "its text names no dungeon: where its materials are is left to a note of hints"
   },
   "99187": {
    "row": [
@@ -479,46 +561,8 @@
    "areas": {
     "85": "Tirisfal Glades",
     "16554": "Blackmaw Hold"
-   }
-  },
-  "7642": {
-   "row": [
-    7642,
-    "Collection of Goods",
-    60,
-    60,
-    1,
-    2
-   ],
-   "areas": {
-    "1519": "Stormwind City"
-   }
-  },
-  "7666": {
-   "row": [
-    7666,
-    "Again Into the Great Ossuary",
-    60,
-    60,
-    1,
-    2
-   ],
-   "areas": {
-    "1519": "Stormwind City"
-   }
-  },
-  "97179": {
-   "row": [
-    97179,
-    "Collection of Goods",
-    60,
-    60,
-    2,
-    2
-   ],
-   "areas": {
-    "267": "Hillsbrad Foothills"
-   }
+   },
+   "why": "its text: \"Travel to Blackmaw Hold in Kalimdor\", which isn't one of the guide's dungeons"
   }
  }
 }

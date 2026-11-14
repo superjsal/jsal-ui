@@ -436,7 +436,12 @@ Window.Page("gear", function(page)
         r.best.text = Style.Text(r.best, 10, "onGold", nil, true)
         r.best.text:SetPoint("CENTER")
         r.best.text:SetText("best for you")
-        r.best:SetSize(72, 15)
+        -- As wide as its words, with room each side: the window draws
+        -- small text larger than asked, and a box of a set width was
+        -- overrun by it (John's screenshot, 15 Nov 2026: "best for you
+        -- should look a bit better").
+        local wide = r.best.text.GetStringWidth and r.best.text:GetStringWidth()
+        r.best:SetSize(((type(wide) == "number" and wide > 0) and wide or 64) + 16, 18)
         r.best:Hide()
         -- Where it's from, in a column of its own: how it's got, over
         -- where or from whom.
@@ -532,6 +537,8 @@ Window.Page("gear", function(page)
         if o.needs then source = (source:gsub("^" .. o.needs.name .. " · ", "")) end
         local how, place = source:match("^(.-) · (.*)$")
         if not how then how, place = source, "" end
+        -- No source on Wowhead's list: said, where the column stood empty.
+        if how == "" and not o.needs then how, place = "|cff9a9688Not known yet|r", "Wowhead lists no source" end
         -- "Leatherworking · Crafted" reads better the other way up.
         if place:find("^Crafted") then how, place = "Crafted", how .. place:sub(8) end
         if o.needs then
@@ -579,6 +586,8 @@ Window.Page("gear", function(page)
                 b.icon:SetTexture(emptyTexture)
                 -- An empty slot with something to put in it is the easiest win.
                 b.worn:SetText(best and "|cffe3b04bEmpty|r" or "|cff9a9688Empty|r")
+                -- The off hand, under a two-hander: it isn't empty to fill.
+                if plan.twoHand then b.worn:SetText("|cff9a9688Taken by your two-hander|r") end
             end
             if best then
                 better = better + 1
@@ -589,11 +598,11 @@ Window.Page("gear", function(page)
                 local name, _, quality = ItemInfo(best.id)
                 b.best:SetText(Colored(name, quality or best.quality))
                 local how, place = Where(best)
-                b.from:SetText(how .. (place ~= "" and (", " .. place) or ""))
+                b.from:SetText(best.unknown and "where it's from isn't known yet" or (how .. (place ~= "" and (", " .. place) or "")))
                 b.note = "Best upgrade: " .. (name or "...")
             else
                 b.gain:SetText("")
-                b.best:SetText(plan.waiting > 0 and "|cff9a9688checking...|r" or "|cff5d5b55nothing better yet|r")
+                b.best:SetText(plan.twoHand and "" or (plan.waiting > 0 and "|cff9a9688checking...|r" or "|cff5d5b55nothing better yet|r"))
                 b.from:SetText("")
                 b.note = nil
             end
@@ -626,6 +635,13 @@ Window.Page("gear", function(page)
             local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(slot.empty)
             wornRow.icon:SetTexture(emptyTexture)
             wornRow.name:SetText("|cff9a9688Nothing|r")
+            -- Under a two-hander: that's what holds the hand, by name.
+            if plan.twoHand then
+                local name, _, quality, texture = ItemInfo(tonumber(plan.twoHand:match("item:(%d+)")))
+                wornRow.icon:SetTexture(texture or emptyTexture)
+                wornRow.name:SetText(Colored(name, quality) .. "|cff9a9688, in both hands|r")
+                wornRow.equip = 16
+            end
         end
         wornRow.where:SetText("")
         wornRow.how:SetText("")
@@ -674,7 +690,8 @@ Window.Page("gear", function(page)
         empty:ClearAllPoints()
         empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
         if shown == 0 then
-            empty:SetText(plan.waiting > 0 and "Checking the items near your level..."
+            empty:SetText(plan.twoHand and "Your two-hander takes both hands, so nothing goes in the off hand. Wear a one-handed weapon to see what could."
+                or plan.waiting > 0 and "Checking the items near your level..."
                 or "Nothing better for this slot near your level that we know of yet.")
             empty:Show()
         else
