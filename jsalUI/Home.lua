@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Beta: quest tags. Beside each quest in your tracker, its place in a chain and about how many minutes it will take",
+    "Quest tags. Beside each quest in your tracker, its place in a chain and about how many minutes it will take",
     "Quest tags are off to start: turn them on under Leveling in /jsal settings",
-    "Beta: easier to read, in dungeon quests, training and professions",
+    "A fully grown pal looks after an egg in a nest, and five pages are easier to read",
 }
 
 local function NewsWanted()
