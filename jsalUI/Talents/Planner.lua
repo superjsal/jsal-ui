@@ -13,6 +13,7 @@ local CLASSES_TOP = 32
 local BODY_TOP = 74                 -- the builds list and the build's header
 local MAIN_TOP = 140                -- the plan list, or the editor's trees
 local STEP_H = 30                   -- one row of the plan list
+local COLS_H = 20                   -- the plan list's column headings
 local SOURCE_H = 22                 -- a suggested build's source line
 local ROW_H = 46                    -- one build in the builds list
 
@@ -58,13 +59,14 @@ Window.Page("build", function(page)
         Paint()
     end
 
-    local function Note(head, text)
+    -- `colorKey`: for a note that asks something of you (points to spend).
+    local function Note(head, text, colorKey)
         if status and GetTime() < statusUntil then
             head.note:SetText(status)
             head.note:SetTextColor(Style.Color("gold"))
         else
             head.note:SetText(text)
-            head.note:SetTextColor(Style.Color("muted"))
+            head.note:SetTextColor(Style.Color(colorKey or "muted"))
         end
     end
 
@@ -200,9 +202,20 @@ Window.Page("build", function(page)
     nameHint:SetText("Enter to save, Escape to cancel")
     nameHint:Hide()
 
+    -- The plan's column headings: the level is said once here, where every
+    -- row began "Level" or "Levels".
+    local cols = CreateFrame("Frame", nil, view)
+    cols:SetSize(rightW - 8, COLS_H)
+    for _, label in ipairs({ { "LEVEL", 10 }, { "TALENT", 76 } }) do
+        local t = Style.Text(cols, 10, "muted", nil, true)
+        t:SetPoint("TOPLEFT", label[2], 0)
+        t:SetText(label[1])
+    end
+    Style.Rule(cols, "BOTTOM", "lineStrong")
+
     -- The plan list scrolls with the mouse wheel; a thin bar shows where.
-    local scroll, list = Style.Scroller(view, rightW - 8, height - MAIN_TOP, nil, 7, STEP_H * 3)
-    scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP))
+    local scroll, list = Style.Scroller(view, rightW - 8, height - MAIN_TOP - COLS_H, nil, 7, STEP_H * 3)
+    scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + COLS_H))
     local empty = Style.Text(list, 13, "muted")
     empty:SetPoint("TOPLEFT", 10, -10)
     empty:SetWidth(rightW - 30)
@@ -217,11 +230,11 @@ Window.Page("build", function(page)
         row.levels:SetPoint("LEFT", 10, 0)
         row.icon = row:CreateTexture(nil, "ARTWORK")
         row.icon:SetSize(22, 22)
-        row.icon:SetPoint("LEFT", 110, 0)
+        row.icon:SetPoint("LEFT", 76, 0)
         row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         row.name = Style.Text(row, 13, "text")
         row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
-        row.rank = Style.Text(row, 11, "muted")
+        row.rank = Style.Text(row, 12, "muted")
         row.rank:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
         row.state = Style.Text(row, 12, "muted", nil, true)
         row.state:SetPoint("RIGHT", -10, 0)
@@ -250,10 +263,16 @@ Window.Page("build", function(page)
         viewHead.title:SetText("THE PLAN, LEVEL BY LEVEL")
         local taken, nextIndex = Progress()
         local waiting = data.own and Compat.UnspentTalentPoints() or 0
-        if data.own then
-            Note(viewHead, ("%d of %d points taken"):format(taken, #kept))
-        else
+        -- Where the build stands, in a line: what's taken, and what's next
+        -- (in gold when there are points to spend now).
+        if not data.own then
             Note(viewHead, ("%d points planned"):format(#kept))
+        elseif not nextIndex then
+            Note(viewHead, #kept > 0 and ("all %d points taken"):format(#kept) or "")
+        elseif waiting > 0 then
+            Note(viewHead, ("%d of %d points taken  ·  %d to spend now"):format(taken, #kept, waiting), "gold")
+        else
+            Note(viewHead, ("%d of %d points taken  ·  next at level %d"):format(taken, #kept, Tree.Level(nextIndex)))
         end
 
         local renaming = nameBox:IsShown()
@@ -282,12 +301,15 @@ Window.Page("build", function(page)
         local shift = builtin and SOURCE_H or 0
         source:SetShown(builtin)
         source:SetText(builtin and ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source) or "")
+        cols:ClearAllPoints()
+        cols:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
         scroll:ClearAllPoints()
-        scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
-        scroll:SetHeight(height - MAIN_TOP - shift)
+        scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift + COLS_H))
+        scroll:SetHeight(height - MAIN_TOP - shift - COLS_H)
 
         local steps = Tree.Steps(kept)
         empty:SetShown(#steps == 0)
+        cols:SetShown(#steps > 0)
         empty:SetText("Nothing planned yet. Edit opens the trees: click talents in the order you'd take them.")
         for i, step in ipairs(steps) do
             local row = stepRows[i] or StepRow(i)
@@ -295,20 +317,20 @@ Window.Page("build", function(page)
             local node = data.nodes[step.id]
             row.id = step.id
             local a, b = Tree.Level(step.first), Tree.Level(step.last)
-            row.levels:SetText(a == b and ("Level %d"):format(a) or ("Levels %d-%d"):format(a, b))
+            row.levels:SetText(a == b and tostring(a) or ("%d–%d"):format(a, b))
             row.icon:SetTexture(node.icon)
             row.name:SetText(node.name)
-            local ranksText = step.fromRank == step.toRank and tostring(step.toRank) or (step.fromRank .. "-" .. step.toRank)
-            row.rank:SetText(("Rank %s of %d"):format(ranksText, node.max))
+            local ranksText = step.fromRank == step.toRank and tostring(step.toRank) or (step.fromRank .. "–" .. step.toRank)
+            row.rank:SetText(node.max == 1 and "" or ("%s %s of %d"):format(step.fromRank == step.toRank and "rank" or "ranks", ranksText, node.max))
             row.bg:SetShown(i % 2 == 1)
             local done = data.own and step.last <= taken
             local isNext = nextIndex and step.first <= nextIndex and nextIndex <= step.last
             row:SetAlpha(done and 0.6 or 1)
             if done then
-                row.state:SetText("Taken")
+                row.state:SetText("taken")
                 row.state:SetTextColor(Style.Color("muted"))
             elseif isNext then
-                row.state:SetText(waiting > 0 and "Next, learn it now" or "Next")
+                row.state:SetText(waiting > 0 and "next: learn it now" or "next")
                 row.state:SetTextColor(Style.Color("gold"))
             else
                 row.state:SetText("")

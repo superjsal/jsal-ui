@@ -176,6 +176,13 @@ def main():
     build_loot(rows)
 
 
+# Which classes each class-only quest is for, read from the quests list on each
+# dungeon's Wowhead page (its reqclass), by quest ID. Missing, every quest is
+# anyone's.
+_classes = ROOT / "data" / "dungeons" / "quest-classes.json"
+QUEST_CLASSES = json.loads(_classes.read_text(encoding="utf-8"))["classes"] if _classes.exists() else {}
+
+
 def build_starts():
     """Where each dungeon quest starts, and the quest before it in its chain, from
     data/dungeons/quest-starts.json (tools/wowhead/quests.js). The zone's map for the
@@ -286,12 +293,17 @@ def build_loot(rows):
         seen, qs = set(), []
         for q in sorted(z["quests"], key=lambda q: (q[2], q[1], q[0])):
             side = q[4] or 3
-            if q[1].startswith("<") or (q[1], side) in seen or q[2] > level + 20:
+            # The classes it's for (Wowhead's reqclass: a bit for each of the
+            # game's class numbers), 0 for a quest anyone can take.
+            classes = QUEST_CLASSES.get(str(q[0]), 0)
+            if q[1].startswith("<") or (q[1], side, classes) in seen or q[2] > level + 20:
                 continue
-            seen.add((q[1], side))
-            qs.append([q[0], q[1], q[2], q[3], side])
+            seen.add((q[1], side, classes))
+            qs.append([q[0], q[1], q[2], q[3], side, classes])
         if qs:
-            text = ",\n".join(f"        {{ {q[0]}, {lua_string(q[1])}, {q[2]}, {q[3] or q[2]}, {q[4] or 3} }}" for q in qs)
+            text = ",\n".join(
+                f"        {{ {q[0]}, {lua_string(q[1])}, {q[2]}, {q[3] or q[2]}, {q[4] or 3}" + (f", {q[5]}" if q[5] else "") + " }"
+                for q in qs)
             quest_lines.append(f"    [{lfg_id}] = {{ -- {name}\n{text},\n    }},")
             quests += len(qs)
     lines = [
