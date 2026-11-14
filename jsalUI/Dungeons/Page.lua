@@ -858,16 +858,30 @@ Window.Page("dungeons", function(page)
                 -- Nov 2026: "if a start of the quest chains to a quest you
                 -- need to do in a dungeon it should chain appropriately").
                 local lead, id = {}, e.before
-                while id and #lead < 6 and not entries[id] do
+                while id and #lead < 12 and not entries[id] do
                     lead[#lead + 1] = id
                     if QuestDone(id) then break end
                     local s = Starts.Get(id)
                     id = s and s[8] or nil
                 end
+                -- Steps of one name are numbered: six quests in a row are
+                -- called The True Masters, and six lines alike looked like a
+                -- mistake (John, 13 Nov 2026: "and this is correct? you need
+                -- to do all the true masters first").
+                local function NameOf(quest)
+                    local first = Starts.Get(quest)
+                    return (byId[quest] and byId[quest][2]) or (first and first[1] ~= "" and first[1]) or ("quest " .. quest)
+                end
+                local alike, at = {}, {}
+                for _, quest in ipairs(lead) do alike[NameOf(quest)] = (alike[NameOf(quest)] or 0) + 1 end
                 for i = #lead, 1, -1 do
                     local quest = lead[i]
                     local first = Starts.Get(quest)
-                    local name = (byId[quest] and byId[quest][2]) or (first and first[1] ~= "" and first[1]) or ("quest " .. quest)
+                    local name = NameOf(quest)
+                    if alike[name] > 1 then
+                        at[name] = (at[name] or 0) + 1
+                        name = ("%s (%d of %d)"):format(name, at[name], alike[name])
+                    end
                     if QuestDone(quest) then
                         Prior(name, true)
                     else

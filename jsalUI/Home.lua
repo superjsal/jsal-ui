@@ -242,7 +242,7 @@ end
 function Today.NextLevelRows(info)
     local rows = {}
     if info.talent then
-        rows[#rows + 1] = { icon = info.talent.icon, detail = "your build's next talent",
+        rows[#rows + 1] = { icon = info.talent.icon, detail = "next talent",
             label = info.rank > 1 and ("%s, rank %d"):format(info.talent.name, info.rank) or info.talent.name }
     end
     if info.visit then
