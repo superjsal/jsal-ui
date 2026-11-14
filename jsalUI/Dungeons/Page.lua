@@ -88,6 +88,51 @@ function Starts.First(id, onList, done)
     return where and (text .. ", from " .. where) or text
 end
 
+-- The place a quest starts in, for grouping the list by where you pick
+-- them up, and how such a place sorts: 1 a zone, 2 inside the dungeon,
+-- 3 anything else (an item, or nothing known).
+function Starts.Place(s)
+    if not (s and s[2]) then return "Not on Wowhead yet", 3 end
+    if s[3] == 3 then return "From an item", 3 end
+    local zone = Starts.Area(s[4])
+    if not zone then return "Place not known", 3 end
+    if s[5] == 0 then return "Inside " .. zone, 2 end
+    return zone, 1
+end
+
+-- A place, as the end of a sentence about another quest: "in Ironforge",
+-- "inside Gnomeregan", "started by an item"; nil for a place not known.
+-- (It read "first Lost Relic Carry, in From an item": John, 13 Nov 2026.)
+function Starts.In(place, kind)
+    if kind == 1 then return "in " .. place end
+    if kind == 2 then return (place:gsub("^Inside ", "inside ")) end
+    if place == "From an item" then return "started by an item" end
+    return nil
+end
+
+-- Who or what starts it, with the spot when there is one: the zone is the
+-- heading it sits under.
+function Starts.Who(s)
+    if not (s and s[2]) then return "" end
+    if s[3] == 3 then return Starts.Where(s) or "" end
+    if s[5] ~= 0 and s[6] and s[6] > 0 then return ("%s (%.0f, %.0f)"):format(s[2], s[6], s[7] or 0) end
+    return s[2]
+end
+
+-- The quest that follows one: the lowest-numbered that names it as the one
+-- before it.
+local following
+function Starts.Next(id)
+    if not ns.DungeonQuestStarts then return nil end
+    if not following then
+        following = {}
+        for quest, s in pairs(ns.DungeonQuestStarts) do
+            local before = s[8]
+            if before and (not following[before] or quest < following[before]) then following[before] = quest end
+        end
+    end
+    return following[id]
+end
 -- The spot to pin for a quest: its own start, or the start of the quest
 -- before it while that one isn't done. Nil when neither has a spot.
 function Starts.Spot(id, done)
@@ -156,6 +201,19 @@ local function ForYou(classID, subclassID, equipLoc)
     local _, classFile = UnitClass("player")
     return ns.Gear.ForClass(classFile, UnitLevel("player") or 1, classID, subclassID, equipLoc)
 end
+
+-- Whether you can't equip a thing at all: a weapon your class never
+-- wields, a shield without the use of one, armor heavier than you can wear.
+-- Armor lighter than yours is not that: you can wear it, and it may be the
+-- better piece (John, 13 Nov 2026: "if its a good cloth piece for some
+-- reason it'll still show?", "some warriors equip nonplate gear for dps").
+-- Nor is a weapon your class can learn and you haven't yet.
+local function CantEquip(classID, subclassID, equipLoc)
+    if ForYou(classID, subclassID, equipLoc) ~= false then return false end
+    local _, classFile = UnitClass("player")
+    if ns.Gear.CanWear and ns.Gear.CanWear(classFile, UnitLevel("player") or 1, classID, subclassID) then return false end
+    return true
+end
 local RED = Style.Tint("red")
 
 Window.Page("dungeons", function(page)
@@ -164,6 +222,8 @@ Window.Page("dungeons", function(page)
     local rightW = width
     local chosen, scrolled
     local Paint, opened
+    -- The bosses whose folded loot (what you can't equip) has been opened.
+    local unfolded = {}
 
     -----------------------------------------------------------------
     -- The picker: the chosen dungeon's name; a click opens the list
@@ -286,7 +346,7 @@ Window.Page("dungeons", function(page)
     hint:SetJustifyH("RIGHT")
     local bossScroll, bossList = Style.Scroller(right, rightW + 8, height - PICKER_H - 16 - 68, rightW)
     bossScroll:SetPoint("TOPLEFT", 0, -68)
-    local bossRows, questRows = {}, {}
+    local bossRows = {}
     local none = Style.Text(bossList, 13, "muted")
     none:SetWidth(rightW - 36)
     none:SetJustifyH("LEFT")
@@ -348,45 +408,36 @@ Window.Page("dungeons", function(page)
         return b
     end
 
-    -- A quest: ticked once you've done it, its level on the right, and
-    -- the game's own quest tooltip on hover.
-    local function QuestRow(i)
-        if questRows[i] then return questRows[i] end
+    -- The quests tab, by where they start: a bar for each place, a line
+    -- for each quest, and a ticked line for a finished quest above the one
+    -- it opens.
+    local Q = { lines = {}, heads = {}, priors = {} }
+    function Q.Line(i)
+        if Q.lines[i] then return Q.lines[i] end
         local q = CreateFrame("Frame", nil, bossList)
-        q:SetSize(rightW, QUEST_H)
-        q.box = CreateFrame("Frame", nil, q)
-        q.box:SetSize(16, 16)
-        q.box:SetPoint("TOPLEFT", 8, -16)
-        q.boxFill = Style.Fill(q.box, "wordGreen")
-        q.boxEdges = Style.Border(q.box, "lineStrong")
-        q.tick = q.box:CreateTexture(nil, "OVERLAY")
-        q.tick:SetSize(16, 16)
-        q.tick:SetPoint("CENTER", 1, 0)
-        q.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
-        q.tick:SetDesaturated(true)
-        q.tick:SetVertexColor(1, 1, 1)
-        q.name = Style.Text(q, 14, "text")
-        q.name:SetPoint("TOPLEFT", q.box, "TOPRIGHT", 10, 4)
-        q.name:SetWidth(rightW - 130)
-        q.name:SetJustifyH("LEFT")
-        q.name:SetWordWrap(false)
-        q.detail = Style.Text(q, 12, "muted")
-        q.detail:SetPoint("TOPLEFT", q.name, "BOTTOMLEFT", 0, -3)
-        q.detail:SetWidth(rightW - 130)
-        q.detail:SetJustifyH("LEFT")
-        -- Where it starts, and the quest to do before it, a line each.
-        q.starts = Style.Text(q, 12, "muted")
-        q.starts:SetPoint("TOPLEFT", q.detail, "BOTTOMLEFT", 0, -3)
-        q.starts:SetWidth(rightW - 130)
-        q.starts:SetJustifyH("LEFT")
-        q.starts:SetWordWrap(false)
-        q.first = Style.Text(q, 12, "muted")
-        q.first:SetPoint("TOPLEFT", q.starts, "BOTTOMLEFT", 0, -3)
-        q.first:SetWidth(rightW - 130)
-        q.first:SetJustifyH("LEFT")
-        q.first:SetWordWrap(false)
-        q.level = Style.Text(q, 13, "muted")
+        q:SetSize(rightW, 25)
+        -- Joins it to the line above: the quest it follows.
+        q.down = q:CreateTexture(nil, "ARTWORK")
+        q.down:SetColorTexture(Style.Color("lineStrong"))
+        q.down:SetPoint("TOPLEFT", 15, 6)
+        q.down:SetSize(1, 18)
+        q.across = q:CreateTexture(nil, "ARTWORK")
+        q.across:SetColorTexture(Style.Color("lineStrong"))
+        q.across:SetPoint("TOPLEFT", 15, -12)
+        q.across:SetSize(10, 1)
+        q.level = Style.Text(q, 12, "muted")
         q.level:SetPoint("RIGHT", -10, 0)
+        q.level:SetJustifyH("RIGHT")
+        q.name = Style.Text(q, 13, "text")
+        q.name:SetWordWrap(false)
+        q.who = Style.Text(q, 11, "muted")
+        q.who:SetPoint("LEFT", q.name, "RIGHT", 10, 0)
+        q.who:SetWordWrap(false)
+        q.note = Style.Text(q, 11, "gold")
+        q.note:SetPoint("LEFT", q.who, "RIGHT", 12, 0)
+        q.note:SetPoint("RIGHT", q.level, "LEFT", -12, 0)
+        q.note:SetJustifyH("LEFT")
+        q.note:SetWordWrap(false)
         Style.Rule(q, "BOTTOM", "line")
         q:EnableMouse(true)
         q:SetScript("OnEnter", function(self)
@@ -404,8 +455,54 @@ Window.Page("dungeons", function(page)
         end)
         q:SetScript("OnLeave", function() GameTooltip:Hide() end)
         Style.Hover(q)
-        questRows[i] = q
+        Q.lines[i] = q
         return q
+    end
+    function Q.Head(i)
+        if Q.heads[i] then return Q.heads[i] end
+        local h = CreateFrame("Button", nil, bossList)
+        h:SetSize(rightW, 30)
+        Style.Fill(h, "well")
+        -- The place is what the list is sorted by, so it's the largest
+        -- thing in it (John, 13 Nov 2026: "make the location text slightly
+        -- bigger to emphasize the location").
+        h.name = Style.Text(h, 14, "text", nil, true)
+        h.name:SetPoint("LEFT", 10, 0)
+        h.count = Style.Text(h, 12, "muted")
+        h.count:SetPoint("LEFT", h.name, "RIGHT", 8, 0)
+        h.link = Style.Text(h, 11, "gold")
+        h.link:SetPoint("RIGHT", -10, 0)
+        h.link:SetText("show on map")
+        h:SetScript("OnClick", function(self)
+            if self.spot then Starts.Pin(self.spot) end
+        end)
+        Q.heads[i] = h
+        return h
+    end
+    -- A finished quest: ticked, greyed, with "done" after its name.
+    function Q.Prior(i)
+        if Q.priors[i] then return Q.priors[i] end
+        local l = CreateFrame("Frame", nil, bossList)
+        l:SetSize(rightW, 21)
+        l.box = CreateFrame("Frame", nil, l)
+        l.box:SetSize(12, 12)
+        l.box:SetPoint("LEFT", 10, 0)
+        Style.Fill(l.box, "wordGreen")
+        l.tick = l.box:CreateTexture(nil, "OVERLAY")
+        l.tick:SetSize(14, 14)
+        l.tick:SetPoint("CENTER", 1, 0)
+        l.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+        l.tick:SetDesaturated(true)
+        l.tick:SetVertexColor(1, 1, 1)
+        l.name = Style.Text(l, 12, "muted")
+        l.name:SetPoint("LEFT", l.box, "RIGHT", 8, 0)
+        l.name:SetWordWrap(false)
+        l.done = Style.Text(l, 11, "muted")
+        l.done:SetPoint("LEFT", l.name, "RIGHT", 8, 0)
+        l.done:SetText(GREEN .. "done|r")
+        l:SetAlpha(0.75)
+        Q.priors[i] = l
+        return l
     end
 
     local itemW = cardW - 24
@@ -417,20 +514,28 @@ Window.Page("dungeons", function(page)
         it.icon:SetSize(30, 30)
         it.icon:SetPoint("LEFT")
         it.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        -- At the right: how often it drops, and under that how often the
+        -- guild has seen it.
+        it.chance = Style.Text(it, 13, "text", nil, true)
+        it.chance:SetPoint("TOPRIGHT", 0, -1)
+        it.chance:SetJustifyH("RIGHT")
+        it.seen = Style.Text(it, 11, "muted")
+        it.seen:SetPoint("BOTTOMRIGHT", 0, 1)
+        it.seen:SetJustifyH("RIGHT")
         it.name = Style.Text(it, 14, "text")
         it.name:SetPoint("TOPLEFT", it.icon, "TOPRIGHT", 8, 0)
-        it.name:SetWidth(itemW - 40)
+        it.name:SetWidth(itemW - 40 - 70)
         it.name:SetJustifyH("LEFT")
         it.name:SetWordWrap(false)
         it.slot = Style.Text(it, 12, "muted")
         it.slot:SetPoint("BOTTOMLEFT", it.icon, "BOTTOMRIGHT", 8, 0)
-        it.slot:SetWidth(itemW - 40)
+        it.slot:SetWidth(itemW - 40 - 150)
         it.slot:SetJustifyH("LEFT")
         it.slot:SetWordWrap(false)
         it.star = it:CreateTexture(nil, "OVERLAY")
         it.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
         it.star:SetSize(16, 16)
-        it.star:SetPoint("RIGHT", 0, 0)
+        it.star:SetPoint("TOPRIGHT", it.chance, "TOPLEFT", -6, 1)
         it.edge = it:CreateTexture(nil, "OVERLAY")
         it.edge:SetColorTexture(Style.Color("gold"))
         it.edge:SetWidth(2)
@@ -455,6 +560,7 @@ Window.Page("dungeons", function(page)
     -- chance, five or more guild kills give one. Returns the card's height.
     local function PaintLoot(card, boss, encounter)
         for _, it in ipairs(card.items) do it:Hide() end
+        if card.more then card.more:Hide() end
         local list, byId = {}, {}
         local function Add(id)
             if not byId[id] then
@@ -493,39 +599,268 @@ Window.Page("dungeons", function(page)
             return BOSS_H + 46
         end
         card.none:Hide()
-        for i, entry in ipairs(list) do
+        -- What you can't equip is folded into one line at the foot of the
+        -- card, to open; a piece on your gear plan is never folded away.
+        local starredSet = ns.Gear and ns.Gear.Starred() or {}
+        local mine, others = {}, {}
+        for _, entry in ipairs(list) do
+            local _, _, _, _, _, _, _, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
+            entry.cant = starredSet[entry.id] ~= true and CantEquip(classID, subclassID, equipLoc)
+            local to = entry.cant and others or mine
+            to[#to + 1] = entry
+        end
+        local open = unfolded[boss] == true
+        local shown = {}
+        for _, entry in ipairs(mine) do shown[#shown + 1] = entry end
+        if open then
+            for _, entry in ipairs(others) do shown[#shown + 1] = entry end
+        end
+        for i, entry in ipairs(shown) do
             local it = Item(card, i)
             it:ClearAllPoints()
             it:SetPoint("TOPLEFT", 12, -(BOSS_H + 6 + (i - 1) * ITEM_H))
             it.item = entry.id
-            local name, _, quality, _, req, _, subclass, _, equipLoc, texture, classID, subclassID = ItemInfo(entry.id)
+            local name, _, quality, _, req, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
             it.name:SetText(("|cff%s%s|r"):format(Style.Quality(q), name or entry.item.n or "..."))
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
             local parts = {}
-            if entry.chance or entry.guessed then parts[#parts + 1] = ("%d%%"):format(entry.chance or entry.guessed) end
             -- Recipes and other things you don't wear have a blank slot name.
             if slot and slot ~= "" then parts[#parts + 1] = slot end
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
             -- Too high for you yet: its level, in red.
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
-            -- Not for your class or armor type: dimmed.
-            it:SetAlpha(ForYou(classID, subclassID, equipLoc) == false and 0.55 or 1)
-            if entry.guild then
-                parts[#parts + 1] = ("guild %d of %d"):format(entry.guild, guildKills)
-            elseif (entry.item.seen or 0) > 0 then
-                parts[#parts + 1] = entry.item.seen > 1 and ("you've seen it %d×"):format(entry.item.seen) or "you've seen it"
-            end
             it.slot:SetText(table.concat(parts, " · "))
-            local starred = ns.Gear and ns.Gear.Starred()[entry.id] == true
+            it.chance:SetText((entry.chance or entry.guessed) and ("%d%%"):format(entry.chance or entry.guessed) or "")
+            -- How often it's been seen: in the guild's kills, or by you.
+            if entry.guild then
+                it.seen:SetText(("dropped %d× in %d guild kill%s"):format(entry.guild, guildKills, guildKills == 1 and "" or "s"))
+            elseif (entry.item.seen or 0) > 0 then
+                it.seen:SetText(entry.item.seen > 1 and ("you've seen it %d×"):format(entry.item.seen) or "you've seen it")
+            else
+                it.seen:SetText("")
+            end
+            it:SetAlpha(entry.cant and 0.55 or 1)
+            local starred = starredSet[entry.id] == true
             it.star:SetShown(starred)
             it.edge:SetShown(starred)
-            it.name:SetWidth(itemW - (starred and 62 or 40))
-            if starred then it:SetAlpha(1) end
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
-        return BOSS_H + 6 + #list * ITEM_H + 4
+        local h = BOSS_H + 6 + #shown * ITEM_H + 4
+        if #others > 0 then
+            if not card.more then
+                card.more = CreateFrame("Button", nil, card)
+                card.more:SetSize(itemW, 20)
+                card.more.text = Style.Text(card.more, 11, "muted")
+                card.more.text:SetPoint("LEFT", 38, 0)
+                Style.Hover(card.more, 4)
+            end
+            card.more.text:SetText(open and "Show fewer" or ("%d more you can't equip · Show"):format(#others))
+            card.more:SetScript("OnClick", function()
+                unfolded[boss] = not open or nil
+                Paint()
+            end)
+            card.more:ClearAllPoints()
+            card.more:SetPoint("TOPLEFT", 12, -(h - 2))
+            card.more:Show()
+            h = h + 24
+        elseif card.more then
+            card.more:Hide()
+        end
+        return h
+    end
+
+    -- Paints the quests tab from `by` down the list, and returns where it
+    -- ended.
+    function Q.Paint(quests, by)
+        -- By where they start, so one trip picks up every quest a place
+        -- has. A place lists what can be picked up there now; a chain's
+        -- later parts sit under its first part, wherever they start, as
+        -- they can't be taken yet (John, 13 Nov 2026, of parts listed each
+        -- under its own place and tagged: "a little confused on why some
+        -- are 2 of 2 and one is 1 of 2"; the tag went once the parts sat
+        -- together). A finished quest is ticked above the one it
+        -- opens ("can we make it clearer which one thats done belongs to
+        -- which questline if jts a prereq?"); what's finished and opens
+        -- nothing goes last.
+        local mine = UnitLevel("player") or 1
+        local byId, todo, finished = {}, {}, {}
+        for _, q in ipairs(quests) do byId[q[1]] = q end
+        for _, q in ipairs(quests) do
+            local to = QuestDone(q[1]) and finished or todo
+            to[#to + 1] = q
+        end
+        -- Each quest still to do, with its place and the one before it.
+        local entries, opens = {}, {}
+        for _, q in ipairs(todo) do
+            local s = Starts.Get(q[1])
+            local e = { q = q, s = s, before = s and s[8] or nil }
+            e.place, e.kind = Starts.Place(s)
+            if e.before and QuestDone(e.before) then opens[e.before] = true end
+            entries[q[1]] = e
+        end
+        -- A later part: its first part is on the list and still to do. It
+        -- goes under that one; the rest are what a place has for you now.
+        local under, places, order, later = {}, {}, {}, 0
+        for _, q in ipairs(todo) do
+            local e = entries[q[1]]
+            if e.before and entries[e.before] and e.before ~= q[1] then
+                under[e.before] = under[e.before] or {}
+                table.insert(under[e.before], e)
+                later = later + 1
+            else
+                local place = places[e.place]
+                if not place then
+                    place = { name = e.place, kind = e.kind, list = {}, after = 0 }
+                    places[e.place] = place
+                    order[#order + 1] = place
+                end
+                place.list[#place.list + 1] = e
+            end
+        end
+        local function ByLevel(x, y)
+            if x.q[3] ~= y.q[3] then return x.q[3] < y.q[3] end
+            return x.q[1] < y.q[1]
+        end
+        for _, list in pairs(under) do table.sort(list, ByLevel) end
+        -- How many wait behind each of a place's quests, however deep.
+        local function Behind(e, seen)
+            local n = 0
+            for _, child in ipairs(under[e.q[1]] or {}) do
+                if not seen[child] then
+                    seen[child] = true
+                    n = n + 1 + Behind(child, seen)
+                end
+            end
+            return n
+        end
+        for _, place in ipairs(order) do
+            table.sort(place.list, ByLevel)
+            local seen = {}
+            for _, e in ipairs(place.list) do place.after = place.after + Behind(e, seen) end
+        end
+        -- Places, the ones with most to pick up first; inside the dungeon
+        -- and the unknown last.
+        table.sort(order, function(x, y)
+            if x.kind ~= y.kind then return x.kind < y.kind end
+            if #x.list ~= #y.list then return #x.list > #y.list end
+            return x.name < y.name
+        end)
+        local now = #todo - later
+        local counts = { ("%d to pick up now"):format(now) }
+        if later > 0 then counts[#counts + 1] = ("%d after %s"):format(later, now == 1 and "it" or "those") end
+        if #finished > 0 then counts[#counts + 1] = ("%d done"):format(#finished) end
+        if ns.DungeonQuestStarts then counts[#counts + 1] = "click a quest or a place for a map pin" end
+        hint:SetText(#quests > 0 and table.concat(counts, " · ") or "")
+
+        local lines, heads, priors = 0, 0, 0
+        local function Prior(name)
+            priors = priors + 1
+            local l = Q.Prior(priors)
+            l.name:SetText(name)
+            l:ClearAllPoints()
+            l:SetPoint("TOPLEFT", 0, -by)
+            l:Show()
+            by = by + 21
+        end
+        -- parent: the entry it sits under, for a later part.
+        local function Line(e, joined, parent)
+            local q, s = e.q, e.s
+            lines = lines + 1
+            local row = Q.Line(lines)
+            row.quest = q[1]
+            row.spot = Starts.Spot(q[1], QuestDone)
+            row.down:SetShown(joined)
+            row.across:SetShown(joined)
+            row.name:ClearAllPoints()
+            row.name:SetPoint("LEFT", joined and 32 or 10, 0)
+            row.name:SetText(q[2])
+            -- A part you can't take yet is greyed.
+            row.name:SetTextColor(Style.Color(parent and "muted" or "text"))
+            -- Who starts it; for a later part that starts somewhere else,
+            -- where that is, as its heading isn't the one above it.
+            local who = Starts.Who(s)
+            if parent and e.place ~= parent.place then
+                local where = Starts.In(e.place, e.kind)
+                who = where and ("then, %s: %s"):format(where, who) or ("then: " .. who)
+            end
+            row.who:SetText(who)
+            -- What to know before going: it's in your log, you're too low
+            -- for it, or its first part isn't on this list.
+            local notes = {}
+            if QuestHeld(q[1]) then notes[#notes + 1] = "in your quest log" end
+            if (q[4] or q[3]) > mine then notes[#notes + 1] = ("%sneeds level %d|r"):format(RED, q[4] or q[3]) end
+            local before = e.before
+            if before and not parent and not QuestDone(before) then
+                local first = Starts.Get(before)
+                local name = (first and first[1] ~= "" and first[1]) or ("quest " .. before)
+                local where
+                if first then where = Starts.In(Starts.Place(first)) end
+                notes[#notes + 1] = where and ("first %s, %s"):format(name, where) or ("first " .. name)
+            end
+            row.note:SetText(table.concat(notes, " · "))
+            row.level:SetText(("level %d"):format(q[3]))
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 0, -by)
+            row:Show()
+            by = by + 25
+        end
+        local drawn = {}
+        local function Emit(e, parent)
+            if drawn[e] then return end
+            drawn[e] = true
+            local joined = parent ~= nil
+            if not parent and e.before and QuestDone(e.before) then
+                local first = Starts.Get(e.before)
+                Prior((byId[e.before] and byId[e.before][2]) or (first and first[1] ~= "" and first[1]) or ("quest " .. e.before))
+                joined = true
+            end
+            Line(e, joined, parent)
+            for _, child in ipairs(under[e.q[1]] or {}) do Emit(child, e) end
+        end
+        for _, place in ipairs(order) do
+            heads = heads + 1
+            local h = Q.Head(heads)
+            h.name:SetText(place.name)
+            local count = ("%d quest%s"):format(#place.list, #place.list == 1 and "" or "s")
+            if place.after > 0 then count = count .. (", and %d after %s"):format(place.after, #place.list == 1 and "it" or "them") end
+            h.count:SetText(count)
+            h.spot = nil
+            for _, e in ipairs(place.list) do
+                h.spot = h.spot or Starts.Spot(e.q[1], QuestDone)
+            end
+            h.link:SetShown(h.spot ~= nil)
+            h:ClearAllPoints()
+            h:SetPoint("TOPLEFT", 0, -by)
+            h:Show()
+            by = by + 36
+            for _, e in ipairs(place.list) do Emit(e) end
+            by = by + 8
+        end
+        -- Finished, and opening nothing still to do: last.
+        local closed = {}
+        for _, q in ipairs(finished) do
+            if not opens[q[1]] then closed[#closed + 1] = q end
+        end
+        if #closed > 0 then
+            heads = heads + 1
+            local h = Q.Head(heads)
+            h.name:SetText("Done")
+            h.count:SetText(("%d quest%s, with nothing after %s"):format(#closed, #closed == 1 and "" or "s", #closed == 1 and "it" or "them"))
+            h.spot = nil
+            h.link:Hide()
+            h:ClearAllPoints()
+            h:SetPoint("TOPLEFT", 0, -by)
+            h:Show()
+            by = by + 36
+            for _, q in ipairs(closed) do Prior(q[2]) end
+            by = by + 8
+        end
+        for k = lines + 1, #Q.lines do Q.lines[k]:Hide() end
+        for k = heads + 1, #Q.heads do Q.heads[k]:Hide() end
+        for k = priors + 1, #Q.priors do Q.priors[k]:Hide() end
+        return by
     end
 
     Paint = function()
@@ -549,7 +884,16 @@ Window.Page("dungeons", function(page)
             opened = {}
             opened[GroupOf(chosen)] = true
         end
-        key:SetText(GREEN .. "Green|r: right for level " .. level)
+        -- Beside the picker: how the dungeon chosen sits with your level.
+        -- (It read "Green: right for level 30", a key to the list's colours
+        -- that looked like a word on item colours.)
+        if not chosen then
+            key:SetText("")
+        elseif Fits(chosen, level) then
+            key:SetText(GREEN .. "right for level " .. level .. "|r")
+        else
+            key:SetText(level < chosen.level and ("from level " .. chosen.level) or "below your level")
+        end
         local y, i, chosenY = 0, 0, 0
         local members = {}
         for _, d in ipairs(shown) do
@@ -626,7 +970,9 @@ Window.Page("dungeons", function(page)
         bits[#bits + 1] = ("%d of %d bosses killed"):format(killed, #d.bosses)
         meta:SetText(table.concat(bits, " · "))
 
-        for _, q in ipairs(questRows) do q:Hide() end
+        for _, pool in ipairs({ Q.lines, Q.heads, Q.priors }) do
+            for _, region in ipairs(pool) do region:Hide() end
+        end
         for _, row in ipairs(bossRows) do row:Hide() end
         none:Hide()
         local quests = {}
@@ -639,44 +985,7 @@ Window.Page("dungeons", function(page)
         tabs.quests:SetSelected(tab == "quests")
         local by = 0
         if tab == "quests" then
-            hint:SetText(#quests > 0 and (ns.DungeonQuestStarts and "hover one for its details · click to pin where it starts"
-                or "hover one for its details") or "")
-            local onList = {}
-            for _, q in ipairs(quests) do onList[q[1]] = true end
-            for k, q in ipairs(quests) do
-                local row = QuestRow(k)
-                row.quest = q[1]
-                row:ClearAllPoints()
-                row:SetPoint("TOPLEFT", 0, -by)
-                local done = QuestDone(q[1])
-                row.name:SetText(q[2])
-                local bits = { ("From level %d"):format(q[4] or q[3]) }
-                if QUEST_SIDE[q[5]] then bits[#bits + 1] = QUEST_SIDE[q[5]] end
-                if done then
-                    bits[#bits + 1] = "done"
-                elseif QuestHeld(q[1]) then
-                    bits[#bits + 1] = "|cffe3b04bin your quest log|r"
-                end
-                row.detail:SetText(table.concat(bits, " · "))
-                row.level:SetText(("Level %d"):format(q[3]))
-                row.box:SetShown(done)
-                -- Without a tick the name starts at the row's edge.
-                row.name:ClearAllPoints()
-                row.name:SetPoint("TOPLEFT", row, "TOPLEFT", done and 34 or 8, -12)
-                Style.SetBorder(row.boxEdges, "wordGreen")
-                -- Where it starts, and what comes first, a line each; the row
-                -- grows to fit them.
-                local starts, first = Starts.Line(q[1]), Starts.First(q[1], onList, QuestDone)
-                row.starts:SetText(starts or "")
-                row.first:SetText(first or "")
-                row.starts:SetShown(starts ~= nil)
-                row.first:SetShown(first ~= nil)
-                row.spot = not done and Starts.Spot(q[1], QuestDone) or nil
-                local h = QUEST_H + (starts and 17 or 0) + (first and 17 or 0)
-                row:SetHeight(h)
-                row:Show()
-                by = by + h
-            end
+            by = Q.Paint(quests, by)
             if #quests == 0 then
                 none:ClearAllPoints()
                 none:SetPoint("TOPLEFT", 0, -8)
@@ -691,7 +1000,7 @@ Window.Page("dungeons", function(page)
         end
         -- The bosses as cards, two to a row in the game's order; a row is as
         -- tall as its taller card.
-        hint:SetText("hover an item for its details")
+        hint:SetText((ns.Gear and ns.Gear.STAR and (ns.Gear.STAR .. " on your gear plan · ") or "") .. "hover an item for its details")
         local rowH = 0
         for k, b in ipairs(d.bosses) do
             local card = BossRow(k)

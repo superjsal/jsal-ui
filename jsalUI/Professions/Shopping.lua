@@ -349,7 +349,21 @@ local function Build()
 
     frame.craftsHead = Heading("CRAFTS")
     frame.itemsHead = Heading("OTHER ITEMS")
-    frame.buyHead = Heading("TO BUY", "bags and bank / need · price")
+    frame.buyHead = Heading("STILL TO GET", "have / need")
+    -- What's still to get is in three groups, each under a small heading
+    -- with its total: a vendor's, the auction house's or the world's, and
+    -- what you already have enough of.
+    frame.groups = {}
+    for i = 1, 3 do
+        local g = CreateFrame("Frame", nil, frame)
+        g:SetSize(WIDTH - PAD * 2, 16)
+        g.title = Style.Text(g, 11, "muted", nil, true)
+        g.title:SetPoint("LEFT")
+        g.note = Style.Text(g, 11, "muted")
+        g.note:SetPoint("RIGHT")
+        g.note:SetJustifyH("RIGHT")
+        frame.groups[i] = g
+    end
     frame.empty = Style.Text(frame, 12, "muted")
     frame.empty:SetWidth(WIDTH - PAD * 2)
     frame.empty:SetText("Nothing on the list yet. Add an item above, a craft from the profession window, or the road from jsal.ui's profession panel.")
@@ -501,21 +515,50 @@ Paint = function()
         frame.itemsHead:Hide()
     end
 
-    -- To buy: everything needed, the biggest shortfall first, with prices.
-    local buy, total, unpriced = {}, 0, 0
+    -- Still to get: everything needed, in three groups. What a vendor
+    -- sells, with its cost; what comes from the auction house or the world;
+    -- and, greyed, what you already have enough of. Each row says how many
+    -- more to get, as that's what you shop by, with have / need beside it.
+    -- (It was one list, each row ending "vendor · 48s", "auction · 8s" or
+    -- "no price": John, 13 Nov 2026, "maybe you have a different opinion".)
+    local vendor, other, enough = {}, {}, {}
+    local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
     for item, need in pairs(Needs()) do
         local have = Compat.ItemCount(item, true)
-        buy[#buy + 1] = { item = item, need = need, have = have, short = math.max(0, need - have) }
+        local e = { item = item, need = need, have = have, short = math.max(0, need - have) }
+        if e.short == 0 then
+            enough[#enough + 1] = e
+        else
+            local price, where = PriceOf(item)
+            if price then
+                total = total + price * e.short
+                if where == "vendor" then vendorCost = vendorCost + price * e.short else auctionCost = auctionCost + price * e.short end
+            else
+                unpriced = unpriced + 1
+            end
+            local group = (price and where == "vendor") and vendor or other
+            group[#group + 1] = e
+        end
     end
-    table.sort(buy, function(a, b)
+    local function Biggest(a, b)
         if a.short ~= b.short then return a.short > b.short end
         return a.item < b.item
-    end)
-    if #buy > 0 then
-        Place(frame.buyHead, y)
-        y = y + 22
-        for i, e in ipairs(buy) do
-            if i > MAX_BUY then break end
+    end
+    table.sort(vendor, Biggest)
+    table.sort(other, Biggest)
+    table.sort(enough, function(a, b) return a.item < b.item end)
+    local listed, groups = 0, 0
+    local function Group(title, note, list)
+        if #list == 0 or listed >= MAX_BUY then return end
+        groups = groups + 1
+        local g = frame.groups[groups]
+        g.title:SetText(title)
+        g.note:SetText(note or "")
+        Place(g, y)
+        y = y + 20
+        for _, e in ipairs(list) do
+            if listed >= MAX_BUY then break end
+            listed = listed + 1
             local r = Next()
             Place(r, y)
             r.minus:Hide(); r.plus:Hide(); r.remove:Hide()
@@ -524,25 +567,26 @@ Paint = function()
             r.item, r.spell = e.item, nil
             r.icon:SetTexture(Compat.ItemIcon(e.item))
             r.name:SetText(ItemName(e.item))
-            local price, where = PriceOf(e.item)
-            local priceText = ""
             if e.short > 0 then
-                if price then
-                    total = total + price * e.short
-                    priceText = ("  %s · %s"):format(where, Compat.Money(price * e.short))
-                else
-                    unpriced = unpriced + 1
-                    priceText = "  no price"
-                end
+                r.status:SetText(("%d / %d    |cffece6d6%d more|r"):format(e.have, e.need, e.short))
+            else
+                r.status:SetText(("%d / %d"):format(e.have, e.need))
             end
-            local color = e.short > 0 and Style.hex.red or Style.hex.green
-            r.status:SetText(("|cff%s%d|r / %d%s"):format(color, e.have, e.need, priceText))
             r:SetAlpha(e.short > 0 and 1 or 0.5)
             y = y + ROW_H
         end
+        y = y + 4
+    end
+    if #vendor + #other + #enough > 0 then
+        Place(frame.buyHead, y)
+        y = y + 24
+        Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor)
+        Group("FROM THE AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
+        Group("YOU HAVE ENOUGH", nil, enough)
     else
         frame.buyHead:Hide()
     end
+    for i = groups + 1, #frame.groups do frame.groups[i]:Hide() end
     for i = used + 1, #rows do rows[i]:Hide() end
 
     local empty = #crafts == 0 and #items == 0
@@ -556,14 +600,14 @@ Paint = function()
     y = y + 10
     local text
     if total > 0 then
-        text = ("About |cffece6d6%s|r to buy"):format(Compat.Money(total))
-        if unpriced > 0 then text = text .. (" · %d unpriced"):format(unpriced) end
+        text = ("About |cffece6d6%s|r in all"):format(Compat.Money(total))
+        if unpriced > 0 then text = text .. (" · %d not priced"):format(unpriced) end
+        if auctionCost > 0 then text = text .. " · auction prices from your own searches" end
     elseif unpriced > 0 then
-        text = ("%d to buy, no price known yet"):format(unpriced)
+        text = ("%d still to get, no price known yet"):format(unpriced)
     else
-        text = "Nothing to buy"
+        text = "Nothing left to get"
     end
-    if total > 0 then text = text .. " · auction prices from your own searches" end
     frame.total:SetText(text)
     Place(frame.total, y + 4)
     frame.clear:ClearAllPoints()
