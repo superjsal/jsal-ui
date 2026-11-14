@@ -4728,6 +4728,21 @@
     23.2
    ]
   },
+  "7642": {
+   "n": "Collection of Goods",
+   "prev": 7641,
+   "s": [
+    "npc",
+    1416,
+    "Grimand Elmore"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    51.6,
+    12.2
+   ]
+  },
   "7643": {
    "n": "Ancient Equine Spirit",
    "prev": null,
@@ -4805,6 +4820,36 @@
    "prev": null,
    "s": null,
    "z": null
+  },
+  "7666": {
+   "n": "Again Into the Great Ossuary",
+   "prev": null,
+   "s": [
+    "npc",
+    928,
+    "Lord Grayson Shadowbreaker"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    37.2,
+    33
+   ]
+  },
+  "7668": {
+   "n": "The Darkreaver Menace",
+   "prev": null,
+   "s": [
+    "npc",
+    13417,
+    "Sagorne Creststrider"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    38.6,
+    36.2
+   ]
   },
   "7761": {
    "n": "Blackhand's Command",
@@ -5922,6 +5967,21 @@
     42.6
    ]
   },
+  "8258": {
+   "n": "The Darkreaver Menace",
+   "prev": 7667,
+   "s": [
+    "npc",
+    13417,
+    "Sagorne Creststrider"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    38.6,
+    36.2
+   ]
+  },
   "8288": {
    "n": "Only One May Rise",
    "prev": null,
@@ -7023,6 +7083,27 @@
     "Ironforge",
     50.4,
     6
+   ]
+  },
+  "97169": {
+   "n": "The Darkreaver Menace",
+   "prev": 97168,
+   "s": null,
+   "z": null
+  },
+  "97179": {
+   "n": "Collection of Goods",
+   "prev": 97178,
+   "s": [
+    "npc",
+    3539,
+    "Ott"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    60.4,
+    26
    ]
   },
   "97196": {

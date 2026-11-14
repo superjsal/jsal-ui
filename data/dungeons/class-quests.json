@@ -1,6 +1,6 @@
 {
  "fetched": "2026-11-14",
- "note": "Class quests that Wowhead Forever types as dungeon or raid quests but files under the class, not the dungeon, so the dungeon zone pages (wowhead.json) don't list them: the 33 found on https://www.wowhead.com/forever/quests/classes that weren't on a dungeon's list. 'quests' are the ones whose own page's map names one of the guide's dungeons ('areas' is that map's places; 'zones' the dungeons among them, by Wowhead's zone number), each as a row like wowhead.json's with its class as a sixth value. 'unplaced' were read and their map names no dungeon of the guide's (Sunken Temple's feather quests have nothing on the map inside it; The Reliquary of Tyr is in Blackmaw Hold, which isn't one of the guide's). 'unread' are the six Wowhead's bot check stopped: the reading stopped there.",
+ "note": "Class quests that Wowhead Forever types as dungeon or raid quests but files under the class, not the dungeon, so the dungeon zone pages (wowhead.json) don't list them: the 33 found on https://www.wowhead.com/forever/quests/classes that weren't on a dungeon's list. 'quests' are the ones whose own page's map names one of the guide's dungeons ('areas' is that map's places; 'zones' the dungeons among them, by Wowhead's zone number), each as a row like wowhead.json's with its class as a sixth value. 'unplaced' were read and their map names no dungeon of the guide's (Sunken Temple's feather quests have nothing on the map inside it; The Reliquary of Tyr is in Blackmaw Hold, which isn't one of the guide's). All 33 are read: the bot check stopped the reading at the 28th, and the last six were read once it passed.",
  "quests": {
   "1442": {
    "row": [
@@ -280,6 +280,56 @@
    "zones": [
     491
    ]
+  },
+  "7668": {
+   "row": [
+    7668,
+    "The Darkreaver Menace",
+    60,
+    58,
+    2,
+    64
+   ],
+   "areas": {
+    "1637": "Orgrimmar",
+    "2057": "Scholomance"
+   },
+   "zones": [
+    2057
+   ]
+  },
+  "8258": {
+   "row": [
+    8258,
+    "The Darkreaver Menace",
+    60,
+    58,
+    2,
+    64
+   ],
+   "areas": {
+    "1637": "Orgrimmar",
+    "2057": "Scholomance"
+   },
+   "zones": [
+    2057
+   ]
+  },
+  "97169": {
+   "row": [
+    97169,
+    "The Darkreaver Menace",
+    60,
+    58,
+    3,
+    64
+   ],
+   "areas": {
+    "2057": "Scholomance"
+   },
+   "zones": [
+    2057
+   ]
   }
  },
  "unplaced": {
@@ -430,14 +480,45 @@
     "85": "Tirisfal Glades",
     "16554": "Blackmaw Hold"
    }
+  },
+  "7642": {
+   "row": [
+    7642,
+    "Collection of Goods",
+    60,
+    60,
+    1,
+    2
+   ],
+   "areas": {
+    "1519": "Stormwind City"
+   }
+  },
+  "7666": {
+   "row": [
+    7666,
+    "Again Into the Great Ossuary",
+    60,
+    60,
+    1,
+    2
+   ],
+   "areas": {
+    "1519": "Stormwind City"
+   }
+  },
+  "97179": {
+   "row": [
+    97179,
+    "Collection of Goods",
+    60,
+    60,
+    2,
+    2
+   ],
+   "areas": {
+    "267": "Hillsbrad Foothills"
+   }
   }
- },
- "unread": {
-  "7642": "Collection of Goods",
-  "7666": "Again Into the Great Ossuary",
-  "7668": "The Darkreaver Menace",
-  "8258": "The Darkreaver Menace",
-  "97169": "The Darkreaver Menace",
-  "97179": "Collection of Goods"
  }
 }
