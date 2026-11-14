@@ -220,11 +220,35 @@ Window.Page("build", function(page)
     empty:SetPoint("TOPLEFT", 10, -10)
     empty:SetWidth(rightW - 30)
 
+    -- What the plan's list is made of besides its steps: the line the
+    -- taken points fold into, and a heading where the build changes tree.
+    local V = { heads = {}, HEAD_H = 30, FOLD_H = 30 }
+    V.fold = CreateFrame("Button", nil, list)
+    V.fold:SetSize(rightW - 8, V.FOLD_H)
+    V.fold.sign = Style.Text(V.fold, 14, "gold", nil, true)
+    V.fold.sign:SetPoint("LEFT", 10, 0)
+    V.fold.text = Style.Text(V.fold, 12, "muted")
+    V.fold.text:SetPoint("LEFT", 28, 0)
+    Style.Hover(V.fold)
+    V.fold:Hide()
+    function V.Head(i)
+        if V.heads[i] then return V.heads[i] end
+        local h = CreateFrame("Frame", nil, list)
+        h:SetSize(rightW - 8, V.HEAD_H)
+        Style.Rule(h, "BOTTOM", "lineStrong")
+        h.title = Style.Text(h, 11, "gold", nil, true)
+        h.title:SetPoint("BOTTOMLEFT", 10, 6)
+        h.note = Style.Text(h, 11, "muted")
+        h.note:SetPoint("BOTTOMRIGHT", -10, 6)
+        h.note:SetJustifyH("RIGHT")
+        V.heads[i] = h
+        return h
+    end
+
     local stepRows = {}
-    local function StepRow(i)
+    local function StepRow()
         local row = CreateFrame("Frame", nil, list)
         row:SetSize(rightW - 8, STEP_H)
-        row:SetPoint("TOPLEFT", 0, -(i - 1) * STEP_H)
         row.bg = Style.Fill(row, "well")
         row.levels = Style.Text(row, 12, "muted", nil, true)
         row.levels:SetPoint("LEFT", 10, 0)
@@ -277,24 +301,30 @@ Window.Page("build", function(page)
 
         local renaming = nameBox:IsShown()
         local builtin = build.builtin
-        for _, b in ipairs({ learn, follow, edit, rename, export, delete, copy }) do b:SetShown(not renaming) end
-        learn:SetShown(not renaming and data.own)
-        follow:SetShown(not renaming and data.own)
+        -- Only the buttons that do something now. Learn next points is
+        -- there, in gold, when there are points to spend; Follow this build
+        -- when you aren't following it (the build's title says when you
+        -- are). They were both there always, greyed out, ahead of the rest.
+        local following = data.own and Tree.Active() == build
+        learn:SetShown(not renaming and data.own and nextIndex ~= nil and waiting > 0)
+        learn:SetEnabled(true)
+        follow:SetShown(not renaming and data.own and not following)
+        follow:SetLabel("Follow this build")
+        follow:SetEnabled(true)
         edit:SetShown(not renaming and not builtin)
         rename:SetShown(not renaming and not builtin)
-        delete:SetShown(not renaming and not builtin)
         copy:SetShown(not renaming and builtin)
-        -- Another class has nothing to learn or follow, so Edit (or Copy)
-        -- leads the row.
-        local first = builtin and copy or edit
-        first:ClearAllPoints()
-        if data.own then first:SetPoint("LEFT", follow, "RIGHT", 6, 0) else first:SetPoint("TOPLEFT", 0, -30) end
-        export:ClearAllPoints()
-        export:SetPoint("LEFT", builtin and copy or rename, "RIGHT", 6, 0)
-        learn:SetEnabled(nextIndex ~= nil and waiting > 0)
-        local following = data.own and Tree.Active() == build
-        follow:SetLabel(following and "Following" or "Follow this build")
-        follow:SetEnabled(not following)
+        export:SetShown(not renaming)
+        delete:SetShown(not renaming and not builtin)
+        -- Side by side from the left, whichever are showing.
+        local before
+        for _, b in ipairs({ learn, follow, edit, rename, copy, export, delete }) do
+            if b:IsShown() then
+                b:ClearAllPoints()
+                if before then b:SetPoint("LEFT", before, "RIGHT", 6, 0) else b:SetPoint("TOPLEFT", 0, -30) end
+                before = b
+            end
+        end
         delete:SetEnabled(#Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0)
 
         -- A suggested build says where it's from, above its plan.
@@ -311,35 +341,73 @@ Window.Page("build", function(page)
         empty:SetShown(#steps == 0)
         cols:SetShown(#steps > 0)
         empty:SetText("Nothing planned yet. Edit opens the trees: click talents in the order you'd take them.")
-        for i, step in ipairs(steps) do
-            local row = stepRows[i] or StepRow(i)
-            stepRows[i] = row
-            local node = data.nodes[step.id]
-            row.id = step.id
-            local a, b = Tree.Level(step.first), Tree.Level(step.last)
-            row.levels:SetText(a == b and tostring(a) or ("%d–%d"):format(a, b))
-            row.icon:SetTexture(node.icon)
-            row.name:SetText(node.name)
-            local ranksText = step.fromRank == step.toRank and tostring(step.toRank) or (step.fromRank .. "–" .. step.toRank)
-            row.rank:SetText(node.max == 1 and "" or ("%s %s of %d"):format(step.fromRank == step.toRank and "rank" or "ranks", ranksText, node.max))
-            row.bg:SetShown(i % 2 == 1)
-            local done = data.own and step.last <= taken
-            local isNext = nextIndex and step.first <= nextIndex and nextIndex <= step.last
-            row:SetAlpha(done and 0.6 or 1)
-            if done then
-                row.state:SetText("taken")
-                row.state:SetTextColor(Style.Color("muted"))
-            elseif isNext then
-                row.state:SetText(waiting > 0 and "next: learn it now" or "next")
-                row.state:SetTextColor(Style.Color("gold"))
+        -- The list: what's taken folded into a line that opens, so the
+        -- plan starts at what's next; a heading where the build moves to
+        -- another tree; and a step you're partway through split, so the row
+        -- that's next names the rank that is. (The taken rows filled the top
+        -- of the page, and "ranks 1–2 of 2 · next" was said of a talent with
+        -- its first rank learned: John's screenshot, 16 Nov 2026.)
+        local rows = Tree.PlanRows(steps, taken, function(id) return data.nodes[id].tree end, V.open)
+        local y, used, heads = 0, 0, 0
+        V.fold:Hide()
+        for _, step in ipairs(rows) do
+            if step.fold then
+                V.fold:ClearAllPoints()
+                V.fold:SetPoint("TOPLEFT", 0, -y)
+                V.fold.sign:SetText(step.open and "–" or "+")
+                V.fold.text:SetText(("%d point%s taken, level%s %s"):format(step.points, step.points == 1 and "" or "s",
+                    step.points == 1 and "" or "s",
+                    step.points == 1 and tostring(Tree.Level(1)) or (Tree.Level(1) .. "–" .. Tree.Level(step.points))))
+                V.fold:SetScript("OnClick", function()
+                    V.open = not V.open
+                    Paint()
+                end)
+                V.fold:Show()
+                y = y + V.FOLD_H
+            elseif step.head then
+                heads = heads + 1
+                local h = V.Head(heads)
+                h:ClearAllPoints()
+                h:SetPoint("TOPLEFT", 0, -y)
+                h.title:SetText((data.trees[step.head] and data.trees[step.head].name or "Talents"):upper())
+                h.note:SetText(("%d point%s  ·  levels %d–%d"):format(step.points, step.points == 1 and "" or "s",
+                    Tree.Level(step.first), Tree.Level(step.last)))
+                h:Show()
+                y = y + V.HEAD_H
             else
-                row.state:SetText("")
+                used = used + 1
+                local row = stepRows[used] or StepRow()
+                stepRows[used] = row
+                row:ClearAllPoints()
+                row:SetPoint("TOPLEFT", 0, -y)
+                local node = data.nodes[step.id]
+                row.id = step.id
+                local a, b = Tree.Level(step.first), Tree.Level(step.last)
+                row.levels:SetText(a == b and tostring(a) or ("%d–%d"):format(a, b))
+                row.icon:SetTexture(node.icon)
+                row.name:SetText(node.name)
+                local ranksText = step.fromRank == step.toRank and tostring(step.toRank) or (step.fromRank .. "–" .. step.toRank)
+                row.rank:SetText(node.max == 1 and "" or ("%s %s of %d"):format(step.fromRank == step.toRank and "rank" or "ranks", ranksText, node.max))
+                row.bg:SetShown(used % 2 == 1)
+                local isNext = nextIndex and step.first <= nextIndex and nextIndex <= step.last
+                row:SetAlpha(step.done and 0.6 or 1)
+                if step.done then
+                    row.state:SetText("taken")
+                    row.state:SetTextColor(Style.Color("muted"))
+                elseif isNext then
+                    row.state:SetText(waiting > 0 and "next: learn it now" or "next")
+                    row.state:SetTextColor(Style.Color("gold"))
+                else
+                    row.state:SetText("")
+                end
+                row.levels:SetTextColor(Style.Color(isNext and "text" or "muted"))
+                row:Show()
+                y = y + STEP_H
             end
-            row.levels:SetTextColor(Style.Color(isNext and "text" or "muted"))
-            row:Show()
         end
-        for i = #steps + 1, #stepRows do stepRows[i]:Hide() end
-        list:SetHeight(math.max(1, #steps * STEP_H))
+        for i = used + 1, #stepRows do stepRows[i]:Hide() end
+        for i = heads + 1, #V.heads do V.heads[i]:Hide() end
+        list:SetHeight(math.max(1, y))
         scroll:UpdateScrollChildRect()
         scroll:Place()
     end

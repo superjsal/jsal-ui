@@ -3,7 +3,8 @@
 -- was open) with guildmates who ask. A short fingerprint of them rides in
 -- the Guild tab's hello, so a guildmate asks again only after it changes;
 -- what they hear is kept between sessions, per guild. The Professions page
--- searches it, and item tooltips name the guildmates who make the item.
+-- lists who shares, with their professions, and searches what they make;
+-- item tooltips name the guildmates who make the item.
 local _, ns = ...
 local Compat, Comms, Professions = ns.Compat, ns.Comms, ns.Professions
 
@@ -17,6 +18,25 @@ local CHUNK, MAX_PARTS = 180, 40
 local ASK_AGAIN, ANSWER_AGAIN = 300, 60   -- seconds
 -- First Aid is everyone's, so it isn't shared.
 local SKIP = { [129] = true }
+-- The professions with nothing to make: only that you have one is shared.
+local GATHER = { [182] = "Herbalism", [393] = "Skinning", [356] = "Fishing" }
+
+-- This character's gathering professions, from the game's list: each one's
+-- skill line and skill, lowest line first.
+local function Gathering()
+    local out = {}
+    if not (GetProfessions and GetProfessionInfo) then return out end
+    local function Places(...) return select("#", ...), { ... } end
+    local count, places = Places(GetProfessions())
+    for i = 1, count do
+        if places[i] then
+            local _, _, skill, _, _, _, line = GetProfessionInfo(places[i])
+            if line and GATHER[line] then out[#out + 1] = { line = line, skill = skill or 0 } end
+        end
+    end
+    table.sort(out, function(a, b) return a.line < b.line end)
+    return out
+end
 
 ---------------------------------------------------------------------------
 -- Recipes as text: each spell ID in four base-36 letters, so a profession
@@ -59,6 +79,12 @@ function Crafters.MineText()
                 parts[#parts + 1] = ("%d:%d:%s"):format(line, p.skill or 0, table.concat(codes))
             end
         end
+    end
+    -- A gathering profession has no recipes, so it's shared with none, and
+    -- its skill in steps of 25: every point would be a new fingerprint, and
+    -- the whole guild asking again for the list.
+    for _, g in ipairs(Gathering()) do
+        parts[#parts + 1] = ("%d:%d:"):format(g.line, g.skill - g.skill % 25)
     end
     return table.concat(parts, ",")
 end
@@ -133,14 +159,18 @@ local function Index()
     return index
 end
 
--- The guild by name: true for those online now.
+-- The guild by name: true for those online now, and where each of them is.
 local function OnlineNow()
-    local online = {}
+    local online, zones = {}, {}
     for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
-        local full, _, _, _, _, _, _, _, isOnline = GetGuildRosterInfo(i)
-        if full and isOnline then online[Ambiguate(full, "none")] = true end
+        local full, _, _, _, _, zone, _, _, isOnline = GetGuildRosterInfo(i)
+        if full and isOnline then
+            local name = Ambiguate(full, "none")
+            online[name] = true
+            zones[name] = type(zone) == "string" and zone ~= "" and zone or nil
+        end
     end
-    return online
+    return online, zones
 end
 
 -- A row's crafters, online first, then the most recently seen.
@@ -191,6 +221,56 @@ function Crafters.Search(text, limit)
         return a.name < b.name
     end)
     for i = (limit or 40) + 1, #found do found[i] = nil end
+    return found
+end
+
+-- The guildmates who share, online first, then the most recently heard
+-- from: each { name, online, zone, seen, target, recipes, profs }, a
+-- profession being { line, name, skill, recipes, steps }. `steps`: a
+-- gathering profession, whose skill is shared in steps of 25.
+function Crafters.Sharing()
+    local online, zones = OnlineNow()
+    local me, list = Compat.MyName(), {}
+    for name, entry in pairs(Heard() or {}) do
+        if name ~= me and type(entry) == "table" and type(entry.text) == "string" then
+            local person = { name = name, online = online[name] == true, zone = zones[name], seen = entry.seen or 0,
+                             target = entry.target or name, recipes = 0, profs = {} }
+            for part in entry.text:gmatch("[^,]+") do
+                local line, skill, codes = part:match("^(%d+):(%d+):(%w*)$")
+                line = tonumber(line)
+                local label = line and (Professions.Name(line) or GATHER[line])
+                if label and not SKIP[line] then
+                    local count = math.floor(#codes / 4)
+                    person.recipes = person.recipes + count
+                    person.profs[#person.profs + 1] = { line = line, name = label, skill = tonumber(skill) or 0,
+                                                        recipes = count, steps = GATHER[line] ~= nil }
+                end
+            end
+            if #person.profs > 0 then list[#list + 1] = person end
+        end
+    end
+    table.sort(list, function(a, b)
+        if a.online ~= b.online then return a.online end
+        if a.seen ~= b.seen then return a.seen > b.seen end
+        return a.name < b.name
+    end)
+    return list
+end
+
+-- What one guildmate makes with one profession, by name: rows as Search
+-- gives them, each with that one person. Names the game hasn't loaded yet
+-- are left out until it has.
+function Crafters.Makes(who, line)
+    local online, found = OnlineNow(), {}
+    for _, row in ipairs(Index().list) do
+        if row.line == line and row.names[who] then
+            local name = RowName(row)
+            if name then
+                found[#found + 1] = { row = row, name = name, people = People({ names = { [who] = true } }, online) }
+            end
+        end
+    end
+    table.sort(found, function(a, b) return a.name < b.name end)
     return found
 end
 

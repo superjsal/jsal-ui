@@ -1,16 +1,25 @@
 -- The dungeon guide, in a window of its own: a picker on top opens every
 -- dungeon and raid in level groups, the ones right for your level in green;
--- the chosen one fills the window below in two tabs. Bosses and loot: a card per boss, two to a row in
--- the game's order, ticked once you've killed it, with its loot listed on
--- it (Wowhead's list with drop chances, and what you and the guild have seen it drop).
+-- the chosen one fills the window below in two tabs. Bosses and loot: a band
+-- a boss, numbered in the game's order and ticked once you've killed it, its
+-- loot under it two across (Wowhead's list with drop chances, and what you
+-- and the guild have seen it drop): what's on your gear plan first, then
+-- what's better than what you wear, then the rest by how often it drops.
 -- Quests: the dungeon's quests for your faction, ticked once done, each with
 -- where it starts and the quest to do first; a click pins the start on the map.
--- Loot starred in the gear plan has a gold star and edge, and the picker
--- counts each dungeon's starred loot.
+-- The picker counts each dungeon's starred loot.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, BOSS_H, ITEM_H, QUEST_H, CARD_GAP = 340, 520, 34, 50, 28, 38, 38, 48, 12
+local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, BOSS_H, ITEM_H, QUEST_H, CARD_GAP = 340, 520, 34, 50, 28, 30, 38, 48, 12
+-- The game's item class for recipes (patterns, plans, schematics).
+local RECIPE = 9
+-- The tag after an item's name: its words, its fill and its words' colour.
+local TAGS = {
+    plan = { "on your gear plan", "gold", "onGold" },
+    better = { "better for you", "line", "green" },
+    prof = { "your profession", "line", "secondary" },
+}
 
 -- Wowhead's quest sides: 1 Alliance, 2 Horde, 3 both.
 local QUEST_SIDE = { [1] = "Alliance", [2] = "Horde" }
@@ -427,23 +436,33 @@ Window.Page("dungeons", function(page)
         return y + 6 + 32
     end
 
-    -- A boss's card: its name, ticked once you've killed it, and its loot
-    -- under it, one item to a line.
-    local cardW = math.floor((rightW - CARD_GAP) / 2)
+    -- A boss's band, the list's width: a bar with its number in the order
+    -- you meet it, its name (ticked once you've killed it) and its kills,
+    -- and its loot under the bar, two across. (They were cards two to a row:
+    -- a short card left a hole beside a tall one, and the order read across
+    -- then down. John, 16 Nov 2026: "thoughts on the layout of the bosses
+    -- itself?")
+    local B = {}
+    B.sum = Style.Text(bossList, 15, "text", nil, true)
+    B.sum:SetPoint("TOPLEFT", 0, -2)
+    B.order = Style.Text(bossList, 11, "muted")
+    B.order:SetPoint("TOPRIGHT", bossList, "TOPLEFT", rightW, -6)
+    B.order:SetJustifyH("RIGHT")
+    B.order:SetText("on your gear plan first, then better for you, then by how often it drops")
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
-        b:SetSize(cardW, BOSS_H)
-        Style.Fill(b, "well")
-        Style.Border(b, "cardLine")
+        b:SetSize(rightW, BOSS_H)
         b.head = CreateFrame("Frame", nil, b)
         b.head:SetPoint("TOPLEFT")
         b.head:SetPoint("TOPRIGHT")
         b.head:SetHeight(BOSS_H)
-        Style.Rule(b.head, "BOTTOM", "line")
+        Style.Fill(b.head, "well")
+        b.number = Style.Text(b.head, 13, "gold", nil, true)
+        b.number:SetPoint("LEFT", 12, 0)
         b.box = CreateFrame("Frame", nil, b.head)
         b.box:SetSize(16, 16)
-        b.box:SetPoint("LEFT", 10, 0)
+        b.box:SetPoint("LEFT", 34, 0)
         b.boxFill = Style.Fill(b.box, "wordGreen")
         b.boxEdges = Style.Border(b.box, "lineStrong")
         -- The game's own check mark, in white.
@@ -453,16 +472,16 @@ Window.Page("dungeons", function(page)
         b.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
         b.tick:SetDesaturated(true)
         b.tick:SetVertexColor(1, 1, 1)
-        b.name = Style.Text(b.head, 15, "text", nil, true)
-        b.name:SetPoint("LEFT", b.box, "RIGHT", 10, 0)
-        b.name:SetWidth(cardW - 120)
+        b.name = Style.Text(b.head, 14, "text", nil, true)
+        b.name:SetPoint("LEFT", b.box, "RIGHT", 8, 0)
+        b.name:SetWidth(rightW - 300)
         b.name:SetJustifyH("LEFT")
         b.name:SetWordWrap(false)
         b.kills = Style.Text(b.head, 12, "muted")
         b.kills:SetPoint("RIGHT", -10, 0)
         b.none = Style.Text(b, 12, "muted")
         b.none:SetPoint("TOPLEFT", 12, -(BOSS_H + 8))
-        b.none:SetWidth(cardW - 24)
+        b.none:SetWidth(rightW - 24)
         b.none:SetJustifyH("LEFT")
         b.items = {}
         bossRows[i] = b
@@ -684,7 +703,10 @@ Window.Page("dungeons", function(page)
         return st
     end
 
-    local itemW = cardW - 24
+    -- An item, half a band wide: its icon, its name with a tag after it,
+    -- what it is under the name, and at the right how often it drops and
+    -- how often it has.
+    local itemW = math.floor((rightW - 24 - 20) / 2)
     local function Item(card, i)
         if card.items[i] then return card.items[i] end
         local it = CreateFrame("Frame", nil, card)
@@ -693,8 +715,6 @@ Window.Page("dungeons", function(page)
         it.icon:SetSize(30, 30)
         it.icon:SetPoint("LEFT")
         it.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        -- At the right: how often it drops, and under that how often the
-        -- guild has seen it.
         it.chance = Style.Text(it, 13, "text", nil, true)
         it.chance:SetPoint("TOPRIGHT", 0, -1)
         it.chance:SetJustifyH("RIGHT")
@@ -703,18 +723,20 @@ Window.Page("dungeons", function(page)
         it.seen:SetJustifyH("RIGHT")
         it.name = Style.Text(it, 14, "text")
         it.name:SetPoint("TOPLEFT", it.icon, "TOPRIGHT", 8, 0)
-        it.name:SetWidth(itemW - 40 - 70)
         it.name:SetJustifyH("LEFT")
         it.name:SetWordWrap(false)
+        -- Why it's first on the list: on your gear plan, better than what
+        -- you wear, or a recipe for a profession of yours.
+        it.tag = CreateFrame("Frame", nil, it)
+        it.tag:SetPoint("LEFT", it.name, "RIGHT", 8, 0)
+        it.tag.fill = Style.Fill(it.tag, "line")
+        it.tag.text = Style.Text(it.tag, 10, "text")
+        it.tag.text:SetPoint("CENTER")
         it.slot = Style.Text(it, 12, "muted")
         it.slot:SetPoint("BOTTOMLEFT", it.icon, "BOTTOMRIGHT", 8, 0)
-        it.slot:SetWidth(itemW - 40 - 150)
+        it.slot:SetWidth(itemW - 40 - 90)
         it.slot:SetJustifyH("LEFT")
         it.slot:SetWordWrap(false)
-        it.star = it:CreateTexture(nil, "OVERLAY")
-        it.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
-        it.star:SetSize(16, 16)
-        it.star:SetPoint("TOPRIGHT", it.chance, "TOPLEFT", -6, 1)
         it.edge = it:CreateTexture(nil, "OVERLAY")
         it.edge:SetColorTexture(Style.Color("gold"))
         it.edge:SetWidth(2)
@@ -733,10 +755,29 @@ Window.Page("dungeons", function(page)
         return it
     end
 
-    -- A boss's loot on its card: Wowhead's list with each item's drop
+    -- Puts an item's tag on, or takes it off; returns the room it takes.
+    local function SetTag(it, kind)
+        it.tagged = kind
+        it.tag:SetShown(kind ~= nil)
+        if not kind then return 0 end
+        local t = TAGS[kind]
+        it.tag.fill:SetColorTexture(Style.Color(t[2]))
+        it.tag.text:SetText(t[1])
+        it.tag.text:SetTextColor(Style.Color(t[3]))
+        local w = it.tag.text.GetStringWidth and it.tag.text:GetStringWidth()
+        w = ((type(w) == "number" and w > 0) and w or #t[1] * 5.4) + 12
+        it.tag:SetSize(w, 16)
+        return w + 8
+    end
+
+    -- A boss's loot on its band: Wowhead's list with each item's drop
     -- chance, then anything you or the guild have seen it drop that the list
-    -- doesn't have, with how often in the guild's kills. Without Wowhead's
-    -- chance, five or more guild kills give one. Returns the card's height.
+    -- doesn't have. Without Wowhead's chance, five or more guild kills give
+    -- one. What's on your gear plan comes first, then what's better than
+    -- what you wear, then the rest, likeliest first. What you can't equip,
+    -- and recipes for professions you don't have, fold into one line at the
+    -- foot. Returns the band's height, how many pieces are better for you,
+    -- how many it could tell that of, and the guild's kills.
     local function PaintLoot(card, boss, encounter)
         for _, it in ipairs(card.items) do it:Hide() end
         if card.more then card.more:Hide() end
@@ -775,33 +816,56 @@ Window.Page("dungeons", function(page)
         if #list == 0 then
             card.none:SetText("No loot known yet. It's added when you or a guildmate with jsal.ui loots this boss.")
             card.none:Show()
-            return BOSS_H + 46
+            return BOSS_H + 34, 0, 0, guildKills
         end
         card.none:Hide()
-        -- What you can't equip is folded into one line at the foot of the
-        -- card, to open; a piece on your gear plan is never folded away.
         local starredSet = ns.Gear and ns.Gear.Starred() or {}
-        local mine, others = {}, {}
-        for _, entry in ipairs(list) do
-            local _, _, _, _, _, _, _, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
-            entry.cant = starredSet[entry.id] ~= true and CantEquip(classID, subclassID, equipLoc)
-            local to = entry.cant and others or mine
+        local trades = {}
+        for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine() or {}) do trades[p.name or ""] = true end
+        local mine, others, recipes, better, sure = {}, {}, 0, 0, 0
+        for k, entry in ipairs(list) do
+            local _, _, _, _, _, _, subclass, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
+            entry.at = k
+            entry.starred = starredSet[entry.id] == true
+            -- A piece on your gear plan is never folded away.
+            entry.cant = not entry.starred and CantEquip(classID, subclassID, equipLoc)
+            entry.recipe = classID == RECIPE
+            entry.prof = entry.recipe and trades[subclass or ""] == true
+            if not entry.cant and not entry.recipe and ns.Gear and ns.Gear.Better then
+                local is = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
+                if is ~= nil then sure = sure + 1 end
+                if is then
+                    entry.better = true
+                    better = better + 1
+                end
+            end
+            entry.away = entry.cant or (entry.recipe and not entry.prof and not entry.starred)
+            if entry.away and entry.recipe then recipes = recipes + 1 end
+            local to = entry.away and others or mine
             to[#to + 1] = entry
         end
+        local function Rank(e) return e.starred and 1 or (e.better and 2 or 3) end
+        table.sort(mine, function(a, b)
+            if Rank(a) ~= Rank(b) then return Rank(a) < Rank(b) end
+            return a.at < b.at
+        end)
         local open = unfolded[boss] == true
-        local shown = {}
-        for _, entry in ipairs(mine) do shown[#shown + 1] = entry end
-        if open then
-            for _, entry in ipairs(others) do shown[#shown + 1] = entry end
-        end
-        for i, entry in ipairs(shown) do
-            local it = Item(card, i)
+        -- Two across; what was folded away starts a row of its own.
+        local place, shown = 0, 0
+        local function Put(entry)
+            place, shown = place + 1, shown + 1
+            local it = Item(card, shown)
             it:ClearAllPoints()
-            it:SetPoint("TOPLEFT", 12, -(BOSS_H + 6 + (i - 1) * ITEM_H))
+            it:SetPoint("TOPLEFT", 12 + ((place - 1) % 2) * (itemW + 20), -(BOSS_H + 6 + math.floor((place - 1) / 2) * ITEM_H))
             it.item = entry.id
             local name, _, quality, _, req, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
+            local tagW = SetTag(it, entry.starred and "plan" or (entry.better and "better") or (entry.prof and "prof") or nil)
+            it.name:SetWidth(0)
             it.name:SetText(("|cff%s%s|r"):format(Style.Quality(q), name or entry.item.n or "..."))
+            local room = itemW - 38 - 56 - tagW
+            local wide = it.name.GetStringWidth and it.name:GetStringWidth()
+            if type(wide) ~= "number" or wide <= 0 or wide > room then it.name:SetWidth(room) end
             local slot = equipLoc and equipLoc ~= "" and _G[equipLoc] or nil
             local parts = {}
             -- Recipes and other things you don't wear have a blank slot name.
@@ -811,31 +875,39 @@ Window.Page("dungeons", function(page)
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
             it.slot:SetText(table.concat(parts, " · "))
             it.chance:SetText((entry.chance or entry.guessed) and ("%d%%"):format(entry.chance or entry.guessed) or "")
-            -- How often it's been seen: in the guild's kills, or by you.
+            -- How often it's been seen: in the guild's kills (the band's bar
+            -- says how many those are), or by you.
             if entry.guild then
-                it.seen:SetText(("dropped %d× in %d guild kill%s"):format(entry.guild, guildKills, guildKills == 1 and "" or "s"))
+                it.seen:SetText(("dropped %d×"):format(entry.guild))
             elseif (entry.item.seen or 0) > 0 then
                 it.seen:SetText(entry.item.seen > 1 and ("you've seen it %d×"):format(entry.item.seen) or "you've seen it")
             else
                 it.seen:SetText("")
             end
-            it:SetAlpha(entry.cant and 0.55 or 1)
-            local starred = starredSet[entry.id] == true
-            it.star:SetShown(starred)
-            it.edge:SetShown(starred)
+            it:SetAlpha(entry.away and 0.55 or 1)
+            it.edge:SetShown(entry.starred)
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
-        local h = BOSS_H + 6 + #shown * ITEM_H + 4
+        for _, entry in ipairs(mine) do Put(entry) end
+        if open then
+            place = math.ceil(place / 2) * 2
+            for _, entry in ipairs(others) do Put(entry) end
+        end
+        local h = BOSS_H + 6 + math.ceil(place / 2) * ITEM_H + 4
         if #others > 0 then
             if not card.more then
                 card.more = CreateFrame("Button", nil, card)
-                card.more:SetSize(itemW, 20)
+                card.more:SetSize(rightW - 24, 20)
                 card.more.text = Style.Text(card.more, 11, "muted")
                 card.more.text:SetPoint("LEFT", 38, 0)
                 Style.Hover(card.more, 4)
             end
-            card.more.text:SetText(open and "Show fewer" or ("%d more you can't equip · Show"):format(#others))
+            local words = {}
+            if recipes == 1 then words[#words + 1] = "1 recipe for another profession"
+            elseif recipes > 1 then words[#words + 1] = recipes .. " recipes for other professions" end
+            if #others > recipes then words[#words + 1] = ("%d more you can't equip"):format(#others - recipes) end
+            card.more.text:SetText(open and "Show fewer" or (table.concat(words, " and ") .. " · Show"))
             card.more:SetScript("OnClick", function()
                 unfolded[boss] = not open or nil
                 Paint()
@@ -847,7 +919,7 @@ Window.Page("dungeons", function(page)
         elseif card.more then
             card.more:Hide()
         end
-        return h
+        return h, better, sure, guildKills
     end
 
     -- Who gives a quest: on a quest's own line the place is its heading, so
@@ -1272,6 +1344,8 @@ Window.Page("dungeons", function(page)
         end
         for _, region in ipairs({ Q.sum, Q.more, Q.low, Q.cols }) do region:Hide() end
         for _, row in ipairs(bossRows) do row:Hide() end
+        B.sum:Hide()
+        B.order:Hide()
         none:Hide()
         local quests = {}
         local classID
@@ -1301,36 +1375,52 @@ Window.Page("dungeons", function(page)
             bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
             return
         end
-        -- The bosses as cards, two to a row in the game's order; a row is as
-        -- tall as its taller card.
-        hint:SetText((ns.Gear and ns.Gear.STAR and (ns.Gear.STAR .. " on your gear plan · ") or "") .. "hover an item for its details")
-        local rowH = 0
+        -- The bosses as bands down the list, in the game's order, under a
+        -- line of how much here is better than what you wear.
+        hint:SetText("hover an item for its details")
+        local heights, better, sure = {}, 0, 0
         for k, b in ipairs(d.bosses) do
             local card = BossRow(k)
             card.boss = b[2]
-            local col = (k - 1) % 2
             local n = D.KillCount(b[2], game, b[3])
+            card.number:SetText(k)
             card.name:SetText(b[3] or b[2])
-            card.kills:SetText(n > 0 and ("killed %d×"):format(n) or "")
             card.box:SetShown(n > 0)
-            -- Without a tick the name starts at the card's edge, over its loot.
+            -- Without a tick the name comes right after the number.
             card.name:ClearAllPoints()
             if n > 0 then
-                card.name:SetPoint("LEFT", card.box, "RIGHT", 10, 0)
+                card.name:SetPoint("LEFT", card.box, "RIGHT", 8, 0)
             else
-                card.name:SetPoint("LEFT", card.head, "LEFT", 12, 0)
+                card.name:SetPoint("LEFT", card.head, "LEFT", 34, 0)
             end
             Style.SetBorder(card.boxEdges, "wordGreen")
-            local h = PaintLoot(card, b[2], b[1])
-            card:SetHeight(h)
+            local h, more, known, guildKills = PaintLoot(card, b[2], b[1])
+            better, sure = better + more, sure + known
+            -- Your kills, and the guild's: said here once, where it was on
+            -- every item ("dropped 1× in 1 guild kill").
+            local words = {}
+            if n > 0 then words[#words + 1] = ("killed %d×"):format(n) end
+            if guildKills > 0 then words[#words + 1] = ("%d guild kill%s"):format(guildKills, guildKills == 1 and "" or "s") end
+            card.kills:SetText(table.concat(words, "  ·  "))
+            heights[k] = h
+        end
+        -- Said only when the gear plan could tell: it needs your spec's
+        -- weights, and the game to have loaded the items.
+        B.sum:SetShown(sure > 0)
+        B.order:SetShown(sure > 0)
+        if sure > 0 then
+            B.sum:SetText(better == 0 and "Nothing here is better than what you wear"
+                or (better == 1 and "1 piece here is better than what you wear"
+                    or ("%d pieces here are better than what you wear"):format(better)))
+            by = 32
+        end
+        for k in ipairs(d.bosses) do
+            local card = bossRows[k]
+            card:SetHeight(heights[k])
             card:ClearAllPoints()
-            card:SetPoint("TOPLEFT", col * (cardW + CARD_GAP), -by)
+            card:SetPoint("TOPLEFT", 0, -by)
             card:Show()
-            rowH = math.max(rowH, h)
-            if col == 1 or k == #d.bosses then
-                by = by + rowH + CARD_GAP
-                rowH = 0
-            end
+            by = by + heights[k] + CARD_GAP
         end
         for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
         by = PlaceNote("bosses", by)

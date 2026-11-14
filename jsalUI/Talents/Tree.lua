@@ -152,6 +152,56 @@ function Tree.LearnMany(data, ids)
 end
 
 -- The level a step in the order is reached at: one point a level from 10.
+-- The plan as the page lists it, from its steps (Tree.Steps). What's taken
+-- folds into one line at the top (`open`: it's opened, and the taken steps
+-- follow it); a step you're partway through is split into the ranks taken
+-- and the ranks left, so the row that's next says which rank is; and where
+-- the build moves to another tree there's a heading. `taken`: how many of
+-- the plan's points are learned; `treeOf`: a talent's tree, by its id.
+-- Rows are { fold = true, points, open } for the folded line,
+-- { head = tree, points, first, last } for a heading (the run of steps in
+-- that tree: its points, and the first and last point's place in the
+-- plan), and a step { id, first, last, fromRank, toRank, done }.
+function Tree.PlanRows(steps, taken, treeOf, open)
+    local parts = {}
+    for _, step in ipairs(steps) do
+        if taken >= step.first and taken < step.last then
+            local n = taken - step.first + 1
+            parts[#parts + 1] = { id = step.id, first = step.first, last = taken, fromRank = step.fromRank,
+                                  toRank = step.fromRank + n - 1, done = true }
+            parts[#parts + 1] = { id = step.id, first = taken + 1, last = step.last, fromRank = step.fromRank + n,
+                                  toRank = step.toRank, done = false }
+        else
+            parts[#parts + 1] = { id = step.id, first = step.first, last = step.last, fromRank = step.fromRank,
+                                  toRank = step.toRank, done = step.last <= taken }
+        end
+    end
+    local runs = {}
+    for _, part in ipairs(parts) do
+        local tree = treeOf(part.id)
+        local run = runs[#runs]
+        if not run or run.tree ~= tree then
+            run = { tree = tree, points = 0, first = part.first }
+            runs[#runs + 1] = run
+        end
+        run.points, run.last = run.points + (part.last - part.first + 1), part.last
+        part.run = run
+    end
+    local rows, headed = {}, nil
+    if taken > 0 then rows[1] = { fold = true, points = taken, open = open and true or false } end
+    for _, part in ipairs(parts) do
+        if open or not part.done then
+            -- A build all in one tree needs no heading: its title names the tree.
+            if #runs > 1 and part.run ~= headed then
+                headed = part.run
+                rows[#rows + 1] = { head = headed.tree, points = headed.points, first = headed.first, last = headed.last }
+            end
+            rows[#rows + 1] = part
+        end
+    end
+    return rows
+end
+
 function Tree.Level(index)
     return Tree.FIRST_LEVEL + index - 1
 end

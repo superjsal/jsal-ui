@@ -252,6 +252,10 @@ local function Step(s, t, dt)
     local mood = Rules.Mood(s)
     if not s.sick and (mood == "happy" or mood == "content" or mood == "asleep") then
         s.good = s.good + hours
+        -- An egg in the nest warms on the same clock, faster with a closer bond.
+        if s.nest then
+            s.nest.warm = math.min(Rules.TEND, (s.nest.warm or 0) + hours * Rules.TendSpeed(s))
+        end
     end
 end
 
@@ -627,6 +631,141 @@ function Rules.Succeed(s, eggs, index, now)
         young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
     end
     return Rules.Settled(s, now), young
+end
+
+---------------------------------------------------------------------------
+-- The nest. A fully grown companion looks after one egg: it's put in a
+-- nest in the pen (s.nest: the egg, and `warm`, the good hours it has had),
+-- where it warms while the companion is well, on the clock growing used,
+-- and faster with a closer bond. Warm enough, it's ready to hatch, and waits
+-- for you as long as you like. When it hatches the companion settles in the
+-- paddock, and comes back to the pen now and then to see the one it
+-- looked after. (John, 16 Nov 2026: "i think we should add functionality to
+-- the egg itself, like your pal taking care of the egg until it is ready to
+-- hatch", and "the caretaker pal should show up in the pen every once in a
+-- while".)
+---------------------------------------------------------------------------
+Rules.TEND = 24             -- good hours to warm an egg, at the first level of the bond
+Rules.KEEPSAKE = 6          -- the most of the old bond a hatchling starts with: its second level
+Rules.VISITS = 2            -- how often a day the one that tended its egg comes by
+Rules.VISIT_FOR = 4 * 60    -- and for how long
+Rules.VISIT_GAP = 2 * HOUR  -- with this long between, and after hatching
+
+function Rules.CanTend(s)
+    if s.form < 3 then return false, "It isn't fully grown yet." end
+    if s.grewFrom then return false, "It's ready to grow: press Grow in its pen first." end
+    return true
+end
+
+-- How fast it warms an egg: half as fast again at the closest bond.
+function Rules.TendSpeed(s)
+    local level = Rules.Bond(s)
+    return 1 + (level - 1) * 0.1
+end
+
+-- Puts the egg at that place in the list into the nest. One already there
+-- goes back to the list in its place, and the warming starts again. Nil and
+-- why when it can't be done.
+function Rules.Tend(s, eggs, index, now)
+    local ok, why = Rules.CanTend(s)
+    if not ok then return nil, why end
+    local egg = eggs[index]
+    if not (egg and Rules.EGGS[egg.kind]) then return nil, "That egg isn't there." end
+    local old = s.nest
+    if old then
+        eggs[index] = { kind = old.kind, from = old.from, found = old.found }
+    else
+        table.remove(eggs, index)
+    end
+    s.nest = { kind = egg.kind, from = egg.from, found = egg.found, warm = 0, since = now }
+    return true
+end
+
+-- Takes the egg out of the nest, back to the front of the list. False and
+-- why with no egg there, or no room for it.
+function Rules.Untend(s, eggs)
+    local nest = s.nest
+    if not nest then return false, "There's no egg in the nest." end
+    if #eggs >= Rules.MAX_EGGS then return false, "Your hands are full: let an egg go first." end
+    table.insert(eggs, 1, { kind = nest.kind, from = nest.from, found = nest.found })
+    s.nest = nil
+    return true
+end
+
+-- The egg in the nest: its kind (of Rules.EGGS), the hours of good care it
+-- still needs at the bond you have, whether it's ready to hatch, and how far
+-- along it is from 0 to 1. Nil with no egg there.
+function Rules.Tending(s)
+    local nest = s.nest
+    local kind = type(nest) == "table" and Rules.EGGS[nest.kind]
+    if not kind then return nil end
+    local warm = math.min(Rules.TEND, nest.warm or 0)
+    return kind, (Rules.TEND - warm) / Rules.TendSpeed(s), warm >= Rules.TEND, warm / Rules.TEND
+end
+
+-- The egg in the nest hatches, and the companion that tended it settles in
+-- the paddock: the record for the paddock, and the hatchling. It keeps the
+-- cupboard, starts with a little of the old bond (never more than there
+-- was), and remembers who looked after its egg. Nil and why when it can't be
+-- done.
+function Rules.HatchNest(s, now)
+    local ok, why = Rules.CanTend(s)
+    if not ok then return nil, why end
+    local kind, _, ready = Rules.Tending(s)
+    if not kind then return nil, "There's no egg in the nest." end
+    if not ready then return nil, "The egg isn't ready to hatch yet." end
+    local young = Rules.New(now, nil, kind.species)
+    for supply, count in pairs(s.supplies) do
+        young.supplies[supply] = math.max(young.supplies[supply] or 0, count)
+    end
+    young.bond = math.min(s.bond or 0, Rules.KEEPSAKE)
+    young.caretaker = { name = s.name, species = s.species or "briarboar", form = s.form }
+    -- When it hatched in a nest: the nest stays in the pen as its bed
+    -- while it's a hatchling (Rules.Bed).
+    young.nested = now
+    s.nest = nil
+    return Rules.Settled(s, now), young
+end
+
+-- The nest it hatched in is a hatchling's bed: it sleeps and naps there
+-- for as long as it's a hatchling, and that includes one ready to grow
+-- that hasn't yet. (John, 16 Nov 2026, asked what to do about the empty
+-- nest: "Bed version sounds great good idea".)
+function Rules.Bed(s)
+    return s.nested ~= nil and (s.grewFrom or s.form) == 1
+end
+
+-- Grown, it has outgrown its nest, which goes: true the once.
+function Rules.Outgrown(s)
+    if s.nested ~= nil and (s.grewFrom or s.form) > 1 then
+        s.nested = nil
+        return true
+    end
+    return false
+end
+
+-- Whether the one that tended its egg is visiting, asked whenever the pen
+-- is looked at. A visit starts then: the first time in a day, and again
+-- once a couple of hours have gone by, twice a day at most. It lasts a few
+-- minutes and cheers the young one up a little. None while it sleeps or is
+-- poorly, nor in its first hours. The second answer is true the moment a
+-- visit starts.
+function Rules.Visit(s, now)
+    if type(s.caretaker) ~= "table" then return false end
+    local day = math.floor(now / DAY)
+    local v = s.visit
+    if type(v) ~= "table" or v.day ~= day then
+        v = { day = day, count = 0 }
+        s.visit = v
+    end
+    if v.till and now < v.till then return true, false end
+    if s.asleep or s.sick or v.count >= Rules.VISITS or now - (s.born or 0) < Rules.VISIT_GAP
+        or (v.last and now - v.last < Rules.VISIT_GAP) then
+        return false
+    end
+    v.count, v.last, v.till = v.count + 1, now, now + Rules.VISIT_FOR
+    s.fun = Clamp(s.fun + 10)
+    return true, true
 end
 
 -- The kind of egg that doing `source` turns up this time, or nil. `roll`

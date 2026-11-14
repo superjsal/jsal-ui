@@ -235,6 +235,9 @@ local EFFECTS = {
     sick = { first = 8, count = 8, time = 0.14 },
     bath = { first = 16, count = 16 },
     well = { first = 32, count = 16 },
+    -- Hearts and sparkles, round and round: the second half of getting
+    -- well, for a companion doting on the egg it looks after.
+    love = { first = 40, count = 8, time = 0.16 },
 }
 local MUDDY, GREEN, PLAIN = { 0.74, 0.62, 0.46 }, { 0.78, 1, 0.78 }, { 1, 1, 1 }
 -- Dirty, it's a little dulled all over (GRUBBY) and has mud on it: the same
@@ -387,13 +390,15 @@ Pet.SHEETS = SHEETS
 -- top left corner in the pen), where it's heading, which way it faces,
 -- which frame shows, and how long it still stands before the next stroll.
 ---------------------------------------------------------------------------
-local function Spot(random, size, strip)
+-- `keep`: the furthest right it may go, while there's a nest at the pen's
+-- right to keep off.
+local function Spot(random, size, strip, keep)
     -- Out with you, it only walks to and fro, along the bottom of its strip.
     if strip then return random(0, strip - size), STRIP_TOP end
     -- Its feet are near the bottom of its picture: high enough up the pen
     -- and a small one would be standing on the fence.
     local top = math.max(0, math.floor(GRASS - size * 0.92))
-    return random(0, PEN_W - size), random(top, PEN_H - size)
+    return random(0, math.max(0, math.min(PEN_W - size, keep or PEN_W))), random(top, PEN_H - size)
 end
 
 -- `size` is how large it's drawn (the largest, unless told).
@@ -401,6 +406,36 @@ function Pet.NewWalk(random, size, strip)
     size = size or SIZE
     local x, y = Spot(random, size, strip)
     return { x = x, y = y, tx = x, ty = y, wait = 1, facing = "left", frame = "stand", clock = 0, size = size, strip = strip }
+end
+
+-- Doting on the egg, while it stands by its nest: a happy hop as it gets
+-- there, then it sits down beside the egg; hearts rise from the nest as it
+-- arrives and every few seconds after. Over, when it strolls off again or
+-- the nest is gone. Returns "hearts" on a frame they should rise. (It only
+-- stood there. John, 16 Nov 2026: "i'd like more visual doting when its by
+-- the egg".)
+function Pet.Dote(walk, sheet, dt)
+    local d = walk.doting
+    if not d then return nil end
+    if walk.wait <= 0 or not walk.keep then
+        walk.doting = nil
+        return nil
+    end
+    walk.facing = "right"
+    d.clock = d.clock + dt
+    if walk.act then return nil end
+    if d.step == 0 then
+        d.step, d.hearts = 1, d.clock + 3
+        if sheet then Pet.Play(walk, sheet, "cheer") end
+        return "hearts"
+    elseif d.step == 1 then
+        d.step = 2
+        if sheet then Pet.Play(walk, sheet, "sit") end
+    elseif d.clock >= d.hearts then
+        d.hearts = d.clock + 3
+        return "hearts"
+    end
+    return nil
 end
 
 -- Starts a short animation (eating, a jump, settling down): it stays where
@@ -451,7 +486,14 @@ function Pet.Step(walk, dt, random)
         walk.wait = walk.wait - dt
         walk.frame = "stand"
         if walk.wait <= 0 then
-            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip)
+            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep)
+            -- With an egg to look after, one stroll in three is back to the
+            -- nest's side, where it stays a while, facing it. (It wandered
+            -- as if there were no nest, and stood on it: John's screenshot,
+            -- 16 Nov 2026.)
+            if walk.keep and random(1, 3) == 1 then
+                walk.tx, walk.ty, walk.beside = math.max(0, walk.keep), PEN_H - (walk.size or SIZE), true
+            end
             if walk.tx ~= walk.x then walk.facing = walk.tx > walk.x and "right" or "left" end
             walk.clock = 0
         end
@@ -459,11 +501,18 @@ function Pet.Step(walk, dt, random)
     end
     local dx, dy = walk.tx - walk.x, walk.ty - walk.y
     local far = math.sqrt(dx * dx + dy * dy)
-    local go = SPEED * (walk.running and RUN or 1) * dt
+    local go = SPEED * (walk.running and RUN or 1) * (walk.brisk or 1) * dt
     if far <= go then
-        -- There: stand for one to three seconds.
+        -- There: stand for one to three seconds; by its nest, for longer,
+        -- turned toward it.
         walk.x, walk.y = walk.tx, walk.ty
         walk.wait = 1 + random(0, 200) / 100
+        if walk.beside then
+            walk.beside = nil
+            walk.wait, walk.facing = walk.wait + 6, "right"
+            -- And there it dotes on the egg (Pet.Dote).
+            walk.doting = { clock = 0, step = 0 }
+        end
         walk.frame = "stand"
         return walk
     end
@@ -677,6 +726,17 @@ local function FormName(s, form)
     return forms[form or s.grewFrom or s.form] or forms[1]
 end
 
+-- Your pal as it is now, for a page that shows it beside you (the
+-- Journal's Summary): its name, what its form is called and its picture.
+-- Nil with the part off, or before an egg is chosen.
+function Pet.Portrait()
+    if not Pet.running then return nil end
+    local s = Pet.State()
+    if s.unchosen then return nil end
+    local sprites = Rules.Species(s).sprites
+    return { name = s.name, form = FormName(s), texture = Art(sprites[s.grewFrom or s.form] or sprites[1]) }
+end
+
 -- Whether a look is one of the companion's own line.
 local function Own(look)
     for _, name in ipairs(Rules.Species(Pet.State()).sprites) do
@@ -733,14 +793,13 @@ function Pet.Weather()
     if pen and pen.forced then return pen.forced[1], pen.forced[2] end
     if not ns.OptionOn("pet", "weather") then return nil end
     local kind, much, raw, rawMuch = Compat.Weather()
-    -- A beta build says what the game told it, when that changes: some
-    -- weather has no name here yet ("Miscellaneous"), and how hard is hard
-    -- isn't known (John, 13 Nov 2026: "not sure what misc is").
-    if Pet.Trials(ns.version) and raw
-        and (raw ~= (Pet.sawWeather or 0) or (raw ~= 0 and math.abs((rawMuch or 0) - (Pet.sawMuch or 0)) >= 0.2)) then
-        Pet.sawWeather, Pet.sawMuch = raw, rawMuch
-        ns.Print(("Weather: type %s, intensity %s (%s)."):format(tostring(raw), tostring(rawMuch), raw == 0 and "clear" or kind or "nothing drawn"))
-    end
+    -- What the game last said is kept, and nothing is said in chat: a beta
+    -- build used to print it each time it changed, to learn what the game's
+    -- numbers were. (John, 16 Nov 2026, of "Weather: type 1, intensity
+    -- 0.77081733942032 (rain)." in his chat: "i think it should be hidden".)
+    -- /jsal pet weather, on a beta build, says it when it goes back to the
+    -- weather where you are.
+    if raw then Pet.sawWeather, Pet.sawMuch = raw, rawMuch end
     if not kind or not much or much <= 0 then return nil end
     return kind, math.min(1, much)
 end
@@ -782,11 +841,11 @@ end
 -- The weather over the pen: over the creature and everything on the
 -- grass, under the pen's buttons. Nothing of it is made until there's
 -- weather to draw; it isn't shown out with you (the real thing is all
--- round you), in the paddock, or while an egg is being chosen.
+-- round you) or while an egg is being chosen. The paddock has it too.
 function Pet.PaintWeather()
     local kind, much = Pet.Weather()
     local look = kind and Pet.WEATHER[kind]
-    local show = look ~= nil and not window.out and not window.yard and not window.picking
+    local show = look ~= nil and not window.out and not window.picking
     pen.weather, pen.much = show and kind or nil, show and much or nil
     if not show then
         if ui.weather then ui.weather:Hide() end
@@ -941,7 +1000,7 @@ local function PaintWalk()
         local r, g, b = Pet.Light(shade)
         mud:SetVertexColor(MUD[1] * r, MUD[2] * g, MUD[3] * b)
     end
-    local which = over or s.sick and "sick" or dirty and "dirty" or nil
+    local which = over or s.sick and "sick" or dirty and "dirty" or walk.doting and "love" or nil
     if which then
         local fx = EFFECTS[which]
         -- One that plays once goes with its animation; scrubbed suds, with the scrubbing (the first half).
@@ -1325,10 +1384,22 @@ local function PaintRoamer(r)
     local left, right = col * from.cell / from.w, (col + 1) * from.cell / from.w
     if w.facing == "right" then left, right = right, left end
     r.sprite:SetTexCoord(left, right, row * from.cell / from.h, (row + 1) * from.cell / from.h)
-    if r.file ~= from.file then
-        r.file = from.file
+    -- At the art's own size in the paddock. One that has come to visit the
+    -- pen is drawn as the pen draws its form (`r.size`): at the paddock's
+    -- size it stood half as tall as the hatchling it had come to see.
+    -- (John, 16 Nov 2026: "we'll need to scale up when they visit".)
+    local drawn = (r.size or 64) * from.cell / 64
+    if r.file ~= from.file or r.drawn ~= drawn then
+        r.file, r.drawn = from.file, drawn
         r.sprite:SetTexture(Art(from.file), "CLAMP", "CLAMP", "NEAREST")
-        r.sprite:SetSize(from.cell, from.cell)
+        r.sprite:SetSize(drawn, drawn)
+    end
+    -- In the light of the hour, as the pen's own companion is: the paddock
+    -- has dusk and night now.
+    local shade = pen.shade or 0
+    if r.shade ~= shade then
+        r.shade = shade
+        r.sprite:SetVertexColor(Pet.Light(shade))
     end
     r.snore:SetShown(r.nap ~= nil and not w.act)
     r.body:ClearAllPoints()
@@ -1409,8 +1480,12 @@ local function PaintYard(s)
             end
             r.body:Show()
             PaintRoamer(r)
-            ui.yardRows[i]:SetText(("%s the %s · %d day%s together · %s"):format(record.name, FormName(record, record.form),
-                record.days or 1, (record.days or 1) == 1 and "" or "s", record.bond or "Wary"))
+            -- The one that looked after your companion's egg says so: it's who comes by the pen.
+            local care = s.caretaker
+            local visits = care and not s.unchosen and record.name == care.name and (record.species or "briarboar") == care.species
+            ui.yardRows[i]:SetText(("%s the %s · %d day%s together · %s%s"):format(record.name, FormName(record, record.form),
+                record.days or 1, (record.days or 1) == 1 and "" or "s", record.bond or "Wary",
+                visits and (" · visits " .. s.name) or ""))
         else
             if r then
                 r.record = nil
@@ -1419,7 +1494,7 @@ local function PaintYard(s)
             ui.yardRows[i]:SetText("")
         end
     end
-    ui.yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown pal settles when you hatch an egg."
+    ui.yardHead:SetText(#settled == 0 and "No one has settled here yet. A fully grown pal settles when the egg it looks after hatches."
         or #settled > YARD_MAX and ("%d have settled here. The last %d:"):format(#settled, YARD_MAX)
         or #settled == 1 and "One has settled here." or ("%d have settled here."):format(#settled))
     -- Under the list, every kind's first form, in shadow until you've raised one.
@@ -1515,6 +1590,8 @@ local function Refresh()
         for _, heap in ipairs(ui.heaps) do heap:Hide() end
         pen.dark, pen.shade, walk = 0, 0, nil
         Sky()
+        Pet.PaintNest(s)
+        Pet.PaintVisitor(s)
         return
     end
     s = Rules.Advance(s, Now())
@@ -1527,9 +1604,19 @@ local function Refresh()
         title:SetText("The paddock")
         for _, heap in ipairs(ui.heaps) do heap:Hide() end
         prop:Hide()
-        -- The paddock is always by day, whatever the hour in the pen.
-        pen.dark, pen.shade = 0, 0
+        -- The paddock has scenery of its own for the kind of country you're
+        -- in, as late as the realm's clock says, under the weather where you
+        -- are. (It was the pen's own scene, always by day, with no weather.
+        -- John, 16 Nov 2026: "the paddock also needs different scenery then,
+        -- and also needs the weather effects", "we have different scenes for
+        -- the different zones ... so we would need a different scene for each".)
+        Pet.Backdrop("paddock_" .. Pet.Scene(Pet.where))
+        pen.dark = Pet.Hours(Compat.Hour())
+        pen.shade = pen.dark
         Sky()
+        Pet.PaintNest(s)
+        Pet.PaintVisitor(s)
+        Pet.PaintWeather()
         return PaintYard(s)
     end
     for _, r in ipairs(ui.roamers) do r.body:Hide() end
@@ -1539,10 +1626,15 @@ local function Refresh()
     local growing = Growing(s)
     -- How it is, as you'd say it; under it, its age and when it grows.
     ui.headline:SetText(Pet.Headline(s))
-    sub:SetText(("Day %d · %s"):format(day, growing or "fully grown"))
+    sub:SetText(("Day %d · %s"):format(day, growing or Pet.TendWords(s, Eggs()) or "fully grown"))
+    -- The one that looked after its egg may have come by.
+    Pet.PaintVisitor(s)
     -- Not yet told of: it's new, and breaks out of its egg as you first see it.
     local fresh = not s.told
+    local outgrown = Rules.Outgrown(s)
     said = Milestones(s) or said
+    -- Grown out of the nest it hatched in: the nest goes, and it's said once.
+    if outgrown then said = (said and (said .. " ") or "") .. ("%s has outgrown its nest."):format(s.name) end
     message:SetText(said or "")
     local wish, granted = WishText(s)
     ui.wishLine:SetText(wish)
@@ -1586,18 +1678,14 @@ local function Refresh()
     -- In its pen it's night while it sleeps, and otherwise as late as the realm's clock says.
     pen.dark = window.out and 0 or s.asleep and 1 or Pet.Hours(Compat.Hour())
     -- The pen is in the kind of country you're in.
-    local scene = Pet.Scene(Pet.where)
-    if pen.where ~= scene then
-        pen.where = scene
-        pen.scene:SetTexture(Art(scene), "CLAMP", "CLAMP", "NEAREST")
-        pen.dusk:SetTexture(Art(scene .. "_dusk"), "CLAMP", "CLAMP", "NEAREST")
-        pen.night:SetTexture(Art(scene .. "_night"), "CLAMP", "CLAMP", "NEAREST")
-    end
+    Pet.Backdrop(Pet.Scene(Pet.where))
     -- And what's on its mind, for its bubble.
     local free = 0
     for bag = 0, 4 do free = free + (Compat.BagFree(bag) or 0) end
     pen.thought = Pet.Thought(s, Now(), free)
     Pet.PaintWeather()
+    -- The egg it's looking after, in its nest; and the button to hatch it.
+    Pet.PaintNest(s)
     if not pen.shade then
         pen.shade = pen.dark
         Sky()
@@ -1629,7 +1717,10 @@ local function Refresh()
             walk.act, walk.grown, walk.facing, walk.wait = was.act, was.grown, was.facing, 1
         end
     end
-    if fresh and not looking and Pet.Play(walk, Sheet(), "hatch") then Pet.Sound("hatch") end
+    Pet.KeepOffNest()
+    -- One that hatched in its nest a moment ago is put there, and has hatched already.
+    local hatched = Pet.PlaceHatchling()
+    if fresh and not looking and not hatched and Pet.Play(walk, Sheet(), "hatch") then Pet.Sound("hatch") end
     PaintWalk()
     -- The eggs you hold, each with its picture, and where they came from.
     local eggs = Eggs()
@@ -1638,6 +1729,7 @@ local function Refresh()
         local egg = eggs[i]
         local kind = egg and Rules.EGGS[egg.kind]
         slot:SetShown(kind ~= nil)
+        slot.egg = kind and kind.name or nil
         if kind then
             local file = Art(kind.species .. "_egg")
             if slot.file ~= file then
@@ -1650,9 +1742,16 @@ local function Refresh()
     -- (A boss's egg kept aside, past the three shown, is counted at the front,
     -- where a long line isn't cut.)
     local aside = #eggs - #ui.eggSlots
-    ui.eggLine:SetText(#names > 0 and ((aside > 0 and ("Eggs (%d more kept safe): "):format(aside) or "Eggs: ") .. table.concat(names, ", "))
+    local nested = Rules.Tending(s)
+    ui.eggLine:SetText(nested and #names == 0 and ("In the nest: %s."):format(nested.name)
+        or #names > 0 and ((nested and ("In the nest: %s. Waiting: "):format(nested.name)
+            or aside > 0 and ("Eggs (%d more kept safe): "):format(aside) or "Eggs: ") .. table.concat(names, ", "))
         or Rules.CanFind(s) and "No eggs yet. A quest, a flight, a new level, a new zone, a fight won or coming back from the dead can turn one up."
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
+    -- The card for a companion that has just settled, over the top of the page.
+    Pet.PaintFarewell()
+    -- Repainted while an egg is hatching, the buttons stay greyed.
+    if pen.busy then Pet.Grey(true) end
     -- Just hatched and not yet named: the name box opens by itself, with the
     -- name it would otherwise have ready to type over.
     if s.unnamed and not ui.nameBox.asking then
@@ -1673,6 +1772,8 @@ Pet.Refresh = Refresh
 -- `over` what's drawn over it (EFFECTS). `sound` is what's heard when the
 -- care was given ("lights" picks its own too: going to sleep, or waking).
 local function Do(act, show, thing, over, sound)
+    -- Not while an egg is hatching: the scene has the pen to itself.
+    if pen and pen.hatching then return false end
     local s = Pet.State()
     local grubby, ill = Rules.Dirty(s), s.sick
     local ok, what = act(s, Now())
@@ -2004,8 +2105,8 @@ function Layout()
     fold:SetShown(not picking and not out)
     mute:SetShown(not picking and not out)
     ui.outButton:SetShown(not picking and not out and not window.yard)
-    -- No weather in the paddock, out with you, or while an egg is chosen.
-    if ui.weather and (picking or out or window.yard) then ui.weather:Hide() end
+    -- No weather out with you, or while an egg is chosen.
+    if ui.weather and (picking or out) then ui.weather:Hide() end
     -- Ready to grow: the button for it, until it's pressed.
     ui.growButton:SetShown(Pet.State().grewFrom ~= nil and not picking and not out and not window.yard and not looking
         and not (walk and walk.act and walk.act.name == "grow"))
@@ -2229,6 +2330,7 @@ local function BuildPen()
         end
         Pet.tick = (Pet.tick or 0) + elapsed
         Pet.SlideWeather(Pet.tick)
+        Pet.RockEgg(Pet.tick)
         -- The paddock: its settled companions go about their day, and nothing else moves.
         if yard then
             local dt = math.min(elapsed, 0.1)
@@ -2250,11 +2352,14 @@ local function BuildPen()
         -- A long hitch (a loading screen) shouldn't fling it across the pen.
         local dt = math.min(elapsed, 0.1)
         if Pet.State().asleep then
-            -- Asleep, it stays put, eyes shut, once it has settled down.
+            -- Asleep, it stays put, eyes shut, once it has settled down: in
+            -- its nest, if it has one, which it goes to first.
             walk.errand, pen.held, pen.toss = nil, nil, nil
-            if walk.act then Pet.Step(walk, dt, math.random) end
-            if not walk.act then walk.frame = "sleep" end
-            walk.wait = math.max(walk.wait, 0.5)
+            if not Pet.ToBed(dt) then
+                if walk.act then Pet.Step(walk, dt, math.random) end
+                if not walk.act then walk.frame = "sleep" end
+                walk.wait = math.max(walk.wait, 0.5)
+            end
         else
             local sheet = Sheet()
             -- Out with you, it goes by how you're getting about.
@@ -2262,13 +2367,17 @@ local function BuildPen()
             if going and Pet.Pace(walk, sheet, going, dt) then Pet.React("hello") end
             if walk.nap then
                 -- Napping while you're away: as when it's asleep, till you're back.
-                if walk.act then Pet.Step(walk, dt, math.random) end
-                if not walk.act then walk.frame = "sleep" end
-                walk.wait = math.max(walk.wait, 0.5)
+                if not Pet.ToBed(dt) then
+                    if walk.act then Pet.Step(walk, dt, math.random) end
+                    if not walk.act then walk.frame = "sleep" end
+                    walk.wait = math.max(walk.wait, 0.5)
+                end
             else
                 if not window.out then Tend(sheet, dt) end
                 local walking = walk.wait <= 0
                 Pet.Step(walk, dt, math.random)
+                -- By its nest, it dotes on the egg, and hearts rise from it.
+                if Pet.Dote(walk, sheet, dt) == "hearts" and ui.nest then Pet.Hearts(ui.nest) end
                 if Pet.Growing(walk, Pet.State()) then Refresh() end
                 -- Just arrived somewhere, and not hurrying after you: now and then it does something.
                 local moving = going and going.moving
@@ -2288,6 +2397,8 @@ local function BuildPen()
             end
         end
         PaintWalk()
+        Pet.RoamVisitor(dt)
+        Pet.Hatching(dt)
         -- Its needs move slowly: look again twice a minute.
         since = since + elapsed
         if since >= 30 then
@@ -2636,7 +2747,20 @@ local function BuildParts()
         slot.picture:SetPoint("BOTTOM", 0, 0)
         slot.picture:SetTexCoord(0.25, 0.75, 0.5, 1)
         Compat.Crisp(slot.picture)
-        slot:SetScript("OnClick", function() Pet.HatchEgg(i) end)
+        -- A click hatches it; a right-click lets it go.
+        slot:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        slot:SetScript("OnClick", function(_, button)
+            if button == "RightButton" then Pet.LetEggGo(i) else Pet.HatchEgg(i) end
+        end)
+        slot:SetScript("OnEnter", function(self)
+            if not self.egg then return end
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.egg)
+            GameTooltip:AddLine("Click: your pal looks after it in a nest, once it's fully grown. When it hatches, your pal settles in the paddock.", 1, 1, 1, true)
+            GameTooltip:AddLine("Right-click: let it go.", 0.6, 0.59, 0.53, true)
+            GameTooltip:Show()
+        end)
+        slot:SetScript("OnLeave", function() GameTooltip:Hide() end)
         slot:Hide()
         ui.eggSlots[i] = slot
     end
@@ -2682,6 +2806,7 @@ function Pet.Open()
     if not window then Build() end
     if IsOpen() then return window:Hide() end
     said, Pet.armed, yard, albumOpen = nil, nil, false, false
+    Pet.letting, Pet.lifting = nil, nil
     pen.shade = nil     -- opened, it's day or night at once, with no fade
     Layout()            -- as it was left: a window, the pen alone, or out with you
     Refresh()
@@ -2793,6 +2918,18 @@ function Pet.Out()
     if not IsOpen() then
         ns.db.petOut = true
         return Pet.Open()
+    end
+    -- A hatchling still to be named stays in: the box for its name is in
+    -- the window. Out says so, where it did nothing at all, and was then
+    -- left switched on for later. (John, 16 Nov 2026, with a hatchling he
+    -- hadn't named: "now the out button doesnt work anymore".)
+    if pen.hatching then return end
+    local s = Pet.State()
+    if s.unnamed and ns.db.petOut ~= true then
+        -- Short: the line it's said on doesn't wrap, and the box for the
+        -- name is right under it.
+        said = "Name it first, then it can come out."
+        return Refresh()
     end
     ns.db.petOut = ns.db.petOut ~= true and true or nil
     yard, albumOpen, looking, walk = false, false, nil, nil
@@ -2969,41 +3106,648 @@ function Pet.Choose(index)
     if window then Refresh() end
 end
 
--- A click on one of your eggs. A fully grown companion can settle in the
--- paddock, and the egg hatches in its place: that can't be undone, so the
--- first click only says what will happen and the second does it.
+-- A right-click on one of your eggs lets it go: it's off your list, and one
+-- kept aside moves up into its place. That can't be undone, so the first
+-- right-click only says what will happen and the second, on the same egg,
+-- does it. (John, 16 Nov 2026: "how do i get rid of the eggs i have", when
+-- hatching one was all there was to do with them.)
+function Pet.LetEggGo(index)
+    local eggs = Eggs()
+    local egg = eggs[index]
+    local kind = egg and Rules.EGGS[egg.kind]
+    if not kind then return end
+    Pet.armed, Pet.lifting = nil, nil
+    if Pet.letting ~= index then
+        Pet.letting = index
+        said = ("Right-click again: the %s is let go for good."):format(kind.name)
+    else
+        Pet.letting = nil
+        table.remove(eggs, index)
+        said = ("You let the %s go."):format(kind.name)
+    end
+    if IsOpen() then Refresh() end
+end
+
+-- A click on one of your eggs. A fully grown companion takes it into a nest
+-- in the pen and looks after it until it's ready to hatch (Rules.Tend); an
+-- egg already there goes back with the others, and the warming starts
+-- again. So the first click only says what will happen and the second does
+-- it. (A second click used to hatch it on the spot, the companion settling
+-- in the paddock that moment. John, 16 Nov 2026: "i think we should add
+-- functionality to the egg itself, like your pal taking care of the egg
+-- until it is ready to hatch".)
 function Pet.HatchEgg(index)
+    if pen and pen.hatching then return end
     local s, eggs = Pet.State(), Eggs()
     local egg = eggs[index]
     local kind = egg and Rules.EGGS[egg.kind]
     if not kind then return end
-    local ok, why = Rules.CanSettle(s, eggs)
+    Pet.letting, Pet.lifting = nil, nil
+    local ok, why = Rules.CanTend(s)
+    local nested = Rules.Tending(s)
     if not ok then
         Pet.armed = nil
-        said = ("%s Once %s is fully grown it can settle in the paddock, and this egg hatches."):format(why, s.name)
+        said = ("%s Once %s is fully grown it can look after this egg in a nest until it hatches."):format(why, s.name)
     elseif Pet.armed ~= index then
         Pet.armed = index
-        said = ("Click again: %s settles in the paddock for good, and the %s hatches."):format(s.name, kind.name)
+        said = nested and ("Click again: the %s takes the %s's place in the nest, and the warming starts again."):format(kind.name, nested.name)
+            or ("Click again: %s takes the %s into a nest, and looks after it until it hatches."):format(s.name, kind.name)
     else
         Pet.armed = nil
-        local old, form = s.name, FormName(s)
-        local record, young = Rules.Succeed(s, eggs, index, Now())
-        if not record then
-            said = young
+        local done, whyNot = Rules.Tend(s, eggs, index, Now())
+        if not done then
+            said = whyNot
         else
-            local settled = Settled()
-            settled[#settled + 1] = record
-            ns.db.pet = young
-            looking, walk = nil, nil
-            local J = ns.Journal
-            if J and J.running then
-                J.Note("pet", ("%s the %s settled in the paddock after %d day%s"):format(old, form, record.days, record.days == 1 and "" or "s"))
-            end
-            young.unnamed = true
-            said = ("%s has settled in the paddock. Name your new %s: type a name and press Enter."):format(old, FormName(young, 1))
+            -- In a trial there's no waiting: it's ready at once.
+            if ns.db.petAside then s.nest.warm = Rules.TEND end
+            said = ("%s settles down beside the %s."):format(s.name, kind.name)
         end
     end
     if IsOpen() then Refresh() end
+end
+
+-- A right-click on the nest takes its egg out, back with your others. Its
+-- warming is lost, so the first right-click only says so.
+function Pet.NestOut()
+    if pen and pen.hatching then return end
+    local s = Pet.State()
+    local kind = Rules.Tending(s)
+    if not kind then return end
+    Pet.armed, Pet.letting = nil, nil
+    if not Pet.lifting then
+        Pet.lifting = true
+        said = ("Right-click again: the %s comes out of the nest, back with your other eggs. Its warming is lost."):format(kind.name)
+    else
+        Pet.lifting = nil
+        local ok, why = Rules.Untend(s, Eggs())
+        said = ok and ("The %s is back with your other eggs."):format(kind.name) or why
+    end
+    if IsOpen() then Refresh() end
+end
+
+-- The Hatch button, in the pen once the egg in the nest is ready: the egg
+-- hatches, and the companion that looked after it settles in the paddock.
+-- A card says what the paddock keeps of it, and the hatchling is named.
+function Pet.HatchNest()
+    local s = Pet.State()
+    local ok = Rules.CanTend(s)
+    local kind, _, ready = Rules.Tending(s)
+    -- In its pen and awake, it's a scene (Pet.Hatching): the companion
+    -- hurries to the nest, watches the egg hatch there, dotes on the
+    -- hatchling, and then walks away to the paddock. Anywhere else, or
+    -- asleep, the egg hatches at once. (First it ran off the moment Hatch
+    -- was pressed, the egg hatched small somewhere else with the nest gone,
+    -- and it was straight back as a visitor. John, 16 Nov 2026: "the whole
+    -- sequence is jarring for me. it should watch the egg hatch. and then
+    -- dote for a little longer, then walk away", "we also lose the nest and
+    -- the egg gets smaller".)
+    if ok and kind and ready and IsOpen() and walk and ui.nest and not window.out and not window.yard and not s.asleep
+        and not pen.hatching then
+        pen.hatching = { phase = "gather", clock = 0, kind = kind }
+        Pet.Busy(true)
+        walk.act, walk.errand, walk.nap, walk.beside, walk.doting = nil, nil, nil, nil, nil
+        walk.tx, walk.ty = math.max(0, walk.keep or 0), PEN_H - walk.size
+        walk.wait, walk.clock, walk.running = 0, 0, true
+        if walk.tx ~= walk.x then walk.facing = walk.tx > walk.x and "right" or "left" end
+        ui.hatchButton:Hide()
+        said = ("%s hurries over to the %s: it's hatching!"):format(s.name, kind.name)
+        message:SetText(said)
+        return
+    end
+    Pet.FinishHatch()
+end
+
+-- While an egg is hatching nothing else can be done: a cover over the pen
+-- and all under it takes every click, so no care is given, nothing is
+-- thrown, no egg is clicked and the pen isn't left for the paddock or sent
+-- out. The window can still be closed. (John, 16 Nov 2026: "if you press
+-- lights out before the adult pal leaves it stays there and sleeps. we
+-- should block all actions until the adult pal is gone".)
+function Pet.Busy(on)
+    if on and not ui.busy then
+        ui.busy = CreateFrame("Button", nil, window)
+        ui.busy:SetPoint("TOPLEFT", pen, "TOPLEFT")
+        ui.busy:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT")
+        ui.busy:SetFrameLevel(90)
+        ui.busy:EnableMouse(true)
+        ui.busy:RegisterForClicks("AnyUp")
+    end
+    if ui.busy then ui.busy:SetShown(on and true or false) end
+    pen.busy = on and true or false
+    Pet.Grey(pen.busy)
+end
+
+-- And what can't be clicked then is greyed, so it's plain that it can't:
+-- the care buttons, the eggs, and the buttons in the pen's corners. Each
+-- goes back to how it was. (John, 16 Nov 2026: "we should gray them out as
+-- well so its obvious".)
+function Pet.Grey(on)
+    local list = { ui.yardToggle, ui.outButton, fold, mute }
+    for _, button in pairs(ui.care or {}) do list[#list + 1] = button end
+    for _, slot in ipairs(ui.eggSlots) do list[#list + 1] = slot end
+    for _, piece in ipairs(list) do
+        if on then
+            if not piece.greyWas then piece.greyWas = piece.GetAlpha and piece:GetAlpha() or 1 end
+            piece:SetAlpha(0.3)
+        elseif piece.greyWas then
+            piece:SetAlpha(type(piece.greyWas) == "number" and piece.greyWas > 0 and piece.greyWas or 1)
+            piece.greyWas = nil
+        end
+    end
+end
+
+-- The hatchling as it hatches in the nest, before it's the pen's own
+-- companion: drawn as the paddock's are, at a hatchling's size in the pen.
+function Pet.Chick(kind)
+    local c = ui.chick
+    if not c then
+        c = { body = CreateFrame("Frame", nil, pen) }
+        ui.chick = c
+        c.sprite = c.body:CreateTexture(nil, "ARTWORK")
+        c.sprite:SetPoint("CENTER")
+        Compat.Crisp(c.sprite)
+        c.snore = Style.Text(c.body, 11, "secondary", nil, true)
+        c.snore:Hide()
+    end
+    local sprites = Rules.SPECIES[kind.species].sprites
+    c.sheet, c.size = SHEETS[sprites[1]], SIZES[1] or 64
+    c.body:SetSize(c.size, c.size)
+    c.walk, c.nap, c.file, c.drawn = Pet.NewWalk(math.random, c.size), nil, nil, nil
+    -- In the nest's hollow, facing the one that looked after its egg.
+    local w = c.walk
+    w.x, w.y = Pet.BedSpot(c.size)
+    w.tx, w.ty, w.wait, w.facing = w.x, w.y, 99, "left"
+    c.body:Show()
+    return c
+end
+
+-- Where a creature of that size stands to be in the nest's hollow.
+function Pet.BedSpot(size)
+    local N = Pet.NEST
+    return N.x + 64 - size / 2, PEN_H - N.y - 42 - size
+end
+
+-- Bedtime, each frame it's asleep or napping: with a nest for a bed, it
+-- goes there first, and settles down in it. True while it's on its way.
+function Pet.ToBed(dt)
+    if not (walk and ui.nestBack and ui.nestBack:IsShown() and Rules.Bed(Pet.State())) then return false end
+    local bx, by = Pet.BedSpot(walk.size)
+    if walk.x == bx and walk.y == by then return false end
+    walk.act, walk.tx, walk.ty, walk.wait = nil, bx, by, 0
+    walk.facing = bx > walk.x and "right" or "left"
+    Pet.Step(walk, dt, math.random)
+    if walk.x == bx and walk.y == by then
+        walk.facing = "left"
+        Pet.Play(walk, Sheet(), "doze")
+    end
+    return true
+end
+
+-- Each frame of the hatching, a step at a time:
+--   gather  the companion hurries to the nest's side
+--   stir    it watches; the egg rocks hard
+--   hatch   the egg is gone and the hatchling is in the nest
+--   dote    the companion fusses over it
+--   leave   and walks away to the paddock, out of the pen's left side
+-- Then the hatchling is yours (Pet.FinishHatch).
+Pet.HATCH = { gather = 5, stir = 1.6, hatch = 1.2, dote = 5.5, leave = 12 }
+function Pet.Hatching(dt)
+    local h = pen.hatching
+    if not h then return end
+    if not walk then return Pet.FinishHatch() end
+    h.clock = h.clock + dt
+    local s = Pet.State()
+    local function Next(phase, words)
+        h.phase, h.clock = phase, 0
+        if words then
+            said = words
+            message:SetText(said)
+        end
+    end
+    if h.phase == "gather" then
+        if (walk.x == walk.tx and walk.y == walk.ty) or h.clock >= Pet.HATCH.gather then
+            walk.x, walk.y, walk.running, walk.act = walk.tx, walk.ty, nil, nil
+            walk.wait, walk.facing = 99, "right"
+            Next("stir")
+        end
+    elseif h.phase == "stir" then
+        walk.wait, walk.facing = 99, "right"
+        if h.clock >= Pet.HATCH.stir then
+            -- The egg goes, and the hatchling is there in its place: at its
+            -- own size, from the end of its hatching (its start is the egg
+            -- again, drawn small).
+            h.popped = true
+            pen.rocking = false
+            ui.nestEgg:Hide()
+            h.chick = Pet.Chick(h.kind)
+            local sheet = h.chick.sheet
+            if sheet and sheet.hatch and Pet.Play(h.chick.walk, sheet, "hatch") then
+                h.chick.walk.act.clock = math.min(h.chick.walk.act.length - 0.4, 8 * sheet.hatch.time)
+            end
+            Pet.Sound("hatch")
+            Pet.Hearts(ui.nest)
+            Next("hatch", ("The %s hatches!"):format(h.kind.name))
+        end
+    elseif h.phase == "hatch" then
+        walk.wait, walk.facing = 99, "right"
+        if h.clock >= Pet.HATCH.hatch then
+            walk.doting = { clock = 0, step = 0 }
+            Next("dote", ("%s fusses over the new %s."):format(s.name, Rules.SPECIES[h.kind.species].forms[1]))
+        end
+    elseif h.phase == "dote" then
+        if walk.wait < 50 then walk.wait = 99 end
+        if h.clock >= Pet.HATCH.dote and not walk.act then
+            walk.doting, walk.act = nil, nil
+            walk.tx, walk.ty, walk.wait, walk.clock, walk.facing, walk.brisk = -walk.size - 8, walk.y, 0, 0, "left", 1.5
+            Pet.Hearts(body)
+            Pet.Sound("fanfare")
+            Next("leave", ("%s heads for the paddock."):format(s.name))
+        end
+    elseif h.phase == "leave" then
+        if walk.x <= -walk.size or h.clock >= Pet.HATCH.leave then return Pet.FinishHatch() end
+    end
+    if h.chick then
+        Pet.Step(h.chick.walk, dt, math.random)
+        h.chick.walk.wait = 99
+        PaintRoamer(h.chick)
+    end
+end
+
+-- The hatchling that hatched in the nest is put where it hatched, when it
+-- becomes the pen's own companion. True when that's just been done: it has
+-- hatched already, and doesn't again.
+function Pet.PlaceHatchling()
+    local at = pen.hatchedAt
+    if not (at and walk) then return false end
+    pen.hatchedAt = nil
+    walk.x, walk.y, walk.tx, walk.ty, walk.wait, walk.facing = at.x, at.y, at.x, at.y, 2, "left"
+    return true
+end
+
+-- The egg in the nest hatches and the companion that looked after it is
+-- settled in the paddock: the record, the hatchling, the card and the name.
+function Pet.FinishHatch()
+    -- After the scene, the hatchling goes on from where it hatched.
+    local h = pen.hatching
+    pen.hatching = nil
+    Pet.Busy(false)
+    if h and h.chick then
+        pen.hatchedAt = { x = h.chick.walk.x, y = h.chick.walk.y }
+        h.chick.body:Hide()
+    end
+    local s = Pet.State()
+    local old, form = s.name, FormName(s)
+    local record, young = Rules.HatchNest(s, Now())
+    if not record then
+        said = young
+    else
+        local settled = Settled()
+        settled[#settled + 1] = record
+        ns.db.pet = young
+        looking, walk = nil, nil
+        local J = ns.Journal
+        if J and J.running then
+            J.Note("pet", ("%s the %s settled in the paddock after %d day%s"):format(old, form, record.days, record.days == 1 and "" or "s"))
+        end
+        young.unnamed = true
+        local level, bond = Rules.Bond(young)
+        Pet.farewell = { record = record, form = form, young = FormName(young, 1), kept = level > 1 and bond or nil }
+        said = ("%s has settled in the paddock. Name your new %s: type a name and press Enter."):format(old, FormName(young, 1))
+    end
+    Pet.armed, Pet.letting, Pet.lifting = nil, nil, nil
+    if IsOpen() then Refresh() end
+end
+
+-- What's said of the egg in the nest: how long it has to go, or that it's
+-- ready. Nil with no egg there.
+function Pet.TendLine(s)
+    local kind, left, ready = Rules.Tending(s)
+    if not kind then return nil end
+    if ready then
+        return ("The %s is ready to hatch. No hurry: %s settles in the paddock when it does."):format(kind.name, s.name)
+    end
+    local hours = math.max(1, math.ceil(left))
+    return ("%s is looking after the %s: about %d hour%s of good care to go."):format(s.name, kind.name, hours, hours == 1 and "" or "s")
+end
+
+-- The same, short, for the line under how it is: after its age.
+function Pet.TendWords(s, eggs)
+    local kind, left, ready = Rules.Tending(s)
+    if kind then
+        if ready then return ("the %s is ready to hatch"):format(kind.name) end
+        local hours = math.max(1, math.ceil(left))
+        return ("tending the %s, about %dh of good care to go"):format(kind.name, hours)
+    end
+    if Rules.CanTend(s) and #eggs > 0 then return "fully grown: click an egg for it to look after" end
+    return nil
+end
+
+-- The pen's pictures for a scene, by day, at sunset and by night: the pen's
+-- own for the country you're in, or the paddock's for it.
+function Pet.Backdrop(scene)
+    if pen.where == scene then return end
+    pen.where = scene
+    pen.scene:SetTexture(Art(scene), "CLAMP", "CLAMP", "NEAREST")
+    pen.dusk:SetTexture(Art(scene .. "_dusk"), "CLAMP", "CLAMP", "NEAREST")
+    pen.night:SetTexture(Art(scene .. "_night"), "CLAMP", "CLAMP", "NEAREST")
+end
+
+-- The nest, on the grass at the pen's right while a fully grown companion
+-- has an egg to look after: the nest, the egg in it, and the nest's front
+-- rim over the egg's foot. Pointing at it says how the egg is doing; a
+-- right-click takes the egg out. Ready, the egg rocks, and the Hatch button
+-- is there. Not in the paddock, out with you, or while an egg is chosen.
+Pet.NEST = { x = PEN_W - 152, y = 4, lift = 36 }
+function Pet.PaintNest(s)
+    local kind, _, ready = Rules.Tending(s)
+    -- The nest it hatched in stays as a hatchling's bed, until it grows.
+    local home = kind == nil and Rules.Bed(s)
+    local show = (kind ~= nil or home) and not window.out and not window.yard and not window.picking and not looking
+    if not ui.nest then
+        if not show then return end
+        local N = Pet.NEST
+        local function Layer(file, level, lift)
+            local t = pen:CreateTexture(nil, "ARTWORK", nil, level)
+            t:SetSize(128, 128)
+            t:SetPoint("BOTTOMLEFT", N.x, N.y + lift)
+            if file then t:SetTexture(Art(file), "CLAMP", "CLAMP", "NEAREST") end
+            Compat.Crisp(t)
+            return t
+        end
+        ui.nestBack, ui.nestEgg, ui.nestFront = Layer("nest", 1, 0), Layer(nil, 2, N.lift), Layer("nest_front", 3, 0)
+        local n = CreateFrame("Button", nil, pen)
+        ui.nest = n
+        n:SetSize(84, 88)
+        n:SetPoint("BOTTOMLEFT", N.x + 22, N.y)
+        n:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        n:SetScript("OnClick", function(_, button)
+            if button == "RightButton" then return Pet.NestOut() end
+            Pet.lifting = nil
+            said = Pet.TendLine(Pet.State())
+            Refresh()
+        end)
+        n:SetScript("OnEnter", function(self)
+            if not self.egg then return end
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.egg)
+            GameTooltip:AddLine(Pet.TendLine(Pet.State()) or "", 1, 1, 1, true)
+            GameTooltip:AddLine("Right-click: take it out of the nest.", 0.6, 0.59, 0.53, true)
+            GameTooltip:Show()
+        end)
+        n:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        -- The front rim again, over whoever is in the nest (the hatchling
+        -- as it hatches, or asleep in its bed): the companion is a frame, so
+        -- it's drawn over everything the pen itself draws.
+        ui.nestRim = CreateFrame("Frame", nil, pen)
+        ui.nestRim:SetSize(128, 128)
+        ui.nestRim:SetPoint("BOTTOMLEFT", N.x, N.y)
+        ui.nestRim:SetFrameLevel((body:GetFrameLevel() or 1) + 1)
+        ui.nestRim.picture = ui.nestRim:CreateTexture(nil, "ARTWORK")
+        ui.nestRim.picture:SetAllPoints()
+        ui.nestRim.picture:SetTexture(Art("nest_front"), "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(ui.nestRim.picture)
+        ui.nestRim.picture:Hide()
+        ui.hatchButton = Style.Button(pen, "Hatch", "primary", 96)
+        ui.hatchButton:SetPoint("TOP", 0, -30)
+        ui.hatchButton:SetFrameLevel(50)
+        ui.hatchButton:SetScript("OnClick", function() Pet.HatchNest() end)
+    end
+    -- While it's hatching (Pet.Hatching), there's no button, and once the
+    -- egg has gone it stays gone.
+    local busy = pen.hatching
+    local egg = show and kind ~= nil and not (busy and busy.popped)
+    for _, piece in ipairs({ ui.nestBack, ui.nestFront }) do piece:SetShown(show) end
+    ui.nestEgg:SetShown(egg)
+    ui.nest:SetShown(show and kind ~= nil)
+    ui.hatchButton:SetShown(show and ready == true and not busy)
+    pen.rocking = egg and ready == true
+    if not (show and kind) then return end
+    local file = Art(kind.species .. "_egg")
+    if ui.nest.file ~= file then
+        ui.nest.file = file
+        ui.nestEgg:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+    end
+    ui.nest.egg = kind.name
+    if not pen.rocking then ui.nestEgg:SetTexCoord(0, 1, 0, 1) end
+end
+
+-- While there's a nest in the pen, the companion strolls only as far as
+-- its side: `walk.keep` is the furthest right its picture's left edge goes.
+function Pet.KeepOffNest()
+    if not walk then return end
+    local nested = ui.nest and ui.nest:IsShown()
+    walk.keep = nested and math.floor(Pet.NEST.x + 22 - walk.size * 0.8) or nil
+end
+
+-- Each frame the pen is drawn: the nest takes the light of the hour, as
+-- what lies on the grass does, and an egg that's ready rocks.
+function Pet.RockEgg(clock)
+    if not (ui.nestBack and ui.nestBack:IsShown()) then
+        if ui.nestRim then ui.nestRim.picture:Hide() end
+        pen.inBed = false
+        return
+    end
+    local r, g, b = Pet.Light(pen.shade or 0)
+    for _, piece in ipairs({ ui.nestBack, ui.nestEgg, ui.nestFront, ui.nestRim.picture }) do piece:SetVertexColor(r, g, b) end
+    -- In its bed, or hatching there: the rim is drawn over its feet.
+    local bx, by = Pet.BedSpot(walk and walk.size or 64)
+    pen.inBed = walk ~= nil and not ui.nestEgg:IsShown() and walk.x == bx and walk.y == by
+    ui.nestRim.picture:SetShown(pen.inBed or (pen.hatching ~= nil and pen.hatching.chick ~= nil))
+    -- An egg that's ready rocks; one being doted on stirs a little too.
+    local doted = walk ~= nil and walk.doting ~= nil
+    if not pen.rocking and not doted then
+        if ui.nestEgg.swayed then
+            ui.nestEgg.swayed = nil
+            ui.nestEgg:SetTexCoord(0, 1, 0, 1)
+        end
+        return
+    end
+    ui.nestEgg.swayed = true
+    -- It rocks about its foot, which stays in the nest: the picture is
+    -- turned about a point just above its lower edge, where the egg's foot
+    -- is, by giving each corner the place in the picture that lands there.
+    -- (Turned by the game about its middle, the foot swung from side to
+    -- side out of the nest. John, 16 Nov 2026: "the swaying looks a bit
+    -- weird, it's swaying from the bottom".)
+    -- About to hatch, it rocks hard and fast.
+    local stirring = pen.hatching ~= nil and pen.hatching.phase == "stir"
+    local a = stirring and math.sin(clock * 16) * 0.2 or math.sin(clock * 5) * (pen.rocking and 0.1 or 0.05)
+    local cos, sin = math.cos(a), math.sin(a)
+    local px, py = 0.492, 0.95
+    local function At(x, y)
+        local dx, dy = x - px, y - py
+        return px + dx * cos + dy * sin, py - dx * sin + dy * cos
+    end
+    local ulx, uly = At(0, 0)
+    local llx, lly = At(0, 1)
+    local urx, ury = At(1, 0)
+    local lrx, lry = At(1, 1)
+    ui.nestEgg:SetTexCoord(ulx, uly, llx, lly, urx, ury, lrx, lry)
+end
+
+-- Who looked after this companion's egg. One hatched before eggs were
+-- tended has the last to settle in the paddock, if anyone has.
+function Pet.Caretaker(s)
+    if s.caretaker or s.unchosen then return s.caretaker end
+    local settled = Settled()
+    local last = settled[#settled]
+    if last then s.caretaker = { name = last.name, species = last.species or "briarboar", form = last.form or 3 } end
+    return s.caretaker
+end
+
+-- The one that looked after its egg, come by the pen for a few minutes
+-- (Rules.Visit): it wanders about as it does in the paddock, with its name
+-- over it. (John, 16 Nov 2026: "the caretaker pal should show up in the pen
+-- every once in a while".) Not in the paddock, out with you, or while an
+-- egg is chosen.
+function Pet.PaintVisitor(s)
+    local visiting, began = false, false
+    if not window.out and not window.yard and not window.picking and not looking and not s.unchosen
+        and not Pet.farewell and not pen.hatching and not s.unnamed and Pet.Caretaker(s) then
+        visiting, began = Rules.Visit(s, Now())
+    end
+    Pet.visiting = visiting
+    local v = ui.visitor
+    if not visiting then
+        if v then
+            v.on = nil
+            v.body:Hide()
+        end
+        return
+    end
+    if not v then
+        v = { body = CreateFrame("Frame", nil, pen) }
+        ui.visitor = v
+        v.body:SetSize(64, 64)
+        v.sprite = v.body:CreateTexture(nil, "ARTWORK")
+        v.sprite:SetPoint("CENTER")
+        Compat.Crisp(v.sprite)
+        v.snore = Style.Text(v.body, 11, "secondary", nil, true)
+        v.snore:SetPoint("BOTTOMLEFT", v.body, "TOPRIGHT", -22, -14)
+        v.snore:SetText("z z")
+        v.tag = CreateFrame("Frame", nil, v.body)
+        v.tag:SetPoint("BOTTOM", v.body, "TOP", 0, 0)
+        v.tag.fill = v.tag:CreateTexture(nil, "BACKGROUND")
+        v.tag.fill:SetAllPoints()
+        v.tag.fill:SetColorTexture(Style.Color("titleBar"))
+        v.tagText = Style.Text(v.tag, 10, "text", nil, false, true)
+        v.tagText:SetPoint("CENTER")
+    end
+    local who = s.caretaker
+    if began or v.who ~= who then
+        v.who = who
+        local sprites = Rules.Species(who).sprites
+        v.sheet = SHEETS[sprites[who.form] or sprites[1]]
+        v.size = SIZES[who.form] or SIZE
+        v.body:SetSize(v.size, v.size)
+        v.walk, v.nap, v.file = Pet.NewWalk(math.random, v.size), nil, nil
+        -- It comes in from the left, the paddock's side, and walks over to
+        -- the young one; after that it potters about the pen.
+        if walk then
+            local w = v.walk
+            w.tx = math.max(0, math.min(PEN_W - v.size, walk.x - v.size * 0.7))
+            w.ty = math.max(0, math.min(PEN_H - v.size, walk.y + walk.size - v.size))
+            w.x, w.y, w.wait, w.facing = -v.size, w.ty, 0, "right"
+        end
+        local words = who.name .. ", visiting"
+        v.tagText:SetText(words)
+        local wide = v.tagText.GetStringWidth and v.tagText:GetStringWidth()
+        v.tag:SetSize(((type(wide) == "number" and wide > 0) and wide or #words * 5.5) + 12, 15)
+    end
+    v.on = true
+    v.body:Show()
+    PaintRoamer(v)
+    if began then said = ("%s has come to visit %s."):format(who.name, s.name) end
+end
+
+-- Each frame, the visitor goes about as the paddock's companions do.
+function Pet.RoamVisitor(dt)
+    local v = ui.visitor
+    if not (v and v.on) then return end
+    Pet.Roam(v, dt, math.random)
+    PaintRoamer(v)
+end
+
+-- After a companion settles: a card over the top of the page with what the
+-- paddock keeps of it (who it was, how long you had it, how close you were),
+-- that it will visit, and what the hatchling keeps. It stays until
+-- Continue; the box to name the hatchling is under it.
+function Pet.PaintFarewell()
+    local it, f = Pet.farewell, ui.farewell
+    if not it then
+        if f then f:Hide() end
+        return
+    end
+    if not f then
+        f = CreateFrame("Frame", nil, parts)
+        ui.farewell = f
+        f:SetPoint("TOPLEFT", 0, 0)
+        f:SetSize(PEN_W, 292)
+        f:SetFrameLevel((parts:GetFrameLevel() or 1) + 20)
+        f:EnableMouse(true)
+        f.fill = f:CreateTexture(nil, "BACKGROUND")
+        f.fill:SetAllPoints()
+        f.fill:SetColorTexture(Style.Color("well"))
+        f.edge = f:CreateTexture(nil, "BORDER")
+        f.edge:SetColorTexture(Style.Color("gold"))
+        f.edge:SetPoint("TOPLEFT")
+        f.edge:SetPoint("TOPRIGHT")
+        f.edge:SetHeight(2)
+        f.head = Style.Text(f, 11, "gold", nil, true)
+        f.head:SetPoint("TOP", 0, -16)
+        f.picture = f:CreateTexture(nil, "ARTWORK")
+        f.picture:SetSize(96, 96)
+        f.picture:SetPoint("TOPLEFT", 20, -46)
+        Compat.Crisp(f.picture)
+        f.name = Style.Text(f, 17, "text", nil, true)
+        f.name:SetPoint("TOPLEFT", 136, -50)
+        f.days = Style.Text(f, 13, "secondary")
+        f.days:SetPoint("TOPLEFT", 136, -78)
+        f.hearts = {}
+        for i = 1, #Rules.BONDS do
+            local h = f:CreateTexture(nil, "ARTWORK")
+            h:SetSize(14, 14)
+            h:SetPoint("TOPLEFT", 136 + (i - 1) * 18, -104)
+            h:SetTexture(Art("heart"), "CLAMP", "CLAMP", "NEAREST")
+            Compat.Crisp(h)
+            f.hearts[i] = h
+        end
+        f.bond = Style.Text(f, 13, "text", nil, true)
+        f.bond:SetPoint("TOPLEFT", 136 + #Rules.BONDS * 18 + 8, -103)
+        f.note = Style.Text(f, 12, "muted")
+        f.note:SetPoint("TOPLEFT", 136, -130)
+        f.note:SetWidth(PEN_W - 156)
+        f.note:SetJustifyH("LEFT")
+        f.keep = Style.Text(f, 12, "secondary")
+        f.keep:SetPoint("TOPLEFT", 20, -200)
+        f.keep:SetWidth(PEN_W - 40)
+        f.keep:SetJustifyH("LEFT")
+        f.go = Style.Button(f, "Continue", "primary", 110)
+        f.go:SetPoint("BOTTOMRIGHT", -16, 14)
+        f.go:SetScript("OnClick", function()
+            Pet.farewell = nil
+            Refresh()
+        end)
+    end
+    local record = it.record
+    f.head:SetText((record.name .. " has settled in the paddock"):upper())
+    local sprites = Rules.Species(record).sprites
+    f.picture:SetTexture(Art(sprites[record.form] or sprites[1]), "CLAMP", "CLAMP", "NEAREST")
+    f.name:SetText(("%s the %s"):format(record.name, it.form))
+    f.days:SetText(("%d day%s with you"):format(record.days or 1, (record.days or 1) == 1 and "" or "s"))
+    local level = 1
+    for i, step in ipairs(Rules.BONDS) do
+        if step[2] == record.bond then level = i end
+    end
+    for i, h in ipairs(f.hearts) do
+        if i <= level then h:SetVertexColor(1, 1, 1) else h:SetVertexColor(0.3, 0.3, 0.34) end
+        h:SetAlpha(i <= level and 1 or 0.6)
+    end
+    f.bond:SetText(record.bond or "Wary")
+    f.note:SetText("It looked after its egg until it hatched, and it will come by the pen to visit.")
+    f.keep:SetText(("Your %s keeps the cupboard%s. Give it a name below, or keep the one it has."):format(it.young,
+        it.kept and (", and starts %s, with a little of %s's bond"):format(it.kept, record.name) or ""))
+    f:Show()
 end
 
 -- A trial (/jsal pet try, /jsal pet new) puts your real companion aside, and
@@ -3296,6 +4040,9 @@ function Pet.TryWeather()
     else
         pen.trying = nil
         said = "Back to the weather where you are."
+        if Pet.sawWeather then
+            said = said .. (" The game says type %s, intensity %.2f."):format(tostring(Pet.sawWeather), Pet.sawMuch or 0)
+        end
     end
     Refresh()
 end
@@ -3322,8 +4069,9 @@ function Pet.Try()
         for _, kind in ipairs({ "ghostly", "ember", "toadstool" }) do
             Rules.FindEgg(ns.db.petEggs, kind, "a trial", now)
         end
-        ns.Print("A trial: a fully grown stand-in and three eggs. Click an egg twice to settle it and hatch the egg. /jsal pet try again puts your own pal back.")
+        ns.Print("A trial: a fully grown stand-in and three eggs. Click an egg twice and the stand-in takes it into a nest; in a trial it's ready at once, so press Hatch. /jsal pet try again puts your own pal back.")
     end
+    Pet.farewell, Pet.letting, Pet.lifting = nil, nil, nil
     looking, walk, said, Pet.armed = nil, nil, nil, nil
     if not IsOpen() then Pet.Open() else Refresh() end
 end
