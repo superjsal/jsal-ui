@@ -9,6 +9,11 @@ data/professions):
 and from Wowhead Forever (data/professions/wowhead-learned.txt), the skill each recipe is
 learned at and how: the game's files have 1 there for nearly every recipe.
 
+It also writes what each material is worth (`value`, in copper), so the road can weigh a
+Righteous Orb against a piece of leather: the price the game's item table gives it, a
+guess from its item level where the table has none (dusts and essences), and five times
+that for a hide, which comes from only a few skinnings in a hundred.
+
 Run: python -I tools/build_professions.py 1.60.1.70790
 """
 
@@ -44,9 +49,27 @@ VENDOR_NAMES = {
 }
 
 
+def worth(item):
+    """What a material is worth, in copper, for weighing one road against another."""
+    price = int(item.get("BuyPrice") or 0)
+    level = int(item.get("ItemLevel") or 0)
+    # The table prices plain leather at about 0.7 of its item level squared, and
+    # prices some things (dusts, essences, the newer scraps) at next to nothing.
+    guess = round(0.7 * level * level * (3 if int(item.get("OverallQualityID") or 1) >= 2 else 1))
+    value = max(price, guess, 1)
+    if SCARCE.search(item["Display_lang"]):
+        value *= 5
+    return value
+
+
 def rows(folder, name):
     with open(folder / f"{name}.csv", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
+
+
+# Hides: a few skinnings in a hundred give one, so each is worth several leathers
+# whatever the item table prices it at.
+SCARCE = re.compile(r"\bHide$")
 
 
 def learned():
@@ -99,6 +122,7 @@ def main():
     how_code = {"trainer": 1, "vendor": 2, "drop": 3, "quest": 4}
     report = []
     used_vendor = set()
+    used = set()
     for line_id, title, key in PROFESSIONS:
         recipes, seen = [], set()
         for r in abilities:
@@ -126,6 +150,7 @@ def main():
             flat = [spell, skill, max(yellow, skill), grey, how, item, count]
             for reagent, n in reagents[spell]:
                 flat += [reagent, n]
+                used.add(reagent)
                 if reagent in vendor:
                     used_vendor.add(reagent)
             recipes.append(flat)
@@ -137,13 +162,18 @@ def main():
         report.append(f"{title}: {len(recipes)} recipes")
     lines.append("    -- Reagents any trade goods vendor sells, and their price in copper.")
     lines.append("    vendor = { " + ", ".join(f"[{i}] = {vendor[i]}" for i in sorted(used_vendor)) + " },")
+    valued = sorted(i for i in used if i not in used_vendor and i in items)
+    lines.append("    -- What every other reagent is worth, in copper: the game's own price for it, a")
+    lines.append("    -- guess from its level where it has none, and more for a hide. For weighing")
+    lines.append("    -- one road against another, not for telling anyone a price.")
+    lines.append("    value = { " + ", ".join(f"[{i}] = {worth(items[i])}" for i in valued) + " },")
     lines += ["}", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"-> {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
     for line in report:
         print("  " + line)
-    print(f"  {len(used_vendor)} vendor reagents")
+    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued")
 
 
 if __name__ == "__main__":

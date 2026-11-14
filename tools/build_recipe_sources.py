@@ -81,6 +81,13 @@ def main():
                     flat += [npc_id, sale[0], max(0, sale[1])]
                     used.add(npc_id)
                 entry["v"] = flat
+                # What the easiest of them asks besides coin: nothing (no `n`), a
+                # standing with its faction (4 friendly to 7 exalted), or 1 where
+                # every one of them wants some other currency.
+                for_coin = [sale[3] for _, sale in vendors if not sale[2]]
+                least = min(for_coin) if for_coin else 1
+                if least:
+                    entry["n"] = least
             vendor_ids = {npc_id for npc_id, _ in vendors}
             for n, kind, ident, zone, category in more:
                 if kind == 5 and n and "q" not in entry:
@@ -122,7 +129,9 @@ def main():
     lines += [
         "    },",
         "    -- A recipe, by its spell: v its vendors (vendor, price in copper, how many",
-        "    -- in stock or 0 for always), q its quest, zone and side, d the one mob or chest",
+        "    -- in stock or 0 for always), n what the easiest of them asks besides coin (a",
+        "    -- standing, 4 friendly to 7 exalted, or 1 for another currency; none when coin",
+        "    -- is enough), q its quest, zone and side, d the one mob or chest",
         "    -- that drops it and its zone, w when it drops from many.",
         "    recipes = {",
     ]
@@ -130,6 +139,8 @@ def main():
         entry, parts = recipes[spell], []
         if "v" in entry:
             parts.append("v = { " + ", ".join(str(x) for x in entry["v"]) + " }")
+        if "n" in entry:
+            parts.append(f"n = {entry['n']}")
         if "q" in entry:
             parts.append(f"q = {{ {lua_string(entry['q'][0])}, {entry['q'][1]}, {entry['q'][2]} }}")
         if "d" in entry:

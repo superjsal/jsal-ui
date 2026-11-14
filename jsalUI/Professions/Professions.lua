@@ -1,7 +1,7 @@
 -- Professions: where you stand in each, and a road to the next rank. The
 -- road takes, level by level, the recipe that gets the next point for the
--- fewest materials: one that's orange always gives a point; a yellow or
--- green one gives it less often the nearer it is to grey.
+-- least worth of materials: one that's orange always gives a point; a
+-- yellow or green one gives it less often the nearer it is to grey.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -120,24 +120,28 @@ local function MadeBy(line, item)
 end
 Professions.MadeBy = MadeBy
 
--- An item's cost in materials: a vendor's thread or dye counts for little,
--- and a bolt or bar counts as what it's made from.
+-- What an item is worth, in copper: a vendor's price for thread or dye,
+-- the worth the data gives every other material, or what it's made from
+-- where that's less (a bolt from cloth, a bar from ore). Materials used to
+-- count one each, so the road went through forty hides, sixty elixirs or a
+-- dozen Righteous Orbs as readily as through leather (John, 13 Nov 2026,
+-- shown ours beside Wowhead's: "lets make ours better for sure").
 local function ItemWeight(line, item, depth)
-    if Data.vendor[item] then return 0.1 end
+    local own = Data.vendor[item] or (Data.value and Data.value[item]) or 100
     local recipe = (depth or 0) < 2 and MadeBy(line, item)
-    if not recipe then return 1 end
+    if not recipe then return own end
     local w = 0
     for _, reagent in ipairs(recipe.reagents) do
         w = w + reagent.count * ItemWeight(line, reagent.item, (depth or 0) + 1)
     end
-    return w / math.max(1, recipe.makes or 1)
+    return math.min(own, w / math.max(1, recipe.makes or 1))
 end
 
 -- A craft's cost: its materials, plus a little for the craft itself, so a
 -- recipe that only sometimes gives a point isn't picked just for being cheap.
 local function Weight(line, recipe)
     if recipe.weight then return recipe.weight end
-    local w = 2
+    local w = 100
     for _, reagent in ipairs(recipe.reagents) do
         w = w + reagent.count * ItemWeight(line, reagent.item)
     end
@@ -145,8 +149,26 @@ local function Weight(line, recipe)
     return w
 end
 
+-- How much dearer the recipe in hand may be than the best one before the
+-- road changes to the other.
+Professions.STAY = 1.15
+-- The least chance of a point a recipe may have and still be on the road.
+Professions.LEAST = 0.1
+
 function Professions.IsVendor(item)
     return Data.vendor[item]
+end
+
+-- Whether a pattern can simply be bought: some vendor sells it for coin
+-- alone. One that wants a standing with a faction, or a currency of its
+-- own, or that no vendor is known to sell, counts on the road only once
+-- you have it, as a dropped pattern does. Without the list of who sells
+-- what, every vendor pattern counts.
+function Professions.Buyable(spell)
+    local data = ns.RecipeSources
+    if not (data and data.recipes) then return true end
+    local entry = data.recipes[spell]
+    return entry ~= nil and entry.v ~= nil and entry.n == nil
 end
 
 -- How many of a recipe the bags hold enough for.
@@ -184,13 +206,17 @@ function Professions.IsGathering(line) return line == MINING end
 
 -- The road from skill to target. known(spell) says whether a recipe is
 -- learned; trainer recipes can be learned along the way, and a pattern a
--- vendor sells can be bought (it counts as half again as costly, so it's
--- picked only when it's clearly better or nothing else gives a point).
--- Dropped and quest patterns count only once you have them. Returns the
--- steps ({ from, to, recipe, crafts, learn, buy }),
--- each reagent's total, the skill where it stopped short if it did, and
--- the materials added for bolts and bars you're short of.
-function Professions.Plan(line, skill, target, known)
+-- vendor sells for coin can be bought (it counts as half again as costly,
+-- so it's picked only when it's clearly better or nothing else gives a
+-- point). Dropped and quest patterns, and ones a vendor wants more than
+-- coin for, count only once you have them. `breakAt` is a skill no step
+-- runs across (the one the next rank is learned at), so the road can say
+-- what to do there. Returns the steps ({ from, to, recipe, crafts, safe,
+-- learn, buy }: crafts is how many it takes on average, safe how many
+-- cover nine times in ten), each reagent's total, the skill where it
+-- stopped short if it did, and the materials added for bolts and bars
+-- you're short of.
+function Professions.Plan(line, skill, target, known, breakAt)
     local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
     local steps, totals = {}, {}
     -- What's in your bags and bank counts as nearly free until the road has
@@ -206,44 +232,62 @@ function Professions.Plan(line, skill, target, known)
         for _, reagent in ipairs(recipe.reagents) do
             local owned = math.min(stock[reagent.item], reagent.count)
             if owned > 0 and not Data.vendor[reagent.item] then
-                w = w - owned * (ItemWeight(line, reagent.item) - 0.1)
+                w = w - owned * ItemWeight(line, reagent.item) * 0.95
             end
         end
         return w
     end
     local s = skill
+    local staying
     while s < target do
         local best, bestCost
+        local stayCost
         for _, recipe in ipairs(recipes) do
             local mine = recipe.vein or known(recipe.spell)
             -- A recipe you know counts whatever skill the data says it's
             -- learned at (some are taught earlier than that); one from a
             -- trainer counts once your skill reaches it.
-            if mine or ((recipe.how == 1 or recipe.how == 2) and recipe.learn <= s) then
+            if mine or ((recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= s) then
                 local chance = Chance(recipe, s)
-                if chance > 0 then
+                -- The last few points before a recipe goes grey take ten
+                -- crafts or more each: that's no way forward, so the road
+                -- stops there and says so.
+                if chance >= Professions.LEAST then
                     local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
                     if not mine and recipe.how == 2 then cost = cost * 1.5 end
                     if not best or cost < bestCost then best, bestCost = recipe, cost end
+                    if recipe == staying then stayCost = cost end
                 end
             end
         end
         if not best then break end
-        local crafts = 1 / Chance(best, s)
+        -- The recipe already being made is kept while it costs little more
+        -- than the best, so the road is a few long steps, not one craft of
+        -- this between two runs of that.
+        if stayCost and stayCost <= bestCost * Professions.STAY then best = staying end
+        staying = best
+        local chance = Chance(best, s)
+        local crafts = 1 / chance
+        -- How far the count can stray: each point takes one craft in
+        -- `chance`, so the spread of a point is (1 - chance) / chance^2.
+        local spread = (1 - chance) / (chance * chance)
         for _, reagent in ipairs(best.reagents) do
             stock[reagent.item] = math.max(0, stock[reagent.item] - reagent.count * crafts)
         end
         local last = steps[#steps]
-        if last and last.recipe == best then
-            last.to, last.exact = s + 1, last.exact + crafts
+        if last and last.recipe == best and s ~= breakAt then
+            last.to, last.exact, last.spread = s + 1, last.exact + crafts, last.spread + spread
         else
             local learn = not best.vein and not known(best.spell)
-            steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, learn = learn, buy = learn and best.how == 2 }
+            steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, spread = spread,
+                                  learn = learn, buy = learn and best.how == 2 }
         end
         s = s + 1
     end
     for _, step in ipairs(steps) do
         step.crafts = math.ceil(step.exact - 0.01)
+        -- Enough for nine tries in ten: the average and 1.28 spreads more.
+        step.safe = math.max(step.crafts, math.ceil(step.exact + 1.2816 * math.sqrt(step.spread) - 0.01))
         for _, reagent in ipairs(step.recipe.reagents) do
             totals[reagent.item] = (totals[reagent.item] or 0) + reagent.count * step.crafts
         end

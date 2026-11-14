@@ -1,5 +1,7 @@
 # Mockups and previews made while working on the addon: not part of it.
 /previews/
 /*_preview*
+# What Python leaves beside the build scripts.
+__pycache__/
 # Working notes.
 /notes/
