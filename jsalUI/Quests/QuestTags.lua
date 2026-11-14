@@ -326,6 +326,13 @@ function QuestTags.Follow(tag)
     end
 end
 
+-- Every pill on EllesmereUI's tracker, so a redraw can settle them all at once.
+local pills = {}
+
+local function Settle()
+    for _, tag in ipairs(pills) do QuestTags.Follow(tag) end
+end
+
 local function EllesmereRow(slot, questID)
     local tag = slot.jsalTag
     if not (QuestTags.running and type(questID) == "number") then
@@ -345,8 +352,15 @@ local function EllesmereRow(slot, questID)
             QuestTags.Follow(self)
         end))
         slot.jsalTag = tag
+        pills[#pills + 1] = tag
     end
-    lastDrawn = GetTime()
+    -- The first row of a redraw: once it's done (the next frame), every pill it didn't hand over
+    -- fades at once, rather than at its next tenth-of-a-second look.
+    local now = GetTime()
+    if now ~= lastDrawn then
+        lastDrawn = now
+        C_Timer.After(0, ns.Safe(QuestTags, Settle))
+    end
     tag.drawn = lastDrawn
     QuestTags.Fill(tag, questID)
     QuestTags.Follow(tag)
