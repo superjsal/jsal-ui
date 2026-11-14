@@ -364,7 +364,7 @@ Window.Page("professions", function(page)
 
     -- Before anything is typed: the guildmates who share, a row each, online
     -- first, with their professions. A click on a profession lists what they
-    -- make with it. (John, 16 Nov 2026, of the page with only a search box:
+    -- make with it. (John, 14 Nov 2026, of the page with only a search box:
     -- "are we able to list the professions of guild members as well?")
     local PaintGuild
     local GV = { rows = {}, ROW = 44, TOP = 82, CHIPS_X = 190 }

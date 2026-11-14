@@ -346,7 +346,7 @@ Window.Page("build", function(page)
         -- another tree; and a step you're partway through split, so the row
         -- that's next names the rank that is. (The taken rows filled the top
         -- of the page, and "ranks 1–2 of 2 · next" was said of a talent with
-        -- its first rank learned: John's screenshot, 16 Nov 2026.)
+        -- its first rank learned: John's screenshot, 14 Nov 2026.)
         local rows = Tree.PlanRows(steps, taken, function(id) return data.nodes[id].tree end, V.open)
         local y, used, heads = 0, 0, 0
         V.fold:Hide()

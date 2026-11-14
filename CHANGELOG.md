@@ -1,6 +1,10 @@
-# jsal.ui 0.3.39
+# jsal.ui 0.3.40
 
-Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load them.
+Nothing new to see yet. The notes inside the code that say which day a change was asked for had the wrong day on some of them, and now have the right one.
+
+## In 0.3.39
+
+Coming from 0.3.38 or earlier, restart the game after updating: 0.3.39 added new files.
 
 - **Quest tags (new, off to start).** For when you're ahead of your guide and want to drop the slow quests. Left of each quest in your tracker, a small tag with two things:
   - **Its place in a chain.** "1/4" is the first of four, so skipping it loses the three after it. No tag means it stands alone.

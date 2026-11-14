@@ -483,7 +483,7 @@ end
 -- and get, and not a win on Stamina alone when other pieces add what your
 -- spec wants. It used to be any higher score at all, and leggings with 6
 -- Strength and 14 Stamina were "better for you" than a hunter's with 6
--- Agility, by a hair, while the plan left them out. (John, 16 Nov 2026: "i
+-- Agility, by a hair, while the plan left them out. (John, 14 Nov 2026: "i
 -- also wonder why these str legs are better for me over my 6 agi legs",
 -- "and the gear plan does not show it here which makes sense", and of a
 -- rule of its own I gave it first: "are you not able to just use the way
@@ -547,7 +547,7 @@ end
 function Gear.Plan(slot, spec, only)
     -- With a two-hander in the main hand, nothing can go in the off hand,
     -- so nothing is better for it: the plan read the hand as empty and
-    -- offered every off-hand piece as an upgrade. (John, 15 Nov 2026, of a
+    -- offered every off-hand piece as an upgrade. (John, 14 Nov 2026, of a
     -- list of them: "i dont have that offhand equipped i'm wearing a
     -- 2hander".) `twoHand` is the two-hander's link.
     if slot.key == "off" then
@@ -581,7 +581,7 @@ function Gear.Plan(slot, spec, only)
         end
     end
     -- What's in your bags that goes here, whatever its level or where it
-    -- came from: you can put it on now. (John, 15 Nov 2026, of a chest piece
+    -- came from: you can put it on now. (John, 14 Nov 2026, of a chest piece
     -- he had taken off to star: "i put an item in my bags to star it in the
     -- gear plan but now i dont see that item".)
     local held = {}
@@ -661,7 +661,7 @@ function Gear.Plan(slot, spec, only)
     -- One you can go and get now comes before one you can't yet: above your
     -- level, or with no source known (about one item in seven on Wowhead's
     -- lists has none, Forever's new ones among them). Such a piece headed a
-    -- slot as its best upgrade with nowhere to send you. (John, 15 Nov 2026:
+    -- slot as its best upgrade with nowhere to send you. (John, 14 Nov 2026:
     -- "there are items that do not list where they come from".)
     local function Later(o) return (o.soon or o.unknown) and true or false end
     table.sort(options, function(a, b)

@@ -166,7 +166,7 @@ end
 -- card shows the whole of what it does. A small card is one of a part's
 -- options, under it on a darker fill: its name and its switch, with what it
 -- does in its tooltip alone. (It had a line under its name, cut short.
--- John, 16 Nov 2026: "i think we can get rid of the text underneath the
+-- John, 14 Nov 2026: "i think we can get rid of the text underneath the
 -- share boss loot, since you hover over it anyway", "that applies to all
 -- the settings".)
 local function Card(parent, width, small)
@@ -202,7 +202,7 @@ local function Card(parent, width, small)
     row.name:SetWordWrap(false)
     -- An option's name stops short of its switch, like its line under it.
     -- (A part's name is short, and has its tags after it.) John's
-    -- screenshot, 16 Nov 2026: "Add something you can craft as its craft,
+    -- screenshot, 14 Nov 2026: "Add something you can craft as its craft,
     -- with its mats" ran on under the switch.
     if small then
         row.name:SetWidth(width - textX - SWITCH_W - 28)
@@ -430,7 +430,7 @@ Window.Page("settings", function(page)
         end
         -- Short enough to fit beside the widest row of tabs: with "point at
         -- one for all it does" after it, its start ran under the last tab
-        -- (John's screenshot, 16 Nov 2026: "s are on · point at one for all
+        -- (John's screenshot, 14 Nov 2026: "s are on · point at one for all
         -- it does"). That hint is at the foot of the page now.
         summary:SetText(("%d of %d parts are on"):format(on, total))
 

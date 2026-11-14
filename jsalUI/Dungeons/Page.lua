@@ -440,7 +440,7 @@ Window.Page("dungeons", function(page)
     -- you meet it, its name (ticked once you've killed it) and its kills,
     -- and its loot under the bar, two across. (They were cards two to a row:
     -- a short card left a hole beside a tall one, and the order read across
-    -- then down. John, 16 Nov 2026: "thoughts on the layout of the bosses
+    -- then down. John, 14 Nov 2026: "thoughts on the layout of the bosses
     -- itself?")
     local B = {}
     B.sum = Style.Text(bossList, 15, "text", nil, true)

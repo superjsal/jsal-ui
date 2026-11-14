@@ -200,7 +200,7 @@ Window.Page("training", function(page)
     Columns(cart, CART_W, { { "SPELL", 2 }, { "COST", -(SKIP_W + 6) } }):SetPoint("TOPLEFT", 0, -24)
     -- The list is as tall as what's in it (Paint sizes it), so the sums sit
     -- right under it: they were at the foot of the page, most of a screen
-    -- below a list of one. (John's screenshot, 15 Nov 2026.)
+    -- below a list of one. (John's screenshot, 14 Nov 2026.)
     ui.cardScroll, ui.cardList = Style.Scroller(cart, CART_W, VISIT_H, nil, 6)
     ui.cardScroll:SetPoint("TOPLEFT", 0, -LIST_TOP)
     ui.empty = Style.Text(ui.cardList, 13, "muted")
@@ -419,7 +419,7 @@ Window.Page("training", function(page)
     -- A spell of a later visit is its symbol, to take in at a glance: a
     -- gold frame round an ability new to you, a higher rank's number in its
     -- corner. Pointing at it names it; a right-click skips it. (They were
-    -- words, a paragraph a visit. John, 16 Nov 2026: "i would like to have
+    -- words, a paragraph a visit. John, 14 Nov 2026: "i would like to have
     -- this read as more of like a road itself though, can we just have the
     -- symbols instead?", "a lot of text, this should be easy to look at.
     -- icons provide a quick at a glance".)
