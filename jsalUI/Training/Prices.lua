@@ -153,6 +153,19 @@ local function SaveBeastTraining(rows)
     if next(list) then ns.char.beastTraining = { seen = Compat.ServerTime(), rows = list } end
 end
 
+-- A visit is saved per trainer and class: a weapon master shows each class
+-- the weapons it can learn, so one class's visit doesn't replace another's.
+local function Key()
+    local _, classFile = UnitClass("player")
+    return ("%s @ %s (%s)"):format(Compat.Name("npc") or "?", GetZoneText() or "?", classFile or "?")
+end
+
+-- The visit saved for the trainer in front of you, if there is one.
+function Prices.Here()
+    local visit = type(ns.db.trainers) == "table" and ns.db.trainers[Key()] or nil
+    return type(visit) == "table" and visit or nil
+end
+
 local function Record()
     if not (GetNumTrainerServices and GetTrainerServiceTypeFilter) then return end
     if IsTradeskillTrainer and IsTradeskillTrainer() then return end
@@ -178,10 +191,8 @@ local function Record()
             ns.char.trainedSpells[row.name .. "|" .. (row.rank or "")] = true
         end
     end
-    -- Saved per trainer and class: a weapon master shows each class the
-    -- weapons it can learn, so one class's visit doesn't replace another's.
     local npc, zone = Compat.Name("npc") or "?", GetZoneText() or "?"
-    local key = ("%s @ %s (%s)"):format(npc, zone, classFile or "?")
+    local key = Key()
     -- The window can open several times in one visit; it's only news when
     -- the list has changed.
     local before = ns.db.trainers[key]
