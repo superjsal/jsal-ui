@@ -472,11 +472,36 @@ function Gear.TwoHander()
     return equipLoc == "INVTYPE_2HWEAPON" and link or nil
 end
 
--- Whether a piece beats what you wear where it goes, by your spec's
--- weights: true or false, or nil when that can't be told (it isn't worn,
--- the game hasn't loaded it, or your spec has no weights). For a dungeon's
--- loot, which has the item's slot, class and subclass from the game. A ring
--- or trinket is measured against the weaker of your two.
+-- Whether a piece is better for you than what you wear where it goes:
+-- true or false, or nil when that can't be told (it isn't worn, the game
+-- hasn't loaded it, or your spec has no weights). For a dungeon's loot,
+-- which has the item's slot, class and subclass from the game. A ring or
+-- trinket is measured against the weaker of your two.
+--
+-- It's the Gear plan's answer: better when the plan for that slot would
+-- list it, so worth at least a quarter of the best upgrade you could go
+-- and get, and not a win on Stamina alone when other pieces add what your
+-- spec wants. It used to be any higher score at all, and leggings with 6
+-- Strength and 14 Stamina were "better for you" than a hunter's with 6
+-- Agility, by a hair, while the plan left them out. (John, 16 Nov 2026: "i
+-- also wonder why these str legs are better for me over my 6 agi legs",
+-- "and the gear plan does not show it here which makes sense", and of a
+-- rule of its own I gave it first: "are you not able to just use the way
+-- gear plan handles upgrades?")
+--
+-- A dungeon's list asks this of every piece, so a slot's plan is kept for
+-- as long as the game's clock stands still: the one paint.
+function Gear.SlotPlan(slot)
+    local now = GetTime and GetTime()
+    local kept = Gear.slotPlans
+    if not kept or kept.at ~= now or not now then
+        kept = { at = now }
+        Gear.slotPlans = kept
+    end
+    if not kept[slot.key] then kept[slot.key] = Gear.Plan(slot) end
+    return kept[slot.key]
+end
+
 function Gear.Better(id, equipLoc, classID, subclassID)
     local invType = Gear.INVTYPE[equipLoc or ""]
     local slot = invType and Gear.SlotOf(invType)
@@ -489,14 +514,12 @@ function Gear.Better(id, equipLoc, classID, subclassID)
     local weights = Gear.Weights()
     local stats = weights and Stats(id)
     if not stats then return nil end
-    local worst
     for _, equip in ipairs(slot.equip) do
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
         if link and tonumber(link:match("item:(%d+)")) == id then return false end
-        local score = link and Gear.Score(Stats(link) or {}, weights, slot.dps) or 0
-        if not worst or score < worst then worst = score end
     end
-    return (Gear.Score(stats, weights, slot.dps) or 0) > (worst or 0) + 0.01
+    local plan = Gear.SlotPlan(slot)
+    return plan.Would and plan.Would(stats) or false
 end
 
 -- The pieces in your bags that go in a slot and that you can wear: their
@@ -622,6 +645,14 @@ function Gear.Plan(slot, spec, only)
         anyMain = anyMain or Main(o)
     end
     if best == 0 then best = bestOfAll end
+    -- Whether a piece with these stats would be on this list, by the same
+    -- two rules: for a dungeon's loot, which may not be in the plan's own
+    -- lists of items. (See Gear.Better.)
+    local function Would(stats)
+        local gain = (Gear.Score(stats, weights, slot.dps) or 0) - worn.score
+        if gain <= 0.01 then return false end
+        return gain >= best * 0.25 and (Main({ stats = stats }) or not anyMain)
+    end
     local kept = {}
     for _, o in ipairs(options) do
         if o.starred or o.held or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
@@ -641,7 +672,7 @@ function Gear.Plan(slot, spec, only)
         if a.score ~= b.score then return a.score > b.score end
         return a.id < b.id
     end)
-    return { worn = worn, options = options, waiting = waiting }
+    return { worn = worn, options = options, waiting = waiting, Would = Would }
 end
 
 ---------------------------------------------------------------------------

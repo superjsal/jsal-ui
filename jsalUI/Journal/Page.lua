@@ -135,6 +135,21 @@ Window.Page("journal", function(page)
     M.record = Style.Text(summary, 12, "muted")
     M.record:SetPoint("TOPRIGHT", 0, -33)
     M.record:SetJustifyH("RIGHT")
+    -- Your pace, in XP a second: over the level you're on and the two
+    -- before it, once that's ten minutes of play. It was this level alone,
+    -- and a level begun with hours of standing about made the next one a
+    -- week away: 3,121 XP in 7h 38m of trying out pals read "about 108h 17m
+    -- at your pace", by someone whose last level took two hours. (John, 16
+    -- Nov 2026, of that line in his own screenshot: "what is this?", then
+    -- "Yes, fix it".)
+    function M.Pace(levels, level)
+        local xp, seconds = 0, 0
+        for l = level, level - 2, -1 do
+            local row = levels[l]
+            if row then xp, seconds = xp + (row.xp or 0), seconds + (row.seconds or 0) end
+        end
+        return seconds >= 600 and xp > 0 and xp / seconds or nil
+    end
     -- How far to the next level, and how long that is at your pace.
     M.track = CreateFrame("Frame", nil, summary)
     M.track:SetSize(M.heroW, 8)
@@ -347,18 +362,14 @@ Window.Page("journal", function(page)
         local seconds = J.Stat("seconds")
         M.record:SetText(Hours(seconds) .. " on record")
 
-        -- To the next level: how far, and how long at the pace of this
-        -- level so far (or of the last, when this one has hardly begun).
+        -- To the next level: how far, and how long at your pace (M.Pace).
         local xp, max = UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0
         for _, region in ipairs({ M.track, M.toNext, M.pace }) do region:SetShown(max > 0) end
         if max > 0 then
             local part = math.max(0, math.min(1, xp / max))
             M.fill:SetWidth(math.max(1, M.heroW * part))
             M.toNext:SetText(("%d%% of the way to %d"):format(math.floor(part * 100), level + 1))
-            local rate
-            for _, row in ipairs({ levels[level] or {}, levels[level - 1] or {} }) do
-                if not rate and (row.seconds or 0) >= 600 and (row.xp or 0) > 0 then rate = row.xp / row.seconds end
-            end
+            local rate = M.Pace(levels, level)
             M.pace:SetText(rate and ("about %s at your pace"):format(Hours((max - xp) / rate)) or "")
         end
 
