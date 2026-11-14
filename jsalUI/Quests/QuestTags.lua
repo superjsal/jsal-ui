@@ -226,8 +226,9 @@ function QuestTags.ShowCard(owner, questID)
         for _, r in ipairs(rows) do
             if r.wowhead == "o" then opens = true end
         end
-        Add(tip, ("About %d %s at %d seconds a fight, your average%s"):format(math.floor(total + 0.5),
-            opens and "kills and openings" or "kills", math.floor(seconds + 0.5),
+        local count = math.max(1, math.floor(total + 0.5))
+        Add(tip, ("About %d %s at %d seconds a fight, your average%s"):format(count,
+            opens and "kills and openings" or (count == 1 and "kill" or "kills"), math.floor(seconds + 0.5),
             fights < GUESS and " (a guess until you've had a few fights)" or ""), "muted")
     end
     for _, r in ipairs(rows) do
@@ -300,11 +301,16 @@ local function Corner(frame, edge)
     return v and v * frame:GetEffectiveScale()
 end
 
+-- When EllesmereUI last drew its list: it hands each quest row to the hook within one frame, so a
+-- pill not handed over then belongs to a row it has since given to something else (a zone heading).
+local lastDrawn
+
 function QuestTags.Follow(tag)
     local row, view = tag.row, tag.view
     local top, bottom, left = Corner(row, "top"), Corner(row, "bottom"), Corner(row, "left")
     local vtop, vbottom, vleft = Corner(view, "top"), Corner(view, "bottom"), Corner(view, "left")
-    local seen = QuestTags.running and row:IsVisible() and top and vtop and top <= vtop + 1 and bottom >= vbottom - 1
+    local seen = QuestTags.running and tag.drawn == lastDrawn and row:IsVisible()
+        and top and vtop and top <= vtop + 1 and bottom >= vbottom - 1
     if seen then
         local x = math.floor((vleft - left) / tag:GetEffectiveScale() - EDGE + 0.5)
         if x ~= tag.x then
@@ -340,6 +346,8 @@ local function EllesmereRow(slot, questID)
         end))
         slot.jsalTag = tag
     end
+    lastDrawn = GetTime()
+    tag.drawn = lastDrawn
     QuestTags.Fill(tag, questID)
     QuestTags.Follow(tag)
 end
