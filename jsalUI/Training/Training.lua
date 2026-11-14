@@ -353,8 +353,21 @@ end)
 
 -- What a hunter's pet can learn, one row per ability: the next rank to teach
 -- and where it stands. Ready (in Beast Training, the pet is high enough),
--- waiting on the pet's level, still to be tamed, or all ranks known. Nil for
--- other classes, or before a pet has been seen.
+-- short of training points, waiting on the pet's level, still to be tamed,
+-- or all ranks known. Nil for other classes, or before a pet has been seen.
+--
+-- A rank takes training points, and a row the pet hasn't the points for is
+-- "points", not "ready": the planner said "Teach now" for four resistances
+-- at 10 TP each to a pet without them. (John, 14 Nov 2026: "my pet also
+-- doesnt have the TP for it".) The free points were never read: the code
+-- asked GetPetTrainingPoints, which Forever doesn't have (his
+-- /run print(GetPetTrainingPoints()): "attempt to call a nil value"). The
+-- game's own window asks C_PetInfo.GetPetTrainingPoints for the total and
+-- the used, and lets you train a rank only when the free ones cover the
+-- cost it lists, so that's the rule here: the listed cost against what's
+-- free. (The points of the rank the pet knows do come back, but after.)
+-- Where the game doesn't say how many are free, a row stays "ready" and
+-- the planner gives its cost, not a promise.
 function Training.Pet()
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID]
@@ -367,9 +380,9 @@ function Training.Pet()
     local listed = beast and beast.rows or {}
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     local free
-    if here and GetPetTrainingPoints then
-        local total, spent = GetPetTrainingPoints()
-        free = total and (total - (spent or 0)) or nil
+    if here and C_PetInfo and C_PetInfo.GetPetTrainingPoints then
+        local total, used = Compat.Plains(C_PetInfo.GetPetTrainingPoints())
+        free = tonumber(total) and math.max(0, total - (tonumber(used) or 0)) or nil
     end
 
     -- Each ability's ranks, lowest first.
@@ -404,6 +417,8 @@ function Training.Pet()
             local have = entry or IsPlayerSpell(r.beast)
             if have and (pet.level or 0) >= r.level then
                 row.state, row.spell, row.points = "ready", r, entry and entry.points
+                local points = tonumber(row.points)
+                if free and points and points > free then row.state, row.short = "points", points - free end
                 break
             end
         end
@@ -428,7 +443,7 @@ function Training.Pet()
         rows[#rows + 1] = row
     end
     -- Ready first, then by the level each needs, the known ones last.
-    local rank = { ready = 1, level = 2, trainer = 2, tame = 2, unchecked = 2, known = 3 }
+    local rank = { ready = 1, points = 1.5, level = 2, trainer = 2, tame = 2, unchecked = 2, known = 3 }
     table.sort(rows, function(x, y)
         if rank[x.state] ~= rank[y.state] then return rank[x.state] < rank[y.state] end
         if x.spell.level ~= y.spell.level then return x.spell.level < y.spell.level end

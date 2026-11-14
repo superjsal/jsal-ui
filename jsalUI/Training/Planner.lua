@@ -24,6 +24,7 @@ local TOTALS_H = 112 -- the sums: four lines in a box
 -- A hunter's pet abilities, grouped by how each is got, in this order.
 local PET_GROUPS = {
     { "ready", "Ready to teach" },
+    { "points", "Not enough training points" },
     { "trainer", "From a pet trainer" },
     { "level" },   -- headed by the level each waits on: "Waiting on pet level 30"
     { "tame", "From taming a beast that has it" },
@@ -514,6 +515,11 @@ Window.Page("training", function(page)
         r.state = Style.Text(r, 11, "muted")
         r.state:SetPoint("RIGHT", -(SKIP_W + 8), 0)
         r.state:SetJustifyH("RIGHT")
+        -- The rank stops short of what's said at the right, and is cut there
+        -- if it's too long, where it used to run on under it.
+        r.rank:SetPoint("RIGHT", r.state, "LEFT", -8, 0)
+        r.rank:SetJustifyH("LEFT")
+        r.rank:SetWordWrap(false)
         r:EnableMouse(true)
         Tooltip(r)
         Style.Hover(r, 4)
@@ -686,9 +692,16 @@ Window.Page("training", function(page)
                     if row.state == "known" then
                         r.hint = nil
                     elseif row.state == "ready" then
-                        if row.points then rank = rank .. (rank ~= "" and "  ·  " or "") .. row.points .. " TP" end
-                        state, color = "Teach now", "green"
+                        -- The heading says it's ready; the row says what it
+                        -- costs, at the right, where "Teach now" stood with
+                        -- the cost running under it. (John, 14 Nov 2026:
+                        -- "overlaps text".) Green only when the game says
+                        -- the pet has the points.
+                        state, color = row.points and (row.points .. " TP") or "", pet.free and "green" or "text"
                         r.hint = "Teach it from your Beast Training."
+                    elseif row.state == "points" then
+                        state, color = row.points .. " TP", "text"
+                        r.hint = ("Your pet has %d training points free and this takes %d: %d short."):format(pet.free or 0, row.points, row.short)
                     elseif row.state == "level" then
                         r.hint = "In your Beast Training. Your pet needs level " .. row.spell.level .. "."
                     else
@@ -989,7 +1002,7 @@ Window.Page("training", function(page)
     end
     local events = CreateFrame("Frame")
     for _, event in ipairs({ "PLAYER_MONEY", "PLAYER_LEVEL_UP", "SPELLS_CHANGED", "TRAINER_CLOSED", "MERCHANT_CLOSED",
-                             "UNIT_PET", "UNIT_LEVEL", "CRAFT_CLOSE" }) do
+                             "UNIT_PET", "UNIT_LEVEL", "CRAFT_CLOSE", "UNIT_PET_TRAINING_POINTS" }) do
         -- pcall: not every client has the Beast Training window's events.
         pcall(events.RegisterEvent, events, event)
     end

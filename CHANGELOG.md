@@ -1,4 +1,9 @@
-# jsal.ui 0.3.42
+# jsal.ui 0.3.43
+
+- **Training planner: a pet ability's cost no longer runs under "Teach now".** The cost in training points now stands at the right of the row, and the heading says it's ready.
+- **Training planner: an ability your pet can't afford isn't called ready.** It goes under "Not enough training points", and pointing at it says how many your pet has and how many it's short. The planner never knew how many training points your pet had free; it does now, and says so beside your pet's name.
+
+## In 0.3.42
 
 - **Professions: your road leaves out recipes you'd have to wait on.** Mooncloth can be made once in four days and a transmute once an hour, and the road took them like any other: Tailoring's ran through 63 Mooncloth, Alchemy's through 45 transmutes. One is now on the road only when nothing else gives a point.
 - **Professions: your road leaves out recipes that need a specialisation you may not have.** A Goblin or Gnomish Engineer's, an Armorsmith's or Weaponsmith's, a Dragonscale, Elemental or Tribal Leatherworker's: these are on the road only once you know them.
