@@ -176,11 +176,15 @@ def main():
     build_loot(rows)
 
 
-# Which classes each class-only quest is for, read from the quests list on each
-# dungeon's Wowhead page (its reqclass), by quest ID. Missing, every quest is
-# anyone's.
+# Which classes each class-only quest is for, by quest ID, from three places
+# in one file, which says how each was read: the quests list on each dungeon's
+# Wowhead page (its reqclass: "classes"), pfQuest's database ("pfquest"), and,
+# for quests neither marks whose only reward is a one-class item, that reward
+# ("rewards"). Wowhead's is Forever's own, so it wins where two differ.
+# Missing, every quest is anyone's.
 _classes = ROOT / "data" / "dungeons" / "quest-classes.json"
-QUEST_CLASSES = json.loads(_classes.read_text(encoding="utf-8"))["classes"] if _classes.exists() else {}
+_read = json.loads(_classes.read_text(encoding="utf-8")) if _classes.exists() else {}
+QUEST_CLASSES = {**_read.get("rewards", {}), **_read.get("pfquest", {}), **_read.get("classes", {})}
 
 
 def build_starts():
@@ -268,6 +272,16 @@ def build_loot(rows):
         return
     wowhead = json.loads(path.read_text(encoding="utf-8"))
     zones = wowhead["zones"]
+    # Class quests Wowhead files under the class, not the dungeon, so its zone
+    # pages don't list them: each joins the dungeons its own page's map names
+    # (data/dungeons/class-quests.json, which says how they were read).
+    extra = SRC / "class-quests.json"
+    if extra.exists():
+        for q in json.loads(extra.read_text(encoding="utf-8"))["quests"].values():
+            for zone in q["zones"]:
+                listed = zones.get(str(zone), {}).get("quests")
+                if listed is not None and not any(row[0] == q["row"][0] for row in listed):
+                    listed.append(q["row"])
     loot_lines, quest_lines = [], []
     items = quests = 0
     unmatched, unread = [], []
@@ -295,7 +309,9 @@ def build_loot(rows):
             side = q[4] or 3
             # The classes it's for (Wowhead's reqclass: a bit for each of the
             # game's class numbers), 0 for a quest anyone can take.
-            classes = QUEST_CLASSES.get(str(q[0]), 0)
+            # A zone read with tools/wowhead/dungeons.js since 14 Nov 2026
+            # carries reqclass as a sixth value of its own.
+            classes = QUEST_CLASSES.get(str(q[0]), 0) or (q[5] if len(q) > 5 and q[5] else 0)
             if q[1].startswith("<") or (q[1], side, classes) in seen or q[2] > level + 20:
                 continue
             seen.add((q[1], side, classes))

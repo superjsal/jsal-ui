@@ -44,7 +44,7 @@ window.__dungeons = { done: false, log: [], err: null, unmatched: [] };
       const t = await page('/forever/zone=' + z);
       await wait(8000);
       const npcs = grab(t, 'npcs') || [];
-      Z.quests = (grab(t, 'quests') || []).map(q => [q.id, q.name, q.level, q.reqlevel, q.side]);
+      Z.quests = (grab(t, 'quests') || []).map(q => [q.id, q.name, q.level, q.reqlevel, q.side, q.reqclass || 0]);
       // Items the zone's own Drops tab says a boss drops, kept even without kill counts.
       const named = {};
       for (const d of grab(t, 'drops') || []) {

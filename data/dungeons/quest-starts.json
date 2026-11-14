@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-13",
+ "fetched": "2026-11-14",
  "quests": {
   "1013": {
    "n": "The Book of Ur",
@@ -478,6 +478,21 @@
     55
    ]
   },
+  "1442": {
+   "n": "Seeking the Kor Gem",
+   "prev": null,
+   "s": [
+    "npc",
+    3649,
+    "Thundris Windweaver"
+   ],
+   "z": [
+    148,
+    "Darkshore",
+    37.4,
+    40.2
+   ]
+  },
   "1444": {
    "n": "Return to Fel'Zerul",
    "prev": 1429,
@@ -639,6 +654,36 @@
     47.4
    ]
   },
+  "1653": {
+   "n": "The Test of Righteousness",
+   "prev": 1652,
+   "s": [
+    "npc",
+    6171,
+    "Duthorian Rall"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    40,
+    29.8
+   ]
+  },
+  "1654": {
+   "n": "The Test of Righteousness",
+   "prev": 1653,
+   "s": [
+    "npc",
+    6181,
+    "Jordan Stilwell"
+   ],
+   "z": [
+    1,
+    "Dun Morogh",
+    52.4,
+    36.8
+   ]
+  },
   "166": {
    "n": "The Defias Brotherhood",
    "prev": 155,
@@ -697,6 +742,51 @@
     "Loch Modan",
     37,
     49.2
+   ]
+  },
+  "1740": {
+   "n": "The Orb of Soran'ruk",
+   "prev": null,
+   "s": [
+    "npc",
+    6247,
+    "Doan Karhan"
+   ],
+   "z": [
+    17,
+    "The Barrens",
+    49.2,
+    57.2
+   ]
+  },
+  "1951": {
+   "n": "Rituals of Power",
+   "prev": 1950,
+   "s": [
+    "npc",
+    6548,
+    "Magus Tirth"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    78.2,
+    75.8
+   ]
+  },
+  "1956": {
+   "n": "Power in Uldaman",
+   "prev": 1955,
+   "s": [
+    "npc",
+    6546,
+    "Tabetha"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    46,
+    57
    ]
   },
   "2040": {
@@ -4551,11 +4641,41 @@
    "s": null,
    "z": null
   },
+  "7581": {
+   "n": "The Prison's Bindings",
+   "prev": null,
+   "s": [
+    "npc",
+    14463,
+    "Daio the Decrepit"
+   ],
+   "z": [
+    4,
+    "Blasted Lands",
+    34,
+    50.2
+   ]
+  },
   "7604": {
    "n": "A Binding Contract",
    "prev": null,
    "s": null,
    "z": null
+  },
+  "7629": {
+   "n": "Imp Delivery",
+   "prev": 7625,
+   "s": [
+    "npc",
+    14437,
+    "Gorzeeki Wildeyes"
+   ],
+   "z": [
+    46,
+    "Burning Steppes",
+    12.4,
+    31.6
+   ]
   },
   "7631": {
    "n": "Dreadsteed of Xoroth",
@@ -4577,6 +4697,36 @@
    "prev": null,
    "s": null,
    "z": null
+  },
+  "7634": {
+   "n": "Ancient Sinew Wrapped Lamina",
+   "prev": null,
+   "s": [
+    "npc",
+    14526,
+    "Hastat the Ancient"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    48.2,
+    24.2
+   ]
+  },
+  "7635": {
+   "n": "A Proper String",
+   "prev": null,
+   "s": [
+    "npc",
+    14525,
+    "Stoma the Ancient"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    48.6,
+    23.2
+   ]
   },
   "7643": {
    "n": "Ancient Equine Spirit",
@@ -4685,6 +4835,51 @@
    "prev": null,
    "s": null,
    "z": null
+  },
+  "79360": {
+   "n": "Elemental Aid",
+   "prev": null,
+   "s": [
+    "npc",
+    4722,
+    "Rau Cliffrunner"
+   ],
+   "z": [
+    400,
+    "Thousand Needles",
+    46,
+    51.6
+   ]
+  },
+  "79946": {
+   "n": "A Brother In Need",
+   "prev": 79945,
+   "s": [
+    "npc",
+    5492,
+    "Katherine the Pure"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    37.4,
+    32
+   ]
+  },
+  "79963": {
+   "n": "By The Light's Grace",
+   "prev": 79946,
+   "s": [
+    "npc",
+    217996,
+    "Aeonas"
+   ],
+   "z": [
+    796,
+    "Scarlet Monastery",
+    0,
+    0
+   ]
   },
   "8041": {
    "n": "Strength of Mount Mugamba",
@@ -5361,6 +5556,21 @@
     13.6
    ]
   },
+  "81790": {
+   "n": "Materials of Significance",
+   "prev": null,
+   "s": [
+    "npc",
+    221636,
+    "Gregory"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    44.6,
+    52
+   ]
+  },
   "8181": {
    "n": "Confront Yeh'kinya",
    "prev": null,
@@ -5577,6 +5787,36 @@
     0
    ]
   },
+  "8232": {
+   "n": "The Green Drake",
+   "prev": 8231,
+   "s": [
+    "npc",
+    8405,
+    "Ogtinc"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42.4,
+    42.6
+   ]
+  },
+  "8236": {
+   "n": "The Azure Key",
+   "prev": 8235,
+   "s": [
+    "npc",
+    8379,
+    "Archmage Xylem"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    29.2,
+    40.2
+   ]
+  },
   "8238": {
    "n": "Gurubashi, Vilebranch, and Witherbark Coins",
    "prev": null,
@@ -5652,6 +5892,36 @@
     16
    ]
   },
+  "8253": {
+   "n": "Destroy Morphaz",
+   "prev": 8252,
+   "s": [
+    "npc",
+    8379,
+    "Archmage Xylem"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    29.2,
+    40.2
+   ]
+  },
+  "8257": {
+   "n": "Blood of Morphaz",
+   "prev": 8256,
+   "s": [
+    "npc",
+    8405,
+    "Ogtinc"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42.4,
+    42.6
+   ]
+  },
   "8288": {
    "n": "Only One May Rise",
    "prev": null,
@@ -5665,6 +5935,81 @@
     "Silithus",
     49.4,
     36.6
+   ]
+  },
+  "8413": {
+   "n": "Da Voodoo",
+   "prev": null,
+   "s": [
+    "npc",
+    6176,
+    "Bath'rah the Windwatcher"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    80.4,
+    66.8
+   ]
+  },
+  "8418": {
+   "n": "Forging the Mightstone",
+   "prev": 8416,
+   "s": [
+    "npc",
+    10838,
+    "Commander Ashlam Valorfist"
+   ],
+   "z": [
+    28,
+    "Western Plaguelands",
+    42.8,
+    84
+   ]
+  },
+  "8422": {
+   "n": "Trolls of a Feather",
+   "prev": 8421,
+   "s": [
+    "npc",
+    14470,
+    "Impsy"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    41.4,
+    44.8
+   ]
+  },
+  "8425": {
+   "n": "Voodoo Feathers",
+   "prev": 8424,
+   "s": [
+    "npc",
+    7572,
+    "Fallen Hero of the Horde"
+   ],
+   "z": [
+    8,
+    "Swamp of Sorrows",
+    34.2,
+    66
+   ]
+  },
+  "84330": {
+   "n": "A Wee Bit O' Necromancy",
+   "prev": 84319,
+   "s": [
+    "npc",
+    228619,
+    "Orthas"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    61.2,
+    69.2
    ]
   },
   "8577": {
@@ -5987,6 +6332,21 @@
     0
    ]
   },
+  "9053": {
+   "n": "A Better Ingredient",
+   "prev": 9051,
+   "s": [
+    "npc",
+    9619,
+    "Torwa Pathfinder"
+   ],
+   "z": [
+    490,
+    "Un'Goro Crater",
+    71.6,
+    76
+   ]
+  },
   "909": {
    "n": "Baron Aquanis",
    "prev": null,
@@ -6254,6 +6614,21 @@
     75.8
    ]
   },
+  "95036": {
+   "n": "A Moon-Kissed Blade",
+   "prev": 95034,
+   "s": [
+    "npc",
+    259620,
+    "Lumina Windsinger"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    43.2,
+    41
+   ]
+  },
   "95189": {
    "n": "Crest of Lordaeron",
    "prev": null,
@@ -6450,6 +6825,21 @@
     "Thunder Bluff",
     23,
     21
+   ]
+  },
+  "96264": {
+   "n": "Elemental Aid",
+   "prev": 94789,
+   "s": [
+    "npc",
+    259023,
+    "Veyric Thunderhame"
+   ],
+   "z": [
+    45,
+    "Arathi Highlands",
+    59.8,
+    27.6
    ]
   },
   "96391": {
@@ -6729,6 +7119,21 @@
     "Wetlands",
     38.8,
     52.2
+   ]
+  },
+  "99187": {
+   "n": "The Reliquary of Tyr",
+   "prev": 93030,
+   "s": [
+    "npc",
+    276110,
+    "Knight of Mourning"
+   ],
+   "z": [
+    85,
+    "Tirisfal Glades",
+    17.6,
+    67.4
    ]
   },
   "999": {

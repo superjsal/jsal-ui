@@ -1228,6 +1228,54 @@ function Pet.PaintBond(s)
     end
 end
 
+-- Three hearts rise from a care button toward the pen and fade: a small
+-- thank-you for looking after it. Each starts a little after the last and a
+-- little to one side. Where the game can't say where things are, or can't
+-- animate, there are none.
+function Pet.Hearts(from)
+    if not (window and pen and from) then return end
+    local fx, fy = from:GetCenter()
+    local px, py = pen:GetCenter()
+    if not (fx and fy and px and py) then return end
+    ui.floaters = ui.floaters or {}
+    for i = 1, 3 do
+        local f = ui.floaters[i]
+        if not f then
+            f = CreateFrame("Frame", nil, window)
+            f:SetSize(16, 16)
+            f:SetFrameLevel(60)
+            f.picture = f:CreateTexture(nil, "OVERLAY")
+            f.picture:SetAllPoints()
+            f.picture:SetTexture(Art("heart"), "CLAMP", "CLAMP", "NEAREST")
+            Compat.Crisp(f.picture)
+            f.group = f.CreateAnimationGroup and f:CreateAnimationGroup()
+            if f.group then
+                f.rise = f.group:CreateAnimation("Translation")
+                f.rise:SetDuration(0.9)
+                f.rise:SetSmoothing("OUT")
+                f.fade = f.group:CreateAnimation("Alpha")
+                f.fade:SetFromAlpha(1)
+                f.fade:SetToAlpha(0)
+                f.fade:SetDuration(0.4)
+                f.group:SetScript("OnFinished", function() f:Hide() end)
+            end
+            f:Hide()
+            ui.floaters[i] = f
+        end
+        if not f.group then return end
+        local wait = (i - 1) * 0.12
+        f.group:Stop()
+        f:ClearAllPoints()
+        f:SetPoint("CENTER", from, "CENTER", (i - 2) * 12, 8)
+        -- Most of the way to the pen, drifting toward its middle.
+        f.rise:SetOffset((px - fx) * 0.5 + (i - 2) * 14, (py - fy) * 0.7)
+        f.rise:SetStartDelay(wait)
+        f.fade:SetStartDelay(wait + 0.5)
+        f:Show()
+        f.group:Play()
+    end
+end
+
 -- The care buttons: each one's word and how many are left, greyed with none,
 -- and the one it needs now in gold, bobbing.
 function Pet.DressCare(s)
@@ -1637,6 +1685,7 @@ local function Do(act, show, thing, over, sound)
         end
     end
     Refresh()
+    return ok
 end
 
 -- What's in your hand is set down in front of it, where it stands: when you
@@ -2488,7 +2537,9 @@ local function BuildParts()
         local b = Style.Button(parts, "", "plain", CARE_W)
         b:SetHeight(CARE_H)
         b:SetPoint("TOPLEFT", count * (CARE_W + CARE_GAP), -CARE_Y)
-        b:SetScript("OnClick", function() Do(act, show, thing, over, sound) end)
+        b:SetScript("OnClick", function()
+            if Do(act, show, thing, over, sound) then Pet.Hearts(b) end
+        end)
         b.name = name
         -- Its own words ("Feed · 3") would sit across its middle: they stay
         -- for anything that reads them, out of sight, and the word and the

@@ -1,0 +1,443 @@
+{
+ "fetched": "2026-11-14",
+ "note": "Class quests that Wowhead Forever types as dungeon or raid quests but files under the class, not the dungeon, so the dungeon zone pages (wowhead.json) don't list them: the 33 found on https://www.wowhead.com/forever/quests/classes that weren't on a dungeon's list. 'quests' are the ones whose own page's map names one of the guide's dungeons ('areas' is that map's places; 'zones' the dungeons among them, by Wowhead's zone number), each as a row like wowhead.json's with its class as a sixth value. 'unplaced' were read and their map names no dungeon of the guide's (Sunken Temple's feather quests have nothing on the map inside it; The Reliquary of Tyr is in Blackmaw Hold, which isn't one of the guide's). 'unread' are the six Wowhead's bot check stopped: the reading stopped there.",
+ "quests": {
+  "1442": {
+   "row": [
+    1442,
+    "Seeking the Kor Gem",
+    22,
+    20,
+    1,
+    2
+   ],
+   "areas": {
+    "148": "Darkshore",
+    "331": "Ashenvale",
+    "719": "Blackfathom Deeps"
+   },
+   "zones": [
+    719
+   ]
+  },
+  "1654": {
+   "row": [
+    1654,
+    "The Test of Righteousness",
+    22,
+    20,
+    1,
+    2
+   ],
+   "areas": {
+    "1": "Dun Morogh",
+    "1581": "The Deadmines"
+   },
+   "zones": [
+    1581
+   ]
+  },
+  "1740": {
+   "row": [
+    1740,
+    "The Orb of Soran'ruk",
+    25,
+    20,
+    3,
+    256
+   ],
+   "areas": {
+    "17": "The Barrens",
+    "209": "Shadowfang Keep",
+    "719": "Blackfathom Deeps"
+   },
+   "zones": [
+    209,
+    719
+   ]
+  },
+  "1956": {
+   "row": [
+    1956,
+    "Power in Uldaman",
+    40,
+    35,
+    3,
+    128
+   ],
+   "areas": {
+    "15": "Dustwallow Marsh",
+    "1337": "Uldaman"
+   },
+   "zones": [
+    1337
+   ]
+  },
+  "7629": {
+   "row": [
+    7629,
+    "Imp Delivery",
+    60,
+    60,
+    3,
+    256
+   ],
+   "areas": {
+    "46": "Burning Steppes",
+    "2057": "Scholomance",
+    "2557": "Dire Maul"
+   },
+   "zones": [
+    2057,
+    2557
+   ]
+  },
+  "8232": {
+   "row": [
+    8232,
+    "The Green Drake",
+    52,
+    50,
+    3,
+    4
+   ],
+   "areas": {
+    "16": "Azshara",
+    "1477": "The Temple of Atal'Hakkar"
+   },
+   "zones": [
+    1477
+   ]
+  },
+  "8236": {
+   "row": [
+    8236,
+    "The Azure Key",
+    52,
+    50,
+    3,
+    8
+   ],
+   "areas": {
+    "16": "Azshara",
+    "36": "Alterac Mountains",
+    "1477": "The Temple of Atal'Hakkar"
+   },
+   "zones": [
+    1477
+   ]
+  },
+  "8253": {
+   "row": [
+    8253,
+    "Destroy Morphaz",
+    52,
+    50,
+    3,
+    128
+   ],
+   "areas": {
+    "16": "Azshara",
+    "1477": "The Temple of Atal'Hakkar"
+   },
+   "zones": [
+    1477
+   ]
+  },
+  "8257": {
+   "row": [
+    8257,
+    "Blood of Morphaz",
+    52,
+    50,
+    3,
+    16
+   ],
+   "areas": {
+    "16": "Azshara",
+    "361": "Felwood",
+    "1477": "The Temple of Atal'Hakkar"
+   },
+   "zones": [
+    1477
+   ]
+  },
+  "9053": {
+   "row": [
+    9053,
+    "A Better Ingredient",
+    52,
+    50,
+    3,
+    1024
+   ],
+   "areas": {
+    "490": "Un'Goro Crater",
+    "1477": "The Temple of Atal'Hakkar"
+   },
+   "zones": [
+    1477
+   ]
+  },
+  "79360": {
+   "row": [
+    79360,
+    "Elemental Aid",
+    33,
+    30,
+    2,
+    64
+   ],
+   "areas": {
+    "36": "Alterac Mountains",
+    "400": "Thousand Needles",
+    "491": "Razorfen Kraul"
+   },
+   "zones": [
+    491
+   ]
+  },
+  "79946": {
+   "row": [
+    79946,
+    "A Brother In Need",
+    40,
+    35,
+    1,
+    2
+   ],
+   "areas": {
+    "796": "Scarlet Monastery",
+    "1519": "Stormwind City"
+   },
+   "zones": [
+    796
+   ]
+  },
+  "79963": {
+   "row": [
+    79963,
+    "By The Light's Grace",
+    40,
+    35,
+    1,
+    2
+   ],
+   "areas": {
+    "796": "Scarlet Monastery"
+   },
+   "zones": [
+    796
+   ]
+  },
+  "84330": {
+   "row": [
+    84330,
+    "A Wee Bit O' Necromancy",
+    59,
+    54,
+    1,
+    2
+   ],
+   "areas": {
+    "139": "Eastern Plaguelands",
+    "2017": "Stratholme"
+   },
+   "zones": [
+    2017
+   ]
+  },
+  "95036": {
+   "row": [
+    95036,
+    "A Moon-Kissed Blade",
+    25,
+    20,
+    2,
+    2
+   ],
+   "areas": {
+    "130": "Silverpine Forest",
+    "1581": "The Deadmines"
+   },
+   "zones": [
+    1581
+   ]
+  },
+  "96264": {
+   "row": [
+    96264,
+    "Elemental Aid",
+    33,
+    30,
+    1,
+    64
+   ],
+   "areas": {
+    "45": "Arathi Highlands",
+    "491": "Razorfen Kraul"
+   },
+   "zones": [
+    491
+   ]
+  }
+ },
+ "unplaced": {
+  "1653": {
+   "row": [
+    1653,
+    "The Test of Righteousness",
+    21,
+    20,
+    1,
+    2
+   ],
+   "areas": {
+    "1": "Dun Morogh",
+    "1519": "Stormwind City"
+   }
+  },
+  "1951": {
+   "row": [
+    1951,
+    "Rituals of Power",
+    40,
+    30,
+    3,
+    128
+   ],
+   "areas": {
+    "15": "Dustwallow Marsh",
+    "400": "Thousand Needles"
+   }
+  },
+  "7581": {
+   "row": [
+    7581,
+    "The Prison's Bindings",
+    60,
+    60,
+    3,
+    256
+   ],
+   "areas": {
+    "4": "Blasted Lands"
+   }
+  },
+  "7634": {
+   "row": [
+    7634,
+    "Ancient Sinew Wrapped Lamina",
+    60,
+    60,
+    3,
+    4
+   ],
+   "areas": {
+    "16": "Azshara",
+    "361": "Felwood",
+    "15532": "Storm Cliffs"
+   }
+  },
+  "7635": {
+   "row": [
+    7635,
+    "A Proper String",
+    60,
+    60,
+    3,
+    4
+   ],
+   "areas": {
+    "361": "Felwood"
+   }
+  },
+  "8413": {
+   "row": [
+    8413,
+    "Da Voodoo",
+    52,
+    50,
+    2,
+    64
+   ],
+   "areas": {
+    "36": "Alterac Mountains"
+   }
+  },
+  "8418": {
+   "row": [
+    8418,
+    "Forging the Mightstone",
+    52,
+    50,
+    1,
+    2
+   ],
+   "areas": {
+    "28": "Western Plaguelands"
+   }
+  },
+  "8422": {
+   "row": [
+    8422,
+    "Trolls of a Feather",
+    52,
+    50,
+    3,
+    256
+   ],
+   "areas": {
+    "361": "Felwood"
+   }
+  },
+  "8425": {
+   "row": [
+    8425,
+    "Voodoo Feathers",
+    52,
+    50,
+    3,
+    1
+   ],
+   "areas": {
+    "8": "Swamp of Sorrows"
+   }
+  },
+  "81790": {
+   "row": [
+    81790,
+    "Materials of Significance",
+    53,
+    45,
+    1,
+    2
+   ],
+   "areas": {
+    "361": "Felwood"
+   }
+  },
+  "99187": {
+   "row": [
+    99187,
+    "The Reliquary of Tyr",
+    58,
+    50,
+    2,
+    2
+   ],
+   "areas": {
+    "85": "Tirisfal Glades",
+    "16554": "Blackmaw Hold"
+   }
+  }
+ },
+ "unread": {
+  "7642": "Collection of Goods",
+  "7666": "Again Into the Great Ossuary",
+  "7668": "The Darkreaver Menace",
+  "8258": "The Darkreaver Menace",
+  "97169": "The Darkreaver Menace",
+  "97179": "Collection of Goods"
+ }
+}
