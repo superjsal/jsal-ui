@@ -11,6 +11,9 @@ Restart the game after updating (exit and start it again): this version adds new
 
 - **Map pins in Stormwind point at the right spot.** Forever draws Stormwind over a bigger stretch of the world than Classic does, and the pins for its trainers, recipe vendors and dungeon quest givers were still on Classic's map, so "Arrived" came up streets away. The same is fixed for Mulgore, Redridge and Eastern Plaguelands.
 
+- **The craft timer no longer stays up when a run ends early.** Ask for seven with materials for one and the game makes one and stops without a word; the timer sat there counting nothing. It now goes a few seconds after the last craft.
+- **The shopping list no longer jumps when you drag it.** It also keeps its title bar where you put it when the list gets longer or shorter.
+
 - **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
 
