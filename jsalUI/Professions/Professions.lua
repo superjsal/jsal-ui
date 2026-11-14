@@ -189,6 +189,18 @@ end
 -- How much dearer the recipe in hand may be than the best one before the
 -- road changes to the other.
 Professions.STAY = 1.15
+-- How much of its worth a material you already have is let off.
+Professions.OWNED = 0.95
+-- The chance of a point at which a recipe turns green in the game's list:
+-- half way from yellow to grey. The road takes a green recipe only when
+-- nothing yellow or orange can be made. Leftovers count as nearly free, so
+-- a green recipe that used them up looked cheapest: at 121 the road said
+-- Light Leather Pants, three chances in ten, for 40 Light Leather and four
+-- Cured Light Hide, and nine of them gave no point at all. (John, 14 Nov
+-- 2026: "does this make sense to use light leather pants to get to 125? i
+-- just made 5 and did not get a single skillpoint", then "i just made 4
+-- more light leather pants and got 0 skill points".)
+Professions.GREEN = 0.5
 -- The least chance of a point a recipe may have and still be on the road.
 Professions.LEAST = 0.1
 
@@ -269,7 +281,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
         for _, reagent in ipairs(recipe.reagents) do
             local owned = math.min(stock[reagent.item], reagent.count)
             if owned > 0 and not Data.vendor[reagent.item] then
-                w = w - owned * ItemWeight(line, reagent.item) * 0.95
+                w = w - owned * ItemWeight(line, reagent.item) * Professions.OWNED
             end
         end
         return w
@@ -278,7 +290,8 @@ function Professions.Plan(line, skill, target, known, breakAt)
     local staying
     while s < target do
         local best, bestCost
-        local stayCost
+        local fair, fairCost
+        local stayCost, stayFair
         for _, recipe in ipairs(recipes) do
             local mine = recipe.vein or known(recipe.spell)
             -- A recipe you know counts whatever skill the data says it's
@@ -293,11 +306,18 @@ function Professions.Plan(line, skill, target, known, breakAt)
                     local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
                     if not mine and recipe.how == 2 then cost = cost * 1.5 end
                     if not best or cost < bestCost then best, bestCost = recipe, cost end
-                    if recipe == staying then stayCost = cost end
+                    if chance >= Professions.GREEN and (not fair or cost < fairCost) then fair, fairCost = recipe, cost end
+                    if recipe == staying then stayCost, stayFair = cost, chance >= Professions.GREEN end
                 end
             end
         end
         if not best then break end
+        -- Yellow and orange before green: a green one only as a last resort,
+        -- and the one in hand isn't kept once it has gone green.
+        if fair then
+            best, bestCost = fair, fairCost
+            if not stayFair then stayCost = nil end
+        end
         -- The recipe already being made is kept while it costs little more
         -- than the best, so the road is a few long steps, not one craft of
         -- this between two runs of that.
