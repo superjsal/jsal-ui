@@ -589,6 +589,10 @@ Window.Page("gear", function(page)
                 -- The off hand, under a two-hander: it isn't empty to fill.
                 if plan.twoHand then b.worn:SetText("|cff9a9688Taken by your two-hander|r") end
             end
+            -- That line has the row to itself, so it gets the room: in the
+            -- column for what you wear it was cut short ("Taken by your
+            -- two-hand...", John's screenshot, 15 Nov 2026).
+            b.worn:SetWidth(plan.twoHand and (SLOT_W - ICON - 30) or (UP_X - ICON - 14 - 10))
             if best then
                 better = better + 1
                 b.gain:SetText(best.gains and best.gains ~= "" and best.gains or "Better")
