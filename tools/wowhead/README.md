@@ -57,6 +57,13 @@ same script again carries on. Never try to get past the check another way.
    - Then: `python -I tools/build_pets.py` (writes `jsalUI/Training/TameData.lua`; compare its
      beast count with the last commit's). Wowhead's own "Used by NPC" lists were tried first and
      dropped: they name every rank for most beasts, so the rank a beast really has can't be told.
+   - **How often quest items drop, for the quest tags (about 770 pages below level 60, 1150 with
+     `--all`):** the items asked for by quests new to Forever (in `data/quests/eglink.json`, not in
+     pfQuest). For each batch: start the receiver writing to `<scratchpad>/drops_batch.json`, run
+     the `window.__dropIds` line `python -I tools/wowhead/drop_items.py` prints and the whole of
+     `drops.js` in the pane, then `python -I tools/wowhead/merge_quests.py <scratchpad>/drops_batch.json --drops`
+     (it writes `data/quests/wowhead-drops.json`). After a check, the next batch carries on with
+     what's left. When the list is empty, run `python -I tools/build_quest_scores.py`.
 4. **Recipe sources (8 lists, then a few hundred vendor and recipe pages; one to two hours):**
    - Start the receiver: `python -I tools/wowhead/receive.py data/professions/wowhead-sources.json`
    - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalRecipes')`, then the

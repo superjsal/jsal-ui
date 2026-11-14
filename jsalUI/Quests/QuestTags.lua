@@ -10,8 +10,8 @@
 -- of your own fights, solo and outside dungeons, from entering combat to leaving it.
 --
 -- Chains and drop chances come from pfQuest (QuestScoreData.lua); what's left comes from your
--- quest log as you go. The tags go on whichever tracker shows: EllesmereUI's own, through the
--- hook it offers other addons (room right of each title), or the game's, left of each quest.
+-- quest log as you go. The tags go left of whichever tracker shows: EllesmereUI's own, through
+-- the hook it offers other addons, or the game's, so they take no room from the titles.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -27,7 +27,8 @@ local DEFAULT_FIGHT = 20        -- seconds a fight is taken to last until you've
 local WINDOW = 20               -- the average follows your last twenty or so fights
 local SHORTEST, LONGEST = 2, 120
 local GUESS = 3                 -- fewer fights than this, and the card says it's a guess
-local WIDTH, HEIGHT = 56, 16    -- the tags' room; EllesmereUI keeps at most 64 for an addon
+local HEIGHT, PAD = 17, 5       -- a pill's height, and the room inside it
+local EDGE = 6                  -- between a pill and EllesmereUI's tracker
 local GAP = 26                  -- left of a game tracker block, past its map button
 
 ---------------------------------------------------------------------------
@@ -48,8 +49,13 @@ function QuestTags.Info(questID)
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
-    for name, chance in rest:gmatch(";([^=;]+)=([%d%.]+)") do
+    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)(w?)") do
         info.drops[name] = tonumber(chance) / 100
+        -- "w": the chance is Wowhead Forever's, from Forever's own kills; else pfQuest's (Classic's).
+        if mark == "w" then
+            info.wowhead = info.wowhead or {}
+            info.wowhead[name] = true
+        end
     end
     parsed[questID] = info
     return info
@@ -99,13 +105,17 @@ local function Named(text)
     return text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text
 end
 
+-- The item's drop chance, and whether it's Wowhead Forever's.
 local function Chance(info, name)
     if not info then return nil end
-    if info.drops[name] then return info.drops[name] end
-    local lower = name:lower()
-    for item, chance in pairs(info.drops) do
-        if item:lower() == lower then return chance end
+    local found = info.drops[name] and name
+    if not found then
+        local lower = name:lower()
+        for item in pairs(info.drops) do
+            if item:lower() == lower then found = item end
+        end
     end
+    if found then return info.drops[found], info.wowhead and info.wowhead[found] or false end
 end
 
 -- Objective by objective, what's left: { name, left, chance (nil for a kill), kills (nil when
@@ -123,7 +133,7 @@ function QuestTags.Work(questID)
                 row.name = name:gsub("%s+slain$", "")
                 row.kills = left
             else
-                row.chance = Chance(info, name)
+                row.chance, row.wowhead = Chance(info, name)
                 if row.chance then row.kills = QuestTags.Kills(left, row.chance) end
             end
             if row.kills then total = total + row.kills else unknown = unknown or name end
@@ -152,7 +162,7 @@ end
 ---------------------------------------------------------------------------
 function QuestTags.ChainLine(questID)
     local info = QuestTags.Info(questID)
-    if not info then return "New to Forever, so whether other quests follow it isn't known." end
+    if not info then return "Not in jsal.ui's quest data yet, so whether other quests follow it isn't known." end
     if not info.step then return "Not part of a chain: skipping it loses no other quests." end
     local after = info.chain - info.step
     if after <= 0 then
@@ -167,8 +177,20 @@ local function Row(r)
         if r.kills then return ("%d to kill"):format(r.left) end
         return ("%d left, drop rate unknown"):format(r.left)
     end
-    return ("%d left, %s%% drop: about %d kills"):format(r.left, ("%g"):format(math.floor(r.chance * 1000 + 0.5) / 10),
-        math.floor(r.kills + 0.5))
+    local kills = math.max(1, math.floor(r.kills + 0.5))
+    return ("%d left, %s%% drop: about %d kill%s"):format(r.left, ("%g"):format(math.floor(r.chance * 1000 + 0.5) / 10),
+        kills, kills == 1 and "" or "s")
+end
+
+-- Where the card's drop chances came from, or nil when it shows none.
+local function Sources(rows)
+    local wowhead, classic
+    for _, r in ipairs(rows) do
+        if r.chance and r.wowhead then wowhead = true elseif r.chance then classic = true end
+    end
+    if wowhead and classic then return "Drop chances from Wowhead Forever and pfQuest (Classic's)" end
+    if wowhead then return "Drop chances from Wowhead Forever's kills" end
+    if classic then return "Drop chances from pfQuest: Classic's, so a few may differ on Forever" end
 end
 
 local function Rgb(key) local r, g, b = Style.Color(key); return r, g, b end
@@ -205,6 +227,8 @@ function QuestTags.ShowCard(owner, questID)
         local rr, rg, rb = Rgb("muted")
         tip:AddDoubleLine(r.name, Row(r), lr, lg, lb, rr, rg, rb)
     end
+    local sources = Sources(rows)
+    if sources then Add(tip, sources, "muted") end
     tip:Show()
 end
 
@@ -213,20 +237,22 @@ end
 ---------------------------------------------------------------------------
 local function Line(parent)
     local text = Style.Text(parent, 12, "muted", nil, true, true)
-    text:SetJustifyH("RIGHT")
+    text:SetJustifyH("LEFT")
     text:SetJustifyV("MIDDLE")
-    text:SetShadowOffset(1, -1)
-    text:SetShadowColor(0, 0, 0, 1)
     return text
 end
 
+-- One small dark pill: the chain's "k/n", then the minutes.
 local function MakeTag(parent)
     local tag = CreateFrame("Frame", nil, parent)
-    tag:SetSize(WIDTH, HEIGHT)
+    tag:SetSize(PAD * 2, HEIGHT)
+    local fill = Style.Fill(tag, "window")
+    fill:SetAlpha(0.88)
+    Style.Border(tag, "lineStrong")
     tag.minutes = Line(tag)
-    tag.minutes:SetPoint("RIGHT", tag, "RIGHT", -2, 0)
+    tag.minutes:SetPoint("RIGHT", tag, "RIGHT", -PAD, 0)
     tag.step = Line(tag)
-    tag.step:SetPoint("RIGHT", tag, "RIGHT", -28, 0)
+    tag.step:SetPoint("LEFT", tag, "LEFT", PAD, 0)
     tag.step:SetTextColor(Style.Color("secondary"))
     tag:EnableMouse(true)
     tag:SetScript("OnEnter", ns.Safe(QuestTags, function(self)
@@ -243,11 +269,41 @@ function QuestTags.Fill(tag, questID)
     tag.step:SetText(step or "")
     tag.minutes:SetText(minutes)
     tag.minutes:SetTextColor(Style.Color(colour))
+    local width = PAD * 2 + tag.minutes:GetStringWidth()
+    if step then width = width + tag.step:GetStringWidth() + PAD end
+    tag:SetWidth(math.max(HEIGHT + 4, math.floor(width + 0.5)))
     tag:Show()
 end
 
 -- EllesmereUI's own tracker: its hook runs for each quest title row on every redraw, with a slot
--- frame right of the title.
+-- frame on the row. The tags go left of the tracker, outside its scrolling list, which hides
+-- anything drawn outside it; so each pill is jsal.ui's own frame that follows its row, and fades
+-- out while the row is scrolled out of sight or gone.
+local function Corner(frame, edge)
+    local v = edge == "left" and frame:GetLeft() or edge == "top" and frame:GetTop() or frame:GetBottom()
+    return v and v * frame:GetEffectiveScale()
+end
+
+function QuestTags.Follow(tag)
+    local row, view = tag.row, tag.view
+    local top, bottom, left = Corner(row, "top"), Corner(row, "bottom"), Corner(row, "left")
+    local vtop, vbottom, vleft = Corner(view, "top"), Corner(view, "bottom"), Corner(view, "left")
+    local seen = QuestTags.running and row:IsVisible() and top and vtop and top <= vtop + 1 and bottom >= vbottom - 1
+    if seen then
+        local x = math.floor((vleft - left) / tag:GetEffectiveScale() - EDGE + 0.5)
+        if x ~= tag.x then
+            tag.x = x
+            tag:ClearAllPoints()
+            tag:SetPoint("TOPRIGHT", row, "TOPLEFT", x, 1)
+        end
+    end
+    if seen ~= tag.seen then
+        tag.seen = seen
+        tag:SetAlpha(seen and 1 or 0)
+        tag:EnableMouse(seen and true or false)
+    end
+end
+
 local function EllesmereRow(slot, questID)
     local tag = slot.jsalTag
     if not (QuestTags.running and type(questID) == "number") then
@@ -255,11 +311,21 @@ local function EllesmereRow(slot, questID)
         return
     end
     if not tag then
-        tag = MakeTag(slot)
-        tag:SetAllPoints(slot)
+        tag = MakeTag(UIParent)
+        tag.row = slot:GetParent()
+        -- The row is in the list's scrolling child; the scroll frame is what shows.
+        tag.view = tag.row:GetParent():GetParent()
+        local wait = 0
+        tag:SetScript("OnUpdate", ns.Safe(QuestTags, function(self, elapsed)
+            wait = wait + elapsed
+            if wait < 0.1 then return end
+            wait = 0
+            QuestTags.Follow(self)
+        end))
         slot.jsalTag = tag
     end
     QuestTags.Fill(tag, questID)
+    QuestTags.Follow(tag)
 end
 
 -- The game's tracker: each quest is a block keyed by its quest ID; its tags sit left of it.
@@ -338,7 +404,8 @@ function QuestTags:OnEnable()
     events:SetScript("OnEvent", ns.Safe(self, OnEvent))
     HookTrackers()
     if not registered and EllesmereUI and EllesmereUI.RegisterQuestTrackerRow then
-        registered = EllesmereUI.RegisterQuestTrackerRow("jsalUI", ns.Safe(self, EllesmereRow), WIDTH)
+        -- No room asked for beside the titles: the tags sit left of the tracker.
+        registered = EllesmereUI.RegisterQuestTrackerRow("jsalUI", ns.Safe(self, EllesmereRow), 0)
     end
     -- Running is set once this returns; draw the tags just after.
     C_Timer.After(0, ns.Safe(self, QuestTags.Refresh))
