@@ -16,7 +16,8 @@ Two steps:
 
 Each quest is one line of text, read only for the quests in your log: "k,n;Item=chance;..."
 where k of n is the quest's place in its chain (left empty when it stands alone) and chance is the
-best drop chance in percent among the creatures that drop the item.
+best drop chance in percent among the creatures that drop the item. Every quest pfQuest knows has a
+line, even an empty one, so a quest with none is one it doesn't know (new to Forever).
 """
 
 import json
@@ -99,8 +100,6 @@ def build():
     lines = []
     for qid in sorted(quests, key=int):
         drops = quests[qid].get("drops", {})
-        if qid not in place and not drops:
-            continue
         for name in drops:
             assert ";" not in name and "=" not in name and '"' not in name, name
         text = ("%d,%d" % place[qid]) if qid in place else ""
