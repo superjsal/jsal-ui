@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Your profession road leaves out Mooncloth, transmutes and recipes that need a specialisation",
-    "Cooking and First Aid name who sells the Expert book and who gives the Artisan quest",
-    "The Training planner says which weapon masters teach each weapon skill",
+    "New, off to start: quest tags left of RestedXP's guide window. Turn it on under Leveling in /jsal settings",
+    "New, off to start: the Drop log counts the quest items your kills have. /jsal drops shows it",
+    "The Training planner knows your pet's free training points. Restart the game: this adds files",
 }
 
 local function NewsWanted()

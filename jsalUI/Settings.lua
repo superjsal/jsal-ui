@@ -26,7 +26,7 @@ local GROUPS = {
     } },
     { title = "Leveling", width = 110, sections = {
         { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
-        { "As you play", { "nextlevel", "levelup", "journal", "questtags", "tametip" } },
+        { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip" } },
     } },
     { title = "Professions", width = 130, sections = {
         { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters" } },
