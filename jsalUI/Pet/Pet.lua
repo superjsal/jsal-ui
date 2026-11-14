@@ -1237,6 +1237,10 @@ function Pet.DressCare(s)
         local none = left == 0 or (key == "medicine" and not s.sick)
         local wanted = wants[key] == true and not none and (key == "medicine" or not s.asleep)
         b.word:SetText(key == "lights" and (s.asleep and "Wake it" or "Lights out") or b.name)
+        -- Asleep, its button is a sun to wake it, where a moon put it to bed.
+        if key == "lights" then
+            b.art:SetTexture(Art(s.asleep and "care_wake" or "care_lights"), "CLAMP", "CLAMP", "NEAREST")
+        end
         b.word:SetTextColor(Style.Color(wanted and "gold" or (none and "muted" or "text")))
         b.count:SetText(left and tostring(left) or "")
         b.count:SetTextColor(Style.Color((left or 0) > 0 and "onGold" or "muted"))
