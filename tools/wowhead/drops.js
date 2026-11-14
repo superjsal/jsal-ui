@@ -7,10 +7,13 @@
 // tools/wowhead/receive.py (start it first, writing to a scratch file), and
 // tools/wowhead/merge_quests.py --drops folds it in. Then run tools/build_quest_scores.py.
 const wait = ms => new Promise(r => setTimeout(r, ms));
+// The page's text, or null when Wowhead has no such item (404); a check stops the batch.
 async function page(url) {
   const r = await fetch(url);
   const t = await r.text();
-  if (r.status !== 200 || t.includes('<title>Human Verification')) throw new Error('blocked at ' + url);
+  if (t.includes('<title>Human Verification')) throw new Error('blocked at ' + url);
+  if (r.status === 404) return null;
+  if (r.status !== 200) throw new Error('blocked at ' + url);
   return t;
 }
 const grab = (t, id) => {
@@ -45,7 +48,8 @@ window.__drops = { done: false, read: 0, left: 0, err: null };
     while (todo.length) {
       const id = todo.shift();
       __drops.left = todo.length;
-      store[id] = readItem(await page('/forever/item=' + id));
+      const t = await page('/forever/item=' + id);
+      store[id] = t === null ? { missing: true } : readItem(t);
       __drops.read++;
       await wait(10000);
     }
