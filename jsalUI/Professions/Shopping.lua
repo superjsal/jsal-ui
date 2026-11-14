@@ -193,21 +193,64 @@ end
 
 local function Field(parent, width, numeric) return Style.Field(parent, width, numeric) end
 
+-- Dragging is done here, not by the game's StartMoving, which has twice
+-- thrown this window across the screen as it was picked up (John, 9 and 13
+-- Nov 2026: "trying to drag the shopping list teleports it to another spot
+-- on the screen"). The window follows the pointer by the spot it's held
+-- at, and is pinned by its top left corner, so a list that grows or
+-- shrinks does so downward and its title bar stays where it was put.
+local function DragStop()
+    local held = frame.held
+    if not held then return end
+    frame.held = nil
+    frame:SetScript("OnUpdate", nil)
+    if held.left then
+        ns.db.shoppingAt = { "TOPLEFT", "BOTTOMLEFT", held.left, held.top }
+        frame.beside = nil
+    end
+end
+
+local function DragTo()
+    local held = frame.held
+    local x, y = GetCursorPosition()
+    local scale = frame:GetEffectiveScale()
+    if not (held and x and y and scale and scale > 0) then return end
+    local left, top = x / scale - held.x, y / scale + held.y
+    -- Kept whole on the screen, where its size is known.
+    local wide = (UIParent:GetWidth() or 0) * (UIParent:GetEffectiveScale() or 0) / scale
+    local tall = (UIParent:GetHeight() or 0) * (UIParent:GetEffectiveScale() or 0) / scale
+    if wide > 0 and tall > 0 then
+        left = math.max(0, math.min(left, wide - (frame:GetWidth() or 0)))
+        top = math.min(tall, math.max(top, frame:GetHeight() or 0))
+    end
+    held.left, held.top = left, top
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+end
+
+local function DragStart()
+    local x, y = GetCursorPosition()
+    local scale, left, top = frame:GetEffectiveScale(), frame:GetLeft(), frame:GetTop()
+    if not (x and y and left and top and scale and scale > 0) then return end
+    -- Where on the window the pointer has hold of it: across from its left
+    -- edge and down from its top.
+    frame.held = { x = x / scale - left, y = top - y / scale }
+    frame:SetScript("OnUpdate", function()
+        if IsMouseButtonDown and not IsMouseButtonDown("LeftButton") then return DragStop() end
+        DragTo()
+    end)
+end
+
 local function Build()
     frame = CreateFrame("Frame", "jsalUIShoppingList", UIParent)
     frame:SetWidth(WIDTH)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
     frame:EnableMouse(true)
-    frame:SetMovable(true)
     frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        local point, _, relative, x, y = self:GetPoint(1)
-        ns.db.shoppingAt = { point, relative, x, y }
-        self.beside = nil
-    end)
+    frame:SetScript("OnDragStart", DragStart)
+    frame:SetScript("OnDragStop", DragStop)
+    frame:SetScript("OnHide", DragStop)
     frame:Hide()
     Style.Fill(frame, "window")
     Style.Border(frame, "lineStrong")
@@ -233,8 +276,8 @@ local function Build()
     -- The bar is the handle for moving the window.
     bar:EnableMouse(true)
     bar:RegisterForDrag("LeftButton")
-    bar:SetScript("OnDragStart", function() frame:StartMoving() end)
-    bar:SetScript("OnDragStop", function() frame:GetScript("OnDragStop")(frame) end)
+    bar:SetScript("OnDragStart", DragStart)
+    bar:SetScript("OnDragStop", DragStop)
 
     box = Field(frame, WIDTH - PAD * 2 - 46 - 60 - 12)
     box.well:SetPoint("TOPLEFT", PAD, -(36 + 12))

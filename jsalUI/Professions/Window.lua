@@ -176,6 +176,9 @@ end
 -- profession window with what, how many are done and the time left.
 ---------------------------------------------------------------------------
 local timer, run
+local StopRun
+-- How long a run may go with nothing being cast before it's taken as over.
+Window.CRAFT_WAIT = 3
 
 local function BuildTimer()
     timer = CreateFrame("Frame", "jsalUICraftTimer", UIParent)
@@ -224,6 +227,13 @@ end
 local function PaintTimer()
     if not run then return end
     local now = GetTime()
+    -- A run can end with no word from the game: asked for seven with thread
+    -- for one, it makes one and casts nothing more, and no event says so
+    -- (John, 13 Nov 2026: "medium armor kit crafting time stays up there").
+    -- So with no cast under way for a few seconds, or one that never
+    -- reported its end, the run is over.
+    local quiet = run.castEnd or run.idle
+    if quiet and now - quiet > Window.CRAFT_WAIT then return StopRun() end
     local castLeft = run.castEnd and math.max(0, run.castEnd - now) or 0
     local each = run.each or 0
     local left = castLeft + math.max(0, run.total - run.done - (run.castEnd and 1 or 0)) * each
@@ -233,7 +243,7 @@ local function PaintTimer()
     timer.fill:SetWidth(math.max(1, timer.track:GetWidth() * math.min(1, (run.done + partial) / run.total)))
 end
 
-local function StopRun(after)
+StopRun = function(after)
     run = nil
     if not timer then return end
     timer:SetScript("OnUpdate", nil)
@@ -249,7 +259,7 @@ local function StartRun(recipeID, count)
     if not Window.On("timer") or count < 2 or not recipeID then return end
     if not timer then BuildTimer() end
     local info = C_TradeSkillUI and C_TradeSkillUI.GetRecipeInfo and C_TradeSkillUI.GetRecipeInfo(recipeID)
-    run = { spell = recipeID, total = count, done = 0 }
+    run = { spell = recipeID, total = count, done = 0, idle = GetTime() }
     timer.name:SetText(info and info.name or (Compat.SpellInfo(recipeID)) or "")
     timer.icon:SetTexture(info and info.icon or select(2, Compat.SpellInfo(recipeID)))
     PlaceTimer()
@@ -268,9 +278,11 @@ local function OnCast(event, unit, _, spellID)
             run.each = (endMS - startMS) / 1000
             run.castEnd = endMS / 1000
         end
+        run.idle = nil
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         run.done = run.done + 1
         run.castEnd = nil
+        run.idle = GetTime()
         if run.done >= run.total then
             PaintTimer()
             StopRun(2)
