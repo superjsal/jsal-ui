@@ -9,6 +9,8 @@ Restart the game after updating (exit and start it again): this version adds new
   - It works on EllesmereUI's quest tracker and on the game's own. Turn on **Quest tags** under Leveling in /jsal settings.
   - Drop chances for quests new to Forever come from what Wowhead Forever has seen drop on Forever; for Classic's quests, from pfQuest, which has Classic's numbers, so a few may be off where Forever changed a drop. The card says which. Chains come from pfQuest and Forever's own quest data. Your fight length is an average of your own fights, solo and outside dungeons, and is a guess of 20 seconds until you've had a few.
 
+- **Map pins in Stormwind point at the right spot.** Forever draws Stormwind over a bigger stretch of the world than Classic does, and the pins for its trainers, recipe vendors and dungeon quest givers were still on Classic's map, so "Arrived" came up streets away. The same is fixed for Mulgore, Redridge and Eastern Plaguelands.
+
 - **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
 

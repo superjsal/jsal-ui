@@ -4,11 +4,18 @@ From Wowhead Forever (data/trainers.txt): each class's and profession's trainers
 Trainers tab) and each trainer's first spot on the game's own maps (uiMapID and x, y, from its NPC
 page). The Trainers tabs also list quest givers and innkeepers, so a trainer only counts for a kind
 when the title over its head says so: "Hunter Trainer" for hunters, a tailoring word for tailoring.
+Wowhead's spots are on Classic's maps; tools/maps.py puts them on Forever's, which draws Stormwind
+and three other zones differently.
 
 Run: python -I tools/build_trainers.py
 """
 
 import pathlib
+import sys
+
+# python -I leaves this folder off the path, so it's put there for maps.py.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from maps import forever_spot  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "trainers.txt"
@@ -55,8 +62,9 @@ def main():
                 if not any(word in tag for word in PROFESSION_WORDS.get(skill, ())):
                     continue
                 key = "skill" + str(skill)
+            spot_x, spot_y = forever_spot(int(map_id), float(x), float(y))
             by_key.setdefault(key, []).append(
-                (int(npc), name, tag, int(map_id), round(float(x) / 100, 4), round(float(y) / 100, 4), a, h))
+                (int(npc), name, tag, int(map_id), round(spot_x / 100, 4), round(spot_y / 100, 4), a, h))
     lines = [
         "-- Where each class, pet and profession trainer stands, from Wowhead Forever:",
         "-- the game's map ID, the spot on it, and which factions they'll train.",
