@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.38-beta.2
+## Version: 0.3.38-beta.3
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -119,6 +119,11 @@ Dungeons\DungeonLoot.lua
 Dungeons\Dungeons.lua
 Dungeons\GuildLoot.lua
 Dungeons\Page.lua
+
+# Quest tags beside the tracker: each quest's place in a chain and about how long it
+# will take, from pfQuest's chains and drop chances and your own fights.
+Quests\QuestScoreData.lua
+Quests\QuestTags.lua
 
 # Dashboard pages.
 Home.lua

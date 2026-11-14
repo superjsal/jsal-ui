@@ -1,6 +1,13 @@
 # jsal.ui 0.3.38
 
-Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
+Restart the game after updating (exit and start it again): this version adds new pictures and files, and a /reload doesn't load them.
+
+- **Quest tags (new, off to start).** For when you're ahead of your guide and want to drop the slow quests. Beside each quest in your tracker, two small tags:
+  - **Its place in a chain.** "1/4" is the first of four, so skipping it loses the three after it. No tag means it stands alone.
+  - **About how many minutes it will take**, green to red: the kills still needed, from how often its items drop, times how long your own fights last. It counts on a slightly unlucky run, not a lucky one, and drops as you make progress. "?" means how often an item drops isn't known; "-" means there's nothing to fight.
+  - **Hover them** to see why: what skipping it costs, and each item's count, drop chance and likely kills.
+  - It works on EllesmereUI's quest tracker and on the game's own. Turn on **Quest tags** under Leveling in /jsal settings.
+  - Chains and drop chances come from pfQuest, which has Classic's numbers, so a few may be off where Forever changed a drop. Your fight length is an average of your own fights, solo and outside dungeons, and is a guess of 20 seconds until you've had a few.
 
 - **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
