@@ -49,12 +49,13 @@ function QuestTags.Info(questID)
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
-    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)(w?)") do
+    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([wo]?)") do
         info.drops[name] = tonumber(chance) / 100
-        -- "w": the chance is Wowhead Forever's, from Forever's own kills; else pfQuest's (Classic's).
-        if mark == "w" then
+        -- "w": Wowhead Forever's chance from Forever's own kills; "o": from objects opened (chests,
+        -- crates, plants), each opening counted like a fight; neither: pfQuest's (Classic's).
+        if mark ~= "" then
             info.wowhead = info.wowhead or {}
-            info.wowhead[name] = true
+            info.wowhead[name] = mark
         end
     end
     parsed[questID] = info
@@ -178,8 +179,11 @@ local function Row(r)
         return ("%d left, drop rate unknown"):format(r.left)
     end
     local kills = math.max(1, math.floor(r.kills + 0.5))
-    return ("%d left, %s%% drop: about %d kill%s"):format(r.left, ("%g"):format(math.floor(r.chance * 1000 + 0.5) / 10),
-        kills, kills == 1 and "" or "s")
+    local per = ("%g"):format(math.floor(r.chance * 1000 + 0.5) / 10)
+    if r.wowhead == "o" then
+        return ("%d left, %s%% per opening: about %d opening%s"):format(r.left, per, kills, kills == 1 and "" or "s")
+    end
+    return ("%d left, %s%% drop: about %d kill%s"):format(r.left, per, kills, kills == 1 and "" or "s")
 end
 
 -- Where the card's drop chances came from, or nil when it shows none.
@@ -189,7 +193,7 @@ local function Sources(rows)
         if r.chance and r.wowhead then wowhead = true elseif r.chance then classic = true end
     end
     if wowhead and classic then return "Drop chances from Wowhead Forever and pfQuest (Classic's)" end
-    if wowhead then return "Drop chances from Wowhead Forever's kills" end
+    if wowhead then return "Drop chances from what Wowhead Forever has seen drop" end
     if classic then return "Drop chances from pfQuest: Classic's, so a few may differ on Forever" end
 end
 
@@ -218,9 +222,13 @@ function QuestTags.ShowCard(owner, questID)
     else
         local whole = math.max(1, math.floor(minutes + 0.5))
         Add(tip, ("Annoyance: about %s"):format(whole == 1 and "a minute" or (whole .. " minutes")), colour)
-        Add(tip, ("About %d kills at %d seconds a fight, your average%s"):format(math.floor(total + 0.5),
-            math.floor(seconds + 0.5), fights < GUESS and " (a guess until you've had a few fights)" or ""),
-            "muted")
+        local opens = false
+        for _, r in ipairs(rows) do
+            if r.wowhead == "o" then opens = true end
+        end
+        Add(tip, ("About %d %s at %d seconds a fight, your average%s"):format(math.floor(total + 0.5),
+            opens and "kills and openings" or "kills", math.floor(seconds + 0.5),
+            fights < GUESS and " (a guess until you've had a few fights)" or ""), "muted")
     end
     for _, r in ipairs(rows) do
         local lr, lg, lb = Rgb("secondary")
