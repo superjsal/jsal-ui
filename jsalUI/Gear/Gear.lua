@@ -368,6 +368,7 @@ end
 -- How an item's source reads: "Leatherworking · Crafted, or Gelihast ·
 -- Blackfathom Deeps"; a drop says only where; "" when nothing is known.
 function Gear.Source(o)
+    if o.held then return "In your bags" end
     OtherSources()
     local parts = {}
     local crafted = o.kind == "Crafted" or madeBy[o.id] ~= nil
@@ -460,9 +461,37 @@ end
 function Gear.TwoHander()
     local link = GetInventoryItemLink and GetInventoryItemLink("player", 16)
     if not link then return nil end
-    local info = (C_Item and C_Item.GetItemInfo) or GetItemInfo
-    local _, _, _, _, _, _, _, _, equipLoc = info(link)
+    -- The game's quick lookup first: it answers at once for any item,
+    -- where the full one can come back empty until the item has loaded.
+    local quick = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    local equipLoc = quick and select(4, quick(link))
+    if not equipLoc then
+        local info = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+        equipLoc = info and select(9, info(link))
+    end
     return equipLoc == "INVTYPE_2HWEAPON" and link or nil
+end
+
+-- The pieces in your bags that go in a slot and that you can wear: their
+-- item IDs. A piece you took off, or a quest's reward you've had, is in no
+-- list of upgrades to go and get, but it's the easiest one to put on.
+function Gear.Held(slot, classFile, level)
+    local out, C = {}, ns.Compat
+    if not (C and C.BagSize and C.BagItem and Gear.Info) then return out end
+    for bag = 0, 4 do
+        for i = 1, C.BagSize(bag) do
+            local item = C.BagItem(bag, i)
+            local id = item and (item.itemID or (item.hyperlink and tonumber(item.hyperlink:match("item:(%d+)"))))
+            local info = id and Gear.Info(id)
+            local invType = info and Gear.INVTYPE[info.equipLoc or ""]
+            if invType and Fits(slot, invType, classFile, level)
+                and (Gear.ForClass(classFile, level, info.classID, info.subclassID, invType) ~= false
+                     or Gear.CanWear(classFile, level, info.classID, info.subclassID)) then
+                out[#out + 1] = id
+            end
+        end
+    end
+    return out
 end
 
 function Gear.Plan(slot, spec, only)
@@ -501,9 +530,21 @@ function Gear.Plan(slot, spec, only)
             candidates[#candidates + 1] = c
         end
     end
+    -- What's in your bags that goes here, whatever its level or where it
+    -- came from: you can put it on now. (John, 15 Nov 2026, of a chest piece
+    -- he had taken off to star: "i put an item in my bags to star it in the
+    -- gear plan but now i dont see that item".)
+    local held = {}
+    for _, id in ipairs(Gear.Held(slot, classFile, level)) do
+        if not held[id] then
+            held[id] = true
+            candidates[#candidates + 1] = Gear.Lookup(id) or { id = id, req = 0, kind = "", place = "" }
+        end
+    end
     for _, c in ipairs(candidates) do
         if c.id ~= wornID and not seen[c.id] then
             seen[c.id] = true
+            c.held = held[c.id] or nil
             local stats = Stats(c.id)
             if not stats then
                 waiting = waiting + 1
@@ -556,7 +597,7 @@ function Gear.Plan(slot, spec, only)
     if best == 0 then best = bestOfAll end
     local kept = {}
     for _, o in ipairs(options) do
-        if o.starred or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
+        if o.starred or o.held or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
     end
     options = kept
     -- One you can go and get now comes before one you can't yet: above your
@@ -567,6 +608,8 @@ function Gear.Plan(slot, spec, only)
     local function Later(o) return (o.soon or o.unknown) and true or false end
     table.sort(options, function(a, b)
         if a.starred ~= b.starred then return a.starred end
+        -- A piece in your bags comes next: nothing is nearer.
+        if (a.held or false) ~= (b.held or false) then return a.held == true end
         if Later(a) ~= Later(b) then return not Later(a) end
         if a.score ~= b.score then return a.score > b.score end
         return a.id < b.id
