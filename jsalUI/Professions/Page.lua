@@ -367,7 +367,14 @@ Window.Page("professions", function(page)
             notes[#notes + 1] = ("Open your %s window once so this uses the recipes you know."):format(current.name)
         end
         if rank.at then
-            notes[#notes + 1] = ("%s from %d skill and level %d, at a trainer."):format(rank.next, rank.at, rank.level)
+            -- Some ranks aren't a trainer's to teach: a book, or a quest.
+            local what, about
+            if Professions.RankFrom then what, about = Professions.RankFrom(current.line, rank.next) end
+            if what then
+                notes[#notes + 1] = ("From %d skill, %s: %s."):format(rank.at, what, about)
+            else
+                notes[#notes + 1] = ("%s from %d skill and level %d, at a trainer."):format(rank.next, rank.at, rank.level)
+            end
         end
         if stuck then notes[#notes + 1] = ("Past %d, only dropped or quest patterns give skill."):format(stuck) end
         message:SetText(table.concat(notes, " "))

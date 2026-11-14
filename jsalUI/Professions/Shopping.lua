@@ -244,7 +244,9 @@ end
 local function Build()
     frame = CreateFrame("Frame", "jsalUIShoppingList", UIParent)
     frame:SetWidth(WIDTH)
-    frame:SetFrameStrata("MEDIUM")
+    -- On the layer of jsal.ui's main window, above other addons' unit
+    -- frames and bars, which would draw over it on the one below.
+    frame:SetFrameStrata("HIGH")
     frame:SetClampedToScreen(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
@@ -377,7 +379,7 @@ end
 -- Where the list was last dragged to, or a little right of centre.
 local function PlaceSaved()
     frame:ClearAllPoints()
-    frame:SetFrameStrata("MEDIUM")
+    frame:SetFrameStrata("HIGH")
     local at = ns.db.shoppingAt
     if type(at) == "table" and at[1] then
         frame:SetPoint(at[1], UIParent, at[2], at[3], at[4])
@@ -752,13 +754,26 @@ function Shopping:OnEnable()
     local events = CreateFrame("Frame")
     for _, event in ipairs({ "ADDON_LOADED", "TRADE_SKILL_SHOW", "BAG_UPDATE_DELAYED", "MERCHANT_SHOW", "MERCHANT_UPDATE",
                              "MERCHANT_CLOSED", "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "COMMODITY_SEARCH_RESULTS_UPDATED",
-                             "AUCTION_ITEM_LIST_UPDATE" }) do
+                             "AUCTION_ITEM_LIST_UPDATE", "ITEM_DATA_LOAD_RESULT", "GET_ITEM_INFO_RECEIVED" }) do
         pcall(events.RegisterEvent, events, event)
     end
+    local naming = false
     events:SetScript("OnEvent", function(_, event, arg1)
         local ok, err = pcall(function()
             if event == "ADDON_LOADED" or event == "TRADE_SKILL_SHOW" then
                 HookDetails()
+            elseif event == "ITEM_DATA_LOAD_RESULT" or event == "GET_ITEM_INFO_RECEIVED" then
+                -- An item's name comes a moment after it's first asked for.
+                -- A row that read "..." stayed that way, as nothing painted
+                -- the list again (John's screenshot, 13 Nov 2026). Once for
+                -- a burst of them.
+                if frame and frame:IsShown() and not naming then
+                    naming = true
+                    Compat.After(0.3, function()
+                        naming = false
+                        if frame:IsShown() then xpcall(Paint, ns.Report) end
+                    end)
+                end
             elseif event == "BAG_UPDATE_DELAYED" then
                 if frame and frame:IsShown() then Paint() end
                 PaintVendor()

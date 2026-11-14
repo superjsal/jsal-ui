@@ -439,6 +439,283 @@ local function RecipeIcon(recipe)
 end
 
 ---------------------------------------------------------------------------
+-- The recipes not learned yet, in groups: what your trainer teaches now,
+-- what a vendor sells for coin (under each vendor's name once), what's
+-- coming up, and the rest (drops, quests, reputations, other currencies)
+-- behind one block to open. One long list of five hundred, with a world
+-- drop and another side's quest at its head, was no help (John, 13 Nov
+-- 2026: "this section as well if you feel necessary to fix up").
+---------------------------------------------------------------------------
+-- How many of a group show before the rest wait behind a line to click,
+-- and how many an opened one shows at most (`many`).
+local FEW = { trainer = 5, vendor = 3, vendors = 3, coming = 5, harder = 8, many = 12 }
+-- What's been opened up: a group by name, a vendor by "v" and its ID. One
+-- at a time, and never more than `many` of it, with the line that closes it
+-- above its rows: an opened list ran off the bottom of the screen and took
+-- its own "Show fewer" with it (John, 13 Nov 2026: "if you keep going for
+-- showing you cant unshow").
+local opened = {}
+local function Open(key)
+    local was = opened[key]
+    opened = { harder = (key == "harderAll") or nil }
+    opened[key] = (not was) or nil
+end
+
+local function GroupHead(i)
+    panel.heads = panel.heads or {}
+    local h = panel.heads[i]
+    if h then return h end
+    h = { title = Style.Text(panel, 12, "gold", nil, true), note = Style.Text(panel, 12, "muted") }
+    h.note:SetJustifyH("RIGHT")
+    panel.heads[i] = h
+    return h
+end
+
+-- A vendor's name over what they sell; a click pins them on the map.
+local function VendorHead(i)
+    panel.vendorHeads = panel.vendorHeads or {}
+    local v = panel.vendorHeads[i]
+    if v then return v end
+    v = CreateFrame("Button", nil, panel)
+    v:SetSize(WIDTH - PAD * 2, 24)
+    Style.Fill(v, "well")
+    v.link = Style.Text(v, 11, "gold")
+    v.link:SetPoint("RIGHT", -10, 0)
+    v.link:SetText("show on map")
+    v.name = Style.Text(v, 12, "text", nil, true)
+    v.name:SetPoint("LEFT", 10, 0)
+    v.name:SetPoint("RIGHT", v.link, "LEFT", -8, 0)
+    v.name:SetJustifyH("LEFT")
+    v.name:SetWordWrap(false)
+    v:SetScript("OnClick", function(self)
+        if self.spell and ns.RecipeSourceText then ns.RecipeSourceText.Pin(self.spell, self.faction) end
+    end)
+    panel.vendorHeads[i] = v
+    return v
+end
+
+-- "and 8 more · Show": opens a group up, or closes it again.
+local function MoreLine(i)
+    panel.mores = panel.mores or {}
+    local m = panel.mores[i]
+    if m then return m end
+    m = CreateFrame("Button", nil, panel)
+    m:SetSize(WIDTH - PAD * 2, 18)
+    m.text = Style.Text(m, 11, "muted")
+    m.text:SetPoint("LEFT", 52, 0)
+    panel.mores[i] = m
+    return m
+end
+
+local function HarderBlock()
+    if panel.harder then return panel.harder end
+    local b = CreateFrame("Button", nil, panel)
+    b:SetSize(WIDTH - PAD * 2, 44)
+    Style.Fill(b, "well")
+    b.title = Style.Text(b, 12, "text", nil, true)
+    b.title:SetPoint("TOPLEFT", 10, -7)
+    b.title:SetText("Harder to get")
+    b.link = Style.Text(b, 12, "gold")
+    b.link:SetPoint("TOPRIGHT", -10, -7)
+    b.sub = Style.Text(b, 11, "muted")
+    b.sub:SetPoint("TOPLEFT", 10, -24)
+    b.sub:SetWidth(WIDTH - PAD * 2 - 20)
+    b.sub:SetJustifyH("LEFT")
+    b.sub:SetWordWrap(false)
+    b:SetScript("OnClick", function()
+        Open("harder")
+        xpcall(Paint, ns.Report)
+    end)
+    panel.harder = b
+    return b
+end
+
+local function HideGroups()
+    for _, h in ipairs(panel.heads or {}) do h.title:Hide(); h.note:Hide() end
+    for _, v in ipairs(panel.vendorHeads or {}) do v:Hide() end
+    for _, m in ipairs(panel.mores or {}) do m:Hide() end
+    if panel.harder then panel.harder:Hide() end
+end
+
+-- Sorts the recipes not learned yet into their groups. Ones only the other
+-- side can get are left out altogether.
+local function Groups(missing, skill, sources, faction, favourites)
+    local groups = { trainer = {}, vendors = {}, coming = {}, harder = {}, bought = 0, count = 0 }
+    local byVendor = {}
+    for _, recipe in ipairs(missing) do
+        local kind, vendor = "trainer", nil
+        if recipe.how ~= 1 then kind, vendor = sources.Kind(recipe.spell, faction) end
+        if kind ~= "other" then groups.count = groups.count + 1 end
+        if kind == "hard" then
+            groups.harder[#groups.harder + 1] = recipe
+        elseif kind ~= "other" and recipe.learn > skill then
+            groups.coming[#groups.coming + 1] = recipe
+        elseif kind == "trainer" then
+            groups.trainer[#groups.trainer + 1] = recipe
+        elseif kind == "vendor" then
+            local group = byVendor[vendor.id]
+            if not group then
+                group = { vendor = vendor, list = {}, price = {} }
+                byVendor[vendor.id] = group
+                groups.vendors[#groups.vendors + 1] = group
+            end
+            group.list[#group.list + 1] = recipe
+            group.price[recipe.spell] = vendor.copper
+            groups.bought = groups.bought + 1
+        end
+    end
+    local function Order(a, b)
+        local fa, fb = favourites.Has(a.spell), favourites.Has(b.spell)
+        if fa ~= fb then return fa end
+        if a.learn ~= b.learn then return a.learn < b.learn end
+        return a.spell < b.spell
+    end
+    table.sort(groups.trainer, Order)
+    table.sort(groups.coming, function(a, b)
+        if a.learn ~= b.learn then return a.learn < b.learn end
+        return a.spell < b.spell
+    end)
+    table.sort(groups.harder, function(a, b)
+        local ra, rb = a.learn <= skill, b.learn <= skill
+        if ra ~= rb then return ra end
+        return Order(a, b)
+    end)
+    for _, group in ipairs(groups.vendors) do table.sort(group.list, Order) end
+    -- The vendor with the most to sell you first.
+    table.sort(groups.vendors, function(a, b)
+        if #a.list ~= #b.list then return #a.list > #b.list end
+        return a.vendor.name < b.vendor.name
+    end)
+    return groups
+end
+
+local function PaintGroups(groups, y, skill, sources, faction, favourites)
+    local heads, vendors, mores, listed = 0, 0, 0, 0
+    local function Title(text, note)
+        heads = heads + 1
+        local h = GroupHead(heads)
+        h.title:SetText(text)
+        Place(h.title, y + 2)
+        h.note:SetText(note or "")
+        PlaceRight(h.note, y + 2)
+        y = y + 24
+    end
+    -- One recipe: on one line with something at the right, or on two with
+    -- where it comes from under its name.
+    local function Row(recipe, right, color, where)
+        listed = listed + 1
+        local r = UnlearnedRow(listed)
+        Place(r, y)
+        LayoutRow(r, where ~= nil)
+        r.item, r.spell = recipe.item, recipe.spell
+        r.detailed, r.faction = true, faction
+        r.icon:SetTexture(RecipeIcon(recipe))
+        r.name:SetText(RecipeName(recipe))
+        r.source:SetText(right or "")
+        r.source:SetTextColor(Style.Color(color or "muted"))
+        if where then r.where:SetText(where) end
+        local vendor = where and sources.Vendors(recipe.spell, faction)[1]
+        r.canPin = vendor and vendor.map and vendor.map > 0 or false
+        SetStar(r.star.tex, favourites.Has(recipe.spell))
+        r.star:SetScript("OnClick", function()
+            favourites.Toggle(recipe.spell)
+            xpcall(Paint, ns.Report)
+        end)
+        y = y + (where and DETAIL_H or ROW_H)
+    end
+    -- A line to click that opens a group or closes it; with no key, a
+    -- line that only says how many more there are.
+    local function More(key, text)
+        mores = mores + 1
+        local m = MoreLine(mores)
+        m.text:SetText(key and opened[key] and "Show fewer" or text)
+        m:SetScript("OnClick", key and function()
+            Open(key)
+            xpcall(Paint, ns.Report)
+        end or nil)
+        Place(m, y + 1)
+        y = y + 22
+    end
+    -- Closed: the first few, then the line that opens the rest. Opened: the
+    -- line that closes it, then up to `many`, then how many are left.
+    local function List(list, key, few, right, color, rest)
+        local open = opened[key] and #list > few
+        if open then More(key, "") end
+        local limit = open and math.min(#list, FEW.many) or few
+        for i, recipe in ipairs(list) do
+            if i > limit then break end
+            Row(recipe, right and right(recipe), color)
+        end
+        if open and #list > limit then
+            More(nil, ("and %d more"):format(#list - limit))
+        elseif not open and #list > few then
+            More(key, rest:format(#list - few))
+        end
+    end
+
+    if #groups.trainer > 0 then
+        Title("AT YOUR TRAINER NOW", #groups.trainer)
+        List(groups.trainer, "trainer", FEW.trainer, nil, nil, "and %d more at your trainer · Show")
+        y = y + 10
+    end
+    if #groups.vendors > 0 then
+        Title("BUY FROM A VENDOR", groups.bought)
+        local all = opened.vendors and #groups.vendors > FEW.vendors
+        if all then More("vendors", "") end
+        local limit = all and math.min(#groups.vendors, FEW.many) or FEW.vendors
+        for i, group in ipairs(groups.vendors) do
+            if i > limit then break end
+            vendors = vendors + 1
+            local v = VendorHead(vendors)
+            local zone = sources.Area and sources.Area(group.vendor.area)
+            v.name:SetText(group.vendor.name .. (zone and (", " .. zone) or ""))
+            v.spell, v.faction = group.list[1].spell, faction
+            v.link:SetShown((group.vendor.map or 0) > 0)
+            Place(v, y)
+            y = y + 28
+            List(group.list, "v" .. group.vendor.id, FEW.vendor,
+                function(recipe) return Compat.Money(group.price[recipe.spell]) end, "text",
+                "and %d more from " .. group.vendor.name .. " · Show")
+            y = y + 4
+        end
+        if all and #groups.vendors > limit then
+            More(nil, ("and %d more vendors"):format(#groups.vendors - limit))
+        elseif not all and #groups.vendors > FEW.vendors then
+            More("vendors", ("and %d more vendors · Show"):format(#groups.vendors - FEW.vendors))
+        end
+        y = y + 6
+    end
+    if #groups.coming > 0 then
+        Title("COMING UP", "at skill")
+        List(groups.coming, "coming", FEW.coming, function(recipe) return recipe.learn end, "muted", "and %d more later · Show")
+        y = y + 10
+    end
+    if #groups.harder > 0 then
+        local b = HarderBlock()
+        b.sub:SetText(("%d from drops, quests, reputations and special currencies"):format(#groups.harder))
+        b.link:SetText(opened.harder and "Hide" or "Show")
+        Place(b, y)
+        y = y + 50
+        if opened.harder then
+            local all = opened.harderAll and #groups.harder > FEW.harder
+            if all then More("harderAll", "") end
+            local limit = all and math.min(#groups.harder, FEW.many) or FEW.harder
+            for i, recipe in ipairs(groups.harder) do
+                if i > limit then break end
+                Row(recipe, recipe.learn, recipe.learn <= skill and "green" or "muted",
+                    sources.Line(recipe.spell, faction) or SOURCE[recipe.how] or "Other")
+            end
+            if all and #groups.harder > limit then
+                More(nil, ("and %d more"):format(#groups.harder - limit))
+            elseif not all and #groups.harder > FEW.harder then
+                More("harderAll", ("and %d more · Show more"):format(#groups.harder - FEW.harder))
+            end
+        end
+    end
+    return y, listed
+end
+
+---------------------------------------------------------------------------
 -- Painting.
 ---------------------------------------------------------------------------
 function Paint()
@@ -496,6 +773,7 @@ function Paint()
     local sources = wanted and ns.ProfWindow.On("sources") and ns.RecipeSourceText or nil
     local faction = sources and UnitFactionGroup and UnitFactionGroup("player") or nil
     local ready = 0
+    local groups
     if wanted then
         for _, recipe in ipairs(Professions.Recipes(line)) do
             if not known[recipe.spell] then
@@ -503,6 +781,8 @@ function Paint()
                 if sources and recipe.learn <= skill then ready = ready + 1 end
             end
         end
+        -- With where each comes from known, they're sorted into groups.
+        if sources and sources.Kind then groups = Groups(missing, skill, sources, faction, favourites) end
         table.sort(missing, function(a, b)
             if sources then
                 local ra, rb = a.learn <= skill, b.learn <= skill
@@ -522,10 +802,11 @@ function Paint()
         b:SetShown(#missing > 0)
         b:SetSelected(key == view)
     end
-    panel.tabs.recipes:SetLabel(("Recipes to learn  |cff9a9688%d|r"):format(#missing))
+    panel.tabs.recipes:SetLabel(("Recipes to learn  |cff9a9688%d|r"):format(groups and groups.count or #missing))
     if #missing > 0 then y = y + TAB_H + 12 end
 
     local shown, count, listed, later, mats, ranked = 0, 0, 0, false, 0, false
+    HideGroups()
     if view == "road" then
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
@@ -534,13 +815,18 @@ function Paint()
         -- Training the next rank: from the skill it opens at, or now.
         local function Rank(y)
             local r = RankRow()
-            local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)
+            -- Some ranks aren't a trainer's to teach: a book, or a quest.
+            local what, about
+            if Professions.RankFrom then what, about = Professions.RankFrom(line, rank.next) end
+            local trainer = not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
             r.trainer = trainer
-            r.title:SetText(skill >= rank.at and ("Train %s now"):format(rank.next) or ("At %d, train %s"):format(rank.at, rank.next))
+            local doing = what or ("train " .. rank.next)
+            r.title:SetText(skill >= rank.at and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rank.at, doing))
             local parts = {}
+            if about then parts[#parts + 1] = about end
             if trainer then parts[#parts + 1] = trainer.name .. (place and (", " .. place) or "") end
-            if (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
+            if not what and (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
             if #parts == 0 then parts[1] = "Any trainer for it can teach you" end
             r.sub:SetText(table.concat(parts, " · "))
             Place(r, y)
@@ -758,64 +1044,71 @@ function Paint()
             if panel[key] then panel[key]:Hide() end
         end
 
-        Place(panel.unlearnedHead, y + 2)
-        panel.unlearnedHead:SetText(ready > 0 and "READY TO LEARN" or "NOT LEARNED YET")
-        panel.unlearnedCount:SetText(ready > 0 and ready or #missing)
-        PlaceRight(panel.unlearnedCount, y + 2)
-        y = y + 24
-        -- A tab of their own gives them room: more at first, and more again
-        -- with Show all.
-        local few = sources and 7 or 12
-        local limit = showAllUnlearned and (sources and 14 or 22) or few
-        for i, recipe in ipairs(missing) do
-            if i > limit then break end
-            listed = i
-            if ready > 0 and i == ready + 1 then
-                y = y + 6
-                Place(panel.laterHead, y + 2)
-                panel.laterCount:SetText(#missing - ready)
-                PlaceRight(panel.laterCount, y + 2)
-                later = true
-                y = y + 24
-            end
-            local r = UnlearnedRow(i)
-            Place(r, y)
-            LayoutRow(r, sources ~= nil)
-            r.item, r.spell = recipe.item, recipe.spell
-            r.detailed, r.faction = sources ~= nil, faction
-            r.icon:SetTexture(RecipeIcon(recipe))
-            r.name:SetText(RecipeName(recipe))
-            if sources then
-                r.source:SetText(recipe.learn)
-                r.source:SetTextColor(Style.Color(recipe.learn <= skill and "green" or "muted"))
-                r.where:SetText(sources.Line(recipe.spell, faction) or SOURCE[recipe.how] or "Other")
-                local vendor = sources.Vendors(recipe.spell, faction)[1]
-                r.canPin = vendor and vendor.map and vendor.map > 0 or false
-            else
-                r.source:SetText(("%s · %d"):format(SOURCE[recipe.how] or "Other", recipe.learn))
-                r.source:SetTextColor(Style.Color("muted"))
-                r.canPin = false
-            end
-            SetStar(r.star.tex, favourites.Has(recipe.spell))
-            r.star:SetScript("OnClick", function()
-                favourites.Toggle(recipe.spell)
-                xpcall(Paint, ns.Report)
-            end)
-            y = y + (sources and DETAIL_H or ROW_H)
-        end
-        if #missing > few then
-            local rest = #missing - listed
-            panel.showAll.text:SetText(showAllUnlearned
-                and (rest > 0 and ("%d more · Show fewer"):format(rest) or "Show fewer")
-                or ("%d more · Show all"):format(rest))
-            panel.showAll:SetScript("OnClick", function()
-                showAllUnlearned = not showAllUnlearned
-                xpcall(Paint, ns.Report)
-            end)
-            Place(panel.showAll, y + 2)
-            y = y + 22
-        else
+        if groups then
+            panel.unlearnedHead:Hide()
+            panel.unlearnedCount:Hide()
             panel.showAll:Hide()
+            y, listed = PaintGroups(groups, y, skill, sources, faction, favourites)
+        else
+            Place(panel.unlearnedHead, y + 2)
+            panel.unlearnedHead:SetText(ready > 0 and "READY TO LEARN" or "NOT LEARNED YET")
+            panel.unlearnedCount:SetText(ready > 0 and ready or #missing)
+            PlaceRight(panel.unlearnedCount, y + 2)
+            y = y + 24
+            -- A tab of their own gives them room: more at first, and more again
+            -- with Show all.
+            local few = sources and 7 or 12
+            local limit = showAllUnlearned and (sources and 14 or 22) or few
+            for i, recipe in ipairs(missing) do
+                if i > limit then break end
+                listed = i
+                if ready > 0 and i == ready + 1 then
+                    y = y + 6
+                    Place(panel.laterHead, y + 2)
+                    panel.laterCount:SetText(#missing - ready)
+                    PlaceRight(panel.laterCount, y + 2)
+                    later = true
+                    y = y + 24
+                end
+                local r = UnlearnedRow(i)
+                Place(r, y)
+                LayoutRow(r, sources ~= nil)
+                r.item, r.spell = recipe.item, recipe.spell
+                r.detailed, r.faction = sources ~= nil, faction
+                r.icon:SetTexture(RecipeIcon(recipe))
+                r.name:SetText(RecipeName(recipe))
+                if sources then
+                    r.source:SetText(recipe.learn)
+                    r.source:SetTextColor(Style.Color(recipe.learn <= skill and "green" or "muted"))
+                    r.where:SetText(sources.Line(recipe.spell, faction) or SOURCE[recipe.how] or "Other")
+                    local vendor = sources.Vendors(recipe.spell, faction)[1]
+                    r.canPin = vendor and vendor.map and vendor.map > 0 or false
+                else
+                    r.source:SetText(("%s · %d"):format(SOURCE[recipe.how] or "Other", recipe.learn))
+                    r.source:SetTextColor(Style.Color("muted"))
+                    r.canPin = false
+                end
+                SetStar(r.star.tex, favourites.Has(recipe.spell))
+                r.star:SetScript("OnClick", function()
+                    favourites.Toggle(recipe.spell)
+                    xpcall(Paint, ns.Report)
+                end)
+                y = y + (sources and DETAIL_H or ROW_H)
+            end
+            if #missing > few then
+                local rest = #missing - listed
+                panel.showAll.text:SetText(showAllUnlearned
+                    and (rest > 0 and ("%d more · Show fewer"):format(rest) or "Show fewer")
+                    or ("%d more · Show all"):format(rest))
+                panel.showAll:SetScript("OnClick", function()
+                    showAllUnlearned = not showAllUnlearned
+                    xpcall(Paint, ns.Report)
+                end)
+                Place(panel.showAll, y + 2)
+                y = y + 22
+            else
+                panel.showAll:Hide()
+            end
         end
     end
     for i = shown + 1, #steps do steps[i]:Hide() end
@@ -890,12 +1183,24 @@ local function PlaceBeside(frame)
     panel:SetPoint("TOPLEFT", frame, "TOPRIGHT", 6 + reach, 0)
 end
 
+-- The layer above a window's own, and never lower than jsal.ui's main
+-- window's. On the profession window's layer the panel sat among other
+-- addons' unit frames and bars, and they drew over it (John, 13 Nov 2026:
+-- "i see my pet bar there at the bottom and that strata is medium").
+local LAYERS = { "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG" }
+local function Above(strata)
+    for i, layer in ipairs(LAYERS) do
+        if layer == strata then return LAYERS[math.max(4, math.min(i + 1, #LAYERS))] end
+    end
+    return "DIALOG"
+end
+
 local function OpenBeside(frame)
     if not Panel.running or dismissed == frame or not frame:IsShown() then return end
     if not panel then Build() end
     anchor = frame
-    panel:SetFrameStrata(frame:GetFrameStrata())
-    panel:SetFrameLevel(frame:GetFrameLevel() + 10)
+    panel:SetFrameStrata(Above(frame:GetFrameStrata()))
+    panel:SetFrameLevel(10)
     PlaceBeside(frame)
     panel:Show()
     xpcall(Paint, ns.Report)

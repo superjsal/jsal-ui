@@ -76,10 +76,19 @@ end
 
 -- Your professions, from the game's own list: each one's skill line, name,
 -- icon, skill and cap, for the ones jsal.ui has recipes for.
+-- The game's list has a place for each kind (two main ones, then
+-- fishing, cooking and so on) and leaves a gap for one you don't have: so
+-- every place is looked at, not only those before the first gap. Stopping
+-- at the gap left out whatever came after it (John, 13 Nov 2026, with no
+-- Fishing: "doesnt seem to count cooking as a profession").
+local function Places(...) return select("#", ...), { ... } end
+
 function Professions.Mine()
     local out = {}
     if not GetProfessions then return out end
-    for _, index in ipairs({ GetProfessions() }) do
+    local count, places = Places(GetProfessions())
+    for i = 1, count do
+        local index = places[i]
         if index then
             local name, icon, skill, cap, _, _, line = GetProfessionInfo(index)
             line = (line and Data[line] and line) or Professions.LineByName(name)
@@ -135,6 +144,34 @@ local function ItemWeight(line, item, depth)
         w = w + reagent.count * ItemWeight(line, reagent.item, (depth or 0) + 1)
     end
     return math.min(own, w / math.max(1, recipe.makes or 1))
+end
+
+-- The recipe that makes an item, where making it is how you'd come by it:
+-- a bolt from cloth, a cured hide from a hide. A leather that's also
+-- skinned as it is (heavy leather, or five medium) is worth less than what
+-- it would be made from, and is asked for as itself: the road's list read
+-- 105 Heavy Leather and 588 Medium and 444 Light for the same crafts.
+local function Makes(line, item)
+    if Data.gathered and Data.gathered[item] then return nil end
+    return MadeBy(line, item)
+end
+Professions.Makes = Makes
+
+-- Where a rank comes from when it isn't a trainer: First Aid's Expert is a
+-- book a vendor sells, and its Artisan a quest (Wowhead's First Aid guide
+-- for Forever, 13 Nov 2026). Returns what to do and a line about it, or nil
+-- for a rank a trainer teaches.
+local FIRST_AID = 129
+local OTHER_RANKS = {
+    [FIRST_AID] = {
+        Expert = { "learn Expert from a book", "Expert First Aid - Under Wraps, sold by a vendor" },
+        Artisan = { "learn Artisan from the quest Triage", "a doctor gives it, from level 35" },
+    },
+}
+function Professions.RankFrom(line, name)
+    local ranks = OTHER_RANKS[line]
+    local from = ranks and ranks[name]
+    if from then return from[1], from[2] end
 end
 
 -- A craft's cost: its materials, plus a little for the craft itself, so a
@@ -295,7 +332,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
     -- A bolt or bar you're short of adds what it's made from.
     local made = {}
     for item, need in pairs(totals) do
-        local recipe = MadeBy(line, item)
+        local recipe = Makes(line, item)
         local short = need - Compat.ItemCount(item, true)
         if recipe and short > 0 then
             local times = math.ceil(short / math.max(1, recipe.makes or 1))

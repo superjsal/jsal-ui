@@ -70,6 +70,13 @@ def rows(folder, name):
 # Hides: a few skinnings in a hundred give one, so each is worth several leathers
 # whatever the item table prices it at.
 SCARCE = re.compile(r"\bHide$")
+# Leather is skinned as it is, though a recipe also makes each kind from the one
+# below: a road that needs Heavy Leather asks for that, not for the Medium to make it.
+GATHERED = re.compile(r"^(Light|Medium|Heavy|Thick|Rugged) Leather$")
+# Recipes Wowhead names no source for that a trainer teaches: First Aid's last three
+# bandages, from the doctors of the Triage quest (Wowhead's First Aid guide, read
+# 13 Nov 2026, which calls it unconfirmed on a live realm).
+TAUGHT = {(129, "Heavy Mageweave Bandage"), (129, "Runecloth Bandage"), (129, "Heavy Runecloth Bandage")}
 
 
 def learned():
@@ -145,6 +152,8 @@ def main():
             how = how_code.get(SOURCES.get(source, ""), 0)
             if how == 0 and pattern:
                 how = 2
+            if how == 0 and (line_id, name) in TAUGHT:
+                how = 1
             item, count = makes.get(spell, (0, 0))
             seen.add(spell)
             flat = [spell, skill, max(yellow, skill), grey, how, item, count]
@@ -167,6 +176,10 @@ def main():
     lines.append("    -- guess from its level where it has none, and more for a hide. For weighing")
     lines.append("    -- one road against another, not for telling anyone a price.")
     lines.append("    value = { " + ", ".join(f"[{i}] = {worth(items[i])}" for i in valued) + " },")
+    gathered = sorted(i for i in used if i in items and GATHERED.match(items[i]["Display_lang"]))
+    lines.append("    -- Reagents a recipe makes that are also gathered as they are (leather): the")
+    lines.append("    -- road asks for these themselves, not for what they could be made from.")
+    lines.append("    gathered = { " + ", ".join(f"[{i}] = true" for i in gathered) + " },")
     lines += ["}", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
