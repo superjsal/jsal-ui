@@ -479,7 +479,9 @@ Window.Page("dungeons", function(page)
         Q.heads[i] = h
         return h
     end
-    -- A finished quest: ticked, greyed, with "done" after its name.
+    -- The quest before another, above it: a finished one ticked and greyed
+    -- with "done" after its name; one still to do, that isn't one of the
+    -- dungeon's own, with an empty box and where it starts.
     function Q.Prior(i)
         if Q.priors[i] then return Q.priors[i] end
         local l = CreateFrame("Frame", nil, bossList)
@@ -487,7 +489,8 @@ Window.Page("dungeons", function(page)
         l.box = CreateFrame("Frame", nil, l)
         l.box:SetSize(12, 12)
         l.box:SetPoint("LEFT", 10, 0)
-        Style.Fill(l.box, "wordGreen")
+        l.fill = Style.Fill(l.box, "wordGreen")
+        l.edges = Style.Border(l.box, "lineStrong")
         l.tick = l.box:CreateTexture(nil, "OVERLAY")
         l.tick:SetSize(14, 14)
         l.tick:SetPoint("CENTER", 1, 0)
@@ -499,8 +502,6 @@ Window.Page("dungeons", function(page)
         l.name:SetWordWrap(false)
         l.done = Style.Text(l, 11, "muted")
         l.done:SetPoint("LEFT", l.name, "RIGHT", 8, 0)
-        l.done:SetText(GREEN .. "done|r")
-        l:SetAlpha(0.75)
         Q.priors[i] = l
         return l
     end
@@ -755,10 +756,15 @@ Window.Page("dungeons", function(page)
         hint:SetText(#quests > 0 and table.concat(counts, " · ") or "")
 
         local lines, heads, priors = 0, 0, 0
-        local function Prior(name)
+        -- done: a finished quest; else one to do first, and where.
+        local function Prior(name, done, where)
             priors = priors + 1
             local l = Q.Prior(priors)
             l.name:SetText(name)
+            l.fill:SetShown(done)
+            l.tick:SetShown(done)
+            l.done:SetText(done and (GREEN .. "done|r") or ("first" .. (where and (", " .. where) or "")))
+            l:SetAlpha(done and 0.75 or 1)
             l:ClearAllPoints()
             l:SetPoint("TOPLEFT", 0, -by)
             l:Show()
@@ -796,30 +802,12 @@ Window.Page("dungeons", function(page)
                 end
             end
             row.who:SetText(who)
-            -- What to know before going: it's in your log, you're too low
-            -- for it, or its first part isn't on this list.
+            -- What to know before going: it's in your log, or you're too
+            -- low for it. What comes before and after it is drawn as lines
+            -- above and below, never said here.
             local notes = {}
             if QuestHeld(q[1]) then notes[#notes + 1] = "in your quest log" end
             if (q[4] or q[3]) > mine then notes[#notes + 1] = ("%sneeds level %d|r"):format(RED, q[4] or q[3]) end
-            local before = e.before
-            if before and not parent and not QuestDone(before) then
-                local first = Starts.Get(before)
-                local name = (first and first[1] ~= "" and first[1]) or ("quest " .. before)
-                local where
-                if first then where = Starts.In(Starts.Place(first)) end
-                notes[#notes + 1] = where and ("first %s, %s"):format(name, where) or ("first " .. name)
-            end
-            -- A chain that goes on past this list says so on its last part
-            -- here: with the "2 of 3" tag gone, nothing else would (John,
-            -- 13 Nov 2026: "should we add something for that then?").
-            local after = Starts.Next(q[1])
-            if after and not byId[after] and not under[q[1]] and not QuestDone(after) then
-                local following = Starts.Get(after)
-                if following and following[1] ~= "" then
-                    local where = Starts.In(Starts.Place(following))
-                    notes[#notes + 1] = "|cff9a9688then " .. following[1] .. (where and (", " .. where) or "") .. ", not for this dungeon|r"
-                end
-            end
             row.note:SetText(table.concat(notes, " · "))
             row.level:SetText(("level %d"):format(q[3]))
             row:ClearAllPoints()
@@ -827,18 +815,71 @@ Window.Page("dungeons", function(page)
             row:Show()
             by = by + 25
         end
+        -- What follows a quest and isn't one of this dungeon's: a line under
+        -- it, as a later part has, so a chain that goes on past the list
+        -- shows it (John, 13 Nov 2026: "should we add something for that
+        -- then?").
+        local function Beyond(id, e)
+            local s = Starts.Get(id)
+            if not (s and s[1] ~= "") then return end
+            lines = lines + 1
+            local row = Q.Line(lines)
+            row.quest = id
+            row.spot = (s[5] and s[5] > 0 and s[6] and s[6] > 0) and s or nil
+            row.down:Show()
+            row.across:Show()
+            row.name:ClearAllPoints()
+            row.name:SetPoint("LEFT", 32, 0)
+            row.name:SetText(s[1])
+            row.name:SetTextColor(Style.Color("muted"))
+            local place, kind = Starts.Place(s)
+            local where, who = Starts.In(place, kind), Starts.Who(s)
+            row.who:SetText("then" .. ((where and place ~= e.place) and (", " .. where) or "") .. (who ~= "" and (": " .. who) or ""))
+            row.note:SetText("")
+            row.level:SetText("")
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 0, -by)
+            row:Show()
+            by = by + 25
+        end
+        -- A chain reads the same way whichever of its parts are this
+        -- dungeon's own: the quest before, above; the quest after, below.
+        -- (The first part off the list was a gold note, "first The True
+        -- Masters, in Burning Steppes": John, 13 Nov 2026, "confused on the
+        -- first, i thought we were chaining them now?")
         local drawn = {}
         local function Emit(e, parent)
             if drawn[e] then return end
             drawn[e] = true
             local joined = parent ~= nil
-            if not parent and e.before and QuestDone(e.before) then
-                local first = Starts.Get(e.before)
-                Prior((byId[e.before] and byId[e.before][2]) or (first and first[1] ~= "" and first[1]) or ("quest " .. e.before))
-                joined = true
+            if not parent and e.before then
+                -- Everything that leads up to it, back to the last one
+                -- finished: each a line, the earliest at the top (John, 13
+                -- Nov 2026: "if a start of the quest chains to a quest you
+                -- need to do in a dungeon it should chain appropriately").
+                local lead, id = {}, e.before
+                while id and #lead < 6 and not entries[id] do
+                    lead[#lead + 1] = id
+                    if QuestDone(id) then break end
+                    local s = Starts.Get(id)
+                    id = s and s[8] or nil
+                end
+                for i = #lead, 1, -1 do
+                    local quest = lead[i]
+                    local first = Starts.Get(quest)
+                    local name = (byId[quest] and byId[quest][2]) or (first and first[1] ~= "" and first[1]) or ("quest " .. quest)
+                    if QuestDone(quest) then
+                        Prior(name, true)
+                    else
+                        Prior(name, false, first and Starts.In(Starts.Place(first)) or nil)
+                    end
+                end
+                joined = #lead > 0
             end
             Line(e, joined, parent)
             for _, child in ipairs(under[e.q[1]] or {}) do Emit(child, e) end
+            local after = Starts.Next(e.q[1])
+            if after and not byId[after] and not under[e.q[1]] and not QuestDone(after) then Beyond(after, e) end
         end
         for _, place in ipairs(order) do
             heads = heads + 1
@@ -875,7 +916,7 @@ Window.Page("dungeons", function(page)
             h:SetPoint("TOPLEFT", 0, -by)
             h:Show()
             by = by + 36
-            for _, q in ipairs(closed) do Prior(q[2]) end
+            for _, q in ipairs(closed) do Prior(q[2], true) end
             by = by + 8
         end
         for k = lines + 1, #Q.lines do Q.lines[k]:Hide() end

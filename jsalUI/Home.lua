@@ -235,31 +235,46 @@ local function VisitText(visit)
     return text
 end
 
--- The block's three lines: the level, what it brings, and the gold. The
--- first two things go on the main line; anything more follows the gold.
-function Today.NextLevelLines(info)
-    local items = {}
+-- What the next level brings, a row for each thing: its picture, what it
+-- is, and a word more at the right (what the visit costs and whether you
+-- have it, say). It was three right-aligned lines of text (John, 13 Nov
+-- 2026: "maybe a whole card instead since it looks like we have space").
+function Today.NextLevelRows(info)
+    local rows = {}
     if info.talent then
-        items[#items + 1] = info.rank > 1 and ("%s, rank %d"):format(info.talent.name, info.rank) or info.talent.name
+        rows[#rows + 1] = { icon = info.talent.icon, detail = "your build's next talent",
+            label = info.rank > 1 and ("%s, rank %d"):format(info.talent.name, info.rank) or info.talent.name }
     end
-    if info.visit then items[#items + 1] = VisitText(info.visit) end
-    if info.dungeon then items[#items + 1] = info.dungeon .. " opens" end
-    if info.profession then items[#items + 1] = info.profession end
-
-    local under = {}
-    if info.visit and info.visit.cost > 0 then
-        local short = info.visit.cost - info.money
-        under[1] = ("You have %s: %s"):format(Compat.Money(info.money), short > 0
-            and (Style.Tint("red") .. Compat.Money(short) .. " short|r")
-            or (Style.Tint("green") .. "enough|r"))
+    if info.visit then
+        local detail = VisitText(info.visit)
+        if info.visit.cost > 0 then
+            local short = info.visit.cost - info.money
+            detail = detail .. " · " .. (short > 0 and (Style.Tint("red") .. Compat.Money(short) .. " short|r")
+                or (Style.Tint("green") .. "you have enough|r"))
+        end
+        rows[#rows + 1] = { icon = OWN .. "training", label = ("Trainer visit at %d"):format(info.level), detail = detail }
     elseif info.later then
-        under[1] = ("Next trainer visit at %d: %s"):format(info.later.level, VisitText(info.later))
+        rows[#rows + 1] = { icon = OWN .. "training", label = ("Trainer visit at %d"):format(info.later.level), detail = VisitText(info.later) }
     end
-    for i = 3, #items do under[#under + 1] = items[i] end
-    local main = items[1] or ""
-    if items[2] then main = main .. " · " .. items[2] end
-    if main == "" then main, under = under[1] or "", {} end
-    return ("AT LEVEL %d"):format(info.level), main, table.concat(under, " · ")
+    if info.dungeon then
+        rows[#rows + 1] = { icon = OWN .. "dungeons", label = info.dungeon .. " opens", detail = "a dungeon for your level" }
+    end
+    if info.profession then
+        rows[#rows + 1] = { icon = OWN .. "professions", label = info.profession, detail = "at a trainer" }
+    end
+    return rows
+end
+
+-- A number with its thousands apart: 47,000.
+local function Thousands(n)
+    local text = tostring(math.floor(n or 0)):reverse():gsub("(%d%d%d)", "%1,"):reverse()
+    return (text:gsub("^,", ""))
+end
+
+-- Today's date, as "Friday 13 November".
+local function DateText()
+    if not date then return "" end
+    return ("%s %d %s"):format(date("%A"), tonumber(date("%d")) or 0, date("%B"))
 end
 
 -- Your companion, when it wants something from you: what to say, and its
@@ -319,13 +334,6 @@ local function Ready()
                 if nearest then ns.Trainers.Pin(nearest) else Window.Open("training") end
             end,
         })
-    end)
-
-    Try(function()
-        local wants = Today.Pet()
-        if not wants then return end
-        Add({ texture = wants.texture, title = wants.title, sub = wants.sub,
-            button = "Open", click = function() Window.Open("pet") end })
     end)
 
     Try(function()
@@ -392,24 +400,81 @@ Window.Page("home", function(page)
     local who = Style.Text(page, 13, "muted")
     who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
-    -- What the next level brings, at the right of the title: three short
-    -- lines, hidden when there's nothing to say or the part is off.
-    local nextHead = Caps(page, "")
-    nextHead:SetPoint("TOPRIGHT", title, "TOPLEFT", width, 0)
-    local nextMain = Style.Text(page, 13, "text")
-    nextMain:SetPoint("TOPRIGHT", nextHead, "BOTTOMRIGHT", 0, -5)
-    local nextUnder = Style.Text(page, 12, "muted")
-    nextUnder:SetPoint("TOPRIGHT", nextMain, "BOTTOMRIGHT", 0, -3)
-    for _, line in ipairs({ nextHead, nextMain, nextUnder }) do
-        line:SetJustifyH("RIGHT")
-        line:SetWordWrap(false)
+    -- The date, beside the title (John, 13 Nov 2026: "i also think we
+    -- should have the date here").
+    local today = Style.Text(page, 13, "muted")
+    today:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 12, 2)
+
+    -- Your pal, when it wants something: its picture, what it wants and
+    -- what you have for it, under your name; a click opens its pen. It was
+    -- a row of Ready now (John, 13 Nov 2026: "how about if we add jsal
+    -- pal's any immediate needs as well?"); it's said once, here.
+    local pal = CreateFrame("Button", nil, page)
+    pal:SetSize(half - GAP, 40)
+    pal:SetPoint("TOPLEFT", who, "BOTTOMLEFT", -4, -8)
+    pal.icon = pal:CreateTexture(nil, "ARTWORK")
+    pal.icon:SetSize(38, 38)
+    pal.icon:SetPoint("LEFT")
+    pal.title = Style.Text(pal, 13, "gold", nil, true)
+    pal.title:SetPoint("TOPLEFT", pal.icon, "TOPRIGHT", 8, -3)
+    pal.sub = Style.Text(pal, 12, "muted")
+    pal.sub:SetPoint("TOPLEFT", pal.title, "BOTTOMLEFT", 0, -3)
+    pal:SetScript("OnClick", function() Window.Open("pet") end)
+    Style.Hover(pal, 4)
+    pal:Hide()
+
+    -- What the next level brings, as a card at the right of the title: the
+    -- level, how far through this one you are, and a row for each thing.
+    -- Hidden when there's nothing to say or the part is off.
+    local cardW = math.min(380, half)
+    local rowW = cardW - PAD * 2 - 2
+    local nextCard = CreateFrame("Frame", nil, page)
+    nextCard:SetWidth(cardW)
+    nextCard:SetPoint("TOPRIGHT", title, "TOPLEFT", width, 4)
+    Style.Fill(nextCard, "well")
+    nextCard.edge = nextCard:CreateTexture(nil, "ARTWORK")
+    nextCard.edge:SetColorTexture(Style.Color("gold"))
+    nextCard.edge:SetPoint("TOPLEFT")
+    nextCard.edge:SetPoint("BOTTOMLEFT")
+    nextCard.edge:SetWidth(3)
+    nextCard.head = Caps(nextCard, "")
+    nextCard.head:SetPoint("TOPLEFT", PAD + 2, -11)
+    nextCard.xp = Style.Text(nextCard, 11, "muted")
+    nextCard.xp:SetPoint("TOPRIGHT", -PAD, -11)
+    nextCard.xp:SetJustifyH("RIGHT")
+    nextCard.track = CreateFrame("Frame", nil, nextCard)
+    nextCard.track:SetPoint("TOPLEFT", PAD + 2, -30)
+    nextCard.track:SetSize(rowW, 3)
+    Style.Fill(nextCard.track, "line")
+    nextCard.fill = nextCard.track:CreateTexture(nil, "ARTWORK")
+    nextCard.fill:SetPoint("TOPLEFT")
+    nextCard.fill:SetPoint("BOTTOMLEFT")
+    nextCard.fill:SetColorTexture(Style.Color("gold"))
+    nextCard.rows = {}
+    local function NextRow(i)
+        if nextCard.rows[i] then return nextCard.rows[i] end
+        local r = CreateFrame("Frame", nil, nextCard)
+        r:SetSize(rowW, 26)
+        r:SetPoint("TOPLEFT", PAD + 2, -(42 + (i - 1) * 28))
+        r.icon = r:CreateTexture(nil, "ARTWORK")
+        r.icon:SetSize(20, 20)
+        r.icon:SetPoint("LEFT")
+        r.detail = Style.Text(r, 12, "muted")
+        r.detail:SetPoint("RIGHT")
+        r.detail:SetJustifyH("RIGHT")
+        r.label = Style.Text(r, 13, "text")
+        r.label:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
+        r.label:SetPoint("RIGHT", r.detail, "LEFT", -8, 0)
+        r.label:SetJustifyH("LEFT")
+        r.label:SetWordWrap(false)
+        nextCard.rows[i] = r
+        return r
     end
-    nextMain:SetWidth(math.floor(width * 0.62))
-    nextUnder:SetWidth(math.floor(width * 0.62))
 
     -- Ready now: one box, a row for each thing waiting.
     local readyHead = Caps(page, "READY NOW")
     readyHead:SetPoint("TOPLEFT", who, "BOTTOMLEFT", 0, -24)
+    local headerTall = 46      -- the title and your name; more with the pal or the card
     local readyCount = Style.Text(page, 11, "muted")
     readyCount:SetPoint("LEFT", readyHead, "RIGHT", 8, 0)
     local list = CreateFrame("Frame", nil, page)
@@ -620,21 +685,61 @@ Window.Page("home", function(page)
         end
     end
 
+    -- The card: returns how tall it is, 0 when it's hidden.
     local function PaintNext()
         local info = Today.NextLevel()
-        for _, line in ipairs({ nextHead, nextMain, nextUnder }) do line:SetShown(info ~= nil) end
-        if not info then return end
-        local head, main, under = Today.NextLevelLines(info)
-        nextHead:SetText(head)
-        nextMain:SetText(main)
-        nextUnder:SetText(under)
+        nextCard:SetShown(info ~= nil)
+        if not info then return 0 end
+        nextCard.head:SetText(("AT LEVEL %d"):format(info.level))
+        local xp, most = UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0
+        local known = (most or 0) > 0
+        nextCard.xp:SetShown(known)
+        nextCard.track:SetShown(known)
+        if known then
+            nextCard.xp:SetText(("%s of %s XP"):format(Thousands(xp), Thousands(most)))
+            nextCard.fill:SetWidth(math.max(1, rowW * math.min(1, (xp or 0) / most)))
+        end
+        local lines = Today.NextLevelRows(info)
+        for i, line in ipairs(lines) do
+            local r = NextRow(i)
+            r.icon:SetTexture(line.icon or (OWN .. "build"))
+            r.label:SetText(line.label)
+            r.detail:SetText(line.detail or "")
+            r:Show()
+        end
+        for i = #lines + 1, #nextCard.rows do nextCard.rows[i]:Hide() end
+        local tall = 42 + #lines * 28 + 8
+        nextCard:SetHeight(tall)
+        return tall
+    end
+
+    -- The top of the page: the date, your pal's need, the card; and Ready
+    -- now starts under whichever of the two sides is taller.
+    local function PaintHeader()
+        today:SetText(DateText())
+        local wants = Today.Pet()
+        pal:SetShown(wants ~= nil)
+        if wants then
+            pal.icon:SetTexture(wants.texture)
+            pal.title:SetText(wants.title)
+            pal.sub:SetText(wants.sub)
+        end
+        local ok, card = pcall(PaintNext)
+        if not ok then
+            nextCard:Hide()
+            ns.Report(card)
+            card = 0
+        end
+        headerTall = math.max(46 + (wants and 50 or 0), card - 4)
+        readyHead:ClearAllPoints()
+        readyHead:SetPoint("TOPLEFT", title, "TOPLEFT", 0, -(headerTall + 24))
     end
 
     page.Refresh = function()
         who:SetText(("%s, level %d %s"):format(UnitName("player") or "", UnitLevel("player") or 0, UnitClass("player") or ""))
         news:SetShown(NewsWanted())
         PaintReady()
-        for _, paint in ipairs({ PaintNext, PaintBuild, PaintGear, PaintProfessions, PaintDungeons }) do
+        for _, paint in ipairs({ PaintHeader, PaintBuild, PaintGear, PaintProfessions, PaintDungeons }) do
             xpcall(paint, ns.Report)
         end
     end
