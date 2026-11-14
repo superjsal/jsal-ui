@@ -1,4 +1,8 @@
-# jsal.ui 0.3.40
+# jsal.ui 0.3.41
+
+- **Professions: the trainer named for your next rank is one who teaches it.** A trainer's title is one step above what they teach: an Expert Leatherworker teaches Journeyman, and Expert is learned from an Artisan. The panel read the title as the rank, so it sent you to the wrong trainer for Expert and Artisan. Where no trainer for a rank is known, none is named.
+
+## In 0.3.40
 
 - **Professions: your road keeps to orange and yellow recipes.** A green recipe is now a last resort, taken only when there's nothing else you can make. The road used to pick one whenever it would use up leftovers in your bags or bank, and a green recipe can take ten crafts to give a point.
 - **Professions: a material in your bank is said to be there.** The step in hand read "you have enough" for things that were in the bank; it now says how many to fetch from it.
