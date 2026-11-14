@@ -43,8 +43,8 @@ local GROUPS = {
 local SHORT = {
     dailyword = "One word a day, the same for everyone",
     iconguess = "Name the spell from its icon",
-    chess = "Chess with guildmates, a move at a time",
-    flight = "Route, time left and games while you fly",
+    chess = "Chess with guildmates, move by move",
+    flight = "Route, time left and games in flight",
     guild = "Guildmates' scores and the Guild Word",
     pet = "A small creature of your own to raise",
     talents = "Names your next talent",
@@ -63,14 +63,31 @@ local SHORT = {
     launcher = "A small bar of buttons you can move",
     minimap = "Opens the dashboard from the minimap",
     menubar = "The game's menu bar, in jsal.ui's look",
-    bagbutton = "One button for your bags and free space",
+    bagbutton = "One button for all your bags",
     vendor = "Repairs and sells grey items for you",
     warnings = "Full bags, and gear about to break",
-    waypoint = "Where the map marker leads, and how far",
+    waypoint = "Where the map marker leads",
     foodtile = "A reminder when you aren't Well Fed",
     rangecheck = "Hunters: melee, dead zone or shooting",
     layers = "Your layer, and a way to change it",
     sharedFonts = "jsal.ui's font in other addons' lists",
+}
+
+-- A picture for each part's card: one of the menu bar's (Media\\Icons\\Menu)
+-- where it has one that fits, else one drawn for the part
+-- (tools/make_part_icons.mjs). White shapes, tinted gold while the part is
+-- on and grey while it's off.
+local ICON_PATH = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
+local ICON = {
+    dailyword = "Parts\\dailyword", iconguess = "Menu\\help", chess = "Parts\\chess", flight = "Parts\\flight",
+    guild = "Menu\\guild", pet = "Parts\\pet",
+    talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", dungeons = "Parts\\dungeons",
+    nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
+    tametip = "Parts\\tametip",
+    professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
+    launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
+    vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",
+    rangecheck = "Parts\\rangecheck", layers = "Parts\\layers", sharedFonts = "Parts\\sharedFonts",
 }
 
 -- A part's short line: its own, or its note up to the first full stop.
@@ -166,12 +183,19 @@ local function Card(parent, width, small)
         if row.onChange then row.onChange(on) end
     end)
     row.switch:SetPoint("RIGHT", -12, 0)
+    -- A part's card has its picture at the left, and its words beside it.
+    local textX = small and 16 or 48
+    if not small then
+        row.icon = row:CreateTexture(nil, "ARTWORK")
+        row.icon:SetSize(22, 22)
+        row.icon:SetPoint("LEFT", 15, 0)
+    end
     row.name = Style.Text(row, small and 12 or 14, "text", nil, not small)
-    row.name:SetPoint("TOPLEFT", 16, small and -5 or -11)
+    row.name:SetPoint("TOPLEFT", textX, small and -5 or -11)
     row.name:SetWordWrap(false)
     row.note = Style.Text(row, small and 11 or 12, "muted")
-    row.note:SetPoint("TOPLEFT", 16, small and -21 or -33)
-    row.note:SetWidth(width - 16 - SWITCH_W - 28)
+    row.note:SetPoint("TOPLEFT", textX, small and -21 or -33)
+    row.note:SetWidth(width - textX - SWITCH_W - 28)
     row.note:SetJustifyH("LEFT")
     row.note:SetWordWrap(false)
     row:SetScript("OnClick", function() row.switch:Click() end)
@@ -196,6 +220,13 @@ local function Card(parent, width, small)
         self.switch:SetOn(on)
         self.edge:SetColorTexture(Style.Color(on and "gold" or "lineStrong"))
         self.name:SetTextColor(Style.Color(on and "text" or "muted"))
+        if self.icon then self.icon:SetVertexColor(Style.Color(on and "gold" or "muted")) end
+    end
+    -- A part's picture, by its key; none for a part that has none.
+    function row:Picture(key)
+        if not self.icon then return end
+        self.icon:SetShown(ICON[key] ~= nil)
+        if ICON[key] then self.icon:SetTexture(ICON_PATH .. ICON[key]) end
     end
     return row
 end
@@ -391,6 +422,7 @@ Window.Page("settings", function(page)
             row:Set(module.title, module.failed and "Turned off after an error this session" or Short(module),
                 module.failed and "Turned off after an error this session. BugSack has the details." or module.note or "", wanted)
             if module.failed then row.name:SetTextColor(Style.Color("muted")) end
+            row:Picture(module.key)
             row.command:Say(Command(module))
             row.command:ClearAllPoints()
             row.command:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
@@ -401,7 +433,7 @@ Window.Page("settings", function(page)
                 local w = text.GetStringWidth and text:GetStringWidth()
                 return type(w) == "number" and w or 0
             end
-            local taken = 16 + Wide(row.name) + 8 + (row.command:IsShown() and (Wide(row.command.text) + 18) or 0)
+            local taken = 48 + Wide(row.name) + 8 + (row.command:IsShown() and (Wide(row.command.text) + 18) or 0)
             row.tag:ClearAllPoints()
             if taken + Wide(row.tag.text) + 12 > cardW - SWITCH_W - 24 then
                 row.tag:SetPoint("LEFT", row.note, "LEFT", Wide(row.note) + 8, 0)
