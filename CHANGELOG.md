@@ -12,6 +12,9 @@ Restart the game after updating (exit and start it again): this version adds new
 - **Jsal's Pals: weather in the pen (new, off to start).** When it rains or snows where you are, or a sandstorm blows, it does in your pal's pen too, and heavy snow falls thicker. Turn on **Weather in its pen** under Jsal's Pals in /jsal settings.
   - It isn't drawn while your pal is out with you: the real thing is all round you.
 
+- **Training: a talent's later ranks are only for those who have the talent.** Counterattack Rank 2, Mortal Strike Rank 2, Pyroblast Rank 2 and the like were listed as ready to train for everyone, and the trainer wouldn't teach them. Now they show only once you've taken the talent, for every class: in the trainer panel, the Training Planner and the Today card.
+- **Training: a pet trainer is no longer taken for a hunter trainer.** With everything bought from a pet trainer, the panel was headed "Hunter trainer" and listed your own spells.
+
 ## In 0.3.37
 
 Coming from 0.3.36 or earlier, restart the game after updating: 0.3.37 added a new picture.

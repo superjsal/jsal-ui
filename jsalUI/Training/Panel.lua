@@ -819,11 +819,25 @@ local function TrainerKind()
         for _, entry in ipairs(list) do pets[entry[1]] = true end
     end
     for _, id in ipairs(source.weapons or {}) do weapons[id] = true end
+    local function Of(id) return id and (pets[id] and "pet" or weapons[id] and "weapons") or nil end
     for i = 1, GetNumTrainerServices() do
         local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
-        local id = info and info.id
-        if id and pets[id] then return "pet" end
-        if id and weapons[id] then return "weapons" end
+        local kind = Of(info and info.id)
+        if kind then return kind end
+    end
+    -- The rows in sight may not say: the game's list can leave out what's
+    -- learned, so a pet trainer with everything bought shows none at all,
+    -- and looked like a class trainer (John, 13 Nov 2026, at a pet trainer:
+    -- "bug, this is the pet trainer"). The visit saved for this trainer
+    -- holds every row; and the pet trainers jsal.ui ships are known by name.
+    local visit = ns.TrainerPrices.Here and ns.TrainerPrices.Here()
+    for _, row in ipairs(visit and ns.TrainerPrices.RowsOf(visit) or {}) do
+        local kind = Of(row.spell)
+        if kind then return kind end
+    end
+    local name = Compat.Name("npc")
+    for _, trainer in ipairs(ns.TrainerData and ns.TrainerData.pet or {}) do
+        if name and trainer.name == name then return "pet" end
     end
     return "class"
 end
