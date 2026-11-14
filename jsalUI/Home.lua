@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
+    "The trainer named for your next profession rank is one who teaches it",
     "Your profession road keeps to orange and yellow recipes: a green one is a last resort",
-    "A material that's in your bank is said to be there, with how many to fetch",
     "From 0.3.39: quest tags, off to start. Turn them on under Leveling in /jsal settings",
 }
 

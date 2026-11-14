@@ -321,7 +321,7 @@ local function CheckRanks()
             local text = ("%s %d: you can train %s now."):format(p.name, p.skill, rank.next)
             local where = trainer and ("%s%s"):format(trainer.name, place and (", " .. place) or "")
             Banner(("%s %d: train %s now"):format(p.name, p.skill, rank.next),
-                where and ("Nearest trainer: %s · click to show on map"):format(where) or "Any trainer for it can teach you", trainer)
+                where and ("Nearest trainer: %s · click to show on map"):format(where) or "jsal.ui doesn't know a trainer for it", trainer)
             ns.Print(text .. (where and (" Nearest trainer: %s."):format(where) or ""))
         end
     end

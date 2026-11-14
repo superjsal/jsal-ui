@@ -7,15 +7,22 @@ local Compat = ns.Compat
 local Trainers = {}
 ns.Trainers = Trainers
 
--- The highest profession rank a trainer teaches, from the title over its
--- head: "Journeyman Tailor" teaches up to Journeyman.
-local RANK_WORDS = { Apprentice = 1, Journeyman = 2, Expert = 3, Artisan = 4, Master = 4 }
+-- The highest profession rank a trainer teaches (1 Apprentice to 4
+-- Artisan), from the title over its head, which is one step above it: an
+-- "Expert Leatherworker" teaches up to Journeyman, an "Artisan" one Expert,
+-- a "Master" one Artisan. Nil when the title has no such word. The title
+-- was read as the rank itself, so at Leatherworking 126 the panel named
+-- Fimble Finespindle, Expert Leatherworker, for Expert, and his list has
+-- Journeyman and no Expert. (John, 14 Nov 2026, at that trainer: "i also
+-- dont see expert leatherworking here".)
+local RANK_WORDS = { Journeyman = 1, Expert = 2, Artisan = 3, Master = 4 }
 local function TeachesRank(tag)
     for word, rank in pairs(RANK_WORDS) do
         if tag and tag:find(word, 1, true) then return rank end
     end
-    return 4
+    return nil
 end
+Trainers.TeachesRank = TeachesRank
 
 local function Friendly(trainer)
     local faction = UnitFactionGroup("player")
@@ -42,9 +49,17 @@ function Trainers.Nearest(key, rank)
     local map, px, py = Compat.PlayerPosition()
     local here, hx, hy
     if map then here, hx, hy = World(map, px, py) end
+    -- A trainer with no rank in its title: where none of a profession's do
+    -- (cooking, first aid, mining), any of them teaches it; where the rest
+    -- do (a neutral town's plain "Leatherworker"), what it teaches isn't
+    -- known, so it's named for nothing past Journeyman.
+    local titled = false
+    for _, t in ipairs(list) do
+        if TeachesRank(t.tag) then titled = true break end
+    end
     local best, bestDistance
     for _, t in ipairs(list) do
-        if Friendly(t) and (not rank or TeachesRank(t.tag) >= rank) then
+        if Friendly(t) and (not rank or (TeachesRank(t.tag) or (titled and 2 or 4)) >= rank) then
             local continent, wx, wy = World(t.map, t.x, t.y)
             -- Another continent, or no position (an instance), counts as far.
             local d = 1e9
