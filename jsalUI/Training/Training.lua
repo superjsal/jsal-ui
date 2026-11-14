@@ -177,6 +177,20 @@ function Training.Read()
         local have = book.ranks[name]
         return have ~= nil and have >= (tonumber(rank and rank:match("(%d+)")) or 0)
     end
+    -- A later rank of a talent's ability (Counterattack Rank 2) is sold only
+    -- to someone who has the talent, so for everyone else it isn't a spell
+    -- to train at all (John, 13 Nov 2026, a hunter with no Counterattack:
+    -- "it looks like counterattack is not available"). Having the talent
+    -- shows as its own spell, or as any rank of that name in the spellbook.
+    local talent = source.talent or {}
+    local function Untaken(id, name)
+        local firsts = talent[id]
+        if not firsts or book.ranks[name] ~= nil or IsPlayerSpell(id) or trained[id] then return false end
+        for _, first in ipairs(firsts) do
+            if IsPlayerSpell(first) then return false end
+        end
+        return true
+    end
     -- Spells no class trainer sells come from a class quest, a book or (for
     -- a mage's teleports) a portal trainer, and say so. A priest's racial
     -- ranks are sold by trainers to that race only, so they show as usual.
@@ -187,7 +201,8 @@ function Training.Read()
         local via = elsewhere[id]
         local shown = via ~= nil
         if via == "trainer" then via = nil end
-        if name and ForMyRace(race) and (not prices.haveTrainer or prices.listed[id] or shown or IsPlayerSpell(id)) then
+        if name and ForMyRace(race) and not Untaken(id, name)
+            and (not prices.haveTrainer or prices.listed[id] or shown or IsPlayerSpell(id)) then
             local rank = Rank(id)
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
