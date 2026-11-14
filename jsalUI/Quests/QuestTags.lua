@@ -152,7 +152,8 @@ end
 ---------------------------------------------------------------------------
 function QuestTags.ChainLine(questID)
     local info = QuestTags.Info(questID)
-    if not (info and info.step) then return "Not part of a chain: skipping it loses no other quests." end
+    if not info then return "New to Forever, so whether other quests follow it isn't known." end
+    if not info.step then return "Not part of a chain: skipping it loses no other quests." end
     local after = info.chain - info.step
     if after <= 0 then
         return ("The last of a chain of %d: skipping it loses no other quests."):format(info.chain)
