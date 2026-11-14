@@ -12,7 +12,7 @@ local Shopping = ns.NewModule("shopping", {
     title = "Shopping list",
     note = "What to craft and buy, less what you have, with prices. /jsal shop",
     options = {
-        { key = "craftMats", title = "Add something you can craft as its craft, with its mats", default = false,
+        { key = "craftMats", title = "Add what you can craft, with its mats", default = false,
           note = "When one of your professions makes an item you add (a Camp Tent, say), the list adds the craft and what it takes. Buy it instead puts the item back." },
     },
 })

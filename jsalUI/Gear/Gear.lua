@@ -472,6 +472,33 @@ function Gear.TwoHander()
     return equipLoc == "INVTYPE_2HWEAPON" and link or nil
 end
 
+-- Whether a piece beats what you wear where it goes, by your spec's
+-- weights: true or false, or nil when that can't be told (it isn't worn,
+-- the game hasn't loaded it, or your spec has no weights). For a dungeon's
+-- loot, which has the item's slot, class and subclass from the game. A ring
+-- or trinket is measured against the weaker of your two.
+function Gear.Better(id, equipLoc, classID, subclassID)
+    local invType = Gear.INVTYPE[equipLoc or ""]
+    local slot = invType and Gear.SlotOf(invType)
+    if not slot then return nil end
+    local classFile, level = ClassFile(), UnitLevel("player") or 1
+    if Gear.ForClass(classFile, level, classID, subclassID, invType) == false
+        and not Gear.CanWear(classFile, level, classID, subclassID) then return false end
+    -- Nothing goes in the off hand under a two-hander.
+    if slot.key == "off" and Gear.TwoHander() then return false end
+    local weights = Gear.Weights()
+    local stats = weights and Stats(id)
+    if not stats then return nil end
+    local worst
+    for _, equip in ipairs(slot.equip) do
+        local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
+        if link and tonumber(link:match("item:(%d+)")) == id then return false end
+        local score = link and Gear.Score(Stats(link) or {}, weights, slot.dps) or 0
+        if not worst or score < worst then worst = score end
+    end
+    return (Gear.Score(stats, weights, slot.dps) or 0) > (worst or 0) + 0.01
+end
+
 -- The pieces in your bags that go in a slot and that you can wear: their
 -- item IDs. A piece you took off, or a quest's reward you've had, is in no
 -- list of upgrades to go and get, but it's the easiest one to put on.

@@ -12,7 +12,7 @@
 local _, ns = ...
 local Style, Window = ns.Style, ns.Window
 
-local CARD_H, OPTION_H, GAP, HEAD_H = 58, 38, 8, 26
+local CARD_H, OPTION_H, GAP, HEAD_H = 58, 30, 8, 26
 local LIST_TOP, BAR_H = 84, 52
 local SWITCH_W = 36
 
@@ -163,9 +163,12 @@ end
 
 -- A card: a name, one line under it, and a switch at the right. Clicking
 -- anywhere on it flips the switch, which calls row.onChange. Pointing at a
--- part's card shows the whole of what it does; at an option's, its line
--- when that was cut. A small card is one of a part's options, under it on a
--- darker fill.
+-- card shows the whole of what it does. A small card is one of a part's
+-- options, under it on a darker fill: its name and its switch, with what it
+-- does in its tooltip alone. (It had a line under its name, cut short.
+-- John, 16 Nov 2026: "i think we can get rid of the text underneath the
+-- share boss loot, since you hover over it anyway", "that applies to all
+-- the settings".)
 local function Card(parent, width, small)
     local row = CreateFrame("Button", nil, parent)
     row:SetSize(width, small and OPTION_H or CARD_H)
@@ -191,18 +194,30 @@ local function Card(parent, width, small)
         row.icon:SetPoint("LEFT", 15, 0)
     end
     row.name = Style.Text(row, small and 12 or 14, "text", nil, not small)
-    row.name:SetPoint("TOPLEFT", textX, small and -5 or -11)
+    if small then
+        row.name:SetPoint("LEFT", textX, 0)
+    else
+        row.name:SetPoint("TOPLEFT", textX, -11)
+    end
     row.name:SetWordWrap(false)
+    -- An option's name stops short of its switch, like its line under it.
+    -- (A part's name is short, and has its tags after it.) John's
+    -- screenshot, 16 Nov 2026: "Add something you can craft as its craft,
+    -- with its mats" ran on under the switch.
+    if small then
+        row.name:SetWidth(width - textX - SWITCH_W - 28)
+        row.name:SetJustifyH("LEFT")
+    end
     row.note = Style.Text(row, small and 11 or 12, "muted")
     row.note:SetPoint("TOPLEFT", textX, small and -21 or -33)
     row.note:SetWidth(width - textX - SWITCH_W - 28)
     row.note:SetJustifyH("LEFT")
     row.note:SetWordWrap(false)
+    if small then row.note:Hide() end
     row:SetScript("OnClick", function() row.switch:Click() end)
     row:SetScript("OnEnter", function(self)
         self.hover:Show()
-        local cut = self.note.IsTruncated and self.note:IsTruncated()
-        if self.full and self.full ~= "" and (not small or cut) then
+        if self.full and self.full ~= "" then
             GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
             GameTooltip:SetText(self.title)
             GameTooltip:AddLine(self.full, 1, 1, 1, true)
@@ -372,6 +387,10 @@ Window.Page("settings", function(page)
     local footer = Style.Text(page, 11, "muted")
     footer:SetPoint("BOTTOMLEFT")
     footer:SetText("jsal.ui " .. ns.version .. ", free from jsal.io")
+    local pointer = Style.Text(page, 11, "muted")
+    pointer:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", width, 0)
+    pointer:SetJustifyH("RIGHT")
+    pointer:SetText("Point at a part for all it does")
 
     local function PaintBar()
         local names = {}
@@ -409,7 +428,11 @@ Window.Page("settings", function(page)
             total = total + 1
             if ns.ModuleWanted(module) then on = on + 1 end
         end
-        summary:SetText(("%d of %d parts are on  ·  point at one for all it does"):format(on, total))
+        -- Short enough to fit beside the widest row of tabs: with "point at
+        -- one for all it does" after it, its start ran under the last tab
+        -- (John's screenshot, 16 Nov 2026: "s are on · point at one for all
+        -- it does"). That hint is at the foot of the page now.
+        summary:SetText(("%d of %d parts are on"):format(on, total))
 
         -- A part's card at (x, y), its options under it when they're open.
         -- Returns how tall it came to.

@@ -340,7 +340,11 @@ local function CheckRanks()
     end
 end
 
--- A death; its cause isn't known, since that came from the combat log.
+-- A death. What dealt the blow isn't known, since that came from the
+-- combat log; what you were fighting is: your target as you died, when it's
+-- something alive that you can attack. That's counted by name, for the
+-- Summary's nemesis. (Nothing was, and the card said "No one yet" beside 22
+-- deaths: John's screenshot, 16 Nov 2026.)
 local diedAt
 local function Dead()
     -- The game can say it twice for one death, in the same moment.
@@ -348,6 +352,14 @@ local function Dead()
     if diedAt and now - diedAt < 5 then return end
     diedAt = now
     Add("deaths")
+    if UnitExists and UnitExists("target") and UnitCanAttack and UnitCanAttack("player", "target")
+        and not (UnitIsDead and UnitIsDead("target")) then
+        local name = Compat.Name("target")
+        if name then
+            local killers = Book().killers
+            killers[name] = (killers[name] or 0) + 1
+        end
+    end
     Journal.Note("death", "Died")
 end
 
@@ -398,7 +410,8 @@ end
 
 -- The story, newest first, of one kind group or all: rows of events.
 local GROUPS = { levels = { level = true }, kills = { kill = true, boss = true }, loot = { loot = true },
-                 deaths = { death = true }, more = { prof = true, guild = true, duel = true, start = true, pet = true } }
+                 deaths = { death = true }, pals = { pet = true },
+                 more = { prof = true, guild = true, duel = true, start = true } }
 function Journal.Story(group)
     local out, events, only = {}, Book().events, GROUPS[group]
     for i = #events, 1, -1 do
