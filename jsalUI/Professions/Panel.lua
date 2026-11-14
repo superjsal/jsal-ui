@@ -390,7 +390,7 @@ local function RankRow()
     r:SetScript("OnEnter", function(self)
         if not self.trainer then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:AddLine("Click to show the trainer on your map.", 0.6, 0.59, 0.53)
+        GameTooltip:AddLine("Click to show them on your map.", 0.6, 0.59, 0.53)
         GameTooltip:Show()
     end)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -816,18 +816,18 @@ function Paint()
         local function Rank(y)
             local r = RankRow()
             -- Some ranks aren't a trainer's to teach: a book, or a quest.
-            local what, about
-            if Professions.RankFrom then what, about = Professions.RankFrom(line, rank.next) end
-            local trainer = not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1) or nil
+            local what, about, who
+            if Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
+            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
             r.trainer = trainer
             local doing = what or ("train " .. rank.next)
             r.title:SetText(skill >= rank.at and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rank.at, doing))
             local parts = {}
-            if about then parts[#parts + 1] = about end
-            if trainer then parts[#parts + 1] = trainer.name .. (place and (", " .. place) or "") end
+            if about and not who then parts[#parts + 1] = about end
+            if trainer then parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "") end
             if not what and (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
-            if #parts == 0 then parts[1] = "Any trainer for it can teach you" end
+            if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
             r.sub:SetText(table.concat(parts, " · "))
             Place(r, y)
             ranked = true

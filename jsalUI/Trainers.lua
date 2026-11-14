@@ -15,14 +15,38 @@ ns.Trainers = Trainers
 -- Fimble Finespindle, Expert Leatherworker, for Expert, and his list has
 -- Journeyman and no Expert. (John, 14 Nov 2026, at that trainer: "i also
 -- dont see expert leatherworking here".)
+--
+-- Two kinds of title aren't on that ladder. A specialisation's trainer
+-- teaches its own recipes and no rank at all, "Master" in the title or not:
+-- a Master Goblin Engineer was named for Artisan Engineering as readily as
+-- the Master Engineer. And a "Junior Mining Trainer" teaches Apprentice
+-- alone, where a plain "Miner" teaches all four. (Wowhead Forever's Teaches
+-- lists, 14 Nov 2026: Nixx Sprocketspring, Oglethorpe Obnoticus, Thorkaf
+-- Dragoneye, Jalane Ayrole and Shayis Steelfury teach no rank; Buzzek
+-- Bracketswing, Master Engineer, all four; Kelsey Fargo, Junior Mining
+-- Trainer, Apprentice; Krunn and Pikkle, Miner, all four.) The second
+-- answer is true for a title on the ladder.
 local RANK_WORDS = { Journeyman = 1, Expert = 2, Artisan = 3, Master = 4 }
+local SPECIALISTS = { "Goblin", "Gnome", "Gnomish", "Dragonscale", "Elemental", "Tribal", "Shadoweave",
+                      "Armor Crafter", "Weapon Crafter", "Armorsmith", "Weaponsmith" }
 local function TeachesRank(tag)
+    if not tag then return nil end
+    for _, word in ipairs(SPECIALISTS) do
+        if tag:find(word, 1, true) then return 0, false end
+    end
+    if tag:find("Junior", 1, true) then return 1, false end
     for word, rank in pairs(RANK_WORDS) do
-        if tag and tag:find(word, 1, true) then return rank end
+        if tag:find(word, 1, true) then return rank, true end
     end
     return nil
 end
 Trainers.TeachesRank = TeachesRank
+
+-- What a trainer with no such word in its title teaches, where it isn't
+-- everything: Cooking's teach Apprentice and Journeyman and no more (Cook
+-- Ghilm, Cooking Trainer; Tomas, Cook; Mudduk, Superior Cook: Wowhead
+-- Forever, 14 Nov 2026), so nobody is named for Expert or Artisan Cooking.
+local PLAIN = { skill185 = 2 }
 
 local function Friendly(trainer)
     local faction = UnitFactionGroup("player")
@@ -50,16 +74,18 @@ function Trainers.Nearest(key, rank)
     local here, hx, hy
     if map then here, hx, hy = World(map, px, py) end
     -- A trainer with no rank in its title: where none of a profession's do
-    -- (cooking, first aid, mining), any of them teaches it; where the rest
-    -- do (a neutral town's plain "Leatherworker"), what it teaches isn't
-    -- known, so it's named for nothing past Journeyman.
+    -- (first aid, mining), any of them teaches it, unless PLAIN says less;
+    -- where the rest do (a neutral town's plain "Leatherworker"), what it
+    -- teaches isn't known, so it's named for nothing past Journeyman.
     local titled = false
     for _, t in ipairs(list) do
-        if TeachesRank(t.tag) then titled = true break end
+        local _, ladder = TeachesRank(t.tag)
+        if ladder then titled = true break end
     end
+    local plain = titled and 2 or PLAIN[key] or 4
     local best, bestDistance
     for _, t in ipairs(list) do
-        if Friendly(t) and (not rank or (TeachesRank(t.tag) or (titled and 2 or 4)) >= rank) then
+        if Friendly(t) and (not rank or (TeachesRank(t.tag) or plain) >= rank) then
             local continent, wx, wy = World(t.map, t.x, t.y)
             -- Another continent, or no position (an instance), counts as far.
             local d = 1e9

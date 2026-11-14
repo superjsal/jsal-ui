@@ -651,8 +651,8 @@ Window.Page("professions", function(page)
         fill:SetWidth(math.max(1, width * math.max(0, math.min(1, (skill - floor) / span))))
         from:SetText(floor)
         capText:SetText(cap)
-        local what, about
-        if rank.at and Professions.RankFrom then what, about = Professions.RankFrom(line, rank.next) end
+        local what, about, who
+        if rank.at and Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
         local doing = what or (rank.next and ("train " .. rank.next)) or ""
         local ahead = rank.at ~= nil and skill < rank.at
         marker:SetShown(ahead)
@@ -686,15 +686,15 @@ Window.Page("professions", function(page)
 
         local y, ranked = 0, false
         local function Rank()
-            local trainer = not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1) or nil
+            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
             rankRow.trainer = trainer
             rankRow.title:SetText(skill >= rank.at and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rank.at, doing))
             local parts = {}
-            if about then parts[#parts + 1] = about end
-            if trainer then parts[#parts + 1] = trainer.name .. (place and (", " .. place) or "") .. " · click for a map pin" end
+            if about and not who then parts[#parts + 1] = about end
+            if trainer then parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "") .. " · click for a map pin" end
             if not what and (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
-            if #parts == 0 then parts[1] = "Any trainer for it can teach you" end
+            if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
             rankRow.sub:SetText(table.concat(parts, " · "))
             Place(rankRow, y)
             y = y + RANK_H

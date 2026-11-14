@@ -159,19 +159,50 @@ Professions.Makes = Makes
 
 -- Where a rank comes from when it isn't a trainer: First Aid's Expert is a
 -- book a vendor sells, and its Artisan a quest (Wowhead's First Aid guide
--- for Forever, 13 Nov 2026). Returns what to do and a line about it, or nil
--- for a rank a trainer teaches.
-local FIRST_AID = 129
+-- for Forever, 13 Nov 2026). Cooking's are the same two ways: its trainers
+-- teach Apprentice and Journeyman and no more, and the panel named any cook
+-- for Expert (Wowhead's Cooking guide for Forever, 14 Nov 2026: "Expert
+-- Cooking comes from The Expert Cookbook, sold by Shandrina or Wulan, and
+-- Artisan from the quest Clamlette Surprise"). Returns what to do, a line
+-- about it, and who to see for it where that's known, shaped like a trainer
+-- for the map pin; or nil for a rank a trainer teaches. Who: Shandrina
+-- sells the book to the Alliance in Ashenvale and Wulan to the Horde in
+-- Desolace, a gold each; Dirge Quikcleave in Gadgetzan gives and takes the
+-- quest, for both sides, from level 35 (Wowhead Forever's pages for item
+-- 16072 and quest 6610, 14 Nov 2026).
+local FIRST_AID, COOKING = 129, 185
 local OTHER_RANKS = {
+    [COOKING] = {
+        Expert = { "learn Expert from a book", "The Expert Cookbook, sold by",
+                   a = { npc = 3955, name = "Shandrina", map = 1440, x = 0.494, y = 0.67 },
+                   h = { npc = 12033, name = "Wulan", map = 1443, x = 0.262, y = 0.698 } },
+        Artisan = { "learn Artisan from the quest Clamlette Surprise", "from level 35, given by",
+                    a = { npc = 8125, name = "Dirge Quikcleave", map = 1446, x = 0.526, y = 0.28 } },
+    },
+    -- First Aid's: Deneb Walker in Arathi Highlands sells the book to the
+    -- Alliance and Balai Lok'Wein in Dustwallow Marsh to the Horde; Triage is
+    -- Doctor Gustaf VanHowzen's in Dustwallow Marsh for the Alliance and
+    -- Doctor Gregory Victor's in Arathi Highlands for the Horde, from level
+    -- 35 (Wowhead Forever's pages for item 16084 and quests 6624 and 6622,
+    -- 14 Nov 2026; John, of Cooking's: "Find the npcs", "And the quest").
     [FIRST_AID] = {
-        Expert = { "learn Expert from a book", "Expert First Aid - Under Wraps, sold by a vendor" },
-        Artisan = { "learn Artisan from the quest Triage", "a doctor gives it, from level 35" },
+        Expert = { "learn Expert from a book", "Expert First Aid - Under Wraps, sold by",
+                   a = { npc = 2805, name = "Deneb Walker", map = 1417, x = 0.27, y = 0.588 },
+                   h = { npc = 13476, name = "Balai Lok'Wein", map = 1445, x = 0.364, y = 0.304 } },
+        Artisan = { "learn Artisan from the quest Triage", "from level 35, given by",
+                    a = { npc = 12939, name = "Doctor Gustaf VanHowzen", map = 1445, x = 0.676, y = 0.488 },
+                    h = { npc = 12920, name = "Doctor Gregory Victor", map = 1417, x = 0.734, y = 0.364 } },
     },
 }
 function Professions.RankFrom(line, name)
     local ranks = OTHER_RANKS[line]
     local from = ranks and ranks[name]
-    if from then return from[1], from[2] end
+    if not from then return end
+    -- The Horde's, where each side has its own; the one there is, where
+    -- both share it.
+    local who = from.a
+    if from.h and UnitFactionGroup and UnitFactionGroup("player") == "Horde" then who = from.h end
+    return from[1], from[2], who
 end
 
 -- A craft's cost: its materials, plus a little for the craft itself, so a
@@ -203,6 +234,16 @@ Professions.OWNED = 0.95
 Professions.GREEN = 0.5
 -- The least chance of a point a recipe may have and still be on the road.
 Professions.LEAST = 0.1
+
+-- How long before a recipe can be made again, in seconds, or nil: the
+-- transmutes, Mooncloth. The road takes one only when nothing else gives a
+-- point. It took them as readily as any other: Tailoring's road from 230 to
+-- 286 was 63 Mooncloth, one every four days, and Alchemy's from 225 to 261
+-- was 45 transmutes of iron to gold, one an hour. (Found by playing every
+-- road through, 14 Nov 2026; the waits are the game's own.)
+function Professions.Wait(recipe)
+    return Data.cooldown and recipe.spell and Data.cooldown[recipe.spell] or nil
+end
 
 function Professions.IsVendor(item)
     return Data.vendor[item]
@@ -253,12 +294,24 @@ end
 
 function Professions.IsGathering(line) return line == MINING end
 
+-- The specialisation a recipe needs before a trainer will teach it (Goblin
+-- or Gnomish Engineer, Armorsmith, Tribal Leatherworking and the rest), as
+-- that specialisation's spell, or nil. The road counted these as any
+-- trainer's recipes: Blacksmithing's went through Truesilver Breastplate, an
+-- Armorsmith's, and Leatherworking's through Frostsaber Boots, a Tribal
+-- Leatherworker's. Now one is on the road only once you know it. (Found by
+-- playing every road through, 14 Nov 2026; which recipes, from Wowhead
+-- Forever's lists.)
+function Professions.Needs(recipe)
+    return Data.needs and recipe.spell and Data.needs[recipe.spell] or nil
+end
+
 -- The road from skill to target. known(spell) says whether a recipe is
 -- learned; trainer recipes can be learned along the way, and a pattern a
 -- vendor sells for coin can be bought (it counts as half again as costly,
 -- so it's picked only when it's clearly better or nothing else gives a
--- point). Dropped and quest patterns, and ones a vendor wants more than
--- coin for, count only once you have them. `breakAt` is a skill no step
+-- point). Dropped and quest patterns, ones a vendor wants more than coin
+-- for, and ones that need a specialisation count only once you have them. `breakAt` is a skill no step
 -- runs across (the one the next rank is learned at), so the road can say
 -- what to do there. Returns the steps ({ from, to, recipe, crafts, safe,
 -- learn, buy }: crafts is how many it takes on average, safe how many
@@ -291,13 +344,14 @@ function Professions.Plan(line, skill, target, known, breakAt)
     while s < target do
         local best, bestCost
         local fair, fairCost
-        local stayCost, stayFair
+        local slow, slowCost
+        local stayCost, stayFair, staySlow
         for _, recipe in ipairs(recipes) do
             local mine = recipe.vein or known(recipe.spell)
             -- A recipe you know counts whatever skill the data says it's
             -- learned at (some are taught earlier than that); one from a
             -- trainer counts once your skill reaches it.
-            if mine or ((recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= s) then
+            if mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= s) then
                 local chance = Chance(recipe, s)
                 -- The last few points before a recipe goes grey take ten
                 -- crafts or more each: that's no way forward, so the road
@@ -305,11 +359,23 @@ function Professions.Plan(line, skill, target, known, breakAt)
                 if chance >= Professions.LEAST then
                     local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
                     if not mine and recipe.how == 2 then cost = cost * 1.5 end
-                    if not best or cost < bestCost then best, bestCost = recipe, cost end
-                    if chance >= Professions.GREEN and (not fair or cost < fairCost) then fair, fairCost = recipe, cost end
-                    if recipe == staying then stayCost, stayFair = cost, chance >= Professions.GREEN end
+                    local wait = Professions.Wait(recipe)
+                    if wait then
+                        if not slow or cost < slowCost then slow, slowCost = recipe, cost end
+                    else
+                        if not best or cost < bestCost then best, bestCost = recipe, cost end
+                        if chance >= Professions.GREEN and (not fair or cost < fairCost) then fair, fairCost = recipe, cost end
+                    end
+                    if recipe == staying then stayCost, stayFair, staySlow = cost, chance >= Professions.GREEN, wait end
                 end
             end
+        end
+        -- One with a wait only when nothing else gives a point, and the one in
+        -- hand isn't kept for being in hand if it has a wait.
+        if best then
+            if staySlow then stayCost = nil end
+        else
+            best, bestCost = slow, slowCost
         end
         if not best then break end
         -- Yellow and orange before green: a green one only as a last resort,

@@ -1,0 +1,12 @@
+# Trainers Wowhead Forever's Trainers tabs left out, from the game itself: the visits jsal.ui saved
+# (read from a copy of the saved file, 2026-11-14), each with the spot the player stood on beside them.
+# Same columns as trainers.txt: npc|name|tag|alliance|horde|kinds|uiMapID|x|y. The spots are on
+# Forever's own maps already, so the build doesn't move them as it does Wowhead's. NPC IDs are
+# Wowhead Forever's, by name. All seven are in Alliance towns; how the Horde stands with them isn't known.
+2879|Karrina Mekenda|Pet Trainer|1||c3|1453|67.3|36.7
+3545|Claude Erksine|Pet Trainer|1||c3|1432|82.2|62.9
+3698|Bolyun|Pet Trainer|1||c3|1440|18.0|60.0
+3702|Alanndarian Nightsong|Pet Trainer|1||c3|1439|37.7|40.6
+4320|Caelyb|Pet Trainer|1||c3|1440|49.7|67.0
+10089|Silvaria|Pet Trainer|1||c3|1457|42.4|8.6
+10090|Belia Thundergranite|Pet Trainer|1||c3|1455|70.8|85.6

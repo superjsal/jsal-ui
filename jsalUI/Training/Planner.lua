@@ -576,7 +576,7 @@ Window.Page("training", function(page)
         head:ClearAllPoints()
         head:SetPoint("TOPLEFT", 0, -y)
         head.title:SetText("WEAPON SKILLS")
-        head.note:SetText("any weapon master, same price")
+        head.note:SetText("each weapon master teaches some")
         y = y + 22
         local weapons = {}
         for _, w in ipairs(data.weapons) do weapons[#weapons + 1] = w end
@@ -589,7 +589,8 @@ Window.Page("training", function(page)
             local r = Take("weapons", MakeWeapon)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -y)
-            r.spellID, r.hint = w.id, not w.known and "Any weapon master teaches it, at the same price." or nil
+            r.spellID, r.hint = w.id, not w.known and (w.at and ("Taught by " .. w.at .. ".")
+                or "Each weapon master teaches only some weapons. Visit one and jsal.ui remembers who teaches this.") or nil
             r.icon:SetTexture(w.icon)
             r.name:SetText(w.name)
             if w.known then

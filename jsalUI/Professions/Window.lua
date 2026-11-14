@@ -316,13 +316,24 @@ local function CheckRanks()
         local key = p.line .. ":" .. (index or 0)
         if rank.at and p.skill >= rank.at and level >= rank.level and not ns.char.rankAlerts[key] then
             ns.char.rankAlerts[key] = true
-            local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. p.line, (index or 1) + 1)
+            -- A rank that's a book or a quest (First Aid's, Cooking's) says
+            -- so, where it said to train it and named a trainer who can't.
+            local what, about, who
+            if Professions.RankFrom then what, about, who = Professions.RankFrom(p.line, rank.next) end
+            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. p.line, (index or 1) + 1)) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
-            local text = ("%s %d: you can train %s now."):format(p.name, p.skill, rank.next)
             local where = trainer and ("%s%s"):format(trainer.name, place and (", " .. place) or "")
-            Banner(("%s %d: train %s now"):format(p.name, p.skill, rank.next),
-                where and ("Nearest trainer: %s · click to show on map"):format(where) or "jsal.ui doesn't know a trainer for it", trainer)
-            ns.Print(text .. (where and (" Nearest trainer: %s."):format(where) or ""))
+            if what then
+                local line = about and (about .. (who and (" " .. where) or "")) or nil
+                Banner(("%s %d: %s now"):format(p.name, p.skill, what),
+                    (line or "") .. (who and " · click to show on map" or ""), trainer)
+                ns.Print(("%s %d: you can %s now.%s"):format(p.name, p.skill, what,
+                    line and (" " .. line:sub(1, 1):upper() .. line:sub(2) .. ".") or ""))
+            else
+                Banner(("%s %d: train %s now"):format(p.name, p.skill, rank.next),
+                    where and ("Nearest trainer: %s · click to show on map"):format(where) or "jsal.ui doesn't know a trainer for it", trainer)
+                ns.Print(("%s %d: you can train %s now."):format(p.name, p.skill, rank.next) .. (where and (" Nearest trainer: %s."):format(where) or ""))
+            end
         end
     end
 end

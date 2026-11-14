@@ -1,4 +1,13 @@
-# jsal.ui 0.3.41
+# jsal.ui 0.3.42
+
+- **Professions: your road leaves out recipes you'd have to wait on.** Mooncloth can be made once in four days and a transmute once an hour, and the road took them like any other: Tailoring's ran through 63 Mooncloth, Alchemy's through 45 transmutes. One is now on the road only when nothing else gives a point.
+- **Professions: your road leaves out recipes that need a specialisation you may not have.** A Goblin or Gnomish Engineer's, an Armorsmith's or Weaponsmith's, a Dragonscale, Elemental or Tribal Leatherworker's: these are on the road only once you know them.
+- **Professions: a specialisation's trainer isn't named for Artisan.** A Master Goblin Engineer teaches goblin recipes and no rank, but the panel could send you to one for Artisan Engineering. The same goes for the gnomish, dragonscale and shadoweave trainers.
+- **Professions: Mining and Cooking name a trainer who teaches the rank.** A Junior Mining Trainer teaches Apprentice only and is no longer named for more. Cooking trainers teach up to Journeyman, and the panel named any cook for the ranks past it: it now says Expert comes from The Expert Cookbook, sold by Shandrina in Ashenvale or Wulan in Desolace, and Artisan from the quest Clamlette Surprise, given by Dirge Quikcleave in Gadgetzan. First Aid names its own too: Deneb Walker in Arathi Highlands or Balai Lok'Wein in Dustwallow Marsh for the book, and the doctor who gives Triage, Gustaf VanHowzen in Dustwallow Marsh or Gregory Victor in Arathi Highlands. A click puts a map pin on whoever it names. The alert when a rank is ready says the same, where it said to train it.
+- **Training planner: a weapon skill names the weapon masters who teach it.** It said any weapon master would do, and each teaches only some weapons. Once you've opened a weapon master, pointing at a weapon skill says who teaches it; until then it says to visit one.
+- **Training panel: seven more pet trainers are known by name.** The list had two. Karrina Mekenda, Belia Thundergranite, Silvaria and four others are on it now, so the panel knows it's standing in for a pet trainer even when you've bought everything they sell.
+
+## In 0.3.41
 
 - **Professions: the trainer named for your next rank is one who teaches it.** A trainer's title is one step above what they teach: an Expert Leatherworker teaches Journeyman, and Expert is learned from an Artisan. The panel read the title as the rank, so it sent you to the wrong trainer for Expert and Artisan. Where no trainer for a rank is known, none is named.
 

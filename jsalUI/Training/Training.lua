@@ -18,6 +18,18 @@ local function Rank(spellID)
     return text and text ~= "" and text or nil
 end
 
+-- The weapon masters seen to teach a weapon skill, as words: "Woo Ping in
+-- Stormwind City or Ilyenia Moonfire in Darnassus". Nil when none has been.
+function Training.WeaponMasters(seen)
+    local list = {}
+    for npc, zone in pairs(seen or {}) do
+        list[#list + 1] = zone ~= "" and (npc .. " in " .. zone) or npc
+    end
+    if #list == 0 then return nil end
+    table.sort(list)
+    return table.concat(list, " or ")
+end
+
 -- Sorts the saved trainers for this class into class trainers, pet trainers
 -- and weapon masters, by what their lists teach, and gathers each one's
 -- prices. A pet trainer opens the same window as a class trainer, but what
@@ -25,10 +37,15 @@ end
 local KINDS = { available = true, unavailable = true, used = true }
 
 local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, petToBeast, beastByName)
-    local prices = { bySpell = {}, byName = {}, listed = {}, extra = {}, haveTrainer = false, weapons = {}, pet = {} }
+    local prices = { bySpell = {}, byName = {}, listed = {}, extra = {}, haveTrainer = false, weapons = {}, weaponAt = {}, pet = {} }
     local trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
     -- Weapon skills cost the same at every weapon master, for every class,
-    -- so any character's visit prices them.
+    -- so any character's visit prices them. Each weapon master teaches only
+    -- some of them, though, so the visit also says who teaches which: the
+    -- planner said "Any weapon master teaches it", and the saved visits show
+    -- Woo Ping with swords, crossbows and polearms, Buliwyf Stonehand with
+    -- axes, guns and maces, Ilyenia Moonfire with bows, thrown and staves.
+    -- (Found in John's saved visits, 14 Nov 2026.)
     -- "?" is Beast Training, saved as a trainer before that was caught.
     for key, trainer in pairs(trainers) do
         if key:find("^%? @ ") then trainers[key] = nil end
@@ -36,7 +53,13 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     for _, trainer in pairs(trainers) do
         for _, row in ipairs(ns.TrainerPrices.RowsOf(trainer)) do
             local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
-            if id then prices.weapons[id] = row.cost end
+            if id then
+                prices.weapons[id] = row.cost
+                if trainer.npc and trainer.npc ~= "?" then
+                    prices.weaponAt[id] = prices.weaponAt[id] or {}
+                    prices.weaponAt[id][trainer.npc] = trainer.zone or ""
+                end
+            end
         end
     end
     for _, trainer in pairs(trainers) do
@@ -227,7 +250,7 @@ function Training.Read()
         if name then
             data.weapons[#data.weapons + 1] = {
                 id = id, name = name, icon = icon, known = IsPlayerSpell(id), cost = prices.weapons[id],
-                skipped = skips[id] == true,
+                skipped = skips[id] == true, at = Training.WeaponMasters(prices.weaponAt[id]),
             }
         end
     end

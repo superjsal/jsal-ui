@@ -6,8 +6,10 @@ data/professions):
   SpellReagents      what each recipe uses
   SpellEffect        the item each recipe makes (effect 24, "create item")
   ItemSparse         item names (patterns and vendor reagents) and prices
+  SpellCooldowns     how long before a recipe can be made again (Mooncloth, the transmutes)
 and from Wowhead Forever (data/professions/wowhead-learned.txt), the skill each recipe is
-learned at and how: the game's files have 1 there for nearly every recipe.
+learned at and how: the game's files have 1 there for nearly every recipe. And from the same
+lists (data/professions/wowhead-specializations.txt), the specialisation a recipe needs.
 
 It also writes what each material is worth (`value`, in copper), so the road can weigh a
 Righteous Orb against a piece of leather: the price the game's item table gives it, a
@@ -113,6 +115,22 @@ def main():
     vendor = {item_id: int(item.get("BuyPrice") or 0) for item_id, item in items.items()
               if item["Display_lang"] in VENDOR_NAMES and int(item.get("BuyPrice") or 0) > 0}
     known = learned()
+    # A recipe's wait before it can be made again, in seconds: its own or its
+    # category's (the transmutes share one), whichever is longer.
+    waits = {}
+    for r in rows(PROF, "SpellCooldowns"):
+        if r["DifficultyID"] == "0":
+            wait = max(int(r["CategoryRecoveryTime"] or 0), int(r["RecoveryTime"] or 0)) // 1000
+            if wait > 0:
+                waits[int(r["SpellID"])] = wait
+    slow = {}
+    # The specialisation a recipe needs (Goblin Engineer, Armorsmith, Tribal Leatherworking).
+    special, needs = {}, {}
+    for line in (PROF / "wowhead-specializations.txt").read_text(encoding="utf-8").splitlines():
+        if line and not line.startswith("#"):
+            for entry in line.split(" ", 1)[1].split(","):
+                spell, spec = (int(x) for x in entry.split(":"))
+                special[spell] = spec
 
     lines = [
         "-- Every profession's recipes, for the profession panel: what each needs and",
@@ -156,6 +174,10 @@ def main():
                 how = 1
             item, count = makes.get(spell, (0, 0))
             seen.add(spell)
+            if spell in waits:
+                slow[spell] = waits[spell]
+            if spell in special:
+                needs[spell] = special[spell]
             flat = [spell, skill, max(yellow, skill), grey, how, item, count]
             for reagent, n in reagents[spell]:
                 flat += [reagent, n]
@@ -180,13 +202,19 @@ def main():
     lines.append("    -- Reagents a recipe makes that are also gathered as they are (leather): the")
     lines.append("    -- road asks for these themselves, not for what they could be made from.")
     lines.append("    gathered = { " + ", ".join(f"[{i}] = true" for i in gathered) + " },")
+    lines.append("    -- Recipes that can't be made again for a while, and how long in seconds: the")
+    lines.append("    -- road takes one only when nothing else gives a point.")
+    lines.append("    cooldown = { " + ", ".join(f"[{i}] = {slow[i]}" for i in sorted(slow)) + " },")
+    lines.append("    -- Recipes only someone with a specialisation can learn, and the specialisation's")
+    lines.append("    -- spell: on the road only once you know the recipe.")
+    lines.append("    needs = { " + ", ".join(f"[{i}] = {needs[i]}" for i in sorted(needs)) + " },")
     lines += ["}", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"-> {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
     for line in report:
         print("  " + line)
-    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued")
+    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation")
 
 
 if __name__ == "__main__":
