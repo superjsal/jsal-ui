@@ -10,7 +10,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local NEWS = {
     "New, off to start: quest tags left of RestedXP's guide window. Turn it on under Leveling in /jsal settings",
     "New, off to start: the Drop log counts the quest items your kills have. /jsal drops shows it",
-    "The Training planner knows your pet's free training points. Restart the game: this adds files",
+    "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
 local function NewsWanted()

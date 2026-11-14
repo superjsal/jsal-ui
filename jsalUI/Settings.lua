@@ -55,6 +55,11 @@ local SHORT = {
     levelup = "What's new on each level",
     journal = "Your story, stats and characters",
     questtags = "A quest's chain, and how long it takes",
+    -- These two shipped in 0.3.43 with no line here, and their cards showed the start of the
+    -- long note, cut off: "Left of RestedXP's guide window: bes...". (John's screenshot, 14 Nov
+    -- 2026: "we should clean up the description text".)
+    guidetags = "Tags beside RestedXP's guide steps",
+    lootlog = "Counts the quest items your kills drop",
     tametip = "Which beasts teach a new pet ability",
     professionpanel = "What to craft to reach the next rank",
     profwindow = "Extras in the game's profession window",
@@ -83,6 +88,7 @@ local ICON = {
     guild = "Menu\\guild", pet = "Parts\\pet",
     talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", dungeons = "Parts\\dungeons",
     nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
+    guidetags = "Menu\\quests", lootlog = "Menu\\collections",
     tametip = "Parts\\tametip",
     professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",

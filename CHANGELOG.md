@@ -1,6 +1,10 @@
-# jsal.ui 0.3.43
+# jsal.ui 0.3.44
 
-Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load them.
+- **Settings: the two new parts' cards say what they do.** Quest tags on RestedXP and the Drop log showed the start of a long sentence, cut off. Each now has a short line and a picture like the other cards.
+
+## In 0.3.43
+
+Coming from 0.3.42 or earlier, restart the game after updating (exit and start it again): 0.3.43 added new files, and a /reload doesn't load them.
 
 - **Quest tags on RestedXP (new, off to start).** For when you follow RestedXP's guide window and keep the quest tracker hidden. Left of the window, beside each step that has you take or do a quest, the same tag Quest tags puts by the tracker: the quest's place in a chain, and about how many minutes it will take. The tags follow the window when you move it, and hovering one shows the reasons. Turn on **Quest tags on RestedXP** under Leveling in /jsal settings; it works with Quest tags on or off, and on both of RestedXP's guide windows. /jsal guidetags says what it sees if a tag looks wrong. For now a quest you haven't taken yet may show only its place in a chain.
 - **Drop log (new, off to start).** Counts how often the creatures you loot have the quest items you're after, so the addon can learn Forever's own drop chances where few players have been yet. It counts quest items only, while a quest in your log still needs them, and what it counts stays on your computer. Turn on **Drop log** under Leveling in /jsal settings; /jsal drops shows what it has so far. Nothing uses the counts yet: the plan is for quest tags to take your own numbers once an item has ten loots behind it.

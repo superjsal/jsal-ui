@@ -205,7 +205,10 @@ function GuideTags:OnDisable()
     GuideTags.HideAll()
 end
 
--- /jsal guidetags: what the part sees, step by step, for when a tag is missing. A step with no
+-- /jsal guidetags: what the part sees, step by step, for when a tag is missing. It's for
+-- finding a fault, so the part's note doesn't name it and its card has no tag for it: with one,
+-- the tag ran under the card's switch. (John, 14 Nov 2026: "is the guidetags and /jsal drops
+-- necessary for live?") A step with no
 -- tag can be right (a quest not taken yet that stands alone has nothing to say), and a look at
 -- the window can't tell that from a fault. (John's first screenshot of it, 14 Nov 2026, had none.)
 ns.Command("guidetags", function()
