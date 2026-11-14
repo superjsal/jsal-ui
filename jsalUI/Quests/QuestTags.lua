@@ -263,14 +263,22 @@ local function MakeTag(parent)
 end
 QuestTags.MakeTag = MakeTag
 
+-- Nothing to fight leaves the minutes out; a quest that also stands alone gets no pill at all.
 function QuestTags.Fill(tag, questID)
     local step, minutes, colour = QuestTags.Tags(questID)
+    if minutes == "-" then minutes = nil end
     tag.questID = questID
+    if not (step or minutes) then
+        tag:Hide()
+        return
+    end
     tag.step:SetText(step or "")
-    tag.minutes:SetText(minutes)
+    tag.minutes:SetText(minutes or "")
     tag.minutes:SetTextColor(Style.Color(colour))
-    local width = PAD * 2 + tag.minutes:GetStringWidth()
-    if step then width = width + tag.step:GetStringWidth() + PAD end
+    local width = PAD * 2
+    if minutes then width = width + tag.minutes:GetStringWidth() end
+    if step then width = width + tag.step:GetStringWidth() end
+    if step and minutes then width = width + PAD end
     tag:SetWidth(math.max(HEIGHT + 4, math.floor(width + 0.5)))
     tag:Show()
 end
