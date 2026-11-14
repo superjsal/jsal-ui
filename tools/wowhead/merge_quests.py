@@ -1,9 +1,9 @@
 """Folds one batch of tools/wowhead/quests.js into data/dungeons/quest-starts.json (or, with
---items, of items.js into data/dungeons/quest-items.json): the batch's entries are added to (or
-replace) the file's, and the batch's "stopped" note, if any, is kept so the next batch knows
-where it ended.
+--items, of items.js into data/dungeons/quest-items.json; with --drops, of drops.js into
+data/quests/wowhead-drops.json): the batch's entries are added to (or replace) the file's, and
+the batch's "stopped" note, if any, is kept so the next batch knows where it ended.
 
-Run: python -I tools/wowhead/merge_quests.py <the batch file receive.py wrote> [--items]
+Run: python -I tools/wowhead/merge_quests.py <the batch file receive.py wrote> [--items | --drops]
 """
 import json
 import pathlib
@@ -11,8 +11,10 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 ITEMS = "--items" in sys.argv
-STARTS = ROOT / "data" / "dungeons" / ("quest-items.json" if ITEMS else "quest-starts.json")
-KEY = "items" if ITEMS else "quests"
+DROPS = "--drops" in sys.argv
+STARTS = (ROOT / "data" / "quests" / "wowhead-drops.json" if DROPS else
+          ROOT / "data" / "dungeons" / ("quest-items.json" if ITEMS else "quest-starts.json"))
+KEY = "items" if (ITEMS or DROPS) else "quests"
 
 batch = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 data = json.loads(STARTS.read_text(encoding="utf-8")) if STARTS.exists() else {KEY: {}}
