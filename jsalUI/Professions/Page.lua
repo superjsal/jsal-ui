@@ -750,7 +750,15 @@ Window.Page("professions", function(page)
                 m.name:SetText(Compat.ItemName(reagent.item) or "...")
                 m.count:SetText(("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need))
                 local price = Professions.IsVendor(reagent.item)
-                if have >= need then
+                -- What's in your bank counts as yours, and is said to be
+                -- there: "you have enough" of four hides that were all in
+                -- the bank read as four in your bags. (John, 14 Nov 2026:
+                -- "its also telling me i still have 4 cured light hide but
+                -- i dont have them", then "maybe its in my bank".)
+                local carried = Compat.ItemCount(reagent.item, false) or 0
+                if have >= need and carried < need then
+                    m.note:SetText(("%d to fetch from your bank"):format(need - carried))
+                elseif have >= need then
                     m.note:SetText("you have enough")
                 elseif price then
                     m.note:SetText(("vendor · %d more for %s"):format(need - have, Compat.Money((need - have) * price)))

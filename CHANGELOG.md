@@ -1,6 +1,7 @@
 # jsal.ui 0.3.40
 
-Nothing new to see yet. The notes inside the code that say which day a change was asked for had the wrong day on some of them, and now have the right one.
+- **Professions: your road keeps to orange and yellow recipes.** A green recipe is now a last resort, taken only when there's nothing else you can make. The road used to pick one whenever it would use up leftovers in your bags or bank, and a green recipe can take ten crafts to give a point.
+- **Professions: a material in your bank is said to be there.** The step in hand read "you have enough" for things that were in the bank; it now says how many to fetch from it.
 
 ## In 0.3.39
 
