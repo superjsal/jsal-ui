@@ -139,6 +139,24 @@ function DailyWord.Average()
     return tries / won, won
 end
 
+-- Your record as numbers, each with a word for what it is: games played,
+-- the share won, the average tries (once you've won one), the streak you're
+-- on and your best. The window shows them in a row, where it was one
+-- sentence of five numbers to pick through. Nil before the first game.
+function DailyWord.Numbers()
+    local s = Stats()
+    if s.played == 0 then return nil end
+    local average = DailyWord.Average()
+    local list = {
+        { tostring(s.played), "played" },
+        { math.floor(s.won / s.played * 100 + 0.5) .. "%", "won" },
+    }
+    if average then list[#list + 1] = { ("%.1f"):format(average), "average" } end
+    list[#list + 1] = { tostring(s.streak), "streak" }
+    list[#list + 1] = { tostring(s.best), "best" }
+    return list
+end
+
 function DailyWord.Record()
     local s = Stats()
     if s.played == 0 then return "Daily Word: no games yet." end
@@ -227,7 +245,7 @@ local KEY_TONES = {
 }
 local RANK = { miss = 1, near = 2, right = 3 }
 
-local frame, input, message, keyboard, result, recordText, shareButton
+local frame, input, message, keyboard, result, recordText, recordCells, shareButton
 local tiles, keys = {}, {}
 local current, notice = "", nil
 
@@ -294,7 +312,20 @@ local function Paint()
     keyboard:SetShown(not game.finished)
     result:SetShown(game.finished)
     if game.finished then
-        recordText:SetText(game.guild and "Your score is on the Guild tab, next to your guildmates'." or DailyWord.Record())
+        recordText:SetText(game.guild and "Your score is on the Guild tab, next to your guildmates'." or "")
+        -- Your record: a number over a word each, centred under the board.
+        local numbers = not game.guild and DailyWord.Numbers() or {}
+        local cellW = (WIDTH - 32) / 5
+        for i, cell in ipairs(recordCells) do
+            local n = numbers[i]
+            cell:SetShown(n ~= nil)
+            if n then
+                cell.n:SetText(n[1])
+                cell.label:SetText(n[2])
+                cell:ClearAllPoints()
+                cell:SetPoint("TOPLEFT", result, "TOPLEFT", (WIDTH - #numbers * cellW) / 2 + (i - 1) * cellW, 0)
+            end
+        end
         local after = game.guild and "" or " A new word comes with the daily reset."
         if game.won then
             message:SetText(("Solved in %d.%s"):format(#game.guesses, game.guild and "" or after))
@@ -411,15 +442,25 @@ local function Build()
     recordText:SetPoint("TOP")
     recordText:SetWidth(WIDTH - 32)
     recordText:SetJustifyH("CENTER")
+    recordCells = {}
+    for i = 1, 5 do
+        local cell = CreateFrame("Frame", nil, result)
+        cell:SetSize((WIDTH - 32) / 5, 38)
+        cell.n = Style.Text(cell, 15, "text", nil, true)
+        cell.n:SetPoint("TOP")
+        cell.label = Style.Text(cell, 11, "muted")
+        cell.label:SetPoint("TOP", 0, -21)
+        recordCells[i] = cell
+    end
     shareButton = Style.Button(result, "Share to guild", "primary", 150)
-    shareButton:SetPoint("TOPRIGHT", result, "TOP", -4, -32)
+    shareButton:SetPoint("TOPRIGHT", result, "TOP", -4, -50)
     shareButton:SetScript("OnClick", function()
         if not IsInGuild() then return Say("Join a guild to share.") end
         Compat.SendChat(ShareLine(Current()), "GUILD")
         shareButton:SetEnabled(false)
     end)
     local icons = Style.Button(result, "Play Icon Guess", "plain", 150)
-    icons:SetPoint("TOPLEFT", result, "TOP", 4, -32)
+    icons:SetPoint("TOPLEFT", result, "TOP", 4, -50)
     icons:SetScript("OnClick", function()
         frame:Hide()
         ns.IconGuess.Open()

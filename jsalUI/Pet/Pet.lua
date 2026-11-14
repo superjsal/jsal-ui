@@ -60,7 +60,7 @@ local BOOK_PAGE = 4
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
-local WIN_W, WIN_H = PEN_W + PAD * 2, 566
+local WIN_W, WIN_H = PEN_W + PAD * 2, 600
 local HEAP_W = 32       -- a dropping, and the bowl, treat and ball: 32-pixel pictures
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
@@ -1189,15 +1189,68 @@ local function WishText(s)
     return text, false
 end
 
-local function BondText(s)
-    local _, name, points, next = Rules.Bond(s)
-    local bond = next and ("Bond: %s · %d of %d"):format(name, points, next) or ("Bond: %s"):format(name)
-    -- And how today's company is going: things done with it on your screen.
-    local deeds, need = Rules.CompanyToday(s, Now())
-    return ("%s   ·   Company today: %s"):format(bond, deeds >= need and "good company" or ("%d of %d"):format(deeds, need))
+-- What's wrong when a need is low, and each need's own colour for its pips.
+Pet.LOW = { hunger = "hungry", energy = "tired", fun = "bored", clean = "dirty" }
+Pet.NEED_TINT = { hunger = { 0.89, 0.58, 0.29 }, energy = { 0.44, 0.64, 0.88 }, fun = { 0.94, 0.42, 0.54 }, clean = { 0.36, 0.76, 0.69 } }
+
+-- How it is, as you'd say it out loud: "Bramble is happy, but hungry".
+function Pet.Headline(s)
+    local mood = Rules.Mood(s)
+    local text = ("%s is %s"):format(s.name, mood)
+    if s.sick or s.asleep then return text end
+    local low, which = 100, nil
+    for _, need in ipairs(Rules.NEEDS) do
+        if s[need] < low then low, which = s[need], need end
+    end
+    if low < 35 and Pet.LOW[which] ~= mood then
+        text = text .. (mood == "grumpy" and ": " or ", but ") .. Pet.LOW[which]
+    end
+    return text
 end
 
--- How long until it grows, in words; nil once it's fully grown.
+-- The bond as hearts, one a level, with how far the next is; and today's
+-- company, the things done with it on your screen, as marks.
+function Pet.PaintBond(s)
+    local level, name, points, next = Rules.Bond(s)
+    for i, heart in ipairs(ui.hearts) do
+        heart:SetDesaturated(i > level)
+        heart:SetAlpha(i > level and 0.3 or 1)
+    end
+    local after = Rules.BONDS[level + 1]
+    ui.bondLine:SetText((next and after) and ("%s  |cff9a9688%d more to %s|r"):format(name, next - points, after[2])
+        or (name .. "  |cff9a9688as close as can be|r"))
+    local deeds, need = Rules.CompanyToday(s, Now())
+    ui.company:SetText(deeds >= need and "good company today" or "with you today")
+    ui.company.deeds, ui.company.need = deeds, need
+    for i, mark in ipairs(ui.marks) do
+        mark:SetShown(i <= need)
+        mark:SetColorTexture(Style.Color(i <= deeds and "gold" or "lineStrong"))
+    end
+end
+
+-- The care buttons: each one's word and how many are left, greyed with none,
+-- and the one it needs now in gold, bobbing.
+function Pet.DressCare(s)
+    local wants = { meal = s.hunger < 35, toy = s.fun < 35, soap = s.clean < 35, lights = s.energy < 35, medicine = s.sick and true or false }
+    for key, b in pairs(ui.care) do
+        local left = s.supplies[key]
+        local none = left == 0 or (key == "medicine" and not s.sick)
+        local wanted = wants[key] == true and not none and (key == "medicine" or not s.asleep)
+        b.word:SetText(key == "lights" and (s.asleep and "Wake it" or "Lights out") or b.name)
+        b.word:SetTextColor(Style.Color(wanted and "gold" or (none and "muted" or "text")))
+        b.count:SetText(left and tostring(left) or "")
+        b.count:SetTextColor(Style.Color((left or 0) > 0 and "onGold" or "muted"))
+        b.badge:SetShown(left ~= nil)
+        b.badge:SetColorTexture(Style.Color((left or 0) > 0 and "gold" or "lineStrong"))
+        b.art:SetDesaturated(none)
+        b.art:SetAlpha(none and 0.4 or 1)
+        for _, edge in ipairs(b.frame) do edge:SetShown(wanted) end
+        if b.bob then
+            if wanted and not b.bob:IsPlaying() then b.bob:Play() elseif not wanted then b.bob:Stop() end
+        end
+    end
+end
+
 local function Growing(s)
     if s.grewFrom then return "ready to grow" end
     local goal = s.form == 1 and Rules.GROWN or s.form == 2 and Rules.FULL or nil
@@ -1418,12 +1471,13 @@ local function Refresh()
         return PaintYard(s)
     end
     for _, r in ipairs(ui.roamers) do r.body:Hide() end
-    local _, mood = Rules.Mood(s)
     title:SetText(looking and (Own(looking) and ("%s as a %s"):format(s.name, looking.name) or ("A look at the %s"):format(looking.name))
         or ("%s the %s"):format(s.name, FormName(s)))
     local day = math.floor(math.max(0, Now() - s.born) / 86400) + 1
     local growing = Growing(s)
-    sub:SetText(("%s · day %d%s"):format(mood, day, growing and (" · " .. growing) or " · fully grown"))
+    -- How it is, as you'd say it; under it, its age and when it grows.
+    ui.headline:SetText(Pet.Headline(s))
+    sub:SetText(("Day %d · %s"):format(day, growing or "fully grown"))
     -- Not yet told of: it's new, and breaks out of its egg as you first see it.
     local fresh = not s.told
     said = Milestones(s) or said
@@ -1431,11 +1485,26 @@ local function Refresh()
     local wish, granted = WishText(s)
     ui.wishLine:SetText(wish)
     ui.wishLine:SetTextColor(Style.Color(granted and "muted" or "text"))
-    ui.bondLine:SetText(BondText(s))
+    ui.wishTag:SetText(granted and "done" or "not yet")
+    ui.wishTag:SetTextColor(Style.Color(granted and "green" or "muted"))
+    Pet.PaintBond(s)
+    -- Each need as five pips in a colour of its own; a low one is red, and
+    -- says what's wrong.
     for _, need in ipairs(Rules.NEEDS) do
         local bar = ui.bars[need]
-        bar.fill:SetWidth(math.max(1, bar.width * s[need] / 100))
-        bar.fill:SetColorTexture(Style.Color(s[need] < 20 and "red" or "gold"))
+        local full = s[need] <= 0 and 0 or math.max(1, math.floor(s[need] / 20 + 0.5))
+        local low = s[need] < 20
+        for i, pip in ipairs(bar.pips) do
+            if i > full then
+                pip:SetColorTexture(Style.Color("titleBar"))
+            elseif low then
+                pip:SetColorTexture(Style.Color("red"))
+            else
+                pip:SetColorTexture(bar.tint[1], bar.tint[2], bar.tint[3])
+            end
+        end
+        bar.label:SetTextColor(Style.Color(low and "red" or "secondary"))
+        bar.low:SetText(low and (Pet.LOW[need] .. "!") or "")
     end
     for i, heap in ipairs(ui.heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
@@ -1475,6 +1544,7 @@ local function Refresh()
     if s.sick and not pen.sick then Pet.Sound("poorly") end
     pen.sick = s.sick and true or false
     ui.care.lights:SetLabel(s.asleep and "Wake it" or "Lights out")
+    Pet.DressCare(s)
     -- A form that has grown is drawn larger, and starts from a spot that fits it.
     -- Out with you, every form is at the art's own size, and keeps to its strip.
     local size, strip = SIZES[Form()] or SIZE, nil
@@ -2324,70 +2394,172 @@ local function BuildParts()
     parts:SetPoint("TOPLEFT", pen, "BOTTOMLEFT", 0, 0)
     parts:SetSize(PEN_W, WIN_H - PEN_H - 32 - PAD)
 
-    -- How it is, its age and when it grows.
+    -- How it is, in a line you'd say out loud; under it, its age and when
+    -- it grows. At the right, today's company as marks.
+    ui.headline = Style.Text(parts, 15, "text", nil, true)
+    ui.headline:SetPoint("TOPLEFT", 0, -8)
+    ui.headline:SetWidth(PEN_W - 190)
+    ui.headline:SetWordWrap(false)
     sub = Style.Text(parts, 12, "secondary")
-    sub:SetPoint("TOPLEFT", 0, -10)
+    sub:SetPoint("TOPLEFT", 0, -31)
     sub:SetWidth(PEN_W)
     sub:SetWordWrap(false)
+    ui.marks = {}
+    for i = 1, 5 do
+        local mark = parts:CreateTexture(nil, "ARTWORK")
+        mark:SetSize(9, 9)
+        mark:SetPoint("TOPRIGHT", -(5 - i) * 13, -12)
+        ui.marks[i] = mark
+    end
+    ui.company = Style.Text(parts, 11, "muted")
+    ui.company:SetPoint("TOPRIGHT", -(5 * 13 + 4), -10)
+    ui.company:SetJustifyH("RIGHT")
 
-    -- The four needs, two to a row.
+    -- The four needs, two to a row: five pips each, in a colour of its own.
     local half = math.floor(PEN_W / 2)
     for i, need in ipairs(Rules.NEEDS) do
         local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
         local label = Style.Text(parts, 12, "secondary")
-        label:SetPoint("TOPLEFT", col * half, -(34 + row * 22))
+        label:SetPoint("TOPLEFT", col * half, -(55 + row * 22))
         label:SetText(NEED_NAME[need])
-        local track = parts:CreateTexture(nil, "ARTWORK")
-        track:SetPoint("TOPLEFT", col * half + 54, -(39 + row * 22))
-        track:SetSize(half - 66, 6)
-        track:SetColorTexture(Style.Color("titleBar"))
-        local fill = parts:CreateTexture(nil, "OVERLAY")
-        fill:SetPoint("TOPLEFT", track, "TOPLEFT")
-        fill:SetHeight(6)
-        ui.bars[need] = { fill = fill, width = half - 66 }
+        local pips = {}
+        for n = 1, 5 do
+            local pip = parts:CreateTexture(nil, "ARTWORK")
+            pip:SetSize(16, 11)
+            pip:SetPoint("TOPLEFT", col * half + 56 + (n - 1) * 19, -(56 + row * 22))
+            pips[n] = pip
+        end
+        local low = Style.Text(parts, 11, "red", nil, true)
+        low:SetPoint("TOPLEFT", col * half + 56 + 5 * 19 + 4, -(55 + row * 22))
+        ui.bars[need] = { pips = pips, label = label, low = low, tint = Pet.NEED_TINT[need] }
     end
 
-    -- Today's wish, then the bond, then what just happened.
-    ui.wishLine = Style.Text(parts, 12, "text")
-    ui.wishLine:SetPoint("TOPLEFT", 0, -84)
-    ui.wishLine:SetWidth(PEN_W)
+    -- The bond: a heart a level, and how far the next is.
+    ui.hearts = {}
+    for i = 1, #Rules.BONDS do
+        local heart = parts:CreateTexture(nil, "ARTWORK")
+        -- At half its picture's size, so each of its dots is one dot.
+        heart:SetSize(16, 16)
+        heart:SetPoint("TOPLEFT", (i - 1) * 19, -103)
+        heart:SetTexture(Art("heart"), "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(heart)
+        ui.hearts[i] = heart
+    end
+    ui.bondLine = Style.Text(parts, 13, "text", nil, true)
+    ui.bondLine:SetPoint("TOPLEFT", #Rules.BONDS * 19 + 8, -104)
+
+    -- Today's wish, as a card, with whether it's granted.
+    local wish = CreateFrame("Frame", nil, parts)
+    wish:SetPoint("TOPLEFT", 0, -130)
+    wish:SetSize(PEN_W, 28)
+    local wishFill = wish:CreateTexture(nil, "BACKGROUND")
+    wishFill:SetAllPoints()
+    wishFill:SetColorTexture(Style.Color("well"))
+    local wishEdge = wish:CreateTexture(nil, "ARTWORK")
+    wishEdge:SetColorTexture(Style.Color("gold"))
+    wishEdge:SetPoint("TOPLEFT")
+    wishEdge:SetPoint("BOTTOMLEFT")
+    wishEdge:SetWidth(3)
+    ui.wishLine = Style.Text(wish, 12, "text")
+    ui.wishLine:SetPoint("LEFT", 14, 0)
+    ui.wishLine:SetWidth(PEN_W - 14 - 70)
     ui.wishLine:SetWordWrap(false)
-    ui.bondLine = Style.Text(parts, 12, "secondary")
-    ui.bondLine:SetPoint("TOPLEFT", 0, -102)
+    ui.wishTag = Style.Text(wish, 11, "muted")
+    ui.wishTag:SetPoint("RIGHT", -12, 0)
+    ui.wishTag:SetJustifyH("RIGHT")
+    -- What just happened.
     message = Style.Text(parts, 12, "gold")
-    message:SetPoint("TOPLEFT", 0, -122)
+    message:SetPoint("TOPLEFT", 0, -166)
     message:SetWidth(PEN_W)
     message:SetWordWrap(false)
 
-    -- Care, three to a row, each button with how many it has left.
+    -- Care: a picture button for each kind, in a row, with how many it has
+    -- left in its corner. (John, 14 Nov 2026: "make the jsals pal pen screen
+    -- and the buttons to interact with it a bit more lively and fun".) The
+    -- one it needs now is framed in gold and bobs; one with none left is
+    -- greyed; pointing at one says what it does and how more are earned.
     local count = 0
-    local function Care(key, act, show, thing, over, sound)
-        local b = Style.Button(parts, "", "plain", 141)
-        b:SetHeight(28)
-        b:SetPoint("TOPLEFT", (count % 3) * 149, -(146 + math.floor(count / 3) * 34))
+    local CARE_W, CARE_H, CARE_GAP, CARE_Y = 68, 70, 6.4, 188
+    local function Care(key, name, tint, tip, act, show, thing, over, sound)
+        local b = Style.Button(parts, "", "plain", CARE_W)
+        b:SetHeight(CARE_H)
+        b:SetPoint("TOPLEFT", count * (CARE_W + CARE_GAP), -CARE_Y)
         b:SetScript("OnClick", function() Do(act, show, thing, over, sound) end)
+        b.name = name
+        -- Its own words ("Feed · 3") would sit across its middle: they stay
+        -- for anything that reads them, out of sight, and the word and the
+        -- count are drawn in their own places.
+        if type(b.label) == "table" and b.label.SetAlpha then b.label:SetAlpha(0) end
+        local bar = b:CreateTexture(nil, "ARTWORK")
+        bar:SetColorTexture(tint[1], tint[2], tint[3])
+        bar:SetPoint("TOPLEFT", 1, -1)
+        bar:SetPoint("TOPRIGHT", -1, -1)
+        bar:SetHeight(3)
+        b.art = b:CreateTexture(nil, "ARTWORK")
+        b.art:SetSize(32, 32)
+        b.art:SetPoint("TOP", 0, -11)
+        b.art:SetTexture(Art("care_" .. key), "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(b.art)
+        b.word = Style.Text(b, 12, "text")
+        b.word:SetPoint("BOTTOM", 0, 6)
+        b.badge = b:CreateTexture(nil, "OVERLAY")
+        b.badge:SetSize(18, 15)
+        b.badge:SetPoint("TOPRIGHT", -3, -6)
+        b.count = Style.Text(b, 10, "onGold", nil, true)
+        b.count:SetPoint("CENTER", b.badge, "CENTER", 0, 0)
+        -- A gold frame, shown while it's the one that's needed.
+        b.frame = {}
+        for i, at in ipairs({ { "TOPLEFT", "TOPRIGHT" }, { "BOTTOMLEFT", "BOTTOMRIGHT" }, { "TOPLEFT", "BOTTOMLEFT" }, { "TOPRIGHT", "BOTTOMRIGHT" } }) do
+            local edge = b:CreateTexture(nil, "OVERLAY")
+            edge:SetColorTexture(Style.Color("gold"))
+            edge:SetPoint(at[1])
+            edge:SetPoint(at[2])
+            if i <= 2 then edge:SetHeight(2) else edge:SetWidth(2) end
+            edge:Hide()
+            b.frame[i] = edge
+        end
+        -- And a little bob, up and back, for as long as it's needed.
+        local group = b.CreateAnimationGroup and b:CreateAnimationGroup()
+        if group then
+            group:SetLooping("BOUNCE")
+            local hop = group:CreateAnimation("Translation")
+            hop:SetOffset(0, 4)
+            hop:SetDuration(0.45)
+            hop:SetSmoothing("IN_OUT")
+            b.bob = group
+        end
+        -- Pressed, its picture dips, like a key going down.
+        b:HookScript("OnMouseDown", function(self) self.art:SetPoint("TOP", 0, -14) end)
+        b:HookScript("OnMouseUp", function(self) self.art:SetPoint("TOP", 0, -11) end)
+        b:HookScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.word:GetText() or name)
+            GameTooltip:AddLine(tip, 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        b:HookScript("OnLeave", function() GameTooltip:Hide() end)
         ui.care[key] = b
         count = count + 1
     end
-    Care("meal", Rules.Feed, "eat", "bowl", nil, "eat")
-    Care("treat", Rules.Treat, "eat", "treat", nil, "eat")
-    Care("toy", Rules.Play, "jump", "ball", nil, "play")
-    Care("soap", Rules.Bath, "idle", nil, "bath", "bath")
-    Care("lights", Rules.Lights, "lights", nil, nil, "lights")
-    Care("medicine", Rules.Medicine, "idle", nil, "well", "well")
+    Care("meal", "Feed", Pet.NEED_TINT.hunger, "Fills it up. A quest handed in brings a meal, and a new level a few.", Rules.Feed, "eat", "bowl", nil, "eat")
+    Care("treat", "Treat", Pet.NEED_TINT.fun, "A bite it loves. Fishing and Cooking bring treats, and so does a new level.", Rules.Treat, "eat", "treat", nil, "eat")
+    Care("toy", "Play", { 0.38, 0.7, 0.35 }, "A game with its ball. A flight brings a toy.", Rules.Play, "jump", "ball", nil, "play")
+    Care("soap", "Bath", Pet.NEED_TINT.clean, "Scrubs it clean. A new level brings soap.", Rules.Bath, "idle", nil, "bath", "bath")
+    Care("lights", "Lights out", { 0.54, 0.48, 0.82 }, "Puts it to bed, which is how it rests. Press it again to wake it.", Rules.Lights, "lights", nil, nil, "lights")
+    Care("medicine", "Medicine", { 0.94, 0.48, 0.4 }, "Makes it well at once when it's poorly. First Aid brings medicine, and so does a new level.", Rules.Medicine, "idle", nil, "well", "well")
     local hint = Style.Text(parts, 11, "muted")
-    hint:SetPoint("TOPLEFT", 0, -220)
+    hint:SetPoint("TOPLEFT", 0, -(CARE_Y + CARE_H + 8))
     hint:SetWidth(PEN_W)
-    hint:SetText("Quests bring meals, flights bring toys, fishing and Cooking bring treats, First Aid medicine, a new level some of each. Click it for a pat, right-click for a trick, the grass to call it over, a dropping to scoop it.")
+    hint:SetText("Point at a button for what it does and how you earn more. Click your pal for a pat, right-click for a trick, the grass to call it over, a dropping to scoop it.")
     -- The eggs you hold: what they are, then one picture each to click.
     ui.eggLine = Style.Text(parts, 12, "secondary")
-    ui.eggLine:SetPoint("TOPLEFT", 0, -258)
+    ui.eggLine:SetPoint("TOPLEFT", 0, -300)
     ui.eggLine:SetWidth(PEN_W)
     ui.eggLine:SetWordWrap(false)
     for i = 1, Rules.MAX_EGGS do
         local slot = CreateFrame("Button", nil, parts)
         slot:SetSize(EGG_W + 8, EGG_W + 4)
-        slot:SetPoint("TOPLEFT", (i - 1) * (EGG_W + 12), -278)
+        slot:SetPoint("TOPLEFT", (i - 1) * (EGG_W + 12), -318)
         slot.picture = slot:CreateTexture(nil, "ARTWORK")
         slot.picture:SetSize(EGG_W, EGG_W)
         slot.picture:SetPoint("BOTTOM", 0, 0)
@@ -2402,9 +2574,9 @@ local function BuildParts()
     -- confirming the name offered, keeps that name.
     ui.renameButton = Style.Button(parts, "Confirm", "plain", 141)
     ui.renameButton:SetHeight(28)
-    ui.renameButton:SetPoint("TOPLEFT", 298, -282)
+    ui.renameButton:SetPoint("TOPLEFT", 298, -322)
     ui.nameBox = Style.Field(parts, 141)
-    ui.nameBox.well:SetPoint("TOPLEFT", 149, -283)
+    ui.nameBox.well:SetPoint("TOPLEFT", 149, -323)
     ui.nameBox.well:Hide()
     ui.nameBox:SetMaxLetters(16)
     ui.nameBox:SetScript("OnEnterPressed", TakeName)

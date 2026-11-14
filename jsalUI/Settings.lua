@@ -1,41 +1,113 @@
--- Settings: a switch for each part of jsal.ui, one group to a tab, each part
--- with what it does written under its name. A part with options of its own
--- has an Options button that opens them under it. The box at the top finds
--- a part or an option in any group. A part's switch applies after a reload,
--- since modules start once, at login (addons can't reload the game
--- themselves on Forever): a bar at the bottom says which changes are
--- waiting, with a button to undo them and one to reload. Options apply at
--- once.
+-- Settings: a switch for each part of jsal.ui, one group to a tab. A part is
+-- a card: its name, what it does in one short line, and its switch; the
+-- whole of what it does is a point away, in its tooltip. (John, 14 Nov 2026,
+-- of a page of two-line descriptions: "it is mostly all text and a lot of
+-- it".) Inside a tab, a small heading sits over each handful of parts that
+-- belong together. A part with options of its own says how many, and a
+-- click opens them under its card. The box at the top finds a part or an
+-- option in any group. A part's switch applies after a reload, since
+-- modules start once, at login (addons can't reload the game themselves on
+-- Forever): a bar at the bottom says which changes are waiting, with a
+-- button to undo them and one to reload. Options apply at once.
 local _, ns = ...
 local Style, Window = ns.Style, ns.Window
 
-local ROW_H, OPTION_H, INSET = 62, 50, 18
+local CARD_H, OPTION_H, GAP, HEAD_H = 58, 38, 8, 26
 local LIST_TOP, BAR_H = 84, 52
-local SWITCH_W, OPTIONS_W = 36, 86
+local SWITCH_W = 36
 
--- Where each part goes. A part not listed joins the last group.
+-- Where each part goes: a tab for each group, and inside it a heading for
+-- each handful of parts that belong together. A part not listed joins the
+-- last group's last handful.
 local GROUPS = {
-    { title = "Games", width = 100, keys = { "dailyword", "iconguess", "chess", "flight", "guild", "pet" } },
-    { title = "Leveling", width = 110, keys = { "talents", "trainingpanel", "tametip", "nextlevel", "levelup", "journal", "dungeons", "gear", "questtags" } },
-    { title = "Professions", width = 130, keys = { "professionpanel", "profwindow", "shopping", "crafters" } },
-    { title = "Around the UI", width = 150, keys = { "launcher", "minimap", "vendor", "warnings", "waypoint", "menubar", "bagbutton", "rangecheck", "foodtile", "sharedFonts" } },
+    { title = "Games", width = 100, sections = {
+        { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" } },
+        { "Company", { "guild", "pet" } },
+    } },
+    { title = "Leveling", width = 110, sections = {
+        { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
+        { "As you play", { "nextlevel", "levelup", "journal", "questtags", "tametip" } },
+    } },
+    { title = "Professions", width = 130, sections = {
+        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters" } },
+    } },
+    { title = "Around the UI", width = 150, sections = {
+        { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
+        { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "rangecheck" } },
+        { "Everything else", { "sharedFonts" } },
+    } },
 }
+
+-- What each part does, in a line short enough to take in at a glance. The
+-- part's own note, which says all of it, is the card's tooltip.
+local SHORT = {
+    dailyword = "One word a day, the same for everyone",
+    iconguess = "Name the spell from its icon",
+    chess = "Chess with guildmates, a move at a time",
+    flight = "Route, time left and games while you fly",
+    guild = "Guildmates' scores and the Guild Word",
+    pet = "A small creature of your own to raise",
+    talents = "Names your next talent",
+    trainingpanel = "What to train now and next",
+    gear = "The best upgrade for each slot",
+    dungeons = "Bosses, loot and quests",
+    nextlevel = "What your next level brings",
+    levelup = "What's new on each level",
+    journal = "Your story, stats and characters",
+    questtags = "A quest's chain, and how long it takes",
+    tametip = "Which beasts teach a new pet ability",
+    professionpanel = "What to craft to reach the next rank",
+    profwindow = "Extras in the game's profession window",
+    shopping = "What to craft and buy, with prices",
+    crafters = "Who in your guild makes what",
+    launcher = "A small bar of buttons you can move",
+    minimap = "Opens the dashboard from the minimap",
+    menubar = "The game's menu bar, in jsal.ui's look",
+    bagbutton = "One button for your bags and free space",
+    vendor = "Repairs and sells grey items for you",
+    warnings = "Full bags, and gear about to break",
+    waypoint = "Where the map marker leads, and how far",
+    foodtile = "A reminder when you aren't Well Fed",
+    rangecheck = "Hunters: melee, dead zone or shooting",
+    layers = "Your layer, and a way to change it",
+    sharedFonts = "jsal.ui's font in other addons' lists",
+}
+
+-- A part's short line: its own, or its note up to the first full stop.
+local function Short(module)
+    if SHORT[module.key] then return SHORT[module.key] end
+    local note = module.note or ""
+    return note:match("^(.-)%. ") or note
+end
+
+-- The slash command a part's note names, for a tag beside its name.
+local function Command(module)
+    return (module.note or ""):match("(/jsal %a+)")
+end
 
 local function Grouped()
     local placed, groups = {}, {}
     for i, group in ipairs(GROUPS) do
-        local list = {}
-        for _, key in ipairs(group.keys) do
-            if ns.modules[key] then
-                list[#list + 1] = ns.modules[key]
-                placed[key] = true
+        local all, sections = {}, {}
+        for _, section in ipairs(group.sections) do
+            local list = {}
+            for _, key in ipairs(section[2]) do
+                if ns.modules[key] then
+                    list[#list + 1] = ns.modules[key]
+                    all[#all + 1] = ns.modules[key]
+                    placed[key] = true
+                end
             end
+            sections[#sections + 1] = { title = section[1], modules = list }
         end
-        groups[i] = { title = group.title, width = group.width, modules = list }
+        groups[i] = { title = group.title, width = group.width, modules = all, sections = sections }
     end
-    local last = groups[#groups].modules
+    local last = groups[#groups]
     for _, module in ipairs(ns.moduleOrder) do
-        if not placed[module.key] then last[#last + 1] = module end
+        if not placed[module.key] then
+            table.insert(last.modules, module)
+            table.insert(last.sections[#last.sections].modules, module)
+        end
     end
     return groups
 end
@@ -55,37 +127,58 @@ local function Matches(module, words)
     return text:lower():find(words, 1, true) ~= nil
 end
 
--- One row: a name with what it does under it (two lines at most; hovering
--- the row shows the whole of it when it was cut), and a switch at the right.
--- Clicking anywhere on the row flips the switch, which calls row.onChange.
--- A small row is one of a part's options, set in under it on a darker fill.
-local function Row(parent, width, small)
-    local row = CreateFrame("Button", nil, parent)
-    row:SetSize(width, small and OPTION_H or ROW_H)
-    if small then
-        local fill = row:CreateTexture(nil, "BACKGROUND", nil, -1)
-        fill:SetAllPoints()
-        fill:SetColorTexture(Style.Color("titleBar"))
+-- A small label beside a part's name: gold for what a reload will do,
+-- plain for its slash command.
+local function Tag(parent, gold)
+    local t = CreateFrame("Frame", nil, parent)
+    t:SetHeight(15)
+    Style.Fill(t, gold and "gold" or "line")
+    t.text = Style.Text(t, 10, gold and "onGold" or "secondary", nil, gold)
+    t.text:SetPoint("CENTER")
+    function t:Say(text)
+        self.text:SetText(text or "")
+        local w = self.text.GetStringWidth and self.text:GetStringWidth()
+        self:SetWidth(((type(w) == "number" and w > 0) and w or #(text or "") * 5.2) + 12)
+        self:SetShown(text ~= nil and text ~= "")
     end
-    row.hover = Style.Fill(row, "well")
+    return t
+end
+
+-- A card: a name, one line under it, and a switch at the right. Clicking
+-- anywhere on it flips the switch, which calls row.onChange. Pointing at a
+-- part's card shows the whole of what it does; at an option's, its line
+-- when that was cut. A small card is one of a part's options, under it on a
+-- darker fill.
+local function Card(parent, width, small)
+    local row = CreateFrame("Button", nil, parent)
+    row:SetSize(width, small and OPTION_H or CARD_H)
+    Style.Fill(row, small and "titleBar" or "well")
+    row.hover = row:CreateTexture(nil, "BACKGROUND", nil, 1)
+    row.hover:SetAllPoints()
+    row.hover:SetColorTexture(Style.Color("wellHover"))
     row.hover:Hide()
-    Style.Rule(row, "BOTTOM", "line")
+    -- Its left edge is gold while it's on, so a tab's state shows at a look.
+    row.edge = row:CreateTexture(nil, "ARTWORK")
+    row.edge:SetPoint("TOPLEFT")
+    row.edge:SetPoint("BOTTOMLEFT")
+    row.edge:SetWidth(3)
     row.switch = Style.Switch(row, function(on)
         if row.onChange then row.onChange(on) end
     end)
-    row.switch:SetPoint("RIGHT", small and -INSET or 0, 0)
-    row.name = Style.Text(row, small and 13 or 14, "text", nil, not small)
-    row.name:SetPoint("TOPLEFT", small and INSET or 0, small and -8 or -10)
-    row.note = Style.Text(row, 12, "muted")
-    row.note:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -3)
-    row.note:SetWidth(width - SWITCH_W - 20 - (small and INSET * 2 or OPTIONS_W + 12))
+    row.switch:SetPoint("RIGHT", -12, 0)
+    row.name = Style.Text(row, small and 12 or 14, "text", nil, not small)
+    row.name:SetPoint("TOPLEFT", 16, small and -5 or -11)
+    row.name:SetWordWrap(false)
+    row.note = Style.Text(row, small and 11 or 12, "muted")
+    row.note:SetPoint("TOPLEFT", 16, small and -21 or -33)
+    row.note:SetWidth(width - 16 - SWITCH_W - 28)
     row.note:SetJustifyH("LEFT")
-    if row.note.SetMaxLines then row.note:SetMaxLines(2) end
+    row.note:SetWordWrap(false)
     row:SetScript("OnClick", function() row.switch:Click() end)
     row:SetScript("OnEnter", function(self)
         self.hover:Show()
         local cut = self.note.IsTruncated and self.note:IsTruncated()
-        if cut and self.full and self.full ~= "" then
+        if self.full and self.full ~= "" and (not small or cut) then
             GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
             GameTooltip:SetText(self.title)
             GameTooltip:AddLine(self.full, 1, 1, 1, true)
@@ -96,10 +189,13 @@ local function Row(parent, width, small)
         self.hover:Hide()
         GameTooltip:Hide()
     end)
-    function row:Set(title, note)
-        self.title, self.full = title, note
+    function row:Set(title, line, full, on)
+        self.title, self.full = title, full
         self.name:SetText(title)
-        self.note:SetText(note or "")
+        self.note:SetText(line or "")
+        self.switch:SetOn(on)
+        self.edge:SetColorTexture(Style.Color(on and "gold" or "lineStrong"))
+        self.name:SetTextColor(Style.Color(on and "text" or "muted"))
     end
     return row
 end
@@ -107,6 +203,7 @@ end
 Window.Page("settings", function(page)
     local width, height = Window.contentWidth, Window.contentHeight
     local rowW = width - 12
+    local cardW = math.floor((rowW - 12) / 2)
     local groups = Grouped()
     local chosen, openKey, words = 1, nil, ""
     local Paint
@@ -166,9 +263,13 @@ Window.Page("settings", function(page)
         x = x + group.width + 6
     end
 
+    local summary = Style.Text(page, 12, "muted")
+    summary:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width, -(8 + 28 + 12 + 6))
+    summary:SetJustifyH("RIGHT")
+
     ---------------------------------------------------------------------
-    -- The parts, in a list that scrolls when a part's options are open
-    -- and there's more than fits.
+    -- The parts, as cards two across, in a list that scrolls when there's
+    -- more than fits.
     ---------------------------------------------------------------------
     local scroll, list = Style.Scroller(page, width, height - LIST_TOP - BAR_H - 12, rowW)
     scroll:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(8 + LIST_TOP))
@@ -176,16 +277,21 @@ Window.Page("settings", function(page)
     none:SetPoint("TOPLEFT", 0, -14)
     none:SetWidth(rowW)
 
-    local rows, optionRows = {}, {}
+    local rows, optionRows, heads = {}, {}, {}
     local function PartRow(i)
         if rows[i] then return rows[i] end
-        local row = Row(list, rowW)
-        -- Beside the name once its switch is flipped: what the reload will do.
-        row.tag = Style.Text(row, 11, "gold", nil, true)
-        row.tag:SetPoint("LEFT", row.name, "RIGHT", 10, 0)
-        row.options = Style.Button(row, "Options", "tab", OPTIONS_W)
-        row.options:SetHeight(24)
-        row.options:SetPoint("RIGHT", row.switch, "LEFT", -12, 0)
+        local row = Card(list, cardW)
+        -- Beside the name: its slash command, and, once its switch is
+        -- flipped, what the reload will do.
+        row.command = Tag(row)
+        row.tag = Tag(row, true)
+        -- "2 options", under the switch: a click opens them under the card.
+        row.options = CreateFrame("Button", nil, row)
+        row.options:SetSize(70, 16)
+        row.options:SetPoint("BOTTOMRIGHT", -12, 7)
+        row.options.label = Style.Text(row.options, 11, "gold")
+        row.options.label:SetPoint("RIGHT")
+        row.options.label:SetJustifyH("RIGHT")
         row.options:SetScript("OnClick", function()
             openKey = openKey ~= row.module.key and row.module.key or nil
             Paint()
@@ -194,8 +300,15 @@ Window.Page("settings", function(page)
         return row
     end
     local function OptionRow(i)
-        if not optionRows[i] then optionRows[i] = Row(list, rowW, true) end
+        if not optionRows[i] then
+            optionRows[i] = Card(list, cardW, true)
+            optionRows[i].edge:SetColorTexture(Style.Color("gold"))
+        end
         return optionRows[i]
+    end
+    local function Head(i)
+        if not heads[i] then heads[i] = Style.Text(list, 12, "gold", nil, true) end
+        return heads[i]
     end
 
     ---------------------------------------------------------------------
@@ -259,16 +372,42 @@ Window.Page("settings", function(page)
         end
         for i, b in ipairs(tabs) do b:SetSelected(not finding and i == chosen) end
 
-        local y, used = 0, 0
-        for i, module in ipairs(shown) do
-            local row = PartRow(i)
+        -- How many parts are on, said once at the top.
+        local on, total = 0, 0
+        for _, module in ipairs(ns.moduleOrder) do
+            total = total + 1
+            if ns.ModuleWanted(module) then on = on + 1 end
+        end
+        summary:SetText(("%d of %d parts are on  ·  point at one for all it does"):format(on, total))
+
+        -- A part's card at (x, y), its options under it when they're open.
+        -- Returns how tall it came to.
+        local y, used, parts, headed = 0, 0, 0, 0
+        local function Place(module, x, at)
+            parts = parts + 1
+            local row = PartRow(parts)
             row.module = module
-            local on = ns.ModuleWanted(module)
-            row:Set(module.title, module.failed and "Turned off after an error this session. BugSack has the details."
-                or module.note or "")
-            row.name:SetTextColor(Style.Color((module.failed or not on) and "muted" or "text"))
-            row.tag:SetText(Changed(module) and (on and "On after a reload" or "Off after a reload") or "")
-            row.switch:SetOn(on)
+            local wanted = ns.ModuleWanted(module)
+            row:Set(module.title, module.failed and "Turned off after an error this session" or Short(module),
+                module.failed and "Turned off after an error this session. BugSack has the details." or module.note or "", wanted)
+            if module.failed then row.name:SetTextColor(Style.Color("muted")) end
+            row.command:Say(Command(module))
+            row.command:ClearAllPoints()
+            row.command:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
+            row.tag:Say(Changed(module) and (wanted and "on after a reload" or "off after a reload") or nil)
+            -- Beside the name where there's room; after the line under it
+            -- for a long name, so it never runs under the switch.
+            local function Wide(text)
+                local w = text.GetStringWidth and text:GetStringWidth()
+                return type(w) == "number" and w or 0
+            end
+            local taken = 16 + Wide(row.name) + 8 + (row.command:IsShown() and (Wide(row.command.text) + 18) or 0)
+            row.tag:ClearAllPoints()
+            if taken + Wide(row.tag.text) + 12 > cardW - SWITCH_W - 24 then
+                row.tag:SetPoint("LEFT", row.note, "LEFT", Wide(row.note) + 8, 0)
+            else
+                row.tag:SetPoint("LEFT", row.command:IsShown() and row.command or row.name, "RIGHT", row.command:IsShown() and 6 or 8, 0)
+            end
             row.onChange = function(now)
                 ns.db.modules[module.key] = now
                 Paint()
@@ -276,17 +415,21 @@ Window.Page("settings", function(page)
             local options = module.options or {}
             local open = #options > 0 and (openKey == module.key or finding)
             row.options:SetShown(#options > 0)
-            row.options:SetLabel(#options == 1 and "1 option" or (#options .. " options"))
-            row.options:SetSelected(open)
+            row.options.label:SetText(#options == 1 and "1 option" or (#options .. " options"))
+            row.options.selected = open
+            -- With options, the switch sits above "N options".
+            row.switch:ClearAllPoints()
+            if #options > 0 then row.switch:SetPoint("TOPRIGHT", -12, -9) else row.switch:SetPoint("RIGHT", -12, 0) end
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", 0, -y)
+            row:SetPoint("TOPLEFT", x, -at)
             row:Show()
-            y = y + ROW_H
+            local tall = CARD_H
             for _, option in ipairs(open and options or {}) do
                 used = used + 1
                 local o = OptionRow(used)
-                o:Set(option.title, option.note)
-                o.switch:SetOn(ns.OptionOn(module.key, option.key))
+                o:Set(option.title, option.note, option.note, ns.OptionOn(module.key, option.key))
+                o.edge:SetColorTexture(Style.Color("gold"))
+                o.name:SetTextColor(Style.Color("text"))
                 o.onChange = function(now)
                     ns.SetOption(module.key, option.key, now)
                     -- A part that redraws on an option change (the quick bar) does it now.
@@ -295,12 +438,45 @@ Window.Page("settings", function(page)
                     end
                 end
                 o:ClearAllPoints()
-                o:SetPoint("TOPLEFT", 0, -y)
+                o:SetPoint("TOPLEFT", x, -(at + tall + 2))
                 o:Show()
-                y = y + OPTION_H
+                tall = tall + 2 + OPTION_H
+            end
+            return tall
+        end
+        -- A handful of parts under a heading, two across: each goes to the
+        -- shorter column, so one with its options open doesn't leave a gap.
+        local function Section(title, modules)
+            if #modules == 0 then return end
+            if title then
+                headed = headed + 1
+                local head = Head(headed)
+                head:SetText(title:upper())
+                head:ClearAllPoints()
+                head:SetPoint("TOPLEFT", 0, -(y + 6))
+                head:Show()
+                y = y + HEAD_H
+            end
+            local left, right = y, y
+            for _, module in ipairs(modules) do
+                if left <= right then
+                    left = left + Place(module, 0, left) + GAP
+                else
+                    right = right + Place(module, cardW + 12, right) + GAP
+                end
+            end
+            y = math.max(left, right) + 8
+        end
+        if finding then
+            Section(nil, shown)
+        else
+            local sections = groups[chosen].sections
+            for _, section in ipairs(sections) do
+                Section(#sections > 1 and section.title or nil, section.modules)
             end
         end
-        for i = #shown + 1, #rows do rows[i]:Hide() end
+        for i = parts + 1, #rows do rows[i]:Hide() end
+        for i = headed + 1, #heads do heads[i]:Hide() end
         for i = used + 1, #optionRows do optionRows[i]:Hide() end
         none:SetShown(#shown == 0)
         if #shown == 0 then none:SetText(("Nothing in jsal.ui matches \"%s\"."):format(words)) end

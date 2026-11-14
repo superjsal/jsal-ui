@@ -1,18 +1,22 @@
--- The Gear plan, in a window of its own: your gear slots in one column, in
--- the game's order. Each slot shows its name, what you wear and, in green,
--- the best upgrade near your level for your spec; a green dot marks the
--- slots that have one. Click a slot to see its options beside them: what
--- each adds, where it comes from, its level, and a star to keep it on top.
+-- The Gear plan, in a wide window of its own: your gear slots as a table, in
+-- the game's order. Each slot shows its name and what you wear, the best
+-- upgrade near your level for your spec by name with where it's from, and
+-- in green what it adds. Click a slot to see its upgrades beside them, in
+-- columns: where each comes from, its level, what it adds, and a star to
+-- keep it on top. (John, 14 Nov 2026: "The gear planner can also have an
+-- increased screen size if that would let you give it a better layout".)
 -- Under them, a box adds an item the plan doesn't list, starred, in the
 -- slot it goes in. Weights, beside the spec buttons, opens the spec's stat
 -- weights to change, or to fill from a Pawn scale.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local WINDOW_W, WINDOW_H = 1000, 860
-local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 300, 40, 1, 34, 54, 20
-local OPT_H, OPT_GAP = 62, 8   -- an upgrade's card, and the room between two
-local GAIN_W = 150             -- room for what an upgrade adds ("+14 AP, +3 Sta")
+local WINDOW_W, WINDOW_H = 1240, 860
+local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 540, 40, 1, 30, 54, 20
+local UP_X = 220               -- in a slot's row, where its best upgrade starts
+local OPT_H, OPT_GAP = 54, 6   -- an upgrade's card, and the room between two
+local GAIN_W = 118             -- room for what an upgrade adds ("+14 AP, +3 Sta")
+local WHERE_X, LEVEL_W = 258, 36   -- on an upgrade's card: where its source starts, and the level column
 local RED = Style.Tint("red")
 
 local function ItemInfo(id)
@@ -258,16 +262,23 @@ Window.Page("gear", function(page)
     end)
     page:HookScript("OnHide", function() panel:Hide() end)
 
-    local top = 64
+    local top = 68
     -- Over the slots, a name for each column: without them the green numbers
     -- beside a slot with nothing in it read as that slot's own stats.
-    local wearing = Style.Text(page, 11, "muted", nil, true)
-    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 6 + ICON + 8, -(top - 14))
-    wearing:SetText("YOU WEAR")
-    local adds = Style.Text(page, 11, "muted", nil, true)
-    adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 8, -(top - 14))
+    local wearing = Style.Text(page, 10, "muted", nil, true)
+    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 6 + ICON + 8, -(top - 18))
+    wearing:SetText("SLOT, AND WHAT YOU WEAR")
+    local bestHead = Style.Text(page, 10, "muted", nil, true)
+    bestHead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", UP_X, -(top - 18))
+    bestHead:SetText("BEST UPGRADE NEAR YOUR LEVEL")
+    local adds = Style.Text(page, 10, "muted", nil, true)
+    adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 10, -(top - 18))
     adds:SetJustifyH("RIGHT")
-    adds:SetText("BEST UPGRADE ADDS")
+    adds:SetText("IT ADDS")
+    local slotRule = page:CreateTexture(nil, "BORDER")
+    slotRule:SetColorTexture(Style.Color("lineStrong"))
+    slotRule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 3))
+    slotRule:SetSize(SLOT_W, 1)
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
     -- wear and the best upgrade.
     local slotFrames = {}
@@ -281,20 +292,29 @@ Window.Page("gear", function(page)
         b.box = IconBox(b, ICON)
         b.box:SetPoint("LEFT", 6, 0)
         b.icon = b.box.icon
-        -- Two lines: the slot's name, with what its best upgrade adds at
-        -- the right, and what you wear. The upgrade's own name is in the
-        -- tooltip and beside the slots once it's chosen.
-        b.label = Style.Text(b, 11, "muted")
-        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, -3)
+        -- Three columns: the slot's name over what you wear; its best
+        -- upgrade by name over where it's from; and what that adds.
+        b.label = Style.Text(b, 10, "muted", nil, true)
+        b.label:SetPoint("TOPLEFT", b.box, "TOPRIGHT", 8, 0)
         b.label:SetText(row.label:upper())
-        b.gain = Style.Text(b, 12, "green", nil, true)
-        b.gain:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -7)
-        b.gain:SetJustifyH("RIGHT")
-        b.worn = Style.Text(b, 14, "text")
-        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -3)
-        b.worn:SetWidth(SLOT_W - ICON - 22)
+        b.worn = Style.Text(b, 13, "text")
+        b.worn:SetPoint("TOPLEFT", b.label, "BOTTOMLEFT", 0, -2)
+        b.worn:SetWidth(UP_X - ICON - 14 - 10)
         b.worn:SetJustifyH("LEFT")
         b.worn:SetWordWrap(false)
+        b.gain = Style.Text(b, 13, "green", nil, true)
+        b.gain:SetPoint("RIGHT", b, "RIGHT", -10, 0)
+        b.gain:SetJustifyH("RIGHT")
+        b.best = Style.Text(b, 13, "text")
+        b.best:SetPoint("TOPLEFT", b, "TOPLEFT", UP_X, -5)
+        b.from = Style.Text(b, 11, "muted")
+        b.from:SetPoint("TOPLEFT", b.best, "BOTTOMLEFT", 0, -2)
+        for _, t in ipairs({ b.best, b.from }) do
+            t:SetWidth(SLOT_W - UP_X - GAIN_W - 18)
+            t:SetJustifyH("LEFT")
+            t:SetWordWrap(false)
+        end
+        Style.Rule(b, "BOTTOM", "line")
         b.slot, b.row = slot, row
         b.equip = row.equip
         Tooltip(b)
@@ -331,14 +351,32 @@ Window.Page("gear", function(page)
     Style.Rule(list, "LEFT", "line")
     local wearHead = Style.Text(list, 12, "gold", nil, true)
     wearHead:SetPoint("TOPLEFT", 14, 0)
-    local betterHead = Style.Text(list, 12, "gold", nil, true)
+    -- How many upgrades the slot has, at the right of its heading.
+    local upCount = Style.Text(list, 12, "muted")
+    upCount:SetPoint("TOPRIGHT", -14, 0)
+    upCount:SetJustifyH("RIGHT")
+    -- The upgrades' column headings, lined up with the cards under them.
+    local cols = CreateFrame("Frame", nil, list)
+    cols:SetSize(listW - 28, 18)
+    cols:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 14))
+    for _, label in ipairs({ { "UPGRADE", 54 }, { "WHERE IT'S FROM", WHERE_X }, { "LEVEL", -(46 + GAIN_W + 12) }, { "IT ADDS", -46 } }) do
+        local t = Style.Text(cols, 10, "muted", nil, true)
+        if label[2] < 0 then
+            t:SetPoint("TOPRIGHT", label[2], 0)
+            t:SetJustifyH("RIGHT")
+        else
+            t:SetPoint("TOPLEFT", label[2], 0)
+        end
+        t:SetText(label[1])
+    end
+    Style.Rule(cols, "BOTTOM", "lineStrong")
     local empty = Style.Text(list, 13, "muted")
     empty:SetWidth(listW - 28)
     empty:SetJustifyH("LEFT")
     -- The options scroll, between their heading and the add box, with a
     -- thin bar on the right when there are more than fit.
     local ADD_H = 58
-    local OPT_TOP = 18 + ROW_H + 16 + 20
+    local OPT_TOP = 18 + ROW_H + 14 + 18 + 6
     local VIEW_H = (height - top - 60) - OPT_TOP - ADD_H
     local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
@@ -358,14 +396,14 @@ Window.Page("gear", function(page)
         else
             Style.Rule(r, "BOTTOM", "line")
         end
-        r.box = IconBox(r, card and 40 or 36)
+        r.box = IconBox(r, 36)
         r.box:SetPoint("LEFT", card and 10 or 0, 0)
         r.icon = r.box.icon
         -- A star keeps an upgrade on top: the game's own yellow star (the
         -- raid marker), grey until starred, in a box that reads as a button.
         r.star = CreateFrame("Button", nil, r)
-        r.star:SetSize(30, 30)
-        r.star:SetPoint("RIGHT", -10, 0)
+        r.star:SetSize(28, 28)
+        r.star:SetPoint("RIGHT", -8, 0)
         r.star.edges = Style.Border(r.star, "lineStrong")
         r.star.tex = r.star:CreateTexture(nil, "ARTWORK")
         r.star.tex:SetSize(16, 16)
@@ -383,20 +421,49 @@ Window.Page("gear", function(page)
             GameTooltip:Show()
         end)
         r.star:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        -- What it adds over what you wear, large, beside the star.
-        r.gain = Style.Text(r, 15, "green", nil, true)
-        r.gain:SetPoint("RIGHT", r.star, "LEFT", -12, 0)
+        -- What it adds over what you wear, beside the star.
+        r.gain = Style.Text(r, 13, "green", nil, true)
+        r.gain:SetPoint("RIGHT", r.star, "LEFT", -10, 0)
         r.gain:SetJustifyH("RIGHT")
-        r.name = Style.Text(r, 15, "text")
-        r.name:SetPoint("TOPLEFT", r.box, "TOPRIGHT", 10, card and -2 or 0)
-        r.where = Style.Text(r, 13, "muted")
-        r.where:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
-        local textW = w - (card and 60 or 46) - (card and (GAIN_W + 12 + 30 + 10 + 10) or 0)
-        for _, t in ipairs({ r.name, r.where }) do
-            t:SetWidth(textW)
+        r.name = Style.Text(r, 14, "text")
+        r.name:SetWidth(card and (WHERE_X - 54 - 8) or (w - 46))
+        r.name:SetJustifyH("LEFT")
+        r.name:SetWordWrap(false)
+        -- The upgrade the plan puts first is tagged, under its name.
+        r.best = CreateFrame("Frame", nil, r)
+        r.best:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
+        Style.Fill(r.best, "gold")
+        r.best.text = Style.Text(r.best, 10, "onGold", nil, true)
+        r.best.text:SetPoint("CENTER")
+        r.best.text:SetText("best for you")
+        r.best:SetSize(72, 15)
+        r.best:Hide()
+        -- Where it's from, in a column of its own: how it's got, over
+        -- where or from whom.
+        r.how = Style.Text(r, 12, "text")
+        r.how:SetPoint("TOPLEFT", WHERE_X, -10)
+        r.where = Style.Text(r, 11, "muted")
+        r.where:SetPoint("TOPLEFT", r.how, "BOTTOMLEFT", 0, -3)
+        for _, t in ipairs({ r.how, r.where }) do
+            t:SetWidth(w - WHERE_X - (46 + GAIN_W + 12) - LEVEL_W - 8)
             t:SetJustifyH("LEFT")
             t:SetWordWrap(false)
         end
+        -- The level it needs, in a column, red while it's above yours.
+        r.level = Style.Text(r, 13, "secondary")
+        r.level:SetPoint("RIGHT", -(46 + GAIN_W + 12), 0)
+        r.level:SetJustifyH("RIGHT")
+        -- The name sits in the middle of the card, or over the tag.
+        function r:Named(tagged)
+            self.best:SetShown(tagged and true or false)
+            self.name:ClearAllPoints()
+            if tagged then
+                self.name:SetPoint("TOPLEFT", self.box, "TOPRIGHT", 10, 1)
+            else
+                self.name:SetPoint("LEFT", self.box, "RIGHT", 10, 0)
+            end
+        end
+        r:Named(false)
         r:EnableMouse(true)
         Tooltip(r)
         rows[i] = r
@@ -410,7 +477,7 @@ Window.Page("gear", function(page)
     box.well:SetPoint("BOTTOMLEFT", list, "BOTTOMLEFT", 14, 22)
     box.hint = Style.Text(box.well, 12, "muted")
     box.hint:SetPoint("LEFT", 8, 0)
-    box.hint:SetText("Item ID, link or Wowhead URL")
+    box.hint:SetText("Add an item: its ID, a link or a Wowhead URL")
     box:SetScript("OnTextChanged", function(self) box.hint:SetShown(self:GetText() == "" and not self:HasFocus()) end)
     box:SetScript("OnEditFocusGained", function() box.hint:Hide() end)
     box:SetScript("OnEditFocusLost", function(self) box.hint:SetShown(self:GetText() == "") end)
@@ -455,23 +522,28 @@ Window.Page("gear", function(page)
     note:SetWordWrap(false)
     note:SetText("Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30. Stat weights are WoWSims'.")
 
-    -- The line under an item: where it comes from, and the
-    -- level it needs (none shown when it needs none).
-    local function Detail(o)
-        local bits = {}
-        if o.lighter then bits[#bits + 1] = o.lighter end
+    -- Where an item comes from, in two parts: how it's got (crafted, a
+    -- quest, who drops it), and where or from whom. Profession gear says who
+    -- can wear it, in red when you can't (yet). And the level it needs, as
+    -- its own column's text: red while it's above yours, nothing for
+    -- profession gear, "any" for an item that needs none.
+    local function Where(o)
         local source = G.Source(o)
-        -- Profession gear: who can wear it, in red when you can't (yet).
+        if o.needs then source = (source:gsub("^" .. o.needs.name .. " · ", "")) end
+        local how, place = source:match("^(.-) · (.*)$")
+        if not how then how, place = source, "" end
+        -- "Leatherworking · Crafted" reads better the other way up.
+        if place:find("^Crafted") then how, place = "Crafted", how .. place:sub(8) end
         if o.needs then
-            source = source:gsub("^" .. o.needs.name .. " · ", "")
-            if source ~= "" then bits[#bits + 1] = source end
-            bits[#bits + 1] = (G.HasSkill(o.needs) and "" or RED) .. ("%s %d only"):format(o.needs.name, o.needs.skill)
+            local only = (G.HasSkill(o.needs) and "" or RED) .. ("%s %d only"):format(o.needs.name, o.needs.skill)
                 .. (G.HasSkill(o.needs) and "" or "|r")
-        elseif source ~= "" then
-            bits[#bits + 1] = source
+            place = place ~= "" and (place .. ", " .. only) or only
         end
-        if (o.req or 0) > 0 and not o.needs then bits[#bits + 1] = (o.soon and RED or "") .. "level " .. o.req .. (o.soon and "|r" or "") end
-        return table.concat(bits, " · ")
+        local level = ""
+        if not o.needs then
+            level = (o.req or 0) > 0 and ((o.soon and RED or "") .. o.req .. (o.soon and "|r" or "")) or "any"
+        end
+        return how, place, level
     end
 
     local paintedSlot
@@ -484,8 +556,8 @@ Window.Page("gear", function(page)
             b:SetSelected(i == spec)
         end
         local className = UnitClass("player") or ""
-        who:SetText(("%s %s · level %d"):format(trees[spec].name, className:lower(), level)
-            .. (G.CustomWeights(spec) and " · |cffe3b04byour weights|r" or ""))
+        who:SetText(("%s %s, level %d"):format(trees[spec].name, className:lower(), level)
+            .. (G.CustomWeights(spec) and "  ·  |cffe3b04byour weights|r" or ""))
         weightsButton:SetSelected(panel:IsShown())
         PaintWeights()
 
@@ -511,13 +583,23 @@ Window.Page("gear", function(page)
             if best then
                 better = better + 1
                 b.gain:SetText(best.gains and best.gains ~= "" and best.gains or "Better")
-                b.gain:SetTextColor(Style.Color("green"))
-                b.note = "Best upgrade: " .. (ItemInfo(best.id) or "...")
+                -- The upgrade by name, in its quality's colour, over where
+                -- it's from: the slot said only what it adds, and the name
+                -- waited in a tooltip.
+                local name, _, quality = ItemInfo(best.id)
+                b.best:SetText(Colored(name, quality or best.quality))
+                local how, place = Where(best)
+                b.from:SetText(how .. (place ~= "" and (", " .. place) or ""))
+                b.note = "Best upgrade: " .. (name or "...")
             else
-                b.gain:SetText(plan.waiting > 0 and "checking..." or "")
-                b.gain:SetTextColor(Style.Color("muted"))
+                b.gain:SetText("")
+                b.best:SetText(plan.waiting > 0 and "|cff9a9688checking...|r" or "|cff5d5b55nothing better yet|r")
+                b.from:SetText("")
                 b.note = nil
             end
+            -- With nothing under it, a line sits in the middle of the row.
+            b.best:ClearAllPoints()
+            b.best:SetPoint("TOPLEFT", b, "TOPLEFT", UP_X, best and -5 or -13)
             checking = checking or plan.waiting > 0
             local on = key == chosen
             b.bg:SetShown(on)
@@ -546,12 +628,13 @@ Window.Page("gear", function(page)
             wornRow.name:SetText("|cff9a9688Nothing|r")
         end
         wornRow.where:SetText("")
+        wornRow.how:SetText("")
+        wornRow.level:SetText("")
         wornRow.star:Hide()
         wornRow.gain:SetText("")
         wornRow:Show()
-        betterHead:ClearAllPoints()
-        betterHead:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
-        betterHead:SetText("BETTER FOR YOU")
+        upCount:SetText(#plan.options > 0 and ("%d upgrade%s"):format(#plan.options, #plan.options == 1 and "" or "s") or "")
+        cols:SetShown(#plan.options > 0)
         local y = OPT_TOP
         local shown = 0
         for i, o in ipairs(plan.options) do
@@ -561,8 +644,16 @@ Window.Page("gear", function(page)
             r.item, r.equip = o.id, nil
             local name, _, quality, texture = ItemInfo(o.id)
             r.icon:SetTexture(texture or Compat.ItemIcon(o.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
-            r.name:SetText(Colored(name, quality or o.quality))
-            r.where:SetText(Detail(o))
+            -- Lighter armor than yours says what it is, after its name.
+            r.name:SetText(Colored(name, quality or o.quality) .. (o.lighter and ("  |cff9a9688" .. o.lighter:lower() .. "|r") or ""))
+            local how, place, needs = Where(o)
+            r.how:SetText(how)
+            r.where:SetText(place)
+            r.level:SetText(needs)
+            r:Named(i == 1)
+            -- With no second line, how it's got sits in the middle too.
+            r.how:ClearAllPoints()
+            r.how:SetPoint("TOPLEFT", WHERE_X, place ~= "" and -10 or -19)
             r.gain:SetText(o.gains or "")
             r.star:Show()
             r.star.tex:SetDesaturated(not o.starred)
@@ -581,7 +672,7 @@ Window.Page("gear", function(page)
         scroll:UpdateScrollChildRect()
         scroll:Place()
         empty:ClearAllPoints()
-        empty:SetPoint("TOPLEFT", 14, -y)
+        empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
         if shown == 0 then
             empty:SetText(plan.waiting > 0 and "Checking the items near your level..."
                 or "Nothing better for this slot near your level that we know of yet.")

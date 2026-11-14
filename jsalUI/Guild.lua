@@ -438,11 +438,12 @@ Window.Page("guild", function(page)
             local e = Guild.running and list[i]
             row:SetShown(e and true or false)
             if e and e.away then
-                -- Not online now: greyed, with when they were last seen.
+                -- Not online now: greyed, with when they were last seen
+                -- beside the name, where it sat under the Daily Word heading
+                -- as if it were a score.
                 row:SetAlpha(0.65)
-                row.cells[1]:SetText(e.name)
-                row.cells[2]:SetText("Last seen " .. Ago(e.last))
-                for c = 3, 5 do row.cells[c]:SetText("") end
+                row.cells[1]:SetText(e.name .. "  |cff9a9688·  last seen " .. Ago(e.last) .. "|r")
+                for c = 2, 5 do row.cells[c]:SetText("") end
                 row.cells[6]:SetText(e.version or "")
             elseif e then
                 row:SetAlpha(1)
