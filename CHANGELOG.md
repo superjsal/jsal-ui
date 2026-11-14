@@ -27,7 +27,8 @@ Restart the game after updating (exit and start it again): this version adds new
   - **The Professions page** reads as the profession panel does: your skill on one bar, your professions in a row, the step to do now as a card, the steps after it, and everything you need at the right.
   - **The shopping list** groups what's still to get: from a vendor (with its cost), from the auction house or the world, and what you already have enough of. Each row says how many more you need.
   - **Dungeon loot** shows each item's drop chance at the right, with how often it has dropped in your guild's kills in plain words. Items you can't equip at all fold into one line per boss; lighter armor than yours and weapons you could learn stay in view.
-  - **Dungeon quests** are grouped by where they start, one line each, so a place lists what you can pick up there now. A chain's later parts sit under its first part, saying where they start, and a finished quest sits ticked above the quest it opens.
+  - **Dungeon quests** are grouped by where they start, one line each, so a place lists what you can pick up there now. A chain reads as a chain: the quests that lead up to one sit above it (ticked when done, an empty box and where they start when not), and what follows sits under it.
+  - **Home's Today** shows the date beside the title, what the next level brings as a card with a row for each thing, and your pal's need under your name when it has one.
 
 - **The craft timer no longer stays up when a run ends early.** Ask for seven with materials for one and the game makes one and stops without a word; the timer sat there counting nothing. It now goes a few seconds after the last craft.
 - **The shopping list no longer jumps when you drag it.** It also keeps its title bar where you put it when the list gets longer or shorter.
