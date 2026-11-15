@@ -19,6 +19,13 @@ March 2025), two are put right in checked():
 - The healing sims weigh spell power, which in WoWSims is damage and healing. An item of "+Healing"
   (healing only) is its own stat in the game, and they gave it nothing: it gets spell power's weight.
 
+One rule for Stamina, every class alike: damage and healing trees keep WoWSims' small figure (at
+least STAMINA_FLOOR), and a tank tree takes a WoWSims tank set that weighs Stamina as a tank does.
+Their protection_paladin set weighs it at 0 (it's tuned for raid avoidance, Agility 18.57 for the
+dodge), so a Protection paladin takes the warrior tank's, the other plate tank's. (John, 14 Nov 2026:
+"if someone does value stamina like a tank will it show it properly, but also not overvalue stamina
+for dps classes"; "lets keep it as universal as possible".)
+
 Run: python -I tools/build_gear.py
 """
 
@@ -38,7 +45,7 @@ HUNTER_AGILITY_PER_CRIT = 53  # Agility for 1% crit, a hunter at 60
 # Each class's talent trees, in the game's order, to the WoWSims spec that fits.
 SPECS = {
     "WARRIOR": ["warrior", "warrior", "tank_warrior"],
-    "PALADIN": ["holy_paladin", "protection_paladin", "retribution_paladin"],
+    "PALADIN": ["holy_paladin", "tank_warrior", "retribution_paladin"],
     "HUNTER": ["hunter", "hunter", "hunter"],
     "ROGUE": ["rogue", "rogue", "rogue"],
     "PRIEST": ["healing_priest", "healing_priest", "shadow_priest"],
