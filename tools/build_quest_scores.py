@@ -199,11 +199,22 @@ def fetch_egloot(folder):
 EGLOOT_REVISION = "ea970da071079b32e56f349e09648ff0e314b351"  # JIVESCORP/eg-link-output-wowf main, as read
 
 
-def eglink_chance(rows):
-    """The best chance among creatures EG Link's players killed FEWEST_KILLS times or more while on
-    the quest, in percent, marked "e"; or None."""
-    rates = [dropped / kills for dropped, kills in (rows or {}).values() if kills >= FEWEST_KILLS]
-    return "%ge" % round(100 * min(1, max(rates)), 2) if rates else None
+OWN = ROOT / "data" / "quests" / "own-drops.json"   # the Drop log's counts, baked by tools/bake_drops.py
+
+
+def eglink_chance(rows, own=None):
+    """A chance from players on the quest, in percent, or None: EG Link's best creature with
+    FEWEST_KILLS kills or more ("e"), pooled with jsal.ui's own Drop log counts for the item when it has
+    that many loots too ("p"); or the Drop log's alone ("j")."""
+    best = max(((d, k) for d, k in (rows or {}).values() if k >= FEWEST_KILLS), key=lambda r: r[0] / r[1], default=None)
+    mine = own if own and own.get("tries", 0) >= FEWEST_KILLS else None
+    if best and mine:
+        return "%gp" % round(100 * min(1, (best[0] + mine["finds"]) / (best[1] + mine["tries"])), 2)
+    if best:
+        return "%ge" % round(100 * min(1, best[0] / best[1]), 2)
+    if mine:
+        return "%gj" % round(100 * min(1, mine["finds"] / mine["tries"]), 2)
+    return None
 
 
 def merged():
@@ -216,10 +227,11 @@ def merged():
     eg = json.loads(EGLINK.read_text(encoding="utf-8"))["quests"]
     wh = json.loads(WOWHEAD.read_text(encoding="utf-8"))["items"] if WOWHEAD.exists() else {}
     el = json.loads(EGLOOT.read_text(encoding="utf-8"))["items"] if EGLOOT.exists() else {}
+    own = json.loads(OWN.read_text(encoding="utf-8"))["items"] if OWN.exists() else {}
     # Classic's quests: Forever's own players on the quest win over pfQuest's Classic number.
     for q in quests.values():
         for item, name in q.get("items", {}).items():
-            chance = eglink_chance(el.get(item))
+            chance = eglink_chance(el.get(item), own.get(item))
             if chance is not None:
                 q.setdefault("drops", {})[name] = chance
     for qid, q in eg.items():
@@ -231,7 +243,7 @@ def merged():
         drops = {}
         for item in q.get("items", []):
             got = wh.get(str(item))
-            chance = eglink_chance(el.get(str(item))) or wowhead_chance(got)
+            chance = eglink_chance(el.get(str(item)), own.get(str(item))) or wowhead_chance(got)
             if chance is not None and got and got.get("name"):
                 drops[got["name"]] = chance
         if drops:
@@ -334,7 +346,7 @@ def build():
         "-- Forever (data from Efficient Games, https://efficient.games, CC BY 4.0); their drop chances from",
         "-- Wowhead Forever. Each quest: \"k,n;Item=chance;...\", its place in its chain (empty when it",
         "-- stands alone) and the best drop chance, in percent, of each item it asks for (\"w\": Wowhead's",
-        "-- from creatures, \"o\": Wowhead's from objects opened). Then \"#xp@level\": the full XP it pays and",
+        "-- from creatures, \"o\": Wowhead's from objects opened, \"p\": EG Link's pooled with jsal.ui's Drop log, \"j\": the Drop log's). Then \"#xp@level\": the full XP it pays and",
         "-- its level, from the game's QuestXP table (data/quests/QuestXP.csv) and EG Link's reward tiers.",
         "-- Before it: \"|i10=Item\" or \"|k6=Creature\" for each objective, for a quest not taken yet (EG Link).",
         "local _, ns = ...",

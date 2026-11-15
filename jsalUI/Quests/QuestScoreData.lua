@@ -4,7 +4,7 @@
 -- Forever (data from Efficient Games, https://efficient.games, CC BY 4.0); their drop chances from
 -- Wowhead Forever. Each quest: "k,n;Item=chance;...", its place in its chain (empty when it
 -- stands alone) and the best drop chance, in percent, of each item it asks for ("w": Wowhead's
--- from creatures, "o": Wowhead's from objects opened). Then "#xp@level": the full XP it pays and
+-- from creatures, "o": Wowhead's from objects opened, "p": EG Link's pooled with jsal.ui's Drop log, "j": the Drop log's). Then "#xp@level": the full XP it pays and
 -- its level, from the game's QuestXP table (data/quests/QuestXP.csv) and EG Link's reward tiers.
 -- Before it: "|i10=Item" or "|k6=Creature" for each objective, for a quest not taken yet (EG Link).
 local _, ns = ...
@@ -1027,7 +1027,7 @@ ns.QuestScoreData = {
 [1029]="8,11#230@28",
 [1030]="9,11#1700@28",
 [1031]="2,3;Branch of Cenarius=100|i1=Branch of Cenarius#2550@32",
-[1032]="3,3;Satyr Horns=40e|i16=Satyr Horns#2550@32",
+[1032]="3,3;Satyr Horns=35.29p|i16=Satyr Horns#2550@32",
 [1033]="3,5|i1=Elune's Tear#1750@22",
 [1034]="4,5|i5=Handful of Stardust#1850@23",
 [1035]="5,5;Fallen Moonstone=100|i1=Fallen Moonstone#3050@30",
@@ -2899,7 +2899,7 @@ ns.QuestScoreData = {
 [6402]="13,16|k1=Squire Rowe#660@60",
 [6403]="14,16#9950@60",
 [6421]="1,2|i10=Resonite Crystal#1350@18",
-[6441]=";Satyr Horns=40e|i16=Satyr Horns#2100@26",
+[6441]=";Satyr Horns=35.29p|i16=Satyr Horns#2100@26",
 [6442]=";Wrathtail Head=100|i20=Wrathtail Head#1450@19",
 [6461]="|k10=Deepmoss Creeper|k7=Deepmoss Venomspitter#1450@19",
 [6462]="|i8=Troll Charm#1950@24",

@@ -175,6 +175,9 @@ named target everyone kills for the quest); an object's rate per opening is used
 Drop log's own counts win once an item has 10 loots.
 EG Link's counts grow every day: `python -I tools\refresh_eglink.py` reads its latest quests and loot and
 rebuilds the data in one go (monthly; a reminder lands on John's to-do list on the 21st).
+The Drop log's own counts ship too: `python -I tools\bake_drops.py <a copy of jsalUI.lua>` reads them from a copy
+of the saved file into `data\quests\own-drops.json`, and the build pools them with EG Link's (both count only loot
+while the quest needs it) or, where EG Link has none, uses them alone once an item has 10 loots.
 
 ## Daily Word's words
 

@@ -1,0 +1,20 @@
+{
+ "about": "How often quest items dropped for jsal.ui's Drop log while the quest still needed them, baked by tools/bake_drops.py from a copy of the saved file.",
+ "items": {
+  "5461": {
+   "finds": 1,
+   "name": "Branch of Cenarius",
+   "tries": 1
+  },
+  "5481": {
+   "finds": 16,
+   "name": "Satyr Horns",
+   "tries": 48
+  },
+  "5508": {
+   "finds": 1,
+   "name": "Fallen Moonstone",
+   "tries": 1
+  }
+ }
+}

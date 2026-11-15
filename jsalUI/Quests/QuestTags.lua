@@ -62,11 +62,12 @@ function QuestTags.Info(questID)
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
-    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([woe]?)") do
+    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([woejp]?)") do
         info.drops[name] = tonumber(chance) / 100
-        -- "e": from EG Link's players while they had the quest; "w": Wowhead Forever's, from a
-        -- creature nearly everyone kills for the quest; "o": Wowhead's, from objects opened (chests,
-        -- crates, plants), each opening counted like a fight; none: pfQuest's (Classic's).
+        -- "e": from EG Link's players while they had the quest; "p": those pooled with jsal.ui's own Drop
+        -- log counts, baked in; "j": the Drop log's alone; "w": Wowhead Forever's, from a creature
+        -- nearly everyone kills for the quest; "o": Wowhead's, from objects opened (chests, crates,
+        -- plants), each opening counted like a fight; none: pfQuest's (Classic's).
         if mark ~= "" then
             info.wowhead = info.wowhead or {}
             info.wowhead[name] = mark
@@ -239,11 +240,13 @@ end
 local SOURCE_WORDS = {
     own = "your own loot",
     e = "players on the quest (EG Link)",
+    p = "players on the quest (EG Link and jsal.ui's Drop log)",
+    j = "jsal.ui players on the quest (Drop log)",
     w = "what Wowhead Forever has seen drop",
     o = "what Wowhead Forever has seen drop",
     classic = "pfQuest (Classic's: on Forever many drop less)",
 }
-local SOURCE_ORDER = { "own", "e", "w", "o", "classic" }
+local SOURCE_ORDER = { "own", "p", "e", "j", "w", "o", "classic" }
 
 local function Sources(rows)
     local seen, loots = {}, 0
