@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "The Gear plan reads crit and hit right: a piece with crit or hit no longer looks like a huge upgrade",
-    "Quest tag cards say XP a minute in combat: the fights only, not getting there",
+    "Hunters, mages, warlocks and healers get Gear plan stat weights made for Forever",
+    "The Gear plan and a dungeon's loot say stat weights are estimates: roll by what you know of your spec",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
