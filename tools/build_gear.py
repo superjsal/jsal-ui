@@ -67,18 +67,22 @@ SPECS = {
 # Where WoWSims Forever has a preset for a tree: its file in data/gear/wowsims-forever and the preset.
 # None: WoWSims Classic's, from SPECS. Pre-raid sets where there's a choice, nearer leveling gear.
 PLATE_TANK = ("warrior_protection", "PreBiSEpWeights")
+# WoWSims Forever simulates no healer (every one is a "Gear Planner"), so there's nothing to work out;
+# its healing priest's preset is the one healer set made for Forever, and the other healers take it.
+# (John, 14 Nov 2026: "healers are historically hard to sim. lets go with the forever set".)
+HEALER = ("priest_healer", "HolySingleTargetEpWeights")
 FOREVER = {
     "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
-    "PALADIN": [None, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
+    "PALADIN": [HEALER, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
     "HUNTER": [("computed", "hunter"), ("computed", "hunter"), ("computed", "hunter")],
     "ROGUE": [("rogue_dps", "EP_PRESET_ASSASSINATION"), ("rogue_dps", "EP_PRESET_COMBAT_SINISTER"),
               ("rogue_dps", "EP_PRESET_SUBTLETY")],
     "PRIEST": [("priest_healer", "DiscSingleTargetEpWeights"), ("priest_healer", "HolySingleTargetEpWeights"),
                ("priest_dps", "ShadowEpWeights")],
-    "SHAMAN": [("shaman_elemental", "DefaultEpWeights"), ("shaman_enhancement", "PreBiSEpWeights"), None],
+    "SHAMAN": [("shaman_elemental", "DefaultEpWeights"), ("shaman_enhancement", "PreBiSEpWeights"), HEALER],
     "MAGE": [("computed", "mage_arcane"), ("computed", "mage_fire"), ("computed", "mage_frost")],
     "WARLOCK": [("computed", "warlock_affliction"), ("computed", "warlock_demonology"), ("computed", "warlock_destruction")],
-    "DRUID": [("druid_balance", "PreBiSEpWeights"), ("druid_feral_ep", "CatEp"), None],
+    "DRUID": [("druid_balance", "PreBiSEpWeights"), ("druid_feral_ep", "CatEp"), HEALER],
 }
 # Trees WoWSims Forever ships no weights for, worked out with its own Stat Weights tool on its own
 # preset talents and gear (data/gear/wowsims-forever/computed/*.json, each saying how). Rows are per 1%

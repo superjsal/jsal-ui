@@ -147,9 +147,11 @@ The stat weights, what a point of each stat is worth to a spec, are WoWSims': it
 simulator's presets where it has one for a talent tree (`data\gear\wowsims-forever\`, from
 [wowsims/forever](https://github.com/wowsims/forever), MIT, with `LICENSE` and the commit beside them);
 for the hunter, mage and warlock, which it ships none for, what its own Stat Weights tool works out on
-its own preset talents and gear (`data\gear\wowsims-forever\computed\`, each saying how); and its
-Classic simulator's for the rest (`data\gear\wowsims\`, from
-[wowsims/classic](https://github.com/wowsims/classic), MIT). `python -I tools\build_gear.py` writes
+its own preset talents and gear (`data\gear\wowsims-forever\computed\`, each saying how); for the
+paladin, shaman and druid healers, its healing priest's set, since it simulates no healer. Every tree
+is on Forever's now; its Classic simulator's files (`data\gear\wowsims\`, from
+[wowsims/classic](https://github.com/wowsims/classic), MIT) are kept for `tools\build_gear.py` to fall
+back on. `python -I tools\build_gear.py` writes
 `jsalUI\Gear\GearData.lua`: the items as one line of text per slot, so they cost little memory until the
 gear plan opens, and the weights, crit and hit per 1%, with Stamina at least a tenth of a spec's main
 stat for leveling. Item names and stats come from the game while you play. `tools\wowhead\` reads the lists again; its README has the monthly steps.
