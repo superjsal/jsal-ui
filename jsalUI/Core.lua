@@ -167,10 +167,10 @@ local slow = {}
 local function NoteSlow(label, took)
     local s = slow[label]
     if not s then
-        s = { count = 0, worst = 0 }
+        s = { count = 0, worst = 0, total = 0 }
         slow[label] = s
     end
-    s.count = s.count + 1
+    s.count, s.total = s.count + 1, s.total + took
     if took > s.worst then s.worst = took end
 end
 
@@ -204,7 +204,7 @@ end
 
 local function PrintSlow()
     local rows = {}
-    for label, s in pairs(slow) do rows[#rows + 1] = { label = label, count = s.count, worst = s.worst } end
+    for label, s in pairs(slow) do rows[#rows + 1] = { label = label, count = s.count, worst = s.worst, total = s.total } end
     if #rows == 0 then
         ns.Print("Nothing in jsal.ui has taken 10 ms or more since the last reload.")
         return
@@ -213,7 +213,8 @@ local function PrintSlow()
     ns.Print("jsal.ui's slow moments since the last reload, 10 ms or more, the slowest first:")
     for i = 1, math.min(14, #rows) do
         local r = rows[i]
-        print(("  %s: %d time%s, longest %.0f ms"):format(r.label, r.count, r.count == 1 and "" or "s", r.worst))
+        print(("  %s: %d time%s, average %.0f ms, longest %.0f ms")
+            :format(r.label, r.count, r.count == 1 and "" or "s", r.total / r.count, r.worst))
     end
 end
 

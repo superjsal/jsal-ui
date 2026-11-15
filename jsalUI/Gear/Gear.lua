@@ -330,8 +330,14 @@ function Gear.SkillNeed(id)
     if needs[id] ~= nil then return needs[id] end
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local tip = C_TooltipInfo and C_TooltipInfo.GetItemByID
+    -- Asked once while it loads, as an item's stats are: each pass asked
+    -- again for every crafted piece still loading.
+    if loading[id] then return nil end
     if not (tip and get and get(id)) then
-        if C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+        if C_Item and C_Item.RequestLoadItemDataByID then
+            if Gear.running then loading[id] = true end
+            C_Item.RequestLoadItemDataByID(id)
+        end
         return nil
     end
     local data = tip(id)
@@ -553,29 +559,39 @@ function Gear.RewardTaken(id)
     return IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(quest) and true or false
 end
 
--- A slot type's items that could be near a level, read out of GearData's
--- text once and kept until the level changes: each redraw read all 11,000
--- items as text for every slot, about 10 ms of a 63 ms redraw (/jsal perf,
--- 15 Nov 2026). A crafted piece's level can rise to its skill's, so one is
--- kept unless its required level is past the window.
+-- A slot type's items that could be near a level and that you could wear,
+-- read out of GearData's text once and kept until the level (or anything
+-- else they're checked against) changes. Each redraw read all 11,000 items as
+-- text for every slot, then checked each for your class, armor and side,
+-- about 23 ms of a 61 ms pass in game (/jsal perf, 15 Nov 2026). A crafted
+-- piece's level can rise to its skill's, so one is kept unless its required
+-- level is past the window, and its level is worked out where it's used.
+-- A row: { id, req, ilvl, q, kind, place (as text), at, crafted, lighter }.
 local ROW = "^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
 local near = {}
-local function Near(data, invType, level)
+local function Near(data, invType, level, classFile, classID, side)
     local line = data.items[invType] or ""
+    local key = table.concat({ level, classFile or "", classID or 0, side or 0, Gear.DualWields(classFile, level) and 1 or 0 }, ":")
     local kept = near[invType]
-    if kept and kept.level == level and kept.line == line then return kept end
+    if kept and kept.key == key and kept.line == line then return kept end
     -- A new level brings other items: the stats kept for the last ones go, once.
     if level ~= statsLevel then statsOf, statsLevel = {}, level end
-    kept = { level = level, line = line }
+    kept = { key = key, line = line }
     near[invType] = kept
+    local bit = classID and 2 ^ (classID - 1) or 0
     for entry in line:gmatch("[^;]+") do
         local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match(ROW)
         if id then
-            local r, il = tonumber(req), tonumber(ilvl)
+            local r, il, rc, c, sb = tonumber(req), tonumber(ilvl), tonumber(reqclass), tonumber(cls), tonumber(sub)
             local at = Gear.LevelOf(r, il)
             local crafted = kind == "4" and il - math.max(r, 1) >= 12
-            if (crafted and r <= level + Gear.ABOVE) or (at >= level - Gear.BELOW and at <= level + Gear.ABOVE) then
-                kept[#kept + 1] = { id, req, ilvl, cls, sub, s, reqclass, q, kind, place }
+            local mine = Gear.ForClass(classFile, level, c, sb, invType)
+            if ((crafted and r <= level + Gear.ABOVE) or (at >= level - Gear.BELOW and at <= level + Gear.ABOVE))
+                and (s == "0" or tonumber(s) == side)
+                and (rc == 0 or math.floor(rc / bit) % 2 == 1)
+                and (mine or Gear.CanWear(classFile, level, c, sb)) then
+                -- Lighter than you wear: named, so it's a choice you see.
+                kept[#kept + 1] = { id, req, ilvl, q, kind, place, at, crafted, not mine and Gear.ARMOR_NAMES[sb] or nil }
             end
         end
     end
@@ -586,34 +602,24 @@ function Gear.Candidates(slot, level, classFile, classID, side)
     local data = ns.GearData
     local out = {}
     if not data then return out end
-    local bit = classID and 2 ^ (classID - 1) or 0
     local types = slot.types
     -- Once you dual wield, a one-handed weapon fits your off hand too.
     if slot.key == "off" and Gear.DualWields(classFile, level) then
         types = { 14, 22, 23, 13 }
     end
     for _, invType in ipairs(types) do
-        for _, row in ipairs(Near(data, invType, level)) do
-            local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]
-            req, reqclass, s = tonumber(req), tonumber(reqclass), tonumber(s)
-            local at = id and Gear.LevelOf(req, tonumber(ilvl))
+        for _, row in ipairs(Near(data, invType, level, classFile, classID, side)) do
+            local id, req, ilvl, q, kind, place, at = row[1], row[2], row[3], row[4], row[5], row[6], row[7]
             local need
-            if id and kind == "4" and tonumber(ilvl) - math.max(req, 1) >= 12 then
+            if row[8] then
                 need = Gear.SkillNeed(tonumber(id))
-                if need then at = math.max(req, Gear.SkillLevel(need.skill)) end
+                if need then at = math.max(tonumber(req), Gear.SkillLevel(need.skill)) end
             end
-            if id and at >= level - Gear.BELOW and at <= level + Gear.ABOVE
-                and (s == 0 or s == side)
-                and (reqclass == 0 or math.floor(reqclass / bit) % 2 == 1)
-                and (Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType)
-                     or Gear.CanWear(classFile, level, tonumber(cls), tonumber(sub)))
+            if at >= level - Gear.BELOW and at <= level + Gear.ABOVE
                 and (kind ~= "2" or not Gear.RewardTaken(tonumber(id))) then
                 local e = Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
                 e.needs = need or nil
-                -- Lighter than you wear: named, so it's a choice you see.
-                if not Gear.ForClass(classFile, level, tonumber(cls), tonumber(sub), invType) then
-                    e.lighter = Gear.ARMOR_NAMES[tonumber(sub)]
-                end
+                e.lighter = row[9]
                 out[#out + 1] = e
             end
         end
@@ -717,20 +723,35 @@ end
 -- The pieces in your bags that go in a slot and that you can wear: their
 -- item IDs. A piece you took off, or a quest's reward you've had, is in no
 -- list of upgrades to go and get, but it's the easiest one to put on.
-function Gear.Held(slot, classFile, level)
-    local out, C = {}, ns.Compat
-    if not (C and C.BagSize and C.BagItem and Gear.Info) then return out end
+-- The bags' wearable pieces, read once for a pass (the same moment) rather
+-- than for every slot: 17 reads of every bag item a pass, about 15 ms in
+-- game (/jsal perf, 15 Nov 2026).
+local bagsAt, bagItems
+local function BagItems()
+    local now, C = GetTime and GetTime(), ns.Compat
+    if bagItems and now and bagsAt == now then return bagItems end
+    bagsAt, bagItems = now, {}
     for bag = 0, 4 do
         for i = 1, C.BagSize(bag) do
             local item = C.BagItem(bag, i)
             local id = item and (item.itemID or (item.hyperlink and tonumber(item.hyperlink:match("item:(%d+)"))))
             local info = id and Gear.Info(id)
             local invType = info and Gear.INVTYPE[info.equipLoc or ""]
-            if invType and Fits(slot, invType, classFile, level)
-                and (Gear.ForClass(classFile, level, info.classID, info.subclassID, invType) ~= false
-                     or Gear.CanWear(classFile, level, info.classID, info.subclassID)) then
-                out[#out + 1] = id
-            end
+            if invType then bagItems[#bagItems + 1] = { id = id, info = info, invType = invType } end
+        end
+    end
+    return bagItems
+end
+
+function Gear.Held(slot, classFile, level)
+    local out, C = {}, ns.Compat
+    if not (C and C.BagSize and C.BagItem and Gear.Info) then return out end
+    for _, b in ipairs(BagItems()) do
+        local info, invType = b.info, b.invType
+        if Fits(slot, invType, classFile, level)
+            and (Gear.ForClass(classFile, level, info.classID, info.subclassID, invType) ~= false
+                 or Gear.CanWear(classFile, level, info.classID, info.subclassID)) then
+            out[#out + 1] = b.id
         end
     end
     return out
