@@ -1,4 +1,8 @@
-# jsal.ui 0.3.48
+# jsal.ui 0.3.49
+
+- **Gear plan: an item you add shows again.** In 0.3.48 an item added by its ID or link could be added and starred but not appear in the list, and an upgrade could stay "checking...": the plan waited for word from the game that never came. It now asks again after a couple of seconds.
+
+## In 0.3.48
 
 - **Dungeon guide: loot for every boss from 50 to 60, and the raids.** Blackrock Spire, Dire Maul, Stratholme, Scholomance, Zul'Gurub, Molten Core, Blackwing Lair and Onyxia's Lair now list their bosses' loot with drop chances, and the new dungeons' quests say where they start. Loot for other classes (a "Classes:" line that doesn't name yours) folds away at the foot of the boss.
 - **Gear plan and dungeon guide: much lighter.** A redraw could take 60 ms, a hitch you could feel; it now does most of its work once and keeps it.

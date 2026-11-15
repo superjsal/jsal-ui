@@ -224,12 +224,30 @@ local statsOf, statsLevel = {}, nil
 -- GET_ITEM_INFO_RECEIVED says they're in. Each pass asked again for every
 -- one still loading, and each arrival brings another pass (the page repaints
 -- for them): "working out upgrades" ran 21 times, up to 61 ms (15 Nov 2026).
+-- A mark lasts two seconds at most: an item that had already loaded can
+-- send no GET_ITEM_INFO_RECEIVED, and one marked for good never showed (John
+-- added Drape of Shifting Energy, "added under Back, starred", and it wasn't
+-- in the list, 15 Nov 2026).
 local loading = {}
+local RETRY = 2
 function Gear.Arrived(id)
     if id then loading[id] = nil end
 end
+-- Whether an item asked for is still waited on: marked, and not past its two seconds.
+local function Waiting(id)
+    local until_ = loading[id]
+    if not until_ then return false end
+    local now = GetTime and GetTime()
+    if until_ == true or not now or now < until_ then return true end
+    loading[id] = nil
+    return false
+end
+local function Mark(id)
+    -- Only while the module runs: its event is what clears the mark early.
+    if Gear.running then loading[id] = GetTime and (GetTime() + RETRY) or true end
+end
 local function Stats(item)
-    if type(item) == "number" and (statsOf[item] or loading[item]) then return statsOf[item] end
+    if type(item) == "number" and (statsOf[item] or Waiting(item)) then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
@@ -243,8 +261,7 @@ local function Stats(item)
         return out
     end
     if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
-        -- Only while the module runs: its event is what clears the mark.
-        if Gear.running then loading[item] = true end
+        Mark(item)
         C_Item.RequestLoadItemDataByID(item)
     end
     return nil
@@ -332,10 +349,10 @@ function Gear.SkillNeed(id)
     local tip = C_TooltipInfo and C_TooltipInfo.GetItemByID
     -- Asked once while it loads, as an item's stats are: each pass asked
     -- again for every crafted piece still loading.
-    if loading[id] then return nil end
+    if Waiting(id) then return nil end
     if not (tip and get and get(id)) then
         if C_Item and C_Item.RequestLoadItemDataByID then
-            if Gear.running then loading[id] = true end
+            Mark(id)
             C_Item.RequestLoadItemDataByID(id)
         end
         return nil
