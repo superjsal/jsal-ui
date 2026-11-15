@@ -7180,6 +7180,51 @@
     75.8
    ]
   },
+  "93601": {
+   "n": "Passing the Blame",
+   "prev": 93404,
+   "s": [
+    "npc",
+    254674,
+    "Woodwyrd"
+   ],
+   "z": [
+    16651,
+    "Shen'dralas",
+    69.4,
+    71.8
+   ]
+  },
+  "93604": {
+   "n": "Agamaggan's Blood",
+   "prev": 93601,
+   "s": [
+    "npc",
+    253527,
+    "Kog'thug the Brave"
+   ],
+   "z": [
+    16651,
+    "Shen'dralas",
+    72.6,
+    31.4
+   ]
+  },
+  "93606": {
+   "n": "Not on Squealing Terms",
+   "prev": null,
+   "s": [
+    "npc",
+    253527,
+    "Kog'thug the Brave"
+   ],
+   "z": [
+    16651,
+    "Shen'dralas",
+    72.6,
+    31.4
+   ]
+  },
   "94907": {
    "n": "A Small Favor",
    "prev": null,
@@ -8263,6 +8308,21 @@
    "s": null,
    "z": null
   },
+  "98325": {
+   "n": "Blood and Thunder",
+   "prev": null,
+   "s": [
+    "npc",
+    9077,
+    "Warlord Goretooth"
+   ],
+   "z": [
+    3,
+    "Badlands",
+    5.8,
+    47.4
+   ]
+  },
   "98815": {
    "n": "Highland Hides",
    "prev": null,
@@ -8308,6 +8368,12 @@
     52.2
    ]
   },
+  "98830": {
+   "n": "The Broken Glaive",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
   "99187": {
    "n": "The Reliquary of Tyr",
    "prev": 93030,
@@ -8329,6 +8395,5 @@
    "s": null,
    "z": null
   }
- },
- "stopped": "blocked at /forever/quest=93604"
+ }
 }
