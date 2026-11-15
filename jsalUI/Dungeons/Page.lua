@@ -284,6 +284,46 @@ local function CantEquip(classID, subclassID, equipLoc)
     if ns.Gear.CanWear and ns.Gear.CanWear(classFile, UnitLevel("player") or 1, classID, subclassID) then return false end
     return true
 end
+
+-- Whether a thing is for other classes only: its own tooltip has a
+-- "Classes:" line, and yours isn't on it (Zul'Gurub's Primal Hakkari pieces,
+-- which a boss drops nine of; a class set's parts). False when it names no
+-- class or names yours; nil while the game hasn't loaded the item. The
+-- classes an item names are kept once read (false for none): they don't
+-- change, and its tooltip is read once however often the page is drawn.
+-- (John, 15 Nov 2026: "filter by class for class specific loot".)
+local classNames, classLine = {}, nil
+local function ForOthers(id)
+    local names = classNames[id]
+    if names == nil then
+        local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+        local tip = C_TooltipInfo and C_TooltipInfo.GetItemByID
+        if not (tip and get and get(id)) then return nil end
+        local data = tip(id)
+        if not (data and data.lines) then return nil end
+        if not classLine then
+            local text = type(ITEM_CLASSES_ALLOWED) == "string" and ITEM_CLASSES_ALLOWED or "Classes: %s"
+            text = text:gsub("([%(%)%.%[%]%+%-%*%?%^%$])", "%%%1")
+            classLine = "^" .. text:gsub("%%s", "(.+)") .. "$"
+        end
+        names = false
+        for _, line in ipairs(data.lines) do
+            local text = line.leftText
+            local found = type(text) == "string" and text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):match(classLine)
+            if found then
+                names = found
+                break
+            end
+        end
+        classNames[id] = names
+    end
+    if not names then return false end
+    local mine = UnitClass("player")
+    for name in names:gmatch("[^,]+") do
+        if name:match("^%s*(.-)%s*$") == mine then return false end
+    end
+    return true
+end
 local RED = Style.Tint("red")
 
 Window.Page("dungeons", function(page)
@@ -778,8 +818,8 @@ Window.Page("dungeons", function(page)
     -- doesn't have. Without Wowhead's chance, five or more guild kills give
     -- one. What's on your gear plan comes first, then what's better than
     -- what you wear, then the rest, likeliest first. What you can't equip,
-    -- and recipes for professions you don't have, fold into one line at the
-    -- foot. Returns the band's height, how many pieces are better for you,
+    -- what's for other classes only, and recipes for professions you don't
+    -- have, fold into one line at the foot. Returns the band's height, how many pieces are better for you,
     -- how many it could tell that of, and the guild's kills.
     local function PaintLoot(card, boss, encounter)
         for _, it in ipairs(card.items) do it:Hide() end
@@ -825,7 +865,7 @@ Window.Page("dungeons", function(page)
         local starredSet = ns.Gear and ns.Gear.Starred() or {}
         local trades = {}
         for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine() or {}) do trades[p.name or ""] = true end
-        local mine, others, recipes, better, sure = {}, {}, 0, 0, 0
+        local mine, others, recipes, classes, better, sure = {}, {}, 0, 0, 0, 0
         for k, entry in ipairs(list) do
             local _, _, _, _, _, _, subclass, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
             entry.at = k
@@ -834,7 +874,9 @@ Window.Page("dungeons", function(page)
             entry.cant = not entry.starred and CantEquip(classID, subclassID, equipLoc)
             entry.recipe = classID == RECIPE
             entry.prof = entry.recipe and trades[subclass or ""] == true
-            if not entry.cant and not entry.recipe and ns.Gear and ns.Gear.Better then
+            -- For other classes only, by its own "Classes:" line.
+            entry.classes = not entry.starred and not entry.recipe and ForOthers(entry.id) == true
+            if not entry.cant and not entry.classes and not entry.recipe and ns.Gear and ns.Gear.Better then
                 local is, gain = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
                 if is ~= nil then sure = sure + 1 end
                 if is then
@@ -842,8 +884,9 @@ Window.Page("dungeons", function(page)
                     better = better + 1
                 end
             end
-            entry.away = entry.cant or (entry.recipe and not entry.prof and not entry.starred)
+            entry.away = entry.cant or entry.classes or (entry.recipe and not entry.prof and not entry.starred)
             if entry.away and entry.recipe then recipes = recipes + 1 end
+            if entry.classes then classes = classes + 1 end
             local to = entry.away and others or mine
             to[#to + 1] = entry
         end
@@ -914,8 +957,12 @@ Window.Page("dungeons", function(page)
             local words = {}
             if recipes == 1 then words[#words + 1] = "1 recipe for another profession"
             elseif recipes > 1 then words[#words + 1] = recipes .. " recipes for other professions" end
-            if #others > recipes then words[#words + 1] = ("%d more you can't equip"):format(#others - recipes) end
-            card.more.text:SetText(open and "Show fewer" or (table.concat(words, " and ") .. " · Show"))
+            if classes > 0 then words[#words + 1] = classes .. " for other classes" end
+            if #others > recipes + classes then words[#words + 1] = ("%d more you can't equip"):format(#others - recipes - classes) end
+            -- "a", "a and b", "a, b and c".
+            local said = table.concat(words, ", ", 1, math.max(#words - 1, 1))
+            if #words > 1 then said = said .. " and " .. words[#words] end
+            card.more.text:SetText(open and "Show fewer" or (said .. " · Show"))
             card.more:SetScript("OnClick", function()
                 unfolded[boss] = not open or nil
                 Paint()
