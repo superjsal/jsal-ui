@@ -156,9 +156,15 @@ Quests new to Forever, and Forever's own next-quest links, come from
 [Efficient Games](https://efficient.games), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
 reduced here to each quest's level, next quest, races and the items it asks for (`data\quests\eglink.json`;
 `build_quest_scores.py --eglink <folder of its quests.enUS.json files>` reads them again). How often those items
-drop comes from Wowhead Forever's item pages (`data\quests\wowhead-drops.json`, read in a browser by
-`tools\wowhead\drops.js`; the steps are in `tools\wowhead\README.md`): the best chance among creatures seen
-killed at least 10 times.
+drop comes first from EG Link's players who had the quest when they looted (`data\quests\eglink-drops.json`,
+`build_quest_scores.py --egloot <folder of its loot.json files>`; a creature needs 10 such kills), which
+is the only fair count: a quest item drops only for someone on the quest. Failing that, Classic's quests
+keep pfQuest's chance, and new ones take Wowhead Forever's from its item pages (`data\quests\wowhead-drops.json`,
+read in a browser by `tools\wowhead\drops.js`; the steps are in `tools\wowhead\README.md`), but only where
+it can be trusted: Wowhead counts every kill, with the quest or without, so Ghoul Fang shows 14-25% there
+against 80% on the quest. A creature's rate is used only when at least half its kills dropped the item (a
+named target everyone kills for the quest); an object's rate per opening is used as it is. In game, the
+Drop log's own counts win once an item has 10 loots.
 
 ## Daily Word's words
 

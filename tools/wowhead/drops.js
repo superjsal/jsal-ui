@@ -42,14 +42,17 @@ function readItem(t) {
 const FETCHED = new Date().toISOString().slice(0, 10);
 window.__drops = { done: false, read: 0, left: 0, err: null };
 (async () => {
-  const store = {};
-  const todo = [...window.__dropIds];
+  // Pages read are held in the pane as they come, so a reload loses only the page in progress;
+  // the next batch picks them up, and the hold is emptied once a batch has gone to the receiver.
+  const store = JSON.parse(localStorage.getItem('jsalDropHeld') || '{}');
+  const todo = window.__dropIds.filter(id => !(String(id) in store));
   try {
     while (todo.length) {
       const id = todo.shift();
       __drops.left = todo.length;
       const t = await page('/forever/item=' + id);
       store[id] = t === null ? { missing: true } : readItem(t);
+      localStorage.setItem('jsalDropHeld', JSON.stringify(store));
       __drops.read++;
       await wait(10000);
     }
@@ -57,6 +60,7 @@ window.__drops = { done: false, read: 0, left: 0, err: null };
   __drops.done = true;
   const out = { fetched: FETCHED, items: store };
   if (__drops.err) out.stopped = __drops.err;
+  localStorage.removeItem('jsalDropHeld');
   location.href = 'http://127.0.0.1:8799/#' + encodeURIComponent(JSON.stringify(out));
 })();
 'started: ' + window.__dropIds.length + ' items; watch window.__drops'

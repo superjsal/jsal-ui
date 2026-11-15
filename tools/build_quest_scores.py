@@ -47,14 +47,19 @@ def fetch(checkout):
             entry["pre"] = pre
         if q.get("race"):
             entry["race"] = q["race"]
-        drops = {}
+        drops, asked = {}, {}
         for item in seq((q.get("obj") or {}).get("I")):
             chances = [c for c in ((items.get(item) or {}).get("U") or {}).values() if c and c > 0]
             name = names.get(item)
+            if name:
+                asked[str(item)] = name
             if chances and name:
                 drops[name] = round(max(chances), 2)
         if drops:
             entry["drops"] = drops
+        # Every item it asks for, by ID, so Wowhead Forever's chance can take the place of pfQuest's.
+        if asked:
+            entry["items"] = asked
         out[str(qid)] = entry
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     SNAPSHOT.write_text(json.dumps({"source": "pfQuest", "revision": REVISION, "quests": out},
@@ -128,28 +133,79 @@ def chains(quests):
 
 
 WOWHEAD = ROOT / "data" / "quests" / "wowhead-drops.json"
+EGLOOT = ROOT / "data" / "quests" / "eglink-drops.json"
 FEWEST_KILLS = 10   # a drop chance from fewer kills than this isn't trusted
+QUEST_ONLY = 0.5    # Wowhead's rate from a creature is trusted only when at least this high
 
 
 def wowhead_chance(entry):
-    """The best drop chance, in percent, among the creatures Wowhead Forever has seen kill this item
-    at least FEWEST_KILLS times, marked "w"; failing that, among the objects (chests, crates, plants)
-    seen opened that often, marked "o", since an opening is counted like a fight; or None."""
-    for key, mark in (("npcs", "w"), ("objects", "o")):
-        rates = [found / tries for _, found, tries in (entry or {}).get(key, []) if tries >= FEWEST_KILLS]
+    """Wowhead Forever's chance for a quest item, in percent, or None.
+
+    Wowhead counts every kill of a creature, by players with the quest or without it, and a quest item
+    only drops for those with it: Ghoul Fang shows 14-25% there against 80% for someone on the quest.
+    So a creature's rate is used only when at least half its kills dropped the item, which happens when
+    nearly everyone killing it has the quest (a named target: Carnage's Head, 91%), marked "w". Objects
+    (chests, crates, plants) are usually only lootable with the quest, so their rate per opening is
+    used as it is, marked "o", each opening counted like a fight. Either needs FEWEST_KILLS tries."""
+    entry = entry or {}
+    rates = [found / tries for _, found, tries in entry.get("npcs", []) if tries >= FEWEST_KILLS]
+    if rates and max(rates) >= QUEST_ONLY:
+        return "%gw" % round(100 * max(rates), 2)
+    if not entry.get("npcs"):
+        rates = [found / tries for _, found, tries in entry.get("objects", []) if tries >= FEWEST_KILLS]
         if rates:
-            return "%g%s" % (round(100 * max(rates), 2), mark)
+            return "%go" % round(100 * max(rates), 2)
     return None
+
+
+def fetch_egloot(folder):
+    """How often each quest item dropped for EG Link's players who had the quest (the loot.json files
+    from each live build under data/wowf/ of https://github.com/JIVESCORP/eg-link-output-wowf, CC BY 4.0,
+    data from Efficient Games): the corpses tied to an active quest, per creature, solo only, summed."""
+    out = {}
+    for f in sorted(pathlib.Path(folder).glob("*.json")):
+        d = json.loads(f.read_text(encoding="utf-8"))
+        for key, src in d.get("sources", {}).items():
+            if not key.startswith("npc:") or "|quest" not in key or "|group" in key:
+                continue
+            npc = key.split("|")[0][4:]
+            for q in (src.get("quests") or {}).values():
+                windows = q.get("windows") or 0
+                for item, it in (q.get("items") or {}).items():
+                    row = out.setdefault(item, {}).setdefault(npc, [0, 0])
+                    row[0] += it.get("drops") or 0
+                    row[1] += windows
+    EGLOOT.write_text(json.dumps({"source": "EG Link output: World of Warcraft: Forever (Efficient Games, CC BY 4.0)",
+                                  "revision": EGLOOT_REVISION, "items": out}, indent=0, sort_keys=True), encoding="utf-8")
+    print(f"kept {len(out)} quest items in {EGLOOT.relative_to(ROOT)}")
+
+
+EGLOOT_REVISION = "ea970da071079b32e56f349e09648ff0e314b351"  # JIVESCORP/eg-link-output-wowf main, as read
+
+
+def eglink_chance(rows):
+    """The best chance among creatures EG Link's players killed FEWEST_KILLS times or more while on
+    the quest, in percent, marked "e"; or None."""
+    rates = [dropped / kills for dropped, kills in (rows or {}).values() if kills >= FEWEST_KILLS]
+    return "%ge" % round(100 * min(1, max(rates)), 2) if rates else None
 
 
 def merged():
     """pfQuest's quests, with EG Link's: Forever's own next quests as chain links, and the quests new
-    to Forever, whose items take Wowhead Forever's drop chances (marked "w")."""
+    to Forever. A drop chance from EG Link's players on the quest ("e") wins anywhere; Classic's quests
+    otherwise keep pfQuest's, and new ones take Wowhead Forever's where it can be trusted."""
     quests = {k: dict(v) for k, v in json.loads(SNAPSHOT.read_text(encoding="utf-8"))["quests"].items()}
     if not EGLINK.exists():
         return quests
     eg = json.loads(EGLINK.read_text(encoding="utf-8"))["quests"]
     wh = json.loads(WOWHEAD.read_text(encoding="utf-8"))["items"] if WOWHEAD.exists() else {}
+    el = json.loads(EGLOOT.read_text(encoding="utf-8"))["items"] if EGLOOT.exists() else {}
+    # Classic's quests: Forever's own players on the quest win over pfQuest's Classic number.
+    for q in quests.values():
+        for item, name in q.get("items", {}).items():
+            chance = eglink_chance(el.get(item))
+            if chance is not None:
+                q.setdefault("drops", {})[name] = chance
     for qid, q in eg.items():
         if qid in quests:
             continue
@@ -159,8 +215,8 @@ def merged():
         drops = {}
         for item in q.get("items", []):
             got = wh.get(str(item))
-            chance = wowhead_chance(got)
-            if chance is not None and got.get("name"):
+            chance = eglink_chance(el.get(str(item))) or wowhead_chance(got)
+            if chance is not None and got and got.get("name"):
                 drops[got["name"]] = chance
         if drops:
             entry["drops"] = drops
@@ -208,4 +264,6 @@ if __name__ == "__main__":
         fetch(sys.argv[2])
     if len(sys.argv) > 2 and sys.argv[1] == "--eglink":
         fetch_eglink(sys.argv[2])
+    if len(sys.argv) > 2 and sys.argv[1] == "--egloot":
+        fetch_egloot(sys.argv[2])
     build()

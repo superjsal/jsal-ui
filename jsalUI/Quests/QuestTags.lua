@@ -49,10 +49,11 @@ function QuestTags.Info(questID)
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
-    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([wo]?)") do
+    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([woe]?)") do
         info.drops[name] = tonumber(chance) / 100
-        -- "w": Wowhead Forever's chance from Forever's own kills; "o": from objects opened (chests,
-        -- crates, plants), each opening counted like a fight; neither: pfQuest's (Classic's).
+        -- "e": from EG Link's players while they had the quest; "w": Wowhead Forever's, from a
+        -- creature nearly everyone kills for the quest; "o": Wowhead's, from objects opened (chests,
+        -- crates, plants), each opening counted like a fight; none: pfQuest's (Classic's).
         if mark ~= "" then
             info.wowhead = info.wowhead or {}
             info.wowhead[name] = mark
@@ -106,8 +107,12 @@ local function Named(text)
     return text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text
 end
 
--- The item's drop chance, and whether it's Wowhead Forever's.
-local function Chance(info, name)
+-- The item's drop chance, and where it's from: "own" (your own loot, from the drop log, once it has
+-- enough), "e", "w", "o" (see Info) or false (pfQuest's).
+local function Chance(info, name, questID)
+    local log = ns.LootLog
+    local mine = log and log.Chance and log.Chance(questID, name)
+    if mine then return mine, "own" end
     if not info then return nil end
     local found = info.drops[name] and name
     if not found then
@@ -134,7 +139,7 @@ function QuestTags.Work(questID)
                 row.name = name:gsub("%s+slain$", "")
                 row.kills = left
             else
-                row.chance, row.wowhead = Chance(info, name)
+                row.chance, row.wowhead = Chance(info, name, questID)
                 if row.chance then row.kills = QuestTags.Kills(left, row.chance) end
             end
             if row.kills then total = total + row.kills else unknown = unknown or name end
@@ -187,14 +192,29 @@ local function Row(r)
 end
 
 -- Where the card's drop chances came from, or nil when it shows none.
+local SOURCE_WORDS = {
+    own = "your own loot",
+    e = "players on the quest (EG Link)",
+    w = "what Wowhead Forever has seen drop",
+    o = "what Wowhead Forever has seen drop",
+    classic = "pfQuest (Classic's, so a few may differ on Forever)",
+}
+local SOURCE_ORDER = { "own", "e", "w", "o", "classic" }
+
 local function Sources(rows)
-    local wowhead, classic
+    local seen = {}
     for _, r in ipairs(rows) do
-        if r.chance and r.wowhead then wowhead = true elseif r.chance then classic = true end
+        if r.chance then seen[r.wowhead or "classic"] = true end
     end
-    if wowhead and classic then return "Drop chances from Wowhead Forever and pfQuest (Classic's)" end
-    if wowhead then return "Drop chances from what Wowhead Forever has seen drop" end
-    if classic then return "Drop chances from pfQuest: Classic's, so a few may differ on Forever" end
+    local words, said = {}, {}
+    for _, key in ipairs(SOURCE_ORDER) do
+        local word = seen[key] and SOURCE_WORDS[key]
+        if word and not said[word] then
+            words[#words + 1] = word
+            said[word] = true
+        end
+    end
+    if #words > 0 then return "Drop chances from " .. table.concat(words, " and ") end
 end
 
 local function Rgb(key) local r, g, b = Style.Color(key); return r, g, b end

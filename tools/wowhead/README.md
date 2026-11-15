@@ -64,6 +64,10 @@ same script again carries on. Never try to get past the check another way.
      `drops.js` in the pane, then `python -I tools/wowhead/merge_quests.py <scratchpad>/drops_batch.json --drops`
      (it writes `data/quests/wowhead-drops.json`). After a check, the next batch carries on with
      what's left. When the list is empty, run `python -I tools/build_quest_scores.py`.
+     `--classic` lists Classic's quest items instead; reading them showed Wowhead's counts are no use for
+     quest items from busy creatures (it counts kills by players without the quest), so the build only takes
+     a creature's rate there when at least half its kills dropped the item. EG Link's quest-only counts
+     (`build_quest_scores.py --egloot`) are the better source; refresh them with each of its builds.
 4. **Recipe sources (8 lists, then a few hundred vendor and recipe pages; one to two hours):**
    - Start the receiver: `python -I tools/wowhead/receive.py data/professions/wowhead-sources.json`
    - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalRecipes')`, then the

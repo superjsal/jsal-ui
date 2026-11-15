@@ -1,5 +1,8 @@
 # jsal.ui 0.3.44
 
+- **Quest tags: truer drop chances.** A quest item drops only for someone on the quest, and Wowhead counts every kill, so its numbers made quests from busy creatures look several times longer than they are. Now a chance comes first from players who had the quest when they looted (EG Link), then, for Classic's quests, from Classic's own numbers. Wowhead's is used only for a named target nearly everyone kills for the quest, or a chest or plant. Where none of those is known the tag says "?" rather than a number that's far too high.
+  - **Your own loot counts.** With the Drop log on, once an item has had ten loots of yours the card uses your own chance and says so.
+
 - **Settings: the two new parts' cards say what they do.** Quest tags on RestedXP and the Drop log showed the start of a long sentence, cut off. Each now has a short line and a picture like the other cards.
 
 ## In 0.3.43
