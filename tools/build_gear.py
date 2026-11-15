@@ -6,10 +6,16 @@ from: a drop (and from whom, and where), a quest, a vendor or a recipe. Zone nam
 (data/gear/zones.json, from its AreaTable). Item names aren't kept: the game gives them, along with
 each item's stats, while you play.
 
-Stat weights are WoWSims' (data/gear/wowsims/*.sim.ts, from github.com/wowsims/classic, MIT licence,
-LICENSE beside them): each spec's "epWeights", what one point of each stat is worth. They're tuned
-for level 60, where Stamina counts for little; for leveling, every spec's Stamina is raised to at
-least STAMINA_FLOOR, so a piece with more of it ranks a little higher.
+Stat weights are WoWSims': what one point of each stat is worth to a spec. Where WoWSims Forever
+(github.com/wowsims/forever, MIT licence, built for Forever's own game) has a preset for a tree,
+it's that (data/gear/wowsims-forever/, LICENSE and the commit beside them; FOREVER below names
+each). Forever's sims weigh crit, hit, dodge, parry and block per point of rating; the editor's are
+per 1%, so they're multiplied by Forever's ratings for 1% (RATING_PER_PERCENT). Where it has none
+(hunter, mage, warlock, and the paladin, shaman and druid healers), it's WoWSims Classic's
+(data/gear/wowsims/*.sim.ts, github.com/wowsims/classic, MIT). (John, 14 Nov 2026, after the three
+were set side by side with GearQuest's: "Yes, use Forever's".) Both are tuned for level 60, where
+Stamina counts for little; for leveling, every spec's Stamina is at least STAMINA_SHARE of its top
+main stat, so a piece with more of it ranks a little higher.
 
 Checked against what the game makes of each stat (14 Nov 2026, WoWSims' latest, unchanged since
 March 2025), two are put right in checked():
@@ -20,9 +26,10 @@ March 2025), two are put right in checked():
   (healing only) is its own stat in the game, and they gave it nothing: it gets spell power's weight.
 
 One rule for Stamina, every class alike: damage and healing trees keep WoWSims' small figure (at
-least STAMINA_FLOOR), and a tank tree takes a WoWSims tank set that weighs Stamina as a tank does.
-Their protection_paladin set weighs it at 0 (it's tuned for raid avoidance, Agility 18.57 for the
-dodge), so a Protection paladin takes the warrior tank's, the other plate tank's. (John, 14 Nov 2026:
+least STAMINA_SHARE of the top main stat), and a tank tree takes a WoWSims tank set that weighs
+Stamina as a tank does. Neither WoWSims has a Protection paladin set that does (Classic's weighs it
+at 0, tuned for raid avoidance; Forever's has none), so a Protection paladin takes the warrior
+tank's, the other plate tank's. (John, 14 Nov 2026:
 "if someone does value stamina like a tank will it show it properly, but also not overvalue stamina
 for dps classes"; "lets keep it as universal as possible".)
 
@@ -37,7 +44,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "gear"
 OUT = ROOT / "jsalUI" / "Gear" / "GearData.lua"
 
-STAMINA_FLOOR = 0.2
+STAMINA_SHARE = 0.1
+MAIN_STATS = ("ITEM_MOD_STRENGTH_SHORT", "ITEM_MOD_AGILITY_SHORT", "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT",
+              "ITEM_MOD_SPELL_HEALING_DONE_SHORT")
 
 HEALERS = ("holy_paladin", "healing_priest", "restoration_shaman", "restoration_druid")
 HUNTER_AGILITY_PER_CRIT = 53  # Agility for 1% crit, a hunter at 60
@@ -53,6 +62,48 @@ SPECS = {
     "MAGE": ["mage", "mage", "mage"],
     "WARLOCK": ["warlock", "warlock", "warlock"],
     "DRUID": ["balance_druid", "feral_druid", "restoration_druid"],
+}
+
+# Where WoWSims Forever has a preset for a tree: its file in data/gear/wowsims-forever and the preset.
+# None: WoWSims Classic's, from SPECS. Pre-raid sets where there's a choice, nearer leveling gear.
+PLATE_TANK = ("warrior_protection", "PreBiSEpWeights")
+FOREVER = {
+    "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
+    "PALADIN": [None, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
+    "HUNTER": [None, None, None],
+    "ROGUE": [("rogue_dps", "EP_PRESET_ASSASSINATION"), ("rogue_dps", "EP_PRESET_COMBAT_SINISTER"),
+              ("rogue_dps", "EP_PRESET_SUBTLETY")],
+    "PRIEST": [("priest_healer", "DiscSingleTargetEpWeights"), ("priest_healer", "HolySingleTargetEpWeights"),
+               ("priest_dps", "ShadowEpWeights")],
+    "SHAMAN": [("shaman_elemental", "DefaultEpWeights"), ("shaman_enhancement", "PreBiSEpWeights"), None],
+    "MAGE": [None, None, None],
+    "WARLOCK": [None, None, None],
+    "DRUID": [("druid_balance", "PreBiSEpWeights"), ("druid_feral_ep", "CatEp"), None],
+}
+# Forever's ratings for 1% (its sim/core/base_stats_auto_gen.go); defense is 1 rating a point.
+RATING_PER_PERCENT = {"StatHitRating": 10, "StatCritRating": 14, "StatDodgeRating": 12, "StatParryRating": 15,
+                      "StatBlockRating": 5, "StatDefenseRating": 1}
+FOREVER_KEYS = {
+    "StatStrength": ["ITEM_MOD_STRENGTH_SHORT"],
+    "StatAgility": ["ITEM_MOD_AGILITY_SHORT"],
+    "StatStamina": ["ITEM_MOD_STAMINA_SHORT"],
+    "StatIntellect": ["ITEM_MOD_INTELLECT_SHORT"],
+    "StatSpirit": ["ITEM_MOD_SPIRIT_SHORT"],
+    "StatAttackPower": ["ITEM_MOD_ATTACK_POWER_SHORT"],
+    "StatRangedAttackPower": ["ITEM_MOD_RANGED_ATTACK_POWER_SHORT"],
+    "StatFeralAttackPower": ["ITEM_MOD_FERAL_ATTACK_POWER_SHORT"],
+    "StatHitRating": ["ITEM_MOD_HIT_RATING_SHORT", "ITEM_MOD_HIT_MELEE_RATING_SHORT", "ITEM_MOD_HIT_SPELL_RATING_SHORT"],
+    "StatCritRating": ["ITEM_MOD_CRIT_RATING_SHORT", "ITEM_MOD_CRIT_MELEE_RATING_SHORT", "ITEM_MOD_CRIT_SPELL_RATING_SHORT"],
+    "StatSpellDamage": ["ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"],
+    "StatHealingPower": ["ITEM_MOD_SPELL_HEALING_DONE_SHORT"],
+    "StatMP5": ["ITEM_MOD_POWER_REGEN0_SHORT", "ITEM_MOD_MANA_REGENERATION_SHORT"],
+    "StatArmor": ["RESISTANCE0_NAME"],
+    "StatBonusArmor": ["ITEM_MOD_EXTRA_ARMOR_SHORT"],
+    "StatDefenseRating": ["ITEM_MOD_DEFENSE_SKILL_RATING_SHORT"],
+    "StatDodgeRating": ["ITEM_MOD_DODGE_RATING_SHORT"],
+    "StatParryRating": ["ITEM_MOD_PARRY_RATING_SHORT"],
+    "StatBlockRating": ["ITEM_MOD_BLOCK_RATING_SHORT"],
+    "StatBlockValue": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
 }
 
 # WoWSims' stat names to the game's own item stat keys.
@@ -90,19 +141,47 @@ def lua_string(text):
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def weights(spec):
-    text = (SRC / "wowsims" / f"{spec}.sim.ts").read_text(encoding="utf-8")
-    start = text.index("epWeights")
-    depth, end = 0, None
+def bracketed(text, start):
+    """The text from start to the bracket that closes the first one after it."""
+    depth = 0
     for i in range(text.index("(", start), len(text)):
         if text[i] == "(":
             depth += 1
         elif text[i] == ")":
             depth -= 1
             if depth == 0:
-                end = i
-                break
-    block = text[start:end]
+                return text[start:i]
+    raise ValueError("unclosed")
+
+
+def stamina(out):
+    top = max((out.get(k, 0) for k in MAIN_STATS), default=0)
+    out["ITEM_MOD_STAMINA_SHORT"] = max(out.get("ITEM_MOD_STAMINA_SHORT", 0), round(STAMINA_SHARE * top, 3))
+
+
+def forever_weights(file, preset):
+    text = (SRC / "wowsims-forever" / f"{file}.ts").read_text(encoding="utf-8")
+    found = re.search(r"const " + preset + r"\s*=", text)
+    block = bracketed(text, found.end())
+    out, dps = {}, {}
+    for name, value in re.findall(r"\[(?:Pseudo)?Stat\.(\w+)\]\s*:\s*(-?[\d.]+)", block):
+        v = round(float(value) * RATING_PER_PERCENT.get(name, 1), 3)
+        if name in FOREVER_KEYS:
+            for key in FOREVER_KEYS[name]:
+                out[key] = v
+        elif name in DPS_KEYS:
+            dps[DPS_KEYS[name]] = round(float(value), 3)
+    # An item of spell damage and healing is both.
+    both = out.get("ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", 0) + out.get("ITEM_MOD_SPELL_HEALING_DONE_SHORT", 0)
+    if both:
+        out["ITEM_MOD_SPELL_POWER_SHORT"] = round(both, 3)
+    stamina(out)
+    return out, dps
+
+
+def weights(spec):
+    text = (SRC / "wowsims" / f"{spec}.sim.ts").read_text(encoding="utf-8")
+    block = bracketed(text, text.index("epWeights"))
     out, dps = {}, {}
     for name, value in re.findall(r"\[(?:Pseudo)?Stat\.(\w+)\]\s*:\s*(-?[\d.]+)", block):
         v = float(value)
@@ -111,8 +190,8 @@ def weights(spec):
                 out[key] = v
         elif name in DPS_KEYS:
             dps[DPS_KEYS[name]] = v
-    out["ITEM_MOD_STAMINA_SHORT"] = max(out.get("ITEM_MOD_STAMINA_SHORT", 0), STAMINA_FLOOR)
     checked(spec, out)
+    stamina(out)
     return out, dps
 
 
@@ -171,8 +250,9 @@ def main():
     spec_lines = []
     for class_file, trees in SPECS.items():
         parts = []
-        for spec in trees:
-            stats, dps = weights(spec)
+        for spec, forever in zip(trees, FOREVER[class_file]):
+            stats, dps = forever_weights(*forever) if forever else weights(spec)
+            spec = "forever:" + "/".join(forever) if forever else spec
             stat_text = ", ".join(f"{k} = {v:g}" for k, v in sorted(stats.items()) if v)
             dps_text = ", ".join(f"{k} = {v:g}" for k, v in sorted(dps.items()) if v)
             parts.append(f"        {{ sim = {lua_string(spec)}, stats = {{ {stat_text} }}, dps = {{ {dps_text} }} }},")
