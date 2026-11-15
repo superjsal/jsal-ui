@@ -5,7 +5,7 @@
 - **Training planner: a spell's full price.** Where two trainers you visited charged differently for one spell (one at a better standing with its faction), the planner used whichever it read last. It now uses the higher, full price, as the prices that come with the addon do.
 - **Gear plan: show only the kinds of source you want.** Over a slot's upgrades is a row of chips, one for each kind of source the slot has (Dungeon, Quest, Vendor, Crafted, World drop, Zone drop, Unknown), each with how many. Click one to see only that kind, another to add its kind, and All for everything again; the count reads "3 of 28 upgrades". It starts with everything showing, and a /reload goes back to that. A piece in your bags, or one you added yourself, always shows.
 - **Gear plan: how much better each upgrade is.** A card now leads with the upgrade's gain as a share of everything you wear, "+3%", the number the dungeon guide calls "for you", with the stats it adds under it.
-- **Gear plan: "Currently equipped" over what you wear.** The first column's heading read "Slot, and what you wear" and ran into the next one. It's shorter now, and held to its own column.
+- **Gear plan: "Currently equipped" over what you wear.** The first column's heading read "Slot, and what you wear" and ran into the next one. It's shorter now, starts at the page's left edge, and is held to its own column.
 
 ## In 0.3.46
 

@@ -354,11 +354,13 @@ Window.Page("gear", function(page)
     -- beside a slot with nothing in it read as that slot's own stats. The
     -- slot's own name needs no heading.
     local wearing = Style.Text(page, 10, "muted", nil, true)
-    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 6 + ICON + 8, -(top - 18))
+    -- At the page's left edge, in line with the title over it and the slots' rows under it: over
+    -- the slots' names it stood 44 in. (John, 15 Nov 2026: "lets left align that currently equipped".)
+    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 18))
     -- Its column ends where the best upgrade's begins: the longer "SLOT, AND WHAT YOU WEAR" ran
     -- into the next heading (John's screenshot, 15 Nov 2026: "not aligned correctly... the slot
     -- is obvious"). It's held to its column, on one line.
-    wearing:SetWidth(UP_X - (6 + ICON + 8) - 10)
+    wearing:SetWidth(UP_X - 10)
     wearing:SetJustifyH("LEFT")
     wearing:SetWordWrap(false)
     wearing:SetText("CURRENTLY EQUIPPED")
