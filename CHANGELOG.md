@@ -5,6 +5,8 @@
 
 - **Gear plan and dungeon guide: a word on stat weights.** The Gear plan's footnote says its stat weights are estimates from WoWSims' Forever sims at level 60, a guide and not the last word, and that you can change them under Weights. Under a dungeon's loot, a line says "for you" is by those weights: roll by what you know of your spec.
 - **Gear plan: one Crit and one Hit under Weights.** Forever's items have one crit and one hit for spells and weapons alike, and Weights listed Spell Crit and Spell Hit as well, always the same numbers. They're gone; Crit and Hit stand for both, and a Pawn scale's spell crit and spell hit are read as Crit and Hit.
+- **Dungeon guide: "+N% for you" is against all you wear.** It was a share of the one piece an upgrade replaces, so a slot whose piece counts for little (a hunter's two-hander, which is worn for its stats) made a polearm "+474% for you". It's now a share of everything you wear, so the same polearm reads about "+16%".
+- **Gear plan: Attack Power counts for a hunter again.** Crit and hit, which are weighed per 1%, set the bar for what counts as one of your spec's main stats, and a hunter's Attack Power fell under it: a belt with more of it was "nothing here is better". Only stats weighed by the point set it now.
 
 ## In 0.3.45
 

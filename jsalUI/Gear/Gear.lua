@@ -506,8 +506,10 @@ end
 -- trinket is measured against the weaker of your two.
 --
 -- It's the Gear plan's answer: better when it scores more than what you wear, however little, and
--- then how much, as a share of what you wear's score, so the dungeon guide can say "+24% for you" and
--- a hair-thin upgrade reads as one. (John, 14 Nov 2026, pointing at Forever Leveling BiS: "lets use
+-- then how much, as a share of all you wear's score (Gear.WornTotal), so the dungeon guide can say
+-- "+16% for you" and a hair-thin upgrade reads as one. It was a share of the one piece it replaces,
+-- and a hunter's two-hander, which counts only for its stats, made a polearm "+474%". (John, 14 Nov
+-- 2026, of the mockup measured against everything worn: "Yes, build it".) (John, 14 Nov 2026, pointing at Forever Leveling BiS: "lets use
 -- the formula this uses".) Before, it had to be a quarter of the best upgrade you could get, which
 -- hid a feral druid's Swine Fists, 22% over his gloves; before that, any gain, which called a
 -- hunter's Strength legs "better" with nothing to say by how little (14 Nov).
@@ -523,6 +525,25 @@ function Gear.SlotPlan(slot)
     end
     if not kept[slot.key] then kept[slot.key] = Gear.Plan(slot) end
     return kept[slot.key]
+end
+
+-- What all you wear scores for a spec's weights: each slot's piece, each ring and trinket, its
+-- weapon damage for where it goes. Kept for the one paint, as a slot's plan is.
+function Gear.WornTotal(weights)
+    if not weights then return 0 end
+    local now = GetTime and GetTime()
+    local kept = Gear.wornTotal
+    if kept and now and kept.at == now and kept.weights == weights then return kept.total end
+    local total = 0
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, equip in ipairs(slot.equip) do
+            local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
+            local stats = link and Stats(link)
+            if stats then total = total + (Gear.Score(stats, weights, slot.dps) or 0) end
+        end
+    end
+    Gear.wornTotal = { at = now, weights = weights, total = total }
+    return total
 end
 
 function Gear.Better(id, equipLoc, classID, subclassID)
@@ -641,11 +662,16 @@ function Gear.Plan(slot, spec, only)
     -- there is, hid real ones whenever a far bigger one existed: a feral druid's Swine Fists, 22% over
     -- his gloves, was "nothing here is better" in Razorfen Downs.)
     -- Still left out, once anything adds what your spec wants most: a piece that only wins on Stamina
-    -- or on what your spec barely values (a caster's hood for a hunter). A main stat is one your spec
+    -- or on what your spec barely values (Spell Power for a hunter). A main stat is one your spec
     -- weighs at least as much as Stamina and more than a twentieth of its top stat, or weapon damage.
+    -- The top stat is a point's: crit, hit and the like are weighed per 1%, a dozen times a point's,
+    -- and set the bar so high that a hunter's Attack Power wasn't a main stat (John, 14 Nov 2026: a
+    -- Skullduggery Belt, 16 Attack Power to his 12, "doesnt show any gain").
     local staWeight = weights and weights.stats.ITEM_MOD_STAMINA_SHORT or 0
     local top = 0
-    for _, v in pairs(weights and weights.stats or {}) do top = math.max(top, v) end
+    for key, v in pairs(weights and weights.stats or {}) do
+        if not PER_PERCENT[key] then top = math.max(top, v) end
+    end
     local floor = math.max(staWeight, top * 0.05)
     local function Main(stats)
         if not weights then return true end
@@ -665,13 +691,14 @@ function Gear.Plan(slot, spec, only)
         o.unknown = Gear.Source(o) == ""
         anyMain = anyMain or Main(o.stats)
     end
-    -- Whether a piece with these stats is an upgrade, then its gain as a share of what you wear's
-    -- score (nil when you wear nothing there): for a dungeon's loot, which may not be in the plan's
-    -- own lists of items. (See Gear.Better.)
+    -- Whether a piece with these stats is an upgrade, then its gain as a share of all you wear's
+    -- score (nil when you wear nothing that counts): for a dungeon's loot, which may not be in the
+    -- plan's own lists of items. (See Gear.Better.)
     local function Would(stats)
         local gain = (Gear.Score(stats, weights, slot.dps) or 0) - worn.score
         if gain <= 0.01 or not (Main(stats) or not anyMain) then return false end
-        return true, worn.score > 0 and gain / worn.score or nil
+        local total = Gear.WornTotal(weights)
+        return true, total > 0 and gain / total or nil
     end
     local kept = {}
     for _, o in ipairs(options) do
