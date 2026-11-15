@@ -682,9 +682,14 @@ Window.Page("gear", function(page)
 
         -- Timed apart from the drawing, so /jsal perf says which is slow.
         local started = debugprofilestop()
+        G.spent = {}
         local plans = {}
         for _, row in ipairs(slotRows) do plans[row.key] = G.Plan(row.slot, spec, row.equip) end
         ns.Timed("Gear plan, working out upgrades", started)
+        -- A slow pass: its parts too, each as one line ("Gear plan, upgrades: item stats").
+        if debugprofilestop() - started >= 10 then
+            for part, ms in pairs(G.spent) do ns.NoteTime("Gear plan, upgrades: " .. part, ms) end
+        end
         local better, checking = 0, false
         for key, b in pairs(slotFrames) do
             local plan = plans[key]

@@ -180,6 +180,9 @@ function ns.Timed(label, started)
     if took >= SLOW_MS then NoteSlow(label, took) end
 end
 
+-- Notes a time however short: the parts of something ns.Timed found slow.
+ns.NoteTime = NoteSlow
+
 -- Wraps a module's event handler or callback in the same guard, and notes a
 -- slow call by the module and, for an event, the event's name. The arguments
 -- go straight to xpcall, which takes them in the game (Blizzard's own code
@@ -208,7 +211,7 @@ local function PrintSlow()
     end
     table.sort(rows, function(a, b) return a.worst > b.worst end)
     ns.Print("jsal.ui's slow moments since the last reload, 10 ms or more, the slowest first:")
-    for i = 1, math.min(10, #rows) do
+    for i = 1, math.min(14, #rows) do
         local r = rows[i]
         print(("  %s: %d time%s, longest %.0f ms"):format(r.label, r.count, r.count == 1 and "" or "s", r.worst))
     end

@@ -736,6 +736,17 @@ function Gear.Held(slot, classFile, level)
     return out
 end
 
+-- How long each part of the plans took in one pass, added up over the slots,
+-- for /jsal perf (the page clears it before a pass and reads it after). In
+-- game a pass took up to 63 ms where the same work takes 9 ms on a stand-in,
+-- so the parts are timed where they run (15 Nov 2026).
+Gear.spent = {}
+local function Spent(part, started)
+    local now = debugprofilestop()
+    Gear.spent[part] = (Gear.spent[part] or 0) + now - started
+    return now
+end
+
 function Gear.Plan(slot, spec, only)
     -- With a two-hander in the main hand, nothing can go in the off hand,
     -- so nothing is better for it: the plan read the hand as empty and
@@ -746,6 +757,7 @@ function Gear.Plan(slot, spec, only)
         local both = Gear.TwoHander()
         if both then return { worn = { stats = {}, score = 0 }, options = {}, waiting = 0, twoHand = both } end
     end
+    local t = debugprofilestop()
     local weights = Gear.Weights(spec)
     local level = UnitLevel("player") or 1
     local _, classFile, classID = UnitClass("player")
@@ -760,9 +772,11 @@ function Gear.Plan(slot, spec, only)
         if not worn or score < worn.score then worn = { link = link, equip = equip, stats = stats, score = score or 0 } end
     end
     local wornID = worn.link and tonumber(worn.link:match("item:(%d+)"))
+    t = Spent("weights and what you wear", t)
     local stars, added = Gear.Starred(), Gear.Added()
     local options, waiting, seen = {}, 0, {}
     local candidates = Gear.Candidates(slot, level, classFile, classID, SideNumber())
+    t = Spent("the items near your level", t)
     -- Items you added by hand come in wherever they fit, at any level, even
     -- when they aren't better for this spec.
     for id, a in pairs(added) do
@@ -783,11 +797,15 @@ function Gear.Plan(slot, spec, only)
             candidates[#candidates + 1] = Gear.Lookup(id) or { id = id, req = 0, kind = "", place = "" }
         end
     end
+    t = Spent("your bags and added items", t)
+    local asking = 0
     for _, c in ipairs(candidates) do
         if c.id ~= wornID and not seen[c.id] then
             seen[c.id] = true
             c.held = held[c.id] or nil
+            local s0 = debugprofilestop()
             local stats = Stats(c.id)
+            asking = asking + debugprofilestop() - s0
             if not stats then
                 waiting = waiting + 1
             else
@@ -803,6 +821,8 @@ function Gear.Plan(slot, spec, only)
             end
         end
     end
+    Gear.spent["item stats"] = (Gear.spent["item stats"] or 0) + asking
+    t = Spent("scoring", t + asking)
     -- Any piece that scores more than what you wear is an upgrade, however little; its gain says how
     -- much ("+24% for you"), so a hair-thin one reads as one. (John, 14 Nov 2026, pointing at Forever
     -- Leveling BiS: "lets use the formula this uses". The rule before, a quarter of the best upgrade
@@ -871,6 +891,7 @@ function Gear.Plan(slot, spec, only)
         if a.score ~= b.score then return a.score > b.score end
         return a.id < b.id
     end)
+    Spent("sources and sorting", t)
     return { worn = worn, options = options, waiting = waiting, Would = Would }
 end
 
