@@ -134,16 +134,18 @@ local function Shipped(info, name)
     if found then return info.drops[found], info.wowhead and info.wowhead[found] or false end
 end
 
--- The item's drop chance and where it's from, then how many of your own loots are in it and the
--- shipped source they were blended with. With the Drop log on, your own loot is blended with the
--- shipped chance from your first find ("own" with a base), or, with nothing shipped, used alone once
--- it has enough ("own" with no base); otherwise the shipped chance.
+-- The item's drop chance and where it's from, then how many loots are in it (yours and, while you
+-- share drop counts, your guild's), the shipped source they were blended with, and how many of the
+-- loots are your guild's. With the Drop log on, the loots are blended with the shipped chance from the
+-- first find ("own" with a base), or, with nothing shipped, used alone once there are enough ("own"
+-- with no base); otherwise the shipped chance.
 local function Chance(info, name, questID)
     local shipped, mark = Shipped(info, name)
     local log = ns.LootLog
-    if log and log.Blended then
-        local blended, loots = log.Blended(name, shipped)
-        if blended then return blended, "own", loots, shipped and (mark or "classic") or nil end
+    local blend = log and (log.Pooled or log.Blended)
+    if blend then
+        local blended, loots, theirs = blend(name, shipped)
+        if blended then return blended, "own", loots, shipped and (mark or "classic") or nil, theirs or 0 end
     elseif log and log.Chance then
         local mine, loots = log.Chance(questID, name)
         if mine then return mine, "own", loots end
@@ -184,7 +186,7 @@ function QuestTags.Work(questID)
                 row.name = name:gsub("%s+slain$", "")
                 row.kills = left
             else
-                row.chance, row.wowhead, row.loots, row.base = Chance(info, name, questID)
+                row.chance, row.wowhead, row.loots, row.base, row.theirs = Chance(info, name, questID)
                 if row.chance then row.kills = QuestTags.Kills(left, row.chance) end
             end
             if row.kills then total = total + row.kills else unknown = unknown or name end
@@ -249,14 +251,18 @@ local SOURCE_WORDS = {
 local SOURCE_ORDER = { "own", "p", "e", "j", "w", "o", "classic" }
 
 local function Sources(rows)
-    local seen, loots = {}, 0
+    local seen, loots, theirs = {}, 0, 0
     for _, r in ipairs(rows) do
         if r.chance then seen[r.wowhead or "classic"] = true end
         -- Your own loot blended with a shipped chance: both are named.
         if r.base then seen[r.base] = true end
-        if r.wowhead == "own" then loots = math.max(loots, r.loots or 0) end
+        if r.wowhead == "own" and (r.loots or 0) > loots then loots, theirs = r.loots or 0, r.theirs or 0 end
     end
-    local own = loots > 1 and ("your own " .. loots .. " loots") or SOURCE_WORDS.own
+    local yours = loots - theirs
+    local own = yours > 1 and ("your own " .. yours .. " loots") or SOURCE_WORDS.own
+    if theirs > 0 then
+        own = (yours > 0 and (own .. " and ") or "") .. ("your guild's %d loot%s"):format(theirs, theirs == 1 and "" or "s")
+    end
     local words, said = {}, {}
     for _, key in ipairs(SOURCE_ORDER) do
         local word = seen[key] and (key == "own" and own or SOURCE_WORDS[key])
