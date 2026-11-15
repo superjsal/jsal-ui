@@ -309,16 +309,16 @@ local function Thousands(n)
     return text
 end
 
--- "Pays 2,550 XP: about 215 XP a minute of fighting", or nil when what it pays isn't known. The
--- minutes are the fights only, not getting there, so a one-kill quest far away reads well; "of
--- fighting" says so. (John, 14 Nov 2026, on Look to the Stars' "about 2,450 XP a minute": "Yes,
--- reword it".)
+-- "2,550 XP · 213 XP/min in combat", or nil when what it pays isn't known. The minutes are the
+-- fights only, not getting there, so a one-kill quest far away reads well; "in combat" says so.
+-- (John, 14 Nov 2026, on Look to the Stars' "about 2,450 XP a minute": "Yes, reword it"; "pays
+-- doesnt really translate well in an MMO", and he chose XP/min in combat.)
 function QuestTags.PaysLine(questID, minutes)
     local xp, gap = QuestTags.XP(questID)
     if not xp then return nil end
-    local text = ("Pays %s XP"):format(Thousands(xp))
+    local text = ("%s XP"):format(Thousands(xp))
     if minutes and minutes > 0 then
-        text = text .. (": about %s XP a minute of fighting"):format(Thousands(math.floor(xp / math.max(minutes, 1) + 0.5)))
+        text = text .. (" · %s XP/min in combat"):format(Thousands(math.floor(xp / math.max(minutes, 1) + 0.5)))
     end
     if gap > 5 then text = text .. (" (less: you're %d levels above it)"):format(gap) end
     return text

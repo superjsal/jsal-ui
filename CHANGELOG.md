@@ -1,6 +1,6 @@
 # jsal.ui 0.3.45
 
-- **Quest tags: "XP a minute of fighting".** The card's "about 2,450 XP a minute" counts only the fights, not getting there, so a quest with one kill far away read as a great deal. It now says "a minute of fighting".
+- **Quest tags: "XP/min in combat".** The card's "Pays 2,450 XP: about 2,450 XP a minute" counted only the fights, not getting there, so a quest with one kill far away read as a great deal. It now reads "2,450 XP · 2,450 XP/min in combat".
 
 ## In 0.3.44
 
