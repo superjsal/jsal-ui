@@ -2,9 +2,11 @@
 (https://github.com/JIVESCORP/eg-link-output-wowf, CC BY 4.0, data from Efficient Games), whose
 players' counts grow every day: Forever's own quests and next-quest links (each live build's
 quests.enUS.json), how often quest items drop for players on the quest (each build's loot.json),
-and every trainer players opened, with what each teaches and its costs (each build's trainers.json).
+every trainer players opened, with what each teaches and its costs (each build's trainers.json), and
+every vendor, with what each sells and its prices (each build's vendors.json, for the shopping list).
 Downloads them into a temporary folder (read as data, never run), updates data/quests/eglink.json,
-data/quests/eglink-drops.json and data/trainers/eglink-trainers.json, and rebuilds
+data/quests/eglink-drops.json, data/trainers/eglink-trainers.json and data/vendors/eglink-vendors.json,
+and rebuilds
 jsalUI/Quests/QuestScoreData.lua; then runs tools/build_spells.py and tools/build_trainers.py, which read
 the trainers file (Training/SpellData.lua's prices, TrainerData.lua's weapon masters and pet trainers).
 
@@ -24,7 +26,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import build_quest_scores as build  # noqa: E402
 
 REPO = "JIVESCORP/eg-link-output-wowf"
-WANT = ("quests.enUS.json", "loot.json", "trainers.json", "creature_details.enUS.json")
+WANT = ("quests.enUS.json", "loot.json", "trainers.json", "creature_details.enUS.json", "vendors.json")
+VENDORS = ROOT / "data" / "vendors" / "eglink-vendors.json"
 TRAINERS = ROOT / "data" / "trainers" / "eglink-trainers.json"
 
 
@@ -76,6 +79,46 @@ def merge_trainers(folder, revision):
           f"{TRAINERS.relative_to(ROOT)}")
 
 
+def merge_vendors(folder, revision):
+    """Every vendor players opened on a live build, newest build last so it wins: its name, where players
+    stood when they opened it (Forever's own uiMap, mapX/mapY 0-1 across it), whether it repairs, and
+    each thing it sells by item ID: name, stack, price in copper at each standing seen (4 Neutral to 8
+    Exalted; a better standing is cheaper, so the full price is the one at the lowest standing),
+    limited stock (stockMax), other things it costs (costItems), and whether it starts a quest."""
+    builds = sorted((f for f in pathlib.Path(folder).glob("*.json")), key=lambda f: [int(x) for x in f.stem.split(".")])
+    out = {}
+    for f in builds:
+        data = json.loads(f.read_text(encoding="utf-8"))
+        for npc, v in data.get("vendors", {}).items():
+            row = out.setdefault(npc, {"sells": {}})
+            for key in ("name", "repairs", "lastSeen"):
+                if v.get(key) is not None:
+                    row[key] = v[key]
+            if v.get("positions"):
+                row["positions"] = [{k: p[k] for k in ("uiMap", "mapX", "mapY") if k in p} for p in v["positions"]]
+            row["builds"] = sorted(set(row.get("builds", [])) | {f.stem})
+            for key, e in (v.get("entries") or {}).items():
+                if not key.startswith("item:") or not e.get("itemId"):
+                    continue
+                old = row["sells"].get(str(e["itemId"]), {})
+                new = {k: e[k] for k in ("name", "stack", "limited", "stockMax", "startsQuest", "costItems") if e.get(k) is not None}
+                costs = dict(old.get("costs", {}))
+                costs.update(e.get("costs") or {})
+                if costs:
+                    new["costs"] = costs
+                row["sells"][str(e["itemId"])] = new
+    VENDORS.parent.mkdir(parents=True, exist_ok=True)
+    VENDORS.write_text(json.dumps({
+        "about": "Every vendor players opened on WoW Forever, from EG Link output: World of Warcraft: Forever "
+                 "(https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games "
+                 "(https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); "
+                 "merged across live builds and reduced to name, spots, repairs and what each sells, with prices, by "
+                 "tools/refresh_eglink.py.",
+        "revision": revision, "vendors": out}, indent=0, sort_keys=True), encoding="utf-8")
+    print(f"kept {len(out)} vendors ({sum(len(v['sells']) for v in out.values())} things sold) in "
+          f"{VENDORS.relative_to(ROOT)}")
+
+
 def main():
     head = json.loads(get(f"https://api.github.com/repos/{REPO}/commits/main"))["sha"]
     tree = json.loads(get(f"https://api.github.com/repos/{REPO}/git/trees/{head}?recursive=1"))["tree"]
@@ -96,6 +139,7 @@ def main():
         build.fetch_eglink(folders["quests.enUS.json"], folders["creature_details.enUS.json"])
         build.fetch_egloot(folders["loot.json"])
         merge_trainers(folders["trainers.json"], head)
+        merge_vendors(folders["vendors.json"], head)
     build.build()
     # The training builds read the trainers file too: rebuild them, for the same game build as before.
     spells = (ROOT / "jsalUI" / "Training" / "SpellData.lua").read_text(encoding="utf-8")
