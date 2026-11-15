@@ -169,10 +169,15 @@ function Gear.Trees()
     return trees
 end
 
+-- With no talent points yet (below level 10), the tree a class usually levels in, not its first:
+-- a new paladin was given Holy's healing weights, a new priest Discipline's, a druid Balance's.
+-- The weights are still WoWSims' own, for that tree. (John, 14 Nov 2026: "Fix gap 1".)
+local LEVELING_TREE = { PALADIN = 3, PRIEST = 3, SHAMAN = 2, DRUID = 2, ROGUE = 2, MAGE = 3 }
+
 function Gear.Spec()
     local saved = ns.char and tonumber(ns.char.gearSpec)
     if saved and saved >= 1 and saved <= 3 then return saved end
-    local best, most = 1, 0
+    local best, most = LEVELING_TREE[ClassFile() or ""] or 1, 0
     for i, tree in ipairs(Gear.Trees()) do
         if tree.points > most then best, most = i, tree.points end
     end

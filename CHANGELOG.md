@@ -7,6 +7,7 @@
 - **Gear plan: one Crit and one Hit under Weights.** Forever's items have one crit and one hit for spells and weapons alike, and Weights listed Spell Crit and Spell Hit as well, always the same numbers. They're gone; Crit and Hit stand for both, and a Pawn scale's spell crit and spell hit are read as Crit and Hit.
 - **Dungeon guide: "+N% for you" is against all you wear.** It was a share of the one piece an upgrade replaces, so a slot whose piece counts for little (a hunter's two-hander, which is worn for its stats) made a polearm "+474% for you". It's now a share of everything you wear, so the same polearm reads about "+16%".
 - **Gear plan: Attack Power counts for a hunter again.** Crit and hit, which are weighed per 1%, set the bar for what counts as one of your spec's main stats, and a hunter's Attack Power fell under it: a belt with more of it was "nothing here is better". Only stats weighed by the point set it now.
+- **Gear plan: before your first talent point, the tree your class levels in.** With no talents, the Gear plan and the dungeon guide used your class's first tree, so a new paladin was told healing gear was best (Holy), a new priest the same (Discipline), and a new druid got Balance's. They now get Retribution, Shadow and Feral; a shaman Enhancement, a rogue Combat, a mage Frost.
 
 ## In 0.3.45
 
