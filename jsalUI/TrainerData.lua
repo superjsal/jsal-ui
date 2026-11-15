@@ -146,6 +146,7 @@ ns.TrainerData = {
         { npc = 10089, name = "Silvaria", tag = "Pet Trainer", map = 1457, x = 0.424, y = 0.086, a = true, h = false },
         { npc = 10090, name = "Belia Thundergranite", tag = "Pet Trainer", map = 1455, x = 0.708, y = 0.856, a = true, h = false },
         { npc = 254411, name = "Quel'dora Quickgale", tag = "Pet Trainer", map = 2521, x = 0.596, y = 0.724, a = true, h = true },
+        { npc = 258930, name = "Isaac Chan", tag = "Pet Trainer", map = 1429, x = 0.417, y = 0.665, a = true, h = false },
     },
     skill129 = {
         { npc = 2326, name = "Thamner Pol", tag = "Physician", map = 1426, x = 0.472, y = 0.524, a = true, h = false },
@@ -378,5 +379,18 @@ ns.TrainerData = {
         { npc = 257020, name = "Nasalanna Windsinger", tag = "Enchanter", map = 2521, x = 0.432, y = 0.432, a = true, h = true },
         { npc = 259287, name = "Melanie Sable", tag = "Expert Enchanter", map = 2548, x = 0.662, y = 0.832, a = true, h = false },
         { npc = 266881, name = "Pa'zula", tag = "Journeyman Enchanter", map = 1411, x = 0.564, y = 0.736, a = false, h = true },
+    },
+    -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from
+    -- Efficient Games' data (CC BY 4.0) and visits in the game. A weapon master lists only
+    -- what the class in front of it can still learn, so a list here may yet grow.
+    weapons = {
+        { npc = 11869, name = "Ansekhwa", tag = "Weapon Master", map = 1456, x = 0.4102, y = 0.6219, a = false, h = true, teaches = { 198, 199, 227, 266 } },
+        { npc = 11870, name = "Archibald", tag = "Weapon Master", map = 1458, x = 0.5726, y = 0.3274, a = false, h = true, teaches = { 201, 1180 } },
+        { npc = 11865, name = "Buliwyf Stonehand", tag = "Weapon Master", map = 1455, x = 0.6143, y = 0.892, a = true, h = false, teaches = { 196, 197, 198, 199, 266, 15590 } },
+        { npc = 278680, name = "Gabbi Goodwhistle", tag = "Weapon Master", map = 1411, x = 0.428, y = 0.6815, a = false, h = true, teaches = { 201, 227, 1180 } },
+        { npc = 2704, name = "Hanashi", tag = "Weapon Master", map = 1454, x = 0.8142, y = 0.1931, a = false, h = true, teaches = { 196, 197, 227, 264, 2567 } },
+        { npc = 11866, name = "Ilyenia Moonfire", tag = "Weapon Master", map = 1457, x = 0.578, y = 0.465, a = true, h = false, teaches = { 227, 264, 1180, 2567, 15590 } },
+        { npc = 11868, name = "Sayoc", tag = "Weapon Master", map = 1454, x = 0.8151, y = 0.1933, a = false, h = true, teaches = { 196, 197, 264, 1180, 2567, 15590 } },
+        { npc = 11867, name = "Woo Ping", tag = "Weapon Master", map = 1453, x = 0.6381, y = 0.6897, a = true, h = false, teaches = { 200, 201, 202, 227, 1180, 5011 } },
     },
 }

@@ -596,7 +596,7 @@ Window.Page("training", function(page)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -y)
             r.spellID, r.hint = w.id, not w.known and (w.at and ("Taught by " .. w.at .. ".")
-                or "Each weapon master teaches only some weapons. Visit one and jsal.ui remembers who teaches this.") or nil
+                or "Each weapon master teaches only some weapons, and jsal.ui hasn't seen who teaches this one. Visit one and it remembers.") or nil
             r.icon:SetTexture(w.icon)
             r.name:SetText(w.name)
             if w.known then

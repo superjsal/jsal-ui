@@ -5,6 +5,10 @@
 
 - **Drop log: each corpse counts by itself.** The game says which corpse each thing in a loot window came from, so a window opened for several corpses counts each of them, with what that one had. It counted the creature you had targeted, once, for the whole window. You no longer need the corpse targeted for a loot to count, and what's in a chest or lying on the ground is never counted as the loot of a creature you still have targeted.
 
+- **Training planner: the weapon masters ship with the addon.** Pointing at a weapon skill names who teaches it, on your own side, without your having opened a weapon master first: Woo Ping, Buliwyf Stonehand and Ilyenia Moonfire for the Alliance; Sayoc, Hanashi, Ansekhwa, Archibald and Gabbi Goodwhistle for the Horde. A few skills haven't been seen for sale yet, and those still say so.
+- **Training planner: Two-Handed Maces is on the list.** It was missing for warriors, paladins, shamans and druids, who learn it from a weapon master.
+- **Training planner: a few more prices.** A hunter's traps, a priest's Touch of Weakness and a mage's teleports and portals had none. They come from what other players' trainers charged; where you've opened a trainer yourself, its prices are still the ones used.
+
 - **Settings: the two new parts' cards say what they do.** Quest tags on RestedXP and the Drop log showed the start of a long sentence, cut off. Each now has a short line and a picture like the other cards.
 
 ## In 0.3.43

@@ -58,9 +58,34 @@ def Trainable(abilities, names, ranks, levels):
 
 
 SAVED = json.loads(PRICES.read_text(encoding="utf-8")) if PRICES.exists() else {"trainers": [], "grimoires": []}
+# Every trainer players opened on Forever, from EG Link (data from Efficient Games,
+# https://efficient.games, CC BY 4.0; tools/refresh_eglink.py keeps it): each service's spell and
+# its cost at each standing seen. It prices what John's own visits don't reach.
+EGLINK = ROOT / "data" / "trainers" / "eglink-trainers.json"
+SEEN_BY_OTHERS = json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"] if EGLINK.exists() else {}
 
 
-def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
+# Every spell seen for sale at a trainer, in John's visits or other players'.
+SOLD = {r["spell"] for t in SAVED["trainers"] for r in t["rows"] if r.get("spell")}
+SOLD |= {int(spell) for t in SEEN_BY_OTHERS.values() for spell in (t.get("services") or {})}
+
+
+def others_price(service):
+    """A service's full price in EG Link's data. Costs are kept by the standing they were seen at
+    (4 Neutral to 8 Exalted). Neutral and Friendly pay the full price (442 services seen at both:
+    the same to the copper) and Honored pays nine tenths of it (884 seen at both: 0.9, bar three).
+    So: the cost at Neutral or Friendly; else the Honored cost over 0.9; else None, as what
+    Revered and Exalted pay hasn't been seen beside a full price."""
+    costs = {int(k): c for k, c in (service.get("costs") or {}).items() if isinstance(c, (int, float)) and c > 0}
+    full = [c for standing, c in costs.items() if standing <= 5]
+    if full:
+        return int(max(full))
+    if 6 in costs:
+        return int(round(costs[6] / 0.9))
+    return None
+
+
+def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=None):
     """Writes the prices seen at this class's trainers in game (from
     data/prices/trainers.json): class spells by spell ID, anything else a
     class trainer teaches (Parry, Plate Mail...), weapon skills, a hunter's
@@ -97,6 +122,48 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast):
                     beast = pet_to_beast[r["spell"]]
                     cost, level = pet.get(beast, (0, 1))
                     pet[beast] = (max(r["cost"], cost), r.get("level") or level)
+    # What other players' trainers charged, ONLY for what the visits above didn't price. Where
+    # both have a spell the visits win: of 1,090 spells in both, 1,007 agree to the copper, and
+    # the rest differ by no steady share (0.69 to 0.87, where a standing's discount is exactly
+    # 0.9), which reads as prices changed between builds; the visits are John's own game, now.
+    # Among other players' own sightings the highest is the full price, as above. A class trainer
+    # there isn't marked with its class, so a service counts for this class when its spell is one
+    # of the class's.
+    own_spells, own_weapons, own_pet = set(spells), set(weapons), set(pet)
+    spells_seen, weapons_seen, pet_seen = {}, {}, {}
+    # A trainer can teach a spell under another ID than the one the class's list has (a hunter's
+    # traps, a priest's Touch of Weakness): at a trainer of THIS class, one that teaches several of
+    # its spells by ID, such a service prices the class's spell of the same name and rank. Only
+    # there: another class's spell can share a name (Cure Poison is a druid's and a shaman's).
+    by_key = by_key or {}
+    for trainer in SEEN_BY_OTHERS.values():
+        services = trainer.get("services") or {}
+        ours = sum(1 for spell in services if int(spell) in spell_ids) >= 3
+        for spell, service in services.items():
+            spell, cost = int(spell), others_price(service)
+            if cost is None:
+                continue
+            if spell in weapon_ids:
+                full(weapons_seen, spell, cost)
+            elif spell in spell_ids:
+                full(spells_seen, spell, cost)
+            elif spell in pet_to_beast:
+                beast = pet_to_beast[spell]
+                was, level = pet_seen.get(beast, (0, 1))
+                pet_seen[beast] = (max(cost, was), service.get("level") or level)
+            elif ours:
+                same = by_key.get((service.get("name"), service.get("rankText") or ""))
+                if same:
+                    full(spells_seen, same, cost)
+    for spell, cost in spells_seen.items():
+        if spell not in own_spells:
+            spells[spell] = cost
+    for spell, cost in weapons_seen.items():
+        if spell not in own_weapons:
+            weapons[spell] = cost
+    for beast, seen in pet_seen.items():
+        if beast not in own_pet:
+            pet[beast] = seen
     if extra:
         lines.append("        extra = { " + ", ".join(f"{{ {s}, {l} }}" for s, l in sorted(extra.items(), key=lambda kv: (kv[1], kv[0]))) + " },")
     grimoires = {}
@@ -278,6 +345,11 @@ def main():
         weapon_spells = []
         for skill in sorted(set(weapons[class_id])):
             teach = [int(r["Spell"]) for r in by_line[skill] if names.get(int(r["Spell"])) and r["AcquireMethod"] == "2"]
+            # The files don't mark every weapon skill as a trainer's: Two-Handed Maces isn't,
+            # and weapon masters sell it (Buliwyf Stonehand listed it for John's shaman, and
+            # Ansekhwa for others). A skill seen for sale at a trainer counts as one.
+            if not teach:
+                teach = [int(r["Spell"]) for r in by_line[skill] if names.get(int(r["Spell"])) and int(r["Spell"]) in SOLD]
             if teach:
                 weapon_spells.append(teach[0])
         school_names = ", ".join(f'"{skills[s]["DisplayName_lang"]}"' for s in school_ids)
@@ -330,7 +402,8 @@ def main():
                 lines.append(f'            ["{family}"] = {{ ' +
                              ", ".join(f"{{ {s}, {b}, {l}, {RankNumber(ranks, s)} }}" for l, s, b in learn) + " },")
             lines.append("        },")
-        priced = ShippedPrices(lines, class_id, {s for _, s, _, _ in spells}, set(weapon_spells), pet_to_beast)
+        priced = ShippedPrices(lines, class_id, {s for _, s, _, _ in spells}, set(weapon_spells), pet_to_beast,
+                               {(names[s], ranks.get(s, "")): s for _, s, _, _ in spells})
         spell_ids = {s for _, s, _, _ in spells}
         taught = set()
         for trainer in SAVED["trainers"]:

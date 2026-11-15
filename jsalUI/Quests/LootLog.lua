@@ -127,6 +127,27 @@ function LootLog.Chance(questID, itemName)
     return finds / tries, tries
 end
 
+-- Your own count and the chance the addon ships, as one: the shipped chance stands in for
+-- WEIGHT loots, and your own are added to them, so yours counts from the first loot and takes
+-- over as they add up, with no sudden switch at the floor. On its own, a small count of yours
+-- runs high: Satyr Horns read 55% at 11 loots, 47% at 17, and ended at 16 in 48, 33%, and the
+-- card had been using each in turn. (John, 14 Nov 2026, given raising the floor or this:
+-- "blending".) Returns the chance and how many of your loots are in it; with no shipped chance
+-- to blend with, your own alone once it has FLOOR loots; nil while the part is off or you have
+-- no loot of the item.
+LootLog.WEIGHT = 10
+function LootLog.Blended(itemName, shipped)
+    if not LootLog.running then return nil end
+    local finds, tries = LootLog.Seen(itemName)
+    if tries <= 0 then return nil end
+    if type(shipped) ~= "number" or shipped <= 0 then
+        if tries < LootLog.FLOOR then return nil end
+        return finds / tries, tries
+    end
+    local weight = LootLog.WEIGHT
+    return (finds + weight * math.min(shipped, 1)) / (tries + weight), tries
+end
+
 ---------------------------------------------------------------------------
 -- Watching the loot window.
 ---------------------------------------------------------------------------

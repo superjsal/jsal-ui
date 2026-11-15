@@ -62,6 +62,22 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
             end
         end
     end
+    -- And the weapon masters that ship with the addon, each with what it's been seen to teach:
+    -- your own side's, so a character who has opened none still learns who to see. Until these
+    -- shipped, only a weapon master you had opened yourself was named. (John, 14 Nov 2026, of
+    -- using other players' trainer data for more than prices: "wider use is fine".)
+    local T = ns.Trainers
+    for _, master in ipairs(ns.TrainerData and ns.TrainerData.weapons or {}) do
+        if not T or T.Friendly(master) then
+            local zone = T and T.Zone(master) or ""
+            for _, id in ipairs(master.teaches or {}) do
+                if weaponIDs[id] then
+                    prices.weaponAt[id] = prices.weaponAt[id] or {}
+                    prices.weaponAt[id][master.name] = prices.weaponAt[id][master.name] or zone
+                end
+            end
+        end
+    end
     for _, trainer in pairs(trainers) do
         if trainer.class == classID and type(trainer.rows) == "table" then
             local rows = ns.TrainerPrices.RowsOf(trainer)

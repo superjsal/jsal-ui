@@ -113,6 +113,14 @@ Spell (cut to its ID and NameSubtext_lang columns) as CSV for the build in `Spel
 empty). Prices aren't in the files; the addon saves each class trainer's list when it opens, and
 once a class has one, only spells a trainer lists are shown.
 
+Prices no visit has, the weapon masters and what each teaches, and one pet trainer come from every
+trainer players opened on Forever, in
+[EG Link output: World of Warcraft: Forever](https://github.com/JIVESCORP/eg-link-output-wowf): data from
+[Efficient Games](https://efficient.games), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+reduced here to each trainer's name, spots, services, levels and costs (`data\trainers\eglink-trainers.json`,
+kept by `tools\refresh_eglink.py`). `tools\build_spells.py` and `tools\build_trainers.py` read it; the second
+also writes `data\trainers\ranks-seen.txt`, the highest profession rank each trainer was seen to sell.
+
 ## Dungeons
 
 `data\dungeons\` holds LFGDungeons, DungeonEncounter, ContentTuning (cut to ID and MinLevelSquish) and

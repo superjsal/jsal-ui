@@ -1,0 +1,92 @@
+# npc|name|highest profession rank seen for sale (1 Apprentice to 4 Artisan)|its name
+# From data/trainers/eglink-trainers.json (Efficient Games, CC BY 4.0), by tools/build_trainers.py.
+223|Dan Golthas|1|Apprentice Leatherworking
+1292|Maris Granger|3|Expert Skinning
+1300|Lawrence Schneider|1|Apprentice Tailoring
+1355|Cook Ghilm|2|Journeyman Cook
+1383|Snarl|2|Journeyman Blacksmith
+1385|Brawn|2|Journeyman Leatherworking
+1430|Tomas|1|Apprentice Cook
+1632|Adele Fielder|1|Apprentice Leatherworking
+2329|Michelle Belle|1|Apprentice First Aid
+2798|Pand Stonebinder|2|Journeyman First Aid
+2834|Myizz Luckycatch|2|Journeyman Fishing
+2855|Snang|1|Apprentice Tailoring
+2998|Karn Stonehoof|2|Journeyman Blacksmith
+3001|Brek Stonehoof|4|Artisan Mining
+3007|Una|3|Expert Leatherworking
+3008|Mak|1|Apprentice Leatherworking
+3026|Aska Mistrunner|2|Journeyman Cook
+3028|Kah Mistrunner|2|Journeyman Fishing
+3087|Crystal Boughman|2|Journeyman Cook
+3174|Dwukk|1|Apprentice Blacksmith
+3175|Krunn|2|Journeyman Mining
+3185|Mishiki|2|Journeyman Herbalism
+3191|Cook Torka|1|Apprentice Cook
+3345|Godan|2|Journeyman Enchanting
+3355|Saru Steelfury|3|Expert Blacksmith
+3357|Makaru|4|Artisan Mining
+3363|Magar|2|Journeyman Tailoring
+3365|Karolek|2|Journeyman Leatherworking
+3373|Arnok|2|Journeyman First Aid
+3399|Zamja|2|Journeyman Cook
+3404|Jandi|3|Expert Herbalism
+3412|Nogg|2|Journeyman Engineer
+3523|Bowen Brisboise|1|Apprentice Tailoring
+3549|Shelene Rhobart|1|Apprentice Leatherworking
+3605|Nadyia Maneweaver|1|Apprentice Leatherworking
+3704|Mahani|2|Journeyman Tailoring
+4552|Eunice Burch|2|Journeyman Cook
+4573|Armand Cromwell|1|Apprentice Fishing
+4591|Mary Edras|2|Journeyman First Aid
+4598|Brom Killian|4|Artisan Mining
+4605|Basil Frye|1|Apprentice Blacksmith
+4614|Martha Alliestar|1|Apprentice Herbalism
+5482|Stephen Ryback|2|Journeyman Cook
+5518|Lilliam Sparkspindle|2|Journeyman Engineer
+5564|Simon Tanner|2|Journeyman Leatherworking
+5695|Vance Undergloom|1|Apprentice Enchanting
+5759|Nurse Neela|1|Apprentice First Aid
+5784|Waldor|1|Apprentice Leatherworking
+5811|Kamari|1|Apprentice Leatherworking
+5939|Vira Younghoof|2|Journeyman First Aid
+5941|Lau'Tiki|1|Apprentice Fishing
+6094|Byancie|1|Apprentice First Aid
+6286|Zarrin|2|Journeyman Cook
+6289|Rand Rhobart|1|Apprentice Skinning
+6306|Helene Peltskinner|3|Expert Skinning
+6387|Dranh|3|Expert Skinning
+7087|Killian Hagey|3|Expert Skinning
+7088|Thuwd|4|Artisan Skinning
+7089|Mooranta|4|Artisan Skinning
+8144|Kulleg Stonehorn|4|Artisan Skinning
+8306|Duhng|2|Journeyman Cook
+11025|Mukdrak|1|Apprentice Engineer
+11026|Sprite Jumpsprocket|1|Apprentice Engineer
+11028|Jemma Quikswitch|1|Apprentice Engineer
+11048|Victor Ward|1|Apprentice Tailoring
+11049|Rhiannon Davis|2|Journeyman Tailoring
+11066|Jhag|1|Apprentice Enchanting
+11067|Malcomb Wynn|1|Apprentice Enchanting
+11068|Betty Quin|1|Apprentice Enchanting
+11074|Hgarth|3|Expert Enchanting
+11084|Tarn|2|Journeyman Leatherworking
+11096|Randal Worth|1|Apprentice Leatherworking
+247223|Nancy Songflower|1|Apprentice Herbalism
+247226|Kelsey Fargo|1|Apprentice Mining
+247227|Riley Peltskinner|1|Apprentice Skinning
+251905|Zerril Softbreeze|1|Apprentice Cook
+251993|Indari Sunseam|1|Apprentice Leatherworking
+257008|Baelann Swiftcurrent|1|Apprentice Fishing
+257018|Naleeia Tattermend|1|Apprentice First Aid
+257019|Nyassa Swiftdraught|1|Apprentice Alchemist
+257021|Halassa Fernbreeze|1|Apprentice Herbalism
+257024|Mendalass Tattermend|3|Expert Skinning
+260558|Krix|2|Journeyman Fishing
+265944|William Pickman|1|Apprentice Cook
+266881|Pa'zula|1|Apprentice Enchanting
+267324|Margaret Weaver|1|Apprentice Skinning
+267325|Walter Mason|1|Apprentice Mining
+267327|Kagil|1|Apprentice Skinning
+267329|Zor'la|1|Apprentice Herbalism
+267333|Terunne Bearshaper|1|Apprentice Skinning

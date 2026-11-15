@@ -21,6 +21,93 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "trainers.txt"
 # Trainers Wowhead's lists left out, seen in the game: their spots are Forever's already.
 SEEN = ROOT / "data" / "trainers-seen.txt"
+# Weapon masters: who teaches which weapon skill. From every trainer players opened on Forever
+# (EG Link: data from Efficient Games, https://efficient.games, CC BY 4.0) and from John's own
+# visits (data/prices/trainers.json, by tools/bake_prices.py). A weapon master shows a class only
+# the weapons it can learn and hasn't, so each sighting is part of the list: they're joined.
+EGLINK = ROOT / "data" / "trainers" / "eglink-trainers.json"
+VISITS = ROOT / "data" / "prices" / "trainers.json"
+SPELLS = ROOT / "jsalUI" / "Training" / "SpellData.lua"
+# Whose a city is, for a weapon master with no word of who it trains: its map.
+ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433}
+HORDE_MAPS = {1454, 1456, 1458, 1411, 1412, 1420, 1421, 1413}
+
+
+def ranks_seen():
+    """Writes data/trainers/ranks-seen.txt: for each profession trainer in Efficient Games' data,
+    the highest profession rank it was seen to sell (1 Apprentice to 4 Artisan). A trainer shows a
+    player only the rank that player can learn next, so this is the least it teaches, not the
+    most. The tests hold jsal.ui's reading of trainers' titles against it."""
+    import json
+    order = ["Apprentice", "Journeyman", "Expert", "Artisan"]
+    out = ["# npc|name|highest profession rank seen for sale (1 Apprentice to 4 Artisan)|its name",
+           "# From data/trainers/eglink-trainers.json (Efficient Games, CC BY 4.0), by tools/build_trainers.py."]
+    if EGLINK.exists():
+        rows = []
+        for npc, t in json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"].items():
+            best = None
+            for s in (t.get("services") or {}).values():
+                first = (s.get("name") or "").split(" ", 1)
+                if (s.get("step") or s.get("profession")) and first[0] in order and len(first) == 2:
+                    rank = order.index(first[0]) + 1
+                    if not best or rank > best[0]:
+                        best = (rank, s["name"])
+            if best:
+                rows.append((int(npc), t["name"], best[0], best[1]))
+        out += [f"{npc}|{name}|{rank}|{what}" for npc, name, rank, what in sorted(rows)]
+    (ROOT / "data" / "trainers" / "ranks-seen.txt").write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
+
+
+def weapon_masters(seen_lines):
+    import json
+    import re
+    weapon_ids = set()
+    for inner in re.findall(r"\n        weapons = \{ ([^}]*) \}", SPELLS.read_text(encoding="utf-8")):
+        weapon_ids.update(int(x) for x in re.findall(r"\d+", inner))
+    masters = {}   # name -> { npc, map, x, y, a, h, teaches }
+
+    def master(name):
+        return masters.setdefault(name, {"npc": 0, "map": 0, "x": 0, "y": 0, "a": False, "h": False, "teaches": set()})
+
+    if EGLINK.exists():
+        for npc, t in json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"].items():
+            teaches = {int(s) for s in (t.get("services") or {}) if int(s) in weapon_ids}
+            # A weapon master teaches weapons and nothing else; a class trainer isn't one.
+            if not teaches or len(teaches) * 2 <= len(t.get("services") or {}):
+                continue
+            m = master(t["name"])
+            m["teaches"] |= teaches
+            m["npc"] = int(npc)
+            spot = (t.get("positions") or [{}])[0]
+            if spot.get("uiMap"):
+                m["map"], m["x"], m["y"] = int(spot["uiMap"]), round(spot["mapX"], 4), round(spot["mapY"], 4)
+    if VISITS.exists():
+        for t in json.loads(VISITS.read_text(encoding="utf-8"))["trainers"]:
+            rows = [r for r in t["rows"] if r.get("spell")]
+            teaches = {r["spell"] for r in rows if r["spell"] in weapon_ids}
+            # A weapon master's rows are weapon skills; a class trainer's mostly aren't.
+            if teaches and len(teaches) * 2 > len(rows):
+                master(t["npc"])["teaches"] |= teaches
+    # Where one stands and who it trains, for the ones seen only in his visits.
+    for line in seen_lines:
+        if not line or line.startswith("#"):
+            continue
+        npc, name, tag, alliance, horde, kinds, map_id, x, y = line.split("|")
+        if "w" in kinds.split(",") and name in masters:
+            m = masters[name]
+            m["npc"] = m["npc"] or int(npc)
+            if not m["map"]:
+                m["map"], m["x"], m["y"] = int(map_id), round(float(x) / 100, 4), round(float(y) / 100, 4)
+            m["a"], m["h"] = m["a"] or friendly(alliance), m["h"] or friendly(horde)
+    out = []
+    for name, m in sorted(masters.items()):
+        if not m["map"]:
+            continue
+        m["a"] = m["a"] or m["map"] in ALLIANCE_MAPS
+        m["h"] = m["h"] or m["map"] in HORDE_MAPS
+        if m["a"] or m["h"]:
+            out.append((name, m))
+    return out
 OUT = ROOT / "jsalUI" / "TrainerData.lua"
 
 # The words a profession trainer's title has.
@@ -59,6 +146,8 @@ def main():
             continue
         listed.add(int(npc))
         for kind in kinds.split(","):
+            if kind == "w":
+                continue    # a weapon master: weapon_masters() places it
             if kind.startswith("c"):
                 if tag == "Pet Trainer":
                     key = "pet"
@@ -89,9 +178,21 @@ def main():
             lines.append(f"        {{ npc = {npc}, name = {lua_string(name)}, tag = {lua_string(tag)}, "
                          f"map = {map_id}, x = {x}, y = {y}, a = {str(a).lower()}, h = {str(h).lower()} }},")
         lines.append("    },")
+    # The weapon masters, each with the weapon skills it's been seen to teach.
+    masters = weapon_masters(SEEN.read_text(encoding="utf-8").splitlines())
+    lines.append("    -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from")
+    lines.append("    -- Efficient Games' data (CC BY 4.0) and visits in the game. A weapon master lists only")
+    lines.append("    -- what the class in front of it can still learn, so a list here may yet grow.")
+    lines.append("    weapons = {")
+    for name, m in masters:
+        lines.append(f"        {{ npc = {m['npc']}, name = {lua_string(name)}, tag = \"Weapon Master\", map = {m['map']}, "
+                     f"x = {m['x']}, y = {m['y']}, a = {str(m['a']).lower()}, h = {str(m['h']).lower()}, "
+                     f"teaches = {{ {', '.join(str(s) for s in sorted(m['teaches']))} }} }},")
+    lines.append("    },")
     lines += ["}", ""]
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    counts = ", ".join(f"{k} {len(v)}" for k, v in sorted(by_key.items()))
+    counts = ", ".join(f"{k} {len(v)}" for k, v in sorted(by_key.items())) + f", weapons {len(masters)}"
+    ranks_seen()
     print(f"-> {OUT.relative_to(ROOT)}: {counts}")
 
 

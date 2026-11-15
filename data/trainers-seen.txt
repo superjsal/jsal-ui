@@ -10,3 +10,8 @@
 4320|Caelyb|Pet Trainer|1||c3|1440|49.7|67.0
 10089|Silvaria|Pet Trainer|1||c3|1457|42.4|8.6
 10090|Belia Thundergranite|Pet Trainer|1||c3|1455|70.8|85.6
+# A pet trainer from Efficient Games' data (every service a pet ability), where a player stood.
+258930|Isaac Chan|Pet Trainer|1||c3|1429|41.7|66.5
+# A weapon master Efficient Games' data doesn't have, from his visit (kind "w"). Which weapons each
+# weapon master teaches comes from the visits' rows and from data/trainers/eglink-trainers.json.
+11866|Ilyenia Moonfire|Weapon Master|1||w|1457|57.8|46.5

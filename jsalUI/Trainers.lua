@@ -54,6 +54,7 @@ local function Friendly(trainer)
     if faction == "Horde" then return trainer.h end
     return trainer.a or trainer.h
 end
+Trainers.Friendly = Friendly
 
 -- A spot on a map as a world position: its continent, x and y.
 local function World(map, x, y)
