@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Quest tags learn from your own loot: turn on Drop log under Leveling, and share it with your guild if you like",
-    "The shopping list names the vendor to go to, and the Training planner names who teaches each weapon skill",
+    "The Gear plan reads crit and hit right: a piece with crit or hit no longer looks like a huge upgrade",
+    "Quest tag cards say XP a minute in combat: the fights only, not getting there",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
