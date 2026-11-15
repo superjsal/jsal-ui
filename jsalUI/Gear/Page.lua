@@ -520,12 +520,15 @@ Window.Page("gear", function(page)
         if box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
     end))
 
+    -- Two lines in the 60 under the list: where the items come from, and that the stat weights are
+    -- estimates. (John, 14 Nov 2026: "i think we just need a disclaimer for our stat weights in
+    -- general".)
     local note = Style.Text(page, 12, "muted")
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
     note:SetWidth(width)
     note:SetJustifyH("LEFT")
-    note:SetWordWrap(false)
-    note:SetText("Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30. Stat weights are WoWSims'.")
+    note:SetText("Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30.\n"
+        .. "Stat weights are estimates from WoWSims' Forever sims at level 60: a guide, not the last word. Change them under Weights.")
 
     -- Where an item comes from, in two parts: how it's got (crafted, a
     -- quest, who drops it), and where or from whom. Profession gear says who

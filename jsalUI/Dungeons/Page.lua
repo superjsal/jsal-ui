@@ -422,18 +422,21 @@ Window.Page("dungeons", function(page)
     none:SetJustifyH("LEFT")
     -- Under each tab: where its lists come from, and that they're incomplete.
     local NOTE = {
-        bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.",
+        bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.\n"
+            .. "\"For you\" is by your Gear plan's stat weights, which are estimates: roll by what you know of your spec.",
         quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
     }
     local note = Style.Text(bossList, 12, "muted")
     note:SetWidth(rightW - 8)
     note:SetJustifyH("LEFT")
+    -- The loot's note has a third line: that "for you" is by stat weights, which are estimates.
+    local NOTE_H = { bosses = 48, quests = 32 }
     local function PlaceNote(which, y)
         note:SetText(NOTE[which])
         note:ClearAllPoints()
         note:SetPoint("TOPLEFT", 0, -(y + 6))
         note:Show()
-        return y + 6 + 32
+        return y + 6 + NOTE_H[which]
     end
 
     -- A boss's band, the list's width: a bar with its number in the order
