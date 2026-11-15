@@ -1,4 +1,8 @@
-# jsal.ui 0.3.47
+# jsal.ui 0.3.48
+
+- **Dungeon guide: where the new dungeons' quests start.** The quests for The Drowned City, Krol'dok Stronghold, Alcaz Prison and Blackmaw Hold said "Starts: not on Wowhead yet". They now name who gives each one and where, with a spot for the map pin, and the quest that comes before it in a chain. A few that are handed out inside a dungeon still have no starter.
+
+## In 0.3.47
 
 - **Dungeon guide: five more dungeons, and much more loot.** The Drowned City (35), Krol'dok Stronghold (40), Alcaz Prison (48), Blackmaw Hold (55) and The Shaper's Terrace (60) are in, with their bosses, loot and quests. Zul'Farrak, Maraudon, Sunken Temple and Blackrock Depths now list loot for their bosses, where most had none.
 - **Gear plan: filter by source, and how much better each upgrade is.** Chips over a slot's upgrades show only the kinds you pick (Dungeon, Quest, Vendor, Crafted, World drop...), and each card leads with its gain, "+3%". The first column is headed "Currently equipped".

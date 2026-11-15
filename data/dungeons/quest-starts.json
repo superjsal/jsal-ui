@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-14",
+ "fetched": "2026-11-15",
  "quests": {
   "1013": {
    "n": "The Book of Ur",
@@ -5817,6 +5817,12 @@
     15.4
    ]
   },
+  "82062": {
+   "n": "Ever After",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
   "8227": {
    "n": "Nat's Measuring Tape",
    "prev": null,
@@ -6102,6 +6108,126 @@
     86.6
    ]
   },
+  "8619": {
+   "n": "Morndeep the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15549,
+    "Elder Morndeep"
+   ],
+   "z": [
+    1584,
+    "Blackrock Depths",
+    0,
+    0
+   ]
+  },
+  "8635": {
+   "n": "Splitrock the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15556,
+    "Elder Splitrock"
+   ],
+   "z": [
+    2100,
+    "Maraudon",
+    0,
+    0
+   ]
+  },
+  "8676": {
+   "n": "Wildmane the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15578,
+    "Elder Wildmane"
+   ],
+   "z": [
+    1176,
+    "Zul'Farrak",
+    0,
+    0
+   ]
+  },
+  "86777": {
+   "n": "Master Feardred",
+   "prev": null,
+   "s": [
+    "npc",
+    236770,
+    "Korsa"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    63,
+    21.4
+   ]
+  },
+  "86797": {
+   "n": "Return to Rageroar",
+   "prev": 86777,
+   "s": [
+    "npc",
+    236770,
+    "Korsa"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    63,
+    21.4
+   ]
+  },
+  "86798": {
+   "n": "Timbermaw Reinforcements",
+   "prev": 86797,
+   "s": [
+    "npc",
+    236573,
+    "Gatekeeper Rageroar"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42.4,
+    20.2
+   ]
+  },
+  "86814": {
+   "n": "Blackmaw Counter-Offensive",
+   "prev": 87346,
+   "s": [
+    "npc",
+    11555,
+    "Gorn One Eye"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    65.2,
+    2.6
+   ]
+  },
+  "8713": {
+   "n": "Starsong the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15593,
+    "Elder Starsong"
+   ],
+   "z": [
+    1477,
+    "The Temple of Atal'Hakkar",
+    0,
+    0
+   ]
+  },
   "8730": {
    "n": "Nefarius's Corruption",
    "prev": null,
@@ -6130,6 +6256,21 @@
     "The Temple of Atal'Hakkar",
     0,
     0
+   ]
+  },
+  "87346": {
+   "n": "Chieftain Bloodmaw",
+   "prev": 86798,
+   "s": [
+    "npc",
+    11555,
+    "Gorn One Eye"
+   ],
+   "z": [
+    361,
+    "Felwood",
+    65.2,
+    2.6
    ]
   },
   "8929": {
@@ -6230,6 +6371,12 @@
     16016,
     "Anthion Harmon"
    ],
+   "z": null
+  },
+  "8952": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": null,
    "z": null
   },
   "8953": {
@@ -6392,6 +6539,26 @@
     0
    ]
   },
+  "9016": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
+  "9019": {
+   "n": "Anthion's Parting Words",
+   "prev": null,
+   "s": [
+    "npc",
+    16016,
+    "Anthion Harmon"
+   ],
+   "z": null
+  },
   "9053": {
    "n": "A Better Ingredient",
    "prev": 9051,
@@ -6427,6 +6594,63 @@
     75.6,
     31.2
    ]
+  },
+  "92065": {
+   "n": "Blackmaw Reclamation",
+   "prev": 86814,
+   "s": [
+    "npc",
+    236573,
+    "Gatekeeper Rageroar"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42.4,
+    20.2
+   ]
+  },
+  "92066": {
+   "n": "The Twin Bears",
+   "prev": null,
+   "s": [
+    "npc",
+    249853,
+    "Lorekeeper Nok"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    41.4,
+    20
+   ]
+  },
+  "92067": {
+   "n": "Feeding Time!",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "92069": {
+   "n": "Claws That Rend, Tusks that Gore",
+   "prev": null,
+   "s": [
+    "npc",
+    8405,
+    "Ogtinc"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42.4,
+    42.6
+   ]
+  },
+  "92070": {
+   "n": "A Lost Memento",
+   "prev": null,
+   "s": null,
+   "z": null
   },
   "9208": {
    "n": "The Savage Guard - Arcanum of Protection",
@@ -6471,6 +6695,66 @@
     "Zul'Gurub",
     0,
     0
+   ]
+  },
+  "92343": {
+   "n": "Get to the Roots of It",
+   "prev": 92346,
+   "s": [
+    "npc",
+    5770,
+    "Nara Wildmane"
+   ],
+   "z": [
+    1638,
+    "Thunder Bluff",
+    75.6,
+    31.2
+   ]
+  },
+  "92344": {
+   "n": "Get to the Roots of It",
+   "prev": 92345,
+   "s": [
+    "npc",
+    4217,
+    "Mathrengyl Bearwalker"
+   ],
+   "z": [
+    1657,
+    "Darnassus",
+    35.2,
+    8
+   ]
+  },
+  "92345": {
+   "n": "Beneath Nordrassil",
+   "prev": null,
+   "s": [
+    "npc",
+    239822,
+    "Commander Truesong"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    11.8,
+    78.2
+   ]
+  },
+  "92346": {
+   "n": "Beneath Nordrassil",
+   "prev": null,
+   "s": [
+    "npc",
+    8587,
+    "Jediga"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    22.4,
+    51.4
    ]
   },
   "92401": {
@@ -6674,6 +6958,189 @@
     75.8
    ]
   },
+  "94907": {
+   "n": "A Small Favor",
+   "prev": null,
+   "s": [
+    "npc",
+    257591,
+    "Ashe Amberhall"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    66.6,
+    81
+   ]
+  },
+  "94968": {
+   "n": "Eye of Mugg",
+   "prev": null,
+   "s": [
+    "npc",
+    256418,
+    "Krom'rosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    59.4,
+    45.6
+   ]
+  },
+  "94969": {
+   "n": "Krol'dok No More!",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "94972": {
+   "n": "Tome of Twilight",
+   "prev": null,
+   "s": [
+    "npc",
+    256710,
+    "Tran'gul"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    59.4,
+    44
+   ]
+  },
+  "94973": {
+   "n": "Krol'dok Moulding",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "94974": {
+   "n": "Key Ingredients",
+   "prev": 94973,
+   "s": [
+    "npc",
+    256657,
+    "Kreza Darkthorn"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    59.8,
+    46
+   ]
+  },
+  "94975": {
+   "n": "A Token of Vengeance",
+   "prev": null,
+   "s": [
+    "npc",
+    258570,
+    "Da'grosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    33.4,
+    38
+   ]
+  },
+  "94980": {
+   "n": "Krol'dok Moulding",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "94981": {
+   "n": "Key Ingredients",
+   "prev": 94980,
+   "s": [
+    "npc",
+    259250,
+    "Alphonse Dumas"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    64.4,
+    82
+   ]
+  },
+  "94982": {
+   "n": "Eye of Mugg",
+   "prev": null,
+   "s": [
+    "npc",
+    257558,
+    "Demar Brant"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    66.6,
+    81
+   ]
+  },
+  "94983": {
+   "n": "Twilight Mementos",
+   "prev": null,
+   "s": [
+    "npc",
+    258023,
+    "Sergeant Riftan"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    30.6,
+    49
+   ]
+  },
+  "94984": {
+   "n": "Tome of Twilight",
+   "prev": 94907,
+   "s": [
+    "npc",
+    257591,
+    "Ashe Amberhall"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    66.6,
+    81
+   ]
+  },
+  "94997": {
+   "n": "Lingering Essence",
+   "prev": 94983,
+   "s": [
+    "npc",
+    258023,
+    "Sergeant Riftan"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    30.6,
+    49
+   ]
+  },
+  "94998": {
+   "n": "Curios of Curiosity",
+   "prev": 94997,
+   "s": [
+    "npc",
+    257591,
+    "Ashe Amberhall"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    66.6,
+    81
+   ]
+  },
   "95036": {
    "n": "A Moon-Kissed Blade",
    "prev": 95034,
@@ -6688,6 +7155,12 @@
     43.2,
     41
    ]
+  },
+  "95056": {
+   "n": "Krol'dok No More!",
+   "prev": null,
+   "s": null,
+   "z": null
   },
   "95189": {
    "n": "Crest of Lordaeron",
@@ -6725,6 +7198,99 @@
   "95250": {
    "n": "Abominable Creatures",
    "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95262": {
+   "n": "The Secret Prison",
+   "prev": null,
+   "s": [
+    "npc",
+    260271,
+    "Sully McCleary"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    63.4,
+    42.4
+   ]
+  },
+  "95263": {
+   "n": "Somber News",
+   "prev": 95262,
+   "s": null,
+   "z": null
+  },
+  "95283": {
+   "n": "The Missing Kor'kron",
+   "prev": null,
+   "s": [
+    "npc",
+    3144,
+    "Eitrigg"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    34.2,
+    39
+   ]
+  },
+  "95284": {
+   "n": "The Elite of the Elite",
+   "prev": 95283,
+   "s": [
+    "npc",
+    4791,
+    "Nazeer Bloodpike"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    35.2,
+    30.6
+   ]
+  },
+  "95285": {
+   "n": "Right Place, Wrong Time",
+   "prev": 95284,
+   "s": [
+    "npc",
+    260383,
+    "Sergeant Ulka"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    70.3,
+    19.1
+   ]
+  },
+  "95309": {
+   "n": "No Orc Left Behind",
+   "prev": 95285,
+   "s": [
+    "npc",
+    260383,
+    "Sergeant Ulka"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    70.3,
+    19.1
+   ]
+  },
+  "95454": {
+   "n": "The Honor of the Kor'kron",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "95483": {
+   "n": "Thrall Needs to Know",
+   "prev": 96369,
    "s": null,
    "z": null
   },
@@ -6839,6 +7405,96 @@
     46.6
    ]
   },
+  "95775": {
+   "n": "The Drowned City",
+   "prev": null,
+   "s": [
+    "npc",
+    2519,
+    "Kin'weelay"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    27.8
+   ]
+  },
+  "95776": {
+   "n": "The Only Good Brinescale...",
+   "prev": null,
+   "s": [
+    "npc",
+    2464,
+    "Commander Aggro'gosh"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    28.8
+   ]
+  },
+  "95787": {
+   "n": "Take Two With Water",
+   "prev": null,
+   "s": [
+    "npc",
+    2277,
+    "Loremaster Dibbs"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    50.4,
+    57
+   ]
+  },
+  "95788": {
+   "n": "Magics of the Drowned City",
+   "prev": null,
+   "s": [
+    "npc",
+    2277,
+    "Loremaster Dibbs"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    50.4,
+    57
+   ]
+  },
+  "95789": {
+   "n": "Shady Saltseers",
+   "prev": null,
+   "s": [
+    "npc",
+    773,
+    "Krazek"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    27,
+    77.2
+   ]
+  },
+  "95791": {
+   "n": "The Saltseer Captain",
+   "prev": null,
+   "s": [
+    "npc",
+    773,
+    "Krazek"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    27,
+    77.2
+   ]
+  },
   "95795": {
    "n": "Fallen in the Fen",
    "prev": null,
@@ -6887,6 +7543,21 @@
     21
    ]
   },
+  "96246": {
+   "n": "Blackmaw Pouches",
+   "prev": null,
+   "s": [
+    "npc",
+    235903,
+    "Ekkal"
+   ],
+   "z": [
+    16,
+    "Azshara",
+    42,
+    38.8
+   ]
+  },
   "96264": {
    "n": "Elemental Aid",
    "prev": 94789,
@@ -6900,6 +7571,114 @@
     "Arathi Highlands",
     59.8,
     27.6
+   ]
+  },
+  "96332": {
+   "n": "A Little Payback",
+   "prev": null,
+   "s": [
+    "npc",
+    260383,
+    "Sergeant Ulka"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    70.3,
+    19.1
+   ]
+  },
+  "96334": {
+   "n": "Blood Red Bandanas",
+   "prev": null,
+   "s": [
+    "npc",
+    260383,
+    "Sergeant Ulka"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    70.3,
+    19.1
+   ]
+  },
+  "96335": {
+   "n": "The Man in the Iron Chains",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "96337": {
+   "n": "More Valuable Than Gold",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
+  "96369": {
+   "n": "Bad News for Folkar",
+   "prev": 95454,
+   "s": null,
+   "z": null
+  },
+  "96376": {
+   "n": "State Secrets",
+   "prev": null,
+   "s": [
+    "npc",
+    3230,
+    "Nazgrel"
+   ],
+   "z": [
+    1637,
+    "Orgrimmar",
+    32.4,
+    36
+   ]
+  },
+  "96377": {
+   "n": "State Secrets",
+   "prev": null,
+   "s": [
+    "npc",
+    6946,
+    "Renzik \\\"The Shiv\\\""
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    75.8,
+    60.2
+   ]
+  },
+  "96379": {
+   "n": "State Secrets",
+   "prev": null,
+   "s": [
+    "npc",
+    214954,
+    "Rix Xizzix"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    28.4,
+    75.8
+   ]
+  },
+  "96381": {
+   "n": "A Bit of Wet Work",
+   "prev": null,
+   "s": [
+    "npc",
+    260271,
+    "Sully McCleary"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    63.4,
+    42.4
    ]
   },
   "96391": {
@@ -6974,6 +7753,36 @@
     73.8
    ]
   },
+  "96771": {
+   "n": "Vengeance of the Highborne",
+   "prev": null,
+   "s": [
+    "npc",
+    268425,
+    "Ranath Nightstride"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    17.8,
+    66
+   ]
+  },
+  "96772": {
+   "n": "The Dragon's Journal",
+   "prev": null,
+   "s": [
+    "npc",
+    20735,
+    "Archmage Lan'dalock"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    15.4,
+    73.8
+   ]
+  },
   "96773": {
    "n": "The Coldbringer's Eye",
    "prev": null,
@@ -6989,6 +7798,21 @@
     73.8
    ]
   },
+  "96774": {
+   "n": "Ancient Gurubashi Idol",
+   "prev": null,
+   "s": [
+    "npc",
+    264074,
+    "Mazu'kon"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    32.4,
+    20.6
+   ]
+  },
   "96775": {
    "n": "Zum'rah's Head",
    "prev": null,
@@ -7002,6 +7826,21 @@
     "Mulgore",
     32.6,
     20.6
+   ]
+  },
+  "96776": {
+   "n": "An'she's Radiance",
+   "prev": null,
+   "s": [
+    "npc",
+    268557,
+    "Olana Brighthoof"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    32.6,
+    24
    ]
   },
   "96800": {
@@ -7085,11 +7924,41 @@
     6
    ]
   },
+  "97130": {
+   "n": "Ancient Gurubashi Secrets",
+   "prev": null,
+   "s": [
+    "npc",
+    31439,
+    "Archmage Timear"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    15.4,
+    73.8
+   ]
+  },
   "97169": {
    "n": "The Darkreaver Menace",
    "prev": 97168,
    "s": null,
    "z": null
+  },
+  "97173": {
+   "n": "Blackmaw Magic",
+   "prev": null,
+   "s": [
+    "npc",
+    31439,
+    "Archmage Timear"
+   ],
+   "z": [
+    36,
+    "Alterac Mountains",
+    15.4,
+    73.8
+   ]
   },
   "97179": {
    "n": "Collection of Goods",
@@ -7128,6 +7997,21 @@
     "npc",
     259119,
     "Alaana Stormwalker"
+   ],
+   "z": [
+    215,
+    "Mulgore",
+    33.4,
+    22.4
+   ]
+  },
+  "97198": {
+   "n": "Blackmaw Magic",
+   "prev": null,
+   "s": [
+    "npc",
+    259118,
+    "Muln Earthfury"
    ],
    "z": [
     215,
