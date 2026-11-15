@@ -1,4 +1,8 @@
-# jsal.ui 0.3.44
+# jsal.ui 0.3.45
+
+- **Quest tags: "XP a minute of fighting".** The card's "about 2,450 XP a minute" counts only the fights, not getting there, so a quest with one kill far away read as a great deal. It now says "a minute of fighting".
+
+## In 0.3.44
 
 - **Quest tags: truer drop chances.** A quest item drops only for someone on the quest, and Wowhead counts every kill, so its numbers made quests from busy creatures look several times longer than they are. Now a chance comes first from players who had the quest when they looted (EG Link), then, for Classic's quests, from Classic's own numbers. Wowhead's is used only for a named target nearly everyone kills for the quest, or a chest or plant. Where none of those is known the tag says "?" rather than a number that's far too high.
   - **Your own loot counts.** With the Drop log on, the card blends your own loot into the chance from your first find, so a lucky or unlucky start doesn't swing it, and says how many of your loots it's from.
