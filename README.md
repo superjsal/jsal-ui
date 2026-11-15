@@ -143,11 +143,14 @@ higher dungeons' lists fill in over time; read them again now and then (`tools\w
 `data\gear\wowhead-items.json` holds every uncommon and better armor piece, jewel, cloak and weapon on
 Wowhead Forever's gear lists, read slot by slot in a browser (Wowhead turns away scripted downloads), with
 where each comes from. `data\gear\zones.json` names the zones (the game's AreaTable), and
-`data\gear\wowsims\` holds each spec's simulation file from [WoWSims](https://github.com/wowsims/classic)
-(MIT licence, `LICENSE` beside them), whose stat weights say what a point of each stat is worth.
-`python -I tools\build_gear.py` writes `jsalUI\Gear\GearData.lua`: the items as one line of text per slot,
-so they cost little memory until the gear plan opens, and the weights, with Stamina raised a little for
-leveling. Item names and stats come from the game while you play. `tools\wowhead\` reads the lists again; its README has the monthly steps.
+The stat weights, what a point of each stat is worth to a spec, are WoWSims': its Forever
+simulator's presets where it has one for a talent tree (`data\gear\wowsims-forever\`, from
+[wowsims/forever](https://github.com/wowsims/forever), MIT, with `LICENSE` and the commit beside them),
+and its Classic simulator's for the rest (`data\gear\wowsims\`, from
+[wowsims/classic](https://github.com/wowsims/classic), MIT). `python -I tools\build_gear.py` writes
+`jsalUI\Gear\GearData.lua`: the items as one line of text per slot, so they cost little memory until the
+gear plan opens, and the weights, crit and hit per 1%, with Stamina at least a tenth of a spec's main
+stat for leveling. Item names and stats come from the game while you play. `tools\wowhead\` reads the lists again; its README has the monthly steps.
 
 ## Quest tags
 
