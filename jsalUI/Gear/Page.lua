@@ -680,8 +680,11 @@ Window.Page("gear", function(page)
         weightsButton:SetSelected(panel:IsShown())
         PaintWeights()
 
+        -- Timed apart from the drawing, so /jsal perf says which is slow.
+        local started = debugprofilestop()
         local plans = {}
         for _, row in ipairs(slotRows) do plans[row.key] = G.Plan(row.slot, spec, row.equip) end
+        ns.Timed("Gear plan, working out upgrades", started)
         local better, checking = 0, false
         for key, b in pairs(slotFrames) do
             local plan = plans[key]

@@ -214,7 +214,14 @@ local PER_PERCENT = {
     ITEM_MOD_DODGE_RATING_SHORT = 12, ITEM_MOD_PARRY_RATING_SHORT = 15, ITEM_MOD_BLOCK_RATING_SHORT = 5,
 }
 Gear.PER_PERCENT = PER_PERCENT
+-- An item's stats by its ID, kept once the game has given them: they never
+-- change, and a redraw asked the game for about 2,000 items' stats every time
+-- (a Gear plan redraw still took 73 ms in John's game after the item text was
+-- kept, 15 Nov 2026). Nothing changes a stats table once it's made. Stats by
+-- link (what you wear, which can carry a random suffix) are asked for each time.
+local statsOf, statsLevel = {}, nil
 local function Stats(item)
+    if type(item) == "number" and statsOf[item] then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
@@ -224,6 +231,7 @@ local function Stats(item)
         for key, value in pairs(stats) do
             out[key] = PER_PERCENT[key] and value / PER_PERCENT[key] or value
         end
+        if type(item) == "number" then statsOf[item] = out end
         return out
     end
     if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(item) end
@@ -544,6 +552,8 @@ local function Near(data, invType, level)
     local line = data.items[invType] or ""
     local kept = near[invType]
     if kept and kept.level == level and kept.line == line then return kept end
+    -- A new level brings other items: the stats kept for the last ones go, once.
+    if level ~= statsLevel then statsOf, statsLevel = {}, level end
     kept = { level = level, line = line }
     near[invType] = kept
     for entry in line:gmatch("[^;]+") do
