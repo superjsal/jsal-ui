@@ -187,10 +187,12 @@ local function Called(kind, name)
 end
 
 -- The window's things by the corpse each came from: { [corpse's ID] = { [lower-case item name]
--- = item ID or true } }, creatures only. Nil when the game gives no source for anything in it.
+-- = item ID or true } }, creatures only, or nil when none of it came from a creature; and
+-- whether the game named a source for anything at all. A chest or a plant is a source too, and
+-- not a creature: its things are nobody's loot, whatever dead creature is still targeted.
 local function BySource()
-    if not GetLootSourceInfo then return nil end
-    local by, any = {}, false
+    if not GetLootSourceInfo then return nil, false end
+    local by, any, named = {}, false, false
     for slot = 1, (Compat.Plain(GetNumLootItems()) or 0) do
         local link = Compat.Plain(GetLootSlotLink(slot))
         local name = type(link) == "string" and link:match("%[(.-)%]")
@@ -198,6 +200,7 @@ local function BySource()
         local sources = { GetLootSourceInfo(slot) }
         for i = 1, #sources, 2 do
             local guid = Compat.Plain(sources[i])
+            if type(guid) == "string" then named = true end
             if Kind(guid) then
                 any = true
                 by[guid] = by[guid] or {}
@@ -205,12 +208,12 @@ local function BySource()
             end
         end
     end
-    return any and by or nil
+    return any and by or nil, named
 end
 
 local function Opened()
     if IsFishingLoot and Compat.Plain(IsFishingLoot()) then return end
-    local by = BySource()
+    local by, named = BySource()
     if by then
         -- Each corpse in the window is a loot of its creature, with what that corpse had.
         local wanted = LootLog.Wanted()
@@ -222,6 +225,9 @@ local function Opened()
         end
         return
     end
+    -- A source was named and it wasn't a creature: a chest, a plant, a thing on the ground. The
+    -- dead creature still targeted didn't have what's in it.
+    if named then return end
     -- No source given: the dead creature targeted, as one loot.
     local creature, guid = Corpse()
     if not creature then return end
