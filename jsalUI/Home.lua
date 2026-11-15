@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Five more dungeons in the guide, The Drowned City among them, and loot for Zul'Farrak, Maraudon, Sunken Temple and Blackrock Depths",
-    "The Gear plan filters upgrades by where they come from, and says how much better each one is",
+    "The dungeon guide lists loot for every boss from 50 to 60 and the raids; other classes' loot folds away",
+    "The Gear plan and the dungeon guide are much lighter: no more hitch as they redraw",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
