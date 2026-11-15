@@ -1,6 +1,6 @@
 # jsal.ui 0.3.49
 
-- **Gear plan: an item you add shows again.** In 0.3.48 an item added by its ID or link could be added and starred but not appear in the list, and an upgrade could stay "checking...": the plan waited for word from the game that never came. It now asks again after a couple of seconds.
+- **Gear plan: an item you add always shows.** An item you added by its ID or link could be added and starred but not appear in the list when it's also one the plan knows and no better than what you wear. It now shows, starred at the top, however it compares, so you can weigh it yourself. And an upgrade that was slow to load could stay "checking..." in 0.3.48: the plan now asks again after a couple of seconds.
 
 ## In 0.3.48
 

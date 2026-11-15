@@ -841,6 +841,10 @@ function Gear.Plan(slot, spec, only)
         if c.id ~= wornID and not seen[c.id] then
             seen[c.id] = true
             c.held = held[c.id] or nil
+            -- One you added counts as added wherever it comes first: the plan's own copy, no
+            -- better than yours, was dropped, and the added one skipped as already seen (John's
+            -- Drape of Shifting Energy, "added under Back, starred", never showed, 15 Nov 2026).
+            if added[c.id] then c.added = true end
             local s0 = debugprofilestop()
             local stats = Stats(c.id)
             asking = asking + debugprofilestop() - s0
