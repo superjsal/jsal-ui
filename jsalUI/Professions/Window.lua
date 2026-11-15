@@ -314,7 +314,8 @@ local function CheckRanks()
         local index
         for i, r in ipairs(Professions.RANKS) do if r == rank then index = i end end
         local key = p.line .. ":" .. (index or 0)
-        if rank.at and p.skill >= rank.at and level >= rank.level and not ns.char.rankAlerts[key] then
+        local at = Professions.At(p.line, rank)
+        if at and p.skill >= at and level >= rank.level and not ns.char.rankAlerts[key] then
             ns.char.rankAlerts[key] = true
             -- A rank that's a book or a quest (First Aid's, Cooking's) says
             -- so, where it said to train it and named a trainer who can't.

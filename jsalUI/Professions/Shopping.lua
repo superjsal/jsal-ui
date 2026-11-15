@@ -364,6 +364,22 @@ local function Build()
         g.note:SetJustifyH("RIGHT")
         frame.groups[i] = g
     end
+    -- Where to buy what a vendor sells: a line or two under that group's heading. A click
+    -- anywhere on one pins its vendor on the map.
+    frame.shopLines = {}
+    for i = 1, 2 do
+        local b = CreateFrame("Button", nil, frame)
+        b:SetSize(WIDTH - PAD * 2, 16)
+        b.text = Style.Text(b, 11, "secondary")
+        b.text:SetPoint("LEFT")
+        b.text:SetPoint("RIGHT")
+        b.text:SetJustifyH("LEFT")
+        b.text:SetWordWrap(false)
+        b:SetScript("OnClick", function(self)
+            if self.shop and ns.Trainers then ns.Trainers.Pin(self.shop) end
+        end)
+        frame.shopLines[i] = b
+    end
     frame.empty = Style.Text(frame, 12, "muted")
     frame.empty:SetWidth(WIDTH - PAD * 2)
     frame.empty:SetText("Nothing on the list yet. Add an item above, a craft from the profession window, or the road from jsal.ui's profession panel.")
@@ -424,6 +440,82 @@ local function PlaceBeside()
     frame:Raise()
     frame.beside = true
     return true
+end
+
+---------------------------------------------------------------------------
+-- Who sells it. Under FROM A VENDOR, one line says where to go: the vendor of your side that
+-- sells the most of what's still to get, the nearest of those; and a second line for the rest,
+-- when one vendor doesn't have it all. A click pins them on the map. (John, 14 Nov 2026, of two
+-- drawings, one line under the heading or a seller on every row in a wider window: "A, one
+-- line".) The vendors are the ones players opened on Forever, shipped in ProfessionData.
+---------------------------------------------------------------------------
+local WORDS = { [3] = "three", [4] = "four", [5] = "five", [6] = "six", [7] = "seven", [8] = "eight", [9] = "nine" }
+
+-- The best vendor for a list of item IDs: its shop ({ name, map, x, y }), how many of the items
+-- it sells, and those it doesn't. Nil when no vendor of your side is known to sell any.
+function Shopping.Vendor(items)
+    local data = ns.ProfessionData
+    if not (data and type(data.sellers) == "table" and type(data.shops) == "table") or #items == 0 then return nil end
+    local faction = UnitFactionGroup("player")
+    local mine = faction == "Alliance" and 1 or faction == "Horde" and 2 or nil
+    local has = {}
+    for _, item in ipairs(items) do
+        for npc in (data.sellers[item] or ""):gmatch("%d+") do
+            npc = tonumber(npc)
+            local shop = data.shops[npc]
+            if shop and (shop[5] == 0 or not mine or shop[5] == mine) then
+                has[npc] = has[npc] or {}
+                has[npc][item] = true
+            end
+        end
+    end
+    local best, bestCount, bestFar
+    for npc, sells in pairs(has) do
+        local count = 0
+        for _ in pairs(sells) do count = count + 1 end
+        local shop = data.shops[npc]
+        local far = ns.Trainers and ns.Trainers.Distance({ map = shop[2], x = shop[3], y = shop[4] }) or 1e9
+        if not best or count > bestCount or (count == bestCount and (far < bestFar or (far == bestFar and npc < best))) then
+            best, bestCount, bestFar = npc, count, far
+        end
+    end
+    if not best then return nil end
+    local shop, rest = data.shops[best], {}
+    for _, item in ipairs(items) do
+        if not has[best][item] then rest[#rest + 1] = item end
+    end
+    return { name = shop[1], map = shop[2], x = shop[3], y = shop[4] }, bestCount, rest
+end
+
+-- The lines for a list of items still to buy from a vendor: each { text, shop }, two at most.
+function Shopping.WhereToBuy(items)
+    local lines = {}
+    local function At(shop)
+        local zone = ns.Trainers and ns.Trainers.Zone(shop)
+        return shop.name .. (zone and (", " .. zone) or "")
+    end
+    local shop, count, rest = Shopping.Vendor(items)
+    if not shop then return lines end
+    local of = #items
+    local text
+    if count < of then
+        text = ("%d of %d at %s"):format(count, of, At(shop))
+    elseif of == 1 then
+        text = "At " .. At(shop)
+    elseif of == 2 then
+        text = "Both at " .. At(shop)
+    else
+        text = ("All %s at %s"):format(WORDS[of] or tostring(of), At(shop))
+    end
+    lines[1] = { text = text, shop = shop }
+    if #rest > 0 then
+        local second, n = Shopping.Vendor(rest)
+        if second then
+            lines[2] = { text = (n < #rest and ("%d more at %s"):format(n, At(second))
+                or (#rest == 1 and "The other at " or "The rest at ") .. At(second)), shop = second }
+        end
+    end
+    return lines
 end
 
 local function Place(region, y)
@@ -547,8 +639,8 @@ Paint = function()
     table.sort(vendor, Biggest)
     table.sort(other, Biggest)
     table.sort(enough, function(a, b) return a.item < b.item end)
-    local listed, groups = 0, 0
-    local function Group(title, note, list)
+    local listed, groups, shopLines = 0, 0, 0
+    local function Group(title, note, list, where)
         if #list == 0 or listed >= MAX_BUY then return end
         groups = groups + 1
         local g = frame.groups[groups]
@@ -556,6 +648,16 @@ Paint = function()
         g.note:SetText(note or "")
         Place(g, y)
         y = y + 20
+        -- Where to go for these, under the heading.
+        for _, line in ipairs(where or {}) do
+            shopLines = shopLines + 1
+            local b = frame.shopLines[shopLines]
+            if not b then break end
+            b.shop = line.shop
+            b.text:SetText(line.text .. "  " .. Style.Tint("gold") .. "show on map|r")
+            Place(b, y - 2)
+            y = y + 18
+        end
         for _, e in ipairs(list) do
             if listed >= MAX_BUY then break end
             listed = listed + 1
@@ -580,13 +682,18 @@ Paint = function()
     if #vendor + #other + #enough > 0 then
         Place(frame.buyHead, y)
         y = y + 24
-        Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor)
-        Group("FROM THE AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
+        local buying = {}
+        for _, e in ipairs(vendor) do buying[#buying + 1] = e.item end
+        Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor, Shopping.WhereToBuy(buying))
+        -- "FROM THE AUCTION HOUSE OR THE WORLD" ran under its own sum at this window's width
+        -- ("WORLDabout 30g", John's screenshot of 14 Nov 2026).
+        Group("AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
         Group("YOU HAVE ENOUGH", nil, enough)
     else
         frame.buyHead:Hide()
     end
     for i = groups + 1, #frame.groups do frame.groups[i]:Hide() end
+    for i = shopLines + 1, #frame.shopLines do frame.shopLines[i]:Hide() end
     for i = used + 1, #rows do rows[i]:Hide() end
 
     local empty = #crafts == 0 and #items == 0

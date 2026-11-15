@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "New, off to start: quest tags left of RestedXP's guide window. Turn it on under Leveling in /jsal settings",
-    "New, off to start: the Drop log counts the quest items your kills have. /jsal drops shows it",
+    "Quest tags learn from your own loot: turn on Drop log under Leveling, and share it with your guild if you like",
+    "The shopping list names the vendor to go to, and the Training planner names who teaches each weapon skill",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
@@ -217,7 +217,7 @@ function Today.NextLevel()
     local P = ns.Professions
     for _, mine in ipairs(P and P.Mine() or {}) do
         local rank = P.Rank(mine.cap)
-        if rank.next and rank.level == info.level and mine.skill >= rank.at then
+        if rank.next and rank.level == info.level and mine.skill >= P.At(mine.line, rank) then
             info.profession = ("%s %s to train"):format(rank.next, mine.name)
             break
         end

@@ -639,6 +639,8 @@ Window.Page("professions", function(page)
         -- Where you stand.
         local skill, cap, line = current.skill, current.cap, current.line
         local rank = Professions.Rank(cap)
+        -- The skill its next rank is learned at: the usual, or the profession's own.
+        local rankAt = Professions.At(line, rank)
         local rankIndex = 1
         for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
         local floor = rankIndex > 1 and Professions.RANKS[rankIndex - 1].cap or 0
@@ -652,16 +654,16 @@ Window.Page("professions", function(page)
         from:SetText(floor)
         capText:SetText(cap)
         local what, about, who
-        if rank.at and Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
+        if rankAt and Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
         local doing = what or (rank.next and ("train " .. rank.next)) or ""
-        local ahead = rank.at ~= nil and skill < rank.at
+        local ahead = rankAt ~= nil and skill < rankAt
         marker:SetShown(ahead)
         markText:SetShown(ahead)
         if ahead then
-            local x = width * (rank.at - floor) / span
+            local x = width * (rankAt - floor) / span
             marker:ClearAllPoints()
             marker:SetPoint("CENTER", track, "LEFT", x, 0)
-            markText:SetText(("%d · %s"):format(rank.at, doing))
+            markText:SetText(("%d · %s"):format(rankAt, doing))
             markText:ClearAllPoints()
             markText:SetPoint("TOP", track, "BOTTOMLEFT", x, -5)
         end
@@ -679,7 +681,7 @@ Window.Page("professions", function(page)
         local function known(spell) return set[spell] end
         -- The road runs to the rank's cap, with a break where the next rank
         -- is learned, as the profession panel's does.
-        local road, totals, stuck = Professions.Plan(line, skill, cap, known, rank.at)
+        local road, totals, stuck = Professions.Plan(line, skill, cap, known, rankAt)
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
@@ -689,7 +691,7 @@ Window.Page("professions", function(page)
             local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
             rankRow.trainer = trainer
-            rankRow.title:SetText(skill >= rank.at and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rank.at, doing))
+            rankRow.title:SetText(skill >= rankAt and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rankAt, doing))
             local parts = {}
             if about and not who then parts[#parts + 1] = about end
             if trainer then parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "") .. " · click for a map pin" end
@@ -713,7 +715,7 @@ Window.Page("professions", function(page)
         nowHead.note:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
         Place(nowHead, y)
         y = y + 28
-        if rank.at and skill >= rank.at then Rank() y = y + 4 end
+        if rankAt and skill >= rankAt then Rank() y = y + 4 end
         if first then
             local recipe = first.recipe
             card.item, card.spell = recipe.item, recipe.spell
@@ -783,7 +785,7 @@ Window.Page("professions", function(page)
         end
         for i = 2, #road do
             local step = road[i]
-            if not ranked and rank.at and step.from >= rank.at then Rank() end
+            if not ranked and rankAt and step.from >= rankAt then Rank() end
             local s = Step(i - 1)
             s.item, s.spell = step.recipe.item, step.recipe.spell
             s.levels:SetText(("%d → %d"):format(step.from, step.to))
@@ -807,7 +809,7 @@ Window.Page("professions", function(page)
         local last
         if stuck then
             last = ("Past %d, only patterns you'd have to find give skill."):format(stuck)
-        elseif skill >= cap and not rank.at then
+        elseif skill >= cap and not rankAt then
             last = "That's as far as it goes."
         end
         if last then
@@ -863,7 +865,7 @@ Window.Page("professions", function(page)
         end
         -- The nearest trainer for your rank, or the next one once you're
         -- ready for it.
-        local needed = (rank.at and skill >= rank.at) and rankIndex + 1 or rankIndex
+        local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
         local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
         if trainer then
             local place = ns.Trainers.Zone(trainer)

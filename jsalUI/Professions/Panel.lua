@@ -727,6 +727,8 @@ function Paint()
     -- Where the road goes: the skill the next rank is learned at while
     -- you're below it, else this rank's cap.
     local rank = Professions.Rank(cap)
+    -- The skill its next rank is learned at: the usual, or the profession's own.
+    local rankAt = Professions.At(line, rank)
     local rankIndex = 1
     for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
     local floor = rankIndex > 1 and Professions.RANKS[rankIndex - 1].cap or 0
@@ -739,14 +741,14 @@ function Paint()
     panel.cap:SetText(cap)
     -- The next rank can be trained before this one's cap: marked on the bar
     -- until you're there.
-    local ahead = rank.at ~= nil and skill < rank.at
+    local ahead = rankAt ~= nil and skill < rankAt
     panel.marker:SetShown(ahead)
     panel.markText:SetShown(ahead)
     if ahead then
-        local x = width * (rank.at - floor) / span
+        local x = width * (rankAt - floor) / span
         panel.marker:ClearAllPoints()
         panel.marker:SetPoint("CENTER", panel.track, "LEFT", x, 0)
-        panel.markText:SetText(("%d · train %s"):format(rank.at, rank.next))
+        panel.markText:SetText(("%d · train %s"):format(rankAt, rank.next))
         panel.markText:ClearAllPoints()
         panel.markText:SetPoint("TOP", panel.track, "BOTTOMLEFT", x, -5)
     end
@@ -761,7 +763,7 @@ function Paint()
     Professions.Remember(line, skill, cap, saved)
     -- The road runs to this rank's cap, and no step runs across the skill
     -- the next rank is trained at, so that has a place of its own on it.
-    local road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rank.at)
+    local road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rankAt)
 
     -- Recipes not learned yet, with where each comes from: starred ones
     -- first, then by the skill they're learned at.
@@ -822,7 +824,7 @@ function Paint()
             local place = trainer and ns.Trainers.Zone(trainer)
             r.trainer = trainer
             local doing = what or ("train " .. rank.next)
-            r.title:SetText(skill >= rank.at and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rank.at, doing))
+            r.title:SetText(skill >= rankAt and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rankAt, doing))
             local parts = {}
             if about and not who then parts[#parts + 1] = about end
             if trainer then parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "") end
@@ -841,7 +843,7 @@ function Paint()
         panel.roadNote:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
         PlaceRight(panel.roadNote, y + 2)
         y = y + 24
-        if rank.at and skill >= rank.at then y = y + Rank(y) + 4 end
+        if rankAt and skill >= rankAt then y = y + Rank(y) + 4 end
         if first then
             local card = Card()
             local recipe = first.recipe
@@ -921,7 +923,7 @@ function Paint()
 
         -- The steps after it, one line each, with the next rank's training
         -- where it falls among them.
-        local more = #road > 1 or (rank.at ~= nil and skill < rank.at)
+        local more = #road > 1 or (rankAt ~= nil and skill < rankAt)
         if more then
             y = y + 8
             Place(panel.thenHead, y + 2)
@@ -935,7 +937,7 @@ function Paint()
         for i = 2, #road do
             if i - 1 > MAX_STEPS then break end
             local step = road[i]
-            if not ranked and rank.at and step.from >= rank.at then y = y + Rank(y) end
+            if not ranked and rankAt and step.from >= rankAt then y = y + Rank(y) end
             shown = i - 1
             local s = Step(shown)
             s.item, s.spell = step.recipe.item, step.recipe.spell
@@ -958,7 +960,7 @@ function Paint()
             y = y + STEP_H + (todo and NOTE_H or 0)
         end
         -- A road that ends before the next rank opens still says when it does.
-        if not ranked and rank.at and skill < rank.at and #road - 1 <= MAX_STEPS then y = y + Rank(y) end
+        if not ranked and rankAt and skill < rankAt and #road - 1 <= MAX_STEPS then y = y + Rank(y) end
 
         -- More steps than fit, or a road that stops short.
         local note
@@ -967,7 +969,7 @@ function Paint()
         end
         if stuck then
             note = (note and (note .. " ") or "") .. ("Past %d, only patterns you'd have to find give skill."):format(stuck)
-        elseif skill >= cap and not rank.at then
+        elseif skill >= cap and not rankAt then
             note = "That's as far as it goes."
         end
         if note then
@@ -1134,7 +1136,7 @@ function Paint()
 
     -- The nearest trainer who teaches your rank, or the next one once
     -- you're ready for it, with a map pin.
-    local needed = (rank.at and skill >= rank.at) and rankIndex + 1 or rankIndex
+    local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
     local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
     if trainer then
         y = y + 10

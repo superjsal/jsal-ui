@@ -20,6 +20,7 @@ Run: python -I tools/build_professions.py 1.60.1.70790
 """
 
 import csv
+import json
 import pathlib
 import re
 import sys
@@ -28,6 +29,43 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPELLS = ROOT / "data" / "spells"
 PROF = ROOT / "data" / "professions"
 OUT = ROOT / "jsalUI" / "Professions" / "ProfessionData.lua"
+# Who sells the vendor reagents: every vendor players opened on Forever, from EG Link (data from
+# Efficient Games, https://efficient.games, CC BY 4.0; tools/refresh_eglink.py keeps it), with
+# where the player stood, on Forever's own maps. It records no faction, so a vendor's side comes
+# from Wowhead's word on the same NPC where the recipe sources have it, else from whose land its
+# map is, else it's taken to sell to both.
+VENDORS = ROOT / "data" / "vendors" / "eglink-vendors.json"
+WOWHEAD = PROF / "wowhead-sources.json"
+ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433, 1437}
+HORDE_MAPS = {1454, 1456, 1458, 1411, 1412, 1420, 1421, 1413}
+
+
+def sellers_of(items):
+    """For the vendor reagents in `items`: {item: [npc, ...]} and {npc: (name, map, x, y, side)},
+    side 1 Alliance, 2 Horde, 0 both or not known."""
+    if not VENDORS.exists():
+        return {}, {}
+    known = json.loads(WOWHEAD.read_text(encoding="utf-8")).get("npcs", {}) if WOWHEAD.exists() else {}
+    sellers, shops = {}, {}
+    for npc, v in json.loads(VENDORS.read_text(encoding="utf-8"))["vendors"].items():
+        sold = sorted(int(i) for i in (v.get("sells") or {}) if int(i) in items)
+        spot = (v.get("positions") or [{}])[0]
+        if not sold or not spot.get("uiMap"):
+            continue
+        side = 0
+        react = (known.get(npc) or {}).get("react")
+        if react:
+            a = react[0] is not None and react[0] >= 0
+            h = react[1] is not None and react[1] >= 0
+            side = 1 if a and not h else 2 if h and not a else 0
+        elif spot["uiMap"] in ALLIANCE_MAPS:
+            side = 1
+        elif spot["uiMap"] in HORDE_MAPS:
+            side = 2
+        shops[int(npc)] = (v["name"], int(spot["uiMap"]), round(spot["mapX"], 3), round(spot["mapY"], 3), side)
+        for item in sold:
+            sellers.setdefault(item, []).append(int(npc))
+    return sellers, shops
 
 # Skill line, name, and its key in wowhead-learned.txt.
 PROFESSIONS = [
@@ -132,6 +170,8 @@ def main():
                 spell, spec = (int(x) for x in entry.split(":"))
                 special[spell] = spec
 
+    # tools/refresh_eglink.py reads the build back from the words "own tables (build X)" in the
+    # header below, to rebuild this file on the same build after a refresh: keep that phrase.
     lines = [
         "-- Every profession's recipes, for the profession panel: what each needs and",
         "-- makes, the skill it's learned at, and where it turns yellow and grey. From",
@@ -202,6 +242,17 @@ def main():
     lines.append("    -- Reagents a recipe makes that are also gathered as they are (leather): the")
     lines.append("    -- road asks for these themselves, not for what they could be made from.")
     lines.append("    gathered = { " + ", ".join(f"[{i}] = true" for i in gathered) + " },")
+    sellers, shops = sellers_of(used_vendor)
+    lines.append("    -- Who sells each of those reagents, as vendors' numbers; and each vendor: its name,")
+    lines.append("    -- map, the spot on it (0 to 1) and its side (1 Alliance, 2 Horde, 0 both or not known).")
+    lines.append("    -- From every vendor players opened on Forever (Efficient Games, CC BY 4.0).")
+    lines.append("    sellers = { " + ", ".join(f'[{i}] = "{",".join(str(n) for n in sorted(sellers[i]))}"' for i in sorted(sellers)) + " },")
+    lines.append("    shops = {")
+    for npc in sorted(shops):
+        name, map_id, x, y, side = shops[npc]
+        escaped = name.replace(chr(92), chr(92) * 2).replace('"', chr(92) + '"')
+        lines.append(f'        [{npc}] = {{ "{escaped}", {map_id}, {x}, {y}, {side} }},')
+    lines.append("    },")
     lines.append("    -- Recipes that can't be made again for a while, and how long in seconds: the")
     lines.append("    -- road takes one only when nothing else gives a point.")
     lines.append("    cooldown = { " + ", ".join(f"[{i}] = {slow[i]}" for i in sorted(slow)) + " },")
@@ -214,7 +265,8 @@ def main():
     print(f"-> {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
     for line in report:
         print("  " + line)
-    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation")
+    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation, "
+          f"{len(shops)} vendors selling {len(sellers)} of the vendor reagents")
 
 
 if __name__ == "__main__":

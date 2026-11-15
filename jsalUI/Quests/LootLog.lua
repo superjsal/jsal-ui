@@ -29,7 +29,12 @@ local LootLog = ns.NewModule("lootlog", {
     title = "Drop log",
     -- It keeps a record of what you loot, so it starts off.
     defaultOn = false,
-    note = "Counts how often the creatures you loot have the quest items you're after, so quest tags can use Forever's own drop chances where few players have been. Quest items only; it stays on your computer. /jsal drops shows what it has.",
+    note = "Counts how often the creatures you loot have the quest items you're after, so quest tags can use Forever's own drop chances where few players have been. Quest items only; it stays on your computer unless you share it with your guild. /jsal drops shows what it has.",
+    options = {
+        -- Sending something of yours to other players, so it's a choice of its own, and off.
+        { key = "share", title = "Share drop counts with your guild", default = false,
+          note = "Tells guildmates who share theirs how many times each quest item has dropped for you, and adds their counts to yours, so everyone's quest tags learn faster. Only the item's name and two numbers are sent, over the game's hidden addon channel." },
+    },
 })
 ns.LootLog = LootLog
 
@@ -47,6 +52,74 @@ local function Log()
     log.creatures = type(log.creatures) == "table" and log.creatures or {}
     log.ids = type(log.ids) == "table" and log.ids or {}
     return log
+end
+
+---------------------------------------------------------------------------
+-- Guildmates' counts. With "Share drop counts with your guild" on, each of you tells the others
+-- an item's finds and tries (LootLog.Seen's two numbers) when they change, and all of them once
+-- on logging in; what's heard is kept apart from your own, by who said it, and the newest word
+-- from someone replaces their last, so nothing is counted twice. (John, 14 Nov 2026, of pooling
+-- the guild's counts behind one switch that shares both ways: "Yes, build it".)
+---------------------------------------------------------------------------
+local SENDERS, ITEMS = 60, 300      -- guildmates kept, and items kept from each
+local OLD = 45 * 86400              -- a guildmate not heard from in this long is let go
+local MOST = 100000                 -- a count above this isn't believed
+local SEND = 40                     -- items told at once, the ones with the most loots
+
+function LootLog.Sharing()
+    return LootLog.running and ns.OptionOn("lootlog", "share") and true or false
+end
+
+-- The saved guild counts: guild[sender] = { t = when, items = { [lower-case item name] = { finds, tries } } }.
+local function Guild()
+    local log = Log()
+    log.guild = type(log.guild) == "table" and log.guild or {}
+    return log.guild
+end
+
+-- What a guildmate said of an item. False when it isn't believable.
+function LootLog.Heard(sender, itemName, finds, tries, now)
+    finds, tries = tonumber(finds), tonumber(tries)
+    if type(sender) ~= "string" or sender == "" or type(itemName) ~= "string" then return false end
+    if not finds or not tries or finds < 0 or tries < 1 or finds > tries or tries > MOST then return false end
+    if #itemName < 1 or #itemName > 80 then return false end
+    local guild = Guild()
+    local from = guild[sender]
+    if type(from) ~= "table" or type(from.items) ~= "table" then
+        -- Room for a new voice: the one longest silent goes.
+        local count, oldest, oldestAt = 0, nil, nil
+        for name, entry in pairs(guild) do
+            count = count + 1
+            local t = type(entry) == "table" and tonumber(entry.t) or 0
+            if not oldestAt or t < oldestAt then oldest, oldestAt = name, t end
+        end
+        if count >= SENDERS and oldest then guild[oldest] = nil end
+        from = { items = {} }
+        guild[sender] = from
+    end
+    from.t = now or 0
+    local key = itemName:lower()
+    if not from.items[key] then
+        local count = 0
+        for _ in pairs(from.items) do count = count + 1 end
+        if count >= ITEMS then return false end
+    end
+    from.items[key] = { math.floor(finds), math.floor(tries) }
+    return true
+end
+
+-- An item's finds and tries among your guildmates, and how many of them have it.
+function LootLog.GuildSeen(itemName)
+    if type(itemName) ~= "string" then return 0, 0, 0 end
+    local key = itemName:lower()
+    local finds, tries, people = 0, 0, 0
+    for _, from in pairs(Guild()) do
+        local said = type(from) == "table" and type(from.items) == "table" and from.items[key]
+        if type(said) == "table" and tonumber(said[2]) then
+            finds, tries, people = finds + (tonumber(said[1]) or 0), tries + said[2], people + 1
+        end
+    end
+    return finds, tries, people
 end
 
 -- The thing an objective names, from "Ghoul Fang: 1/10" or "1/10 Ghoul Fang".
@@ -95,6 +168,8 @@ function LootLog.Count(creature, wanted, found)
             c.finds[name] = (c.finds[name] or 0) + 1
             if type(found[lower]) == "number" then log.ids[name] = found[lower] end
         end
+        -- An item this creature has had is one whose count just moved: the guild hears of it.
+        if (c.finds[name] or 0) > 0 and LootLog.Changed then LootLog.Changed(name) end
     end
     return true
 end
@@ -146,6 +221,26 @@ function LootLog.Blended(itemName, shipped)
     end
     local weight = LootLog.WEIGHT
     return (finds + weight * math.min(shipped, 1)) / (tries + weight), tries
+end
+
+-- The same, with your guildmates' counts added to yours while you share: the chance, how many
+-- loots are in it, and how many of those are the guild's (0 when you don't share or they have
+-- none). This is the one the quest tag card asks.
+function LootLog.Pooled(itemName, shipped)
+    if not LootLog.running then return nil end
+    local finds, tries = LootLog.Seen(itemName)
+    local theirs = 0
+    if LootLog.Sharing() then
+        local f, t = LootLog.GuildSeen(itemName)
+        finds, tries, theirs = finds + f, tries + t, t
+    end
+    if tries <= 0 then return nil end
+    if type(shipped) ~= "number" or shipped <= 0 then
+        if tries < LootLog.FLOOR then return nil end
+        return finds / tries, tries, theirs
+    end
+    local weight = LootLog.WEIGHT
+    return (finds + weight * math.min(shipped, 1)) / (tries + weight), tries, theirs
 end
 
 ---------------------------------------------------------------------------
@@ -264,15 +359,116 @@ local function Opened()
     LootLog.Count(creature, wanted, found)
 end
 
+---------------------------------------------------------------------------
+-- Telling the guild, and hearing it. "DC" is one item: its name, finds and tries. "DQ" asks
+-- everyone who shares to say theirs, for someone just logged in.
+---------------------------------------------------------------------------
+local changed, flushing = {}, false
+local lastAnswered
+
+-- Every item of yours with a find, the ones with the most loots first.
+local function Mine()
+    local items = {}
+    for _, c in pairs(Log().creatures) do
+        for name, n in pairs(type(c) == "table" and type(c.finds) == "table" and c.finds or {}) do
+            if n > 0 then items[name] = true end
+        end
+    end
+    local list = {}
+    for name in pairs(items) do
+        local finds, tries = LootLog.Seen(name)
+        list[#list + 1] = { name = name, finds = finds, tries = tries }
+    end
+    table.sort(list, function(a, b)
+        if a.tries ~= b.tries then return a.tries > b.tries end
+        return a.name < b.name
+    end)
+    return list
+end
+
+local function Tell(name, finds, tries)
+    if ns.Comms and tries > 0 and not name:find("[;|]") then
+        ns.Comms.Send("DC", ("%s;%d;%d"):format(name, finds, tries), "GUILD")
+    end
+end
+
+function LootLog.TellAll()
+    if not (LootLog.Sharing() and IsInGuild()) then return end
+    for i, item in ipairs(Mine()) do
+        if i > SEND then break end
+        Tell(item.name, item.finds, item.tries)
+    end
+end
+
+-- What changed since the last word, said together a little later, so a run of loots is one
+-- message an item and not one a corpse.
+local function Flush()
+    flushing = false
+    if not (LootLog.Sharing() and IsInGuild()) then
+        changed = {}
+        return
+    end
+    for name in pairs(changed) do
+        local finds, tries = LootLog.Seen(name)
+        Tell(name, finds, tries)
+    end
+    changed = {}
+end
+
+function LootLog.Changed(name)
+    if not LootLog.Sharing() then return end
+    changed[name] = true
+    if not flushing then
+        flushing = true
+        Compat.After(30, ns.Safe(LootLog, Flush))
+    end
+end
+
+local function HeardCount(payload, sender)
+    if not LootLog.Sharing() or sender == Compat.Name("player") then return end
+    local name, finds, tries = (payload or ""):match("^(.-);(%d+);(%d+)$")
+    if name then LootLog.Heard(sender, name, finds, tries, Compat.ServerTime()) end
+end
+
+local function HeardAsk(_, sender)
+    if not LootLog.Sharing() or sender == Compat.Name("player") then return end
+    -- Once in ten minutes at most, and not all at the same instant as everyone else.
+    local now = GetTime()
+    if lastAnswered and now - lastAnswered < 600 then return end
+    lastAnswered = now
+    Compat.After(2 + math.random() * 10, ns.Safe(LootLog, LootLog.TellAll))
+end
+
 function LootLog:OnEnable()
     local events = self.events or CreateFrame("Frame")
     self.events = events
     events:RegisterEvent("LOOT_OPENED")
     events:SetScript("OnEvent", ns.Safe(self, Opened))
+    -- A guildmate not heard from in a long while is let go.
+    local now = Compat.ServerTime()
+    for name, from in pairs(Guild()) do
+        if type(from) ~= "table" or now - (tonumber(from.t) or 0) > OLD then Guild()[name] = nil end
+    end
+    if ns.Comms then
+        ns.Comms.On("DC", HeardCount)
+        ns.Comms.On("DQ", HeardAsk)
+        -- A little after logging in: say yours, and ask for theirs.
+        Compat.After(20, ns.Safe(self, function()
+            if LootLog.Sharing() and IsInGuild() then
+                LootLog.TellAll()
+                ns.Comms.Send("DQ", "", "GUILD")
+            end
+        end))
+    end
 end
 
 function LootLog:OnDisable()
     if self.events then self.events:UnregisterAllEvents() end
+    if ns.Comms then
+        ns.Comms.On("DC", nil)
+        ns.Comms.On("DQ", nil)
+    end
+    changed = {}
 end
 
 -- /jsal drops: what the log holds, the items with the most tries first.
@@ -302,6 +498,10 @@ ns.Command("drops", function()
         end
     end
     ns.Print(("  %d loot%s counted, of %d kind%s of creature."):format(loots, loots == 1 and "" or "s", kinds, kinds == 1 and "" or "s"))
+    local people = 0
+    for _ in pairs(Guild()) do people = people + 1 end
+    ns.Print(LootLog.Sharing() and ("  Sharing with your guild: on. Counts held from %d guildmate%s."):format(people, people == 1 and "" or "s")
+        or "  Sharing with your guild: off.")
     local names = {}
     for _, name in pairs(LootLog.Wanted()) do names[#names + 1] = name end
     table.sort(names)

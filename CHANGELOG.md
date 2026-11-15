@@ -10,6 +10,11 @@
 - **Training planner: Two-Handed Maces is on the list.** It was missing for warriors, paladins, shamans and druids, who learn it from a weapon master.
 - **Training planner: a few more prices.** A hunter's traps, a priest's Touch of Weakness and a mage's teleports and portals had none. They come from what other players' trainers charged; where you've opened a trainer yourself, its prices are still the ones used.
 
+- **Shopping list: it says which vendor to go to.** Under what a vendor sells, a line names the vendor of your side that sells the most of what you still need, the nearest of those ("All three at Edna Mullby, Stormwind City"), and a click on it puts a map pin on them. When one vendor doesn't have it all, a second line says where to get the rest. The vendors are the ones players have opened on Forever; a few vendor goods have no known seller yet. The next heading is shorter too: it ran under its own total.
+- **Drop log: share your counts with your guild (new, off to start).** A switch under Drop log in /jsal settings. With it on, your addon tells guildmates who have it on how often each quest item has dropped for you, and adds their counts to yours, so everyone's quest tags learn faster. Only the item's name and two numbers are sent, over the game's hidden addon channel, and each guildmate's newest word replaces their last.
+- **Professions: Artisan Enchanting names its trainer.** It's taught inside Uldaman, by Annora, a Master Enchanter; the panel said it didn't know a trainer for it.
+- **Professions: First Aid's Artisan is at 225.** The quest that leads to Triage is given at First Aid 225; the panel said 200.
+
 - **Settings: the two new parts' cards say what they do.** Quest tags on RestedXP and the Drop log showed the start of a long sentence, cut off. Each now has a short line and a picture like the other cards.
 
 ## In 0.3.43

@@ -65,6 +65,18 @@ local function World(map, x, y)
     return continent, wx, wy
 end
 
+-- How far a spot ({ map, x, y }) is from you, as a number to compare: the square of the
+-- straight-line distance on your continent, and a very large one for another continent or a
+-- spot with no place in the world (inside an instance).
+function Trainers.Distance(spot)
+    local map, px, py = Compat.PlayerPosition()
+    if not map then return 1e9 end
+    local here, hx, hy = World(map, px, py)
+    local continent, wx, wy = World(spot.map, spot.x, spot.y)
+    if continent and here and continent == here then return (wx - hx) ^ 2 + (wy - hy) ^ 2 end
+    return 1e9
+end
+
 -- The nearest trainer for key ("class3" for hunters, "skill197" for
 -- tailoring), teaching at least rank (1 to 4) for a profession. Returns the
 -- trainer ({ npc, name, tag, map, x, y }) or nil.

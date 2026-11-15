@@ -170,8 +170,14 @@ Professions.Makes = Makes
 -- Desolace, a gold each; Dirge Quikcleave in Gadgetzan gives and takes the
 -- quest, for both sides, from level 35 (Wowhead Forever's pages for item
 -- 16072 and quest 6610, 14 Nov 2026).
-local FIRST_AID, COOKING = 129, 185
+local FIRST_AID, COOKING, ENCHANTING = 129, 185, 333
 local OTHER_RANKS = {
+    -- Enchanting's Artisan is a trainer's, but one inside a dungeon: Annora, Master Enchanter,
+    -- in Uldaman, for both sides (Wowhead Forever's page for the rank's spell, 13920, 14 Nov
+    -- 2026). No trainer outside teaches it, and the row said jsal.ui didn't know one.
+    [ENCHANTING] = {
+        Artisan = { "train Artisan inside Uldaman", "Annora, Master Enchanter, teaches it there" },
+    },
     [COOKING] = {
         Expert = { "learn Expert from a book", "The Expert Cookbook, sold by",
                    a = { npc = 3955, name = "Shandrina", map = 1440, x = 0.494, y = 0.67 },
@@ -194,6 +200,20 @@ local OTHER_RANKS = {
                     h = { npc = 12920, name = "Doctor Gregory Victor", map = 1417, x = 0.734, y = 0.364 } },
     },
 }
+-- The skill a rank's next one is learned at, where it isn't the usual. First Aid's Artisan is the
+-- quest Triage, which follows Alliance Trauma or Horde Trauma, and those are given at First Aid
+-- 225, not 200: "She wouldn't give me the quest when I was lvl 36 with First Aid 210, but I
+-- received it right after I hit 225" (the comments on Wowhead Forever's page for Alliance
+-- Trauma, quest 6625, read 14 Nov 2026; they are Classic's players, and nobody has yet been seen
+-- to take it on Forever). The row said "At 200".
+local OTHER_AT = {
+    [FIRST_AID] = { Expert = 225 },
+}
+function Professions.At(line, rank)
+    local other = line and OTHER_AT[line]
+    return other and rank and other[rank.name] or (rank and rank.at)
+end
+
 function Professions.RankFrom(line, name)
     local ranks = OTHER_RANKS[line]
     local from = ranks and ranks[name]
