@@ -159,13 +159,58 @@ local function Stop(module, err)
     ns.Print(module.title .. " hit an error and turned itself off until the next reload.")
 end
 
--- Wraps a module's event handler or callback in the same guard.
+-- jsal.ui's slow moments since the last reload: anything that took 10 ms or
+-- more, by what it was, for /jsal perf. John's jsal.ui went over 50 ms in a
+-- frame 14 times in a session with no way to tell which part (15 Nov 2026).
+local SLOW_MS = 10
+local slow = {}
+local function NoteSlow(label, took)
+    local s = slow[label]
+    if not s then
+        s = { count = 0, worst = 0 }
+        slow[label] = s
+    end
+    s.count = s.count + 1
+    if took > s.worst then s.worst = took end
+end
+
+-- Notes what started at `started` (a debugprofilestop() reading) if it was slow.
+function ns.Timed(label, started)
+    local took = debugprofilestop() - started
+    if took >= SLOW_MS then NoteSlow(label, took) end
+end
+
+-- Wraps a module's event handler or callback in the same guard, and notes a
+-- slow call by the module and, for an event, the event's name. The arguments
+-- go straight to xpcall, which takes them in the game (Blizzard's own code
+-- calls it so): a table and a function made on every call came to about 230
+-- bytes, and the throttled OnUpdates come through here every frame.
 function ns.Safe(module, fn)
     return function(...)
         if module.failed then return end
-        local count, args = select("#", ...), { ... }
-        local ok, err = xpcall(function() return fn(unpack(args, 1, count)) end, Report)
+        local started = debugprofilestop()
+        local ok, err = xpcall(fn, Report, ...)
         if not ok then Stop(module, err) end
+        local took = debugprofilestop() - started
+        if took >= SLOW_MS then
+            local name, event = module.title or module.key or "jsal.ui", select(2, ...)
+            NoteSlow(type(event) == "string" and event:find("^[%u_]+$") and (name .. ", " .. event) or name, took)
+        end
+    end
+end
+
+local function PrintSlow()
+    local rows = {}
+    for label, s in pairs(slow) do rows[#rows + 1] = { label = label, count = s.count, worst = s.worst } end
+    if #rows == 0 then
+        ns.Print("Nothing in jsal.ui has taken 10 ms or more since the last reload.")
+        return
+    end
+    table.sort(rows, function(a, b) return a.worst > b.worst end)
+    ns.Print("jsal.ui's slow moments since the last reload, 10 ms or more, the slowest first:")
+    for i = 1, math.min(10, #rows) do
+        local r = rows[i]
+        print(("  %s: %d time%s, longest %.0f ms"):format(r.label, r.count, r.count == 1 and "" or "s", r.worst))
     end
 end
 
@@ -269,6 +314,7 @@ ns.Command("perf", function()
     local t = ns.timings
     ns.Print(("Loading took %.0f ms to read the files, %.0f ms to set up and %.0f ms to start at login.")
         :format(t.files or 0, t.setup or 0, t.login or 0))
+    PrintSlow()
     local profiler = C_AddOnProfiler
     local metric = Enum and Enum.AddOnProfilerMetric
     if not (profiler and profiler.GetAddOnMetric and metric and metric.SessionAverageTime) then

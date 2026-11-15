@@ -313,7 +313,9 @@ end
 
 local function Refresh(page)
     if page.frame and page.frame.Refresh then
+        local started = debugprofilestop()
         xpcall(function() page.frame.Refresh(page.frame) end, ns.Report)
+        ns.Timed("Page: " .. page.label .. ", redraw", started)
     end
 end
 
@@ -329,7 +331,9 @@ local function BuildPage(page)
     page.frame = f
     local note
     if page.build then
+        local started = debugprofilestop()
         local ok = xpcall(function() page.build(f) end, ns.Report)
+        ns.Timed("Page: " .. page.label .. ", first open", started)
         if not ok then note = "This page hit an error. BugSack has the details." end
     else
         note = page.label .. " arrives in a later version of jsal.ui."
@@ -361,7 +365,10 @@ local function OpenOwn(page)
         inner.contentWidth = own.width - PANEL_PAD * 2
         inner.contentHeight = own.height - BAR_H - 16 - 18
         own.frame, page.frame = f, inner
-        if not xpcall(function() page.build(inner) end, ns.Report) then
+        local started = debugprofilestop()
+        local built = xpcall(function() page.build(inner) end, ns.Report)
+        ns.Timed("Page: " .. page.label .. ", first open", started)
+        if not built then
             local text = Style.Text(inner, 13, "muted")
             text:SetPoint("TOPLEFT")
             text:SetText("This window hit an error. BugSack has the details.")
