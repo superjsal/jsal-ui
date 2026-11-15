@@ -832,10 +832,10 @@ Window.Page("dungeons", function(page)
             entry.recipe = classID == RECIPE
             entry.prof = entry.recipe and trades[subclass or ""] == true
             if not entry.cant and not entry.recipe and ns.Gear and ns.Gear.Better then
-                local is = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
+                local is, gain = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
                 if is ~= nil then sure = sure + 1 end
                 if is then
-                    entry.better = true
+                    entry.better, entry.gain = true, gain
                     better = better + 1
                 end
             end
@@ -873,6 +873,11 @@ Window.Page("dungeons", function(page)
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
             -- Too high for you yet: its level, in red.
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
+            -- How much better than what you wear, so a hair-thin upgrade reads as one.
+            if entry.better and entry.gain then
+                local pct = math.floor(entry.gain * 100 + 0.5)
+                parts[#parts + 1] = ("%s%s for you|r"):format(GREEN, pct < 1 and "under 1%" or ("+" .. pct .. "%"))
+            end
             it.slot:SetText(table.concat(parts, " · "))
             it.chance:SetText((entry.chance or entry.guessed) and ("%d%%"):format(entry.chance or entry.guessed) or "")
             -- How often it's been seen: in the guild's kills (the band's bar

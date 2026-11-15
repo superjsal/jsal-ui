@@ -473,21 +473,17 @@ function Gear.TwoHander()
 end
 
 -- Whether a piece is better for you than what you wear where it goes:
--- true or false, or nil when that can't be told (it isn't worn, the game
+-- true (then its gain) or false, or nil when that can't be told (it isn't worn, the game
 -- hasn't loaded it, or your spec has no weights). For a dungeon's loot,
 -- which has the item's slot, class and subclass from the game. A ring or
 -- trinket is measured against the weaker of your two.
 --
--- It's the Gear plan's answer: better when the plan for that slot would
--- list it, so worth at least a quarter of the best upgrade you could go
--- and get, and not a win on Stamina alone when other pieces add what your
--- spec wants. It used to be any higher score at all, and leggings with 6
--- Strength and 14 Stamina were "better for you" than a hunter's with 6
--- Agility, by a hair, while the plan left them out. (John, 14 Nov 2026: "i
--- also wonder why these str legs are better for me over my 6 agi legs",
--- "and the gear plan does not show it here which makes sense", and of a
--- rule of its own I gave it first: "are you not able to just use the way
--- gear plan handles upgrades?")
+-- It's the Gear plan's answer: better when it scores more than what you wear, however little, and
+-- then how much, as a share of what you wear's score, so the dungeon guide can say "+24% for you" and
+-- a hair-thin upgrade reads as one. (John, 15 Nov 2026, pointing at Forever Leveling BiS: "lets use
+-- the formula this uses".) Before, it had to be a quarter of the best upgrade you could get, which
+-- hid a feral druid's Swine Fists, 22% over his gloves; before that, any gain, which called a
+-- hunter's Strength legs "better" with nothing to say by how little (14 Nov).
 --
 -- A dungeon's list asks this of every piece, so a slot's plan is kept for
 -- as long as the game's clock stands still: the one paint.
@@ -519,7 +515,8 @@ function Gear.Better(id, equipLoc, classID, subclassID)
         if link and tonumber(link:match("item:(%d+)")) == id then return false end
     end
     local plan = Gear.SlotPlan(slot)
-    return plan.Would and plan.Would(stats) or false
+    if not plan.Would then return false end
+    return plan.Would(stats)
 end
 
 -- The pieces in your bags that go in a slot and that you can wear: their
@@ -611,19 +608,21 @@ function Gear.Plan(slot, spec, only)
             end
         end
     end
-    -- Items worth less than a quarter of the best one aren't worth listing,
-    -- and nor, once anything adds what your spec wants most, are items that
-    -- only win on Stamina (a caster's hood for a hunter); starred ones stay.
-    -- A main stat is one your spec weighs at least as much as Stamina and
-    -- more than a twentieth of its top stat (a hunter's Spell Power and
-    -- Intellect barely count), or weapon damage.
+    -- Any piece that scores more than what you wear is an upgrade, however little; its gain says how
+    -- much ("+24% for you"), so a hair-thin one reads as one. (John, 15 Nov 2026, pointing at Forever
+    -- Leveling BiS: "lets use the formula this uses". The rule before, a quarter of the best upgrade
+    -- there is, hid real ones whenever a far bigger one existed: a feral druid's Swine Fists, 22% over
+    -- his gloves, was "nothing here is better" in Razorfen Downs.)
+    -- Still left out, once anything adds what your spec wants most: a piece that only wins on Stamina
+    -- or on what your spec barely values (a caster's hood for a hunter). A main stat is one your spec
+    -- weighs at least as much as Stamina and more than a twentieth of its top stat, or weapon damage.
     local staWeight = weights and weights.stats.ITEM_MOD_STAMINA_SHORT or 0
     local top = 0
     for _, v in pairs(weights and weights.stats or {}) do top = math.max(top, v) end
     local floor = math.max(staWeight, top * 0.05)
-    local function Main(o)
+    local function Main(stats)
         if not weights then return true end
-        for key, value in pairs(o.stats) do
+        for key, value in pairs(stats) do
             if value > 0 and key ~= "ITEM_MOD_STAMINA_SHORT" then
                 if key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
                     if slot.dps and (weights.dps[slot.dps] or 0) > 0 then return true end
@@ -634,28 +633,22 @@ function Gear.Plan(slot, spec, only)
         end
         return false
     end
-    -- The best is the best you can go and get: a piece with no source known
-    -- doesn't set the bar the rest are measured against, or one great item
-    -- nobody can find would push real upgrades off the list.
-    local best, bestOfAll, anyMain = 0, 0, false
+    local anyMain = false
     for _, o in ipairs(options) do
         o.unknown = Gear.Source(o) == ""
-        bestOfAll = math.max(bestOfAll, o.score - worn.score)
-        if not o.unknown then best = math.max(best, o.score - worn.score) end
-        anyMain = anyMain or Main(o)
+        anyMain = anyMain or Main(o.stats)
     end
-    if best == 0 then best = bestOfAll end
-    -- Whether a piece with these stats would be on this list, by the same
-    -- two rules: for a dungeon's loot, which may not be in the plan's own
-    -- lists of items. (See Gear.Better.)
+    -- Whether a piece with these stats is an upgrade, then its gain as a share of what you wear's
+    -- score (nil when you wear nothing there): for a dungeon's loot, which may not be in the plan's
+    -- own lists of items. (See Gear.Better.)
     local function Would(stats)
         local gain = (Gear.Score(stats, weights, slot.dps) or 0) - worn.score
-        if gain <= 0.01 then return false end
-        return gain >= best * 0.25 and (Main({ stats = stats }) or not anyMain)
+        if gain <= 0.01 or not (Main(stats) or not anyMain) then return false end
+        return true, worn.score > 0 and gain / worn.score or nil
     end
     local kept = {}
     for _, o in ipairs(options) do
-        if o.starred or o.held or ((o.score - worn.score) >= best * 0.25 and (Main(o) or not anyMain)) then kept[#kept + 1] = o end
+        if o.starred or o.held or o.added or Main(o.stats) or not anyMain then kept[#kept + 1] = o end
     end
     options = kept
     -- One you can go and get now comes before one you can't yet: above your
