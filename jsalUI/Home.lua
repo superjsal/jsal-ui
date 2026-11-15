@@ -8,8 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Hunters, mages, warlocks and healers get Gear plan stat weights made for Forever",
-    "The Gear plan and a dungeon's loot say stat weights are estimates: roll by what you know of your spec",
+    "Five more dungeons in the guide, The Drowned City among them, and loot for Zul'Farrak, Maraudon, Sunken Temple and Blackrock Depths",
+    "The Gear plan filters upgrades by where they come from, and says how much better each one is",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
