@@ -70,16 +70,43 @@ PLATE_TANK = ("warrior_protection", "PreBiSEpWeights")
 FOREVER = {
     "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
     "PALADIN": [None, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
-    "HUNTER": [None, None, None],
+    "HUNTER": [("computed", "hunter"), ("computed", "hunter"), ("computed", "hunter")],
     "ROGUE": [("rogue_dps", "EP_PRESET_ASSASSINATION"), ("rogue_dps", "EP_PRESET_COMBAT_SINISTER"),
               ("rogue_dps", "EP_PRESET_SUBTLETY")],
     "PRIEST": [("priest_healer", "DiscSingleTargetEpWeights"), ("priest_healer", "HolySingleTargetEpWeights"),
                ("priest_dps", "ShadowEpWeights")],
     "SHAMAN": [("shaman_elemental", "DefaultEpWeights"), ("shaman_enhancement", "PreBiSEpWeights"), None],
-    "MAGE": [None, None, None],
-    "WARLOCK": [None, None, None],
+    "MAGE": [("computed", "mage_arcane"), ("computed", "mage_fire"), ("computed", "mage_frost")],
+    "WARLOCK": [("computed", "warlock_affliction"), ("computed", "warlock_demonology"), ("computed", "warlock_destruction")],
     "DRUID": [("druid_balance", "PreBiSEpWeights"), ("druid_feral_ep", "CatEp"), None],
 }
+# Trees WoWSims Forever ships no weights for, worked out with its own Stat Weights tool on its own
+# preset talents and gear (data/gear/wowsims-forever/computed/*.json, each saying how). Rows are per 1%
+# for crit and hit, as the tool shows them. (John, 14 Nov 2026: "i feel we should be accurate as this
+# dictates what a player will want to roll for".)
+COMPUTED_KEYS = {
+    "Strength": ["ITEM_MOD_STRENGTH_SHORT"],
+    "Agility": ["ITEM_MOD_AGILITY_SHORT"],
+    "Stamina": ["ITEM_MOD_STAMINA_SHORT"],
+    "Intellect": ["ITEM_MOD_INTELLECT_SHORT"],
+    "Spirit": ["ITEM_MOD_SPIRIT_SHORT"],
+    "Attack Power": ["ITEM_MOD_ATTACK_POWER_SHORT"],
+    "Ranged Attack Power": ["ITEM_MOD_RANGED_ATTACK_POWER_SHORT"],
+    "Spell Damage": ["ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"],
+    "Healing Power": ["ITEM_MOD_SPELL_HEALING_DONE_SHORT"],
+    "1% Hit": ["ITEM_MOD_HIT_RATING_SHORT", "ITEM_MOD_HIT_MELEE_RATING_SHORT", "ITEM_MOD_HIT_SPELL_RATING_SHORT"],
+    "1% Crit": ["ITEM_MOD_CRIT_RATING_SHORT", "ITEM_MOD_CRIT_MELEE_RATING_SHORT", "ITEM_MOD_CRIT_SPELL_RATING_SHORT"],
+    "MP5": ["ITEM_MOD_POWER_REGEN0_SHORT", "ITEM_MOD_MANA_REGENERATION_SHORT"],
+    "Defense": ["ITEM_MOD_DEFENSE_SKILL_RATING_SHORT"],
+    "1% Dodge": ["ITEM_MOD_DODGE_RATING_SHORT"],
+    "1% Parry": ["ITEM_MOD_PARRY_RATING_SHORT"],
+    "1% Block": ["ITEM_MOD_BLOCK_RATING_SHORT"],
+    "Block Value": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
+    "Armor": ["RESISTANCE0_NAME"],
+    "Bonus Armor": ["ITEM_MOD_EXTRA_ARMOR_SHORT"],
+}
+COMPUTED_DPS = {"Main Hand DPS": "mh", "Off Hand DPS": "oh", "Ranged DPS": "ranged"}
+
 # Forever's ratings for 1% (its sim/core/base_stats_auto_gen.go); defense is 1 rating a point.
 RATING_PER_PERCENT = {"StatHitRating": 10, "StatCritRating": 14, "StatDodgeRating": 12, "StatParryRating": 15,
                       "StatBlockRating": 5, "StatDefenseRating": 1}
@@ -179,6 +206,25 @@ def forever_weights(file, preset):
     return out, dps
 
 
+def computed_weights(name):
+    data = json.loads((SRC / "wowsims-forever" / "computed" / f"{name}.json").read_text(encoding="utf-8"))
+    out, dps = {}, {}
+    for stat, value in data["ep"].items():
+        if stat in COMPUTED_KEYS and value > 0:
+            for key in COMPUTED_KEYS[stat]:
+                out[key] = round(value, 3)
+        elif stat in COMPUTED_DPS and value > 0:
+            dps[COMPUTED_DPS[stat]] = round(value, 3)
+    # An item's "+Attack Power" is ranged attack power too: a hunter's counts as that.
+    if out.get("ITEM_MOD_RANGED_ATTACK_POWER_SHORT", 0) > out.get("ITEM_MOD_ATTACK_POWER_SHORT", 0):
+        out["ITEM_MOD_ATTACK_POWER_SHORT"] = out["ITEM_MOD_RANGED_ATTACK_POWER_SHORT"]
+    both = out.get("ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", 0) + out.get("ITEM_MOD_SPELL_HEALING_DONE_SHORT", 0)
+    if both:
+        out["ITEM_MOD_SPELL_POWER_SHORT"] = round(both, 3)
+    stamina(out)
+    return out, dps
+
+
 def weights(spec):
     text = (SRC / "wowsims" / f"{spec}.sim.ts").read_text(encoding="utf-8")
     block = bracketed(text, text.index("epWeights"))
@@ -264,8 +310,14 @@ def main():
     for class_file, trees in SPECS.items():
         parts = []
         for spec, forever in zip(trees, FOREVER[class_file]):
-            stats, dps = forever_weights(*forever) if forever else weights(spec)
-            spec = "forever:" + "/".join(forever) if forever else spec
+            if forever and forever[0] == "computed":
+                stats, dps = computed_weights(forever[1])
+                spec = "forever-computed:" + forever[1]
+            elif forever:
+                stats, dps = forever_weights(*forever)
+                spec = "forever:" + "/".join(forever)
+            else:
+                stats, dps = weights(spec)
             stat_text = ", ".join(f"{k} = {v:g}" for k, v in sorted(stats.items()) if v)
             dps_text = ", ".join(f"{k} = {v:g}" for k, v in sorted(dps.items()) if v)
             parts.append(f"        {{ sim = {lua_string(spec)}, stats = {{ {stat_text} }}, dps = {{ {dps_text} }} }},")

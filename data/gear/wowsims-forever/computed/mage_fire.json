@@ -1,0 +1,19 @@
+{
+  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/mage/dps, game 1.60.1.70938). Its Fire preset (talents, rotation, buffs) on its own P1 Arcane gear set (the only mage set it has), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central).",
+  "spec": "mage_fire",
+  "reference": "Spell Damage",
+  "ep": {
+    "Intellect": 0.29,
+    "Spell Damage": 1.0,
+    "Arcane Spell Damage": 0.12,
+    "Fire Spell Damage": 0.88,
+    "Frost Spell Damage": 0.0,
+    "Spell Piercing": 2.17,
+    "Spirit": 0.0,
+    "1% Hit": 16.76,
+    "1% Crit": 10.87,
+    "1% Haste": 10.98,
+    "Mana": 0.0,
+    "MP5": 0.0
+  }
+}

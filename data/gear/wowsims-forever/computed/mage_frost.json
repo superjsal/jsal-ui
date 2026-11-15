@@ -1,0 +1,19 @@
+{
+  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/mage/dps, game 1.60.1.70938). Its Frost Med preset (talents 18/0/33, rotation, buffs) on its own P1 Arcane gear set (the only mage set it has), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central).",
+  "spec": "mage_frost",
+  "reference": "Spell Damage",
+  "ep": {
+    "Intellect": 0.18,
+    "Spell Damage": 1.0,
+    "Arcane Spell Damage": 0.0,
+    "Fire Spell Damage": 0.0,
+    "Frost Spell Damage": 1.0,
+    "Spell Piercing": 2.20,
+    "Spirit": 0.01,
+    "1% Hit": 15.59,
+    "1% Crit": 8.74,
+    "1% Haste": 9.87,
+    "Mana": 0.0,
+    "MP5": 0.02
+  }
+}

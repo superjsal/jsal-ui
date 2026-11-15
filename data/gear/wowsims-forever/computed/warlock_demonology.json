@@ -1,0 +1,18 @@
+{
+  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/warlock/dps, game 1.60.1.70938), since its warlock sim ships no weights. Its Demo (Fire Brand) preset (talents 2/31/18, rotation, buffs) on its own pre-raid gear set (ui/specs/warlock/dps/gear_sets/preraid.gear.json, imported as SIML by item ID), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central).",
+  "spec": "warlock_demonology",
+  "reference": "Spell Damage",
+  "ep": {
+    "Stamina": 0.0,
+    "Intellect": 0.27,
+    "Spell Damage": 1.0,
+    "Fire Spell Damage": 0.75,
+    "Shadow Spell Damage": 0.25,
+    "Spell Piercing": 1.08,
+    "Spirit": 0.12,
+    "1% Hit": 11.95,
+    "1% Crit": 7.16,
+    "1% Haste": 4.22,
+    "MP5": 0.23
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/hunter/dps, game 1.60.1.70938, site built 2026-11-15), since its hunter sim ships no weights. Set up with its BM preset (talents, rotation, buffs) and its own P1 gear set (ui/specs/hunter/dps/gear_sets/p1.gear.siml, imported as SIML), 25,000 iterations, reference stat Agility. DPS EP as the tool shows it, Agility = 1; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central); John: 'i feel we should be accurate as this dictates what a player will want to roll for'.",
+  "spec": "hunter",
+  "reference": "Agility",
+  "ep": {
+    "Strength": 0.0,
+    "Agility": 1.0,
+    "Intellect": 0.38,
+    "Attack Power": 0.0,
+    "Ranged Attack Power": 0.34,
+    "1% Hit": 12.96,
+    "1% Crit": 12.16,
+    "1% Haste": 5.76,
+    "Armor Penetration": 0.10,
+    "1% Expertise": 5.21,
+    "MP5": 0.04,
+    "Bonus Weapon Damage": 0.88,
+    "Ranged DPS": 3.47,
+    "1% Ranged Hit": 12.88,
+    "1% Ranged Crit": 9.94
+  }
+}
