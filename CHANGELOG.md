@@ -1,6 +1,7 @@
 # jsal.ui 0.3.47
 
 - **Training planner: each trap once.** Explosive Trap was listed twice at 34, 44 and 54, and Immolation Trap twice from 26 on, at two prices: the planner had the trap's effect, which the game names the same, and then the trap a trainer sells as something extra. It now has the trap the trainer sells, once. A priest's Touch of Weakness had the same mix-up, without showing twice.
+- **Training planner: rank-ups show from the moment you log in.** Until the game had loaded a spell, the planner couldn't tell its rank, and took a new rank of a spell you know as one you'd learned: a hunter's road left out Disengage 2 and Serpent Sting 5 at 34 until a /reload. Each spell's rank now comes with the addon.
 - **Training planner: a spell's full price.** Where two trainers you visited charged differently for one spell (one at a better standing with its faction), the planner used whichever it read last. It now uses the higher, full price, as the prices that come with the addon do.
 - **Gear plan: "Currently equipped" over what you wear.** The first column's heading read "Slot, and what you wear" and ran into the next one. It's shorter now, and held to its own column.
 

@@ -12,7 +12,13 @@ ns.Training = Training
 
 Training.SOON = 2   -- levels ahead that count as "coming soon"
 
-local function Rank(spellID)
+-- A spell's rank as the game words it ("Rank 5"), nil for none. The rank
+-- that ships with the spell list comes first: the game's rank text is empty
+-- until it has loaded that spell, and a spell read as having no rank looked
+-- known to anyone with a lower rank (Serpent Sting 5 and Disengage 2 were
+-- missing from a hunter's road until a /reload, 15 Nov 2026).
+local function Rank(spellID, shipped)
+    if shipped then return shipped > 0 and ("Rank " .. shipped) or nil end
     local text = C_Spell and C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(spellID)
     if not text and GetSpellSubtext then text = GetSpellSubtext(spellID) end
     return text and text ~= "" and text or nil
@@ -253,7 +259,7 @@ function Training.Read()
         if via == "trainer" then via = nil end
         if name and ForMyRace(race) and not Untaken(id, name)
             and (not prices.haveTrainer or prices.listed[id] or shown or IsPlayerSpell(id)) then
-            local rank = Rank(id)
+            local rank = Rank(id, entry[5])
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
                 cost = prices.bySpell[id] or prices.byName[name .. "|" .. (rank or "")],
@@ -306,7 +312,7 @@ function Training.Read()
             local id, level = entry[1], entry[2]
             local name, icon = Compat.SpellInfo(id)
             if name then
-                local rank = Rank(id)
+                local rank = Rank(id, entry[3])
                 data.spells[#data.spells + 1] = {
                     id = id, level = level, name = name, icon = icon, rank = rank,
                     cost = grimoires[name .. "|" .. (rank and rank:match("%d+") or "")],

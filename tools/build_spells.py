@@ -296,7 +296,8 @@ def main():
 
     lines = [
         "-- Every class's trainer spells, rank by rank, with the level each needs, its",
-        "-- spell school and, for a race-only spell, the races' bits (0 for all);",
+        "-- spell school, for a race-only spell the races' bits (0 for all), and its",
+        "-- rank (0 for none: the game's rank text is empty until it loads a spell);",
         "-- the later ranks of a talent's ability (`talent`: the rank's spell, then",
         "-- the talent's own), which a trainer sells only to someone with the talent;",
         f"-- and the weapon skills each class can learn. From the game's",
@@ -359,7 +360,7 @@ def main():
         lines.append(f"        schools = {{ {school_names} }},")
         lines.append("        spells = {")
         for level, spell, school, race in spells:
-            lines.append(f"            {{ {spell}, {level}, {school}, {race} }},")
+            lines.append(f"            {{ {spell}, {level}, {school}, {race}, {RankNumber(ranks, spell)} }},")
         lines.append("        },")
         lines.append(f"        weapons = {{ {', '.join(str(w) for w in weapon_spells)} }},")
         if talent_ranks:
@@ -375,7 +376,7 @@ def main():
                 if taught:
                     demon = skills[line_id]["DisplayName_lang"].replace("Pet - ", "")
                     lines.append(f'            {{ name = "{demon}", spells = {{ ' +
-                                 ", ".join(f"{{ {s}, {l} }}" for l, s in taught) + " } },")
+                                 ", ".join(f"{{ {s}, {l}, {RankNumber(ranks, s)} }}" for l, s in taught) + " } },")
             lines.append("        },")
         # A hunter's Beast Training: every pet ability and rank. Most come from
         # taming, so only those a pet trainer lists are shown; this names them.
