@@ -220,8 +220,16 @@ Gear.PER_PERCENT = PER_PERCENT
 -- kept, 15 Nov 2026). Nothing changes a stats table once it's made. Stats by
 -- link (what you wear, which can carry a random suffix) are asked for each time.
 local statsOf, statsLevel = {}, nil
+-- Items asked of the game that haven't arrived: not asked again until
+-- GET_ITEM_INFO_RECEIVED says they're in. Each pass asked again for every
+-- one still loading, and each arrival brings another pass (the page repaints
+-- for them): "working out upgrades" ran 21 times, up to 61 ms (15 Nov 2026).
+local loading = {}
+function Gear.Arrived(id)
+    if id then loading[id] = nil end
+end
 local function Stats(item)
-    if type(item) == "number" and statsOf[item] then return statsOf[item] end
+    if type(item) == "number" and (statsOf[item] or loading[item]) then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
@@ -234,7 +242,11 @@ local function Stats(item)
         if type(item) == "number" then statsOf[item] = out end
         return out
     end
-    if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(item) end
+    if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
+        -- Only while the module runs: its event is what clears the mark.
+        if Gear.running then loading[item] = true end
+        C_Item.RequestLoadItemDataByID(item)
+    end
     return nil
 end
 Gear.Stats = Stats

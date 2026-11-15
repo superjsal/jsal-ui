@@ -255,6 +255,8 @@ local function OnEvent(_, event, a)
         end
     elseif event == "START_LOOT_ROLL" then
         Gear.Dropped(GetLootRollItemLink and GetLootRollItemLink(a))
+    elseif event == "GET_ITEM_INFO_RECEIVED" then
+        Gear.Arrived(a)
     elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
         -- A moment later, so the items' names have loaded.
         ns.Compat.After(3, function() xpcall(Gear.Entered, ns.Report) end)
@@ -266,7 +268,7 @@ local events
 function Gear.StartStars(module)
     events = events or CreateFrame("Frame")
     for _, event in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "LOOT_OPENED", "START_LOOT_ROLL",
-                             "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA" }) do
+                             "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "GET_ITEM_INFO_RECEIVED" }) do
         pcall(events.RegisterEvent, events, event)
     end
     events:SetScript("OnEvent", ns.Safe(module, OnEvent))
