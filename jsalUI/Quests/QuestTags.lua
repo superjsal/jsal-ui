@@ -46,6 +46,11 @@ function QuestTags.Info(questID)
         return nil
     end
     local info = { drops = {} }
+    -- "#xp@level" at the end: the full XP it pays and the quest's level.
+    local body, xp, level = line:match("^(.-)#(%d+)@(%d+)$")
+    if body then
+        line, info.xp, info.level = body, tonumber(xp), tonumber(level)
+    end
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
@@ -107,12 +112,8 @@ local function Named(text)
     return text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text
 end
 
--- The item's drop chance, and where it's from: "own" (your own loot, from the drop log, once it has
--- enough), "e", "w", "o" (see Info) or false (pfQuest's).
-local function Chance(info, name, questID)
-    local log = ns.LootLog
-    local mine = log and log.Chance and log.Chance(questID, name)
-    if mine then return mine, "own" end
+-- The shipped chance for an item, and where it's from: "e", "w", "o" (see Info) or false (pfQuest's).
+local function Shipped(info, name)
     if not info then return nil end
     local found = info.drops[name] and name
     if not found then
@@ -122,6 +123,23 @@ local function Chance(info, name, questID)
         end
     end
     if found then return info.drops[found], info.wowhead and info.wowhead[found] or false end
+end
+
+-- The item's drop chance and where it's from, then how many of your own loots are in it and the
+-- shipped source they were blended with. With the Drop log on, your own loot is blended with the
+-- shipped chance from your first find ("own" with a base), or, with nothing shipped, used alone once
+-- it has enough ("own" with no base); otherwise the shipped chance.
+local function Chance(info, name, questID)
+    local shipped, mark = Shipped(info, name)
+    local log = ns.LootLog
+    if log and log.Blended then
+        local blended, loots = log.Blended(name, shipped)
+        if blended then return blended, "own", loots, shipped and (mark or "classic") or nil end
+    elseif log and log.Chance then
+        local mine, loots = log.Chance(questID, name)
+        if mine then return mine, "own", loots end
+    end
+    return shipped, mark
 end
 
 -- Objective by objective, what's left: { name, left, chance (nil for a kill), kills (nil when
@@ -139,7 +157,7 @@ function QuestTags.Work(questID)
                 row.name = name:gsub("%s+slain$", "")
                 row.kills = left
             else
-                row.chance, row.wowhead = Chance(info, name, questID)
+                row.chance, row.wowhead, row.loots, row.base = Chance(info, name, questID)
                 if row.chance then row.kills = QuestTags.Kills(left, row.chance) end
             end
             if row.kills then total = total + row.kills else unknown = unknown or name end
@@ -202,13 +220,17 @@ local SOURCE_WORDS = {
 local SOURCE_ORDER = { "own", "e", "w", "o", "classic" }
 
 local function Sources(rows)
-    local seen = {}
+    local seen, loots = {}, 0
     for _, r in ipairs(rows) do
         if r.chance then seen[r.wowhead or "classic"] = true end
+        -- Your own loot blended with a shipped chance: both are named.
+        if r.base then seen[r.base] = true end
+        if r.wowhead == "own" then loots = math.max(loots, r.loots or 0) end
     end
+    local own = loots > 1 and ("your own " .. loots .. " loots") or SOURCE_WORDS.own
     local words, said = {}, {}
     for _, key in ipairs(SOURCE_ORDER) do
-        local word = seen[key] and SOURCE_WORDS[key]
+        local word = seen[key] and (key == "own" and own or SOURCE_WORDS[key])
         if word and not said[word] then
             words[#words + 1] = word
             said[word] = true
@@ -224,6 +246,44 @@ local function Rgb(key) local r, g, b = Style.Color(key); return r, g, b end
 local function Add(tip, text, key)
     local r, g, b = Style.Color(key)
     tip:AddLine(text, r, g, b, true)
+end
+
+-- What a quest pays you, and how many levels above it you are. In your log it's the game's own
+-- figure for you (GetQuestLogRewardXP), when that agrees roughly with the quest's own; otherwise the
+-- quest's full XP less Forever's cut for quests below you, read from players' turn-ins: full up to 5
+-- levels above the quest, 80% at 6, 60% at 7, and half from 8 on (Classic's went down to a tenth).
+local CUT = { [6] = 0.8, [7] = 0.6 }
+
+function QuestTags.XP(questID)
+    local info = QuestTags.Info(questID)
+    local gap = (info and info.level) and ((UnitLevel("player") or 0) - info.level) or 0
+    local guess = info and info.xp and math.floor(info.xp * (gap <= 5 and 1 or CUT[gap] or 0.5) + 0.5)
+    if GetQuestLogRewardXP and C_QuestLog.IsOnQuest(questID) then
+        local ok, game = pcall(GetQuestLogRewardXP, questID)
+        if ok and type(game) == "number" and game > 0 and (not guess or (game >= guess / 2 and game <= guess * 2)) then
+            return game, gap
+        end
+    end
+    return guess, gap
+end
+
+-- 12345 as "12,345".
+local function Thousands(n)
+    local text, k = tostring(n), 1
+    while k > 0 do text, k = text:gsub("^(%d+)(%d%d%d)", "%1,%2") end
+    return text
+end
+
+-- "Pays 2,550 XP: about 215 XP a minute", or nil when what it pays isn't known.
+function QuestTags.PaysLine(questID, minutes)
+    local xp, gap = QuestTags.XP(questID)
+    if not xp then return nil end
+    local text = ("Pays %s XP"):format(Thousands(xp))
+    if minutes and minutes > 0 then
+        text = text .. (": about %s XP a minute"):format(Thousands(math.floor(xp / math.max(minutes, 1) + 0.5)))
+    end
+    if gap > 5 then text = text .. (" (less: you're %d levels above it)"):format(gap) end
+    return text
 end
 
 function QuestTags.ShowCard(owner, questID)
@@ -251,6 +311,8 @@ function QuestTags.ShowCard(owner, questID)
             opens and "kills and openings" or (count == 1 and "kill" or "kills"), math.floor(seconds + 0.5),
             fights < GUESS and " (a guess until you've had a few fights)" or ""), "muted")
     end
+    local pays = QuestTags.PaysLine(questID, not unknown and total > 0 and minutes or nil)
+    if pays then Add(tip, pays, "gold") end
     for _, r in ipairs(rows) do
         local lr, lg, lb = Rgb("secondary")
         local rr, rg, rb = Rgb("muted")

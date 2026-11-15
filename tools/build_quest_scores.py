@@ -94,6 +94,9 @@ def fetch_eglink(folder):
             items = [o["objectId"] for o in q.get("objectives", []) if o.get("type") == "item" and o.get("objectId")]
             if items:
                 entry["items"] = items
+            rewards = q.get("rewards") or {}
+            if rewards.get("xpDifficulty") is not None:
+                entry["xp"] = [rewards["xpDifficulty"], rewards.get("xpMultiplier", 1)]
             out[qid] = entry
     EGLINK.write_text(json.dumps({"source": "EG Link output: World of Warcraft: Forever (Efficient Games, CC BY 4.0)",
                                   "revision": EGLINK_REVISION, "builds": sorted(b for b, _ in files),
@@ -230,9 +233,32 @@ def merged():
     return quests
 
 
+QUESTXP = ROOT / "data" / "quests" / "QuestXP.csv"   # the game's own table, build 1.60.1.70938, from wago.tools
+
+
+def full_xp():
+    """Each quest's full XP, as the game's QuestXP table gives it for the quest's level and reward tier
+    (EG Link's quest records): it matched 1,613 of 1,846 turn-ins players recorded within 5 levels of
+    the quest; the rest were a few percent higher, from bonuses. {quest id: (xp, quest level)}."""
+    if not (EGLINK.exists() and QUESTXP.exists()):
+        return {}
+    import csv
+    table = {int(r["ID"]): r for r in csv.DictReader(QUESTXP.open(encoding="utf-8"))}
+    out = {}
+    for qid, q in json.loads(EGLINK.read_text(encoding="utf-8"))["quests"].items():
+        level, xp = q.get("level"), q.get("xp")
+        row = table.get(level) if isinstance(level, int) else None
+        if row and xp:
+            amount = round(int(row["Difficulty_%d" % xp[0]]) * (xp[1] or 1))
+            if amount > 0:
+                out[qid] = (amount, level)
+    return out
+
+
 def build():
     quests = merged()
     place = chains(quests)
+    paid = full_xp()
     lines = []
     for qid in sorted(quests, key=int):
         drops = quests[qid].get("drops", {})
@@ -241,6 +267,8 @@ def build():
         text = ("%d,%d" % place[qid]) if qid in place else ""
         text += "".join(";%s=%s" % (name, chance if isinstance(chance, str) else ("%g" % chance))
                         for name, chance in sorted(drops.items()))
+        if qid in paid:
+            text += "#%d@%d" % paid[qid]
         lines.append('[%s]="%s",' % (qid, text.replace("\\", "\\\\").replace('"', '\\"')))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     head = [
@@ -250,7 +278,8 @@ def build():
         "-- Forever (data from Efficient Games, https://efficient.games, CC BY 4.0); their drop chances from",
         "-- Wowhead Forever. Each quest: \"k,n;Item=chance;...\", its place in its chain (empty when it",
         "-- stands alone) and the best drop chance, in percent, of each item it asks for (\"w\": Wowhead's",
-        "-- from creatures, \"o\": Wowhead's from objects opened).",
+        "-- from creatures, \"o\": Wowhead's from objects opened). Then \"#xp@level\": the full XP it pays and",
+        "-- its level, from the game's QuestXP table (data/quests/QuestXP.csv) and EG Link's reward tiers.",
         "local _, ns = ...",
         "ns.QuestScoreData = {",
     ]
