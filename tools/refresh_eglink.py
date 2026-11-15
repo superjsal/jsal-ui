@@ -8,7 +8,9 @@ Downloads them into a temporary folder (read as data, never run), updates data/q
 data/quests/eglink-drops.json, data/trainers/eglink-trainers.json and data/vendors/eglink-vendors.json,
 and rebuilds
 jsalUI/Quests/QuestScoreData.lua; then runs tools/build_spells.py and tools/build_trainers.py, which read
-the trainers file (Training/SpellData.lua's prices, TrainerData.lua's weapon masters and pet trainers).
+the trainers file (Training/SpellData.lua's prices, TrainerData.lua's weapon masters and pet trainers),
+and tools/build_professions.py, which reads the vendors file (ProfessionData.lua's sellers and shops,
+for the shopping list's "who sells it").
 
 Run: python -I tools/refresh_eglink.py
 Then run the tests and compare the counts it prints with the last time's.
@@ -146,6 +148,12 @@ def main():
     game = re.search(r"own spell tables \(build ([\d.]+)\)", spells)
     for tool, args in (("build_spells.py", [game.group(1)] if game else []), ("build_trainers.py", [])):
         subprocess.run([sys.executable, "-I", str(ROOT / "tools" / tool)] + args, check=True)
+    # The shopping list's vendors come from the vendors file: rebuild the profession data, for the same
+    # game build its header names.
+    recipes = (ROOT / "jsalUI" / "Professions" / "ProfessionData.lua").read_text(encoding="utf-8")
+    game = re.search(r"own tables \(build ([\d.]+)\)", recipes)
+    subprocess.run([sys.executable, "-I", str(ROOT / "tools" / "build_professions.py")] + ([game.group(1)] if game else []),
+                   check=True)
 
 
 if __name__ == "__main__":
