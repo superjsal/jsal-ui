@@ -1,4 +1,8 @@
-# jsal.ui 0.3.46
+# jsal.ui 0.3.47
+
+- **Gear plan: "Currently equipped" over what you wear.** The first column's heading read "Slot, and what you wear" and ran into the next one. It's shorter now, and held to its own column.
+
+## In 0.3.46
 
 - **Gear plan: hunters, mages and warlocks weigh stats by Forever's own simulator.** WoWSims' Forever simulator ships no weights for them, so they used its Classic ones, and a hunter's 1% crit counted as about two Agility where it's worth about twelve. They're now what its own Stat Weights tool works out on its own talents and gear, one set for each mage and warlock tree, where the three trees shared one. A hunter's crit and hit now count like every other class's, and an item's Attack Power counts as ranged attack power for a hunter.
 - **Gear plan: Holy paladins, Restoration shamans and Restoration druids weigh stats like Forever's healers.** WoWSims' Forever simulator can't simulate a healer, and the Classic numbers they used were placeholders that gave mana every 5 seconds nothing. They now use its one healer set made for Forever, the healing priest's: healing first, then Intellect and Spirit, with mana every 5 seconds counting.

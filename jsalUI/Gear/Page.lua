@@ -264,10 +264,17 @@ Window.Page("gear", function(page)
 
     local top = 68
     -- Over the slots, a name for each column: without them the green numbers
-    -- beside a slot with nothing in it read as that slot's own stats.
+    -- beside a slot with nothing in it read as that slot's own stats. The
+    -- slot's own name needs no heading.
     local wearing = Style.Text(page, 10, "muted", nil, true)
     wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 6 + ICON + 8, -(top - 18))
-    wearing:SetText("SLOT, AND WHAT YOU WEAR")
+    -- Its column ends where the best upgrade's begins: the longer "SLOT, AND WHAT YOU WEAR" ran
+    -- into the next heading (John's screenshot, 15 Nov 2026: "not aligned correctly... the slot
+    -- is obvious"). It's held to its column, on one line.
+    wearing:SetWidth(UP_X - (6 + ICON + 8) - 10)
+    wearing:SetJustifyH("LEFT")
+    wearing:SetWordWrap(false)
+    wearing:SetText("CURRENTLY EQUIPPED")
     local bestHead = Style.Text(page, 10, "muted", nil, true)
     bestHead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", UP_X, -(top - 18))
     bestHead:SetText("BEST UPGRADE NEAR YOUR LEVEL")
