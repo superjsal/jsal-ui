@@ -6,11 +6,18 @@
 -- it would be opt in most likely": his own quest tags and the data shipped to the guild, and
 -- quest items only.)
 --
--- A loot counts when a corpse's window opens while a quest in your log still needs an item: the
--- creature is the dead one you have targeted, as Forever has no way to ask a loot window where it
--- came from. Each quest item still wanted is then one try for that creature, and one find if it's
--- in the window. Quest items only drop while a quest needs them, so nothing is counted for an
--- item once its objective is done. A corpse counts once, however often its window is opened.
+-- A loot counts when a corpse's window opens while a quest in your log still needs an item. Each
+-- quest item still wanted is then one try for that creature, and one find if the corpse had it.
+-- Quest items only drop while a quest needs them, so nothing is counted for an item once its
+-- objective is done. A corpse counts once, however often its window is opened.
+--
+-- Which corpse: the game says where each thing in the window came from (GetLootSourceInfo), so
+-- a window opened for several corpses counts each of them, with what that one had. Forever's own
+-- code never calls that function and the first version took it to be missing, counting the dead
+-- creature targeted and so one loot for a window of several; John's game has it (his
+-- /run print(GetLootSourceInfo): "function: ...", 14 Nov 2026). The targeted way is kept for
+-- when the game gives no source. A corpse's creature is known by the number in its ID; its name
+-- comes from your target when that's the corpse, and is remembered for the others of its kind.
 --
 -- An item's chance is its finds over its tries, among the creatures that have had it at least
 -- once: a creature that has never had it for you is taken not to drop it. That leans a little
@@ -134,16 +141,91 @@ local function Corpse()
     return Compat.Name("target"), Compat.GUID("target")
 end
 
+-- Whether a corpse has been counted; if not, it is now. Each corpse once, however often its
+-- window is opened.
+local function Already(guid)
+    if counted[guid] then return true end
+    counted[guid] = true
+    order[#order + 1] = guid
+    if #order > CORPSES then counted[table.remove(order, 1)] = nil end
+    return false
+end
+
+-- The kind of creature a corpse is, from its ID: "Creature-0-4444-0-12-3955-00001A2B3C" is
+-- creature 3955. Nil for a chest, an item or a player.
+local function Kind(guid)
+    return type(guid) == "string" and tonumber(guid:match("^Creature%-.-%-.-%-.-%-.-%-(%d+)%-")) or nil
+end
+LootLog.Kind = Kind
+
+-- What a kind of creature is called in the log: its name once it's been learned, till then
+-- "creature 3955". Learning a name moves what was counted under the number to the name.
+local function Called(kind, name)
+    local log = Log()
+    log.names = type(log.names) == "table" and log.names or {}
+    local numbered = "creature " .. kind
+    if name and log.names[kind] ~= name then
+        log.names[kind] = name
+        local was = log.creatures[numbered]
+        if type(was) == "table" then
+            local c = log.creatures[name]
+            if type(c) ~= "table" then
+                log.creatures[name] = was
+            else
+                c.n = (tonumber(c.n) or 0) + (tonumber(was.n) or 0)
+                for _, field in ipairs({ "tries", "finds" }) do
+                    c[field] = type(c[field]) == "table" and c[field] or {}
+                    for item, n in pairs(type(was[field]) == "table" and was[field] or {}) do
+                        c[field][item] = (c[field][item] or 0) + n
+                    end
+                end
+            end
+            log.creatures[numbered] = nil
+        end
+    end
+    return log.names[kind] or numbered
+end
+
+-- The window's things by the corpse each came from: { [corpse's ID] = { [lower-case item name]
+-- = item ID or true } }, creatures only. Nil when the game gives no source for anything in it.
+local function BySource()
+    if not GetLootSourceInfo then return nil end
+    local by, any = {}, false
+    for slot = 1, (Compat.Plain(GetNumLootItems()) or 0) do
+        local link = Compat.Plain(GetLootSlotLink(slot))
+        local name = type(link) == "string" and link:match("%[(.-)%]")
+        -- Its sources come in pairs: a corpse's ID, and how many of the thing it had.
+        local sources = { GetLootSourceInfo(slot) }
+        for i = 1, #sources, 2 do
+            local guid = Compat.Plain(sources[i])
+            if Kind(guid) then
+                any = true
+                by[guid] = by[guid] or {}
+                if name then by[guid][name:lower()] = tonumber(link:match("item:(%d+)")) or true end
+            end
+        end
+    end
+    return any and by or nil
+end
+
 local function Opened()
+    if IsFishingLoot and Compat.Plain(IsFishingLoot()) then return end
+    local by = BySource()
+    if by then
+        -- Each corpse in the window is a loot of its creature, with what that corpse had.
+        local wanted = LootLog.Wanted()
+        local targetName, targetGUID = Compat.Name("target"), Compat.GUID("target")
+        for guid, found in pairs(by) do
+            if not Already(guid) and next(wanted) then
+                LootLog.Count(Called(Kind(guid), guid == targetGUID and targetName or nil), wanted, found)
+            end
+        end
+        return
+    end
+    -- No source given: the dead creature targeted, as one loot.
     local creature, guid = Corpse()
     if not creature then return end
-    -- Each corpse once, however often its window is opened.
-    if guid then
-        if counted[guid] then return end
-        counted[guid] = true
-        order[#order + 1] = guid
-        if #order > CORPSES then counted[table.remove(order, 1)] = nil end
-    end
+    if guid and Already(guid) then return end
     local wanted = LootLog.Wanted()
     if not next(wanted) then return end
     local found = {}
