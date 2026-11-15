@@ -36,6 +36,16 @@ end
 -- it lists are pet abilities.
 local KINDS = { available = true, unavailable = true, used = true }
 
+-- A trainer charges less the better your standing with its faction, so two
+-- visits can price one spell differently: the higher is the full price, as
+-- in the prices that ship (one visit's 99 silver for Explosive Trap, where
+-- the rest saw 1 gold 10, 15 Nov 2026).
+local function Highest(was, cost)
+    if was == nil then return cost end
+    if cost == nil then return was end
+    return math.max(was, cost)
+end
+
 local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, petToBeast, beastByName)
     local prices = { bySpell = {}, byName = {}, listed = {}, extra = {}, haveTrainer = false, weapons = {}, weaponAt = {}, pet = {} }
     local trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
@@ -98,13 +108,14 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                 prices.haveTrainer = true
                 for _, row in ipairs(rows) do
                     if row.spell then
-                        prices.bySpell[row.spell] = row.cost
+                        prices.bySpell[row.spell] = Highest(prices.bySpell[row.spell], row.cost)
                         prices.listed[row.spell] = true
                         -- Taught here but not in the class's spell list
                         -- (Parry, Plate Mail, poisons...).
                         if not classSpells[row.spell] then prices.extra[row.spell] = row.level end
                     end
-                    prices.byName[(row.name or "") .. "|" .. (row.rank or "")] = row.cost
+                    local key = (row.name or "") .. "|" .. (row.rank or "")
+                    prices.byName[key] = Highest(prices.byName[key], row.cost)
                 end
             else
                 for _, row in ipairs(rows) do

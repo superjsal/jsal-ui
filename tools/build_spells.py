@@ -312,7 +312,9 @@ def main():
         school_ids = sorted(set(schools[class_id]))
         class_bit = 1 << (class_id - 1)
         # One spell per name and rank: where two share both (a trap and its
-        # effect, say), the lower ID is the one taught.
+        # effect), the one a trainer was seen selling, else the lower ID. The
+        # lower ID alone kept Explosive Trap's effect (13812; trainers sell
+        # 13813), and the planner listed the trap twice (15 Nov 2026).
         chosen = {}
         for index, school in enumerate(school_ids, start=1):
             for r in sorted(by_line[school], key=lambda r: int(r["Spell"])):
@@ -326,7 +328,7 @@ def main():
                 # race mask; 0 or -1 means every race.
                 race = int(r["RaceMasks_0"])
                 race = 0 if race <= 0 else race
-                if key not in chosen or spell < chosen[key][1]:
+                if key not in chosen or (spell in SOLD, -spell) > (chosen[key][1] in SOLD, -chosen[key][1]):
                     chosen[key] = (levels[spell], spell, index, race)
         spells = list(chosen.values())
         spells.sort()
