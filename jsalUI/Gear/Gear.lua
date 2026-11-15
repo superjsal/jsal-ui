@@ -480,7 +480,7 @@ end
 --
 -- It's the Gear plan's answer: better when it scores more than what you wear, however little, and
 -- then how much, as a share of what you wear's score, so the dungeon guide can say "+24% for you" and
--- a hair-thin upgrade reads as one. (John, 15 Nov 2026, pointing at Forever Leveling BiS: "lets use
+-- a hair-thin upgrade reads as one. (John, 14 Nov 2026, pointing at Forever Leveling BiS: "lets use
 -- the formula this uses".) Before, it had to be a quarter of the best upgrade you could get, which
 -- hid a feral druid's Swine Fists, 22% over his gloves; before that, any gain, which called a
 -- hunter's Strength legs "better" with nothing to say by how little (14 Nov).
@@ -609,7 +609,7 @@ function Gear.Plan(slot, spec, only)
         end
     end
     -- Any piece that scores more than what you wear is an upgrade, however little; its gain says how
-    -- much ("+24% for you"), so a hair-thin one reads as one. (John, 15 Nov 2026, pointing at Forever
+    -- much ("+24% for you"), so a hair-thin one reads as one. (John, 14 Nov 2026, pointing at Forever
     -- Leveling BiS: "lets use the formula this uses". The rule before, a quarter of the best upgrade
     -- there is, hid real ones whenever a far bigger one existed: a feral druid's Swine Fists, 22% over
     -- his gloves, was "nothing here is better" in Razorfen Downs.)

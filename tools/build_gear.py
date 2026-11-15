@@ -11,6 +11,14 @@ LICENSE beside them): each spec's "epWeights", what one point of each stat is wo
 for level 60, where Stamina counts for little; for leveling, every spec's Stamina is raised to at
 least STAMINA_FLOOR, so a piece with more of it ranks a little higher.
 
+Checked against what the game makes of each stat (14 Nov 2026, WoWSims' latest, unchanged since
+March 2025), two are put right in checked():
+- A hunter's Agility is 2 ranged attack power a point, and 1% crit for 53 of it at 60, so it's worth
+  at least 2 RAP plus that much crit, by WoWSims' own RAP and crit weights. Theirs, 0.64, is under a
+  third of that, and made 14 Stamina with 6 Strength beat 6 Agility for a hunter.
+- The healing sims weigh spell power, which in WoWSims is damage and healing. An item of "+Healing"
+  (healing only) is its own stat in the game, and they gave it nothing: it gets spell power's weight.
+
 Run: python -I tools/build_gear.py
 """
 
@@ -23,6 +31,9 @@ SRC = ROOT / "data" / "gear"
 OUT = ROOT / "jsalUI" / "Gear" / "GearData.lua"
 
 STAMINA_FLOOR = 0.2
+
+HEALERS = ("holy_paladin", "healing_priest", "restoration_shaman", "restoration_druid")
+HUNTER_AGILITY_PER_CRIT = 53  # Agility for 1% crit, a hunter at 60
 
 # Each class's talent trees, in the game's order, to the WoWSims spec that fits.
 SPECS = {
@@ -94,7 +105,17 @@ def weights(spec):
         elif name in DPS_KEYS:
             dps[DPS_KEYS[name]] = v
     out["ITEM_MOD_STAMINA_SHORT"] = max(out.get("ITEM_MOD_STAMINA_SHORT", 0), STAMINA_FLOOR)
+    checked(spec, out)
     return out, dps
+
+
+def checked(spec, out):
+    """Puts right what WoWSims' weights get wrong by the game's own stat rules (see the top)."""
+    if spec == "hunter":
+        agility = 2 * out["ITEM_MOD_RANGED_ATTACK_POWER_SHORT"] + out["ITEM_MOD_CRIT_RATING_SHORT"] / HUNTER_AGILITY_PER_CRIT
+        out["ITEM_MOD_AGILITY_SHORT"] = max(out["ITEM_MOD_AGILITY_SHORT"], round(agility, 2))
+    if spec in HEALERS:
+        out.setdefault("ITEM_MOD_SPELL_HEALING_DONE_SHORT", out["ITEM_MOD_SPELL_POWER_SHORT"])
 
 
 def where(item, zones):
