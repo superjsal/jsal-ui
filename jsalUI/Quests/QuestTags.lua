@@ -197,7 +197,7 @@ local SOURCE_WORDS = {
     e = "players on the quest (EG Link)",
     w = "what Wowhead Forever has seen drop",
     o = "what Wowhead Forever has seen drop",
-    classic = "pfQuest (Classic's, so a few may differ on Forever)",
+    classic = "pfQuest (Classic's: on Forever many drop less)",
 }
 local SOURCE_ORDER = { "own", "e", "w", "o", "classic" }
 

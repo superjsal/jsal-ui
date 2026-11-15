@@ -165,6 +165,8 @@ it can be trusted: Wowhead counts every kill, with the quest or without, so Ghou
 against 80% on the quest. A creature's rate is used only when at least half its kills dropped the item (a
 named target everyone kills for the quest); an object's rate per opening is used as it is. In game, the
 Drop log's own counts win once an item has 10 loots.
+EG Link's counts grow every day: `python -I tools\refresh_eglink.py` reads its latest quests and loot and
+rebuilds the data in one go (monthly; a reminder lands on John's to-do list on the 21st).
 
 ## Daily Word's words
 
