@@ -64,18 +64,25 @@ window.__dungeons = { done: false, log: [], err: null, unmatched: [] };
           await wait(8000);
           for (const d of grab(u, 'drops') || []) {
             if ((d.quality || 0) < 2) continue;
-            const o = items[d.id] || [0, 0];
+            const o = items[d.id] || [0, 0, d.quality];
             o[0] += d.count || 0; o[1] += d.outof || 0;
             items[d.id] = o;
           }
         }
-        // Kept: dropped in at least 2% of 10 or more kills, or named on the zone's Drops tab
-        // (one of those seen in under 1% of kills is written as 1, never 0).
+        // Kept: a rare or better item dropped in at least 2% of 10 or more kills, or named on
+        // the zone's Drops tab (one of those seen in under 1% of kills is written as 1, never 0);
+        // an uncommon item dropped in at least 5%, or named there with too few kills to count.
+        // Under 5%, an uncommon drop is one of the pool of random greens every level-60 boss
+        // has: Wowhead shows Classic Era's kill counts for the old bosses, and by them Gahz'ranka
+        // "drops" 52 such greens at 2 to 4% each, Nefarian 50.
         const zoneNamed = new Set(want.flatMap(w => [...(named[w] || [])]));
         const out = [];
-        for (const [id, [count, outof]] of Object.entries(items)) {
+        for (const [id, [count, outof, quality]] of Object.entries(items)) {
           const pct = outof >= 10 ? Math.max(count > 0 ? 1 : 0, Math.round(count / outof * 100)) : null;
-          if ((pct !== null && pct >= 2) || zoneNamed.has(+id)) out.push([+id, pct]);
+          const keep = pct === null ? zoneNamed.has(+id)
+            : quality > 2 ? pct >= 2 || zoneNamed.has(+id)
+            : pct >= 5;
+          if (keep) out.push([+id, pct]);
         }
         Z.loot[boss] = out;
         save();

@@ -42,6 +42,9 @@ ALIAS = {
     "Deathless Guardians": ["Deathless Marrow"],
     "Handler Ashka": ["War Handler Ashka"],
     "Overseer Mugg": ["Overlord Mugg"],
+    # Scholomance: the game's encounters shorten or misspell two of Wowhead's NPC names.
+    "Kirtonos": ["Kirtonos", "Kirtonos the Herald"],
+    "Ras Frostwhisperer": ["Ras Frostwhisperer", "Ras Frostwhisper"],
 }
 
 # Bosses their zone's page doesn't list among its NPCs (Krol'dok Stronghold's page has three
@@ -57,6 +60,8 @@ NPC_ID = {
     "Titanosaur": [253201], "Thunderhoof": [261812],
     "Venomridge": [261813], "Direhorn Matriarch": [262127], "Cinder": [261974], "King Op": [261993],
     "Snowtalon": [262297], "Bolt": [262081], "Vitrix": [272561], "Nanaya": [261809],
+    # Onyxia's Lair's zone page (2159) lists no NPCs, quests or drops on Wowhead Forever.
+    "Onyxia": [10184],
 }
 
 data = json.loads((ROOT / "data" / "dungeons" / "wowhead.json").read_text(encoding="utf-8"))

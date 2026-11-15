@@ -3380,6 +3380,12 @@
     73.8
    ]
   },
+  "5383": {
+   "n": "Krastinov's Bag of Horrors",
+   "prev": null,
+   "s": null,
+   "z": null
+  },
   "5384": {
    "n": "Kirtonos the Herald",
    "prev": 5515,
@@ -4641,6 +4647,21 @@
    "s": null,
    "z": null
   },
+  "7509": {
+   "n": "The Forging of Quel'Serrar",
+   "prev": 7508,
+   "s": [
+    "npc",
+    14368,
+    "Lorekeeper Lydros"
+   ],
+   "z": [
+    2557,
+    "Dire Maul",
+    0,
+    0
+   ]
+  },
   "7581": {
    "n": "The Prison's Bindings",
    "prev": null,
@@ -4941,6 +4962,21 @@
     14.4
    ]
   },
+  "8042": {
+   "n": "Strength of Mount Mugamba",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
   "8044": {
    "n": "The Rage of Mugamba",
    "prev": null,
@@ -4971,6 +5007,21 @@
     14.4
    ]
   },
+  "8046": {
+   "n": "The Heathen's Brand",
+   "prev": null,
+   "s": [
+    "npc",
+    14902,
+    "Jin'rokh the Breaker"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    14.4
+   ]
+  },
   "8048": {
    "n": "The Hero's Brand",
    "prev": null,
@@ -4987,6 +5038,21 @@
    ]
   },
   "8049": {
+   "n": "The Eye of Zuldazar",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8050": {
    "n": "The Eye of Zuldazar",
    "prev": null,
    "s": [
@@ -5436,6 +5502,21 @@
     16
    ]
   },
+  "8102": {
+   "n": "The Pebble of Kajaro",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
   "8104": {
    "n": "The Jewel of Kajaro",
    "prev": null,
@@ -5452,6 +5533,21 @@
    ]
   },
   "8106": {
+   "n": "Kezan's Taint",
+   "prev": null,
+   "s": [
+    "npc",
+    14903,
+    "Al'tabim the All-Seeing"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8107": {
    "n": "Kezan's Taint",
    "prev": null,
    "s": [
@@ -5496,6 +5592,21 @@
     16
    ]
   },
+  "8111": {
+   "n": "Enchanted South Seas Kelp",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
   "8113": {
    "n": "Pristine Enchanted South Seas Kelp",
    "prev": null,
@@ -5512,6 +5623,21 @@
    ]
   },
   "8116": {
+   "n": "Vision of Voodress",
+   "prev": null,
+   "s": [
+    "npc",
+    14904,
+    "Maywiki of Zuldazar"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    15.2,
+    16
+   ]
+  },
+  "8117": {
    "n": "Vision of Voodress",
    "prev": null,
    "s": [
@@ -5556,6 +5682,21 @@
     13.6
    ]
   },
+  "8142": {
+   "n": "Zandalarian Shadow Talisman",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
   "8144": {
    "n": "Zandalarian Shadow Mastery Talisman",
    "prev": null,
@@ -5572,6 +5713,21 @@
    ]
   },
   "8145": {
+   "n": "The Maelstrom's Tendril",
+   "prev": null,
+   "s": [
+    "npc",
+    14905,
+    "Falthir the Sightless"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    14,
+    13.6
+   ]
+  },
+  "8146": {
    "n": "The Maelstrom's Tendril",
    "prev": null,
    "s": [
@@ -6063,6 +6219,36 @@
     66
    ]
   },
+  "84318": {
+   "n": "Oi!",
+   "prev": null,
+   "s": [
+    "npc",
+    228619,
+    "Orthas"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    61.2,
+    69.2
+   ]
+  },
+  "84319": {
+   "n": "Oh No Ye Don't!",
+   "prev": 84318,
+   "s": [
+    "npc",
+    228619,
+    "Orthas"
+   ],
+   "z": [
+    139,
+    "Eastern Plaguelands",
+    61.2,
+    69.2
+   ]
+  },
   "84330": {
    "n": "A Wee Bit O' Necromancy",
    "prev": 84319,
@@ -6077,6 +6263,12 @@
     61.2,
     69.2
    ]
+  },
+  "84377": {
+   "n": "End of the Dark Horde",
+   "prev": null,
+   "s": null,
+   "z": null
   },
   "8577": {
    "n": "Stewvul, Ex-B.F.F.",
@@ -6134,6 +6326,21 @@
    "z": [
     2100,
     "Maraudon",
+    0,
+    0
+   ]
+  },
+  "8644": {
+   "n": "Stonefort the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15560,
+    "Elder Stonefort"
+   ],
+   "z": [
+    1583,
+    "Blackrock Spire",
     0,
     0
    ]
@@ -6224,6 +6431,21 @@
    "z": [
     1477,
     "The Temple of Atal'Hakkar",
+    0,
+    0
+   ]
+  },
+  "8727": {
+   "n": "Farwhisper the Elder",
+   "prev": null,
+   "s": [
+    "npc",
+    15607,
+    "Elder Farwhisper"
+   ],
+   "z": [
+    2017,
+    "Stratholme",
     0,
     0
    ]
@@ -8107,5 +8329,6 @@
    "s": null,
    "z": null
   }
- }
+ },
+ "stopped": "blocked at /forever/quest=93604"
 }
