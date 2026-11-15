@@ -376,11 +376,16 @@ end
 -- Where else an item comes from, from jsal.ui's own data: the profession
 -- that makes it, and the dungeon boss that drops it. Built once, when first
 -- asked.
-local madeBy, droppedBy
+local madeBy, droppedBy, instance
 local function OtherSources()
     -- Read once, and again only if the data it was read from is replaced.
     if madeBy and madeBy.from == ns.ProfessionData and droppedBy.from == ns.DungeonLoot then return end
     madeBy, droppedBy = { from = ns.ProfessionData }, { from = ns.DungeonLoot }
+    -- The places that are a dungeon or a raid: the dungeon guide's, and the ones Wowhead names that
+    -- the guide lists under another name or not at all.
+    instance = { ["Ahn'Qiraj"] = true, ["Ruins of Ahn'Qiraj"] = true, ["Naxxramas"] = true, ["Blackrock Spire"] = true,
+                 ["The Temple of Atal'Hakkar"] = true }
+    for _, d in ipairs(ns.DungeonData or {}) do instance[d.name] = true end
     for _, source in pairs(ns.ProfessionData or {}) do
         if type(source) == "table" and type(source.recipes) == "table" then
             for _, r in ipairs(source.recipes) do
@@ -417,6 +422,70 @@ function Gear.Source(o)
         if #bits > 0 then parts[#parts + 1] = table.concat(bits, " · ") end
     end
     return table.concat(parts, ", or ")
+end
+
+-- The kinds of source the Gear plan's filter offers, in the order its chips stand. A world drop
+-- comes from anything, anywhere; a zone drop from one creature or one zone out in the world.
+Gear.SOURCE_KINDS = {
+    { key = "dungeon", label = "Dungeon" }, { key = "quest", label = "Quest" }, { key = "vendor", label = "Vendor" },
+    { key = "crafted", label = "Crafted" }, { key = "world", label = "World drop" }, { key = "zone", label = "Zone drop" },
+    { key = "unknown", label = "Unknown" },
+}
+
+-- Which of those an item is, as a list of keys: it follows Gear.Source, so an item that's crafted
+-- and also on a boss's list is both, and "unknown" is exactly the item whose source reads "". Two
+-- more that have no chip: "bags" for a piece you hold, "added" for one you added that nothing lists.
+function Gear.SourceKinds(o)
+    if o.held then return { "bags" } end
+    OtherSources()
+    local kinds = {}
+    local crafted = o.kind == "Crafted" or madeBy[o.id] ~= nil
+    if crafted then kinds[#kinds + 1] = "crafted" end
+    if droppedBy[o.id] then
+        kinds[#kinds + 1] = "dungeon"
+    elseif not crafted then
+        local kind, place = o.kind or "", o.place or ""
+        if kind == "Quest" then
+            kinds[1] = "quest"
+        elseif kind == "Vendor" then
+            kinds[1] = "vendor"
+        elseif kind == "World drop" then
+            kinds[1] = "world"
+        elseif kind == "Added by you" then
+            kinds[1] = "added"
+        elseif place ~= "" then
+            -- A drop with a place: "Gilnid · The Deadmines", or the place alone.
+            kinds[1] = instance[place:match(" · (.*)$") or place] and "dungeon" or "zone"
+        else
+            kinds[1] = kind == "" and "unknown" or "zone"
+        end
+    end
+    return kinds
+end
+
+-- A slot's upgrades with only the kinds chosen (`on`: a set of keys; an empty one is all of them),
+-- and how many of each kind the slot has. A piece in your bags and one you added always show:
+-- they're yours already, whatever is chosen.
+function Gear.BySource(options, on)
+    local shown, counts = {}, {}
+    local any = on and next(on) ~= nil
+    for _, o in ipairs(options) do
+        local pass = not any or o.held or o.added
+        for _, kind in ipairs(Gear.SourceKinds(o)) do
+            counts[kind] = (counts[kind] or 0) + 1
+            if any and on[kind] then pass = true end
+        end
+        if pass then shown[#shown + 1] = o end
+    end
+    return shown, counts
+end
+
+-- An upgrade's share of all you wear, as the Gear plan's cards say it: "+3%", "under 1%" for a
+-- hair-thin one, nil when there's no share to say. (The dungeon guide adds "for you".)
+function Gear.ShareText(share)
+    if not share or share <= 0 then return nil end
+    local pct = math.floor(share * 100 + 0.5)
+    return pct < 1 and "under 1%" or ("+" .. pct .. "%")
 end
 
 -- Rewards of quests you've done can't be had again: an item whose one
@@ -692,9 +761,14 @@ function Gear.Plan(slot, spec, only)
         return false
     end
     local anyMain = false
+    -- How much better each is, as a share of all you wear's score: what the dungeon guide calls
+    -- "+16% for you". None for a piece that isn't better (one you added), or when nothing you wear
+    -- counts. (John, 15 Nov 2026: "we should also add the dps %N for you like dungeon guide does".)
+    local total = Gear.WornTotal(weights)
     for _, o in ipairs(options) do
         o.unknown = Gear.Source(o) == ""
         anyMain = anyMain or Main(o.stats)
+        o.share = (total > 0 and o.score > worn.score + 0.01) and (o.score - worn.score) / total or nil
     end
     -- Whether a piece with these stats is an upgrade, then its gain as a share of all you wear's
     -- score (nil when you wear nothing that counts): for a dungeon's loot, which may not be in the

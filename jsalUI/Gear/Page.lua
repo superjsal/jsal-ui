@@ -5,6 +5,7 @@
 -- columns: where each comes from, its level, what it adds, and a star to
 -- keep it on top. (John, 14 Nov 2026: "The gear planner can also have an
 -- increased screen size if that would let you give it a better layout".)
+-- Over them, a row of chips shows only the kinds of source you choose.
 -- Under them, a box adds an item the plan doesn't list, starred, in the
 -- slot it goes in. Weights, beside the spec buttons, opens the spec's stat
 -- weights to change, or to fill from a Pawn scale.
@@ -17,6 +18,7 @@ local UP_X = 220               -- in a slot's row, where its best upgrade starts
 local OPT_H, OPT_GAP = 54, 6   -- an upgrade's card, and the room between two
 local GAIN_W = 118             -- room for what an upgrade adds ("+14 AP, +3 Sta")
 local WHERE_X, LEVEL_W = 258, 36   -- on an upgrade's card: where its source starts, and the level column
+local FILTER_H = 30            -- the row of chips over the upgrades, and the room under it
 local RED = Style.Tint("red")
 
 local function ItemInfo(id)
@@ -60,6 +62,91 @@ local function IconBox(parent, size)
     box.icon:SetPoint("BOTTOMRIGHT", -1, 1)
     box.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     return box
+end
+
+-- The kinds of source chosen: none is all of them. Kept for every slot while you play; a reload
+-- starts again from everything, so a filter you forgot never hides an upgrade.
+local sourceOn = {}
+
+-- A text's width, or a guess where the game hasn't one to give.
+local function Wide(text, guess)
+    local w = text.GetStringWidth and text:GetStringWidth()
+    return (type(w) == "number" and w > 0) and w or guess
+end
+
+-- The filter over a slot's upgrades: a chip for each kind of source the slot has (a dungeon, a
+-- quest, a vendor...), each with how many, and "All". Click one to see only that kind, another to
+-- add its kind, "All" for everything again. It holds the count at the right of the slot's heading
+-- too: "28 upgrades", or "3 of 28 upgrades". (John, 15 Nov 2026: "more items to sift through...
+-- filters on the right side to categorize where items drop or are obtained from"; of the mockups,
+-- the chips.) It's a function of its own, apart from the page's, to keep both under the game's
+-- limit on what one function may reach outside itself.
+local function SourceFilter(list, listW, top, Repaint)
+    local G = ns.Gear
+    local F = { chips = {} }
+    F.count = Style.Text(list, 12, "muted")
+    F.count:SetPoint("TOPRIGHT", -14, 0)
+    F.count:SetJustifyH("RIGHT")
+    F.row = CreateFrame("Frame", nil, list)
+    F.row:SetSize(listW - 28, FILTER_H - 8)
+    F.row:SetPoint("TOPLEFT", 14, -top)
+    local function Chip(key, word)
+        local b = Style.Button(F.row, "", "tab", 60)
+        b:SetHeight(FILTER_H - 8)
+        b.key, b.word = key, word
+        b.kindText = Style.Text(b, 12, "secondary", nil, true)
+        b.kindText:SetPoint("LEFT", 6, 0)
+        b.kindText:SetText(word)
+        b.countText = Style.Text(b, 12, "muted")
+        b.countText:SetPoint("RIGHT", -6, 0)
+        b.countText:SetJustifyH("RIGHT")
+        b:SetScript("OnClick", function(self)
+            if self.key == "all" then
+                for k in pairs(sourceOn) do sourceOn[k] = nil end
+            else
+                sourceOn[self.key] = not sourceOn[self.key] or nil
+            end
+            -- The list starts from its top again.
+            F.moved = true
+            Repaint()
+        end)
+        F.chips[#F.chips + 1] = b
+    end
+    Chip("all", "All")
+    for _, kind in ipairs(G.SOURCE_KINDS) do Chip(kind.key, kind.label) end
+
+    -- Paints the chips and the count for a slot's upgrades, and returns the ones that show.
+    function F:Show(options)
+        local shown, counts = G.BySource(options, sourceOn)
+        local any = next(sourceOn) ~= nil
+        local s = #options == 1 and "" or "s"
+        self.count:SetText(#options == 0 and "" or #shown < #options and ("%d of %d upgrade%s"):format(#shown, #options, s)
+            or ("%d upgrade%s"):format(#options, s))
+        self.row:SetShown(#options > 0)
+        local x = 0
+        for _, b in ipairs(self.chips) do
+            local all = b.key == "all"
+            local n = all and #options or counts[b.key] or 0
+            local on = (all and not any) or (not all and sourceOn[b.key] == true)
+            -- A kind the slot has none of gets no chip, unless it's chosen: then its chip is how
+            -- you take it off again.
+            local show = all or n > 0 or on
+            b:SetShown(show)
+            if show then
+                b.countText:SetText(tostring(n))
+                local w = math.floor(Wide(b.kindText, #b.word * 7) + 3 + Wide(b.countText, 8) + 12 + 0.5)
+                b:SetWidth(w)
+                b:ClearAllPoints()
+                b:SetPoint("TOPLEFT", x, 0)
+                b:SetSelected(on)
+                b.kindText:SetTextColor(Style.Color(on and "text" or "secondary"))
+                b.countText:SetTextColor(Style.Color(on and "gold" or "muted"))
+                x = x + w + 5
+            end
+        end
+        return shown
+    end
+    return F
 end
 
 Window.Page("gear", function(page)
@@ -358,14 +445,13 @@ Window.Page("gear", function(page)
     Style.Rule(list, "LEFT", "line")
     local wearHead = Style.Text(list, 12, "gold", nil, true)
     wearHead:SetPoint("TOPLEFT", 14, 0)
-    -- How many upgrades the slot has, at the right of its heading.
-    local upCount = Style.Text(list, 12, "muted")
-    upCount:SetPoint("TOPRIGHT", -14, 0)
-    upCount:SetJustifyH("RIGHT")
+    -- Under what you wear: the chips that choose which kinds of source show, with the count of
+    -- upgrades at the right of the heading.
+    local filter = SourceFilter(list, listW, 18 + ROW_H + 8, function() Paint() end)
     -- The upgrades' column headings, lined up with the cards under them.
     local cols = CreateFrame("Frame", nil, list)
     cols:SetSize(listW - 28, 18)
-    cols:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 14))
+    cols:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 14 + FILTER_H))
     for _, label in ipairs({ { "UPGRADE", 54 }, { "WHERE IT'S FROM", WHERE_X }, { "LEVEL", -(46 + GAIN_W + 12) }, { "IT ADDS", -46 } }) do
         local t = Style.Text(cols, 10, "muted", nil, true)
         if label[2] < 0 then
@@ -383,7 +469,7 @@ Window.Page("gear", function(page)
     -- The options scroll, between their heading and the add box, with a
     -- thin bar on the right when there are more than fit.
     local ADD_H = 58
-    local OPT_TOP = 18 + ROW_H + 14 + 18 + 6
+    local OPT_TOP = 18 + ROW_H + 14 + FILTER_H + 18 + 6
     local VIEW_H = (height - top - 60) - OPT_TOP - ADD_H
     local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
@@ -428,10 +514,24 @@ Window.Page("gear", function(page)
             GameTooltip:Show()
         end)
         r.star:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        -- What it adds over what you wear, beside the star.
+        -- What it adds over what you wear, beside the star: how much better it is as a share
+        -- of all you wear ("+3%", the dungeon guide's "for you") over the stats it adds; the
+        -- stats alone, in the middle, where there's no share to say. (John, 15 Nov 2026: "add
+        -- the dps %N for you like dungeon guide does", then "skip the for you part and just
+        -- add the %"; of the mockups, the share on top.)
         r.gain = Style.Text(r, 13, "green", nil, true)
-        r.gain:SetPoint("RIGHT", r.star, "LEFT", -10, 0)
         r.gain:SetJustifyH("RIGHT")
+        r.adds = Style.Text(r, 11, "muted")
+        r.adds:SetPoint("TOPRIGHT", r.gain, "BOTTOMRIGHT", 0, -3)
+        r.adds:SetJustifyH("RIGHT")
+        function r:Adds(share, stats)
+            local both = share ~= nil and stats ~= ""
+            self.gain:SetText(share or stats)
+            self.adds:SetText(both and stats or "")
+            self.gain:ClearAllPoints()
+            self.gain:SetPoint("RIGHT", self.star, "LEFT", -10, both and 8 or 0)
+        end
+        r:Adds(nil, "")
         r.name = Style.Text(r, 14, "text")
         r.name:SetWidth(card and (WHERE_X - 54 - 8) or (w - 46))
         r.name:SetJustifyH("LEFT")
@@ -661,13 +761,13 @@ Window.Page("gear", function(page)
         wornRow.how:SetText("")
         wornRow.level:SetText("")
         wornRow.star:Hide()
-        wornRow.gain:SetText("")
+        wornRow:Adds(nil, "")
         wornRow:Show()
-        upCount:SetText(#plan.options > 0 and ("%d upgrade%s"):format(#plan.options, #plan.options == 1 and "" or "s") or "")
-        cols:SetShown(#plan.options > 0)
-        local y = OPT_TOP
+        -- The upgrades of the kinds chosen; the chips and the count are painted with them.
+        local options = filter:Show(plan.options)
+        cols:SetShown(#options > 0)
         local shown = 0
-        for i, o in ipairs(plan.options) do
+        for i, o in ipairs(options) do
             local r = Row(i + 1)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 14, -((i - 1) * (OPT_H + OPT_GAP)))
@@ -680,11 +780,12 @@ Window.Page("gear", function(page)
             r.how:SetText(how)
             r.where:SetText(place)
             r.level:SetText(needs)
-            r:Named(i == 1)
+            -- The tag is the plan's first, which the chips may have hidden.
+            r:Named(o == plan.options[1])
             -- With no second line, how it's got sits in the middle too.
             r.how:ClearAllPoints()
             r.how:SetPoint("TOPLEFT", WHERE_X, place ~= "" and -10 or -19)
-            r.gain:SetText(o.gains or "")
+            r:Adds(G.ShareText(o.share), o.gains or "")
             r.star:Show()
             r.star.tex:SetDesaturated(not o.starred)
             r.star.on = o.starred
@@ -697,14 +798,16 @@ Window.Page("gear", function(page)
         -- Back to the top for another slot; kept in range otherwise.
         optList:SetHeight(math.max(1, shown * (OPT_H + OPT_GAP)))
         local most = math.max(0, shown * (OPT_H + OPT_GAP) - VIEW_H)
-        scroll:SetVerticalScroll(chosen ~= paintedSlot and 0 or math.min(scroll:GetVerticalScroll() or 0, most))
-        paintedSlot = chosen
+        scroll:SetVerticalScroll((chosen ~= paintedSlot or filter.moved) and 0 or math.min(scroll:GetVerticalScroll() or 0, most))
+        paintedSlot, filter.moved = chosen, nil
         scroll:UpdateScrollChildRect()
         scroll:Place()
         empty:ClearAllPoints()
-        empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16))
+        -- Under the chips, when the slot has upgrades and the chips hide them all.
+        empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16 + (#plan.options > 0 and FILTER_H or 0)))
         if shown == 0 then
             empty:SetText(plan.twoHand and "Your two-hander takes both hands, so nothing goes in the off hand. Wear a one-handed weapon to see what could."
+                or #plan.options > 0 and ("None of this slot's upgrades is of a kind you've chosen: %d hidden. Click All to see everything."):format(#plan.options)
                 or plan.waiting > 0 and "Checking the items near your level..."
                 or "Nothing better for this slot near your level that we know of yet.")
             empty:Show()
