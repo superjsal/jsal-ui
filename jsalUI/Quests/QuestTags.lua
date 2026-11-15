@@ -51,6 +51,14 @@ function QuestTags.Info(questID)
     if body then
         line, info.xp, info.level = body, tonumber(xp), tonumber(level)
     end
+    -- "|i10=Item" and "|k6=Creature": the quest's item and kill objectives, for when it isn't taken.
+    local head, goals = line:match("^(.-)(|.+)$")
+    if head then
+        line, info.goals = head, {}
+        for kind, amount, name in goals:gmatch("|([ik])(%d+)=([^|]+)") do
+            info.goals[#info.goals + 1] = { kind = kind, amount = tonumber(amount), name = name }
+        end
+    end
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
@@ -144,9 +152,27 @@ end
 
 -- Objective by objective, what's left: { name, left, chance (nil for a kill), kills (nil when
 -- unknown) }; the kills in all; and the first item with no known drop chance, if any.
+-- Whether the quest is in your log.
+function QuestTags.Taken(questID)
+    return C_QuestLog.IsOnQuest(questID) and true or false
+end
+
+-- A quest not taken yet: its objectives from the data, all still to do, shaped as the log gives them.
+local function FromData(info)
+    local out = {}
+    for _, g in ipairs(info and info.goals or {}) do
+        out[#out + 1] = { text = g.name .. ": 0/" .. g.amount, type = g.kind == "i" and "item" or "monster",
+                          numFulfilled = 0, numRequired = g.amount, finished = false }
+    end
+    return out
+end
+
 function QuestTags.Work(questID)
     local info = QuestTags.Info(questID)
     local objectives = C_QuestLog.GetQuestObjectives(questID)
+    if not QuestTags.Taken(questID) and (type(objectives) ~= "table" or #objectives == 0) then
+        objectives = FromData(info)
+    end
     local rows, total, unknown = {}, 0, nil
     for _, o in ipairs(type(objectives) == "table" and objectives or {}) do
         local left = (o.numRequired or 0) - (o.numFulfilled or 0)
@@ -291,6 +317,7 @@ function QuestTags.ShowCard(owner, questID)
     tip:SetOwner(owner, "ANCHOR_LEFT")
     tip:SetText(C_QuestLog.GetTitleForQuestID(questID) or "Quest", Rgb("text"))
     Add(tip, QuestTags.ChainLine(questID), "muted")
+    if not QuestTags.Taken(questID) then Add(tip, "Not taken yet: counted from the quest's full objectives.", "muted") end
     local rows, total, unknown = QuestTags.Work(questID)
     local seconds, fights = QuestTags.FightSeconds()
     local _, _, colour, minutes = QuestTags.Tags(questID)

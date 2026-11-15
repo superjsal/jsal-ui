@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import build_quest_scores as build  # noqa: E402
 
 REPO = "JIVESCORP/eg-link-output-wowf"
-WANT = ("quests.enUS.json", "loot.json", "trainers.json")
+WANT = ("quests.enUS.json", "loot.json", "trainers.json", "creature_details.enUS.json")
 TRAINERS = ROOT / "data" / "trainers" / "eglink-trainers.json"
 
 
@@ -93,7 +93,7 @@ def main():
         print(f"read {count} files from {REPO} at {head[:7]}")
         build.EGLINK_REVISION = head
         build.EGLOOT_REVISION = head
-        build.fetch_eglink(folders["quests.enUS.json"])
+        build.fetch_eglink(folders["quests.enUS.json"], folders["creature_details.enUS.json"])
         build.fetch_egloot(folders["loot.json"])
         merge_trainers(folders["trainers.json"], head)
     build.build()

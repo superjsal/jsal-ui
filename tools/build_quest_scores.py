@@ -71,11 +71,13 @@ EGLINK = ROOT / "data" / "quests" / "eglink.json"
 EGLINK_REVISION = "e0f8585914c134d9cb5d76756bd065b1e3e92ece"  # JIVESCORP/eg-link-output-wowf main, as read
 
 
-def fetch_eglink(folder):
+def fetch_eglink(folder, creature_folder=None):
     """Every quest Forever's server has described to EG Link's players (quests.enUS.json from each
     live build under data/wowf/ of https://github.com/JIVESCORP/eg-link-output-wowf, CC BY 4.0,
     data from Efficient Games), newest build first: its level, the next quest, the races it's for
-    (left out when every race) and the items it asks for, by ID."""
+    (left out when every race), the items it asks for by ID, its reward tier, and its item and kill
+    objectives with how many each needs ("obj": [["i" or "k", id, amount]]). With creature_folder
+    (each build's creature_details.enUS.json), the names of the creatures those objectives are for."""
     files = []
     for f in pathlib.Path(folder).glob("*.json"):
         d = json.loads(f.read_text(encoding="utf-8"))
@@ -94,13 +96,24 @@ def fetch_eglink(folder):
             items = [o["objectId"] for o in q.get("objectives", []) if o.get("type") == "item" and o.get("objectId")]
             if items:
                 entry["items"] = items
+            obj = [["i" if o["type"] == "item" else "k", o["objectId"], o["amount"]]
+                   for o in q.get("objectives", [])
+                   if o.get("type") in ("item", "monster") and o.get("objectId") and o.get("amount")]
+            if obj:
+                entry["obj"] = obj
             rewards = q.get("rewards") or {}
             if rewards.get("xpDifficulty") is not None:
                 entry["xp"] = [rewards["xpDifficulty"], rewards.get("xpMultiplier", 1)]
             out[qid] = entry
+    wanted = {str(o[1]) for q in out.values() for o in q.get("obj", []) if o[0] == "k"}
+    creatures = {}
+    for f in sorted(pathlib.Path(creature_folder).glob("*.json"), reverse=True) if creature_folder else []:
+        for cid, c in json.loads(f.read_text(encoding="utf-8")).get("creatures", {}).items():
+            if cid in wanted and cid not in creatures and c.get("name"):
+                creatures[cid] = c["name"]
     EGLINK.write_text(json.dumps({"source": "EG Link output: World of Warcraft: Forever (Efficient Games, CC BY 4.0)",
                                   "revision": EGLINK_REVISION, "builds": sorted(b for b, _ in files),
-                                  "quests": out}, indent=0, sort_keys=True), encoding="utf-8")
+                                  "quests": out, "creatures": creatures}, indent=0, sort_keys=True), encoding="utf-8")
     print(f"kept {len(out)} quests in {EGLINK.relative_to(ROOT)}")
 
 
@@ -255,10 +268,51 @@ def full_xp():
     return out
 
 
+def item_names():
+    """Item names by ID: pfQuest's, then Wowhead Forever's, then the game's own item table."""
+    names = {}
+    for q in json.loads(SNAPSHOT.read_text(encoding="utf-8"))["quests"].values():
+        names.update(q.get("items", {}))
+    if WOWHEAD.exists():
+        for iid, v in json.loads(WOWHEAD.read_text(encoding="utf-8"))["items"].items():
+            if v.get("name"):
+                names.setdefault(iid, v["name"])
+    sparse = ROOT / "data" / "professions" / "ItemSparse.csv"
+    if sparse.exists():
+        import csv
+        for r in csv.DictReader(sparse.open(encoding="utf-8")):
+            if r.get("Display_lang"):
+                names.setdefault(r["ID"], r["Display_lang"])
+    return names
+
+
+def objectives():
+    """Each quest's item and kill objectives, for a quest not taken yet: [(kind "i"/"k", amount, name)],
+    from EG Link's records; the item's name is the one its drop chance is filed under. A quest with an
+    objective whose name isn't known gets none, rather than a part of them."""
+    if not EGLINK.exists():
+        return {}
+    data = json.loads(EGLINK.read_text(encoding="utf-8"))
+    items, creatures = item_names(), data.get("creatures", {})
+    out = {}
+    for qid, q in data["quests"].items():
+        rows = []
+        for kind, oid, amount in q.get("obj", []):
+            name = (items if kind == "i" else creatures).get(str(oid))
+            if not name or any(c in name for c in "|=#;"):
+                rows = None
+                break
+            rows.append((kind, amount, name))
+        if rows:
+            out[qid] = rows
+    return out
+
+
 def build():
     quests = merged()
     place = chains(quests)
     paid = full_xp()
+    goals = objectives()
     lines = []
     for qid in sorted(quests, key=int):
         drops = quests[qid].get("drops", {})
@@ -267,6 +321,8 @@ def build():
         text = ("%d,%d" % place[qid]) if qid in place else ""
         text += "".join(";%s=%s" % (name, chance if isinstance(chance, str) else ("%g" % chance))
                         for name, chance in sorted(drops.items()))
+        for kind, amount, name in goals.get(qid, []):
+            text += "|%s%d=%s" % (kind, amount, name)
         if qid in paid:
             text += "#%d@%d" % paid[qid]
         lines.append('[%s]="%s",' % (qid, text.replace("\\", "\\\\").replace('"', '\\"')))
@@ -280,6 +336,7 @@ def build():
         "-- stands alone) and the best drop chance, in percent, of each item it asks for (\"w\": Wowhead's",
         "-- from creatures, \"o\": Wowhead's from objects opened). Then \"#xp@level\": the full XP it pays and",
         "-- its level, from the game's QuestXP table (data/quests/QuestXP.csv) and EG Link's reward tiers.",
+        "-- Before it: \"|i10=Item\" or \"|k6=Creature\" for each objective, for a quest not taken yet (EG Link).",
         "local _, ns = ...",
         "ns.QuestScoreData = {",
     ]
