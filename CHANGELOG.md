@@ -6,6 +6,8 @@
 - **Gear plan: show only the kinds of source you want.** Over a slot's upgrades is a row of chips, one for each kind of source the slot has (Dungeon, Quest, Vendor, Crafted, World drop, Zone drop, Unknown), each with how many. Click one to see only that kind, another to add its kind, and All for everything again; the count reads "3 of 28 upgrades". It starts with everything showing, and a /reload goes back to that. A piece in your bags, or one you added yourself, always shows.
 - **Gear plan: how much better each upgrade is.** A card now leads with the upgrade's gain as a share of everything you wear, "+3%", the number the dungeon guide calls "for you", with the stats it adds under it.
 - **Gear plan: "Currently equipped" over what you wear.** The first column's heading read "Slot, and what you wear" and ran into the next one. It's shorter now, starts at the page's left edge, and is held to its own column.
+- **Dungeon guide: five more dungeons.** The Drowned City (level 35), Krol'dok Stronghold (40), Alcaz Prison (48), Blackmaw Hold (55) and The Shaper's Terrace (60) are in the guide, each with its bosses, their loot and drop chances, and its quests. The game's own list gained them on 13 November. Where each of their quests starts isn't in yet.
+- **Dungeon guide: loot for every boss in Zul'Farrak, Maraudon, Sunken Temple and Blackrock Depths.** Most of their bosses had no loot listed (three of Zul'Farrak's eight had any, one of Maraudon's, none of Sunken Temple's, five of Blackrock Depths' twenty-one). They all do now, with drop chances, but for Sunken Temple's Avatar of Hakkar. The Gear plan knows these drops too.
 
 ## In 0.3.46
 

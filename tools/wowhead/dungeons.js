@@ -1,7 +1,8 @@
 // Reads Wowhead Forever's dungeon pages for data/dungeons/wowhead.json. Run in the browser pane on
 // a www.wowhead.com/forever page, after the window.__bosses line that tools/wowhead/bosses.py
 // prints. For each zone: its page (quests, NPCs, and the Drops tab naming bosses), then each
-// boss's NPC page (drops with Wowhead's kill counts). One page every 8 seconds, kept in
+// boss's NPC page (drops with Wowhead's kill counts; a number among a boss's names is an NPC's
+// ID, for a boss the zone's page doesn't list). One page every 8 seconds, kept in
 // localStorage ("jsalDungeons"), so a Human Verification stop can be cleared and the script run
 // again to carry on. When done, it sends the result to tools/wowhead/receive.py (start it first,
 // writing to a new file), and tools/wowhead/merge_dungeons.py folds that into wowhead.json.
@@ -53,8 +54,9 @@ window.__dungeons = { done: false, log: [], err: null, unmatched: [] };
       }
       for (const [boss, names] of Object.entries(bosses)) {
         if (Z.loot[boss]) continue;
-        const want = names.map(norm);
-        const hits = npcs.filter(n => want.includes(norm(n.name)));
+        const want = names.filter(n => typeof n === 'string').map(norm);
+        const ids = names.filter(n => typeof n === 'number');
+        const hits = ids.map(id => ({ id })).concat(npcs.filter(n => want.includes(norm(n.name)) && !ids.includes(n.id)));
         if (!hits.length) { __dungeons.unmatched.push(z + ': ' + boss); continue; }
         const items = {};
         for (const h of hits) {
@@ -67,11 +69,12 @@ window.__dungeons = { done: false, log: [], err: null, unmatched: [] };
             items[d.id] = o;
           }
         }
-        // Kept: dropped in at least 2% of 10 or more kills, or named on the zone's Drops tab.
+        // Kept: dropped in at least 2% of 10 or more kills, or named on the zone's Drops tab
+        // (one of those seen in under 1% of kills is written as 1, never 0).
         const zoneNamed = new Set(want.flatMap(w => [...(named[w] || [])]));
         const out = [];
         for (const [id, [count, outof]] of Object.entries(items)) {
-          const pct = outof >= 10 ? Math.round(count / outof * 100) : null;
+          const pct = outof >= 10 ? Math.max(count > 0 ? 1 : 0, Math.round(count / outof * 100)) : null;
           if ((pct !== null && pct >= 2) || zoneNamed.has(+id)) out.push([+id, pct]);
         }
         Z.loot[boss] = out;

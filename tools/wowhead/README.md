@@ -23,7 +23,9 @@ same script again carries on. Never try to get past the check another way.
      count with the last commit's).
 2. **Dungeons (about 100 pages with `--thin`; a full read is about 190):**
    - `python -I tools/wowhead/bosses.py --thin` prints a `window.__bosses = ...;` line: the
-     bosses whose loot is still filling in. Leave out `--thin` for a full read (every few months).
+     bosses whose loot is still filling in, or was never read. Leave out `--thin` for a full read
+     (every few months); `--zones 16550,1176` reads only those Wowhead zones. The bosses come from
+     the game's own tables, so a dungeon new to `tools/build_dungeons.py` is asked for at once.
    - Start the receiver writing to a scratch file:
      `python -I tools/wowhead/receive.py <scratchpad>/dungeons-fresh.json`
    - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalDungeons')`, the
@@ -32,7 +34,13 @@ same script again carries on. Never try to get past the check another way.
    - `python -I tools/wowhead/merge_dungeons.py <scratchpad>/dungeons-fresh.json` folds it into
      `data/dungeons/wowhead.json` (bosses not reached keep their old loot), then
      `python -I tools/build_dungeons.py` (writes `DungeonLoot.lua`). `__dungeons.unmatched`
-     names bosses Wowhead lists under another name: add them to `ALIAS` in `bosses.py`.
+     names bosses Wowhead lists under another name: add them to `ALIAS` in `bosses.py`. A boss
+     the zone's page doesn't list at all (Krol'dok Stronghold's, The Shaper's Terrace's) is found
+     by name on `/forever/npcs/name:<name>` and its NPC ID goes in `NPC_ID` there.
+   - **After a game patch adds dungeons** (`build_dungeons.py` stops and names them): fetch the
+     four tables for the new build as its docstring says, add each dungeon to `DUNGEONS` and
+     `WOWHEAD_ZONE` (its zone from `/forever/zones`, its entrance from Wowhead's dungeon list,
+     `/forever/guide/dungeons-overview-locations-details`), then read them as above.
    - **Where each dungeon quest starts (about 500 pages at one every 10 seconds, in batches):**
      after `build_dungeons.py`, for each batch: start the receiver writing to a scratch file
      (`python -I tools/wowhead/receive.py <scratchpad>/batch.json`), then in the pane on a
