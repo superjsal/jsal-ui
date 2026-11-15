@@ -1,5 +1,6 @@
 # jsal.ui 0.3.49
 
+- **Gear plan: a piece that isn't better says so.** A piece you added or carry comes first in its slot whatever it scores, and was tagged "best for you" with only what it adds ("+12 AP"). The tag is now the best real upgrade's, and such a piece reads "worse than yours" with what you'd gain and lose ("+12 AP, -5 Agi"), as does its star line on tooltips.
 - **Gear plan: an item you add always shows.** An item you added by its ID or link could be added and starred but not appear in the list when it's also one the plan knows and no better than what you wear. It now shows, starred at the top, however it compares, so you can weigh it yourself. And an upgrade that was slow to load could stay "checking..." in 0.3.48: the plan now asks again after a couple of seconds.
 
 ## In 0.3.48

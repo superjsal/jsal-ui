@@ -293,16 +293,23 @@ local SHORT = {
     ITEM_MOD_DEFENSE_SKILL_RATING_SHORT = "Defense", RESISTANCE0_NAME = "Armor",
     ITEM_MOD_DAMAGE_PER_SECOND_SHORT = "DPS",
 }
-function Gear.Gains(stats, worn, weights, dpsKey)
+-- The two changes that count most for your spec, gains (sign 1: "+14 AP,
+-- +6 Sta") or losses (sign -1: "-5 Agi, -5 Int").
+local function Changes(stats, worn, weights, dpsKey, sign)
     if not (stats and weights) then return "" end
     worn = worn or {}
-    local list = {}
-    for key, value in pairs(stats) do
-        local diff = value - (worn[key] or 0)
+    local list, keys = {}, {}
+    for key in pairs(stats) do keys[key] = true end
+    for key in pairs(worn) do keys[key] = true end
+    for key in pairs(keys) do
+        local diff = ((stats[key] or 0) - (worn[key] or 0)) * sign
         local w = key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" and ((dpsKey and weights.dps[dpsKey]) or 0) or (weights.stats[key] or 0)
         if diff > 0 and w > 0 and SHORT[key] then list[#list + 1] = { key = key, diff = diff, worth = diff * w } end
     end
-    table.sort(list, function(a, b) return a.worth > b.worth end)
+    table.sort(list, function(a, b)
+        if a.worth ~= b.worth then return a.worth > b.worth end
+        return a.key < b.key
+    end)
     local parts = {}
     for i = 1, math.min(2, #list) do
         local e = list[i]
@@ -314,9 +321,29 @@ function Gear.Gains(stats, worn, weights, dpsKey)
         else
             amount = tostring(math.floor(e.diff + 0.5))
         end
-        parts[#parts + 1] = "+" .. amount .. " " .. SHORT[e.key]
+        parts[#parts + 1] = (sign > 0 and "+" or "-") .. amount .. " " .. SHORT[e.key]
     end
     return table.concat(parts, ", ")
+end
+
+function Gear.Gains(stats, worn, weights, dpsKey)
+    return Changes(stats, worn, weights, dpsKey, 1)
+end
+
+-- What you'd lose that your spec values: said for a piece that isn't better
+-- (one you added, or carry), as the game's own compare does (John's Drape of
+-- Shifting Energy read "+12 AP" where the game said -5 Agility, -5 Intellect).
+function Gear.Losses(stats, worn, weights, dpsKey)
+    return Changes(stats, worn, weights, dpsKey, -1)
+end
+
+-- A plan's best upgrade: its first option that's better than what you wear.
+-- A piece you starred, added or carry comes first whatever it scores, and was
+-- tagged "best for you" for it (15 Nov 2026).
+function Gear.Best(plan)
+    for _, o in ipairs(plan and plan.options or {}) do
+        if o.better then return o end
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -854,7 +881,9 @@ function Gear.Plan(slot, spec, only)
                 local score = Gear.Score(stats, weights, slot.dps) or 0
                 if c.added or score > worn.score + 0.01 then
                     c.score, c.stats = score, stats
+                    c.better = score > worn.score + 0.01
                     c.gains = Gear.Gains(stats, worn.stats, weights, slot.dps)
+                    c.losses = not c.better and Gear.Losses(stats, worn.stats, weights, slot.dps) or nil
                     c.soon = (c.req or 0) > level
                     c.starred = stars[c.id] == true
                     if c.added and c.kind == "" then c.kind = "Added by you" end

@@ -696,7 +696,7 @@ Window.Page("gear", function(page)
             local worn = plan.worn
             b.equip = worn.link and worn.equip or nil
             b.title = b.row.label
-            local best = plan.options[1]
+            local best = G.Best(plan)
             if worn.link then
                 local name, _, quality, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
                 b.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
@@ -790,12 +790,21 @@ Window.Page("gear", function(page)
             r.how:SetText(how)
             r.where:SetText(place)
             r.level:SetText(needs)
-            -- The tag is the plan's first, which the chips may have hidden.
-            r:Named(o == plan.options[1])
+            -- The tag is the plan's best upgrade, which the chips may have hidden; a piece
+            -- you starred or carry comes first whatever it scores, and isn't tagged for it.
+            r:Named(o == G.Best(plan))
             -- With no second line, how it's got sits in the middle too.
             r.how:ClearAllPoints()
             r.how:SetPoint("TOPLEFT", WHERE_X, place ~= "" and -10 or -19)
-            r:Adds(G.ShareText(o.share), o.gains or "")
+            if o.better == false then
+                -- Not better (one you added or carry): said, with what you'd gain and lose.
+                local changes = {}
+                if o.gains and o.gains ~= "" then changes[#changes + 1] = o.gains end
+                if o.losses and o.losses ~= "" then changes[#changes + 1] = o.losses end
+                r:Adds("|cff9a9688worse than yours|r", table.concat(changes, ", "))
+            else
+                r:Adds(G.ShareText(o.share), o.gains or "")
+            end
             r.star:Show()
             r.star.tex:SetDesaturated(not o.starred)
             r.star.on = o.starred

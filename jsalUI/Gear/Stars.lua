@@ -59,17 +59,34 @@ local function Worn(slot, weights)
 end
 
 -- What a starred item adds over what you wear, for its tooltip and its
--- banner: "+14 AP, +6 Sta" and the worn item's name; nil when it adds
--- nothing your spec values or its stats aren't loaded yet.
+-- banner: "+14 AP, +6 Sta", the worn item's name, and whether it's better.
+-- One that isn't says what you'd lose too ("+12 AP, -5 Agi, -5 Int"). Nil
+-- when nothing changes that your spec values, or its stats aren't loaded.
 function Gear.StarGains(id)
     local slot = Gear.SlotOf(TypeOf(id) or 0)
     local weights = Gear.Weights()
     local stats = Gear.Stats(id)
     if not (slot and weights and stats) then return nil end
     local worn = Worn(slot, weights)
+    local better = (Gear.Score(stats, weights, slot.dps) or 0) > worn.score + 0.01
+    local parts = {}
     local gains = Gear.Gains(stats, worn.stats, weights, slot.dps)
-    if gains == "" then return nil end
-    return gains, worn.link and worn.link:match("%[(.-)%]")
+    if gains ~= "" then parts[#parts + 1] = gains end
+    if not better then
+        local losses = Gear.Losses(stats, worn.stats, weights, slot.dps)
+        if losses ~= "" then parts[#parts + 1] = losses end
+    end
+    if #parts == 0 then return nil end
+    return table.concat(parts, ", "), worn.link and worn.link:match("%[(.-)%]"), better
+end
+
+-- The star's line: "+12 AP over Explorer's League Dustcover", or, for one
+-- that isn't better, "Worse than Explorer's League Dustcover: +12 AP, -5 Agi".
+function Gear.StarLine(id)
+    local changes, over, better = Gear.StarGains(id)
+    if not changes then return nil end
+    if better or not over then return changes .. (over and (" over " .. over) or "") end
+    return "Worse than " .. over .. ": " .. changes
 end
 
 ---------------------------------------------------------------------------
@@ -147,8 +164,8 @@ end
 function Gear.TooltipLines(tooltip, id)
     if not (id and Gear.Starred()[id] and tooltip and tooltip.AddLine) then return end
     tooltip:AddLine(Gear.STAR .. " Starred in your gear plan", 0.89, 0.69, 0.29)
-    local gains, over = Gear.StarGains(id)
-    if gains then tooltip:AddLine(gains .. (over and (" over " .. over) or ""), 0.89, 0.69, 0.29, true) end
+    local line = Gear.StarLine(id)
+    if line then tooltip:AddLine(line, 0.89, 0.69, 0.29, true) end
     if tooltip.Show then tooltip:Show() end
 end
 
@@ -209,8 +226,8 @@ function Gear.Dropped(link)
     local now = GetTime and GetTime() or 0
     if alerted[id] and now - alerted[id] < 60 then return false end
     alerted[id] = now
-    local gains, over = Gear.StarGains(id)
-    local line = link .. (gains and ("  " .. "|cff9a9688· " .. gains .. (over and (" over " .. over) or "") .. "|r") or "")
+    local said = Gear.StarLine(id)
+    local line = link .. (said and ("  |cff9a9688· " .. said .. "|r") or "")
     if ns.Style and ns.Style.Banner then
         ns.Style.Banner(Gear.STAR .. " Starred item dropped", line)
     end
