@@ -195,12 +195,32 @@ Gear.Weights = Gear.BaseWeights
 -- Item stats, from the game. An item it hasn't loaded yet comes back nil
 -- and is asked for; GET_ITEM_INFO_RECEIVED says when it's in.
 ---------------------------------------------------------------------------
+--
+-- Forever gives crit, hit, dodge, parry and block as rating: an item of "1%
+-- crit" says ITEM_MOD_CRIT_RATING_SHORT = 14. The weights are per 1%, so those
+-- are turned into 1% here, by Forever's own rating for 1% at 60. (John, 15 Nov
+-- 2026: the Illusionary Rod's /dump, CRIT_RATING = 14; they counted 14 times
+-- over.)
+local PER_PERCENT = {
+    ITEM_MOD_CRIT_RATING_SHORT = 14, ITEM_MOD_CRIT_MELEE_RATING_SHORT = 14, ITEM_MOD_CRIT_SPELL_RATING_SHORT = 14,
+    ITEM_MOD_CRIT_RANGED_RATING_SHORT = 14,
+    ITEM_MOD_HIT_RATING_SHORT = 10, ITEM_MOD_HIT_MELEE_RATING_SHORT = 10, ITEM_MOD_HIT_SPELL_RATING_SHORT = 10,
+    ITEM_MOD_HIT_RANGED_RATING_SHORT = 10,
+    ITEM_MOD_DODGE_RATING_SHORT = 12, ITEM_MOD_PARRY_RATING_SHORT = 15, ITEM_MOD_BLOCK_RATING_SHORT = 5,
+}
+Gear.PER_PERCENT = PER_PERCENT
 local function Stats(item)
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
     local ok, stats = pcall(get, link)
-    if ok and stats and next(stats) then return stats end
+    if ok and stats and next(stats) then
+        local out = {}
+        for key, value in pairs(stats) do
+            out[key] = PER_PERCENT[key] and value / PER_PERCENT[key] or value
+        end
+        return out
+    end
     if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(item) end
     return nil
 end
@@ -244,7 +264,14 @@ function Gear.Gains(stats, worn, weights, dpsKey)
     local parts = {}
     for i = 1, math.min(2, #list) do
         local e = list[i]
-        local amount = e.key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" and ("%.1f"):format(e.diff) or tostring(math.floor(e.diff + 0.5))
+        local amount
+        if e.key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
+            amount = ("%.1f"):format(e.diff)
+        elseif PER_PERCENT[e.key] then
+            amount = (("%.1f"):format(e.diff):gsub("%.0$", "")) .. "%"
+        else
+            amount = tostring(math.floor(e.diff + 0.5))
+        end
         parts[#parts + 1] = "+" .. amount .. " " .. SHORT[e.key]
     end
     return table.concat(parts, ", ")

@@ -1,5 +1,6 @@
 # jsal.ui 0.3.45
 
+- **Gear plan: crit and hit are counted right.** Forever gives an item's crit and hit as rating (14 for 1% crit, 10 for 1% hit), and the Gear plan, the dungeon guide and the stars read 14 as 14%, so a piece with crit or hit looked like a far bigger upgrade than it is. They're now read as the 1% they are, and what an upgrade adds says "+1% Crit". Dodge, parry and block too. A mage's, warlock's or healer's crit and hit now count as well: Forever's items give one crit for spells and weapons alike.
 - **Quest tags: "XP/min in combat".** The card's "Pays 2,450 XP: about 2,450 XP a minute" counted only the fights, not getting there, so a quest with one kill far away read as a great deal. It now reads "2,450 XP · 2,450 XP/min in combat".
 
 ## In 0.3.44

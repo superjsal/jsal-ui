@@ -190,9 +190,22 @@ def weights(spec):
                 out[key] = v
         elif name in DPS_KEYS:
             dps[DPS_KEYS[name]] = v
+    unified(out)
     checked(spec, out)
     stamina(out)
     return out, dps
+
+
+def unified(out):
+    """Forever's items give one crit and one hit, spell or melee alike (the Illusionary Rod's 1% spell
+    crit is ITEM_MOD_CRIT_RATING_SHORT = 14), where Classic's sims weigh melee and spell apart. Each
+    takes the larger of the two, so a mage's crit counts."""
+    for stat in ("CRIT", "HIT"):
+        keys = [f"ITEM_MOD_{stat}_RATING_SHORT", f"ITEM_MOD_{stat}_MELEE_RATING_SHORT", f"ITEM_MOD_{stat}_SPELL_RATING_SHORT"]
+        best = max(out.get(k, 0) for k in keys)
+        if best:
+            for k in keys:
+                out[k] = best
 
 
 def checked(spec, out):
