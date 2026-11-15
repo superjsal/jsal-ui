@@ -1,5 +1,6 @@
 # jsal.ui 0.3.48
 
+- **Gear plan and dungeon guide: redraws about six times faster.** A Gear plan redraw took up to 63 ms in game, a hitch you could feel, and the dungeon guide's up to 43, as each read every item in the addon as text again, for every slot. The items near your level are now read once and kept until you level, and an item looked up by its ID is found straight away and remembered.
 - **/jsal perf names jsal.ui's slow moments.** Under the load times it now lists anything in jsal.ui that took 10 ms or more since the last reload: which part, and for an event which one, how many times and the longest. A page's first open and each redraw are timed too. And the guard every game callback goes through no longer makes throwaway memory on each call, which the game had to clean up about a hundred kilobytes a second of.
 - **Dungeon guide: where the new dungeons' quests start.** The quests for The Drowned City, Krol'dok Stronghold, Alcaz Prison and Blackmaw Hold said "Starts: not on Wowhead yet". They now name who gives each one and where, with a spot for the map pin, and the quest that comes before it in a chain. A few that are handed out inside a dungeon still have no starter.
 

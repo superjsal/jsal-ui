@@ -359,16 +359,41 @@ function Gear.Entry(data, id, req, ilvl, invType, q, kind, place)
 end
 
 -- One item from GearData by its ID, wherever it fits; nil when it isn't there.
+-- What was found for an ID is kept (false for none: most bag items aren't
+-- gear), and each call gets an entry of its own, as the plan marks its entries.
+local looked = {}
 function Gear.Lookup(id)
     local data = ns.GearData
     if not (data and id) then return nil end
-    local pattern = "^" .. id .. ",(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
+    if looked.data ~= data then looked = { data = data } end
+    local found = looked[id]
+    if found == nil then
+        found = Gear.Find(data, id) or false
+        looked[id] = found
+    end
+    if found then return Gear.Entry(data, id, found[1], found[2], found[3], found[4], found[5], found[6]) end
+end
+
+-- Where GearData's text has an ID: its required level, item level, slot
+-- type, quality, source kind and place, as text; nil when it isn't there.
+function Gear.Find(data, id)
+    -- Found where it starts, by plain search: going through a slot's items
+    -- one by one took about a third of a millisecond an item, and a redraw
+    -- looks up every bag item that fits, slot by slot (15 Nov 2026).
+    local key = id .. ","
+    local pattern = "^" .. key .. "(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
     for invType, line in pairs(data.items) do
-        if line:find(id .. ",", 1, true) then
-            for entry in line:gmatch("[^;]+") do
-                local req, ilvl, _, _, _, _, q, kind, place = entry:match(pattern)
-                if req then return Gear.Entry(data, id, req, ilvl, invType, q, kind, place) end
+        local from = 1
+        while true do
+            local at = line:find(key, from, true)
+            if not at then break end
+            -- A whole ID: at the line's start or after a ";", not the end of a longer one.
+            if at == 1 or line:byte(at - 1) == 59 then
+                local stop = line:find(";", at, true)
+                local req, ilvl, _, _, _, _, q, kind, place = line:sub(at, (stop or 0) - 1):match(pattern)
+                if req then return { req, ilvl, invType, q, kind, place } end
             end
+            from = at + 1
         end
     end
 end
@@ -508,6 +533,33 @@ function Gear.RewardTaken(id)
     return IsQuestFlaggedCompleted and IsQuestFlaggedCompleted(quest) and true or false
 end
 
+-- A slot type's items that could be near a level, read out of GearData's
+-- text once and kept until the level changes: each redraw read all 11,000
+-- items as text for every slot, about 10 ms of a 63 ms redraw (/jsal perf,
+-- 15 Nov 2026). A crafted piece's level can rise to its skill's, so one is
+-- kept unless its required level is past the window.
+local ROW = "^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
+local near = {}
+local function Near(data, invType, level)
+    local line = data.items[invType] or ""
+    local kept = near[invType]
+    if kept and kept.level == level and kept.line == line then return kept end
+    kept = { level = level, line = line }
+    near[invType] = kept
+    for entry in line:gmatch("[^;]+") do
+        local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match(ROW)
+        if id then
+            local r, il = tonumber(req), tonumber(ilvl)
+            local at = Gear.LevelOf(r, il)
+            local crafted = kind == "4" and il - math.max(r, 1) >= 12
+            if (crafted and r <= level + Gear.ABOVE) or (at >= level - Gear.BELOW and at <= level + Gear.ABOVE) then
+                kept[#kept + 1] = { id, req, ilvl, cls, sub, s, reqclass, q, kind, place }
+            end
+        end
+    end
+    return kept
+end
+
 function Gear.Candidates(slot, level, classFile, classID, side)
     local data = ns.GearData
     local out = {}
@@ -519,9 +571,8 @@ function Gear.Candidates(slot, level, classFile, classID, side)
         types = { 14, 22, 23, 13 }
     end
     for _, invType in ipairs(types) do
-        local line = data.items[invType]
-        for entry in (line or ""):gmatch("[^;]+") do
-            local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = entry:match("^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$")
+        for _, row in ipairs(Near(data, invType, level)) do
+            local id, req, ilvl, cls, sub, s, reqclass, q, kind, place = row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]
             req, reqclass, s = tonumber(req), tonumber(reqclass), tonumber(s)
             local at = id and Gear.LevelOf(req, tonumber(ilvl))
             local need
