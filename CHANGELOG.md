@@ -4,6 +4,7 @@
 - **Gear plan: Holy paladins, Restoration shamans and Restoration druids weigh stats like Forever's healers.** WoWSims' Forever simulator can't simulate a healer, and the Classic numbers they used were placeholders that gave mana every 5 seconds nothing. They now use its one healer set made for Forever, the healing priest's: healing first, then Intellect and Spirit, with mana every 5 seconds counting.
 
 - **Gear plan and dungeon guide: a word on stat weights.** The Gear plan's footnote says its stat weights are estimates from WoWSims' Forever sims at level 60, a guide and not the last word, and that you can change them under Weights. Under a dungeon's loot, a line says "for you" is by those weights: roll by what you know of your spec.
+- **Gear plan: one Crit and one Hit under Weights.** Forever's items have one crit and one hit for spells and weapons alike, and Weights listed Spell Crit and Spell Hit as well, always the same numbers. They're gone; Crit and Hit stand for both, and a Pawn scale's spell crit and spell hit are read as Crit and Hit.
 
 ## In 0.3.45
 

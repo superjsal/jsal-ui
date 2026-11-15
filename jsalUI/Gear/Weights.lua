@@ -7,7 +7,10 @@ local Gear = ns.Gear
 
 -- The stats the editor shows, in order: the game's stat key, its name, and
 -- Pawn's name for it. A few stats come in twins the game may use either way
--- (crit on melee items, mana regeneration); changing one changes its twin.
+-- (crit on melee items, mana regeneration); changing one changes its twins.
+-- Forever's items have one crit and one hit, for spells and weapons alike, so
+-- spell crit and spell hit are Crit's and Hit's twins, not rows of their own.
+-- (John, 14 Nov 2026, on a hunter's Weights listing both: "probably yes?")
 Gear.WEIGHT_STATS = {
     { "ITEM_MOD_AGILITY_SHORT", "Agility", "Agility" },
     { "ITEM_MOD_STRENGTH_SHORT", "Strength", "Strength" },
@@ -21,8 +24,6 @@ Gear.WEIGHT_STATS = {
     { "ITEM_MOD_SPELL_POWER_SHORT", "Spell Power", "SpellPower" },
     { "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", "Spell Damage", "SpellDamage" },
     { "ITEM_MOD_SPELL_HEALING_DONE_SHORT", "Healing", "Healing" },
-    { "ITEM_MOD_CRIT_SPELL_RATING_SHORT", "Spell Crit (1%)", "SpellCritRating" },
-    { "ITEM_MOD_HIT_SPELL_RATING_SHORT", "Spell Hit (1%)", "SpellHitRating" },
     { "ITEM_MOD_POWER_REGEN0_SHORT", "Mana every 5 sec", "Mp5" },
     { "ITEM_MOD_DEFENSE_SKILL_RATING_SHORT", "Defense", "DefenseRating" },
     { "RESISTANCE0_NAME", "Armor", "Armor" },
@@ -33,10 +34,12 @@ Gear.WEIGHT_DPS = {
     { "ranged", "Ranged weapon DPS", "RangedDps" },
 }
 local TWINS = {
-    ITEM_MOD_CRIT_RATING_SHORT = "ITEM_MOD_CRIT_MELEE_RATING_SHORT",
-    ITEM_MOD_HIT_RATING_SHORT = "ITEM_MOD_HIT_MELEE_RATING_SHORT",
-    ITEM_MOD_POWER_REGEN0_SHORT = "ITEM_MOD_MANA_REGENERATION_SHORT",
+    ITEM_MOD_CRIT_RATING_SHORT = { "ITEM_MOD_CRIT_MELEE_RATING_SHORT", "ITEM_MOD_CRIT_SPELL_RATING_SHORT" },
+    ITEM_MOD_HIT_RATING_SHORT = { "ITEM_MOD_HIT_MELEE_RATING_SHORT", "ITEM_MOD_HIT_SPELL_RATING_SHORT" },
+    ITEM_MOD_POWER_REGEN0_SHORT = { "ITEM_MOD_MANA_REGENERATION_SHORT" },
 }
+-- A Pawn scale's spell crit and spell hit are Crit and Hit: the larger counts.
+local PAWN_ALIAS = { spellcritrating = "ITEM_MOD_CRIT_RATING_SHORT", spellhitrating = "ITEM_MOD_HIT_RATING_SHORT" }
 
 -- Saved: { [spec] = { stats = {...}, dps = {...}, full = true when a whole
 -- Pawn scale replaced WoWSims' } }.
@@ -83,7 +86,7 @@ function Gear.SetWeight(spec, key, value)
     local isDps = key == "mh" or key == "oh" or key == "ranged"
     local list = isDps and mine.dps or mine.stats
     list[key] = value
-    if TWINS[key] then mine.stats[TWINS[key]] = value end
+    for _, twin in ipairs(TWINS[key] or {}) do mine.stats[twin] = value end
     Changed()
     return true
 end
@@ -135,10 +138,11 @@ function Gear.ParsePawn(text)
     for name, value in body:gmatch("([%a%d]+)%s*=%s*(-?[%d%.]+)") do
         local v = tonumber(value)
         local lower = name:lower()
-        if v and byPawn[lower] then
-            local key = byPawn[lower][1]
+        local key = v and ((byPawn[lower] and byPawn[lower][1]) or PAWN_ALIAS[lower])
+        if key then
+            v = math.max(v, stats[key] or v)
             stats[key] = v
-            if TWINS[key] then stats[TWINS[key]] = v end
+            for _, twin in ipairs(TWINS[key] or {}) do stats[twin] = v end
             read = read + 1
         elseif v and dpsByPawn[lower] then
             for _, k in ipairs(dpsByPawn[lower]) do dps[k] = v end
