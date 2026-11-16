@@ -317,12 +317,18 @@ local function PaintHeads(v)
     end
 end
 
-local function PaintFoot(v, all, names, losing)
+local function PaintFoot(v, all, names, losing, count)
     local nameList = #names > 0 and (#names == 1 and names[1] or (table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names])) or nil
     local who = nameList and ("Known by " .. nameList .. ". Each character's recipes count once it logs in with this on.")
         or "Open each of your professions once and its recipes show here."
-    local from = ns.ItemPrices.HasAuctionator() and "Prices from Auctionator, and your own auction house searches where it has none."
-        or "Prices from your own auction house searches. With Auctionator installed, its prices are used."
+    local from
+    if count.auctionator then
+        from = "Prices from " .. ns.ItemPrices.From(count) .. "."
+    elseif ns.ItemPrices.HasAuctionator() then
+        from = "Prices from your own auction house searches: Auctionator has none until it scans at an auction house."
+    else
+        from = "Prices from your own auction house searches. With Auctionator installed, its prices are used."
+    end
     P.foot:SetText(who .. "\n" .. from)
     local cut = math.floor(ns.ItemPrices.CUT * 100 + 0.5)
     local making = 0
@@ -335,12 +341,13 @@ end
 
 function P.Paint()
     local v = View()
+    local count = ns.ItemPrices.Counting()
     local shown, all, names, lines, counts, losing = Pick(v)
     local s = Sort(v)
     SortRows(shown, s)
     PaintChips(v, all, lines, counts)
     PaintHeads(v)
-    PaintFoot(v, all, names, losing)
+    PaintFoot(v, all, names, losing, count)
     -- With the list sorted by its main number, what has no price waits
     -- under a heading of its own.
     local split = s.key == "profit"

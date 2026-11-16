@@ -10,7 +10,9 @@ local Panel = ns.NewModule("professionpanel", {
     note = "Beside the profession window: what to craft to reach the next rank.",
 })
 
-local WIDTH, PAD, STEP_H, ROW_H = 360, 14, 30, 30
+-- 440 wide (was 360) to hold the road's prices beside each step (John, 16 Nov
+-- 2026: "we can also widen this page to accomodate our new features").
+local WIDTH, PAD, STEP_H, ROW_H = 440, 14, 30, 30
 -- A step's line with a note under it, a material's line in the card, a line
 -- of everything the road needs, and the row for training the next rank.
 local NOTE_H, MAT_H, NEED_H, RANK_H = 14, 36, 22, 38
@@ -31,6 +33,20 @@ local steps, items, unlearned = {}, {}, {}
 local showAllUnlearned = false
 local DETAIL_H = 42
 local SOURCE = { [1] = "Trainer", [2] = "Vendor pattern", [3] = "Drop", [4] = "Quest" }
+
+-- With Crafting profit pricing the road: what a craft costs and sells for,
+-- and what a point costs over a step (its crafts over the points it gives),
+-- or earns. Nil while the road isn't priced.
+local function Priced(recipe, crafts, points)
+    if recipe.vein or not (Professions.Priced and Professions.Priced()) then return nil end
+    local cost, sells, missing = ns.CraftProfit.CraftPrice(recipe)
+    if not cost then return "no price yet for " .. (Compat.ItemName(missing) or "a material"), nil end
+    local line = Compat.Money(cost) .. " to make · " .. (sells and ("sells for " .. Compat.Money(sells)) or "no sale price yet")
+    local net = cost - (sells and math.floor(sells * (1 - ns.ItemPrices.CUT)) or 0)
+    local per = math.floor(net * crafts / math.max(1, points) + 0.5)
+    if per < 0 then return line, "earns " .. Compat.Money(-per) .. " a point" end
+    return line, Compat.Money(per) .. " a point"
+end
 
 local function Line(name)
     if not name then return nil end
@@ -281,9 +297,12 @@ local function Step(i)
     s.name:SetPoint("RIGHT", s.count, "LEFT", -8, 0)
     s.name:SetJustifyH("LEFT")
     s.name:SetWordWrap(false)
+    s.perPoint = Style.Text(s, 11, "muted")
+    s.perPoint:SetPoint("TOPRIGHT", 0, -23)
+    s.perPoint:SetJustifyH("RIGHT")
     s.detail = Style.Text(s, 11, "gold")
     s.detail:SetPoint("TOPLEFT", 104, -23)
-    s.detail:SetWidth(WIDTH - PAD * 2 - 104)
+    s.detail:SetWidth(WIDTH - PAD * 2 - 104 - 110)
     s.detail:SetJustifyH("LEFT")
     s.detail:SetWordWrap(false)
     s.rule = s:CreateTexture(nil, "BORDER")
@@ -328,6 +347,14 @@ local function Card()
     card.detail:SetWidth(WIDTH - PAD * 2 - 60 - 12)
     card.detail:SetJustifyH("LEFT")
     card.detail:SetWordWrap(false)
+    card.price = Style.Text(card, 11, "secondary")
+    card.price:SetPoint("TOPLEFT", 60, -51)
+    card.price:SetWidth(WIDTH - PAD * 2 - 60 - 130)
+    card.price:SetJustifyH("LEFT")
+    card.price:SetWordWrap(false)
+    card.perPoint = Style.Text(card, 11, "gold", nil, true)
+    card.perPoint:SetPoint("TOPRIGHT", -12, -51)
+    card.perPoint:SetJustifyH("RIGHT")
     card.rule = card:CreateTexture(nil, "BORDER")
     card.rule:SetColorTexture(Style.Color("line"))
     card.rule:SetPoint("TOPLEFT", 14, -60)
@@ -866,7 +893,16 @@ function Paint()
                 local odds = math.max(1, math.floor(Professions.Chance(recipe, skill) * 10 + 0.5))
                 card.detail:SetText(odds >= 10 and "a point from nearly every craft" or ("a point from about %d crafts in 10"):format(odds))
             end
-            local my = 68
+            -- Priced, a line of what it costs and sells for, and a point's cost.
+            local priceLine, pointLine = Priced(recipe, first.crafts, first.to - first.from)
+            card.price:SetText(priceLine or "")
+            card.price:SetShown(priceLine ~= nil)
+            card.perPoint:SetText(pointLine or "")
+            card.perPoint:SetShown(pointLine ~= nil)
+            local top = priceLine and 74 or 60
+            card.rule:ClearAllPoints()
+            card.rule:SetPoint("TOPLEFT", 14, -top)
+            local my = top + 8
             for i, reagent in ipairs(recipe.reagents) do
                 mats = i
                 local m = Mat(card, i)
@@ -900,7 +936,7 @@ function Paint()
                 my = my + MAT_H
             end
             card.rule:SetShown(mats > 0)
-            card:SetHeight(mats > 0 and (my + 6) or 60)
+            card:SetHeight(mats > 0 and (my + 6) or top)
             Place(card, y)
             y = y + card:GetHeight() + 8
             -- The step's crafts onto the shopping list.
@@ -955,9 +991,13 @@ function Paint()
             end
             s.detail:SetText(todo or "")
             s.detail:SetShown(todo ~= nil)
-            s:SetHeight(STEP_H + (todo and NOTE_H or 0))
+            local _, point = Priced(step.recipe, step.crafts, step.to - step.from)
+            s.perPoint:SetText(point or "")
+            s.perPoint:SetShown(point ~= nil)
+            local tall = (todo or point) and NOTE_H or 0
+            s:SetHeight(STEP_H + tall)
             Place(s, y)
-            y = y + STEP_H + (todo and NOTE_H or 0)
+            y = y + STEP_H + tall
         end
         -- A road that ends before the next rank opens still says when it does.
         if not ranked and rankAt and skill < rankAt and #road - 1 <= MAX_STEPS then y = y + Rank(y) end

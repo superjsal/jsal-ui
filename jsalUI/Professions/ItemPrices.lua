@@ -66,13 +66,35 @@ local function FromAuctionator(item)
     return math.floor(price), age
 end
 
+-- How many auction prices came from each place since Counting() was last
+-- called, so a window can say where its prices really came from: Auctionator
+-- installed but not yet scanned has none, and the shopping list said "from
+-- Auctionator" all the same (John, 16 Nov 2026: "i installed it but i have
+-- not gone to an auction house").
+local counted = {}
+function ItemPrices.Counting()
+    counted = {}
+    return counted
+end
+
+-- Where a window's prices came from, in a few words, from what was counted.
+function ItemPrices.From(count)
+    if count.auctionator and count.searched then return "Auctionator and your own searches" end
+    if count.auctionator then return "Auctionator" end
+    return "your own searches"
+end
+
 -- An item's auction price: copper, how long ago it was seen in seconds, and
 -- where it came from ("auctionator" or "searched"); nil when none is known.
 function ItemPrices.Auction(item)
     local price, age = FromAuctionator(item)
-    if price then return price, age, "auctionator" end
+    if price then
+        counted.auctionator = (counted.auctionator or 0) + 1
+        return price, age, "auctionator"
+    end
     local seen = Remembered()[item]
     if type(seen) == "table" and type(seen.price) == "number" then
+        counted.searched = (counted.searched or 0) + 1
         return seen.price, math.max(0, Compat.ServerTime() - (tonumber(seen.seen) or 0)), "searched"
     end
 end

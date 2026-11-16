@@ -184,6 +184,14 @@ local function Row(spell, recipe, makers)
     return row
 end
 
+-- One craft priced, for the profession panel's road: what its materials cost
+-- (the item nobody has a price for instead, if any) and what it sells for,
+-- by the same reckoning as the page's rows.
+function CraftProfit.CraftPrice(recipe)
+    local row = Row(recipe.spell, recipe, Makers((CraftProfit.Known())))
+    return row.cost, row.sells, row.missing
+end
+
 -- Every recipe your characters know, one row each.
 function CraftProfit.ProfitRows()
     local known, names = CraftProfit.Known()

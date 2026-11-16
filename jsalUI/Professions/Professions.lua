@@ -151,6 +151,16 @@ local function Priced()
     return ns.CraftProfit ~= nil and ns.CraftProfit.running == true and ns.ItemPrices ~= nil
         and ns.OptionOn("craftprofit", "road")
 end
+Professions.Priced = Priced
+
+-- What a pattern costs at the cheapest vendor who sells it to your side, in
+-- copper, or nil when that isn't known.
+local function PatternPrice(spell)
+    local sources = ns.RecipeSourceText
+    if not (sources and sources.Vendors) then return nil end
+    local vendor = sources.Vendors(spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+    return vendor and vendor.copper and vendor.copper > 0 and vendor.copper or nil
+end
 
 local function ItemWeight(line, item, depth)
     local key = (depth or 0) == 0 and seen and item
@@ -416,7 +426,17 @@ function Professions.Plan(line, skill, target, known, breakAt)
                 -- stops there and says so.
                 if chance >= Professions.LEAST then
                     local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
-                    if not mine and recipe.how == 2 then cost = cost * 1.5 end
+                    if not mine and recipe.how == 2 then
+                        -- Priced, a pattern to buy adds its price, shared by the
+                        -- points it can give before it turns green; else it
+                        -- counts half again as costly.
+                        local pattern = priced and PatternPrice(recipe.spell)
+                        if pattern then
+                            cost = cost + pattern / math.max(1, math.floor((recipe.yellow + recipe.grey) / 2) - s)
+                        else
+                            cost = cost * 1.5
+                        end
+                    end
                     local wait = Professions.Wait(recipe)
                     if wait then
                         if not slow or cost < slowCost then slow, slowCost = recipe, cost end

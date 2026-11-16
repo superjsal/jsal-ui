@@ -595,6 +595,7 @@ Paint = function()
     -- (It was one list, each row ending "vendor · 48s", "auction · 8s" or
     -- "no price": John, 13 Nov 2026, "maybe you have a different opinion".)
     local vendor, other, enough = {}, {}, {}
+    local count = ns.ItemPrices.Counting()
     local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
     for item, need in pairs(Needs()) do
         local have = Compat.ItemCount(item, true)
@@ -691,7 +692,7 @@ Paint = function()
         text = ("About |cffece6d6%s|r in all"):format(Compat.Money(total))
         if unpriced > 0 then text = text .. (" · %d not priced"):format(unpriced) end
         if auctionCost > 0 then
-            text = text .. (ns.ItemPrices.HasAuctionator() and " · auction prices from Auctionator" or " · auction prices from your own searches")
+            text = text .. " · auction prices from " .. ns.ItemPrices.From(count)
         end
     elseif unpriced > 0 then
         text = ("%d still to get, no price known yet"):format(unpriced)
