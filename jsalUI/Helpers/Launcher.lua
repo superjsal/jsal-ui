@@ -1,7 +1,8 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
--- the shopping list, the planners, the gear plan, the dungeon guide) and the
--- layer you're in, that can be dragged anywhere by its grip, so nobody has
--- to type /jsal. The three games share one button that opens a menu of them.
+-- your pal, the shopping list, Crafting profit, the planners, the gear plan,
+-- the dungeon guide) and the layer you're in, that can be dragged anywhere by
+-- its grip, so nobody has to type /jsal. The three games share one button
+-- that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
 -- played, your move in chess. Laid side by side, the time sits between its
 -- two halves. Right-clicking the j locks or unlocks it; locked, the grip goes.
@@ -149,9 +150,22 @@ PLACES = {
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
+    -- Jsal's Pals and Crafting profit: a button each, while its part is on. They came after
+    -- the bar, so each starts switched off (`off`): an update puts nothing on a bar that
+    -- wasn't there. (John, 16 Nov 2026, of Crafting profit's menu entry: "probably needs a
+    -- matching button along with jsal's pals. and a toggle for the jsal bar".)
+    { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals", off = true,
+      ready = function() return ns.Pet and ns.Pet.running end,
+      -- The pen's own Open closes it when it's open.
+      open = function() ns.Pet.Open() end,
+      note = "A button for your pal's pen: a click opens it, another closes it. Needs Jsal's Pals on." },
     { key = "shop", label = "Shopping list", icon = OWN .. "shop",
       ready = function() return ns.Shopping and ns.Shopping.running end,
       open = function() ns.Shopping.Toggle() end },
+    { key = "profit", label = "Crafting profit", icon = OWN .. "profit", off = true,
+      ready = function() return ns.CraftProfit and ns.CraftProfit.running end,
+      open = Page("craftprofit"),
+      note = "A button for the Crafting profit window: a click opens it, another closes it. Needs Crafting profit on." },
     { key = "build", label = "Build Planner", icon = OWN .. "build",
       open = Page("build") },
     { key = "training", label = "Training Planner", icon = OWN .. "training",
@@ -176,7 +190,7 @@ PLACES = {
 Launcher.options = {}
 for _, place in ipairs(PLACES) do
     if not place.inGames then
-        Launcher.options[#Launcher.options + 1] = { key = place.key, title = place.label, default = true,
+        Launcher.options[#Launcher.options + 1] = { key = place.key, title = place.label, default = not place.off,
             note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
     end
 end

@@ -26,7 +26,7 @@ local PAGES = {
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
     { key = "gear", label = "Gear plan", icon = OWN .. "gear" },
     { key = "professions", label = "Professions", icon = OWN .. "professions" },
-    { key = "craftprofit", label = "Crafting profit", icon = "INV_Misc_Coin_01",
+    { key = "craftprofit", label = "Crafting profit", icon = OWN .. "profit",
       when = function() return ns.CraftProfit ~= nil and ns.CraftProfit.running == true end },
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
@@ -34,7 +34,7 @@ local PAGES = {
     -- Only in the menu once its part is switched on: `when` is asked as the
     -- dashboard is built, and a switch waits for a reload anyway. It has a
     -- small window of its own rather than a page here: `open` shows that.
-    { key = "pet", label = "Jsal's Pals", icon = "Interface\\AddOns\\jsalUI\\Media\\Pet\\briarboar.png",
+    { key = "pet", label = "Jsal's Pals", icon = OWN .. "pals",
       when = function() return ns.Pet ~= nil and ns.Pet.running == true end,
       open = function() ns.Pet.Open() end },
     { key = "guild", label = "Guild", icon = OWN .. "guild" },

@@ -1,6 +1,12 @@
-# jsal.ui 0.3.52
+# jsal.ui 0.3.53
 
-Restart the game after updating (exit and start it again): this version adds new files, and a /reload doesn't load them.
+Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them.
+
+- **Quick buttons for Jsal's Pals and Crafting profit, with icons to match.** Both can have a button on the quick bar now: turn each on under Quick buttons in Settings, or by right-clicking the bar's grip. They start off, and show only while their part is on. In the dashboard's menu both have icons of jsal.ui's own, a paw and a stack of coins, like every other entry; the minimap button's right-click list has them too.
+
+## In 0.3.52
+
+Coming from 0.3.50 or earlier, restart the game after updating (exit and start it again): 0.3.52 added new files, and a /reload doesn't load them.
 
 - **Quest reward star.** When a quest lets you choose a reward, a gold star marks the one the Gear plan scores the biggest upgrade for your spec, in the quest window, the quest log and the map. Point at a reward for how much better it is for you ("Best of these for you: +4%"). Nothing is starred when no reward is better than what you wear. Turn it on in Settings, Leveling: Quest reward star.
 - **Pet feeding, for hunters.** While your pet is out and not happy, a glowing tile shows beside the food reminder: point at it for the food in your bags your pet eats, and click one to feed your pet. It hides in a fight and once your pet is happy, and drags anywhere. Turn it on in Settings, Around the UI: Pet feeding.
