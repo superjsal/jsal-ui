@@ -2349,8 +2349,10 @@ local function BuildPen()
                 mute:SetShown(over)
                 ui.sizeButton:SetShown(over)
             end
-            -- Standing about, it turns to look at the pointer when that comes near.
-            if over and walk and walk.wait > 0 and not walk.act and not walk.nap then
+            -- Standing about, it turns to look at the pointer when that comes near;
+            -- not while it's being stroked, when it keeps facing your hand.
+            if over and walk and walk.wait > 0 and not walk.act and not walk.nap
+                and not (ui.play.rub and ui.play.rub.facing) then
                 local x = Compat.Cursor(pen)
                 if x then walk.facing = x < walk.x + walk.size / 2 and "left" or "right" end
             end
@@ -3912,7 +3914,7 @@ function Pet.Stroking(sheet, dt)
     if not Pet.Rub(rub, x) then
         -- Resting on it is not stroking it: a while of that and the fuss starts over.
         rub.idle = before == x and rub.idle + dt or 0
-        if rub.idle >= Pet.PLAY.rest then rub.strokes = 0 end
+        if rub.idle >= Pet.PLAY.rest then rub.strokes, rub.facing = 0, nil end
         return false
     end
     rub.idle, rub.strokes = 0, rub.strokes + 1
