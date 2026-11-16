@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "The Gear plan no longer gets stuck checking: it settles by itself, no /reload needed",
-    "Stat weights from WoWSims Forever's latest, and fresher spells, quest tags, trainers and vendors",
-    "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
+    "Jsal's Pals: stroke your pal, find it when it hides, and see what it finds while you quest",
+    "The Gear plan counts Frost, Fire and Shadow damage for the trees that cast them",
+    "Restart the game once for this version: it adds new pictures",
 }
 
 local function NewsWanted()
