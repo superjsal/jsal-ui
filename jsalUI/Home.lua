@@ -8,7 +8,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "An item you add to the Gear plan always shows, and one that isn't better says so, with what you'd lose",
+    "The Gear plan no longer gets stuck checking: it settles by itself, no /reload needed",
     "The dungeon guide lists loot for every boss from 50 to 60 and the raids; other classes' loot folds away",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
