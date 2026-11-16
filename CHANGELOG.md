@@ -3,6 +3,7 @@
 - **Gear plan: stat weights from WoWSims Forever's latest.** Hunters now use the weights WoWSims Forever ships for them (its own until now were worked out by hand from its tool); mages' are worked out again on its new pre-raid gear; warriors take its re-tuned Arms, Fury and Protection sets. The changes are small: crit and hit count a little less for hunters and mages, and Agility a little less for Fury.
 - **Fresher data from the latest Forever build and from players.** Spells and talents are read from the game's newest build (a rogue's Shank Rank 2 now shows on the Training planner), and quest tags, trainer prices and vendors are refreshed from what players have seen since: some quest items drop less often than the old numbers said, so a few quests read longer.
 - **Gear plan: "checking..." no longer needs a /reload.** While it waits on items, the Gear plan now looks again by itself every couple of seconds, and gives up on one the game still hasn't sent after about ten seconds, so the page settles.
+- **Shopping list: Fine Thread in Ironforge.** The list sent Ironforge players to Stormwind for Fine Thread; it now names Bombus Finespindle, Ironforge's leatherworking supplies vendor.
 
 ## In 0.3.49
 
