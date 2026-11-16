@@ -119,13 +119,24 @@ function Switch.WhyNot(name, code)
     return nil
 end
 
+-- Whether a name is in your guild, by its roster; with no roster in yet, nobody is.
+local function Guildmate(name)
+    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
+        local full = GetGuildRosterInfo(i)
+        if full and Ambiguate(full, "none") == name then return true end
+    end
+    return false
+end
+
 Comms.On("LY", function(payload, name, _, sender)
     if Running() then Switch.Heard(name, payload, sender) end
 end)
 
 -- A guildmate asks to join your layer: invite them, or say why not.
+-- Only a guildmate: a whisper on the hidden channel can come from anyone, and anyone who
+-- sent this one was invited.
 Comms.On("LJ", function(payload, name, _, sender)
-    if not Running() then return end
+    if not Running() or not Guildmate(name) then return end
     local why = Switch.WhyNot(name, payload)
     if why then return Comms.Send("LN", why, "WHISPER", sender) end
     invited[name] = GetTime()

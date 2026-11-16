@@ -253,8 +253,29 @@ function Guild:OnDisable()
     Comms.On("GW", nil)
 end
 
+-- A guildmate heard this session who has since gone is let go: the guild's roster says who's
+-- on, and a hello in the last few minutes counts too (the roster can run behind someone just
+-- in). Nobody was ever let go, so everyone heard since you logged in read as online.
+local HEARD = 300
+local function Prune()
+    local count = GetNumGuildMembers and GetNumGuildMembers() or 0
+    if count == 0 then return end
+    local online = {}
+    for i = 1, count do
+        local full, _, _, _, _, _, _, _, isOnline = GetGuildRosterInfo(i)
+        if full and isOnline then online[Ambiguate(full, "none")] = true end
+    end
+    local me, now = Compat.MyName(), GetTime()
+    for name, m in pairs(members) do
+        if name ~= me and not online[name] and now - (m.seen or 0) > HEARD then members[name] = nil end
+    end
+end
+
+Guild.Prune = Prune
+
 -- Today's scores first: fewest Daily Word tries, then most icons right.
 local function Sorted(wordID)
+    Prune()
     local today = ns.Games.Today()
     local list = {}
     for name, m in pairs(members) do

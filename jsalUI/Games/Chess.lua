@@ -266,7 +266,9 @@ function Chess.Move(game, uci)
     local state = Chess.Position(game)
     if not Rules.FindMove(state, uci) then return false end
     game.moves[#game.moves + 1] = uci
-    game.drawOffer = nil
+    -- Moving turns down their offer. Your own stands until they move: it was dropped here
+    -- too, while they could still take it, and then one board was drawn and the other not.
+    if game.drawOffer == "them" then game.drawOffer = nil end
     Touch(game)
     Broadcast(game, "CM", #game.moves .. ";" .. uci)
     CheckEnd(game)
