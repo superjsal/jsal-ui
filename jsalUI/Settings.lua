@@ -33,7 +33,7 @@ local GROUPS = {
     } },
     { title = "Around the UI", width = 150, sections = {
         { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
-        { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "rangecheck" } },
+        { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "petfeed", "rangecheck" } },
         { "Everything else", { "sharedFonts" } },
     } },
 }
@@ -74,6 +74,7 @@ local SHORT = {
     warnings = "Full bags, and gear about to break",
     waypoint = "Where the map marker leads",
     foodtile = "A reminder when you aren't Well Fed",
+    petfeed = "Hunters: feed your pet in one click",
     rangecheck = "Hunters: melee, dead zone or shooting",
     layers = "Your layer, and a way to change it",
     sharedFonts = "jsal.ui's font in other addons' lists",
@@ -94,6 +95,7 @@ local ICON = {
     professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
     vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",
+    petfeed = "Parts\\foodtile",
     rangecheck = "Parts\\rangecheck", layers = "Parts\\layers", sharedFonts = "Parts\\sharedFonts",
 }
 

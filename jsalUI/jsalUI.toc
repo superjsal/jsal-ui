@@ -98,6 +98,7 @@ Helpers\MenuBar.lua
 Helpers\BagButton.lua
 Helpers\RangeCheck.lua
 Helpers\FoodTile.lua
+Helpers\PetFeed.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
