@@ -34,6 +34,8 @@ local LOOKS = 8
 local stars = setmetatable({}, { __mode = "k" })
 local found = setmetatable({}, { __mode = "k" })
 local looks, waiter = 0, nil
+-- The rewards still loading, by item: only one of these arriving is worth another look.
+local awaited = {}
 
 -- A choice's item: its link, or its ID while the game has no link for it yet.
 local function ChoiceItem(button)
@@ -68,6 +70,7 @@ function RewardStar.Score(buttons)
     local choices, waiting = {}, false
     -- What was found for the last quest's rewards goes: the buttons are reused.
     for button in pairs(found) do found[button] = nil end
+    for id in pairs(awaited) do awaited[id] = nil end
     for _, button in ipairs(buttons or {}) do
         if button:IsShown() and button.type == "choice" and button.objectType == "item" then
             choices[#choices + 1] = button
@@ -82,6 +85,7 @@ function RewardStar.Score(buttons)
         found[button] = { verdict = verdict, share = share }
         if verdict == "wait" then
             waiting = true
+            if id then awaited[id] = true end
         elseif verdict == "better" and (not best or share > bestShare) then
             best, bestShare = button, share
         end
@@ -110,13 +114,17 @@ local function HideAll()
     for _, star in pairs(stars) do star:Hide() end
 end
 
-local Look
+local Look, HookEnter
 
 local function WaitForItems()
     if not waiter then
         waiter = CreateFrame("Frame")
         waiter:SetScript("OnEvent", ns.Safe(RewardStar, function(self, _, itemID)
             itemID = Compat.Plain(itemID)
+            -- Some other item arriving (a bag's, the gear plan's, another addon's) isn't a
+            -- reward's: it's waited through. Each one used up a look, and eight of them in a
+            -- burst left the reward unstarred when it came.
+            if itemID and not awaited[itemID] then return end
             self:UnregisterAllEvents()
             -- The gear plan keeps an item it asked for marked as loading; this one is in.
             if itemID then Gear.Arrived(itemID) end
@@ -133,7 +141,8 @@ function Look()
     looks = looks + 1
     local rewards = QuestInfoFrame and QuestInfoFrame.rewardsFrame
     if not (rewards and rewards.RewardButtons) then return end
-    local best, waiting = RewardStar.Score(rewards.RewardButtons)
+    local best, waiting, choices = RewardStar.Score(rewards.RewardButtons)
+    for _, button in ipairs(choices or {}) do HookEnter(button) end
     if best then Star(best):Show() end
     if waiting and looks < LOOKS then WaitForItems() end
 end
@@ -166,12 +175,21 @@ local function OnEnter(button)
     end
 end
 
+-- Each reward button gets the line from a hook on its own OnEnter, once. Forever has no global
+-- QuestInfoRewardItemCodeTemplate_OnEnter to hook (the name is only in its XML): hooking it
+-- stopped the star turning on at all (John's error, 16 Nov 2026).
+local entered = setmetatable({}, { __mode = "k" })
+function HookEnter(button)
+    if entered[button] or not button.HookScript then return end
+    entered[button] = true
+    button:HookScript("OnEnter", ns.Safe(RewardStar, OnEnter))
+end
+
 local hooked = false
 function RewardStar:OnEnable()
     if not hooked then
         hooked = true
         hooksecurefunc("QuestInfo_Display", ns.Safe(self, Shown))
-        hooksecurefunc("QuestInfoRewardItemCodeTemplate_OnEnter", ns.Safe(self, OnEnter))
     end
 end
 

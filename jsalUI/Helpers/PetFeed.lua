@@ -330,7 +330,14 @@ function PetFeed.Update()
     end
 end
 
+-- The events that name a unit, and whose: heard for that unit alone, where the game allows.
+local UNIT = { UNIT_HAPPINESS = "pet", UNIT_AURA = "pet", UNIT_PET = "player" }
+
 function PetFeed:OnEnable()
+    -- Hunters only: for any other class nothing is built, and nothing listens (it heard
+    -- every aura on everyone nearby, to find it wasn't a hunter's pet's).
+    local _, class = UnitClass("player")
+    if class ~= "HUNTER" then return end
     if not holder then Build() end
     Place()
     if ns.Unlock then
@@ -350,7 +357,11 @@ function PetFeed:OnEnable()
     for _, e in ipairs({ "UNIT_HAPPINESS", "UNIT_PET", "UNIT_AURA", "PET_UI_UPDATE", "BAG_UPDATE_DELAYED",
                          "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "PLAYER_DEAD",
                          "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST" }) do
-        events:RegisterEvent(e)
+        if UNIT[e] and events.RegisterUnitEvent then
+            events:RegisterUnitEvent(e, UNIT[e])
+        else
+            events:RegisterEvent(e)
+        end
     end
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
         unit = Compat.Plain(unit)
@@ -369,6 +380,7 @@ end
 
 function PetFeed:OnDisable()
     if self.events then self.events:UnregisterAllEvents() end
+    if not holder then return end
     ns.AfterCombat(function()
         if row then row:Hide() end
         if holder then holder:Hide() end
