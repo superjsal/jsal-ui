@@ -8,7 +8,7 @@ its mind, in the order BUBBLES in jsalUI/Pet/Pet.lua counts them:
 
   0 hungry (a bowl)   1 scoop (a dropping)   2 dirty (a drop of water)
   3 bored (a ball)    4 poorly (a cross)     5 a wish (a star)
-  6 your bags are nearly full (a bag)        7 three dots (someone whispered you)
+  6 your bags are nearly full (a bag)        7 a pink chat balloon (someone whispered you)
   8 a letter (mail has come)
   9 on: each thing it can find and bring you, in the order of Rules.TRINKETS
     in jsalUI/Pet/PetRules.lua (TRINKETS below)
@@ -31,7 +31,7 @@ COLOURS = {
     "g": (96, 168, 88, 255), "w": (96, 160, 226, 255), "p": (226, 120, 170, 255), "o": (232, 140, 60, 255),
     "G": (150, 152, 164, 255), "L": (205, 208, 216, 255), "W": (255, 255, 255, 255), "c": (198, 118, 64, 255),
     "B": (182, 216, 242, 255), "P": (248, 204, 216, 255), "d": (106, 70, 42, 255), "Y": (255, 236, 160, 255),
-    "D": (58, 124, 62, 255),
+    "D": (58, 124, 62, 255), "m": (236, 112, 226, 255),
 }
 # Each sign is ten rows of ten.
 SIGNS = [
@@ -49,8 +49,10 @@ SIGNS = [
     ["....##....", "....#y#...", "...#yy#...", "####yy####", "#yyyyyyyy#", ".#yyyyyy#.", "..#yyyy#..", ".#yy##yy#.", ".#y#..#y#.", ".##....##."],
     # a bag
     ["..........", "...####...", "..#....#..", ".########.", ".#bbbbbb#.", ".#bb##bb#.", ".#bbbbbb#.", ".#bbbbbb#.", ".########.", ".........."],
-    # three dots: someone has whispered you
-    ["..........", "..........", "..........", "..........", ".##.##.##.", ".##.##.##.", "..........", "..........", "..........", ".........."],
+    # a chat balloon in the game's whisper pink, three dots in it: someone has
+    # whispered you (it was three plain dots, like a thought: John, 16 Nov
+    # 2026, "lets find a different notification for whispers")
+    ["..........", ".#######..", "#mmmmmmm#.", "#mWmWmWm#.", "#mmmmmmm#.", ".#mm####..", ".#m#......", ".##.......", "..........", ".........."],
     # a letter: mail has come
     ["..........", "..........", "##########", "#WWWWWWWW#", "##WWWWWW##", "#W##WW##W#", "#WWW##WWW#", "#WWWWWWWW#", "##########", ".........."],
 ]
