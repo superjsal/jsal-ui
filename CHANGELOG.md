@@ -11,6 +11,10 @@
 - **Layers: only a guildmate's request to join your layer is answered.**
 - **Vendor run: a bag slot is sold only if it still holds the grey that was there when the vendor opened.**
 - **Shopping list: a list too long to show says how many more it holds.**
+- **Daily Word: a long Guild Word's result always shares.** One too long for a single chat line (eight letters, missed in six) goes as two: the score, then the grid.
+- **Chess: watching a long game catches up, and "Sure?" belongs to one game.** The catch-up for someone who starts watching part-way could be too long to send. And with Resign's "Sure?" showing on one game, picking another no longer lets one click resign that one.
+- **Guild crafters: recipes with the game's newest spell numbers are shared too.**
+- **Flight bar: the game's own leave button comes back after a flight that ends in a fight.**
 
 ## In 0.3.51
 
