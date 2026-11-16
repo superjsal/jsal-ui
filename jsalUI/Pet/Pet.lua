@@ -3811,7 +3811,7 @@ end
 -- `flash`: seconds a bubble about mail, a whisper or a find stays up;
 -- `gaps`, the least seconds between two of each, so a busy inbox or chat
 -- doesn't keep it at it.
-Pet.PLAY = { stroke = 8, strokes = 3, rest = 1.2, hide = 12, quiet = 20, every = { 150, 330 }, wished = { 15, 35 },
+Pet.PLAY = { stroke = 8, strokes = 3, rest = 1.2, hide = 30, quiet = 20, every = { 150, 330 }, wished = { 15, 35 },
     flash = 4, gaps = { mail = 60, whisper = 20 } }
 Pet.Dice = math.random
 -- The hiding places, one for each scene in the order of SCENES, in
