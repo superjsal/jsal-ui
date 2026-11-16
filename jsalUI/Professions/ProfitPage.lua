@@ -10,7 +10,9 @@
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local ROW_H, LIST_TOP, FOOT_H = 30, 150, 44
+-- Rows and text a size up from the first build (John, 16 Nov 2026: "perhaps we
+-- can enlarge the font as well?").
+local ROW_H, LIST_TOP, FOOT_H = 34, 150, 48
 local DAY = 86400
 
 -- The page's parts, filled in as it's built.
@@ -19,13 +21,13 @@ local P = { rows = {}, chips = {}, heads = {} }
 -- The columns: what each sorts by and its heading (the name starts at 32,
 -- after the icon).
 local COLUMNS = { { key = "name", label = "RECIPE", left = true },
-                  { key = "cost", label = "TO MAKE", right = 440 }, { key = "sells", label = "SELLS FOR", right = 310 },
-                  { key = "profit", label = "PROFIT", right = 170 }, { key = "age", label = "SEEN", right = 50 } }
+                  { key = "cost", label = "TO MAKE", right = 480 }, { key = "sells", label = "SELLS FOR", right = 335 },
+                  { key = "profit", label = "PROFIT", right = 185 }, { key = "age", label = "SEEN", right = 50 } }
 -- How wide a number column is. Gold, silver and copper with their coins run to
 -- about 110: at 86, 90 apart, "+1g 80s 58c" ran into SELLS FOR (John's
 -- screenshot, 16 Nov 2026: "lets have some bettrer spacing between sells for
 -- and profit").
-local CELL_W = 120
+local CELL_W = 135
 -- Where a number column's text ends: measured from the list's right edge,
 -- so a wider window gives the room to the names.
 local function ColumnX(c) return P.width - COLUMNS[c].right end
@@ -162,27 +164,27 @@ local function Row(i)
     r:SetSize(P.width - 8, ROW_H)
     r:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
     r.icon = r:CreateTexture(nil, "ARTWORK")
-    r.icon:SetSize(22, 22)
+    r.icon:SetSize(26, 26)
     r.icon:SetPoint("LEFT", 0, 0)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.cells = {}
     for c = 1, 5 do
-        local t = Style.Text(r, 12, "secondary")
+        local t = Style.Text(r, 14, "secondary")
         t:SetWordWrap(false)
         -- A number column holds its own width, so nothing runs into the next.
         if c > 1 then t:SetWidth(CELL_W) end
         r.cells[c] = t
     end
-    r.cells[1]:SetPoint("LEFT", 32, 0)
-    r.cells[1]:SetWidth(P.width - 32 - COLUMNS[2].right - 100)
+    r.cells[1]:SetPoint("LEFT", 36, 0)
+    r.cells[1]:SetWidth(P.width - 36 - COLUMNS[2].right - 110)
     r.cells[1]:SetJustifyH("LEFT")
-    r.heading = Style.Text(r, 10, "gold", nil, true)
+    r.heading = Style.Text(r, 11, "gold", nil, true)
     r.heading:SetPoint("LEFT", 0, -2)
-    r.note = Style.Text(r, 10, "muted")
+    r.note = Style.Text(r, 11, "muted")
     r.note:SetPoint("RIGHT", -8, -2)
     r.rule = Style.Rule(r, "BOTTOM", "line")
-    r.add = Style.Button(r, "+", "plain", 22)
-    r.add:SetHeight(22)
+    r.add = Style.Button(r, "+", "plain", 24)
+    r.add:SetHeight(24)
     r.add:SetPoint("RIGHT", -4, 0)
     r.add:SetScript("OnClick", function(self)
         local data = self:GetParent().data
@@ -449,7 +451,7 @@ local function Heads(page)
     for i = 1, 5 do
         local h = CreateFrame("Button", nil, page)
         h:SetHeight(20)
-        h.text = Style.Text(h, 10, "muted", nil, true)
+        h.text = Style.Text(h, 11, "muted", nil, true)
         -- The arrow: a small chevron of two strokes, pointing down for high first.
         h.arrow = CreateFrame("Frame", nil, h)
         h.arrow:SetSize(10, 6)
@@ -530,7 +532,7 @@ Window.Page("craftprofit", function(page)
     P.bar:Hide()
     P.empty = Style.Text(page, 13, "muted")
     P.empty:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(LIST_TOP + 16))
-    P.foot = Style.Text(page, 11, "muted")
+    P.foot = Style.Text(page, 12, "muted")
     P.foot:SetPoint("BOTTOMLEFT", 0, 0)
     P.foot:SetWidth(width)
     P.foot:SetJustifyH("LEFT")
