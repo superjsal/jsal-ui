@@ -402,14 +402,22 @@ Pet.SHEETS = SHEETS
 -- which frame shows, and how long it still stands before the next stroll.
 ---------------------------------------------------------------------------
 -- `keep`: the furthest right it may go, while there's a nest at the pen's
--- right to keep off.
-local function Spot(random, size, strip, keep)
+-- right to keep off. `corner`: the right edge and top of the hiding place
+-- (x, y), not to stop behind: standing there is hide and seek, when a click
+-- finds it. (It strolled there and stood, as if hiding, and a click was only
+-- a pat. John, 16 Nov 2026: "clicking him does nothing when hes hiding".)
+local function Spot(random, size, strip, keep, corner)
     -- Out with you, it only walks to and fro, along the bottom of its strip.
     if strip then return random(0, strip - size), STRIP_TOP end
     -- Its feet are near the bottom of its picture: high enough up the pen
     -- and a small one would be standing on the fence.
     local top = math.max(0, math.floor(GRASS - size * 0.92))
-    return random(0, math.max(0, math.min(PEN_W - size, keep or PEN_W))), random(top, PEN_H - size)
+    local right = math.max(0, math.min(PEN_W - size, keep or PEN_W))
+    local x, y = random(0, right), random(top, PEN_H - size)
+    if corner and x + size * 0.3 < corner.x and y + size * 0.9 > corner.y then
+        x = random(math.min(right, math.ceil(corner.x - size * 0.3)), right)
+    end
+    return x, y
 end
 
 -- `size` is how large it's drawn (the largest, unless told).
@@ -497,7 +505,7 @@ function Pet.Step(walk, dt, random)
         walk.wait = walk.wait - dt
         walk.frame = "stand"
         if walk.wait <= 0 then
-            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep)
+            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep, walk.corner)
             -- With an egg to look after, one stroll in three is back to the
             -- nest's side, where it stays a while, facing it. (It wandered
             -- as if there were no nest, and stood on it: John's screenshot,
@@ -4248,6 +4256,11 @@ function Pet.PaintPlay(s)
         local show = not window.out and not yard and not window.picking and not looking
         spot:SetShown(show)
         local scene = Pet.Scene(Pet.where)
+        -- Where it's not to stop when it strolls about (Spot).
+        if walk then
+            local hs = show and Pet.HideSpot(scene)
+            walk.corner = hs and { x = hs.x + hs.w, y = hs.y } or nil
+        end
         if show and spot.scene ~= scene then
             spot.scene = scene
             local H, cell = Pet.HIDES, Pet.HideSpot(scene).cell
