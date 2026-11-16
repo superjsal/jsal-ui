@@ -8,9 +8,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
+    "New, off to start: Crafting profit, a quest reward star and pet feeding for hunters. Turn them on in Settings",
     "Jsal's Pals: stroke your pal, find it when it hides, and see what it finds while you quest",
-    "The Gear plan counts Frost, Fire and Shadow damage for the trees that cast them",
-    "Restart the game once for this version: it adds new pictures",
+    "Restart the game once for this version: it adds new files",
 }
 
 local function NewsWanted()
