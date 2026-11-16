@@ -44,9 +44,9 @@ end
 ---------------------------------------------------------------------------
 local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
 
-local function Code(n)
+local function Code(n, width)
     local out = {}
-    for i = 4, 1, -1 do
+    for i = width or 4, 1, -1 do
         local d = n % 36
         out[i] = DIGITS:sub(d + 1, d + 1)
         n = math.floor(n / 36)
@@ -68,15 +68,29 @@ function Crafters.MineText()
     for _, line in ipairs(lines) do
         local p = all[line]
         if not SKIP[line] and type(p) == "table" and type(p.known) == "table" then
-            local spells = {}
+            -- Four letters reach spell 1,679,615. One past that was left out without a word,
+            -- and Forever's own new spells are past 1,300,000 already. Those go in a part of
+            -- their own, marked "w", five letters each: a jsal.ui from before this passes such
+            -- a part over, and still reads the rest.
+            local spells, wide = {}, {}
             for spell in pairs(p.known) do
-                if spell > 0 and spell < 36 ^ 4 then spells[#spells + 1] = spell end
+                if spell > 0 and spell < 36 ^ 4 then
+                    spells[#spells + 1] = spell
+                elseif spell >= 36 ^ 4 and spell < 36 ^ 5 then
+                    wide[#wide + 1] = spell
+                end
             end
             table.sort(spells)
+            table.sort(wide)
             if #spells > 0 then
                 local codes = {}
                 for i, spell in ipairs(spells) do codes[i] = Code(spell) end
                 parts[#parts + 1] = ("%d:%d:%s"):format(line, p.skill or 0, table.concat(codes))
+            end
+            if #wide > 0 then
+                local codes = {}
+                for i, spell in ipairs(wide) do codes[i] = Code(spell, 5) end
+                parts[#parts + 1] = ("w%d:%d:%s"):format(line, p.skill or 0, table.concat(codes))
             end
         end
     end
@@ -116,6 +130,15 @@ local function Heard()
     return ns.db.crafters[guild]
 end
 
+-- One part of a recipe text: its profession, skill, codes and how many letters a code has
+-- (five in a part marked "w"); nil for a part that's neither.
+local function Part(part)
+    local line, skill, codes = part:match("^(%d+):(%d+):(%w*)$")
+    if line then return tonumber(line), skill, codes, 4 end
+    line, skill, codes = part:match("^w(%d+):(%d+):(%w*)$")
+    if line then return tonumber(line), skill, codes, 5 end
+end
+
 -- Made from what's been heard: item (or spell, for crafts that make no
 -- item) = { spell, line, item, names = { name = true } }.
 local index, dirty = nil, true
@@ -132,9 +155,8 @@ local function Build()
     for name, entry in pairs(Heard() or {}) do
         if name ~= me and type(entry) == "table" and type(entry.text) == "string" then
             for part in entry.text:gmatch("[^,]+") do
-                local line, _, codes = part:match("^(%d+):(%d+):(%w*)$")
-                line = tonumber(line)
-                for code in (codes or ""):gmatch("%w%w%w%w") do
+                local line, _, codes, width = Part(part)
+                for code in (codes or ""):gmatch(("%w"):rep(width or 4)) do
                     local spell = Decode(code)
                     local known = spell and recipes[spell]
                     if known and known.line == line then
@@ -236,14 +258,20 @@ function Crafters.Sharing()
             local person = { name = name, online = online[name] == true, zone = zones[name], seen = entry.seen or 0,
                              target = entry.target or name, recipes = 0, profs = {} }
             for part in entry.text:gmatch("[^,]+") do
-                local line, skill, codes = part:match("^(%d+):(%d+):(%w*)$")
-                line = tonumber(line)
+                local line, skill, codes, width = Part(part)
                 local label = line and (Professions.Name(line) or GATHER[line])
                 if label and not SKIP[line] then
-                    local count = math.floor(#codes / 4)
+                    local count = math.floor(#codes / width)
                     person.recipes = person.recipes + count
-                    person.profs[#person.profs + 1] = { line = line, name = label, skill = tonumber(skill) or 0,
-                                                        recipes = count, steps = GATHER[line] ~= nil }
+                    -- A profession's second part (its spells of five letters) adds to its first.
+                    local prof
+                    for _, p in ipairs(person.profs) do if p.line == line then prof = p end end
+                    if prof then
+                        prof.recipes = prof.recipes + count
+                    else
+                        person.profs[#person.profs + 1] = { line = line, name = label, skill = tonumber(skill) or 0,
+                                                            recipes = count, steps = GATHER[line] ~= nil }
+                    end
                 end
             end
             if #person.profs > 0 then list[#list + 1] = person end
