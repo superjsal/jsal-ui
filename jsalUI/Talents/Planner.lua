@@ -326,6 +326,11 @@ Window.Page("build", function(page)
             end
         end
         delete:SetEnabled(#Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0)
+        -- "Sure?" is asked of one build: with another showing, the button reads Delete again.
+        if delete.armedFor ~= build then
+            delete.armedFor = nil
+            delete:SetLabel("Delete")
+        end
 
         -- A suggested build says where it's from, above its plan.
         local shift = builtin and SOURCE_H or 0
@@ -643,6 +648,15 @@ Window.Page("build", function(page)
     Paint = function()
         data = Tree.Read(classID)
         build = Tree.Selected(classID)
+        -- The rename box is for the build it was opened on: with another build or class
+        -- picked it closes, nothing saved. (Left open, Enter named whichever build was
+        -- showing by then.)
+        if nameBox:IsShown() and nameBox.forBuild ~= build then
+            nameBox.forBuild = nil
+            nameBox:ClearFocus()
+            nameBox:Hide()
+            nameHint:Hide()
+        end
         for _, b in ipairs(classButtons) do
             local on = b.classID == classID
             b.bg:SetShown(on)
@@ -714,6 +728,7 @@ Window.Page("build", function(page)
         Paint()
     end)
     rename:SetScript("OnClick", function()
+        nameBox.forBuild = build
         nameBox:SetText(build.name)
         nameBox:Show()
         nameHint:Show()
@@ -723,7 +738,8 @@ Window.Page("build", function(page)
     end)
     local function EndRename(keep)
         local name = strtrim(nameBox:GetText())
-        if keep and name ~= "" then build.name = name end
+        if keep and name ~= "" and nameBox.forBuild == build then build.name = name end
+        nameBox.forBuild = nil
         nameBox:ClearFocus()
         nameBox:Hide()
         nameHint:Hide()
@@ -737,17 +753,23 @@ Window.Page("build", function(page)
         Say("Copied to your builds as " .. mine.name .. ". Edit it as you like.")
     end)
 
-    -- Deleting asks once: the first click arms it for a few seconds.
-    local armed = 0
+    -- Deleting asks once: the first click arms it for a few seconds, for the build it was
+    -- clicked on (kept on the button, where the page's painting can see it). It was armed for
+    -- the page: "Sure?" on one build, another picked in those seconds, and one click deleted that.
     delete:SetScript("OnClick", function()
         if build.builtin or (#Tree.ClassBuilds(classID) <= 1 and #Tree.Suggested(classID) == 0) then return end
-        if GetTime() > armed then
-            armed = GetTime() + 3
+        if delete.armedFor ~= build or GetTime() > (delete.armedTill or 0) then
+            delete.armedFor, delete.armedTill = build, GetTime() + 3
             delete:SetLabel("Sure?")
-            Compat.After(3, function() delete:SetLabel("Delete") end)
+            Compat.After(3, function()
+                if GetTime() >= (delete.armedTill or 0) then
+                    delete.armedFor = nil
+                    delete:SetLabel("Delete")
+                end
+            end)
             return
         end
-        armed = 0
+        delete.armedFor, delete.armedTill = nil, nil
         delete:SetLabel("Delete")
         Tree.Delete(build)
         Paint()

@@ -282,4 +282,6 @@ end)
 function Waypoint:OnDisable()
     if self.driver then self.driver:SetScript("OnUpdate", nil) end
     if box then box:Hide() end
+    -- And its gold pointer, drawn with the label: it stayed where it was.
+    if pointer then pointer:Hide() end
 end

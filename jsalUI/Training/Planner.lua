@@ -1006,9 +1006,18 @@ Window.Page("training", function(page)
         -- pcall: not every client has the Beast Training window's events.
         pcall(events.RegisterEvent, events, event)
     end
+    -- A burst of news is one repaint: each spell bought at a trainer brings several of these,
+    -- and each asked for a repaint of its own. And a pet's news counts only when it's yours.
+    local queued = false
     events:SetScript("OnEvent", function(_, event, unit)
         unit = Compat.Plain(unit)
         if event == "UNIT_LEVEL" and unit ~= "pet" then return end
-        if page:IsVisible() then Compat.After(0.3, function() xpcall(Paint, ns.Report) end) end
+        if event == "UNIT_PET" and unit and unit ~= "player" then return end
+        if queued or not page:IsVisible() then return end
+        queued = true
+        Compat.After(0.3, function()
+            queued = false
+            if page:IsVisible() then xpcall(Paint, ns.Report) end
+        end)
     end)
 end)

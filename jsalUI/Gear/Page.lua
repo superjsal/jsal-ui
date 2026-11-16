@@ -155,7 +155,7 @@ Window.Page("gear", function(page)
     local paneW = SLOT_W
     local listW = width - paneW - LIST_GAP
     local chosen = "chest"
-    local Paint
+    local Paint, Settle
 
     -- The top: how many slots can be better, who it's for, and the spec,
     -- which picks the stat weights.
@@ -169,6 +169,7 @@ Window.Page("gear", function(page)
         b:SetHeight(26)
         b:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width - (3 - i) * 128, -8)
         b:SetScript("OnClick", function()
+            Settle()
             G.SetSpec(i)
             Paint()
         end)
@@ -200,6 +201,15 @@ Window.Page("gear", function(page)
     panelHint:SetText("higher counts more")
     local weightRows = {}
     local PaintWeights
+    -- A weight box with the cursor in it takes what's typed before its row is given another
+    -- stat, or another spec's. Left open, it kept the typed number and saved it later under
+    -- whatever the row had become: 2 typed for Agility, another spec clicked, Enter pressed,
+    -- and that spec's stat was 2.
+    Settle = function()
+        for _, r in ipairs(weightRows) do
+            if r.field:HasFocus() then r.field:ClearFocus() end
+        end
+    end
     local function Number(v)
         local text = ("%.2f"):format(v or 0):gsub("0+$", ""):gsub("%.$", "")
         return text
@@ -214,8 +224,11 @@ Window.Page("gear", function(page)
         r.field = Style.Field(r, 70)
         r.field.well:SetPoint("RIGHT", -26, 0)
         r.remove = Style.CloseButton(r, 22, function()
-            if r.key then
-                G.RemoveWeight(G.Spec(), r.key)
+            -- The stat this row has now: settling a box can move the rows.
+            local key = r.key
+            Settle()
+            if key then
+                G.RemoveWeight(G.Spec(), key)
                 Paint()
                 PaintWeights()
             end
@@ -262,6 +275,7 @@ Window.Page("gear", function(page)
         local function Offer(key, label)
             if not G.WeightShown(spec, key) then
                 items[#items + 1] = { label, nil, function()
+                    Settle()
                     G.AddWeight(spec, key)
                     focusKey = key
                     Paint()
@@ -278,6 +292,7 @@ Window.Page("gear", function(page)
         end
     end)
     local function Import()
+        Settle()
         local ok, message = G.ImportPawn(G.Spec(), pawn:GetText())
         weightsSaid:SetText(message or "")
         if ok then
@@ -290,6 +305,7 @@ Window.Page("gear", function(page)
     importButton:SetScript("OnClick", Import)
     pawn:SetScript("OnEnterPressed", Import)
     resetButton:SetScript("OnClick", function()
+        Settle()
         G.ResetWeights(G.Spec())
         weightsSaid:SetText("Back to WoWSims' weights.")
         Paint()
@@ -743,10 +759,10 @@ Window.Page("gear", function(page)
         -- until a /reload (John, 15 Nov 2026). Once at a time; stops when nothing is waited on.
         if checking and not retrying then
             retrying = true
-            Compat.After(2.5, function()
+            Compat.After(2.5, ns.Safe(G, function()
                 retrying = false
                 if page:IsVisible() then Paint() end
-            end)
+            end))
         end
         if better > 0 then
             title:SetText(("%d slot%s can be better"):format(better, better == 1 and "" or "s"))
@@ -851,7 +867,7 @@ Window.Page("gear", function(page)
     local waiting
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-    page:SetScript("OnEvent", function()
+    page:SetScript("OnEvent", ns.Safe(G, function()
         if pending and page:IsVisible() then
             local text = pending
             pending = nil
@@ -860,9 +876,9 @@ Window.Page("gear", function(page)
         end
         if waiting or not page:IsVisible() then return end
         waiting = true
-        Compat.After(0.3, function()
+        Compat.After(0.3, ns.Safe(G, function()
             waiting = nil
             if page:IsVisible() then Paint() end
-        end)
-    end)
+        end))
+    end))
 end, { width = WINDOW_W, height = WINDOW_H })

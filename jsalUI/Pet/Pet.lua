@@ -2953,6 +2953,9 @@ function Pet.Paddock()
     end
     if not IsOpen() then Pet.Open() end
     if Pet.State().unchosen then return end
+    -- Not while an egg hatches, as Out isn't: in the paddock that scene is never moved on,
+    -- and its cover stayed over the way back.
+    if pen.hatching then return end
     yard, albumOpen = not yard, false
     looking, said = nil, nil
     pen.shade = nil     -- back from the paddock, it's day or night at once
@@ -4332,10 +4335,10 @@ function Pet:OnEnable()
     Pet.State()
     -- The pen left out on its own comes back after a reload or a login.
     if ns.db.petShown and (ns.db.petCompact or ns.db.petOut) then
-        Compat.After(1, function()
+        Compat.After(1, ns.Safe(self, function()
             if not (window and window:IsShown()) then Pet.Open() end
             Pet.React("hello")
-        end)
+        end))
     end
     -- Where you are now, so that only going somewhere else counts as a trip.
     local zone = ZoneName()

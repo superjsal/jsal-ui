@@ -15,6 +15,12 @@
 - **Chess: watching a long game catches up, and "Sure?" belongs to one game.** The catch-up for someone who starts watching part-way could be too long to send. And with Resign's "Sure?" showing on one game, picking another no longer lets one click resign that one.
 - **Guild crafters: recipes with the game's newest spell numbers are shared too.**
 - **Flight bar: the game's own leave button comes back after a flight that ends in a fight.**
+- **Gear plan: a weight you type is saved for the spec and stat you typed it for.** With the cursor still in a weight's box, clicking another spec, or adding or removing a stat, could save the number under that one.
+- **Build Planner: "Sure?" and the rename box belong to one build.** With Delete's "Sure?" showing on one build, picking another no longer lets one click delete that one; and the rename box closes when you pick another build, where Enter could name it.
+- **Setup: a fight closing it isn't you skipping it.** It opens again at your next login, and says that /jsal setup brings it back.
+- **Unlock Mode: undoing a piece you had never moved puts its gold box back too.**
+- **Dungeon guide: another dungeon opens at its top,** not as far down as you had scrolled the last one.
+- **Smaller ones.** Chess: a challenge you turn down reaches someone who has only just logged in. Favourite recipes: "needs more gold" is said only when that's why one wasn't bought. Guild crafters: someone not heard from in two months is no longer listed. Jsal's Pals: /jsal pet paddock waits while an egg hatches. Training Planner: lighter while you buy spells.
 
 ## In 0.3.51
 

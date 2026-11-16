@@ -411,11 +411,16 @@ local function Finish()
     frame:Hide()
 end
 
+-- A fight closes setup (at the foot of this file). That isn't you closing it, so it
+-- doesn't count as seen.
+local byFight = false
+
 local function Build()
     frame = Style.Panel("jsalUISetup", WIDTH, HEIGHT, "Setup")
     frame:SetFrameStrata("DIALOG")
     -- Closing it early counts as seen, so it doesn't open again by itself.
     frame:HookScript("OnHide", function()
+        if byFight then return end
         ns.db.setup = ns.db.setup or { done = ns.codeVersion, skipped = true }
     end)
     local side = CreateFrame("Frame", nil, frame)
@@ -477,8 +482,14 @@ ns.Command("setup", Setup.Open)
 -- closes as a fight starts.
 local combat = CreateFrame("Frame")
 combat:RegisterEvent("PLAYER_REGEN_DISABLED")
+-- Closed that way it isn't marked as seen, and a line says how to get it back: a first run
+-- that a fight cut short was saved as skipped, and never opened by itself again.
 combat:SetScript("OnEvent", function()
-    if frame and frame:IsShown() then frame:Hide() end
+    if not (frame and frame:IsShown()) then return end
+    byFight = true
+    frame:Hide()
+    byFight = false
+    ns.Print("Setup closed for the fight. /jsal setup opens it again.")
 end)
 
 -- The first time jsal.ui runs, setup opens a few seconds after login,

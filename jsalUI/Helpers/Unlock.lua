@@ -281,13 +281,19 @@ function Unlock.Undo(key)
     local m = movers and movers[key]
     local at = started[key]
     if not (m and at) then return end
-    m.piece.save(at[1], at[2], at[3], at[4])
-    local W, H = Screen()
-    local left, bottom = Unlock.Rect(at[1] or "CENTER", at[2] or at[1], at[3], at[4], m.w, m.h, W, H)
     if at[1] then
+        local W, H = Screen()
+        local left, bottom = Unlock.Rect(at[1], at[2] or at[1], at[3], at[4], m.w, m.h, W, H)
         m.anchor = at[1]
         Put(m, left, bottom)
         m.piece.save(at[1], at[2], at[3], at[4])
+    else
+        -- Never moved before this: its box goes back to where it stood, and its place is
+        -- forgotten again, so the piece is where jsal.ui first puts it. (The piece went home
+        -- and its box stayed where it had been dropped.)
+        m.anchor = at.anchor or m.anchor
+        if at.left then Put(m, at.left, at.bottom) end
+        m.piece.save(nil)
     end
     if Paint then Paint() end
 end
@@ -351,6 +357,8 @@ local function Lay()
         Put(m, left, bottom)
         local at = piece.load and piece.load()
         started[key] = at and { at[1], at[2], at[3], at[4] } or { nil }
+        -- And where its box stands now, for a piece with no saved place to go back to.
+        started[key].left, started[key].bottom, started[key].anchor = left, bottom, point
         m:Show()
     end
 end

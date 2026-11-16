@@ -492,6 +492,14 @@ Window.Page("dungeons", function(page)
     B.order:SetPoint("TOPRIGHT", bossList, "TOPLEFT", rightW, -6)
     B.order:SetJustifyH("RIGHT")
     B.order:SetText("on your gear plan first, then better for you, then by how often it drops")
+    -- Another dungeon, or its other tab, starts from the top; the same one keeps its place,
+    -- held in range. (Only held in range, a dungeon picked while scrolled down another's
+    -- bosses opened partway down its own.)
+    function B.Scroll(d, tab)
+        local top = B.shown ~= d or B.tab ~= tab
+        B.shown, B.tab = d, tab
+        bossScroll:SetVerticalScroll(top and 0 or math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
+    end
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
@@ -1434,7 +1442,7 @@ Window.Page("dungeons", function(page)
             end
             by = PlaceNote("quests", by)
             bossList:SetHeight(math.max(1, by))
-            bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
+            B.Scroll(d, tab)
             return
         end
         -- The bosses as bands down the list, in the game's order, under a
@@ -1487,7 +1495,7 @@ Window.Page("dungeons", function(page)
         for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
         by = PlaceNote("bosses", by)
         bossList:SetHeight(math.max(1, by))
-        bossScroll:SetVerticalScroll(math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
+        B.Scroll(d, tab)
     end
 
     page.Refresh = function() Paint() end
@@ -1498,10 +1506,10 @@ Window.Page("dungeons", function(page)
     page:SetScript("OnEvent", function()
         if waiting or not page:IsVisible() or tab ~= "bosses" then return end
         waiting = true
-        Compat.After(0.2, function()
+        Compat.After(0.2, ns.Safe(D, function()
             waiting = nil
             if page:IsVisible() then Paint() end
-        end)
+        end))
     end)
 -- In a window of its own, with room for the boss cards.
 end, { width = 1000, height = 860 })

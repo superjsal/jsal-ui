@@ -362,8 +362,10 @@ Window.Page("report", function(page)
     end
     box:SetScript("OnEditFocusGained", Paint)
     box:SetScript("OnEditFocusLost", Paint)
-    box:SetScript("OnTextChanged", function()
-        message = nil
+    -- Only your own typing clears what was last said. Copy fills the box itself, and where
+    -- the game tells of that a moment later, its "press Ctrl+C" was gone as soon as it showed.
+    box:SetScript("OnTextChanged", function(_, typed)
+        if typed then message = nil end
         Paint()
     end)
     send:SetScript("OnClick", function()
