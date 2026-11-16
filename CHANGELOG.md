@@ -1,5 +1,6 @@
 # jsal.ui 0.3.51
 
+- **Gear plan: stat weights from WoWSims Forever's latest.** Hunters now use the weights WoWSims Forever ships for them (its own until now were worked out by hand from its tool); mages' are worked out again on its new pre-raid gear; warriors take its re-tuned Arms, Fury and Protection sets. The changes are small: crit and hit count a little less for hunters and mages, and Agility a little less for Fury.
 - **Fresher data from the latest Forever build and from players.** Spells and talents are read from the game's newest build (a rogue's Shank Rank 2 now shows on the Training planner), and quest tags, trainer prices and vendors are refreshed from what players have seen since: some quest items drop less often than the old numbers said, so a few quests read longer.
 
 ## In 0.3.50

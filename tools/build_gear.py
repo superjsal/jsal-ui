@@ -11,7 +11,7 @@ Stat weights are WoWSims': what one point of each stat is worth to a spec. Where
 it's that (data/gear/wowsims-forever/, LICENSE and the commit beside them; FOREVER below names
 each). Forever's sims weigh crit, hit, dodge, parry and block per point of rating; the editor's are
 per 1%, so they're multiplied by Forever's ratings for 1% (RATING_PER_PERCENT). Where it has none
-(hunter, mage, warlock, and the paladin, shaman and druid healers), it's WoWSims Classic's
+(mage, warlock, and the paladin, shaman and druid healers; hunter until 15 Nov 2026), it's WoWSims Classic's
 (data/gear/wowsims/*.sim.ts, github.com/wowsims/classic, MIT). (John, 14 Nov 2026, after the three
 were set side by side with GearQuest's: "Yes, use Forever's".) Both are tuned for level 60, where
 Stamina counts for little; for leveling, every spec's Stamina is at least STAMINA_SHARE of its top
@@ -74,7 +74,9 @@ HEALER = ("priest_healer", "HolySingleTargetEpWeights")
 FOREVER = {
     "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
     "PALADIN": [HEALER, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
-    "HUNTER": [("computed", "hunter"), ("computed", "hunter"), ("computed", "hunter")],
+    # WoWSims Forever ships hunter weights since 15 Nov 2026 (its Weave, Turret and Melee sets); its BM,
+    # MM and SV builds all use the Turret gear, so all three trees take Turret.
+    "HUNTER": [("hunter_dps", "TurretEpWeights"), ("hunter_dps", "TurretEpWeights"), ("hunter_dps", "TurretEpWeights")],
     "ROGUE": [("rogue_dps", "EP_PRESET_ASSASSINATION"), ("rogue_dps", "EP_PRESET_COMBAT_SINISTER"),
               ("rogue_dps", "EP_PRESET_SUBTLETY")],
     "PRIEST": [("priest_healer", "DiscSingleTargetEpWeights"), ("priest_healer", "HolySingleTargetEpWeights"),
@@ -202,6 +204,10 @@ def forever_weights(file, preset):
                 out[key] = v
         elif name in DPS_KEYS:
             dps[DPS_KEYS[name]] = round(float(value), 3)
+    # An item's "+Attack Power" is ranged attack power too: a hunter's counts as that (a set that
+    # weighs only ranged attack power, like the hunter's Turret, gave it nothing).
+    if out.get("ITEM_MOD_RANGED_ATTACK_POWER_SHORT", 0) > out.get("ITEM_MOD_ATTACK_POWER_SHORT", 0):
+        out["ITEM_MOD_ATTACK_POWER_SHORT"] = out["ITEM_MOD_RANGED_ATTACK_POWER_SHORT"]
     # An item of spell damage and healing is both.
     both = out.get("ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", 0) + out.get("ITEM_MOD_SPELL_HEALING_DONE_SHORT", 0)
     if both:
