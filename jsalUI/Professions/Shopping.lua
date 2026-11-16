@@ -35,7 +35,7 @@ local function List()
     return s
 end
 
-local Paint
+local Paint, PaintVendor
 
 function Shopping.AddCraft(spell, count)
     count = math.max(1, math.floor(tonumber(count) or 1))
@@ -510,7 +510,7 @@ end
 
 local function ItemName(item) return Compat.ItemName(item) or "..." end
 
-Paint = function()
+local function PaintList()
     if not frame then return end
     local s = List()
     local used = 0
@@ -726,6 +726,14 @@ Paint = function()
     frame:SetHeight(y + 26 + PAD)
 end
 
+-- Every change to the list (a row's -, + or x, Clear, an add) paints it,
+-- and the vendor's pop-up follows. It kept offering what had been on the
+-- list after Clear (John, 16 Nov 2026).
+Paint = function()
+    PaintList()
+    if PaintVendor then PaintVendor() end
+end
+
 -- beside: opened by adding from a profession window. A list that's
 -- already open stays where the player has it and just comes to the front.
 function Shopping.Open(beside)
@@ -825,7 +833,7 @@ local function BuyOffer()
     end
 end
 
-local function PaintVendor()
+function PaintVendor()
     if not (Shopping.running and MerchantFrame and MerchantFrame:IsShown()) then
         if vendorFrame then vendorFrame:Hide() end
         return
