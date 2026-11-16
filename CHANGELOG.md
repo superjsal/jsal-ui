@@ -2,6 +2,7 @@
 
 - **Quest reward star.** When a quest lets you choose a reward, a gold star marks the one the Gear plan scores the biggest upgrade for your spec, in the quest window, the quest log and the map. Point at a reward for how much better it is for you ("Best of these for you: +4%"). Nothing is starred when no reward is better than what you wear. Turn it on in Settings, Leveling: Quest reward star.
 - **Pet feeding, for hunters.** While your pet is out and not happy, a glowing tile shows beside the food reminder: click it to feed your pet, or point at it for the food in your bags your pet eats and click one. It hides in a fight and once your pet is happy, and drags anywhere. Turn it on in Settings, Around the UI: Pet feeding.
+- **Crafting profit.** A new dashboard page lists every recipe your characters know with what it costs to make, what it sells for, and the profit after the auction house's 5% cut, highest first. Click a column's heading to sort by it, pick a profession, hide what loses money, or search; + adds a craft to your shopping list. Materials count at whatever is cheapest: a vendor, the auction house, or making them yourself. A recipe with a price nobody has seen yet shows no profit and says which item to look up at the auction house. Prices come from Auctionator when you have it, otherwise from your own auction house searches. Each character's recipes count once it logs in with this on. Turn it on in Settings, Professions: Crafting profit, then open it from the menu or with /jsal profit.
 
 ## In 0.3.51
 
