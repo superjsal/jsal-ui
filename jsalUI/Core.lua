@@ -139,7 +139,11 @@ local function OptionDefault(moduleKey, key)
 end
 
 function ns.OptionOn(moduleKey, key)
-    local saved = type(ns.db.options) == "table" and ns.db.options[moduleKey .. "." .. key]
+    -- Nil while nothing is saved for it. Read with `and`, a player who had never changed an
+    -- option got false here, not nil, and every option that starts on read as off: the quick
+    -- bar's buttons, the level-up screenshot, the recap, the profession window's extras.
+    local saved
+    if type(ns.db.options) == "table" then saved = ns.db.options[moduleKey .. "." .. key] end
     if saved == nil then return OptionDefault(moduleKey, key) end
     return saved
 end
