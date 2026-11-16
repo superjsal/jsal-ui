@@ -135,15 +135,6 @@ function Compat.MyName()
     return Ambiguate(whole, "none")
 end
 
--- Whether the player is one of the guild's officers.
-function Compat.IsOfficer()
-    if not IsInGuild() then return false end
-    local info = C_GuildInfo
-    if info and info.IsGuildOfficer then return info.IsGuildOfficer() and true or false end
-    if info and info.CanEditOfficerNote then return info.CanEditOfficerNote() and true or false end
-    return CanEditOfficerNote and CanEditOfficerNote() and true or false
-end
-
 -- Whether the player leads the guild.
 function Compat.IsGuildMaster()
     return IsInGuild() and IsGuildLeader and IsGuildLeader() and true or false
@@ -502,25 +493,6 @@ function Compat.MerchantItem(index)
     end
     local name, _, price = GetMerchantItemInfo(index)
     return name, price
-end
-
--- Quest givers that open on the gossip window.
-local Gossip = C_GossipInfo
-
-function Compat.GossipAvailable()
-    return Gossip and Gossip.GetAvailableQuests() or {}
-end
-
-function Compat.GossipActive()
-    return Gossip and Gossip.GetActiveQuests() or {}
-end
-
-function Compat.GossipTakeAvailable(questID)
-    Gossip.SelectAvailableQuest(questID)
-end
-
-function Compat.GossipTakeActive(questID)
-    Gossip.SelectActiveQuest(questID)
 end
 
 -- Talent points not spent yet, from the talent tree's own currency.

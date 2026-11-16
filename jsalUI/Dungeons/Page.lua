@@ -84,19 +84,6 @@ function Starts.Line(id)
     return "Starts: " .. (where or "not on Wowhead yet")
 end
 
--- The quest before it, when there is one: on this list, or where it starts.
-function Starts.First(id, onList, done)
-    local s = Starts.Get(id)
-    local prev = s and s[8]
-    if not prev then return nil end
-    local p = Starts.Get(prev)
-    local text = "|cffe3b04bFirst:|r |cffece6d6" .. (p and p[1] ~= "" and p[1] or ("quest " .. prev)) .. "|r"
-    if done(prev) then return text .. ", done" end
-    if onList[prev] then return text .. ", on this list" end
-    local where = Starts.Where(p)
-    return where and (text .. ", from " .. where) or text
-end
-
 -- The place a quest starts in, for grouping the list by where you pick
 -- them up, and how such a place sorts: 1 a zone, 2 inside the dungeon,
 -- 3 anything else (an item, or nothing known).
@@ -107,24 +94,6 @@ function Starts.Place(s)
     if not zone then return "Place not known", 3 end
     if s[5] == 0 then return "Inside " .. zone, 2 end
     return zone, 1
-end
-
--- A place, as the end of a sentence about another quest: "in Ironforge",
--- "inside Gnomeregan", "started by an item"; nil for a place not known.
-function Starts.In(place, kind)
-    if kind == 1 then return "in " .. place end
-    if kind == 2 then return (place:gsub("^Inside ", "inside ")) end
-    if place == "From an item" then return "started by an item" end
-    return nil
-end
-
--- Who or what starts it, with the spot when there is one: the zone is the
--- heading it sits under.
-function Starts.Who(s)
-    if not (s and s[2]) then return "" end
-    if s[3] == 3 then return Starts.Where(s) or "" end
-    if s[5] ~= 0 and s[6] and s[6] > 0 then return ("%s (%.0f, %.0f)"):format(s[2], s[6], s[7] or 0) end
-    return s[2]
 end
 
 -- The quest that follows one: the lowest-numbered that names it as the one

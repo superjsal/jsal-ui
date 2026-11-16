@@ -209,9 +209,6 @@ function LootLog.Seen(itemName)
     return finds, tries
 end
 
--- What's kept of the counts is forgotten: for anything that changes them from outside a loot.
-function LootLog.Forget() seenFor = {} end
-
 -- The chance a creature that has a quest item has it (0 to 1), and how many loots that's from; or
 -- nil while the part is off or the loots are fewer than FLOOR. The quest isn't needed to find it,
 -- and is taken so the quest tags can ask as they think: by quest and item.

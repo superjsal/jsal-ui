@@ -11,7 +11,9 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-const require = createRequire('C:/Users/JSAL/Desktop/jsal.io/.github/build/package.json');
+// Playwright comes from jsal.io's build tools, in the folder beside this repo's.
+const here = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(join(here, '..', '..', 'jsal.io', '.github', 'build', 'package.json'));
 const { chromium } = require('playwright');
 
 const ICONS = {

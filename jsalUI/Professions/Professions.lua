@@ -116,13 +116,6 @@ function Professions.Mine()
     return out
 end
 
--- Where a road goes from a skill: the skill the next rank is learned at
--- while you're below it, else the rank's cap.
-function Professions.Target(skill, cap)
-    local rank = Professions.Rank(cap)
-    return (rank.at and skill < rank.at) and rank.at or cap, rank
-end
-
 -- The chance a craft at this skill gives a point: always while orange, then
 -- falling to nothing at grey.
 local function Chance(recipe, skill)
