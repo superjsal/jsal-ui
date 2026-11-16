@@ -201,7 +201,29 @@ function CraftProfit.ProfitRows()
         local recipe = RecipeBySpell(spell)
         if recipe then
             local row = Row(spell, recipe, makers)
-            row.who = k.who
+            row.who, row.known = k.who, true
+            rows[#rows + 1] = row
+        end
+    end
+    return rows, names
+end
+
+-- Every recipe of the professions your characters have, known or not, so the
+-- most profitable one to learn can be found (John, 16 Nov 2026: "someone
+-- might want to sort by what makes the most profit and grab that recipe").
+-- A row's `known` says whether any of your characters has it.
+function CraftProfit.AllRows()
+    local known, names = CraftProfit.Known()
+    local makers = Makers(known)
+    local lines = {}
+    for _, k in pairs(known) do lines[k.line] = true end
+    local rows = {}
+    for line in pairs(lines) do
+        for _, recipe in ipairs(Professions.Recipes(line) or {}) do
+            local spell = recipe.spell
+            local mine = RecipeBySpell(spell) and known[spell]
+            local row = Row(spell, RecipeBySpell(spell) or recipe, makers)
+            row.known, row.who = mine ~= nil, mine and mine.who or nil
             rows[#rows + 1] = row
         end
     end
@@ -226,7 +248,9 @@ function CraftProfit:OnEnable()
                 naming = true
                 Compat.After(0.3, ns.Safe(CraftProfit, function()
                     naming = false
-                    ns.Window.Refresh()
+                    -- Only the rows on screen are drawn again, with their names.
+                    local page = ns.CraftProfitPage
+                    if page and page.PaintList and ns.Window.IsOpen("craftprofit") then page.PaintList() end
                 end))
             end
         else

@@ -83,6 +83,19 @@ local function ItemName(item)
     return Compat.ItemName(item) or "an item"
 end
 
+-- Where a recipe you don't know is learned, in a few words: a trainer and the
+-- skill, a pattern and what the cheapest vendor wants for it, a drop, a quest.
+local HOW = { [3] = "drop", [4] = "quest" }
+local function LearnNote(recipe)
+    if recipe.how == 1 then return "trainer, " .. recipe.learn end
+    if recipe.how == 2 then
+        local sources = ns.RecipeSourceText
+        local vendor = sources and sources.Vendors and sources.Vendors(recipe.spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+        return vendor and vendor.copper and vendor.copper > 0 and ("pattern, " .. Money(vendor.copper)) or "pattern"
+    end
+    return HOW[recipe.how] or "other"
+end
+
 -- What a row is sorted by in a column, or nil when it has none.
 local function Value(row, key)
     if key == "name" then return (Name(row)):lower() end
@@ -112,6 +125,13 @@ local function Tooltip(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     if row.item then GameTooltip:SetItemByID(row.item) else GameTooltip:SetSpellByID(row.spell) end
     GameTooltip:AddLine(" ")
+    if row.known == false then
+        GameTooltip:AddLine("None of your characters knows this yet.", 0.89, 0.69, 0.29)
+        if ns.RecipeSourceText and ns.RecipeSourceText.Tooltip then
+            ns.RecipeSourceText.Tooltip(GameTooltip, row.spell, UnitFactionGroup and UnitFactionGroup("player") or nil)
+        end
+        GameTooltip:AddLine(" ")
+    end
     if row.missing then
         GameTooltip:AddLine("No price seen yet for " .. ItemName(row.missing) .. ": search for it at the auction house.", 0.94, 0.48, 0.4, true)
     end
@@ -133,7 +153,7 @@ end
 local function Row(i)
     local r = P.rows[i]
     if r then return r end
-    r = CreateFrame("Button", nil, P.child)
+    r = CreateFrame("Button", nil, P.list)
     r:SetSize(P.width - 8, ROW_H)
     r:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
     r.icon = r:CreateTexture(nil, "ARTWORK")
@@ -218,7 +238,9 @@ local function PaintRow(r, row)
     r.icon:Show()
     r.icon:SetTexture(row.item and Compat.ItemIcon(row.item) or select(2, Compat.SpellInfo(row.spell)))
     local name, colour = Name(row)
-    r.cells[1]:SetText(("|cff%s%s|r"):format(colour, name))
+    local text = ("|cff%s%s|r"):format(colour, name)
+    if row.known == false then text = text .. ("  |cff%s· %s|r"):format(Style.hex.muted, LearnNote(row.recipe)) end
+    r.cells[1]:SetText(text)
     PaintProfitCells(r, row)
     r.add:SetShown(ns.Shopping ~= nil and ns.Shopping.running == true)
 end
@@ -226,9 +248,23 @@ end
 ---------------------------------------------------------------------------
 -- Painting.
 ---------------------------------------------------------------------------
+-- The rows for the switch: the recipes your characters know, or every recipe
+-- of their professions. Worked out afresh on each paint but while you type in
+-- the search box, which keeps the last ones (every recipe is several hundred).
+local function Rows(v, keep)
+    local key = v.all and "all" or "known"
+    local c = P.cache
+    if keep and c and c.key == key then return c.rows, c.names, c.count end
+    local count = ns.ItemPrices.Counting()
+    local rows, names
+    if v.all then rows, names = ns.CraftProfit.AllRows() else rows, names = ns.CraftProfit.ProfitRows() end
+    P.cache = { key = key, rows = rows, names = names, count = count }
+    return rows, names, count
+end
+
 -- The rows for the profession chosen and the search.
-local function Pick(v)
-    local all, names = ns.CraftProfit.ProfitRows()
+local function Pick(v, keep)
+    local all, names, count = Rows(v, keep)
     local counts, lines = {}, {}
     for _, row in ipairs(all) do
         if not counts[row.line] then counts[row.line] = 0; lines[#lines + 1] = row.line end
@@ -246,7 +282,7 @@ local function Pick(v)
             shown[#shown + 1] = row
         end
     end
-    return shown, all, names or {}, lines, counts, losing
+    return shown, all, names or {}, lines, counts, losing, count
 end
 
 local function PaintChips(v, all, lines, counts)
@@ -334,15 +370,17 @@ local function PaintFoot(v, all, names, losing, count)
     local making = 0
     for _, row in ipairs(all) do if row.profit and row.profit > 0 then making = making + 1 end end
     P.title:SetText(making == 1 and "1 recipe makes a profit" or (making .. " recipes make a profit"))
-    P.sub:SetText(("Of the %d your characters know, after the auction house takes %d%%."):format(#all, cut))
+    P.sub:SetText((v.all and "Of the %d recipes in your professions, known or not, after the auction house takes %d%%."
+        or "Of the %d your characters know, after the auction house takes %d%%."):format(#all, cut))
+    P.knownTab:SetSelected(not v.all)
+    P.allTab:SetSelected(v.all and true or false)
     P.hide.label:SetText(("Hide what loses money (%d)"):format(losing))
     P.hide.switch:SetOn(v.hide and true or false)
 end
 
-function P.Paint()
+function P.Paint(keep)
     local v = View()
-    local count = ns.ItemPrices.Counting()
-    local shown, all, names, lines, counts, losing = Pick(v)
+    local shown, all, names, lines, counts, losing, count = Pick(v, keep)
     local s = Sort(v)
     SortRows(shown, s)
     PaintChips(v, all, lines, counts)
@@ -351,24 +389,51 @@ function P.Paint()
     -- With the list sorted by its main number, what has no price waits
     -- under a heading of its own.
     local split = s.key == "profit"
-    local n, at = 0, nil
+    local entries, at = {}, nil
     for i, row in ipairs(shown) do
         if split and not at and Value(row, s.key) == nil then
             at = i
-            n = n + 1
-            PaintHeading(Row(n), #shown - i + 1)
-            Row(n):Show()
+            entries[#entries + 1] = { heading = #shown - i + 1 }
         end
-        n = n + 1
-        local r = Row(n)
-        PaintRow(r, row)
-        r:Show()
+        entries[#entries + 1] = row
     end
-    for i = n + 1, #P.rows do P.rows[i]:Hide() end
-    P.child:SetHeight(math.max(1, n * ROW_H))
+    P.offset = 0
+    P.entries = entries
+    P.PaintList()
     P.empty:SetShown(#shown == 0)
     if #shown == 0 then
         P.empty:SetText(#all == 0 and "Open each of your professions once and its recipes show here." or "Nothing matches.")
+    end
+end
+
+-- The rows on screen: only as many as fit are drawn, filled from where the
+-- list is scrolled to (every recipe can be several hundred), with a thin bar
+-- at the right showing where that is.
+function P.PaintList()
+    local entries = P.entries or {}
+    P.offset = math.max(0, math.min(P.offset or 0, #entries - P.visible))
+    for slot = 1, P.visible do
+        local entry = entries[P.offset + slot]
+        local r = (entry or P.rows[slot]) and Row(slot)
+        if entry and entry.heading then
+            PaintHeading(r, entry.heading)
+            r:Show()
+        elseif entry then
+            PaintRow(r, entry)
+            r:Show()
+        elseif r then
+            r.data = nil
+            r:Hide()
+        end
+    end
+    local more = #entries > P.visible
+    P.bar:SetShown(more)
+    if more then
+        local h = P.visible * ROW_H
+        local size = math.max(24, h * P.visible / #entries)
+        P.bar:SetHeight(size)
+        P.bar:ClearAllPoints()
+        P.bar:SetPoint("TOPRIGHT", P.list, "TOPRIGHT", 0, -(h - size) * P.offset / (#entries - P.visible))
     end
 end
 
@@ -402,10 +467,19 @@ local function Heads(page)
 end
 
 local function Controls(page, width)
-    -- Hide what loses money: a switch and its words, under the professions' buttons.
+    -- The recipes your characters know, or every recipe of their professions.
+    P.knownTab = Style.Button(page, "Recipes you know", "tab", 140)
+    P.knownTab:SetHeight(26)
+    P.knownTab:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -95)
+    P.knownTab:SetScript("OnClick", function() View().all = false; P.Paint() end)
+    P.allTab = Style.Button(page, "All recipes", "tab", 110)
+    P.allTab:SetHeight(26)
+    P.allTab:SetPoint("LEFT", P.knownTab, "RIGHT", 0, 0)
+    P.allTab:SetScript("OnClick", function() View().all = true; P.Paint() end)
+    -- Hide what loses money: a switch and its words, beside them.
     P.hide = CreateFrame("Frame", nil, page)
     P.hide:SetSize(320, 20)
-    P.hide:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -98)
+    P.hide:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 270, -98)
     P.hide.switch = Style.Switch(P.hide, function(on) View().hide = on; P.Paint() end)
     P.hide.switch:SetPoint("LEFT")
     P.hide.label = Style.Text(P.hide, 12, "secondary")
@@ -418,7 +492,7 @@ local function Controls(page, width)
     P.search.hint:SetText("Search recipes")
     P.search:SetScript("OnTextChanged", function(self)
         self.hint:SetShown(self:GetText() == "" and not self:HasFocus())
-        P.Paint()
+        P.Paint(true)
     end)
     P.search:SetScript("OnEditFocusGained", function(self) self.hint:Hide() end)
     P.search:SetScript("OnEditFocusLost", function(self) self.hint:SetShown(self:GetText() == "") end)
@@ -435,8 +509,20 @@ Window.Page("craftprofit", function(page)
     rule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(LIST_TOP - 4))
     Style.Rule(rule, "BOTTOM", "lineStrong")
     local listH = height - LIST_TOP - FOOT_H
-    P.scroll, P.child = Style.Scroller(page, width, listH, width - 8, 0, ROW_H * 3)
-    P.scroll:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -LIST_TOP)
+    P.list = CreateFrame("Frame", nil, page)
+    P.list:SetSize(width, listH)
+    P.list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -LIST_TOP)
+    P.visible = math.max(1, math.floor(listH / ROW_H))
+    P.offset = 0
+    P.list:EnableMouseWheel(true)
+    P.list:SetScript("OnMouseWheel", function(_, delta)
+        P.offset = (P.offset or 0) - delta * 3
+        P.PaintList()
+    end)
+    P.bar = page:CreateTexture(nil, "OVERLAY")
+    P.bar:SetColorTexture(Style.Color("thumb"))
+    P.bar:SetWidth(3)
+    P.bar:Hide()
     P.empty = Style.Text(page, 13, "muted")
     P.empty:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(LIST_TOP + 16))
     P.foot = Style.Text(page, 11, "muted")
