@@ -187,7 +187,7 @@ local function Row(i)
     r.rule = Style.Rule(r, "BOTTOM", "line")
     r.add = Style.Button(r, "+", "plain", 24)
     r.add:SetHeight(24)
-    r.add:SetPoint("RIGHT", -4, 0)
+    r.add:SetPoint("RIGHT", -14, 0)
     r.add:SetScript("OnClick", function(self)
         local data = self:GetParent().data
         if data and ns.Shopping and ns.Shopping.running then
@@ -196,6 +196,8 @@ local function Row(i)
     end)
     r:SetScript("OnEnter", Tooltip)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r:EnableMouseWheel(true)
+    r:SetScript("OnMouseWheel", function(_, delta) P.Wheel(delta) end)
     Style.Hover(r, 0)
     P.rows[i] = r
     return r
@@ -441,6 +443,7 @@ function P.PaintList()
     end
     local more = #entries > P.visible
     P.bar:SetShown(more)
+    P.track:SetShown(more)
     if more then
         local h = P.visible * ROW_H
         local size = math.max(24, h * P.visible / #entries)
@@ -469,6 +472,28 @@ function P.Layout(extra)
     P.list:SetHeight(P.listH - extra)
     P.visible = math.max(1, math.floor((P.listH - extra) / ROW_H))
     for i = P.visible + 1, #P.rows do P.rows[i]:Hide() end
+end
+
+-- The wheel: three rows a turn.
+function P.Wheel(delta)
+    P.offset = (P.offset or 0) - delta * 3
+    P.PaintList()
+end
+
+-- While the left button is held on the strip: the list goes to where the
+-- pointer is along it, top to bottom.
+function P.Drag()
+    local room = #(P.entries or {}) - P.visible
+    if room <= 0 then return end
+    local top, height, scale = P.track:GetTop(), P.track:GetHeight(), P.track:GetEffectiveScale()
+    if not (top and height and height > 0 and scale and scale > 0) then return end
+    local _, y = GetCursorPosition()
+    local at = math.max(0, math.min(1, (top - y / scale) / height))
+    local offset = math.floor(at * room + 0.5)
+    if offset ~= P.offset then
+        P.offset = offset
+        P.PaintList()
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -551,10 +576,29 @@ Window.Page("craftprofit", function(page)
     P.visible = math.max(1, math.floor(listH / ROW_H))
     P.offset = 0
     P.list:EnableMouseWheel(true)
-    P.list:SetScript("OnMouseWheel", function(_, delta)
-        P.offset = (P.offset or 0) - delta * 3
-        P.PaintList()
+    P.list:SetScript("OnMouseWheel", function(_, delta) P.Wheel(delta) end)
+    -- The strip at the list's right: hold the left button on it and drag, and
+    -- the list follows; a click jumps there (John, 16 Nov 2026: "lets also have
+    -- it be mouse scrollable", "by holding mouse 1 on the right"). Wider than
+    -- the thin bar it holds, so it's easy to catch.
+    P.track = CreateFrame("Frame", nil, P.list)
+    P.track:SetPoint("TOPRIGHT")
+    P.track:SetPoint("BOTTOMRIGHT")
+    P.track:SetWidth(12)
+    P.track:SetFrameLevel(P.list:GetFrameLevel() + 5)
+    P.track:EnableMouse(true)
+    P.track:EnableMouseWheel(true)
+    P.track:SetScript("OnMouseWheel", function(_, delta) P.Wheel(delta) end)
+    P.track:SetScript("OnMouseDown", function(self, button)
+        if button ~= "LeftButton" then return end
+        self.held = true
+        P.Drag()
     end)
+    P.track:SetScript("OnMouseUp", function(self) self.held = false end)
+    P.track:SetScript("OnHide", function(self) self.held = false end)
+    P.track:SetScript("OnUpdate", ns.Safe(ns.CraftProfit, function(self)
+        if self.held then P.Drag() end
+    end))
     P.bar = page:CreateTexture(nil, "OVERLAY")
     P.bar:SetColorTexture(Style.Color("thumb"))
     P.bar:SetWidth(3)
