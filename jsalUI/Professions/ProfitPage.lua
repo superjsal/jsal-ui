@@ -11,8 +11,8 @@ local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 -- Rows and text a size up from the first build (John, 16 Nov 2026: "perhaps we
--- can enlarge the font as well?").
-local ROW_H, LIST_TOP, FOOT_H = 34, 150, 48
+-- can enlarge the font as well?", then "we can also -1 on the font size").
+local ROW_H, LIST_TOP, FOOT_H = 32, 150, 48
 -- A line of the professions' buttons.
 local CHIP_ROW = 32
 local DAY = 86400
@@ -171,7 +171,7 @@ local function Row(i)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.cells = {}
     for c = 1, 5 do
-        local t = Style.Text(r, 14, "secondary")
+        local t = Style.Text(r, 13, "secondary")
         t:SetWordWrap(false)
         -- A number column holds its own width, so nothing runs into the next.
         if c > 1 then t:SetWidth(CELL_W) end
