@@ -137,15 +137,35 @@ Professions.MadeBy = MadeBy
 -- count one each, so the road went through forty hides, sixty elixirs or a
 -- dozen Righteous Orbs as readily as through leather (John, 13 Nov 2026,
 -- shown ours beside Wowhead's: "lets make ours better for sure").
+--
+-- With Crafting profit's "Price the road" on, a material is worth what it
+-- costs you to buy (a vendor's price, else the auction price from
+-- ItemPrices) where that's known, and the data's worth only where it isn't;
+-- and a craft whose item has an auction price counts what it sells back for,
+-- after the cut. (John, 16 Nov 2026, of the road's pick costing a rough
+-- worth: "lets feed them in then, seems like good QOL".) Set for one road at
+-- a time by Plan, with its own memory of what it has looked up.
+local priced, seen
+
+local function Priced()
+    return ns.CraftProfit ~= nil and ns.CraftProfit.running == true and ns.ItemPrices ~= nil
+        and ns.OptionOn("craftprofit", "road")
+end
+
 local function ItemWeight(line, item, depth)
-    local own = Data.vendor[item] or (Data.value and Data.value[item]) or 100
+    local key = (depth or 0) == 0 and seen and item
+    if key and seen[key] then return seen[key] end
+    local own = priced and ns.ItemPrices.Of(item) or Data.vendor[item] or (Data.value and Data.value[item]) or 100
     local recipe = (depth or 0) < 2 and MadeBy(line, item)
-    if not recipe then return own end
-    local w = 0
-    for _, reagent in ipairs(recipe.reagents) do
-        w = w + reagent.count * ItemWeight(line, reagent.item, (depth or 0) + 1)
+    if recipe then
+        local w = 0
+        for _, reagent in ipairs(recipe.reagents) do
+            w = w + reagent.count * ItemWeight(line, reagent.item, (depth or 0) + 1)
+        end
+        own = math.min(own, w / math.max(1, recipe.makes or 1))
     end
-    return math.min(own, w / math.max(1, recipe.makes or 1))
+    if key then seen[key] = own end
+    return own
 end
 
 -- The recipe that makes an item, where making it is how you'd come by it:
@@ -229,13 +249,27 @@ end
 
 -- A craft's cost: its materials, plus a little for the craft itself, so a
 -- recipe that only sometimes gives a point isn't picked just for being cheap.
+-- Priced, a craft that sells back for about what goes in, or more, counts as
+-- nearly free (never below 1: the road's other rules, half again for a
+-- pattern to buy and staying with the recipe in hand, are made for costs).
+-- A vein is no craft: its ore is only its icon.
 local function Weight(line, recipe)
-    if recipe.weight then return recipe.weight end
+    if priced then
+        if seen[recipe] then return seen[recipe] end
+    elseif recipe.weight then
+        return recipe.weight
+    end
     local w = 100
     for _, reagent in ipairs(recipe.reagents) do
         w = w + reagent.count * ItemWeight(line, reagent.item)
     end
-    recipe.weight = w
+    if priced then
+        local sale = recipe.item and not recipe.vein and ns.ItemPrices.Auction(recipe.item)
+        if sale then w = math.max(1, w - sale * math.max(1, recipe.makes or 1) * (1 - ns.ItemPrices.CUT)) end
+        seen[recipe] = w
+    else
+        recipe.weight = w
+    end
     return w
 end
 
@@ -341,6 +375,8 @@ end
 -- stopped short if it did, and the materials added for bolts and bars
 -- you're short of.
 function Professions.Plan(line, skill, target, known, breakAt)
+    priced = Priced()
+    seen = priced and {} or nil
     local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
     local steps, totals = {}, {}
     -- What's in your bags and bank counts as nearly free until the road has

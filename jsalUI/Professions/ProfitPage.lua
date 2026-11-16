@@ -4,7 +4,9 @@
 -- click the other way (John, picking it: "A but with sorting"). Above the
 -- list: a button per profession, a switch to hide what loses money, and a
 -- search box. "+" on a row adds the craft to the shopping list. Profit only:
--- no levelling view ("this is purely profit").
+-- no levelling view ("this is purely profit"); the same prices can steer the
+-- road to the next rank instead (Professions.lua). It opens in a window of
+-- its own.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -412,7 +414,7 @@ local function Controls(page, width)
 end
 
 Window.Page("craftprofit", function(page)
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
     P.page, P.width = page, width
     P.title, P.sub = Window.Header(page, width)
     Controls(page, width)
@@ -431,5 +433,8 @@ Window.Page("craftprofit", function(page)
     P.foot:SetWidth(width)
     P.foot:SetJustifyH("LEFT")
     page.Refresh = function() P.Paint() end
-end)
+-- A window of its own beside the dashboard, as the Gear plan and the dungeon
+-- guide have (John, 16 Nov 2026: "separate the crafting profit to its own
+-- separate window like gear plan, and dungeons").
+end, { width = 800, height = 760 })
 ns.CraftProfitPage = P
