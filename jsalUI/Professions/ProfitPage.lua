@@ -13,11 +13,17 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local ROW_H, LIST_TOP, FOOT_H = 30, 150, 44
 local DAY = 86400
 
--- The columns: what each sorts by, its heading, and the x its text ends at
--- (the name starts at 32, after the icon).
-local COLUMNS = { { key = "name", label = "RECIPE", x = 32, left = true },
-                  { key = "cost", label = "TO MAKE", x = 400 }, { key = "sells", label = "SELLS FOR", x = 490 },
-                  { key = "profit", label = "PROFIT", x = 580 }, { key = "age", label = "SEEN", x = 680 } }
+-- The page's parts, filled in as it's built.
+local P = { rows = {}, chips = {}, heads = {} }
+
+-- The columns: what each sorts by and its heading (the name starts at 32,
+-- after the icon).
+local COLUMNS = { { key = "name", label = "RECIPE", left = true },
+                  { key = "cost", label = "TO MAKE", right = 330 }, { key = "sells", label = "SELLS FOR", right = 240 },
+                  { key = "profit", label = "PROFIT", right = 150 }, { key = "age", label = "SEEN", right = 50 } }
+-- Where a number column's text ends: measured from the list's right edge,
+-- so a wider window gives the room to the names.
+local function ColumnX(c) return P.width - COLUMNS[c].right end
 -- Columns read lowest first when first clicked: names, costs, and the most
 -- recently seen prices. The list opens with the highest profit first.
 local LOW_FIRST = { name = true, cost = true, age = true }
@@ -100,8 +106,6 @@ end
 ---------------------------------------------------------------------------
 -- The page's parts.
 ---------------------------------------------------------------------------
-local P = { rows = {}, chips = {}, heads = {} }
-
 local function Tooltip(self)
     local row = self.data
     if not row then return end
@@ -145,7 +149,7 @@ local function Row(i)
         r.cells[c] = t
     end
     r.cells[1]:SetPoint("LEFT", 32, 0)
-    r.cells[1]:SetWidth(280)
+    r.cells[1]:SetWidth(P.width - 32 - COLUMNS[2].right - 100)
     r.cells[1]:SetJustifyH("LEFT")
     r.heading = Style.Text(r, 10, "gold", nil, true)
     r.heading:SetPoint("LEFT", 0, -2)
@@ -172,7 +176,7 @@ end
 local function Cell(r, c, text, colour)
     local t = r.cells[c]
     t:ClearAllPoints()
-    t:SetPoint("RIGHT", r, "LEFT", COLUMNS[c].x, 0)
+    t:SetPoint("RIGHT", r, "LEFT", ColumnX(c), 0)
     t:SetJustifyH("RIGHT")
     t:SetText(text or "")
     t:SetTextColor(Style.Color(colour or "secondary"))
@@ -295,7 +299,7 @@ local function PaintHeads(v)
             h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", 0, -(LIST_TOP - 26))
             h:SetWidth(300)
         else
-            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", col.x - 80, -(LIST_TOP - 26))
+            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", ColumnX(i) - 80, -(LIST_TOP - 26))
             h:SetWidth(90)
         end
         local on = s.key == col.key
@@ -434,7 +438,8 @@ Window.Page("craftprofit", function(page)
     P.foot:SetJustifyH("LEFT")
     page.Refresh = function() P.Paint() end
 -- A window of its own beside the dashboard, as the Gear plan and the dungeon
--- guide have (John, 16 Nov 2026: "separate the crafting profit to its own
--- separate window like gear plan, and dungeons").
-end, { width = 800, height = 760 })
+-- guide have, and as big as the dashboard (John, 16 Nov 2026: "separate the
+-- crafting profit to its own separate window like gear plan, and dungeons",
+-- then "as big as jsal.ui's page").
+end, { width = 1000, height = 920 })
 ns.CraftProfitPage = P
