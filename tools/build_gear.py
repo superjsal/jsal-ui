@@ -86,6 +86,12 @@ FOREVER = {
     "WARLOCK": [("computed", "warlock_affliction"), ("computed", "warlock_demonology"), ("computed", "warlock_destruction")],
     "DRUID": [("druid_balance", "PreBiSEpWeights"), ("druid_feral_ep", "CatEp"), HEALER],
 }
+# One school's spell damage, like an "of Frozen Wrath" green's: the game names it
+# ITEM_MOD_FROST_DAMAGE_DONE_SHORT (seen in game, 16 Nov 2026, /dump of C_Item.GetItemStats on one),
+# and the other schools by the same pattern. WoWSims weighs each school on its own.
+def school(name):
+    return ["ITEM_MOD_" + name.upper() + "_DAMAGE_DONE_SHORT"]
+SCHOOLS = ("Arcane", "Fire", "Frost", "Holy", "Nature", "Shadow")
 # Trees WoWSims Forever ships no weights for, worked out with its own Stat Weights tool on its own
 # preset talents and gear (data/gear/wowsims-forever/computed/*.json, each saying how). Rows are per 1%
 # for crit and hit, as the tool shows them. (John, 14 Nov 2026: "i feel we should be accurate as this
@@ -110,6 +116,7 @@ COMPUTED_KEYS = {
     "Block Value": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
     "Armor": ["RESISTANCE0_NAME"],
     "Bonus Armor": ["ITEM_MOD_EXTRA_ARMOR_SHORT"],
+    **{s + " Spell Damage": school(s) for s in SCHOOLS},
 }
 COMPUTED_DPS = {"Main Hand DPS": "mh", "Off Hand DPS": "oh", "Ranged DPS": "ranged"}
 
@@ -137,6 +144,7 @@ FOREVER_KEYS = {
     "StatParryRating": ["ITEM_MOD_PARRY_RATING_SHORT"],
     "StatBlockRating": ["ITEM_MOD_BLOCK_RATING_SHORT"],
     "StatBlockValue": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
+    **{"Stat" + s + "Damage": school(s) for s in SCHOOLS},
 }
 
 # WoWSims' stat names to the game's own item stat keys.
@@ -163,6 +171,7 @@ STAT_KEYS = {
     "StatParry": ["ITEM_MOD_PARRY_RATING_SHORT"],
     "StatBlock": ["ITEM_MOD_BLOCK_RATING_SHORT"],
     "StatBlockValue": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
+    **{"Stat" + s + "Power": school(s) for s in SCHOOLS},
 }
 # Weapon damage per second, by where the weapon goes.
 DPS_KEYS = {"PseudoStatMainHandDps": "mh", "PseudoStatOffHandDps": "oh", "PseudoStatRangedDps": "ranged"}

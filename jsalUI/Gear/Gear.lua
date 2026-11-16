@@ -304,6 +304,10 @@ local SHORT = {
     ITEM_MOD_HIT_RATING_SHORT = "Hit", ITEM_MOD_CRIT_RATING_SHORT = "Crit", ITEM_MOD_POWER_REGEN0_SHORT = "MP5",
     ITEM_MOD_DEFENSE_SKILL_RATING_SHORT = "Defense", RESISTANCE0_NAME = "Armor",
     ITEM_MOD_DAMAGE_PER_SECOND_SHORT = "DPS",
+    -- One school's spell damage ("of Frozen Wrath"), as the game names it.
+    ITEM_MOD_ARCANE_DAMAGE_DONE_SHORT = "Arcane Damage", ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = "Fire Damage",
+    ITEM_MOD_FROST_DAMAGE_DONE_SHORT = "Frost Damage", ITEM_MOD_HOLY_DAMAGE_DONE_SHORT = "Holy Damage",
+    ITEM_MOD_NATURE_DAMAGE_DONE_SHORT = "Nature Damage", ITEM_MOD_SHADOW_DAMAGE_DONE_SHORT = "Shadow Damage",
 }
 -- The two changes that count most for your spec, gains (sign 1: "+14 AP,
 -- +6 Sta") or losses (sign -1: "-5 Agi, -5 Int").
