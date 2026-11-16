@@ -4705,7 +4705,11 @@ local function Make(how)
     end
     if not IsOpen() then Pet.Open() end
     local s = Pet.State()
-    if s.asleep then Rules.Lights(s, Now()) end
+    if s.asleep and not Rules.Lights(s, Now()) then
+        -- Too worn out to wake: for a trial, it's rested enough.
+        s.energy = math.max(s.energy, 40)
+        Rules.Lights(s, Now())
+    end
     if how == "dirty" then
         s.clean = 20
         s.supplies.soap = math.max(s.supplies.soap, 1)

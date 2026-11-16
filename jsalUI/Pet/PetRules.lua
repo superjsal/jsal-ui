@@ -20,6 +20,9 @@ local TICK = 600                -- time moves on in ten-minute steps
 local DIGEST = 45 * 60          -- a meal turns up in the pen this much later
 local SICK_FOR = 8 * HOUR       -- sickness passes by itself after this
 local PATS_AN_HOUR = 5
+-- Worn out: at this much energy or less it falls asleep by itself, and can't be woken yet.
+local WORN = 20
+Rules.WORN = WORN
 
 -- What each need does in an hour, awake and asleep.
 -- Hunger and fun fall slowly enough that half a day away leaves it peckish
@@ -236,7 +239,7 @@ local function Step(s, t, dt)
     end
     -- Worn out, it sleeps by itself, before tiredness can sour its mood;
     -- rested, it wakes.
-    if not s.asleep and s.energy <= 20 then
+    if not s.asleep and s.energy <= WORN then
         s.asleep = true
     elseif s.asleep and s.energy >= 100 then
         s.asleep = false
@@ -563,9 +566,13 @@ function Rules.Medicine(s, now)
 end
 
 -- Lights out, or lights on. Woken before it's rested, it sulks a little.
+-- Worn out, it isn't woken at all: it fell straight back asleep at the next look, and the
+-- waking had only cost it some fun and the breakfast in its bowl. (John, 16 Nov 2026, asked
+-- whether it should refuse: "Go ahead with the jsal pal change".)
 function Rules.Lights(s, now)
     Rules.Advance(s, now)
     if s.asleep then
+        if s.energy <= WORN then return false, "It's too tired to wake yet." end
         s.asleep = false
         Rules.Breakfast(s, now)
         if s.energy < 40 then
