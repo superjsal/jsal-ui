@@ -13,6 +13,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- Rows and text a size up from the first build (John, 16 Nov 2026: "perhaps we
 -- can enlarge the font as well?").
 local ROW_H, LIST_TOP, FOOT_H = 34, 150, 48
+-- A line of the professions' buttons.
+local CHIP_ROW = 32
 local DAY = 86400
 
 -- The page's parts, filled in as it's built.
@@ -295,7 +297,9 @@ end
 local function PaintChips(v, all, lines, counts)
     local list = { { line = nil, label = "All", n = #all } }
     for _, line in ipairs(lines) do list[#list + 1] = { line = line, label = ns.Professions.Name(line) or "?", n = counts[line] } end
-    local x = 0
+    -- As many lines as they need: every profession's button is wider than the
+    -- window, and what's under them moves down to make room.
+    local x, row = 0, 0
     for i = 1, math.max(#list, #P.chips) do
         local c = P.chips[i]
         local entry = list[i]
@@ -304,7 +308,7 @@ local function PaintChips(v, all, lines, counts)
             c:SetHeight(26)
             c:SetScript("OnClick", function(self)
                 View().line = self.line
-                P.Paint()
+                P.Paint(true)
             end)
             P.chips[i] = c
         end
@@ -315,13 +319,15 @@ local function PaintChips(v, all, lines, counts)
                 c:SetLabel(("%s  |cff%s%d|r"):format(entry.label, Style.hex.muted, entry.n))
                 local w = math.max(60, math.floor((c.label:GetStringWidth() or 0) + 24))
                 c:SetWidth(w)
+                if x > 0 and x + w > P.width then x, row = 0, row + 1 end
                 c:ClearAllPoints()
-                c:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", x, -58)
+                c:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", x, -58 - row * CHIP_ROW)
                 c:SetSelected(v.line == entry.line)
                 x = x + w + 8
             end
         end
     end
+    P.Layout(row * CHIP_ROW)
 end
 
 local function PaintHeads(v)
@@ -339,10 +345,10 @@ local function PaintHeads(v)
         end
         h:ClearAllPoints()
         if col.left then
-            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", 0, -(LIST_TOP - 26))
+            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", 0, -(LIST_TOP + P.extra - 26))
             h:SetWidth(300)
         else
-            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", ColumnX(i) - CELL_W + 10, -(LIST_TOP - 26))
+            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", ColumnX(i) - CELL_W + 10, -(LIST_TOP + P.extra - 26))
             h:SetWidth(CELL_W)
         end
         local on = s.key == col.key
@@ -444,6 +450,27 @@ function P.PaintList()
     end
 end
 
+-- Everything under the professions' buttons, `extra` lower when they take
+-- more than one line; the list is that much shorter.
+function P.Layout(extra)
+    if P.extra == extra then return end
+    P.extra = extra
+    local H = P.page.heading
+    local function At(f, point, x, y)
+        f:ClearAllPoints()
+        f:SetPoint(point, H, "BOTTOMLEFT", x, y - extra)
+    end
+    At(P.knownTab, "TOPLEFT", 0, -95)
+    At(P.hide, "TOPLEFT", 270, -98)
+    At(P.search.well, "TOPRIGHT", P.width, -95)
+    At(P.rule, "TOPLEFT", 0, -(LIST_TOP - 4))
+    At(P.list, "TOPLEFT", 0, -LIST_TOP)
+    At(P.empty, "TOPLEFT", 0, -(LIST_TOP + 16))
+    P.list:SetHeight(P.listH - extra)
+    P.visible = math.max(1, math.floor((P.listH - extra) / ROW_H))
+    for i = P.visible + 1, #P.rows do P.rows[i]:Hide() end
+end
+
 ---------------------------------------------------------------------------
 -- Building.
 ---------------------------------------------------------------------------
@@ -467,7 +494,7 @@ local function Heads(page)
             local s = Sort(View())
             if s.key == self.key then s.desc = not s.desc
             else s.key, s.desc = self.key, not LOW_FIRST[self.key] end
-            P.Paint()
+            P.Paint(true)
         end)
         P.heads[i] = h
     end
@@ -487,7 +514,7 @@ local function Controls(page, width)
     P.hide = CreateFrame("Frame", nil, page)
     P.hide:SetSize(320, 20)
     P.hide:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 270, -98)
-    P.hide.switch = Style.Switch(P.hide, function(on) View().hide = on; P.Paint() end)
+    P.hide.switch = Style.Switch(P.hide, function(on) View().hide = on; P.Paint(true) end)
     P.hide.switch:SetPoint("LEFT")
     P.hide.label = Style.Text(P.hide, 12, "secondary")
     P.hide.label:SetPoint("LEFT", P.hide.switch, "RIGHT", 10, 0)
@@ -512,10 +539,12 @@ Window.Page("craftprofit", function(page)
     Controls(page, width)
     Heads(page)
     local rule = CreateFrame("Frame", nil, page)
+    P.rule, P.extra = rule, 0
     rule:SetSize(width, 1)
     rule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(LIST_TOP - 4))
     Style.Rule(rule, "BOTTOM", "lineStrong")
     local listH = height - LIST_TOP - FOOT_H
+    P.listH = listH
     P.list = CreateFrame("Frame", nil, page)
     P.list:SetSize(width, listH)
     P.list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -LIST_TOP)

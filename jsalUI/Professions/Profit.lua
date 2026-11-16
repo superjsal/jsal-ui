@@ -208,23 +208,25 @@ function CraftProfit.ProfitRows()
     return rows, names
 end
 
--- Every recipe of the professions your characters have, known or not, so the
--- most profitable one to learn can be found (John, 16 Nov 2026: "someone
--- might want to sort by what makes the most profit and grab that recipe").
--- A row's `known` says whether any of your characters has it.
+-- Every recipe of every profession, known or not, so the most profitable one
+-- to learn can be found (John, 16 Nov 2026: "someone might want to sort by
+-- what makes the most profit and grab that recipe"; then, as it listed only
+-- your characters' professions, "we need to add the rest of the professions
+-- recipes since people not LW are using my addon"). A row's `known` says
+-- whether any of your characters has it.
 function CraftProfit.AllRows()
     local known, names = CraftProfit.Known()
     local makers = Makers(known)
-    local lines = {}
-    for _, k in pairs(known) do lines[k.line] = true end
     local rows = {}
-    for line in pairs(lines) do
-        for _, recipe in ipairs(Professions.Recipes(line) or {}) do
-            local spell = recipe.spell
-            local mine = RecipeBySpell(spell) and known[spell]
-            local row = Row(spell, RecipeBySpell(spell) or recipe, makers)
-            row.known, row.who = mine ~= nil, mine and mine.who or nil
-            rows[#rows + 1] = row
+    for line, source in pairs(Data) do
+        if type(source) == "table" and type(source.recipes) == "table" then
+            for _, recipe in ipairs(Professions.Recipes(line) or {}) do
+                local spell = recipe.spell
+                local mine = RecipeBySpell(spell) and known[spell]
+                local row = Row(spell, RecipeBySpell(spell) or recipe, makers)
+                row.known, row.who = mine ~= nil, mine and mine.who or nil
+                rows[#rows + 1] = row
+            end
         end
     end
     return rows, names
