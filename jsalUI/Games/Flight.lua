@@ -268,12 +268,28 @@ local function Build()
     end)
 end
 
+-- The game's own button for landing early (its vehicle exit button) does what
+-- the bar's does, so it's out of sight while the bar shows and back after.
+-- Edit Mode can't hide it. Faded and unclickable rather than hidden, as the
+-- game shows it again by itself; only put back if it was this that faded it.
+-- (John, 16 Nov 2026: "yes hide it while the flight bar shows".)
+local exitFaded = false
+local function GameExit(hide)
+    local button = MainMenuBarVehicleLeaveButton
+    if not button or hide == exitFaded then return end
+    if InCombatLockdown and InCombatLockdown() then return end
+    button:SetAlpha(hide and 0 or 1)
+    button:EnableMouse(not hide)
+    exitFaded = hide
+end
+
 local function Show()
     if not bar then Build() end
     PaintRoute()
     PaintGames()
     Paint()
     bar:Show()
+    GameExit(true)
 end
 
 function Flight.Land()
@@ -281,6 +297,7 @@ function Flight.Land()
     current = nil
     ns.char.flight = nil
     if bar then bar:Hide() end
+    GameExit(false)
     if flight and not flight.early then
         LearnSpeed(flight, Compat.Now() - flight.start)
     end
@@ -387,6 +404,7 @@ end
 
 function Flight:OnDisable()
     if bar then bar:Hide() end
+    GameExit(false)
 end
 
 ns.Flight = Flight

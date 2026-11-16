@@ -2,6 +2,7 @@
 
 - **Jsal's Pals: more to do together.** Move the pointer to and fro over your pal to stroke it: it leans into your hand with its eyes shut, and after a few strokes does a happy dance of its own. Now and then it hides in its pen behind a bush or a rock: click where it is to find it. While you quest it sometimes finds a little something, a few things in every zone, and keeps them on a new shelf on its page. And it perks up when mail comes (it brings you a letter) or someone whispers you. Catching a tossed treat is easier to time: the treat sparkles and your pal gets ready to leap for the moment it can be caught, and that moment is about twice as long. All of it comes with Jsal's Pals, with nothing to turn on.
 - **Gear plan: "of Frozen Wrath" and other one-school greens count.** Spell damage of one school, like a Frost, Fire or Shadow Wrath green's, now counts for the trees that cast it, by WoWSims' own weights: fully for a Frost mage's Frost or a Shadow priest's Shadow, in part where a tree casts two schools, and not at all for anyone else.
+- **Flight bar: the game's own land-early button stays out of the way.** While the flight bar shows, the game's vehicle exit button (which Edit Mode can't move or hide) is hidden, since the bar's "Land at ..." does the same. It's back once you land.
 
 ## In 0.3.50
 
