@@ -8,7 +8,7 @@
 ## X-Curse-Project-ID: 1788011
 ## X-Wago-ID: aND9B96o
 ## IconTexture: Interface\AddOns\jsalUI\Media\Logo
-## OptionalDeps: EllesmereUI, RXPGuides
+## OptionalDeps: EllesmereUI, RXPGuides, Auctionator
 ## SavedVariables: jsalUIDB
 ## SavedVariablesPerCharacter: jsalUICharDB
 ## AddonCompartmentFunc: jsalUI_OnCompartmentClick
@@ -73,6 +73,7 @@ Training\TameTip.lua
 # favourite recipes at trainers, and the shopping list.
 Professions\ProfessionData.lua
 Professions\Professions.lua
+Professions\ItemPrices.lua
 Professions\RecipeSources.lua
 Professions\Sources.lua
 Professions\Crafters.lua
@@ -81,6 +82,8 @@ Professions\Page.lua
 Professions\Window.lua
 Professions\Favorites.lua
 Professions\Shopping.lua
+Professions\Profit.lua
+Professions\ProfitPage.lua
 
 # Everyday helpers.
 Helpers\Vendor.lua

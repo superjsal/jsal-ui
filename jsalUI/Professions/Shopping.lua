@@ -81,29 +81,10 @@ local function Needs()
     return need
 end
 
----------------------------------------------------------------------------
--- Auction prices: the cheapest price per item seen in your own searches,
--- kept per realm with when it was seen.
----------------------------------------------------------------------------
-local function Prices()
-    local realm = GetRealmName and GetRealmName() or "?"
-    ns.db.ahPrices = type(ns.db.ahPrices) == "table" and ns.db.ahPrices or {}
-    ns.db.ahPrices[realm] = type(ns.db.ahPrices[realm]) == "table" and ns.db.ahPrices[realm] or {}
-    return ns.db.ahPrices[realm]
-end
-
-local function SeePrice(item, unit)
-    if not (item and unit and unit > 0) then return end
-    Prices()[item] = { price = math.floor(unit), seen = Compat.ServerTime() }
-end
-
--- A unit price for an item: the vendor's if a vendor sells it, else the
--- auction price last seen, else none.
+-- A unit price for an item: the vendor's if a vendor sells it, else its
+-- auction price, else none. ItemPrices is the one way jsal.ui prices items.
 local function PriceOf(item)
-    local vendor = Professions.IsVendor(item)
-    if vendor then return vendor, "vendor" end
-    local seen = Prices()[item]
-    if type(seen) == "table" and seen.price then return seen.price, "auction" end
+    return ns.ItemPrices.Of(item)
 end
 
 ---------------------------------------------------------------------------
@@ -709,7 +690,9 @@ Paint = function()
     if total > 0 then
         text = ("About |cffece6d6%s|r in all"):format(Compat.Money(total))
         if unpriced > 0 then text = text .. (" · %d not priced"):format(unpriced) end
-        if auctionCost > 0 then text = text .. " · auction prices from your own searches" end
+        if auctionCost > 0 then
+            text = text .. (ns.ItemPrices.HasAuctionator() and " · auction prices from Auctionator" or " · auction prices from your own searches")
+        end
     elseif unpriced > 0 then
         text = ("%d still to get, no price known yet"):format(unpriced)
     else
@@ -866,39 +849,6 @@ local function PaintVendor()
 end
 
 ---------------------------------------------------------------------------
--- Auction House searches: whichever kind of auction house this client has,
--- the lowest prices it shows are remembered.
----------------------------------------------------------------------------
-local function SeeBrowse()
-    local ah = C_AuctionHouse
-    if ah and ah.GetBrowseResults then
-        for _, r in ipairs(ah.GetBrowseResults() or {}) do
-            SeePrice(r.itemKey and r.itemKey.itemID, r.minPrice)
-        end
-    end
-end
-
-local function SeeCommodity(item)
-    local ah = C_AuctionHouse
-    local first = ah and ah.GetCommoditySearchResultInfo and ah.GetCommoditySearchResultInfo(item, 1)
-    if first then SeePrice(item, first.unitPrice) end
-end
-
--- The older auction house's list: each row's buyout per item.
-local function SeeOldList()
-    if not (GetNumAuctionItems and GetAuctionItemInfo) then return end
-    local lowest = {}
-    for i = 1, (GetNumAuctionItems("list")) do
-        local _, _, count, _, _, _, _, _, _, buyout, _, _, _, _, _, _, item = GetAuctionItemInfo("list", i)
-        if item and buyout and buyout > 0 and count and count > 0 then
-            local unit = buyout / count
-            if not lowest[item] or unit < lowest[item] then lowest[item] = unit end
-        end
-    end
-    for item, unit in pairs(lowest) do SeePrice(item, unit) end
-end
-
----------------------------------------------------------------------------
 -- Starting.
 ---------------------------------------------------------------------------
 function Shopping:OnEnable()
@@ -932,12 +882,9 @@ function Shopping:OnEnable()
                 Compat.After(0.2, function() xpcall(PaintVendor, ns.Report) end)
             elseif event == "MERCHANT_CLOSED" then
                 if vendorFrame then vendorFrame:Hide() end
-            elseif event == "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED" then
-                SeeBrowse()
-            elseif event == "COMMODITY_SEARCH_RESULTS_UPDATED" then
-                SeeCommodity(arg1)
-            elseif event == "AUCTION_ITEM_LIST_UPDATE" then
-                SeeOldList()
+            else
+                -- An auction house search: ItemPrices remembers its prices.
+                ns.ItemPrices.OnAuctionEvent(event, arg1)
             end
         end)
         if not ok then ns.Report(err) end

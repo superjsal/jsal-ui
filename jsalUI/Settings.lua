@@ -29,7 +29,7 @@ local GROUPS = {
         { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
     { title = "Professions", width = 130, sections = {
-        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters" } },
+        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "craftprofit" } },
     } },
     { title = "Around the UI", width = 150, sections = {
         { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
@@ -66,6 +66,7 @@ local SHORT = {
     profwindow = "Extras in the game's profession window",
     shopping = "What to craft and buy, with prices",
     crafters = "Who in your guild makes what",
+    craftprofit = "What your recipes earn at auction",
     launcher = "A small bar of buttons you can move",
     minimap = "Opens the dashboard from the minimap",
     menubar = "The game's menu bar, in jsal.ui's look",
@@ -93,6 +94,7 @@ local ICON = {
     guidetags = "Menu\\quests", lootlog = "Menu\\collections",
     tametip = "Parts\\tametip", rewardstar = "Menu\\quests",
     professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
+    craftprofit = "Menu\\shop",
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
     vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",
     petfeed = "Parts\\foodtile",

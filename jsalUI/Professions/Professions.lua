@@ -67,6 +67,8 @@ function Professions.Remember(line, skill, cap, spells)
     ns.char.professions[line] = { skill = skill, cap = cap, known = known, seen = Compat.ServerTime() }
     -- Guild crafters tells the guild when what you can make has changed.
     if ns.Crafters and ns.Crafters.Changed then ns.Crafters.Changed() end
+    -- Crafting profit keeps every character's recipes for the whole account.
+    if ns.CraftProfit and ns.CraftProfit.Changed then ns.CraftProfit.Changed() end
 end
 
 function Professions.Remembered(line)

@@ -26,6 +26,8 @@ local PAGES = {
     { key = "training", label = "Training Planner", icon = OWN .. "training" },
     { key = "gear", label = "Gear plan", icon = OWN .. "gear" },
     { key = "professions", label = "Professions", icon = OWN .. "professions" },
+    { key = "craftprofit", label = "Crafting profit", icon = "INV_Misc_Coin_01",
+      when = function() return ns.CraftProfit ~= nil and ns.CraftProfit.running == true end },
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
