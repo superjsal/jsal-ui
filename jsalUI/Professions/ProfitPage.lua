@@ -82,9 +82,12 @@ local function Name(row)
     if row.name then return row.name, row.colour end
     local name, quality
     if row.item then name, quality = ItemInfo(row.item) end
+    -- Kept only once it's the item's own (or there's no item): the spell's name stands in
+    -- while the item loads, and kept, it held the item's name and colour back for good.
+    local own = name ~= nil or not row.item
     if not name then name = Compat.SpellInfo(row.spell) end
     local colour = Style.Quality(quality)
-    if name then row.name, row.colour = name, colour end
+    if name and own then row.name, row.colour = name, colour end
     return name or "...", colour
 end
 
@@ -393,7 +396,9 @@ local function PaintFoot(v, all, names, losing, count)
     P.hide.switch:SetOn(v.hide and true or false)
 end
 
-function P.Paint(keep)
+-- `stay`: the list keeps its place, for a repaint nobody asked for (a recipe learned, a bag
+-- changed). It went back to the top each time, under whoever was reading it.
+function P.Paint(keep, stay)
     local v = View()
     local shown, all, names, lines, counts, losing, count = Pick(v, keep)
     local s = Sort(v)
@@ -412,7 +417,7 @@ function P.Paint(keep)
         end
         entries[#entries + 1] = row
     end
-    P.offset = 0
+    if not stay then P.offset = 0 end
     P.entries = entries
     P.PaintList()
     P.empty:SetShown(#shown == 0)
@@ -609,7 +614,7 @@ Window.Page("craftprofit", function(page)
     P.foot:SetPoint("BOTTOMLEFT", 0, 0)
     P.foot:SetWidth(width)
     P.foot:SetJustifyH("LEFT")
-    page.Refresh = function() P.Paint() end
+    page.Refresh = function() P.Paint(nil, true) end
 -- A window of its own beside the dashboard, as the Gear plan and the dungeon
 -- guide have, and as big as the dashboard (John, 16 Nov 2026: "separate the
 -- crafting profit to its own separate window like gear plan, and dungeons",

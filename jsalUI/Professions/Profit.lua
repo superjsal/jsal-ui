@@ -45,22 +45,46 @@ local function Characters()
 end
 CraftProfit.Characters = Characters
 
--- This character's recipes, copied into the account's list.
-function CraftProfit.Changed()
-    if not CraftProfit.running then return end
+-- A character not logged in for this long leaves the list (a deleted one would stay for
+-- good); logging it in again brings it back.
+local FORGET = 90 * 86400
+local priceMakers
+
+-- This character's recipes, copied into the account's list with when (`t`): only the
+-- professions it has now, so one it dropped goes too.
+local function Copy()
     local name = Compat.MyName()
     if not name then return end
-    local mine = {}
+    local has
+    for _, p in ipairs(Professions.Mine and Professions.Mine() or {}) do
+        has = has or {}
+        has[p.line] = true
+    end
+    local mine = { t = Compat.ServerTime() }
     local all = type(ns.char.professions) == "table" and ns.char.professions or {}
     for line, p in pairs(all) do
-        if type(p) == "table" and type(p.known) == "table" then
+        if type(p) == "table" and type(p.known) == "table" and (not has or has[line]) then
             local list = {}
             for spell in pairs(p.known) do list[#list + 1] = spell end
             table.sort(list)
             mine[line] = list
         end
     end
-    Characters()[name] = mine
+    local list = Characters()
+    list[name] = mine
+    for who, entry in pairs(list) do
+        if who ~= name and type(entry) == "table" then
+            -- One saved before the time was kept starts its count now.
+            entry.t = tonumber(entry.t) or mine.t
+            if mine.t - entry.t > FORGET then list[who] = nil end
+        end
+    end
+    priceMakers = nil
+end
+
+function CraftProfit.Changed()
+    if not CraftProfit.running then return end
+    Copy()
     if ns.Window and ns.Window.IsOpen and ns.Window.IsOpen("craftprofit") then ns.Window.Refresh() end
 end
 
@@ -120,8 +144,8 @@ local DEPTH = 2
 local Cost
 local function ItemCost(item, makers, depth)
     local best, how, age = ns.ItemPrices.Of(item)
-    local recipe = depth < DEPTH and makers[item]
-    if recipe then
+    -- Every known recipe that makes it is tried, and the cheapest counts.
+    for _, recipe in ipairs(depth < DEPTH and makers[item] or {}) do
         local made, missing, madeAge = Cost(recipe, makers, depth + 1)
         if not missing then
             made = made / math.max(1, recipe.makes or 1)
@@ -149,12 +173,21 @@ function Cost(recipe, makers, depth)
 end
 CraftProfit.Cost = Cost
 
--- Which known recipe makes each item.
+-- Which known recipes make each item: all of them, in the same order every time. One was
+-- kept, whichever came first, so an item two recipes make (a bar smelted or transmuted) was
+-- costed by either, and not always the same one.
 local function Makers(known)
     local makers = {}
     for spell in pairs(known) do
         local recipe = RecipeBySpell(spell)
-        if recipe and recipe.item and not makers[recipe.item] then makers[recipe.item] = recipe end
+        if recipe and recipe.item then
+            local list = makers[recipe.item] or {}
+            makers[recipe.item] = list
+            list[#list + 1] = recipe
+        end
+    end
+    for _, list in pairs(makers) do
+        table.sort(list, function(a, b) return a.spell < b.spell end)
     end
     return makers
 end
@@ -187,8 +220,15 @@ end
 -- One craft priced, for the profession panel's road: what its materials cost
 -- (the item nobody has a price for instead, if any) and what it sells for,
 -- by the same reckoning as the page's rows.
+--
+-- Who makes what is kept for the one paint: the panel asks for each step of its road, and each
+-- ask read every character's every recipe over again.
 function CraftProfit.CraftPrice(recipe)
-    local row = Row(recipe.spell, recipe, Makers((CraftProfit.Known())))
+    local now = GetTime and GetTime()
+    if not priceMakers or not now or priceMakers.at ~= now then
+        priceMakers = { at = now, makers = Makers((CraftProfit.Known())) }
+    end
+    local row = Row(recipe.spell, recipe, priceMakers.makers)
     return row.cost, row.sells, row.missing
 end
 
@@ -240,7 +280,11 @@ end
 function CraftProfit:OnEnable()
     ns.ItemPrices.useAuctionator = true
     local events = CreateFrame("Frame")
-    for _, event in ipairs(ns.ItemPrices.EVENTS) do pcall(events.RegisterEvent, events, event) end
+    -- The shopping list hears the auction house too (it starts first): with it on, its ear
+    -- is enough, and no search is read twice.
+    if not (ns.Shopping and ns.Shopping.running) then
+        for _, event in ipairs(ns.ItemPrices.EVENTS) do pcall(events.RegisterEvent, events, event) end
+    end
     pcall(events.RegisterEvent, events, "GET_ITEM_INFO_RECEIVED")
     local naming = false
     events:SetScript("OnEvent", ns.Safe(CraftProfit, function(_, event, arg1)
@@ -262,7 +306,9 @@ function CraftProfit:OnEnable()
         end
     end))
     self.events = events
-    CraftProfit.Changed()
+    -- Copied here and now: Changed waits for the part to be running, which it only is once
+    -- this returns, so a character's recipes weren't kept until its profession window opened.
+    Copy()
 end
 
 function CraftProfit:OnDisable()

@@ -62,9 +62,24 @@ end
 -- { skill, cap, known = { [spell] = true }, seen }.
 function Professions.Remember(line, skill, cap, spells)
     ns.char.professions = type(ns.char.professions) == "table" and ns.char.professions or {}
-    local known = {}
-    for _, spell in ipairs(spells) do known[spell] = true end
+    local known, count = {}, 0
+    for _, spell in ipairs(spells) do
+        if not known[spell] then known[spell], count = true, count + 1 end
+    end
+    -- The panel remembers on every repaint, mostly with nothing new: the rest is told only
+    -- when the skill, the cap or a recipe has changed.
+    local was = ns.char.professions[line]
+    local same = type(was) == "table" and was.skill == skill and was.cap == cap and type(was.known) == "table"
+    if same then
+        local had = 0
+        for spell in pairs(was.known) do
+            had = had + 1
+            if not known[spell] then same = false break end
+        end
+        same = same and had == count
+    end
     ns.char.professions[line] = { skill = skill, cap = cap, known = known, seen = Compat.ServerTime() }
+    if same then return end
     -- Guild crafters tells the guild when what you can make has changed.
     if ns.Crafters and ns.Crafters.Changed then ns.Crafters.Changed() end
     -- Crafting profit keeps every character's recipes for the whole account.
@@ -145,7 +160,13 @@ Professions.MadeBy = MadeBy
 -- after the cut. (John, 16 Nov 2026, of the road's pick costing a rough
 -- worth: "lets feed them in then, seems like good QOL".) Set for one road at
 -- a time by Plan, with its own memory of what it has looked up.
-local priced, seen
+--
+-- Real prices are weighed only against real prices. A material nobody has a price for was
+-- weighed by the data's rough worth, far below an auction price, so the road took a recipe for
+-- being unknown. Now, step by step (Plan sets `priced`): the recipes whose materials all have
+-- prices are weighed against each other by them, and one with a price missing is left out;
+-- a step where none has them all goes by the rough worth, every recipe alike.
+local priced, seen, whole
 
 local function Priced()
     return ns.CraftProfit ~= nil and ns.CraftProfit.running == true and ns.ItemPrices ~= nil
@@ -162,17 +183,51 @@ local function PatternPrice(spell)
     return vendor and vendor.copper and vendor.copper > 0 and vendor.copper or nil
 end
 
-local function ItemWeight(line, item, depth)
-    local key = (depth or 0) == 0 and seen and item
-    if key and seen[key] then return seen[key] end
-    local own = priced and ns.ItemPrices.Of(item) or Data.vendor[item] or (Data.value and Data.value[item]) or 100
+-- Whether an item has a real price: one to buy it at, or one for all it's made from.
+local function HasPrice(line, item, depth)
+    if ns.ItemPrices.Of(item) then return true end
     local recipe = (depth or 0) < 2 and MadeBy(line, item)
-    if recipe then
-        local w = 0
+    if not recipe then return false end
+    for _, reagent in ipairs(recipe.reagents) do
+        if not HasPrice(line, reagent.item, (depth or 0) + 1) then return false end
+    end
+    return true
+end
+
+-- Whether every material of a recipe has one, looked up once a road.
+local function AllPriced(line, recipe)
+    local known = whole[recipe]
+    if known == nil then
+        known = true
         for _, reagent in ipairs(recipe.reagents) do
+            if not HasPrice(line, reagent.item) then known = false break end
+        end
+        whole[recipe] = known
+    end
+    return known
+end
+
+local function ItemWeight(line, item, depth)
+    local key = (depth or 0) == 0 and priced and seen and item
+    if key and seen[key] then return seen[key] end
+    local rough = Data.vendor[item] or (Data.value and Data.value[item]) or 100
+    local recipe = (depth or 0) < 2 and MadeBy(line, item)
+    local made
+    if recipe then
+        local w, real = 0, true
+        for _, reagent in ipairs(recipe.reagents) do
+            if priced and not HasPrice(line, reagent.item, (depth or 0) + 1) then real = false end
             w = w + reagent.count * ItemWeight(line, reagent.item, (depth or 0) + 1)
         end
-        own = math.min(own, w / math.max(1, recipe.makes or 1))
+        -- Priced, making it counts only when all it's made from has a price.
+        if real then made = w / math.max(1, recipe.makes or 1) end
+    end
+    local own
+    if priced then
+        local buy = ns.ItemPrices.Of(item)
+        own = (buy and made) and math.min(buy, made) or buy or made or rough
+    else
+        own = made and math.min(rough, made) or rough
     end
     if key then seen[key] = own end
     return own
@@ -385,8 +440,8 @@ end
 -- stopped short if it did, and the materials added for bolts and bars
 -- you're short of.
 function Professions.Plan(line, skill, target, known, breakAt)
-    priced = Priced()
-    seen = priced and {} or nil
+    local pricing = Priced()
+    priced, seen, whole = pricing, pricing and {} or nil, {}
     local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
     local steps, totals = {}, {}
     -- What's in your bags and bank counts as nearly free until the road has
@@ -405,7 +460,15 @@ function Professions.Plan(line, skill, target, known, breakAt)
                 w = w - owned * ItemWeight(line, reagent.item) * Professions.OWNED
             end
         end
-        return w
+        -- Never below 1. Priced, a craft that sells for what goes in costs next to nothing
+        -- before what you own comes off, and a cost below nothing made the recipe with the
+        -- smaller chance of a point look the better one.
+        return math.max(1, w)
+    end
+    -- A recipe the road may take at a skill: one you know, or one a trainer teaches or a
+    -- vendor sells for coin, once your skill reaches it.
+    local function Open(recipe, mine, at)
+        return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= at)
     end
     local s = skill
     local staying
@@ -414,17 +477,28 @@ function Professions.Plan(line, skill, target, known, breakAt)
         local fair, fairCost
         local slow, slowCost
         local stayCost, stayFair, staySlow
+        -- Real prices decide this step if any recipe it could take has them all.
+        if pricing then
+            priced = false
+            for _, recipe in ipairs(recipes) do
+                if Open(recipe, recipe.vein or known(recipe.spell), s) and Chance(recipe, s) >= Professions.LEAST
+                    and AllPriced(line, recipe) then
+                    priced = true
+                    break
+                end
+            end
+        end
         for _, recipe in ipairs(recipes) do
             local mine = recipe.vein or known(recipe.spell)
             -- A recipe you know counts whatever skill the data says it's
             -- learned at (some are taught earlier than that); one from a
             -- trainer counts once your skill reaches it.
-            if mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= s) then
+            if Open(recipe, mine, s) then
                 local chance = Chance(recipe, s)
                 -- The last few points before a recipe goes grey take ten
                 -- crafts or more each: that's no way forward, so the road
                 -- stops there and says so.
-                if chance >= Professions.LEAST then
+                if chance >= Professions.LEAST and (not priced or AllPriced(line, recipe)) then
                     local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
                     if not mine and recipe.how == 2 then
                         -- Priced, a pattern to buy adds its price, shared by the
@@ -506,5 +580,6 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
     end
     for item, need in pairs(made) do totals[item] = (totals[item] or 0) + need end
+    priced = false
     return steps, totals, s < target and s or nil, made
 end
