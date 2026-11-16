@@ -1,0 +1,60 @@
+# Once a week, what changed upstream since jsal.ui's data was last built: the game's own tables
+# (a new Forever build), Blizzard's UI code, EG Link's player data and WoWSims Forever's presets
+# (tools/what_changed.py). When something has, one issue, "Forever data check", says what, and is
+# updated each week while it stands; GitHub emails the repo's owner about it. Once nothing has
+# changed, the issue is closed. It changes no file: a session reads the issue and does the work.
+name: Forever data check
+
+on:
+  schedule:
+    - cron: "17 14 * * 1"     # Mondays, 14:17 UTC (8:17 AM Central)
+  workflow_dispatch:          # "Run workflow" button to check now
+
+permissions:
+  contents: read
+  issues: write               # the one issue that says what changed
+
+concurrency:
+  group: data-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: What changed
+        id: report
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python -I tools/what_changed.py --markdown > report.md
+          code=$?
+          set -e
+          cat report.md
+          if [ "$code" = "10" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif [ "$code" = "0" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"
+          else echo "The check itself failed (exit $code)"; exit 1; fi
+      - name: Open or update the issue
+        if: steps.report.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number=$(gh issue list --state open --search "Forever data check in:title" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file report.md
+            gh issue comment "$number" --body "Checked again on $(date -u +%Y-%m-%d): still to do, the body is current."
+          else
+            gh issue create --title "Forever data check" --body-file report.md
+          fi
+      - name: Close the issue once nothing has changed
+        if: steps.report.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number=$(gh issue list --state open --search "Forever data check in:title" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then gh issue close "$number" --comment "Checked on $(date -u +%Y-%m-%d): everything is up to date."; fi
