@@ -19,8 +19,13 @@ local P = { rows = {}, chips = {}, heads = {} }
 -- The columns: what each sorts by and its heading (the name starts at 32,
 -- after the icon).
 local COLUMNS = { { key = "name", label = "RECIPE", left = true },
-                  { key = "cost", label = "TO MAKE", right = 330 }, { key = "sells", label = "SELLS FOR", right = 240 },
-                  { key = "profit", label = "PROFIT", right = 150 }, { key = "age", label = "SEEN", right = 50 } }
+                  { key = "cost", label = "TO MAKE", right = 440 }, { key = "sells", label = "SELLS FOR", right = 310 },
+                  { key = "profit", label = "PROFIT", right = 170 }, { key = "age", label = "SEEN", right = 50 } }
+-- How wide a number column is. Gold, silver and copper with their coins run to
+-- about 110: at 86, 90 apart, "+1g 80s 58c" ran into SELLS FOR (John's
+-- screenshot, 16 Nov 2026: "lets have some bettrer spacing between sells for
+-- and profit").
+local CELL_W = 120
 -- Where a number column's text ends: measured from the list's right edge,
 -- so a wider window gives the room to the names.
 local function ColumnX(c) return P.width - COLUMNS[c].right end
@@ -165,7 +170,7 @@ local function Row(i)
         local t = Style.Text(r, 12, "secondary")
         t:SetWordWrap(false)
         -- A number column holds its own width, so nothing runs into the next.
-        if c > 1 then t:SetWidth(86) end
+        if c > 1 then t:SetWidth(CELL_W) end
         r.cells[c] = t
     end
     r.cells[1]:SetPoint("LEFT", 32, 0)
@@ -335,8 +340,8 @@ local function PaintHeads(v)
             h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", 0, -(LIST_TOP - 26))
             h:SetWidth(300)
         else
-            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", ColumnX(i) - 80, -(LIST_TOP - 26))
-            h:SetWidth(90)
+            h:SetPoint("TOPLEFT", P.page.heading, "BOTTOMLEFT", ColumnX(i) - CELL_W + 10, -(LIST_TOP - 26))
+            h:SetWidth(CELL_W)
         end
         local on = s.key == col.key
         h.text:SetText(col.label)
