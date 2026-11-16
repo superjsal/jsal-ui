@@ -25,20 +25,38 @@ import pathlib
 import re
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from maps import forever_spot  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPELLS = ROOT / "data" / "spells"
 PROF = ROOT / "data" / "professions"
 OUT = ROOT / "jsalUI" / "Professions" / "ProfessionData.lua"
-# Who sells the vendor reagents: every vendor players opened on Forever, from EG Link (data from
-# Efficient Games, https://efficient.games, CC BY 4.0; tools/refresh_eglink.py keeps it), with
+# Who sells the vendor reagents. First every vendor players opened on Forever, from EG Link (data
+# from Efficient Games, https://efficient.games, CC BY 4.0; tools/refresh_eglink.py keeps it), with
 # where the player stood, on Forever's own maps. It records no faction, so a vendor's side comes
 # from Wowhead's word on the same NPC where the recipe sources have it, else from whose land its
-# map is, else it's taken to sell to both.
+# map is, else it's taken to sell to both. EG Link only has the vendors its players opened (two in
+# Ironforge, 15 Nov 2026), so the rest come from each reagent's "Sold by" list on Wowhead Forever
+# (data/vendors/wowhead-supplies.json, tools/wowhead/supplies.js), at the spot Wowhead gives,
+# moved onto Forever's maps by tools/maps.py; and last, vendors seen in the game
+# (data/vendors/vendors-seen.txt). EG Link's record of a vendor wins over both.
 VENDORS = ROOT / "data" / "vendors" / "eglink-vendors.json"
+SUPPLIES = ROOT / "data" / "vendors" / "wowhead-supplies.json"
 SEEN = ROOT / "data" / "vendors" / "vendors-seen.txt"
 WOWHEAD = PROF / "wowhead-sources.json"
 ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433, 1437}
 HORDE_MAPS = {1454, 1456, 1458, 1411, 1412, 1420, 1421, 1413}
+
+
+def side_of(react):
+    """Wowhead's reaction [alliance, horde] (1 friendly, 0 neutral, -1 hostile, None none) as a
+    side: 1 Alliance, 2 Horde, 0 both; None when it sells to neither."""
+    a = react[0] is not None and react[0] >= 0
+    h = len(react) > 1 and react[1] is not None and react[1] >= 0
+    if not a and not h:
+        return None
+    return 1 if a and not h else 2 if h and not a else 0
 
 
 def sellers_of(items):
@@ -56,28 +74,44 @@ def sellers_of(items):
         side = 0
         react = (known.get(npc) or {}).get("react")
         if react:
-            a = react[0] is not None and react[0] >= 0
-            h = react[1] is not None and react[1] >= 0
-            side = 1 if a and not h else 2 if h and not a else 0
+            side = side_of(react) or 0
         elif spot["uiMap"] in ALLIANCE_MAPS:
             side = 1
         elif spot["uiMap"] in HORDE_MAPS:
             side = 2
         shops[int(npc)] = (v["name"], int(spot["uiMap"]), round(spot["mapX"], 3), round(spot["mapY"], 3), side)
         for item in sold:
-            sellers.setdefault(item, []).append(int(npc))
-    # Vendors seen in the game that EG Link hasn't got yet (data/vendors/vendors-seen.txt).
+            sellers.setdefault(item, set()).add(int(npc))
+    eglink = set(shops)
+    # The rest of Wowhead's sellers, where it says where they stand.
+    supplies = json.loads(SUPPLIES.read_text(encoding="utf-8")) if SUPPLIES.exists() else {}
+    for item, sold_by in (supplies.get("items") or {}).items():
+        if int(item) not in items:
+            continue
+        for npc, name, react, _zones, _copper in sold_by:
+            if npc in eglink:
+                continue
+            spot = ((supplies.get("npcs") or {}).get(str(npc)) or {}).get("spot") or (known.get(str(npc)) or {}).get("spot")
+            side = side_of(react) if react else 0
+            if not spot or not spot[0] or side is None:
+                continue
+            x, y = forever_spot(int(spot[0]), float(spot[1]), float(spot[2]))
+            shops[npc] = (name, int(spot[0]), round(x / 100, 3), round(y / 100, 3), side)
+            sellers.setdefault(int(item), set()).add(npc)
+    # Vendors seen in the game that EG Link hasn't got yet (data/vendors/vendors-seen.txt): their
+    # spot and side, and what was seen for sale, alongside anything Wowhead says they sell.
     for line in SEEN.read_text(encoding="utf-8").splitlines() if SEEN.exists() else []:
         if not line.strip() or line.startswith("#"):
             continue
         npc, name, side, map_id, x, y, seen = line.split("|")
-        if int(npc) in shops:
+        if int(npc) in eglink:
             continue
-        sold = sorted(int(i) for i in seen.split(",") if int(i) in items)
         shops[int(npc)] = (name, int(map_id), round(float(x) / 100, 3), round(float(y) / 100, 3), int(side))
-        for item in sold:
-            sellers.setdefault(item, []).append(int(npc))
-    return sellers, shops
+        for item in (int(i) for i in seen.split(",")):
+            if item in items:
+                sellers.setdefault(item, set()).add(int(npc))
+    return {item: sorted(npcs) for item, npcs in sellers.items()}, shops
+
 
 # Skill line, name, and its key in wowhead-learned.txt.
 PROFESSIONS = [

@@ -83,6 +83,17 @@ same script again carries on. Never try to get past the check another way.
      clears it and you run `recipes.js` again (it carries on).
    - Then: `python -I tools/build_recipe_sources.py` (writes `jsalUI/Professions/RecipeSources.lua`;
      compare its recipe and vendor counts with the last commit's).
+   - **Who sells the vendor reagents (39 item pages, then one page per new seller; about an hour):**
+     EG Link only has the vendors its players opened, so the shopping list's "At <vendor>" line
+     also takes each reagent's "Sold by" list from Wowhead. Start the receiver
+     (`python -I tools/wowhead/receive.py data/vendors/wowhead-supplies.json`), then in the pane on
+     a wowhead.com/forever page `localStorage.removeItem('jsalSupplies')`, the
+     `window.__supplies = ...;` line `python -I tools/wowhead/supplies.py` prints, and the whole of
+     `supplies.js`. Watch `window.__supply` (`left`, `wanted`, `supplies`, `err`); on a block, John
+     clears it and you run the line and `supplies.js` again (it carries on). Sellers of trade
+     supplies are read first; those with only water, milk or wood come last, and
+     `window.__supplyStop = true` sends what's read without them. Then
+     `python -I tools/build_professions.py <build>` (the build in ProfessionData.lua's header).
 5. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
    the gear plan and a dungeon in game if John can, and commit on `beta` as
    "Data: Wowhead refresh (date)". It goes out with the next
@@ -97,6 +108,8 @@ same script again carries on. Never try to get past the check another way.
 - `recipes.js`: each profession's recipe list (a recipe's quest, single vendor or single mob), then
   every vendor's page: their side, zone, map spot and each recipe they sell with its price and
   stock. A vendor recipe no vendor read so far sells has its own page read for its "Sold by" list.
+- `supplies.py`, `supplies.js`: each vendor reagent's "Sold by" list (seller, side, zones, price),
+  then the page of each seller whose spot EG Link and the recipe read don't have.
 - `bosses.py`, `dungeons.js`, `merge_dungeons.py`: each dungeon's zone page (quests, NPCs, and the
   Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). A drop is
   kept when it's uncommon or better and dropped in at least 2% of 10 or more kills, or when the
