@@ -35,6 +35,7 @@ OUT = ROOT / "jsalUI" / "Professions" / "ProfessionData.lua"
 # from Wowhead's word on the same NPC where the recipe sources have it, else from whose land its
 # map is, else it's taken to sell to both.
 VENDORS = ROOT / "data" / "vendors" / "eglink-vendors.json"
+SEEN = ROOT / "data" / "vendors" / "vendors-seen.txt"
 WOWHEAD = PROF / "wowhead-sources.json"
 ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433, 1437}
 HORDE_MAPS = {1454, 1456, 1458, 1411, 1412, 1420, 1421, 1413}
@@ -63,6 +64,17 @@ def sellers_of(items):
         elif spot["uiMap"] in HORDE_MAPS:
             side = 2
         shops[int(npc)] = (v["name"], int(spot["uiMap"]), round(spot["mapX"], 3), round(spot["mapY"], 3), side)
+        for item in sold:
+            sellers.setdefault(item, []).append(int(npc))
+    # Vendors seen in the game that EG Link hasn't got yet (data/vendors/vendors-seen.txt).
+    for line in SEEN.read_text(encoding="utf-8").splitlines() if SEEN.exists() else []:
+        if not line.strip() or line.startswith("#"):
+            continue
+        npc, name, side, map_id, x, y, seen = line.split("|")
+        if int(npc) in shops:
+            continue
+        sold = sorted(int(i) for i in seen.split(",") if int(i) in items)
+        shops[int(npc)] = (name, int(map_id), round(float(x) / 100, 3), round(float(y) / 100, 3), int(side))
         for item in sold:
             sellers.setdefault(item, []).append(int(npc))
     return sellers, shops

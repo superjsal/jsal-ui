@@ -1,0 +1,9 @@
+# Vendors EG Link's data hasn't got yet (no player there has opened them), seen in the game itself.
+# Only what was seen for sale is listed, so a vendor may sell more. EG Link's own record wins once
+# it has the vendor. Columns: npc|name|side (1 Alliance, 2 Horde, 0 both)|uiMapID|x|y|items
+# (item IDs, comma-separated). NPC IDs and spots are Wowhead Forever's (Ironforge's spots there
+# match Forever's own map; Stormwind's don't, so a Stormwind spot must come from the game).
+#
+# Bombus Finespindle, Ironforge's leatherworking supplies, sells Fine Thread (John, in game,
+# 15 Nov 2026: the list sent him to Stormwind's Jillian Tanner while he stood in Ironforge).
+5128|Bombus Finespindle|1|1455|39.2|33.2|2321
