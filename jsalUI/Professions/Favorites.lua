@@ -137,19 +137,27 @@ local function Learn(ids)
     SetTrainerServiceTypeFilter("unavailable", false)
     SetTrainerServiceTypeFilter("used", false)
     local list = Offered()
-    local budget, bought = GetMoney(), 0
+    -- How many were too dear: said only then. It was said whenever fewer were bought than
+    -- asked for, a favourite this trainer had stopped offering among them.
+    local budget, short = GetMoney(), 0
     local ok, err = pcall(function()
         for i = #list, 1, -1 do
             local s = list[i]
-            if want[s.id] and s.cost <= budget then
-                BuyTrainerService(s.index)
-                budget, bought = budget - s.cost, bought + 1
+            if want[s.id] then
+                if s.cost <= budget then
+                    BuyTrainerService(s.index)
+                    budget = budget - s.cost
+                else
+                    short = short + 1
+                end
             end
         end
     end)
     for kind, on in pairs(saved) do SetTrainerServiceTypeFilter(kind, on) end
     if not ok then return ns.Report(err) end
-    if bought < #ids then ns.Print("Some favourites need more gold than you have.") end
+    if short > 0 then
+        ns.Print(short == 1 and "One favourite needs more gold than you have." or (short .. " favourites need more gold than you have."))
+    end
 end
 
 -- The trainer fits each name against its price when it draws a row; a

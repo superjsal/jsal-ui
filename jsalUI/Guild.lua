@@ -38,11 +38,17 @@ function Guild.Word()
     return { id = saved.id, answer = Shift(saved.code, saved.id, -1), setter = saved.setter or "the guild master" }
 end
 
+-- A word's ID is the moment it was set, and the newest wins. So one dated ahead of the realm's
+-- clock isn't taken: it would stand against every real word set after it. One saved that way
+-- before this gives way to the next real one.
+local AHEAD = 600
 local function SaveWord(id, code, setter)
     local guild = Compat.GuildName()
     if not guild then return false end
+    local latest = Compat.ServerTime() + AHEAD
+    if id > latest then return false end
     local saved = Words()[guild]
-    if type(saved) == "table" and (saved.id or 0) >= id then return false end
+    if type(saved) == "table" and (saved.id or 0) >= id and (saved.id or 0) <= latest then return false end
     Words()[guild] = { id = id, code = code, setter = setter }
     return true
 end

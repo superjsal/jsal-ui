@@ -122,12 +122,25 @@ end
 ---------------------------------------------------------------------------
 -- What's been heard, kept per guild: name = { sig, seen, text }.
 ---------------------------------------------------------------------------
+-- Someone not heard from in this long is let go, once a session: who left the guild or
+-- stopped playing stayed for good, still named as a crafter. Heard again, they're back.
+local FORGET = 60 * 86400
+local swept = {}
+
 local function Heard()
     local guild = Compat.GuildName()
     if not guild then return nil end
     ns.db.crafters = type(ns.db.crafters) == "table" and ns.db.crafters or {}
     ns.db.crafters[guild] = type(ns.db.crafters[guild]) == "table" and ns.db.crafters[guild] or {}
-    return ns.db.crafters[guild]
+    local heard = ns.db.crafters[guild]
+    if not swept[guild] then
+        swept[guild] = true
+        local now = Compat.ServerTime()
+        for name, entry in pairs(heard) do
+            if type(entry) ~= "table" or now - (tonumber(entry.seen) or now) > FORGET then heard[name] = nil end
+        end
+    end
+    return heard
 end
 
 -- One part of a recipe text: its profession, skill, codes and how many letters a code has
@@ -382,9 +395,14 @@ local function Answered(payload, name, _, sender)
     i, n = tonumber(i), tonumber(n)
     if not sig or n < 1 or n > MAX_PARTS or i < 1 or i > n then return end
     local key = name .. ":" .. sig
+    -- A list that never finished coming (its sender logged off part-way) is dropped after a while.
+    local now = GetTime()
+    for k, p in pairs(partial) do
+        if now - (p.at or now) > ASK_AGAIN then partial[k] = nil end
+    end
     local parts = partial[key]
     if not parts or parts.n ~= n then
-        parts = { n = n, got = 0 }
+        parts = { n = n, got = 0, at = now }
         partial[key] = parts
     end
     if not parts[i] then

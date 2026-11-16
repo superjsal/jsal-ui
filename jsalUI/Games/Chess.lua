@@ -156,8 +156,17 @@ end
 -- Sending: only to an opponent who's online; anything missed is caught up
 -- when they're back.
 ---------------------------------------------------------------------------
+-- When each player was last heard, by a chess message or a hello. The guild's roster can run
+-- behind someone just in: it said "offline", the answer wasn't sent, and a challenge turned
+-- down came back at the next catch-up. Someone heard in the last few minutes is there.
+local HEARD = 300
+local heardAt = {}
+local function Reachable(name)
+    return Chess.Online(name) or (heardAt[name] ~= nil and GetTime() - heardAt[name] < HEARD)
+end
+
 local function Send(game, kind, payload)
-    if not Chess.Online(game.opp) then return end
+    if not Reachable(game.opp) then return end
     Comms.Send(kind, game.id .. ";" .. (payload or ""), "WHISPER", game.target or TargetOf(game.opp))
 end
 
@@ -550,7 +559,9 @@ end
 
 -- The Guild tab heard from a guildmate (a hello or an answer to one).
 function Chess.Heard(name)
-    if Chess.running then CatchUp(name) end
+    if not Chess.running then return end
+    heardAt[name] = GetTime()
+    CatchUp(name)
 end
 
 ns.Command("chess", function() ns.Window.Open("chess") end)
@@ -558,6 +569,7 @@ ns.Command("chess", function() ns.Window.Open("chess") end)
 function Chess:OnEnable()
     for kind, fn in pairs(handlers) do
         Comms.On(kind, function(payload, name, _, sender)
+            heardAt[name] = GetTime()
             local fields = { strsplit(";", payload or "") }
             fn(fields[1], name, sender, unpack(fields, 2))
             Changed()
