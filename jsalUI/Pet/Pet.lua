@@ -137,8 +137,11 @@ end
 -- THROWS throws of the one toy.
 local HOLD, ARC, AGAIN, THROWS = 4, 46, 4, 3
 -- A treat tossed up for it is in the air for TOSS seconds, and can be caught
--- while it's coming down past its head: between these two parts of the way.
-local TOSS, CATCH_FROM, CATCH_TO = 1.6, 0.76, 0.96
+-- while it's coming down to its head: between these two parts of the way,
+-- while the treat sparkles and it's ready to leap (Pet.Glint). (It was a third
+-- of a second, unmarked. John, 16 Nov 2026: "a bit hard to tell when to do
+-- it"; he chose the sparkle and a longer moment, about 0.7 s.)
+local TOSS, CATCH_FROM, CATCH_TO = 2.0, 0.62, 0.97
 -- A bath is scrubbed: SCRUB pixels of rubbing the brush over it. And the
 -- pointer, wiggled in its pen (WIGGLE pixels of travel, counted so that a
 -- slow pass never adds up), is chased for CHASE seconds.
@@ -316,6 +319,9 @@ local function Packed(file, lay)
     -- Hiding, it crouches where it is: the last frame of sitting down, held
     -- for as long as it hides (Pet.HideStep sets how long).
     sheet.crouch = { first = sheet.sit.first + sheet.sit.count - 1, count = 1, time = 1 }
+    -- A treat coming down to it, it gets ready to leap: its catch's second
+    -- frame, crouched or looking up, held while the treat sparkles.
+    sheet.ready = { first = sheet.catch.first + 1, count = 1, time = 1, file = more, cell = 96, w = 1024, h = 512 }
     -- A first form has one more again: its egg rocking, cracking and
     -- breaking open round it, ten frames in a row (tools/make_pet_hatch.py).
     if lay.hatch then
@@ -1159,6 +1165,7 @@ local function PaintWalk()
     end
     prop:SetShown(seen)
     pen.hand:SetShown(inHand)
+    Pet.Glint(toss and not toss.spent and not (act and act.prop) and toss.clock / TOSS or nil)
 end
 
 -- How you're getting about, for the companion out with you: on the move or
@@ -1938,7 +1945,7 @@ function Pet.Petted(button)
     -- It stops where it is and watches it go up.
     walk.act, walk.errand, walk.running = nil, nil, nil
     walk.tx, walk.ty, walk.wait = walk.x, walk.y, TOSS + 1
-    said = "Up it goes! Click your pal as the treat comes down to it."
+    said = "Up it goes! Click your pal when the treat sparkles."
     Refresh()
 end
 
@@ -2028,6 +2035,11 @@ local function Tend(sheet, dt)
     if toss then
         toss.clock = toss.clock + dt
         walk.wait = math.max(walk.wait, 0.5)
+        -- Coming down to it: it gets ready to leap, for as long as it can be caught.
+        if not (toss.ready or toss.spent) and toss.clock >= CATCH_FROM * TOSS then
+            toss.ready = true
+            if Pet.Play(walk, sheet, "ready") then walk.act.length = (CATCH_TO - CATCH_FROM) * TOSS end
+        end
         if toss.clock >= TOSS then
             -- Nobody caught it: it's on the grass, and eaten there.
             pen.toss, walk.act = nil, nil
@@ -4144,10 +4156,37 @@ function Pet.Gift(roll)
     return key
 end
 
+-- A tossed treat sparkles while it can be caught: `t`, how far through its
+-- toss it is (nil: no treat in the air). The sparkle is the last three
+-- frames of a bath's (effects.png), round and round, over the treat.
+Pet.GLINT = { cells = { 29, 30, 31 }, time = 0.1, side = 64 }
+function Pet.Glint(t)
+    local glint = ui.play.glint
+    if not glint then return end
+    local _, good = Pet.Tossed(t or 0)
+    if not (t and good) then return glint:Hide() end
+    local G = Pet.GLINT
+    local cell = G.cells[1 + math.floor(t * Pet.TOSS / G.time) % #G.cells]
+    local col, row = cell % 8, math.floor(cell / 8)
+    glint:SetTexCoord(col / 8, (col + 1) / 8, row / 8, (row + 1) / 8)
+    glint:ClearAllPoints()
+    glint:SetPoint("CENTER", prop, "CENTER")
+    glint:Show()
+end
+
 -- The hiding place in the pen, and the shelf under the care buttons.
 Pet.SHELF = { y = 306, slots = 13, side = 32 }
 function Pet.BuildPlay()
     ui.sub = sub
+    -- The sparkle on a treat that can be caught, over the creature (Pet.Glint).
+    local over = CreateFrame("Frame", nil, pen)
+    over:SetAllPoints()
+    over:SetFrameLevel(41)
+    ui.play.glint = over:CreateTexture(nil, "OVERLAY")
+    ui.play.glint:SetSize(Pet.GLINT.side, Pet.GLINT.side)
+    ui.play.glint:SetTexture(Art("effects"), "CLAMP", "CLAMP", "NEAREST")
+    Compat.Crisp(ui.play.glint)
+    ui.play.glint:Hide()
     -- The hiding place: over the creature, at the pen's front edge, so that
     -- whatever is behind it is behind it.
     local spot = CreateFrame("Frame", nil, pen)
