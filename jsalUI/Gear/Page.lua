@@ -665,7 +665,7 @@ Window.Page("gear", function(page)
         return how, place, level
     end
 
-    local paintedSlot
+    local paintedSlot, retrying
     Paint = function()
         local level = UnitLevel("player") or 1
         local spec = G.Spec()
@@ -737,6 +737,16 @@ Window.Page("gear", function(page)
             local on = key == chosen
             b.bg:SetShown(on)
             for _, e in ipairs(b.edges) do e:SetShown(on) end
+        end
+        -- Still checking: look again in a couple of seconds by itself. An item asked for
+        -- again after two seconds had nothing to repaint the page, which said "checking..."
+        -- until a /reload (John, 15 Nov 2026). Once at a time; stops when nothing is waited on.
+        if checking and not retrying then
+            retrying = true
+            Compat.After(2.5, function()
+                retrying = false
+                if page:IsVisible() then Paint() end
+            end)
         end
         if better > 0 then
             title:SetText(("%d slot%s can be better"):format(better, better == 1 and "" or "s"))

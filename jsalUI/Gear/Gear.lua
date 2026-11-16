@@ -230,8 +230,17 @@ local statsOf, statsLevel = {}, nil
 -- in the list, 15 Nov 2026).
 local loading = {}
 local RETRY = 2
+-- After five asks (about ten seconds) an item that still hasn't come is given
+-- up on until the next /reload: some of Wowhead's items the game never sends,
+-- and the plan said "checking..." for good (John: "sometimes the checking...
+-- takes a long time, i have to /reload", 15 Nov 2026).
+local TRIES = 5
+local tries = {}
 function Gear.Arrived(id)
-    if id then loading[id] = nil end
+    if id then loading[id], tries[id] = nil, nil end
+end
+function Gear.GivenUp(id)
+    return (tries[id] or 0) >= TRIES
 end
 -- Whether an item asked for is still waited on: marked, and not past its two seconds.
 local function Waiting(id)
@@ -244,10 +253,13 @@ local function Waiting(id)
 end
 local function Mark(id)
     -- Only while the module runs: its event is what clears the mark early.
-    if Gear.running then loading[id] = GetTime and (GetTime() + RETRY) or true end
+    if Gear.running then
+        loading[id] = GetTime and (GetTime() + RETRY) or true
+        tries[id] = (tries[id] or 0) + 1
+    end
 end
 local function Stats(item)
-    if type(item) == "number" and (statsOf[item] or Waiting(item)) then return statsOf[item] end
+    if type(item) == "number" and (statsOf[item] or Waiting(item) or Gear.GivenUp(item)) then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
@@ -876,7 +888,8 @@ function Gear.Plan(slot, spec, only)
             local stats = Stats(c.id)
             asking = asking + debugprofilestop() - s0
             if not stats then
-                waiting = waiting + 1
+                -- One the game never sent, given up on, isn't waited for.
+                if not Gear.GivenUp(c.id) then waiting = waiting + 1 end
             else
                 local score = Gear.Score(stats, weights, slot.dps) or 0
                 if c.added or score > worn.score + 0.01 then
