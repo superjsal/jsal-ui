@@ -840,8 +840,15 @@ Window.Page("dungeons", function(page)
         local guildKills = 0
         if guild then
             for id, n in pairs(guild.i or {}) do
-                Add(id).guild = n
-                guildKills = math.max(guildKills, n)
+                -- Until 0.3.52 guild loot couldn't read an item's quality from the game's newer
+                -- links, and shared grey and white items with the rest (John's link, 16 Nov 2026:
+                -- "cnIQ3:"). One only the guild has seen, that the game says is below uncommon,
+                -- isn't shown; its count stays in the guild's list, which every copy still agrees on.
+                local quality = not byId[id] and C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(id)
+                if type(quality) ~= "number" or quality >= 2 then
+                    Add(id).guild = n
+                    guildKills = math.max(guildKills, n)
+                end
             end
             guildKills = math.max(guildKills, guild.k or 0)
             for _, entry in ipairs(list) do
