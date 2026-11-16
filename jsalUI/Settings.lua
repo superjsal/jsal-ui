@@ -26,7 +26,7 @@ local GROUPS = {
     } },
     { title = "Leveling", width = 110, sections = {
         { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
-        { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip" } },
+        { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
     { title = "Professions", width = 130, sections = {
         { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters" } },
@@ -61,6 +61,7 @@ local SHORT = {
     guidetags = "Tags beside RestedXP's guide steps",
     lootlog = "Counts the quest items your kills drop",
     tametip = "Which beasts teach a new pet ability",
+    rewardstar = "Stars the quest reward best for you",
     professionpanel = "What to craft to reach the next rank",
     profwindow = "Extras in the game's profession window",
     shopping = "What to craft and buy, with prices",
@@ -89,7 +90,7 @@ local ICON = {
     talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", dungeons = "Parts\\dungeons",
     nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
     guidetags = "Menu\\quests", lootlog = "Menu\\collections",
-    tametip = "Parts\\tametip",
+    tametip = "Parts\\tametip", rewardstar = "Menu\\quests",
     professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
     vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",

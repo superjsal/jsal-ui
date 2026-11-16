@@ -110,6 +110,8 @@ Gear\GearData.lua
 Gear\Gear.lua
 Gear\Weights.lua
 Gear\Stars.lua
+# A star on the quest reward the gear plan scores best for you.
+Gear\RewardStar.lua
 Gear\Page.lua
 
 # The dungeon guide: every dungeon and raid from the game's files, the bosses
