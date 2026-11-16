@@ -177,7 +177,7 @@ end
 
 -- Each reward button gets the line from a hook on its own OnEnter, once. Forever has no global
 -- QuestInfoRewardItemCodeTemplate_OnEnter to hook (the name is only in its XML): hooking it
--- stopped the star turning on at all (John's error, 16 Nov 2026).
+-- stopped the star turning on at all.
 local entered = setmetatable({}, { __mode = "k" })
 function HookEnter(button)
     if entered[button] or not button.HookScript then return end

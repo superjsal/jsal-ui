@@ -13,19 +13,14 @@ ns.Trainers = Trainers
 -- a "Master" one Artisan. Nil when the title has no such word. The title
 -- was read as the rank itself, so at Leatherworking 126 the panel named
 -- Fimble Finespindle, Expert Leatherworker, for Expert, and his list has
--- Journeyman and no Expert. (John, 14 Nov 2026, at that trainer: "i also
--- dont see expert leatherworking here".)
+-- Journeyman and no Expert.
 --
 -- Two kinds of title aren't on that ladder. A specialisation's trainer
 -- teaches its own recipes and no rank at all, "Master" in the title or not:
 -- a Master Goblin Engineer was named for Artisan Engineering as readily as
 -- the Master Engineer. And a "Junior Mining Trainer" teaches Apprentice
--- alone, where a plain "Miner" teaches all four. (Wowhead Forever's Teaches
--- lists, 14 Nov 2026: Nixx Sprocketspring, Oglethorpe Obnoticus, Thorkaf
--- Dragoneye, Jalane Ayrole and Shayis Steelfury teach no rank; Buzzek
--- Bracketswing, Master Engineer, all four; Kelsey Fargo, Junior Mining
--- Trainer, Apprentice; Krunn and Pikkle, Miner, all four.) The second
--- answer is true for a title on the ladder.
+-- alone, where a plain "Miner" teaches all four. The second answer is true
+-- for a title on the ladder.
 local RANK_WORDS = { Journeyman = 1, Expert = 2, Artisan = 3, Master = 4 }
 local SPECIALISTS = { "Goblin", "Gnome", "Gnomish", "Dragonscale", "Elemental", "Tribal", "Shadoweave",
                       "Armor Crafter", "Weapon Crafter", "Armorsmith", "Weaponsmith" }
@@ -43,9 +38,8 @@ end
 Trainers.TeachesRank = TeachesRank
 
 -- What a trainer with no such word in its title teaches, where it isn't
--- everything: Cooking's teach Apprentice and Journeyman and no more (Cook
--- Ghilm, Cooking Trainer; Tomas, Cook; Mudduk, Superior Cook: Wowhead
--- Forever, 14 Nov 2026), so nobody is named for Expert or Artisan Cooking.
+-- everything: Cooking's teach Apprentice and Journeyman and no more, so
+-- nobody is named for Expert or Artisan Cooking.
 local PLAIN = { skill185 = 2 }
 
 local function Friendly(trainer)

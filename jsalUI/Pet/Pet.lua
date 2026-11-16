@@ -10,7 +10,7 @@ local _, ns = ...
 local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
 
 local Pet = ns.NewModule("pet", {
-    -- Its name, John's pick (12 Nov 2026: "jsal's pals i like it"); a creature is a pal.
+    -- Its name; a creature is a pal.
     title = "Jsal's Pals",
     -- A new part, so it starts off.
     defaultOn = false,
@@ -54,8 +54,8 @@ local YARD_MAX = 6        -- how many settled companions wander the paddock, and
 -- In the album, how far down its page each row of pictures stands: first
 -- forms, then middle ones, then last, the larger ones with more room.
 local BOOK_ROWS = { 94, 196, 298 }
--- And how many kinds it shows side by side: more than that and it turns
--- over to another page (John, 12 Nov 2026, with eight kinds: "Two pages of four").
+-- And how many kinds it shows side by side: more than that and it turns over to
+-- another page.
 local BOOK_PAGE = 4
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
@@ -99,10 +99,8 @@ local REST_NAP = 60
 local IDLE = { "sit", "idle", "special", "yawn", "dig" }
 -- And out with you while you're on the move: the short ones, so it's soon
 -- on its way again, and wherever it happens to be on its strip, every WHIM
--- seconds or so (between the two numbers). John, 12 Nov 2026: "while i'm
--- walking and running it doesnt really do its emotes anymore, i'd like for
--- it to still do its other animations", and then "should be able to do it
--- throughout the strip not just at the end".
+-- seconds or so (between the two numbers), so it still does them while you
+-- walk or run, anywhere along the strip and not only at its end.
 local ON_THE_GO = { "special", "cheer", "dig", "yawn", "idle" }
 local WHIM = { 4, 9 }
 Pet.WHIM = WHIM
@@ -138,9 +136,7 @@ end
 local HOLD, ARC, AGAIN, THROWS = 4, 46, 4, 3
 -- A treat tossed up for it is in the air for TOSS seconds, and can be caught
 -- while it's coming down to its head: between these two parts of the way,
--- while the treat sparkles and it's ready to leap (Pet.Glint). (It was a third
--- of a second, unmarked. John, 16 Nov 2026: "a bit hard to tell when to do
--- it"; he chose the sparkle and a longer moment, about 0.7 s.)
+-- while the treat sparkles and it's ready to leap (Pet.Glint).
 local TOSS, CATCH_FROM, CATCH_TO = 2.0, 0.62, 0.97
 -- A bath is scrubbed: SCRUB pixels of rubbing the brush over it. And the
 -- pointer, wiggled in its pen (WIGGLE pixels of travel, counted so that a
@@ -290,12 +286,9 @@ local function Packed(file, lay)
     sheet.sit.hold, sheet.sit.back = 2.4, 0.08
     -- The cells held while it stands and while it sleeps.
     sheet.stand, sheet.sleep = sheet.idle.first, sheet.doze.first + sheet.doze.count - 1
-    -- One more, in a picture of its own with larger cells: the thing its
-    -- kind can do (a fiery punch, a burst of leaves), nine frames in a row.
-    -- (`lay.special` names larger cells for one whose special reaches wider.
-    -- The Auroracrown's open wings may be cut by the pen's top when it stands
-    -- high: John, 12 Nov 2026, "I think its okay if it clips on ocassion",
-    -- "Let it roam".)
+    -- One more, in a picture of its own with larger cells: the thing its kind
+    -- can do (a fiery punch, a burst of leaves), nine frames in a row.
+    --
     -- (`lay.specialW`: a wider picture, for nine cells too large for 1024.)
     sheet.special = { first = 0, count = 9, time = 0.12, file = (file:gsub("_sheet$", "_special")), cell = lay.special or 96,
         w = lay.specialW or 1024, h = 128 }
@@ -403,15 +396,14 @@ Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS
 
 ---------------------------------------------------------------------------
--- Wandering, with no drawing in it. A walk is where the creature is (its
--- top left corner in the pen), where it's heading, which way it faces,
--- which frame shows, and how long it still stands before the next stroll.
+-- Wandering, with no drawing in it. A walk is where the creature is (its top
+-- left corner in the pen), where it's heading, which way it faces, which
+-- frame shows, and how long it still stands before the next stroll.
 ---------------------------------------------------------------------------
 -- `keep`: the furthest right it may go, while there's a nest at the pen's
 -- right to keep off. `corner`: the right edge and top of the hiding place
 -- (x, y), not to stop behind: standing there is hide and seek, when a click
--- finds it. (It strolled there and stood, as if hiding, and a click was only
--- a pat. John, 16 Nov 2026: "clicking him does nothing when hes hiding".)
+-- finds it.
 local function Spot(random, size, strip, keep, corner)
     -- Out with you, it only walks to and fro, along the bottom of its strip.
     if strip then return random(0, strip - size), STRIP_TOP end
@@ -436,9 +428,7 @@ end
 -- Doting on the egg, while it stands by its nest: a happy hop as it gets
 -- there, then it sits down beside the egg; hearts rise from the nest as it
 -- arrives and every few seconds after. Over, when it strolls off again or
--- the nest is gone. Returns "hearts" on a frame they should rise. (It only
--- stood there. John, 14 Nov 2026: "i'd like more visual doting when its by
--- the egg".)
+-- the nest is gone. Returns "hearts" on a frame they should rise.
 function Pet.Dote(walk, sheet, dt)
     local d = walk.doting
     if not d then return nil end
@@ -513,9 +503,7 @@ function Pet.Step(walk, dt, random)
         if walk.wait <= 0 then
             walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep, walk.corner)
             -- With an egg to look after, one stroll in three is back to the
-            -- nest's side, where it stays a while, facing it. (It wandered
-            -- as if there were no nest, and stood on it: John's screenshot,
-            -- 14 Nov 2026.)
+            -- nest's side, where it stays a while, facing it.
             if walk.keep and random(1, 3) == 1 then
                 walk.tx, walk.ty, walk.beside = math.max(0, walk.keep), PEN_H - (walk.size or SIZE), true
             end
@@ -789,13 +777,11 @@ end
 -- Weather in the pen, the same as where you are (its option, off to start):
 -- for each kind the game tells of, one 128-pixel picture that's repeated
 -- across the pen and slid (tools/make_pet_weather.py), over a wash of colour
--- (`tint`, as faint as `dim[1]` when it's light and as strong as `dim[2]`
--- at its hardest). Each layer slides `dx`, `dy` pixels a second and may
--- `sway` from side to side; a second is there only from `from` on, and
--- `ox`, `oy` set it apart from the first. Only snow has a heavy look, with
--- that second layer: rain and a sandstorm are drawn one way however hard
--- they come down (John, 13 Nov 2026: "i think we can skip the heavy on all
--- except snow").
+-- (`tint`, as faint as `dim[1]` when it's light and as strong as `dim[2]` at
+-- its hardest). Each layer slides `dx`, `dy` pixels a second and may `sway`
+-- from side to side; a second is there only from `from` on, and `ox`, `oy`
+-- set it apart from the first. Only snow has a heavy look, with that second
+-- layer: rain and a sandstorm are drawn one way however hard they come down.
 Pet.WEATHER = {
     rain = { file = "weather_rain", tint = { 0.14, 0.2, 0.31 }, dim = { 0.12, 0.12 },
         layers = { { dx = -120, dy = 440, alpha = 0.75 } } },
@@ -820,10 +806,8 @@ function Pet.Weather()
     local kind, much, raw, rawMuch = Compat.Weather()
     -- What the game last said is kept, and nothing is said in chat: a beta
     -- build used to print it each time it changed, to learn what the game's
-    -- numbers were. (John, 14 Nov 2026, of "Weather: type 1, intensity
-    -- 0.77081733942032 (rain)." in his chat: "i think it should be hidden".)
-    -- /jsal pet weather, on a beta build, says it when it goes back to the
-    -- weather where you are.
+    -- numbers were. /jsal pet weather, on a beta build, says it when it goes
+    -- back to the weather where you are.
     if raw then Pet.sawWeather, Pet.sawMuch = raw, rawMuch end
     if not kind or not much or much <= 0 then return nil end
     return kind, math.min(1, much)
@@ -1376,7 +1360,6 @@ function Pet.DressCare(s)
         local left = s.supplies[key]
         -- Worn out and asleep, it can't be woken yet (Rules.Lights): "Wake it" is greyed like a
         -- button with nothing left, and says why when pointed at. A click still says so too.
-        -- (John, 16 Nov 2026: "Go ahead and gray it out".)
         local tired = key == "lights" and s.asleep and s.energy <= Rules.WORN
         b.why = tired and "It's too tired to wake yet. Give it a little while." or nil
         local none = left == 0 or (key == "medicine" and not s.sick) or tired
@@ -1425,7 +1408,6 @@ local function PaintRoamer(r)
     -- At the art's own size in the paddock. One that has come to visit the
     -- pen is drawn as the pen draws its form (`r.size`): at the paddock's
     -- size it stood half as tall as the hatchling it had come to see.
-    -- (John, 14 Nov 2026: "we'll need to scale up when they visit".)
     local drawn = (r.size or 64) * from.cell / 64
     if r.file ~= from.file or r.drawn ~= drawn then
         r.file, r.drawn = from.file, drawn
@@ -1591,9 +1573,7 @@ end
 local Layout
 local function Refresh()
     -- What it wants has changed (its pen scooped, fed, well again): Home
-    -- says what it wants, so an open dashboard is told. (John, 14 Nov 2026:
-    -- "after i cleaned the poop it was still saying it needed poop cleaning
-    -- on the homepage, it's because i left it open".)
+    -- says what it wants, so an open dashboard is told.
     local want = Pet.Wants()
     local wanted = want and want.key or false
     if wanted ~= ui.wanted then
@@ -1643,12 +1623,8 @@ local function Refresh()
         title:SetText("The paddock")
         for _, heap in ipairs(ui.heaps) do heap:Hide() end
         prop:Hide()
-        -- The paddock has scenery of its own for the kind of country you're
-        -- in, as late as the realm's clock says, under the weather where you
-        -- are. (It was the pen's own scene, always by day, with no weather.
-        -- John, 14 Nov 2026: "the paddock also needs different scenery then,
-        -- and also needs the weather effects", "we have different scenes for
-        -- the different zones ... so we would need a different scene for each".)
+        -- The paddock has scenery of its own for the kind of country you're in,
+        -- as late as the realm's clock says, under the weather where you are.
         Pet.Backdrop("paddock_" .. Pet.Scene(Pet.where))
         pen.dark = Pet.Hours(Compat.Hour())
         pen.shade = pen.dark
@@ -1691,8 +1667,7 @@ local function Refresh()
         for i, pip in ipairs(bar.pips) do
             if i > full then
                 -- An empty pip is a grey you can see: the title bar's colour
-                -- was a shade off the window's (John, 14 Nov 2026: "hard to
-                -- see the black squares").
+                -- was a shade off the window's.
                 pip:SetColorTexture(Style.Color("lineStrong"))
             elseif low then
                 pip:SetColorTexture(Style.Color("red"))
@@ -1705,9 +1680,8 @@ local function Refresh()
     end
     for i, heap in ipairs(ui.heaps) do heap:SetShown(i <= s.droppings) end
     snore:SetShown(s.asleep)
-    -- Ready to grow: the button for it, until it is pressed. Only in its
-    -- pen: out with you it waits (John, 14 Nov 2026, of a Grow button over
-    -- it as it walked his screen: "i'd like grow to only happen in the pen").
+    -- Ready to grow: the button for it, until it is pressed. Only in its pen:
+    -- out with you it waits.
     ui.growButton:SetShown(s.grewFrom ~= nil and not s.unchosen and not looking and not window.out
         and not (walk and walk.act and walk.act.name == "grow"))
     -- Asleep, the pen is the same meadow by moonlight, and on the way there
@@ -2227,8 +2201,7 @@ end
 -- Its window is built in four parts, each a function of its own, and not
 -- for tidiness: the game's Lua lets one function use at most 60 variables
 -- from outside itself, and one function building everything used 74, so the
--- game refused the whole file (12 Nov; the tests' newer Lua allows 255, and
--- limits_test now counts them). Keep each part well under.
+-- game refused the whole file. Keep each part well under.
 local function BuildPen()
     window = Style.Panel("jsalUIPetWindow", WIN_W, WIN_H, "Jsal's Pals")
     title = window.title
@@ -2710,10 +2683,9 @@ local function BuildParts()
     message:SetWordWrap(false)
 
     -- Care: a picture button for each kind, in a row, with how many it has
-    -- left in its corner. (John, 14 Nov 2026: "make the jsals pal pen screen
-    -- and the buttons to interact with it a bit more lively and fun".) The
-    -- one it needs now is framed in gold and bobs; one with none left is
-    -- greyed; pointing at one says what it does and how more are earned.
+    -- left in its corner. The one it needs now is framed in gold and bobs;
+    -- one with none left is greyed; pointing at one says what it does and
+    -- how more are earned.
     local count = 0
     local CARE_W, CARE_H, CARE_GAP, CARE_Y = 68, 70, 6.4, 188
     local function Care(key, name, tint, tip, act, show, thing, over, sound)
@@ -2984,8 +2956,7 @@ function Pet.Out()
     end
     -- A hatchling still to be named stays in: the box for its name is in
     -- the window. Out says so, where it did nothing at all, and was then
-    -- left switched on for later. (John, 14 Nov 2026, with a hatchling he
-    -- hadn't named: "now the out button doesnt work anymore".)
+    -- left switched on for later.
     if pen.hatching then return end
     local s = Pet.State()
     if s.unnamed and ns.db.petOut ~= true then
@@ -3172,8 +3143,7 @@ end
 -- A right-click on one of your eggs lets it go: it's off your list, and one
 -- kept aside moves up into its place. That can't be undone, so the first
 -- right-click only says what will happen and the second, on the same egg,
--- does it. (John, 14 Nov 2026: "how do i get rid of the eggs i have", when
--- hatching one was all there was to do with them.)
+-- does it.
 function Pet.LetEggGo(index)
     local eggs = Eggs()
     local egg = eggs[index]
@@ -3195,10 +3165,7 @@ end
 -- in the pen and looks after it until it's ready to hatch (Rules.Tend); an
 -- egg already there goes back with the others, and the warming starts
 -- again. So the first click only says what will happen and the second does
--- it. (A second click used to hatch it on the spot, the companion settling
--- in the paddock that moment. John, 14 Nov 2026: "i think we should add
--- functionality to the egg itself, like your pal taking care of the egg
--- until it is ready to hatch".)
+-- it.
 function Pet.HatchEgg(index)
     if pen and pen.hatching then return end
     local s, eggs = Pet.State(), Eggs()
@@ -3258,12 +3225,7 @@ function Pet.HatchNest()
     -- In its pen and awake, it's a scene (Pet.Hatching): the companion
     -- hurries to the nest, watches the egg hatch there, dotes on the
     -- hatchling, and then walks away to the paddock. Anywhere else, or
-    -- asleep, the egg hatches at once. (First it ran off the moment Hatch
-    -- was pressed, the egg hatched small somewhere else with the nest gone,
-    -- and it was straight back as a visitor. John, 14 Nov 2026: "the whole
-    -- sequence is jarring for me. it should watch the egg hatch. and then
-    -- dote for a little longer, then walk away", "we also lose the nest and
-    -- the egg gets smaller".)
+    -- asleep, the egg hatches at once.
     if ok and kind and ready and IsOpen() and walk and ui.nest and not window.out and not window.yard and not s.asleep
         and not pen.hatching then
         pen.hatching = { phase = "gather", clock = 0, kind = kind }
@@ -3283,9 +3245,7 @@ end
 -- While an egg is hatching nothing else can be done: a cover over the pen
 -- and all under it takes every click, so no care is given, nothing is
 -- thrown, no egg is clicked and the pen isn't left for the paddock or sent
--- out. The window can still be closed. (John, 14 Nov 2026: "if you press
--- lights out before the adult pal leaves it stays there and sleeps. we
--- should block all actions until the adult pal is gone".)
+-- out. The window can still be closed.
 function Pet.Busy(on)
     if on and not ui.busy then
         ui.busy = CreateFrame("Button", nil, window)
@@ -3302,8 +3262,7 @@ end
 
 -- And what can't be clicked then is greyed, so it's plain that it can't:
 -- the care buttons, the eggs, and the buttons in the pen's corners. Each
--- goes back to how it was. (John, 14 Nov 2026: "we should gray them out as
--- well so its obvious".)
+-- goes back to how it was.
 function Pet.Grey(on)
     local list = { ui.yardToggle, ui.outButton, fold, mute }
     for _, button in pairs(ui.care or {}) do list[#list + 1] = button end
@@ -3629,9 +3588,7 @@ function Pet.RockEgg(clock)
     -- It rocks about its foot, which stays in the nest: the picture is
     -- turned about a point just above its lower edge, where the egg's foot
     -- is, by giving each corner the place in the picture that lands there.
-    -- (Turned by the game about its middle, the foot swung from side to
-    -- side out of the nest. John, 14 Nov 2026: "the swaying looks a bit
-    -- weird, it's swaying from the bottom".)
+    --
     -- About to hatch, it rocks hard and fast.
     local stirring = pen.hatching ~= nil and pen.hatching.phase == "stir"
     local a = stirring and math.sin(clock * 16) * 0.2 or math.sin(clock * 5) * (pen.rocking and 0.1 or 0.05)
@@ -3660,9 +3617,7 @@ end
 
 -- The one that looked after its egg, come by the pen for a few minutes
 -- (Rules.Visit): it wanders about as it does in the paddock, with its name
--- over it. (John, 14 Nov 2026: "the caretaker pal should show up in the pen
--- every once in a while".) Not in the paddock, out with you, or while an
--- egg is chosen.
+-- over it. Not in the paddock, out with you, or while an egg is chosen.
 function Pet.PaintVisitor(s)
     local visiting, began = false, false
     if not window.out and not window.yard and not window.picking and not looking and not s.unchosen
@@ -3827,20 +3782,19 @@ end
 -- Play: stroking it, hide and seek in its pen, the little things it finds
 -- while you quest (kept on a shelf on its page), and noticing your mail and
 -- your whispers. All of it is part of Jsal's Pals, with no switch of its
--- own (John, 16 Nov 2026: "no switch. these are just jsal pals features").
--- What it's in the middle of is kept in `ui.play`.
+-- own. What it's in the middle of is kept in `ui.play`.
 ---------------------------------------------------------------------------
 -- `stroke`: how far the pointer goes one way before turning back, in
 -- pixels, for that to be a stroke; `strokes`, how many make a proper fuss
 -- (it's pleased, and the bond hears of it: Rules.Stroke); `rest`, seconds
--- the pointer can be off it or still before a fuss starts over.
--- `hide`: seconds it stays hidden before it gives up and pops out; `quiet`,
--- seconds since you last did anything with it before it will hide; `every`,
--- how long it waits between hides (seconds its pen is showing and it's
--- free), and `wished`, the same when hide and seek is today's wish.
--- `flash`: seconds a bubble about mail, a whisper or a find stays up;
--- `gaps`, the least seconds between two of each, so a busy inbox or chat
--- doesn't keep it at it.
+-- the pointer can be off it or still before a fuss starts over. `hide`:
+-- seconds it stays hidden before it gives up and pops out; `quiet`, seconds
+-- since you last did anything with it before it will hide; `every`, how
+-- long it waits between hides (seconds its pen is showing and it's free),
+-- and `wished`, the same when hide and seek is today's wish. `flash`:
+-- seconds a bubble about mail, a whisper or a find stays up; `gaps`, the
+-- least seconds between two of each, so a busy inbox or chat doesn't keep
+-- it at it.
 Pet.PLAY = { stroke = 8, strokes = 3, rest = 1.2, hide = 30, quiet = 20, every = { 150, 330 }, wished = { 15, 35 },
     flash = 4, gaps = { mail = 60, whisper = 20 } }
 Pet.Dice = math.random
@@ -4368,8 +4322,7 @@ function Pet:OnEnable()
     events:RegisterEvent("CHAT_MSG_WHISPER")
     events:RegisterEvent("CHAT_MSG_BN_WHISPER")
     local mailed = HasNewMail and HasNewMail() and true or false
-    -- Out of a fight. (A boss brought down, ENCOUNTER_END, is kept for rarer
-    -- eggs to come: John, 12 Nov 2026.)
+    -- Out of a fight.
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
     -- A new spell learned (from a trainer, mostly): the Crystal egg's source.
     -- Not in the first moments after logging in, in case the game says so then.
@@ -4698,8 +4651,7 @@ function Pet.Restart()
     ns.Print("Started over. Choose an egg.")
     if not IsOpen() then Pet.Open() else Refresh() end
 end
--- Beta builds only since 12 Nov 2026 (John: "you can remove the restart when
--- we push to main, i already picked a new companion").
+-- Beta builds only.
 Trial("pet restart", Pet.Restart)
 
 -- /jsal pet dirty and /jsal pet sick: the companion in the pen is made

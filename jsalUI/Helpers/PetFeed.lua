@@ -162,7 +162,7 @@ local function FoodButton(i)
     b:SetSize(ITEM, ITEM)
     -- Press and release both reach it, and the game acts on the one its
     -- "act on key down" setting picks. With the release alone, a click did
-    -- nothing while that setting was on (John, 16 Nov 2026).
+    -- nothing while that setting was on.
     b:RegisterForClicks("AnyUp", "AnyDown")
     Style.Fill(b, "well")
     b.edges = Style.Border(b, "lineStrong")
@@ -222,7 +222,7 @@ local CloseRow
 local function OpenRow()
     if Compat.InCombat() then return end
     -- One row at a time: the food reminder's sits in the same place, and
-    -- the two lay over each other (John, 16 Nov 2026).
+    -- the two lay over each other.
     if ns.FoodTile and ns.FoodTile.CloseRow then ns.FoodTile.CloseRow() end
     FillRow()
     if row.count == 0 then

@@ -1,9 +1,9 @@
 -- Report a problem: a player says what went wrong, and jsal.ui adds their
 -- version, class, level, zone and jsal.ui's latest errors (Errors.lua). The
 -- report goes through the guild's hidden addon channel to whoever takes
--- reports (John, on any of his characters). It waits on the sender's side
--- until he's online, and leaves only once his copy says it has it. Outside
--- his guild, the page offers the report to copy and email instead.
+-- reports. It waits on the sender's side until he's online, and leaves only
+-- once his copy says it has it. Outside his guild, the page offers the
+-- report to copy and email instead.
 local _, ns = ...
 local Style, Compat, Comms, Window = ns.Style, ns.Compat, ns.Comms, ns.Window
 
@@ -252,7 +252,7 @@ Comms.On("BR", Received)
 Comms.On("BA", Confirmed)
 
 -- /jsal bug opens the page. /jsal reports lists what came in; "on" and "off"
--- choose whether this account takes reports (John's, once).
+-- choose whether this account takes reports.
 ns.Command("bug", function() Window.Open("report") end)
 ns.Command("reports", function()
     local list = In()

@@ -272,7 +272,6 @@ end
 -- the bar's does, so it's out of sight while the bar shows and back after.
 -- Edit Mode can't hide it. Faded and unclickable rather than hidden, as the
 -- game shows it again by itself; only put back if it was this that faded it.
--- (John, 16 Nov 2026: "yes hide it while the flight bar shows".)
 local exitFaded, exitWanted = false, false
 local function GameExit(hide)
     exitWanted = hide

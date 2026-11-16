@@ -1,17 +1,15 @@
 -- The Crafting profit page: every recipe your characters know, one row each,
 -- with what it costs to make, what it sells for, the profit and when its
 -- prices were seen. A click on a column's heading sorts by it, a second
--- click the other way (John, picking it: "A but with sorting"). Above the
--- list: a button per profession, a switch to hide what loses money, and a
--- search box. "+" on a row adds the craft to the shopping list. Profit only:
--- no levelling view ("this is purely profit"); the same prices can steer the
--- road to the next rank instead (Professions.lua). It opens in a window of
--- its own.
+-- click the other way. Above the list: a button per profession, a switch to
+-- hide what loses money, and a search box. "+" on a row adds the craft to
+-- the shopping list. Profit only: no levelling view ("this is purely
+-- profit"); the same prices can steer the road to the next rank instead
+-- (Professions.lua). It opens in a window of its own.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
--- Rows and text a size up from the first build (John, 16 Nov 2026: "perhaps we
--- can enlarge the font as well?", then "we can also -1 on the font size").
+-- Rows and text a size up from the first build.
 local ROW_H, LIST_TOP, FOOT_H = 32, 150, 48
 -- A line of the professions' buttons.
 local CHIP_ROW = 32
@@ -26,9 +24,7 @@ local COLUMNS = { { key = "name", label = "RECIPE", left = true },
                   { key = "cost", label = "TO MAKE", right = 480 }, { key = "sells", label = "SELLS FOR", right = 335 },
                   { key = "profit", label = "PROFIT", right = 185 }, { key = "age", label = "SEEN", right = 50 } }
 -- How wide a number column is. Gold, silver and copper with their coins run to
--- about 110: at 86, 90 apart, "+1g 80s 58c" ran into SELLS FOR (John's
--- screenshot, 16 Nov 2026: "lets have some bettrer spacing between sells for
--- and profit").
+-- about 110: at 86, 90 apart, "+1g 80s 58c" ran into SELLS FOR.
 local CELL_W = 135
 -- Where a number column's text ends: measured from the list's right edge,
 -- so a wider window gives the room to the names.
@@ -239,7 +235,7 @@ local function PaintProfitCells(r, row)
         Cell(r, 4, "")
     end
     -- What has no price is named in the tooltip: a material's name here ran
-    -- across the other columns (John's screenshot, 16 Nov 2026).
+    -- across the other columns.
     if row.missing then Cell(r, 5, "needs a price", "muted")
     elseif row.cost and row.sells then Cell(r, 5, Ago(row.age), row.old and "red" or "muted")
     else Cell(r, 5, "") end
@@ -583,9 +579,8 @@ Window.Page("craftprofit", function(page)
     P.list:EnableMouseWheel(true)
     P.list:SetScript("OnMouseWheel", function(_, delta) P.Wheel(delta) end)
     -- The strip at the list's right: hold the left button on it and drag, and
-    -- the list follows; a click jumps there (John, 16 Nov 2026: "lets also have
-    -- it be mouse scrollable", "by holding mouse 1 on the right"). Wider than
-    -- the thin bar it holds, so it's easy to catch.
+    -- the list follows; a click jumps there. Wider than the thin bar it holds,
+    -- so it's easy to catch.
     P.track = CreateFrame("Frame", nil, P.list)
     P.track:SetPoint("TOPRIGHT")
     P.track:SetPoint("BOTTOMRIGHT")
@@ -616,8 +611,6 @@ Window.Page("craftprofit", function(page)
     P.foot:SetJustifyH("LEFT")
     page.Refresh = function() P.Paint(nil, true) end
 -- A window of its own beside the dashboard, as the Gear plan and the dungeon
--- guide have, and as big as the dashboard (John, 16 Nov 2026: "separate the
--- crafting profit to its own separate window like gear plan, and dungeons",
--- then "as big as jsal.ui's page").
+-- guide have, and as big as the dashboard.
 end, { width = 1000, height = 920 })
 ns.CraftProfitPage = P

@@ -34,10 +34,10 @@ end
 
 ---------------------------------------------------------------------------
 -- Auctionator, another addon, read only through its public API and only
--- when Crafting profit asks for it. As its API's own notes say (read 16 Nov
--- 2026): GetAuctionPriceByItemID(callerID, itemID) is the last price it
--- saw, in copper, or nil; GetAuctionAgeByItemID(callerID, itemID) is how
--- many days ago, or nil past 21 days. A price with no age is counted old.
+-- when Crafting profit asks for it. As its API's own notes say:
+-- GetAuctionPriceByItemID(callerID, itemID) is the last price it saw, in
+-- copper, or nil; GetAuctionAgeByItemID(callerID, itemID) is how many days
+-- ago, or nil past 21 days. A price with no age is counted old.
 ---------------------------------------------------------------------------
 ItemPrices.useAuctionator = false
 local CALLER = "jsal.ui"
@@ -69,8 +69,7 @@ end
 -- How many auction prices came from each place since Counting() was last
 -- called, so a window can say where its prices really came from: Auctionator
 -- installed but not yet scanned has none, and the shopping list said "from
--- Auctionator" all the same (John, 16 Nov 2026: "i installed it but i have
--- not gone to an auction house").
+-- Auctionator" all the same.
 local counted = {}
 function ItemPrices.Counting()
     counted = {}

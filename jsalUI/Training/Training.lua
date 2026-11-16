@@ -15,8 +15,7 @@ Training.SOON = 2   -- levels ahead that count as "coming soon"
 -- A spell's rank as the game words it ("Rank 5"), nil for none. The rank
 -- that ships with the spell list comes first: the game's rank text is empty
 -- until it has loaded that spell, and a spell read as having no rank looked
--- known to anyone with a lower rank (Serpent Sting 5 and Disengage 2 were
--- missing from a hunter's road until a /reload, 15 Nov 2026).
+-- known to anyone with a lower rank.
 local function Rank(spellID, shipped)
     if shipped then return shipped > 0 and ("Rank " .. shipped) or nil end
     local text = C_Spell and C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(spellID)
@@ -44,8 +43,7 @@ local KINDS = { available = true, unavailable = true, used = true }
 
 -- A trainer charges less the better your standing with its faction, so two
 -- visits can price one spell differently: the higher is the full price, as
--- in the prices that ship (one visit's 99 silver for Explosive Trap, where
--- the rest saw 1 gold 10, 15 Nov 2026).
+-- in the prices that ship.
 local function Highest(was, cost)
     if was == nil then return cost end
     if cost == nil then return was end
@@ -61,7 +59,7 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     -- planner said "Any weapon master teaches it", and the saved visits show
     -- Woo Ping with swords, crossbows and polearms, Buliwyf Stonehand with
     -- axes, guns and maces, Ilyenia Moonfire with bows, thrown and staves.
-    -- (Found in John's saved visits, 14 Nov 2026.)
+    --
     -- "?" is Beast Training, saved as a trainer before that was caught.
     for key, trainer in pairs(trainers) do
         if key:find("^%? @ ") then trainers[key] = nil end
@@ -80,8 +78,7 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     end
     -- And the weapon masters that ship with the addon, each with what it's been seen to teach:
     -- your own side's, so a character who has opened none still learns who to see. Until these
-    -- shipped, only a weapon master you had opened yourself was named. (John, 14 Nov 2026, of
-    -- using other players' trainer data for more than prices: "wider use is fine".)
+    -- shipped, only a weapon master you had opened yourself was named.
     local T = ns.Trainers
     for _, master in ipairs(ns.TrainerData and ns.TrainerData.weapons or {}) do
         if not T or T.Friendly(master) then
@@ -235,9 +232,8 @@ function Training.Read()
     end
     -- A later rank of a talent's ability (Counterattack Rank 2) is sold only
     -- to someone who has the talent, so for everyone else it isn't a spell
-    -- to train at all (John, 13 Nov 2026, a hunter with no Counterattack:
-    -- "it looks like counterattack is not available"). Having the talent
-    -- shows as its own spell, or as any rank of that name in the spellbook.
+    -- to train at all. Having the talent shows as its own spell, or as any
+    -- rank of that name in the spellbook.
     local talent = source.talent or {}
     local function Untaken(id, name)
         local firsts = talent[id]
@@ -391,16 +387,15 @@ end)
 --
 -- A rank takes training points, and a row the pet hasn't the points for is
 -- "points", not "ready": the planner said "Teach now" for four resistances
--- at 10 TP each to a pet without them. (John, 14 Nov 2026: "my pet also
--- doesnt have the TP for it".) The free points were never read: the code
--- asked GetPetTrainingPoints, which Forever doesn't have (his
--- /run print(GetPetTrainingPoints()): "attempt to call a nil value"). The
--- game's own window asks C_PetInfo.GetPetTrainingPoints for the total and
--- the used, and lets you train a rank only when the free ones cover the
--- cost it lists, so that's the rule here: the listed cost against what's
--- free. (The points of the rank the pet knows do come back, but after.)
--- Where the game doesn't say how many are free, a row stays "ready" and
--- the planner gives its cost, not a promise.
+-- at 10 TP each to a pet without them. The free points were never read: the
+-- code asked GetPetTrainingPoints, which Forever doesn't have (his /run
+-- print(GetPetTrainingPoints()): "attempt to call a nil value"). The game's
+-- own window asks C_PetInfo.GetPetTrainingPoints for the total and the used,
+-- and lets you train a rank only when the free ones cover the cost it lists,
+-- so that's the rule here: the listed cost against what's free. (The points
+-- of the rank the pet knows do come back, but after.) Where the game doesn't
+-- say how many are free, a row stays "ready" and the planner gives its cost,
+-- not a promise.
 function Training.Pet()
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID]

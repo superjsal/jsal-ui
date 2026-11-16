@@ -103,9 +103,7 @@ Window.Page("journal", function(page)
     local summary = View("summary")
     -- Summary: who you are, how far to the next level, three things about
     -- you, your levels as a chart, your numbers with a picture each, and
-    -- your favourites as bars. (It was a block of grey words beside the
-    -- model and nine boxes of numbers. John, 14 Nov 2026: "anything we can
-    -- do to make this more fun to look at as well?")
+    -- your favourites as bars.
     local M = { cards = {}, bars = {}, tiles = {}, HERO_H = 196, CHART_H = 64, TILE_H = 54, LIST_H = 26,
                 ICONS = "Interface\\Icons\\" }
     M.TILE_ICON = { "Ability_DualWield", "Ability_Rogue_Sprint", "INV_Misc_Note_01", "INV_Misc_Head_Dragon_01", "Ability_Hunter_EagleEye",
@@ -139,9 +137,7 @@ Window.Page("journal", function(page)
     -- before it, once that's ten minutes of play. It was this level alone,
     -- and a level begun with hours of standing about made the next one a
     -- week away: 3,121 XP in 7h 38m of trying out pals read "about 108h 17m
-    -- at your pace", by someone whose last level took two hours. (John, 16
-    -- Nov 2026, of that line in his own screenshot: "what is this?", then
-    -- "Yes, fix it".)
+    -- at your pace", by someone whose last level took two hours.
     function M.Pace(levels, level)
         local xp, seconds = 0, 0
         for l = level, level - 2, -1 do
@@ -476,9 +472,7 @@ Window.Page("journal", function(page)
     -- moment has its time, a square in its kind's colour (the filter
     -- buttons wear the same), its words, and where it was when the words
     -- don't already say. The same thing several times in a day is one row
-    -- that says how many. (It was one flat list with "today" down the left
-    -- of every row and the place on all of them: John's screenshot,
-    -- 14 Nov 2026.)
+    -- that says how many.
     -----------------------------------------------------------------
     local story = View("story")
     local S = { filters = {}, rows = {}, heads = {}, offset = 0, TOP = 30, HEAD_H = 34, ROW_H = 26, TALL_H = 42, TEXT_X = 86 }
@@ -695,17 +689,12 @@ Window.Page("journal", function(page)
     -----------------------------------------------------------------
     -- By level: the levels in tens, newest first, each ten a line with its
     -- own sums that opens to a row a level; the ten you're in starts open.
-    -- Then the totals. (John, 14 Nov 2026, of thirty rows: "i think we can
-    -- sort the levels by 10s and have drop downs so it doesnt get too hard
-    -- to read".) With the tens to break the page up there's room to
+    -- Then the totals. With the tens to break the page up there's room to
     -- breathe: a ten's line is taller with a gap over it, a level has a thin
-    -- rule under it where every other one had a band (of the tens, drawn
-    -- tight: "we can make this visually less constricting now that we can
-    -- group"). The level
-    -- you're on is marked, XP an hour has a bar beside it, gold and silver
-    -- each have a place of their own so a column reads down, the net has
-    -- its sign and colour, and a death is red. (John's screenshot,
-    -- 14 Nov 2026: ten columns of grey numbers, "4g 31s" beside "84s 10c".)
+    -- rule under it where every other one had a band. The level you're on is
+    -- marked, XP an hour has a bar beside it, gold and silver each have a
+    -- place of their own so a column reads down, the net has its sign and
+    -- colour, and a death is red.
     -----------------------------------------------------------------
     local levels = View("levels")
     local L = { rows = {}, open = {}, offset = 0, ROW_H = 30, GROUP_H = 36, GROUP_GAP = 12, TOP = 24, BAR_W = 36, GOLD = 34 }
@@ -955,9 +944,7 @@ Window.Page("journal", function(page)
     local chars = View("characters")
     -- A table, one row a character, the same thing in the same place down
     -- the list: who it is, its level, where it is, its gold, its professions
-    -- and its rested XP. (They were cards, two across, most of them "0
-    -- copper" and "No professions", and "you're on this one" ran past its
-    -- card's edge: John's screenshot, 14 Nov 2026.)
+    -- and its rested XP.
     local CHAR_H = 54
     local COL = { name = 14, level = 232, where = 268, gold = 466, profs = 486, rest = width - 90 }
     local charCount = Style.Text(chars, 17, "text", nil, true)

@@ -111,7 +111,6 @@ end
 
 -- A place, as the end of a sentence about another quest: "in Ironforge",
 -- "inside Gnomeregan", "started by an item"; nil for a place not known.
--- (It read "first Lost Relic Carry, in From an item": John, 13 Nov 2026.)
 function Starts.In(place, kind)
     if kind == 1 then return "in " .. place end
     if kind == 2 then return (place:gsub("^Inside ", "inside ")) end
@@ -169,8 +168,7 @@ end
 -- Whether a quest is one your class can take: its row's sixth number is
 -- the classes it's for, a bit each by the game's class number, and missing
 -- for a quest anyone can take. Zul'Gurub listed every class's Paragons of
--- Power to everyone (John, 13 Nov 2026: "we'll probably need to filter
--- these for current class as well").
+-- Power to everyone.
 function Starts.ForClass(q, classID)
     local classes = q[6]
     if not classes or classes == 0 or not classID then return true end
@@ -201,8 +199,7 @@ end
 -- The stops a place's quests start at: givers standing within a few steps
 -- of each other are one stop, the stop with most quests first. The game
 -- holds one map pin, so a place's "show on map" goes round them a click at
--- a time (John, 13 Nov 2026, of a place with five givers: "this one goes
--- to betina bigglezink only").
+-- a time.
 function Starts.Stops(spots)
     local stops = {}
     for _, s in ipairs(spots) do
@@ -272,12 +269,10 @@ local function ForYou(classID, subclassID, equipLoc)
     return ns.Gear.ForClass(classFile, UnitLevel("player") or 1, classID, subclassID, equipLoc)
 end
 
--- Whether you can't equip a thing at all: a weapon your class never
--- wields, a shield without the use of one, armor heavier than you can wear.
--- Armor lighter than yours is not that: you can wear it, and it may be the
--- better piece (John, 13 Nov 2026: "if its a good cloth piece for some
--- reason it'll still show?", "some warriors equip nonplate gear for dps").
--- Nor is a weapon your class can learn and you haven't yet.
+-- Whether you can't equip a thing at all: a weapon your class never wields,
+-- a shield without the use of one, armor heavier than you can wear. Armor
+-- lighter than yours is not that: you can wear it, and it may be the better
+-- piece. Nor is a weapon your class can learn and you haven't yet.
 local function CantEquip(classID, subclassID, equipLoc)
     if ForYou(classID, subclassID, equipLoc) ~= false then return false end
     local _, classFile = UnitClass("player")
@@ -291,7 +286,6 @@ end
 -- class or names yours; nil while the game hasn't loaded the item. The
 -- classes an item names are kept once read (false for none): they don't
 -- change, and its tooltip is read once however often the page is drawn.
--- (John, 15 Nov 2026: "filter by class for class specific loot".)
 local classNames, classLine = {}, nil
 local function ForOthers(id)
     local names = classNames[id]
@@ -481,10 +475,7 @@ Window.Page("dungeons", function(page)
 
     -- A boss's band, the list's width: a bar with its number in the order
     -- you meet it, its name (ticked once you've killed it) and its kills,
-    -- and its loot under the bar, two across. (They were cards two to a row:
-    -- a short card left a hole beside a tall one, and the order read across
-    -- then down. John, 14 Nov 2026: "thoughts on the layout of the bosses
-    -- itself?")
+    -- and its loot under the bar, two across.
     local B = {}
     B.sum = Style.Text(bossList, 15, "text", nil, true)
     B.sum:SetPoint("TOPLEFT", 0, -2)
@@ -539,12 +530,10 @@ Window.Page("dungeons", function(page)
         return b
     end
 
-    -- The quests tab, made to be read at a glance by anyone (John, 13 Nov
-    -- 2026: "lets make this as intuitive and easy to read as possible for
-    -- anyone using this, or whats the point as they'll just go on wowhead").
-    -- A line of what there is, column headings, a bar for each place quests
-    -- start in, a line for a quest that stands alone, and a card of numbered
-    -- steps for a chain, with the step to start at marked.
+    -- The quests tab, made to be read at a glance by anyone. A line of what
+    -- there is, column headings, a bar for each place quests start in, a
+    -- line for a quest that stands alone, and a card of numbered steps for a
+    -- chain, with the step to start at marked.
     local Q = { lines = {}, heads = {}, priors = {}, cards = {}, steps = {} }
     -- Where the "who gives it" column starts, across the list.
     local WHO_X = math.floor(rightW * 0.42)
@@ -644,8 +633,7 @@ Window.Page("dungeons", function(page)
         h:SetSize(rightW, 30)
         Style.Fill(h, "well")
         -- The place is what the list is sorted by, so it's the largest
-        -- thing in it (John, 13 Nov 2026: "make the location text slightly
-        -- bigger to emphasize the location").
+        -- thing in it.
         h.name = Style.Text(h, 14, "text", nil, true)
         h.name:SetPoint("LEFT", 10, 0)
         h.count = Style.Text(h, 12, "muted")
@@ -849,9 +837,9 @@ Window.Page("dungeons", function(page)
         if guild then
             for id, n in pairs(guild.i or {}) do
                 -- Until 0.3.52 guild loot couldn't read an item's quality from the game's newer
-                -- links, and shared grey and white items with the rest (John's link, 16 Nov 2026:
-                -- "cnIQ3:"). One only the guild has seen, that the game says is below uncommon,
-                -- isn't shown; its count stays in the guild's list, which every copy still agrees on.
+                -- links, and shared grey and white items with the rest. One only the guild has
+                -- seen, that the game says is below uncommon, isn't shown; its count stays in the
+                -- guild's list, which every copy still agrees on.
                 local quality = not byId[id] and C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(id)
                 if type(quality) ~= "number" or quality >= 2 then
                     Add(id).guild = n

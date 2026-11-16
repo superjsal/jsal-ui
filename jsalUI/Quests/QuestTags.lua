@@ -311,8 +311,6 @@ end
 
 -- "2,550 XP · 213 XP/min in combat", or nil when what it pays isn't known. The minutes are the
 -- fights only, not getting there, so a one-kill quest far away reads well; "in combat" says so.
--- (John, 14 Nov 2026, on Look to the Stars' "about 2,450 XP a minute": "Yes, reword it"; "pays
--- doesnt really translate well in an MMO", and he chose XP/min in combat.)
 function QuestTags.PaysLine(questID, minutes)
     local xp, gap = QuestTags.XP(questID)
     if not xp then return nil end

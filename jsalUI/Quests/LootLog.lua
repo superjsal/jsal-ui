@@ -1,23 +1,20 @@
 -- The drop log: how often the creatures you loot have the quest items you're after, counted as
--- you play, so a quest's likely kills can come from Forever itself where nobody else has
--- counted. The numbers anyone has for drop chances are counts of what players saw; past the
--- levels many have played, those counts are thin. (John, 14 Nov 2026, of recording his own: "that
--- sounds fine as well, i'm at the point past the beta at level 30+", then "both, quest items, and
--- it would be opt in most likely": his own quest tags and the data shipped to the guild, and
--- quest items only.)
+-- you play, so a quest's likely kills can come from Forever itself where nobody else has counted.
+-- The numbers anyone has for drop chances are counts of what players saw; past the levels many
+-- have played, those counts are thin.
 --
 -- A loot counts when a corpse's window opens while a quest in your log still needs an item. Each
 -- quest item still wanted is then one try for that creature, and one find if the corpse had it.
 -- Quest items only drop while a quest needs them, so nothing is counted for an item once its
 -- objective is done. A corpse counts once, however often its window is opened.
 --
--- Which corpse: the game says where each thing in the window came from (GetLootSourceInfo), so
--- a window opened for several corpses counts each of them, with what that one had. Forever's own
+-- Which corpse: the game says where each thing in the window came from (GetLootSourceInfo), so a
+-- window opened for several corpses counts each of them, with what that one had. Forever's own
 -- code never calls that function and the first version took it to be missing, counting the dead
--- creature targeted and so one loot for a window of several; John's game has it (his
--- /run print(GetLootSourceInfo): "function: ...", 14 Nov 2026). The targeted way is kept for
--- when the game gives no source. A corpse's creature is known by the number in its ID; its name
--- comes from your target when that's the corpse, and is remembered for the others of its kind.
+-- creature targeted and so one loot for a window of several; the game has it. The targeted way
+-- is kept for when the game gives no source. A corpse's creature is known by the number in its
+-- ID; its name comes from your target when that's the corpse, and is remembered for the others of
+-- its kind.
 --
 -- An item's chance is its finds over its tries, among the creatures that have had it at least
 -- once: a creature that has never had it for you is taken not to drop it. That leans a little
@@ -64,8 +61,7 @@ end
 -- Guildmates' counts. With "Share drop counts with your guild" on, each of you tells the others
 -- an item's finds and tries (LootLog.Seen's two numbers) when they change, and all of them once
 -- on logging in; what's heard is kept apart from your own, by who said it, and the newest word
--- from someone replaces their last, so nothing is counted twice. (John, 14 Nov 2026, of pooling
--- the guild's counts behind one switch that shares both ways: "Yes, build it".)
+-- from someone replaces their last, so nothing is counted twice.
 ---------------------------------------------------------------------------
 local SENDERS, ITEMS = 60, 300      -- guildmates kept, and items kept from each
 local OLD = 45 * 86400              -- a guildmate not heard from in this long is let go
@@ -145,7 +141,7 @@ function LootLog.Wanted()
             for _, o in ipairs(type(objectives) == "table" and objectives or {}) do
                 if o.type == "item" and not o.finished and (o.numRequired or 0) > (o.numFulfilled or 0) then
                     -- Trimmed, and nothing for an objective whose words haven't loaded:
-                    -- /jsal drops listed an empty name first. (John's game, 14 Nov 2026.)
+                    -- /jsal drops listed an empty name first.
                     local name = Named(o.text):match("^%s*(.-)%s*$")
                     if name ~= "" then wanted[name:lower()] = name end
                 end
@@ -230,10 +226,9 @@ end
 -- WEIGHT loots, and your own are added to them, so yours counts from the first loot and takes
 -- over as they add up, with no sudden switch at the floor. On its own, a small count of yours
 -- runs high: Satyr Horns read 55% at 11 loots, 47% at 17, and ended at 16 in 48, 33%, and the
--- card had been using each in turn. (John, 14 Nov 2026, given raising the floor or this:
--- "blending".) Returns the chance and how many of your loots are in it; with no shipped chance
--- to blend with, your own alone once it has FLOOR loots; nil while the part is off or you have
--- no loot of the item.
+-- card had been using each in turn. Returns the chance and how many of your loots are in it;
+-- with no shipped chance to blend with, your own alone once it has FLOOR loots; nil while the
+-- part is off or you have no loot of the item.
 LootLog.WEIGHT = 10
 function LootLog.Blended(itemName, shipped)
     if not LootLog.running then return nil end
@@ -518,7 +513,7 @@ ns.Command("drops", function()
         #list, #list == 1 and "" or "s"))
     -- What it has counted and what it's looking for, so "0 seen" says why: an item is listed
     -- only once it has dropped, and "0 quest items seen" alone didn't say whether any loot had
-    -- been counted. (John's first /jsal drops, 14 Nov 2026.)
+    -- been counted.
     local loots, kinds = 0, 0
     for _, c in pairs(Log().creatures) do
         if type(c) == "table" then

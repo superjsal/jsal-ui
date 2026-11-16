@@ -171,7 +171,7 @@ end
 
 -- With no talent points yet (below level 10), the tree a class usually levels in, not its first:
 -- a new paladin was given Holy's healing weights, a new priest Discipline's, a druid Balance's.
--- The weights are still WoWSims' own, for that tree. (John, 14 Nov 2026: "Fix gap 1".)
+-- The weights are still WoWSims' own, for that tree.
 local LEVELING_TREE = { PALADIN = 3, PRIEST = 3, SHAMAN = 2, DRUID = 2, ROGUE = 2, MAGE = 3 }
 
 function Gear.Spec()
@@ -197,15 +197,13 @@ end
 Gear.Weights = Gear.BaseWeights
 
 ---------------------------------------------------------------------------
--- Item stats, from the game. An item it hasn't loaded yet comes back nil
--- and is asked for; GET_ITEM_INFO_RECEIVED says when it's in.
+-- Item stats, from the game. An item it hasn't loaded yet comes back nil and
+-- is asked for; GET_ITEM_INFO_RECEIVED says when it's in.
 ---------------------------------------------------------------------------
 --
 -- Forever gives crit, hit, dodge, parry and block as rating: an item of "1%
 -- crit" says ITEM_MOD_CRIT_RATING_SHORT = 14. The weights are per 1%, so those
--- are turned into 1% here, by Forever's own rating for 1% at 60. (John, 15 Nov
--- 2026: the Illusionary Rod's /dump, CRIT_RATING = 14; they counted 14 times
--- over.)
+-- are turned into 1% here, by Forever's own rating for 1% at 60.
 local PER_PERCENT = {
     ITEM_MOD_CRIT_RATING_SHORT = 14, ITEM_MOD_CRIT_MELEE_RATING_SHORT = 14, ITEM_MOD_CRIT_SPELL_RATING_SHORT = 14,
     ITEM_MOD_CRIT_RANGED_RATING_SHORT = 14,
@@ -215,25 +213,21 @@ local PER_PERCENT = {
 }
 Gear.PER_PERCENT = PER_PERCENT
 -- An item's stats by its ID, kept once the game has given them: they never
--- change, and a redraw asked the game for about 2,000 items' stats every time
--- (a Gear plan redraw still took 73 ms in John's game after the item text was
--- kept, 15 Nov 2026). Nothing changes a stats table once it's made. Stats by
--- link (what you wear, which can carry a random suffix) are asked for each time.
+-- change, and a redraw asked the game for about 2,000 items' stats every time.
+-- Nothing changes a stats table once it's made. Stats by link (what you wear,
+-- which can carry a random suffix) are asked for each time.
 local statsOf, statsLevel = {}, nil
 -- Items asked of the game that haven't arrived: not asked again until
 -- GET_ITEM_INFO_RECEIVED says they're in. Each pass asked again for every
 -- one still loading, and each arrival brings another pass (the page repaints
--- for them): "working out upgrades" ran 21 times, up to 61 ms (15 Nov 2026).
--- A mark lasts two seconds at most: an item that had already loaded can
--- send no GET_ITEM_INFO_RECEIVED, and one marked for good never showed (John
--- added Drape of Shifting Energy, "added under Back, starred", and it wasn't
--- in the list, 15 Nov 2026).
+-- for them): "working out upgrades" ran 21 times, up to 61 ms. A mark lasts
+-- two seconds at most: an item that had already loaded can send no
+-- GET_ITEM_INFO_RECEIVED, and one marked for good never showed.
 local loading = {}
 local RETRY = 2
 -- After five asks (about ten seconds) an item that still hasn't come is given
 -- up on until the next /reload: some of Wowhead's items the game never sends,
--- and the plan said "checking..." for good (John: "sometimes the checking...
--- takes a long time, i have to /reload", 15 Nov 2026).
+-- and the plan said "checking..." for good.
 local TRIES = 5
 local tries = {}
 function Gear.Arrived(id)
@@ -347,15 +341,14 @@ function Gear.Gains(stats, worn, weights, dpsKey)
 end
 
 -- What you'd lose that your spec values: said for a piece that isn't better
--- (one you added, or carry), as the game's own compare does (John's Drape of
--- Shifting Energy read "+12 AP" where the game said -5 Agility, -5 Intellect).
+-- (one you added, or carry), as the game's own compare does.
 function Gear.Losses(stats, worn, weights, dpsKey)
     return Changes(stats, worn, weights, dpsKey, -1)
 end
 
--- A plan's best upgrade: its first option that's better than what you wear.
--- A piece you starred, added or carry comes first whatever it scores, and was
--- tagged "best for you" for it (15 Nov 2026).
+-- A plan's best upgrade: its first option that's better than what you wear. A
+-- piece you starred, added or carry comes first whatever it scores, and was
+-- tagged "best for you" for it.
 function Gear.Best(plan)
     for _, o in ipairs(plan and plan.options or {}) do
         if o.better then return o end
@@ -465,7 +458,7 @@ end
 function Gear.Find(data, id)
     -- Found where it starts, by plain search: going through a slot's items
     -- one by one took about a third of a millisecond an item, and a redraw
-    -- looks up every bag item that fits, slot by slot (15 Nov 2026).
+    -- looks up every bag item that fits, slot by slot.
     local key = id .. ","
     local pattern = "^" .. key .. "(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
     for invType, line in pairs(data.items) do
@@ -620,13 +613,13 @@ function Gear.RewardTaken(id)
 end
 
 -- A slot type's items that could be near a level and that you could wear,
--- read out of GearData's text once and kept until the level (or anything
--- else they're checked against) changes. Each redraw read all 11,000 items as
--- text for every slot, then checked each for your class, armor and side,
--- about 23 ms of a 61 ms pass in game (/jsal perf, 15 Nov 2026). A crafted
--- piece's level can rise to its skill's, so one is kept unless its required
--- level is past the window, and its level is worked out where it's used.
--- A row: { id, req, ilvl, q, kind, place (as text), at, crafted, lighter }.
+-- read out of GearData's text once and kept until the level (or anything else
+-- they're checked against) changes. Each redraw read all 11,000 items as text
+-- for every slot, then checked each for your class, armor and side, about 23
+-- ms of a 61 ms pass in game. A crafted piece's level can rise to its
+-- skill's, so one is kept unless its required level is past the window, and
+-- its level is worked out where it's used. A row: { id, req, ilvl, q, kind,
+-- place (as text), at, crafted, lighter }.
 local ROW = "^(%d+),(%d+),(%d+),(%d+),(-?%d+),(%d+),(%d+),(%d+),(%d+),(%d+)$"
 local near = {}
 local function Near(data, invType, level, classFile, classID, side)
@@ -712,23 +705,21 @@ function Gear.TwoHander()
     return equipLoc == "INVTYPE_2HWEAPON" and link or nil
 end
 
--- Whether a piece is better for you than what you wear where it goes:
--- true (then its gain) or false, or nil when that can't be told (it isn't worn, the game
--- hasn't loaded it, or your spec has no weights). For a dungeon's loot,
--- which has the item's slot, class and subclass from the game. A ring or
--- trinket is measured against the weaker of your two.
+-- Whether a piece is better for you than what you wear where it goes: true (then its gain) or
+-- false, or nil when that can't be told (it isn't worn, the game hasn't loaded it, or your spec has
+-- no weights). For a dungeon's loot, which has the item's slot, class and subclass from the game. A
+-- ring or trinket is measured against the weaker of your two.
 --
 -- It's the Gear plan's answer: better when it scores more than what you wear, however little, and
 -- then how much, as a share of all you wear's score (Gear.WornTotal), so the dungeon guide can say
 -- "+16% for you" and a hair-thin upgrade reads as one. It was a share of the one piece it replaces,
--- and a hunter's two-hander, which counts only for its stats, made a polearm "+474%". (John, 14 Nov
--- 2026, of the mockup measured against everything worn: "Yes, build it".) (John, 14 Nov 2026, pointing at Forever Leveling BiS: "lets use
--- the formula this uses".) Before, it had to be a quarter of the best upgrade you could get, which
--- hid a feral druid's Swine Fists, 22% over his gloves; before that, any gain, which called a
--- hunter's Strength legs "better" with nothing to say by how little (14 Nov).
+-- and a hunter's two-hander, which counts only for its stats, made a polearm "+474%". Before, it
+-- had to be a quarter of the best upgrade you could get, which hid a feral druid's Swine Fists, 22%
+-- over his gloves; before that, any gain, which called a hunter's Strength legs "better" with
+-- nothing to say by how little.
 --
--- A dungeon's list asks this of every piece, so a slot's plan is kept for
--- as long as the game's clock stands still: the one paint.
+-- A dungeon's list asks this of every piece, so a slot's plan is kept for as long as the game's
+-- clock stands still: the one paint.
 function Gear.SlotPlan(slot)
     local now = GetTime and GetTime()
     local kept = Gear.slotPlans
@@ -782,10 +773,10 @@ end
 
 -- The pieces in your bags that go in a slot and that you can wear: their
 -- item IDs. A piece you took off, or a quest's reward you've had, is in no
--- list of upgrades to go and get, but it's the easiest one to put on.
--- The bags' wearable pieces, read once for a pass (the same moment) rather
+-- list of upgrades to go and get, but it's the easiest one to put on. The
+-- bags' wearable pieces, read once for a pass (the same moment) rather
 -- than for every slot: 17 reads of every bag item a pass, about 15 ms in
--- game (/jsal perf, 15 Nov 2026).
+-- game.
 local bagsAt, bagItems
 local function BagItems()
     local now, C = GetTime and GetTime(), ns.Compat
@@ -820,7 +811,7 @@ end
 -- How long each part of the plans took in one pass, added up over the slots,
 -- for /jsal perf (the page clears it before a pass and reads it after). In
 -- game a pass took up to 63 ms where the same work takes 9 ms on a stand-in,
--- so the parts are timed where they run (15 Nov 2026).
+-- so the parts are timed where they run.
 Gear.spent = {}
 local function Spent(part, started)
     local now = debugprofilestop()
@@ -831,9 +822,8 @@ end
 function Gear.Plan(slot, spec, only)
     -- With a two-hander in the main hand, nothing can go in the off hand,
     -- so nothing is better for it: the plan read the hand as empty and
-    -- offered every off-hand piece as an upgrade. (John, 14 Nov 2026, of a
-    -- list of them: "i dont have that offhand equipped i'm wearing a
-    -- 2hander".) `twoHand` is the two-hander's link.
+    -- offered every off-hand piece as an upgrade. `twoHand` is the
+    -- two-hander's link.
     if slot.key == "off" then
         local both = Gear.TwoHander()
         if both then return { worn = { stats = {}, score = 0 }, options = {}, waiting = 0, twoHand = both } end
@@ -868,9 +858,7 @@ function Gear.Plan(slot, spec, only)
         end
     end
     -- What's in your bags that goes here, whatever its level or where it
-    -- came from: you can put it on now. (John, 14 Nov 2026, of a chest piece
-    -- he had taken off to star: "i put an item in my bags to star it in the
-    -- gear plan but now i dont see that item".)
+    -- came from: you can put it on now.
     local held = {}
     for _, id in ipairs(Gear.Held(slot, classFile, level)) do
         if not held[id] then
@@ -885,8 +873,7 @@ function Gear.Plan(slot, spec, only)
             seen[c.id] = true
             c.held = held[c.id] or nil
             -- One you added counts as added wherever it comes first: the plan's own copy, no
-            -- better than yours, was dropped, and the added one skipped as already seen (John's
-            -- Drape of Shifting Energy, "added under Back, starred", never showed, 15 Nov 2026).
+            -- better than yours, was dropped, and the added one skipped as already seen.
             if added[c.id] then c.added = true end
             local s0 = debugprofilestop()
             local stats = Stats(c.id)
@@ -911,17 +898,13 @@ function Gear.Plan(slot, spec, only)
     end
     Gear.spent["item stats"] = (Gear.spent["item stats"] or 0) + asking
     t = Spent("scoring", t + asking)
-    -- Any piece that scores more than what you wear is an upgrade, however little; its gain says how
-    -- much ("+24% for you"), so a hair-thin one reads as one. (John, 14 Nov 2026, pointing at Forever
-    -- Leveling BiS: "lets use the formula this uses". The rule before, a quarter of the best upgrade
-    -- there is, hid real ones whenever a far bigger one existed: a feral druid's Swine Fists, 22% over
-    -- his gloves, was "nothing here is better" in Razorfen Downs.)
-    -- Still left out, once anything adds what your spec wants most: a piece that only wins on Stamina
-    -- or on what your spec barely values (Spell Power for a hunter). A main stat is one your spec
-    -- weighs at least as much as Stamina and more than a twentieth of its top stat, or weapon damage.
-    -- The top stat is a point's: crit, hit and the like are weighed per 1%, a dozen times a point's,
-    -- and set the bar so high that a hunter's Attack Power wasn't a main stat (John, 14 Nov 2026: a
-    -- Skullduggery Belt, 16 Attack Power to his 12, "doesnt show any gain").
+    -- Any piece that scores more than what you wear is an upgrade, however little; its gain says
+    -- how much ("+24% for you"), so a hair-thin one reads as one. Still left out, once anything
+    -- adds what your spec wants most: a piece that only wins on Stamina or on what your spec barely
+    -- values (Spell Power for a hunter). A main stat is one your spec weighs at least as much as
+    -- Stamina and more than a twentieth of its top stat, or weapon damage. The top stat is a
+    -- point's: crit, hit and the like are weighed per 1%, a dozen times a point's, and set the bar
+    -- so high that a hunter's Attack Power wasn't a main stat.
     local staWeight = weights and weights.stats.ITEM_MOD_STAMINA_SHORT or 0
     local top = 0
     for key, v in pairs(weights and weights.stats or {}) do
@@ -944,7 +927,7 @@ function Gear.Plan(slot, spec, only)
     local anyMain = false
     -- How much better each is, as a share of all you wear's score: what the dungeon guide calls
     -- "+16% for you". None for a piece that isn't better (one you added), or when nothing you wear
-    -- counts. (John, 15 Nov 2026: "we should also add the dps %N for you like dungeon guide does".)
+    -- counts.
     local total = Gear.WornTotal(weights)
     for _, o in ipairs(options) do
         o.unknown = Gear.Source(o) == ""
@@ -968,8 +951,7 @@ function Gear.Plan(slot, spec, only)
     -- One you can go and get now comes before one you can't yet: above your
     -- level, or with no source known (about one item in seven on Wowhead's
     -- lists has none, Forever's new ones among them). Such a piece headed a
-    -- slot as its best upgrade with nowhere to send you. (John, 14 Nov 2026:
-    -- "there are items that do not list where they come from".)
+    -- slot as its best upgrade with nowhere to send you.
     local function Later(o) return (o.soon or o.unknown) and true or false end
     table.sort(options, function(a, b)
         if a.starred ~= b.starred then return a.starred end

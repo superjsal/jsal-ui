@@ -1,9 +1,7 @@
 -- Crafting profit: every recipe your characters know, with what it costs to
--- make, what it sells for and what's left after the auction house's cut. A
--- guildmate asked for it (Meow Forfeet, 16 Nov 2026: crafting for gold from
--- auction prices); John picked a dashboard page of its own, "A but with
--- sorting", and "this is purely profit": no levelling view. The page is
--- ProfitPage.lua.
+-- make, what it sells for and what's left after the auction house's cut. It
+-- has a page of its own, sorted as you choose, and is purely about profit:
+-- no levelling view. The page is ProfitPage.lua.
 --
 -- Prices come from ItemPrices: Auctionator's when it's installed, else your
 -- own auction house searches. Each material costs the least of buying it
@@ -249,11 +247,8 @@ function CraftProfit.ProfitRows()
 end
 
 -- Every recipe of the professions your characters have, known or not, so the
--- most profitable one to learn can be found (John, 16 Nov 2026: "someone
--- might want to sort by what makes the most profit and grab that recipe").
--- Each player sees their own professions' (John, having asked for every
--- profession's: "sorry itll filter by your current crafting"). A row's
--- `known` says whether any of your characters has it.
+-- most profitable one to learn can be found. Each player sees their own
+-- professions'. A row's `known` says whether any of your characters has it.
 function CraftProfit.AllRows()
     local known, names = CraftProfit.Known()
     local makers = Makers(known)

@@ -92,12 +92,11 @@ function Professions.Remembered(line)
 end
 
 -- Your professions, from the game's own list: each one's skill line, name,
--- icon, skill and cap, for the ones jsal.ui has recipes for.
--- The game's list has a place for each kind (two main ones, then
--- fishing, cooking and so on) and leaves a gap for one you don't have: so
--- every place is looked at, not only those before the first gap. Stopping
--- at the gap left out whatever came after it (John, 13 Nov 2026, with no
--- Fishing: "doesnt seem to count cooking as a profession").
+-- icon, skill and cap, for the ones jsal.ui has recipes for. The game's
+-- list has a place for each kind (two main ones, then fishing, cooking and
+-- so on) and leaves a gap for one you don't have: so every place is looked
+-- at, not only those before the first gap. Stopping at the gap left out
+-- whatever came after it.
 local function Places(...) return select("#", ...), { ... } end
 
 function Professions.Mine()
@@ -146,26 +145,22 @@ local function MadeBy(line, item)
 end
 Professions.MadeBy = MadeBy
 
--- What an item is worth, in copper: a vendor's price for thread or dye,
--- the worth the data gives every other material, or what it's made from
--- where that's less (a bolt from cloth, a bar from ore). Materials used to
--- count one each, so the road went through forty hides, sixty elixirs or a
--- dozen Righteous Orbs as readily as through leather (John, 13 Nov 2026,
--- shown ours beside Wowhead's: "lets make ours better for sure").
+-- What an item is worth, in copper: a vendor's price for thread or dye, the worth the data
+-- gives every other material, or what it's made from where that's less (a bolt from cloth, a
+-- bar from ore). Materials used to count one each, so the road went through forty hides, sixty
+-- elixirs or a dozen Righteous Orbs as readily as through leather.
 --
--- With Crafting profit's "Price the road" on, a material is worth what it
--- costs you to buy (a vendor's price, else the auction price from
--- ItemPrices) where that's known, and the data's worth only where it isn't;
--- and a craft whose item has an auction price counts what it sells back for,
--- after the cut. (John, 16 Nov 2026, of the road's pick costing a rough
--- worth: "lets feed them in then, seems like good QOL".) Set for one road at
--- a time by Plan, with its own memory of what it has looked up.
+-- With Crafting profit's "Price the road" on, a material is worth what it costs you to buy (a
+-- vendor's price, else the auction price from ItemPrices) where that's known, and the data's
+-- worth only where it isn't; and a craft whose item has an auction price counts what it sells
+-- back for, after the cut. Set for one road at a time by Plan, with its own memory of what it
+-- has looked up.
 --
 -- Real prices are weighed only against real prices. A material nobody has a price for was
 -- weighed by the data's rough worth, far below an auction price, so the road took a recipe for
 -- being unknown. Now, step by step (Plan sets `priced`): the recipes whose materials all have
--- prices are weighed against each other by them, and one with a price missing is left out;
--- a step where none has them all goes by the rough worth, every recipe alike.
+-- prices are weighed against each other by them, and one with a price missing is left out; a
+-- step where none has them all goes by the rough worth, every recipe alike.
 local priced, seen, whole
 
 local function Priced()
@@ -245,23 +240,19 @@ end
 Professions.Makes = Makes
 
 -- Where a rank comes from when it isn't a trainer: First Aid's Expert is a
--- book a vendor sells, and its Artisan a quest (Wowhead's First Aid guide
--- for Forever, 13 Nov 2026). Cooking's are the same two ways: its trainers
--- teach Apprentice and Journeyman and no more, and the panel named any cook
--- for Expert (Wowhead's Cooking guide for Forever, 14 Nov 2026: "Expert
--- Cooking comes from The Expert Cookbook, sold by Shandrina or Wulan, and
--- Artisan from the quest Clamlette Surprise"). Returns what to do, a line
--- about it, and who to see for it where that's known, shaped like a trainer
--- for the map pin; or nil for a rank a trainer teaches. Who: Shandrina
--- sells the book to the Alliance in Ashenvale and Wulan to the Horde in
--- Desolace, a gold each; Dirge Quikcleave in Gadgetzan gives and takes the
--- quest, for both sides, from level 35 (Wowhead Forever's pages for item
--- 16072 and quest 6610, 14 Nov 2026).
+-- book a vendor sells, and its Artisan a quest. Cooking's are the same two
+-- ways: its trainers teach Apprentice and Journeyman and no more, and the
+-- panel named any cook for Expert. Returns what to do, a line about it, and
+-- who to see for it where that's known, shaped like a trainer for the map
+-- pin; or nil for a rank a trainer teaches. Who: Shandrina sells the book
+-- to the Alliance in Ashenvale and Wulan to the Horde in Desolace, a gold
+-- each; Dirge Quikcleave in Gadgetzan gives and takes the quest, for both
+-- sides, from level 35.
 local FIRST_AID, COOKING, ENCHANTING = 129, 185, 333
 local OTHER_RANKS = {
     -- Enchanting's Artisan is a trainer's, but one inside a dungeon: Annora, Master Enchanter,
-    -- in Uldaman, for both sides (Wowhead Forever's page for the rank's spell, 13920, 14 Nov
-    -- 2026). No trainer outside teaches it, and the row said jsal.ui didn't know one.
+    -- in Uldaman, for both sides. No trainer outside teaches it, and the row said jsal.ui
+    -- didn't know one.
     [ENCHANTING] = {
         Artisan = { "train Artisan inside Uldaman", "Annora, Master Enchanter, teaches it there" },
     },
@@ -276,8 +267,7 @@ local OTHER_RANKS = {
     -- Alliance and Balai Lok'Wein in Dustwallow Marsh to the Horde; Triage is
     -- Doctor Gustaf VanHowzen's in Dustwallow Marsh for the Alliance and
     -- Doctor Gregory Victor's in Arathi Highlands for the Horde, from level
-    -- 35 (Wowhead Forever's pages for item 16084 and quests 6624 and 6622,
-    -- 14 Nov 2026; John, of Cooking's: "Find the npcs", "And the quest").
+    -- 35.
     [FIRST_AID] = {
         Expert = { "learn Expert from a book", "Expert First Aid - Under Wraps, sold by",
                    a = { npc = 2805, name = "Deneb Walker", map = 1417, x = 0.27, y = 0.588 },
@@ -290,9 +280,7 @@ local OTHER_RANKS = {
 -- The skill a rank's next one is learned at, where it isn't the usual. First Aid's Artisan is the
 -- quest Triage, which follows Alliance Trauma or Horde Trauma, and those are given at First Aid
 -- 225, not 200: "She wouldn't give me the quest when I was lvl 36 with First Aid 210, but I
--- received it right after I hit 225" (the comments on Wowhead Forever's page for Alliance
--- Trauma, quest 6625, read 14 Nov 2026; they are Classic's players, and nobody has yet been seen
--- to take it on Forever). The row said "At 200".
+-- received it right after I hit 225". The row said "At 200".
 local OTHER_AT = {
     [FIRST_AID] = { Expert = 225 },
 }
@@ -348,10 +336,7 @@ Professions.OWNED = 0.95
 -- nothing yellow or orange can be made. Leftovers count as nearly free, so
 -- a green recipe that used them up looked cheapest: at 121 the road said
 -- Light Leather Pants, three chances in ten, for 40 Light Leather and four
--- Cured Light Hide, and nine of them gave no point at all. (John, 14 Nov
--- 2026: "does this make sense to use light leather pants to get to 125? i
--- just made 5 and did not get a single skillpoint", then "i just made 4
--- more light leather pants and got 0 skill points".)
+-- Cured Light Hide, and nine of them gave no point at all.
 Professions.GREEN = 0.5
 -- The least chance of a point a recipe may have and still be on the road.
 Professions.LEAST = 0.1
@@ -360,8 +345,7 @@ Professions.LEAST = 0.1
 -- transmutes, Mooncloth. The road takes one only when nothing else gives a
 -- point. It took them as readily as any other: Tailoring's road from 230 to
 -- 286 was 63 Mooncloth, one every four days, and Alchemy's from 225 to 261
--- was 45 transmutes of iron to gold, one an hour. (Found by playing every
--- road through, 14 Nov 2026; the waits are the game's own.)
+-- was 45 transmutes of iron to gold, one an hour.
 function Professions.Wait(recipe)
     return Data.cooldown and recipe.spell and Data.cooldown[recipe.spell] or nil
 end
@@ -420,9 +404,7 @@ function Professions.IsGathering(line) return line == MINING end
 -- that specialisation's spell, or nil. The road counted these as any
 -- trainer's recipes: Blacksmithing's went through Truesilver Breastplate, an
 -- Armorsmith's, and Leatherworking's through Frostsaber Boots, a Tribal
--- Leatherworker's. Now one is on the road only once you know it. (Found by
--- playing every road through, 14 Nov 2026; which recipes, from Wowhead
--- Forever's lists.)
+-- Leatherworker's. Now one is on the road only once you know it.
 function Professions.Needs(recipe)
     return Data.needs and recipe.spell and Data.needs[recipe.spell] or nil
 end

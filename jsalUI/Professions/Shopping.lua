@@ -175,11 +175,10 @@ end
 local function Field(parent, width, numeric) return Style.Field(parent, width, numeric) end
 
 -- Dragging is done here, not by the game's StartMoving, which has twice
--- thrown this window across the screen as it was picked up (John, 9 and 13
--- Nov 2026: "trying to drag the shopping list teleports it to another spot
--- on the screen"). The window follows the pointer by the spot it's held
--- at, and is pinned by its top left corner, so a list that grows or
--- shrinks does so downward and its title bar stays where it was put.
+-- thrown this window across the screen as it was picked up. The window
+-- follows the pointer by the spot it's held at, and is pinned by its top
+-- left corner, so a list that grows or shrinks does so downward and its
+-- title bar stays where it was put.
 local function DragStop()
     local held = frame.held
     if not held then return end
@@ -429,9 +428,8 @@ end
 ---------------------------------------------------------------------------
 -- Who sells it. Under FROM A VENDOR, one line says where to go: the vendor of your side that
 -- sells the most of what's still to get, the nearest of those; and a second line for the rest,
--- when one vendor doesn't have it all. A click pins them on the map. (John, 14 Nov 2026, of two
--- drawings, one line under the heading or a seller on every row in a wider window: "A, one
--- line".) The vendors are the ones players opened on Forever, shipped in ProfessionData.
+-- when one vendor doesn't have it all. A click pins them on the map. The vendors are the ones
+-- players opened on Forever, shipped in ProfessionData.
 ---------------------------------------------------------------------------
 local WORDS = { [3] = "three", [4] = "four", [5] = "five", [6] = "six", [7] = "seven", [8] = "eight", [9] = "nine" }
 
@@ -609,8 +607,6 @@ local function PaintList()
     -- sells, with its cost; what comes from the auction house or the world;
     -- and, greyed, what you already have enough of. Each row says how many
     -- more to get, as that's what you shop by, with have / need beside it.
-    -- (It was one list, each row ending "vendor · 48s", "auction · 8s" or
-    -- "no price": John, 13 Nov 2026, "maybe you have a different opinion".)
     local vendor, other, enough = {}, {}, {}
     local count = ns.ItemPrices.Counting()
     local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
@@ -684,8 +680,8 @@ local function PaintList()
         local buying = {}
         for _, e in ipairs(vendor) do buying[#buying + 1] = e.item end
         Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor, Shopping.WhereToBuy(buying))
-        -- "FROM THE AUCTION HOUSE OR THE WORLD" ran under its own sum at this window's width
-        -- ("WORLDabout 30g", John's screenshot of 14 Nov 2026).
+        -- "FROM THE AUCTION HOUSE OR THE WORLD" ran under its own sum at this window's
+        -- width.
         Group("AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
         Group("YOU HAVE ENOUGH", nil, enough)
         More(#vendor + #other + #enough - listed, "and %d more not shown, counted in the total")
@@ -728,7 +724,7 @@ end
 
 -- Every change to the list (a row's -, + or x, Clear, an add) paints it,
 -- and the vendor's pop-up follows. It kept offering what had been on the
--- list after Clear (John, 16 Nov 2026).
+-- list after Clear.
 Paint = function()
     PaintList()
     if PaintVendor then PaintVendor() end
@@ -894,8 +890,7 @@ function Shopping:OnEnable()
             elseif event == "ITEM_DATA_LOAD_RESULT" or event == "GET_ITEM_INFO_RECEIVED" then
                 -- An item's name comes a moment after it's first asked for.
                 -- A row that read "..." stayed that way, as nothing painted
-                -- the list again (John's screenshot, 13 Nov 2026). Once for
-                -- a burst of them.
+                -- the list again. Once for a burst of them.
                 if frame and frame:IsShown() and not naming then
                     naming = true
                     Compat.After(0.3, function()

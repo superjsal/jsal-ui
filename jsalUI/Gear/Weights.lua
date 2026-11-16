@@ -10,7 +10,6 @@ local Gear = ns.Gear
 -- (crit on melee items, mana regeneration); changing one changes its twins.
 -- Forever's items have one crit and one hit, for spells and weapons alike, so
 -- spell crit and spell hit are Crit's and Hit's twins, not rows of their own.
--- (John, 14 Nov 2026, on a hunter's Weights listing both: "probably yes?")
 Gear.WEIGHT_STATS = {
     { "ITEM_MOD_AGILITY_SHORT", "Agility", "Agility" },
     { "ITEM_MOD_STRENGTH_SHORT", "Strength", "Strength" },

@@ -152,8 +152,7 @@ PLACES = {
       waiting = ChessWaiting },
     -- Jsal's Pals and Crafting profit: a button each, while its part is on. They came after
     -- the bar, so each starts switched off (`off`): an update puts nothing on a bar that
-    -- wasn't there. (John, 16 Nov 2026, of Crafting profit's menu entry: "probably needs a
-    -- matching button along with jsal's pals. and a toggle for the jsal bar".)
+    -- wasn't there.
     { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals", off = true,
       ready = function() return ns.Pet and ns.Pet.running end,
       -- The pen's own Open closes it when it's open.
@@ -303,8 +302,7 @@ function Launcher.PlacesMenu(anchor)
             items[#items + 1] = { place.label, waiting and "|cffe3b04bwaiting|r" or nil, place.open }
         end
     end
-    -- And Unlock Mode, to move jsal.ui's pieces (John, 12 Nov 2026: "Put it
-    -- on the mini map right click").
+    -- And Unlock Mode, to move jsal.ui's pieces.
     if ns.Unlock and ns.Unlock.Open then
         items[#items + 1] = { "Unlock Mode", nil, function() ns.Unlock.Open() end }
     end

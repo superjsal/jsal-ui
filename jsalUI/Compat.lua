@@ -99,9 +99,6 @@ end
 -- (nil when it's clear, or something this doesn't draw), and how hard, which
 -- the game gives as a number from 0. Then the game's own two numbers as they
 -- came, for a look at them. Nothing at all where the client doesn't say.
--- (Forever, 13 Nov 2026: C_Weather.GetCurrentWeather() gives one table,
--- { type, intensity }; Enum.WeatherType is Clear 0, Rain 1, Snow 2,
--- Sandstorm 3, Miscellaneous 4.)
 local weatherKinds
 function Compat.Weather()
     local W = C_Weather

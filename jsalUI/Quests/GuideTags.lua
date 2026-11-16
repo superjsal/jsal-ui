@@ -1,9 +1,6 @@
 -- Quest tags on RestedXP's guide window: beside each step that has you take or do a quest, the
 -- quest's tag (its place in a chain, and about how many minutes it will take), for someone who
--- follows the guide's window and keeps the quest tracker hidden. (John, 14 Nov 2026, for the
--- friend who asked for the annoyance level: "he uses the restedxp widget and hides his quest
--- tracker"; shown two places for the tags, "he prefers the left of the window as long as it
--- doesnt get messed up if he has to move it".)
+-- follows the guide's window and keeps the quest tracker hidden.
 --
 -- The pills are Quest tags' own (QuestTags.MakeTag, Fill and the card), so they read the same
 -- here as beside the tracker. They sit left of the window, outside its scrolling list, which
@@ -13,10 +10,10 @@
 -- that only turns one in has no tag, as there's nothing left to decide.
 --
 -- RestedXP's window is its own: nothing of it is changed, only read. It has two windows. The
--- newer one (RXPV2GuideWindow, the one John's game shows) keeps a row for each step in
--- guideSteps.items, each with its frame and the step's number in the guide; the older one keeps
--- them in RXP.RXPFrame.ScrollChild.framePool, each with its step. The first version read only
--- the older, and in John's game said "0 steps in its list" and drew nothing.
+-- newer one keeps a row for each step in guideSteps.items, each with its frame and the step's
+-- number in the guide; the older one keeps them in RXP.RXPFrame.ScrollChild.framePool, each
+-- with its step. The first version read only the older, and in the game said "0 steps in its
+-- list" and drew nothing.
 local _, ns = ...
 
 local GuideTags = ns.NewModule("guidetags", {
@@ -205,12 +202,10 @@ function GuideTags:OnDisable()
     GuideTags.HideAll()
 end
 
--- /jsal guidetags: what the part sees, step by step, for when a tag is missing. It's for
--- finding a fault, so the part's note doesn't name it and its card has no tag for it: with one,
--- the tag ran under the card's switch. (John, 14 Nov 2026: "is the guidetags and /jsal drops
--- necessary for live?") A step with no
--- tag can be right (a quest not taken yet that stands alone has nothing to say), and a look at
--- the window can't tell that from a fault. (John's first screenshot of it, 14 Nov 2026, had none.)
+-- /jsal guidetags: what the part sees, step by step, for when a tag is missing. It's for finding a
+-- fault, so the part's note doesn't name it and its card has no tag for it: with one, the tag ran
+-- under the card's switch. A step with no tag can be right (a quest not taken yet that stands
+-- alone has nothing to say), and a look at the window can't tell that from a fault.
 ns.Command("guidetags", function()
     local frame, view, list, kind = Window()
     ns.Print(("Quest tags on RestedXP: %s. RestedXP's window: %s."):format(GuideTags.running and "on" or "off (turn it on under Leveling in /jsal settings)",

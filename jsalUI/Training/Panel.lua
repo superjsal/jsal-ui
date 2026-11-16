@@ -844,8 +844,7 @@ local function TrainerKind()
     end
     -- The rows in sight may not say: the game's list can leave out what's
     -- learned, so a pet trainer with everything bought shows none at all,
-    -- and looked like a class trainer (John, 13 Nov 2026, at a pet trainer:
-    -- "bug, this is the pet trainer"). The visit saved for this trainer
+    -- and looked like a class trainer. The visit saved for this trainer
     -- holds every row; and the pet trainers jsal.ui ships are known by name.
     local visit = ns.TrainerPrices.Here and ns.TrainerPrices.Here()
     for _, row in ipairs(visit and ns.TrainerPrices.RowsOf(visit) or {}) do

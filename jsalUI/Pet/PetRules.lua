@@ -80,23 +80,20 @@ Rules.EGGS = {
                 hint = "It hums in your head before you hear it." },
     riverstone = { name = "River Stone egg", species = "pebblebill", from = "fishing", chance = 0.01,
                    hint = "It's smooth and cold, like a stone from the bottom of a stream." },
-    -- The rare one: only Onyxia's hoard holds it, one kill in ten (John, 12 Nov
-    -- 2026: "this egg will have a chance to drop when onyxia is killed by you",
-    -- then "Yes, one in ten"). Never one a new player is offered.
+    -- The rare one: only Onyxia's hoard holds it, one kill in ten. Never one a
+    -- new player is offered.
     aurora = { name = "Aurora egg", species = "snowlet", from = "onyxia", chance = 0.1,
                hint = "It frosts your fingers, and lights shimmer under its shell." },
-    -- The legendary one: only Ragnaros leaves it, one kill in ten (John, 13 Nov
-    -- 2026: "a legendary dark type dragon", and of the boss to drop it,
-    -- "Ragnaros"). Never one a new player is offered.
+    -- The legendary one: only Ragnaros leaves it, one kill in ten. Never one a
+    -- new player is offered.
     eclipse = { name = "Eclipse egg", species = "starwhelp", from = "ragnaros", chance = 0.1,
                 hint = "It's darker than its own shadow, with a ring of gold light on it." },
 }
 -- The bosses whose fall can leave an egg, by the game's own number for the
 -- fight (the same in every language), and the `from` their egg names.
 Rules.BOSSES = { [1084] = "onyxia", [672] = "ragnaros" }
--- A new player chooses between three eggs, any three of all there are
--- (John, 12 Nov 2026: "lets have all the eggs (3 max) be able to be onboarded
--- randomly"). Before that it was always the first three of this list.
+-- A new player chooses between three eggs, any three of all there are. Before
+-- that it was always the first three of this list.
 Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel", "crystal", "riverstone" }
 Rules.OFFERED = 3
 -- Three of them, no two alike. `roll(a, b)` is a whole number from a to b,
@@ -565,10 +562,9 @@ function Rules.Medicine(s, now)
     return true, "It perks up."
 end
 
--- Lights out, or lights on. Woken before it's rested, it sulks a little.
--- Worn out, it isn't woken at all: it fell straight back asleep at the next look, and the
--- waking had only cost it some fun and the breakfast in its bowl. (John, 16 Nov 2026, asked
--- whether it should refuse: "Go ahead with the jsal pal change".)
+-- Lights out, or lights on. Woken before it's rested, it sulks a little. Worn out, it isn't
+-- woken at all: it fell straight back asleep at the next look, and the waking had only cost
+-- it some fun and the breakfast in its bowl.
 function Rules.Lights(s, now)
     Rules.Advance(s, now)
     if s.asleep then
@@ -770,16 +766,13 @@ function Rules.Succeed(s, eggs, index, now)
 end
 
 ---------------------------------------------------------------------------
--- The nest. A fully grown companion looks after one egg: it's put in a
--- nest in the pen (s.nest: the egg, and `warm`, the good hours it has had),
--- where it warms while the companion is well, on the clock growing used,
--- and faster with a closer bond. Warm enough, it's ready to hatch, and waits
--- for you as long as you like. When it hatches the companion settles in the
--- paddock, and comes back to the pen now and then to see the one it
--- looked after. (John, 14 Nov 2026: "i think we should add functionality to
--- the egg itself, like your pal taking care of the egg until it is ready to
--- hatch", and "the caretaker pal should show up in the pen every once in a
--- while".)
+-- The nest. A fully grown companion looks after one egg: it's put in a nest
+-- in the pen (s.nest: the egg, and `warm`, the good hours it has had), where
+-- it warms while the companion is well, on the clock growing used, and
+-- faster with a closer bond. Warm enough, it's ready to hatch, and waits for
+-- you as long as you like. When it hatches the companion settles in the
+-- paddock, and comes back to the pen now and then to see the one it looked
+-- after.
 ---------------------------------------------------------------------------
 Rules.TEND = 24             -- good hours to warm an egg, at the first level of the bond
 Rules.KEEPSAKE = 6          -- the most of the old bond a hatchling starts with: its second level
@@ -865,8 +858,7 @@ end
 
 -- The nest it hatched in is a hatchling's bed: it sleeps and naps there
 -- for as long as it's a hatchling, and that includes one ready to grow
--- that hasn't yet. (John, 14 Nov 2026, asked what to do about the empty
--- nest: "Bed version sounds great good idea".)
+-- that hasn't yet.
 function Rules.Bed(s)
     return s.nested ~= nil and (s.grewFrom or s.form) == 1
 end

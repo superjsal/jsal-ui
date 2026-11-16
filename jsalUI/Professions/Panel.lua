@@ -10,8 +10,7 @@ local Panel = ns.NewModule("professionpanel", {
     note = "Beside the profession window: what to craft to reach the next rank.",
 })
 
--- 440 wide (was 360) to hold the road's prices beside each step (John, 16 Nov
--- 2026: "we can also widen this page to accomodate our new features").
+-- 440 wide (was 360) to hold the road's prices beside each step.
 local WIDTH, PAD, STEP_H, ROW_H = 440, 14, 30, 30
 -- A step's line with a note under it, a material's line in the card, a line
 -- of everything the road needs, and the row for training the next rank.
@@ -470,8 +469,7 @@ end
 -- what a vendor sells for coin (under each vendor's name once), what's
 -- coming up, and the rest (drops, quests, reputations, other currencies)
 -- behind one block to open. One long list of five hundred, with a world
--- drop and another side's quest at its head, was no help (John, 13 Nov
--- 2026: "this section as well if you feel necessary to fix up").
+-- drop and another side's quest at its head, was no help.
 ---------------------------------------------------------------------------
 -- How many of a group show before the rest wait behind a line to click,
 -- and how many an opened one shows at most (`many`).
@@ -479,8 +477,7 @@ local FEW = { trainer = 5, vendor = 3, vendors = 3, coming = 5, harder = 8, many
 -- What's been opened up: a group by name, a vendor by "v" and its ID. One
 -- at a time, and never more than `many` of it, with the line that closes it
 -- above its rows: an opened list ran off the bottom of the screen and took
--- its own "Show fewer" with it (John, 13 Nov 2026: "if you keep going for
--- showing you cant unshow").
+-- its own "Show fewer" with it.
 local opened = {}
 local function Open(key)
     local was = opened[key]
@@ -918,9 +915,7 @@ function Paint()
                 local price = Professions.IsVendor(reagent.item)
                 -- What's in your bank counts as yours, and is said to be
                 -- there: "you have enough" of four hides that were all in
-                -- the bank read as four in your bags. (John, 14 Nov 2026:
-                -- "its also telling me i still have 4 cured light hide but
-                -- i dont have them", then "maybe its in my bank".)
+                -- the bank read as four in your bags.
                 local carried = Compat.ItemCount(reagent.item, false) or 0
                 if have >= need and carried < need then
                     m.note:SetText(("%d to fetch from your bank"):format(need - carried))
@@ -1235,8 +1230,7 @@ end
 
 -- The layer above a window's own, and never lower than jsal.ui's main
 -- window's. On the profession window's layer the panel sat among other
--- addons' unit frames and bars, and they drew over it (John, 13 Nov 2026:
--- "i see my pet bar there at the bottom and that strata is medium").
+-- addons' unit frames and bars, and they drew over it.
 local LAYERS = { "BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG" }
 local function Above(strata)
     for i, layer in ipairs(LAYERS) do

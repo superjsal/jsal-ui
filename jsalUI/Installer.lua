@@ -13,7 +13,7 @@ local SPEC_LOCKED ="The jsal.ui look is saved, but this spec is set to use anoth
 
 -- Whether this version has the look to install at all. Until it does,
 -- nothing offers it: no Install page in the menu, no look step or "Just the
--- look" in setup (John, 12 Nov 2026: hide it "until a profile").
+-- look" in setup.
 function Installer.HasProfile()
     return type(ns.Profile) == "table" and type(ns.Profile.string) == "string" and ns.Profile.string ~= ""
 end

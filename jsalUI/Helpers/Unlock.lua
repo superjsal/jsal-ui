@@ -2,11 +2,9 @@
 -- or Move pieces in Settings): every piece shown and named, even one that's
 -- hidden just now, on a grid, snapping to the grid, the centre and each
 -- other, with exact X and Y for the one picked. It needs nothing else
--- installed (John, 12 Nov 2026: jsal.ui independent of EllesmereUI, "we need
--- the precise x,y numbers as well in case someone likes it that way").
--- When EllesmereUI is on, the pieces are also in its Unlock Mode, through
--- its public call for other addons' elements, a moment after login as its
--- own parts do. Each piece still drags on its own with neither.
+-- installed. When EllesmereUI is on, the pieces are also in its Unlock Mode,
+-- through its public call for other addons' elements, a moment after login
+-- as its own parts do. Each piece still drags on its own with neither.
 local _, ns = ...
 local Compat, Style = ns.Compat, ns.Style
 

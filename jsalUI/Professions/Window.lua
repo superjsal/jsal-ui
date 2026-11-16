@@ -228,8 +228,7 @@ local function PaintTimer()
     if not run then return end
     local now = GetTime()
     -- A run can end with no word from the game: asked for seven with thread
-    -- for one, it makes one and casts nothing more, and no event says so
-    -- (John, 13 Nov 2026: "medium armor kit crafting time stays up there").
+    -- for one, it makes one and casts nothing more, and no event says so.
     -- So with no cast under way for a few seconds, or one that never
     -- reported its end, the run is over.
     local quiet = run.castEnd or run.idle

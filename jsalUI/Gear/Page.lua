@@ -1,14 +1,12 @@
 -- The Gear plan, in a wide window of its own: your gear slots as a table, in
 -- the game's order. Each slot shows its name and what you wear, the best
--- upgrade near your level for your spec by name with where it's from, and
--- in green what it adds. Click a slot to see its upgrades beside them, in
+-- upgrade near your level for your spec by name with where it's from, and in
+-- green what it adds. Click a slot to see its upgrades beside them, in
 -- columns: where each comes from, its level, what it adds, and a star to
--- keep it on top. (John, 14 Nov 2026: "The gear planner can also have an
--- increased screen size if that would let you give it a better layout".)
--- Over them, a row of chips shows only the kinds of source you choose.
--- Under them, a box adds an item the plan doesn't list, starred, in the
--- slot it goes in. Weights, beside the spec buttons, opens the spec's stat
--- weights to change, or to fill from a Pawn scale.
+-- keep it on top. Over them, a row of chips shows only the kinds of source
+-- you choose. Under them, a box adds an item the plan doesn't list, starred,
+-- in the slot it goes in. Weights, beside the spec buttons, opens the spec's
+-- stat weights to change, or to fill from a Pawn scale.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -77,10 +75,8 @@ end
 -- The filter over a slot's upgrades: a chip for each kind of source the slot has (a dungeon, a
 -- quest, a vendor...), each with how many, and "All". Click one to see only that kind, another to
 -- add its kind, "All" for everything again. It holds the count at the right of the slot's heading
--- too: "28 upgrades", or "3 of 28 upgrades". (John, 15 Nov 2026: "more items to sift through...
--- filters on the right side to categorize where items drop or are obtained from"; of the mockups,
--- the chips.) It's a function of its own, apart from the page's, to keep both under the game's
--- limit on what one function may reach outside itself.
+-- too: "28 upgrades", or "3 of 28 upgrades". It's a function of its own, apart from the page's,
+-- to keep both under the game's limit on what one function may reach outside itself.
 local function SourceFilter(list, listW, top, Repaint)
     local G = ns.Gear
     local F = { chips = {} }
@@ -371,11 +367,10 @@ Window.Page("gear", function(page)
     -- slot's own name needs no heading.
     local wearing = Style.Text(page, 10, "muted", nil, true)
     -- At the page's left edge, in line with the title over it and the slots' rows under it: over
-    -- the slots' names it stood 44 in. (John, 15 Nov 2026: "lets left align that currently equipped".)
+    -- the slots' names it stood 44 in.
     wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 18))
     -- Its column ends where the best upgrade's begins: the longer "SLOT, AND WHAT YOU WEAR" ran
-    -- into the next heading (John's screenshot, 15 Nov 2026: "not aligned correctly... the slot
-    -- is obvious"). It's held to its column, on one line.
+    -- into the next heading. It's held to its column, on one line.
     wearing:SetWidth(UP_X - 10)
     wearing:SetJustifyH("LEFT")
     wearing:SetWordWrap(false)
@@ -534,9 +529,7 @@ Window.Page("gear", function(page)
         r.star:SetScript("OnLeave", function() GameTooltip:Hide() end)
         -- What it adds over what you wear, beside the star: how much better it is as a share
         -- of all you wear ("+3%", the dungeon guide's "for you") over the stats it adds; the
-        -- stats alone, in the middle, where there's no share to say. (John, 15 Nov 2026: "add
-        -- the dps %N for you like dungeon guide does", then "skip the for you part and just
-        -- add the %"; of the mockups, the share on top.)
+        -- stats alone, in the middle, where there's no share to say.
         r.gain = Style.Text(r, 13, "green", nil, true)
         r.gain:SetJustifyH("RIGHT")
         r.adds = Style.Text(r, 11, "muted")
@@ -563,8 +556,7 @@ Window.Page("gear", function(page)
         r.best.text:SetText("best for you")
         -- As wide as its words, with room each side: the window draws
         -- small text larger than asked, and a box of a set width was
-        -- overrun by it (John's screenshot, 14 Nov 2026: "best for you
-        -- should look a bit better").
+        -- overrun by it.
         local wide = r.best.text.GetStringWidth and r.best.text:GetStringWidth()
         r.best:SetSize(((type(wide) == "number" and wide > 0) and wide or 64) + 16, 18)
         r.best:Hide()
@@ -646,8 +638,7 @@ Window.Page("gear", function(page)
     end))
 
     -- Two lines in the 60 under the list: where the items come from, and that the stat weights are
-    -- estimates. (John, 14 Nov 2026: "i think we just need a disclaimer for our stat weights in
-    -- general".)
+    -- estimates.
     local note = Style.Text(page, 12, "muted")
     note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
     note:SetWidth(width)
@@ -726,8 +717,7 @@ Window.Page("gear", function(page)
                 if plan.twoHand then b.worn:SetText("|cff9a9688Taken by your two-hander|r") end
             end
             -- That line has the row to itself, so it gets the room: in the
-            -- column for what you wear it was cut short ("Taken by your
-            -- two-hand...", John's screenshot, 14 Nov 2026).
+            -- column for what you wear it was cut short.
             b.worn:SetWidth(plan.twoHand and (SLOT_W - ICON - 30) or (UP_X - ICON - 14 - 10))
             if best then
                 better = better + 1
@@ -754,9 +744,9 @@ Window.Page("gear", function(page)
             b.bg:SetShown(on)
             for _, e in ipairs(b.edges) do e:SetShown(on) end
         end
-        -- Still checking: look again in a couple of seconds by itself. An item asked for
-        -- again after two seconds had nothing to repaint the page, which said "checking..."
-        -- until a /reload (John, 15 Nov 2026). Once at a time; stops when nothing is waited on.
+        -- Still checking: look again in a couple of seconds by itself. An item asked for again
+        -- after two seconds had nothing to repaint the page, which said "checking..." until a
+        -- /reload. Once at a time; stops when nothing is waited on.
         if checking and not retrying then
             retrying = true
             Compat.After(2.5, ns.Safe(G, function()
