@@ -195,15 +195,23 @@ end
 -- the yellow star, and a cross for a miss.
 local MARKS = { right = "{rt4}", near = "{rt1}", miss = "{rt7}" }
 
-local function ShareLine(game, answer, title)
+-- A chat line holds 255 bytes, and each marker is five. A long Guild Word's grid alone can come
+-- to 245 (six rows of eight), so when the score and the grid don't fit one line together, the
+-- score goes on one and the grid on the next. Sent as one, it was too long to go at all.
+local CHAT_MAX = 255
+local function ShareLines(game, answer, title)
     local rows = {}
     for i, guess in ipairs(game.guesses) do
         local scored, row = Score(guess, answer), {}
         for c = 1, #answer do row[c] = MARKS[scored[c]] end
         rows[i] = table.concat(row)
     end
-    return ("%s %s/6 %s"):format(title, game.won and #game.guesses or "X", table.concat(rows, " "))
+    local head = ("%s %s/6"):format(title, game.won and #game.guesses or "X")
+    local grid = table.concat(rows, " ")
+    if #head + 1 + #grid <= CHAT_MAX then return { head .. " " .. grid } end
+    return { head, grid }
 end
+DailyWord.ShareLines = ShareLines
 
 -- The window plays either today's Daily Word or the guild's Guild Word: the
 -- game in play, its answer, and its title.
@@ -456,7 +464,7 @@ local function Build()
     shareButton:SetPoint("TOPRIGHT", result, "TOP", -4, -50)
     shareButton:SetScript("OnClick", function()
         if not IsInGuild() then return Say("Join a guild to share.") end
-        Compat.SendChat(ShareLine(Current()), "GUILD")
+        for _, line in ipairs(ShareLines(Current())) do Compat.SendChat(line, "GUILD") end
         shareButton:SetEnabled(false)
     end)
     local icons = Style.Button(result, "Play Icon Guess", "plain", 150)

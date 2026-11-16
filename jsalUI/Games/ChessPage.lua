@@ -247,7 +247,9 @@ Window.Page("chess", function(page)
     movesText:SetWidth(rightW)
 
     -- The resign button asks once: the first click arms it for a moment.
-    local armed = 0
+    -- It's one game's: armed on one game, a click on another's Resign asks afresh (it
+    -- resigned that one outright).
+    local armed, armedFor = 0, nil
 
     ---------------------------------------------------------------------------
     -- Moving: click your piece, then where it goes. Right-click lets go.
@@ -417,7 +419,7 @@ Window.Page("chess", function(page)
                 SetButton(primary, game.drawOffer == "me" and "Draw offered" or "Offer draw", game.drawOffer ~= "me")
                 primary:SetKind("plain")
             end
-            SetButton(second, GetTime() < armed and "Sure?" or "Resign")
+            SetButton(second, (GetTime() < armed and armedFor == game.id) and "Sure?" or "Resign")
         end
         if game.status ~= "play" or promo or game.drawOffer == "them" then primary:SetKind("primary") end
     end
@@ -647,8 +649,8 @@ Window.Page("chess", function(page)
             selectedID = nil
         elseif promo then
             from, promo = nil, nil
-        elseif GetTime() > armed then
-            armed = GetTime() + 3
+        elseif GetTime() > armed or armedFor ~= game.id then
+            armed, armedFor = GetTime() + 3, game.id
             ns.Compat.After(3, function() if page:IsVisible() then Paint() end end)
         else
             armed = 0

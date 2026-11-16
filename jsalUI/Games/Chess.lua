@@ -430,7 +430,8 @@ end
 local watched, asked, answered = {}, {}, {}
 local WATCH_FOR = 3600     -- a game with no move for an hour drops off
 local ENDED_FOR = 600      -- a finished one stays ten minutes
-local CHUNK = 36           -- moves per catch-up whisper, well inside its limit
+local CHUNK = 36           -- the most moves in one catch-up whisper
+local MESSAGE = 250        -- the bytes one whisper may come to (the game's limit is 255)
 
 local function Watched(id, white, black)
     if Saved().games[id] or not (white and black) or white == "" or black == "" then return nil end
@@ -488,8 +489,16 @@ handlers.CV = function(id, name, sender, have)
     answered[key] = GetTime()
     local white, black = Sides(game)
     local from = (tonumber(have) or 0) + 1
+    -- As many moves as there's room for after the game's ID and the players' names. A flat 36
+    -- could run past what a whisper holds, with two long names and a few promotions, and a
+    -- whisper too long doesn't arrive: the watcher never caught up.
+    local room = MESSAGE - #table.concat({ "CW|" .. id, white, black, "" }, ";") - 5
     while from <= #game.moves do
-        local last = math.min(#game.moves, from + CHUNK - 1)
+        local last, size = from, #game.moves[from]
+        while last < #game.moves and last - from + 1 < CHUNK and size + 1 + #game.moves[last + 1] <= room do
+            last = last + 1
+            size = size + 1 + #game.moves[last]
+        end
         local list = table.concat(game.moves, " ", from, last)
         Comms.Send("CW", table.concat({ id, white, black, from, list }, ";"), "WHISPER", sender)
         from = last + 1
