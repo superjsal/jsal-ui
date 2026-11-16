@@ -1,8 +1,8 @@
 -- Pet feeding tile, for hunters: a small glowing tile beside the food
--- reminder while your pet is out and not happy, out of a fight. Clicking it
--- feeds your pet the first food in the list; pointing at it opens a row of
--- the food in your bags that your pet eats, highest level first, and a click
--- on one feeds that one.
+-- reminder while your pet is out and not happy, out of a fight. Pointing at
+-- it opens a row of the food in your bags that your pet eats, highest level
+-- first, and a click on one feeds it to your pet. It works like the food
+-- reminder beside it: the tile itself only opens the row and drags.
 --
 -- Feeding is the Feed Pet spell cast on an item, which only the game's own
 -- secure buttons may do: Forever's secure button casts the spell, then uses
@@ -19,7 +19,7 @@ local PetFeed = ns.NewModule("petfeed", {
     title = "Pet feeding",
     -- A new box on the screen, so it starts off.
     defaultOn = false,
-    note = "Hunters: a glowing tile beside the food reminder while your pet isn't happy. Click it to feed your pet, or point at it for the food in your bags your pet eats and click one. Drag it anywhere.",
+    note = "Hunters: a glowing tile beside the food reminder while your pet isn't happy. Point at it for the food in your bags your pet eats, and click one to feed your pet. Drag it anywhere.",
 })
 ns.PetFeed = PetFeed
 
@@ -160,8 +160,10 @@ local function FoodButton(i)
     if b then return b end
     b = CreateFrame("Button", "jsalUIPetFood" .. i, row, "SecureActionButtonTemplate")
     b:SetSize(ITEM, ITEM)
-    -- A mouse click acts as the button comes up.
-    b:RegisterForClicks("LeftButtonUp")
+    -- Press and release both reach it, and the game acts on the one its
+    -- "act on key down" setting picks. With the release alone, a click did
+    -- nothing while that setting was on (John, 16 Nov 2026).
+    b:RegisterForClicks("AnyUp", "AnyDown")
     Style.Fill(b, "well")
     b.edges = Style.Border(b, "lineStrong")
     b.icon = b:CreateTexture(nil, "ARTWORK")
@@ -190,8 +192,7 @@ local function FoodButton(i)
     return b
 end
 
--- Lays the food out in one row under the tile, centred on it, and points
--- the tile itself at the first.
+-- Lays the food out in one row under the tile, centred on it.
 local function FillRow()
     if Compat.InCombat() then return end
     local list = PetFeed.Foods()
@@ -211,15 +212,18 @@ local function FillRow()
         Aim(b, nil)
         b:Hide()
     end
-    if not tile.dragging then Aim(tile, list[1]) end
-    tile.first = list[1]
     row:SetSize(math.max(1, #list) * (ITEM + GAP) - GAP, ITEM)
     row.count = #list
 end
 PetFeed.FillRow = FillRow
 
+local CloseRow
+
 local function OpenRow()
     if Compat.InCombat() then return end
+    -- One row at a time: the food reminder's sits in the same place, and
+    -- the two lay over each other (John, 16 Nov 2026).
+    if ns.FoodTile and ns.FoodTile.CloseRow then ns.FoodTile.CloseRow() end
     FillRow()
     if row.count == 0 then
         GameTooltip:SetOwner(tile, "ANCHOR_BOTTOM")
@@ -232,9 +236,10 @@ local function OpenRow()
     row:Show()
 end
 
-local function CloseRow()
+function CloseRow()
     if row and row:IsShown() and not Compat.InCombat() then row:Hide() end
 end
+PetFeed.CloseRow = CloseRow
 
 -- Its own spot once dragged; until then just right of the food reminder,
 -- wherever that is.
@@ -259,27 +264,20 @@ local function Build()
     holder:SetFrameStrata("MEDIUM")
     holder:SetClampedToScreen(true)
     holder:SetMovable(true)
-    -- The tile is a secure button too: a click feeds the first food.
-    tile = CreateFrame("Button", "jsalUIPetFeedButton", holder, "SecureActionButtonTemplate")
+    -- A plain button, as the food reminder's is: it opens the row and
+    -- drags, and never feeds. (It fed the first food on a click, but a
+    -- click that acts as the button goes down fed on every drag too.)
+    tile = CreateFrame("Button", "jsalUIPetFeedButton", holder)
     tile:SetAllPoints()
-    tile:RegisterForClicks("LeftButtonUp")
     tile:RegisterForDrag("LeftButton")
-    -- A drag mustn't feed as the button comes up: the tile points at
-    -- nothing until the next frame after it's let go.
-    tile:SetScript("OnDragStart", function(self)
+    tile:SetScript("OnDragStart", function()
         if Compat.InCombat() then return end
-        self.dragging = true
-        Aim(self, nil)
         holder:StartMoving()
     end)
-    tile:SetScript("OnDragStop", function(self)
+    tile:SetScript("OnDragStop", function()
         holder:StopMovingOrSizing()
         local point, _, relative, x, y = holder:GetPoint(1)
         if ns.db then ns.db.petFeedAt = { point, relative, x, y } end
-        Compat.After(0, ns.Safe(PetFeed, function()
-            self.dragging = nil
-            if not Compat.InCombat() then Aim(self, self.first) end
-        end))
     end)
     tile.fill = Style.Fill(tile, "well")
     tile.edges = Style.Border(tile, "gold")

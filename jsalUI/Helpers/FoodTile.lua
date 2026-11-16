@@ -214,6 +214,8 @@ FoodTile.FillRow = FillRow
 
 local function OpenRow()
     if Compat.InCombat() then return end
+    -- One row at a time: the pet feeding tile's sits beside it.
+    if ns.PetFeed and ns.PetFeed.CloseRow then ns.PetFeed.CloseRow() end
     FillRow()
     if row.count == 0 then
         GameTooltip:SetOwner(tile, "ANCHOR_BOTTOM")
@@ -229,6 +231,7 @@ end
 local function CloseRow()
     if row and row:IsShown() and not Compat.InCombat() then row:Hide() end
 end
+FoodTile.CloseRow = CloseRow
 
 local function Place()
     holder:ClearAllPoints()
