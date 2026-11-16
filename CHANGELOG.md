@@ -1,4 +1,8 @@
-# jsal.ui 0.3.50
+# jsal.ui 0.3.51
+
+- **Fresher data from the latest Forever build and from players.** Spells and talents are read from the game's newest build (a rogue's Shank Rank 2 now shows on the Training planner), and quest tags, trainer prices and vendors are refreshed from what players have seen since: some quest items drop less often than the old numbers said, so a few quests read longer.
+
+## In 0.3.50
 
 - **Gear plan: "checking..." no longer needs a /reload.** While it waits on items, the Gear plan now looks again by itself every couple of seconds, and gives up on one the game still hasn't sent after about ten seconds, so the page settles.
 

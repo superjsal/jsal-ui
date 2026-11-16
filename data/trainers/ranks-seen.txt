@@ -36,6 +36,7 @@
 3549|Shelene Rhobart|1|Apprentice Leatherworking
 3605|Nadyia Maneweaver|1|Apprentice Leatherworking
 3704|Mahani|2|Journeyman Tailoring
+3967|Aayndia Floralwind|2|Journeyman Leatherworking
 4552|Eunice Burch|2|Journeyman Cook
 4573|Armand Cromwell|1|Apprentice Fishing
 4591|Mary Edras|2|Journeyman First Aid
@@ -54,6 +55,7 @@
 6094|Byancie|1|Apprentice First Aid
 6286|Zarrin|2|Journeyman Cook
 6289|Rand Rhobart|1|Apprentice Skinning
+6295|Wilma Ranthal|4|Artisan Skinning
 6306|Helene Peltskinner|3|Expert Skinning
 6387|Dranh|3|Expert Skinning
 7087|Killian Hagey|3|Expert Skinning

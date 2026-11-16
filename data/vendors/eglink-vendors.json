@@ -1,6 +1,6 @@
 {
 "about": "Every vendor players opened on WoW Forever, from EG Link output: World of Warcraft: Forever (https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games (https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); merged across live builds and reduced to name, spots, repairs and what each sells, with prices, by tools/refresh_eglink.py.",
-"revision": "ea970da071079b32e56f349e09648ff0e314b351",
+"revision": "0f202e892f1a15c8192c232351824eccb99efd8a",
 "vendors": {
 "10369": {
 "builds": [
@@ -2546,14 +2546,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Edna Mullby",
 "positions": [
 {
-"mapX": 0.6466,
-"mapY": 0.7151,
+"mapX": 0.6468,
+"mapY": 0.7161,
 "uiMap": 1453
 }
 ],
@@ -2561,259 +2562,296 @@
 "sells": {
 "2320": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Coarse Thread",
 "stack": 1
 },
 "2321": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Fine Thread",
 "stack": 1
 },
 "2324": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Bleach",
 "stack": 1
 },
 "2325": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Black Dye",
 "stack": 1
 },
 "2604": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Red Dye",
 "stack": 1
 },
 "2605": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Green Dye",
 "stack": 1
 },
 "2678": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Mild Spices",
 "stack": 5
 },
 "2692": {
 "costs": {
-"5": 40
+"5": 40,
+"6": 36
 },
 "name": "Hot Spices",
 "stack": 1
 },
 "277113": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Herb Pouch",
 "stack": 1
 },
 "277114": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Skinning Satchel",
 "stack": 1
 },
 "277115": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Mining Pack",
 "stack": 1
 },
 "2880": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Weak Flux",
 "stack": 1
 },
 "2901": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Mining Pick",
 "stack": 1
 },
 "2928": {
 "costs": {
-"5": 20
+"5": 20,
+"6": 18
 },
 "name": "Dust of Decay",
 "stack": 1
 },
 "3371": {
 "costs": {
-"5": 20
+"5": 20,
+"6": 18
 },
 "name": "Empty Vial",
 "stack": 5
 },
 "3372": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "name": "Leaded Vial",
 "stack": 5
 },
 "3466": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Strong Flux",
 "stack": 1
 },
 "3713": {
 "costs": {
-"5": 160
+"5": 160,
+"6": 144
 },
 "name": "Soothing Spices",
 "stack": 1
 },
 "3857": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Coal",
 "stack": 1
 },
 "4289": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Salt",
 "stack": 1
 },
 "4291": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Silken Thread",
 "stack": 1
 },
 "4340": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "name": "Gray Dye",
 "stack": 1
 },
 "4341": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Yellow Dye",
 "stack": 1
 },
 "4342": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "name": "Purple Dye",
 "stack": 1
 },
 "4399": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "name": "Wooden Stock",
 "stack": 1
 },
 "4400": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Heavy Stock",
 "stack": 1
 },
 "4536": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Shiny Red Apple",
 "stack": 5
 },
 "5956": {
 "costs": {
-"5": 18
+"5": 18,
+"6": 17
 },
 "name": "Blacksmith Hammer",
 "stack": 1
 },
 "6217": {
 "costs": {
-"5": 124
+"5": 124,
+"6": 112
 },
 "name": "Copper Rod",
 "stack": 1
 },
 "6256": {
 "costs": {
-"5": 23
+"5": 23,
+"6": 21
 },
 "name": "Fishing Pole",
 "stack": 1
 },
 "6260": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Blue Dye",
 "stack": 1
 },
 "6529": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Shiny Bauble",
 "stack": 1
 },
 "6530": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Nightcrawlers",
 "stack": 1
 },
 "6532": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "name": "Bright Baubles",
 "stack": 1
 },
 "7005": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Skinning Knife",
 "stack": 1
 },
 "8343": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Heavy Silken Thread",
 "stack": 1
 },
 "8925": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "name": "Crystal Vial",
 "stack": 5
@@ -3072,14 +3110,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Gunther Weller",
 "positions": [
 {
-"mapX": 0.6414,
-"mapY": 0.6889,
+"mapX": 0.6419,
+"mapY": 0.6887,
 "uiMap": 1453
 }
 ],
@@ -3299,7 +3338,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-15",
 "name": "Carla Granger",
 "positions": [
 {
@@ -3610,14 +3649,15 @@
 "1298": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Frederick Stover",
 "positions": [
 {
-"mapX": 0.5851,
-"mapY": 0.6904,
+"mapX": 0.5856,
+"mapY": 0.6907,
 "uiMap": 1453
 }
 ],
@@ -3625,56 +3665,73 @@
 "sells": {
 "11285": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Jagged Arrow",
 "stack": 200
 },
+"11303": {
+"costs": {
+"6": 2866
+},
+"limited": true,
+"name": "Fine Shortbow",
+"stack": 1,
+"stockMax": 2
+},
 "11362": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Medium Quiver",
 "stack": 1
 },
 "2512": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Rough Arrow",
 "stack": 200
 },
 "2515": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Sharp Arrow",
 "stack": 200
 },
 "3026": {
 "costs": {
-"5": 3812
+"5": 3812,
+"6": 3431
 },
 "name": "Reinforced Bow",
 "stack": 1
 },
 "3027": {
 "costs": {
-"5": 6349
+"5": 6349,
+"6": 5715
 },
 "name": "Heavy Recurve Bow",
 "stack": 1
 },
 "3030": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "name": "Razor Arrow",
 "stack": 200
 },
 "5439": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Small Quiver",
 "stack": 1
@@ -5784,14 +5841,20 @@
 "1.60.1.70790",
 "1.60.1.70840",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "William MacGregor",
 "positions": [
 {
-"mapX": 0.5766,
-"mapY": 0.5396,
+"mapX": 0.576,
+"mapY": 0.5397,
+"uiMap": 1436
+},
+{
+"mapX": 0.5774,
+"mapY": 0.5389,
 "uiMap": 1436
 }
 ],
@@ -7098,6 +7161,264 @@
 ],
 "repairs": true,
 "sells": {}
+},
+"225": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Gavin Gnarltree",
+"positions": [
+{
+"mapX": 0.7367,
+"mapY": 0.4982,
+"uiMap": 1431
+}
+],
+"repairs": true,
+"sells": {
+"2024": {
+"costs": {
+"6": 5471
+},
+"name": "Espadon",
+"stack": 1
+},
+"2025": {
+"costs": {
+"6": 4774
+},
+"name": "Bearded Axe",
+"stack": 1
+},
+"2026": {
+"costs": {
+"6": 5658
+},
+"name": "Rock Hammer",
+"stack": 1
+},
+"2027": {
+"costs": {
+"6": 3434
+},
+"name": "Scimitar",
+"stack": 1
+},
+"2028": {
+"costs": {
+"6": 4559
+},
+"name": "Hammer",
+"stack": 1
+},
+"2029": {
+"costs": {
+"6": 3978
+},
+"name": "Cleaver",
+"stack": 1
+},
+"2030": {
+"costs": {
+"6": 4990
+},
+"name": "Gnarled Staff",
+"stack": 1
+},
+"2208": {
+"costs": {
+"6": 3285
+},
+"name": "Poniard",
+"stack": 1
+},
+"2209": {
+"costs": {
+"6": 6404
+},
+"name": "Kris",
+"stack": 1
+},
+"922": {
+"costs": {
+"6": 10835
+},
+"name": "Dacian Falx",
+"stack": 1
+},
+"923": {
+"costs": {
+"6": 7869
+},
+"name": "Longsword",
+"stack": 1
+},
+"924": {
+"costs": {
+"6": 9875
+},
+"name": "Maul",
+"stack": 1
+},
+"925": {
+"costs": {
+"6": 7018
+},
+"name": "Flail",
+"stack": 1
+},
+"926": {
+"costs": {
+"6": 8806
+},
+"name": "Battle Axe",
+"stack": 1
+},
+"927": {
+"costs": {
+"6": 6258
+},
+"name": "Double Axe",
+"stack": 1
+},
+"928": {
+"costs": {
+"6": 8874
+},
+"name": "Long Staff",
+"stack": 1
+}
+}
+},
+"227": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Mabel Solaj",
+"positions": [
+{
+"mapX": 0.7416,
+"mapY": 0.4488,
+"uiMap": 1431
+}
+],
+"repairs": false,
+"sells": {
+"11291": {
+"costs": {
+"6": 4050
+},
+"name": "Star Wood",
+"stack": 1
+},
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"2515": {
+"costs": {
+"6": 45
+},
+"name": "Sharp Arrow",
+"stack": 200
+},
+"2519": {
+"costs": {
+"6": 45
+},
+"name": "Heavy Shot",
+"stack": 200
+},
+"3030": {
+"costs": {
+"6": 270
+},
+"name": "Razor Arrow",
+"stack": 200
+},
+"3033": {
+"costs": {
+"6": 270
+},
+"name": "Solid Shot",
+"stack": 200
+},
+"3107": {
+"costs": {
+"6": 1647
+},
+"name": "Keen Throwing Knife",
+"stack": 1
+},
+"3108": {
+"costs": {
+"6": 6834
+},
+"name": "Heavy Throwing Dagger",
+"stack": 1
+},
+"3135": {
+"costs": {
+"6": 1647
+},
+"name": "Sharp Throwing Axe",
+"stack": 1
+},
+"3137": {
+"costs": {
+"6": 6834
+},
+"name": "Deadly Throwing Axe",
+"stack": 1
+},
+"4470": {
+"costs": {
+"6": 35
+},
+"name": "Simple Wood",
+"stack": 1
+},
+"4471": {
+"costs": {
+"6": 122
+},
+"name": "Flint and Tinder",
+"stack": 1
+},
+"4497": {
+"costs": {
+"6": 18000
+},
+"name": "Heavy Brown Bag",
+"stack": 1
+},
+"4498": {
+"costs": {
+"6": 2250
+},
+"name": "Brown Leather Satchel",
+"stack": 1
+}
+}
 },
 "227853": {
 "builds": [
@@ -8816,9 +9137,10 @@
 },
 "248197": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-11",
+"lastSeen": "2026-11-15",
 "name": "Gor'mak",
 "positions": [
 {
@@ -9548,14 +9870,15 @@
 },
 "248198": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-15",
 "name": "Aza'bek",
 "positions": [
 {
-"mapX": 0.4971,
-"mapY": 0.2931,
+"mapX": 0.4973,
+"mapY": 0.2941,
 "uiMap": 1413
 }
 ],
@@ -11856,14 +12179,15 @@
 },
 "2483": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-14",
 "name": "Jaquilina Dramet",
 "positions": [
 {
-"mapX": 0.3574,
-"mapY": 0.1069,
+"mapX": 0.3571,
+"mapY": 0.1067,
 "uiMap": 1434
 }
 ],
@@ -13844,14 +14168,15 @@
 },
 "256732": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-08",
+"lastSeen": "2026-11-14",
 "name": "Alynsia",
 "positions": [
 {
-"mapX": 0.1118,
-"mapY": 0.7153,
+"mapX": 0.1119,
+"mapY": 0.7158,
 "uiMap": 1433
 }
 ],
@@ -14312,14 +14637,15 @@
 },
 "256734": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Daniel Stitchsong",
 "positions": [
 {
-"mapX": 0.1006,
-"mapY": 0.7283,
+"mapX": 0.1008,
+"mapY": 0.7284,
 "uiMap": 1433
 }
 ],
@@ -17155,6 +17481,72 @@
 },
 "name": "Zephrali Shoes",
 "stack": 1
+}
+}
+},
+"274": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Barkeep Hann",
+"positions": [
+{
+"mapX": 0.7386,
+"mapY": 0.4405,
+"uiMap": 1431
+}
+],
+"repairs": false,
+"sells": {
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"1942": {
+"costs": {
+"6": 1139
+},
+"name": "Bottle of Moonshine",
+"stack": 1
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
 }
 }
 },
@@ -20424,6 +20816,246 @@
 }
 }
 },
+"3096": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-14",
+"name": "Captured Servant of Azora",
+"positions": [
+{
+"mapX": 0.6934,
+"mapY": 0.7921,
+"uiMap": 1433
+}
+],
+"repairs": false,
+"sells": {
+"10290": {
+"costs": {
+"5": 2500
+},
+"name": "Pink Dye",
+"stack": 1
+},
+"14341": {
+"costs": {
+"5": 5000
+},
+"name": "Rune Thread",
+"stack": 1
+},
+"2320": {
+"costs": {
+"5": 10
+},
+"name": "Coarse Thread",
+"stack": 1
+},
+"2321": {
+"costs": {
+"5": 100
+},
+"name": "Fine Thread",
+"stack": 1
+},
+"2324": {
+"costs": {
+"5": 25
+},
+"name": "Bleach",
+"stack": 1
+},
+"2325": {
+"costs": {
+"5": 1000
+},
+"name": "Black Dye",
+"stack": 1
+},
+"253665": {
+"costs": {
+"5": 150
+},
+"name": "Pattern: Linen Reagent Bag",
+"stack": 1
+},
+"253668": {
+"costs": {
+"5": 250
+},
+"name": "Pattern: Woolen Reagent Bag",
+"stack": 1
+},
+"2604": {
+"costs": {
+"5": 50
+},
+"name": "Red Dye",
+"stack": 1
+},
+"2605": {
+"costs": {
+"5": 100
+},
+"name": "Green Dye",
+"stack": 1
+},
+"4291": {
+"costs": {
+"5": 500
+},
+"name": "Silken Thread",
+"stack": 1
+},
+"4340": {
+"costs": {
+"5": 350
+},
+"name": "Gray Dye",
+"stack": 1
+},
+"4341": {
+"costs": {
+"5": 500
+},
+"name": "Yellow Dye",
+"stack": 1
+},
+"4342": {
+"costs": {
+"5": 2500
+},
+"name": "Purple Dye",
+"stack": 1
+},
+"4790": {
+"costs": {
+"5": 4158
+},
+"limited": true,
+"name": "Inferno Cloak",
+"stack": 1,
+"stockMax": 1
+},
+"4792": {
+"costs": {
+"5": 3279
+},
+"limited": true,
+"name": "Spirit Cloak",
+"stack": 1,
+"stockMax": 1
+},
+"6260": {
+"costs": {
+"5": 50
+},
+"name": "Blue Dye",
+"stack": 1
+},
+"6261": {
+"costs": {
+"5": 1000
+},
+"name": "Orange Dye",
+"stack": 1
+},
+"8343": {
+"costs": {
+"5": 2000
+},
+"name": "Heavy Silken Thread",
+"stack": 1
+}
+}
+},
+"3097": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-14",
+"name": "Bernard Brubaker",
+"positions": [
+{
+"mapX": 0.8319,
+"mapY": 0.7085,
+"uiMap": 1433
+}
+],
+"repairs": true,
+"sells": {
+"1849": {
+"costs": {
+"5": 1388
+},
+"name": "Cured Leather Belt",
+"stack": 1
+},
+"1850": {
+"costs": {
+"5": 1393
+},
+"name": "Cured Leather Bracers",
+"stack": 1
+},
+"236": {
+"costs": {
+"5": 2795
+},
+"name": "Cured Leather Armor",
+"stack": 1
+},
+"237": {
+"costs": {
+"5": 2805
+},
+"name": "Cured Leather Pants",
+"stack": 1
+},
+"238": {
+"costs": {
+"5": 2112
+},
+"name": "Cured Leather Boots",
+"stack": 1
+},
+"239": {
+"costs": {
+"5": 1413
+},
+"name": "Cured Leather Gloves",
+"stack": 1
+},
+"4794": {
+"costs": {
+"5": 3515
+},
+"limited": true,
+"name": "Wolf Bracers",
+"stack": 1,
+"stockMax": 1
+},
+"4795": {
+"costs": {
+"5": 3528
+},
+"limited": true,
+"name": "Bear Bracers",
+"stack": 1,
+"stockMax": 1
+},
+"4796": {
+"costs": {
+"5": 3540
+},
+"limited": true,
+"name": "Owl Bracers",
+"stack": 1,
+"stockMax": 1
+}
+}
+},
 "3134": {
 "builds": [
 "1.60.1.70888"
@@ -21989,7 +22621,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-15",
 "name": "Kaja",
 "positions": [
 {
@@ -23743,19 +24375,15 @@
 "3400": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-15",
 "name": "Xen'to",
 "positions": [
 {
-"mapX": 0.5764,
-"mapY": 0.5346,
-"uiMap": 1454
-},
-{
-"mapX": 0.5731,
-"mapY": 0.5319,
+"mapX": 0.5761,
+"mapY": 0.5313,
 "uiMap": 1454
 }
 ],
@@ -29936,14 +30564,15 @@
 "1.60.1.70425",
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-11",
+"lastSeen": "2026-11-15",
 "name": "Ronald Burch",
 "positions": [
 {
-"mapX": 0.6243,
-"mapY": 0.4339,
+"mapX": 0.6262,
+"mapY": 0.4342,
 "uiMap": 1458
 }
 ],
@@ -33526,14 +34155,15 @@
 "builds": [
 "1.60.1.70840",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Quartermaster Lewis",
 "positions": [
 {
-"mapX": 0.5694,
-"mapY": 0.4723,
+"mapX": 0.5692,
+"mapY": 0.4719,
 "uiMap": 1436
 }
 ],
@@ -34205,13 +34835,14 @@
 "5565": {
 "builds": [
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-14",
 "name": "Jillian Tanner",
 "positions": [
 {
-"mapX": 0.7165,
+"mapX": 0.7173,
 "mapY": 0.6269,
 "uiMap": 1453
 }
@@ -34493,6 +35124,191 @@
 "8952": {
 "costs": {
 "5": 4000,
+"6": 3600
+},
+"name": "Roasted Quail",
+"stack": 5
+}
+}
+},
+"5620": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Bartender Wental",
+"positions": [
+{
+"mapX": 0.2172,
+"mapY": 0.4411,
+"uiMap": 1433
+}
+],
+"repairs": false,
+"sells": {
+"117": {
+"costs": {
+"6": 23
+},
+"name": "Tough Jerky",
+"stack": 5
+},
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1707": {
+"costs": {
+"6": 900
+},
+"name": "Stormwind Brie",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2070": {
+"costs": {
+"6": 23
+},
+"name": "Darnassian Bleu",
+"stack": 5
+},
+"2287": {
+"costs": {
+"6": 113
+},
+"name": "Haunch of Meat",
+"stack": 5
+},
+"3770": {
+"costs": {
+"6": 450
+},
+"name": "Mutton Chop",
+"stack": 5
+},
+"3771": {
+"costs": {
+"6": 900
+},
+"name": "Wild Hog Shank",
+"stack": 5
+},
+"3927": {
+"costs": {
+"6": 1800
+},
+"name": "Fine Aged Cheddar",
+"stack": 5
+},
+"414": {
+"costs": {
+"6": 113
+},
+"name": "Dalaran Sharp",
+"stack": 5
+},
+"422": {
+"costs": {
+"6": 450
+},
+"name": "Dwarven Mild",
+"stack": 5
+},
+"4540": {
+"costs": {
+"6": 23
+},
+"name": "Tough Hunk of Bread",
+"stack": 5
+},
+"4541": {
+"costs": {
+"6": 113
+},
+"name": "Freshly Baked Bread",
+"stack": 5
+},
+"4542": {
+"costs": {
+"6": 450
+},
+"name": "Moist Cornbread",
+"stack": 5
+},
+"4544": {
+"costs": {
+"6": 900
+},
+"name": "Mulgore Spice Bread",
+"stack": 5
+},
+"4599": {
+"costs": {
+"6": 1800
+},
+"name": "Cured Ham Steak",
+"stack": 5
+},
+"4601": {
+"costs": {
+"6": 1800
+},
+"name": "Soft Banana Bread",
+"stack": 5
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8932": {
+"costs": {
+"6": 3600
+},
+"name": "Alterac Swiss",
+"stack": 5
+},
+"8950": {
+"costs": {
+"6": 3600
+},
+"name": "Homemade Cherry Pie",
+"stack": 5
+},
+"8952": {
+"costs": {
 "6": 3600
 },
 "name": "Roasted Quail",
@@ -39579,6 +40395,107 @@
 }
 }
 },
+"6790": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Innkeeper Trelayne",
+"positions": [
+{
+"mapX": 0.7393,
+"mapY": 0.4443,
+"uiMap": 1431
+}
+],
+"repairs": false,
+"sells": {
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1707": {
+"costs": {
+"6": 900
+},
+"name": "Stormwind Brie",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2070": {
+"costs": {
+"6": 23
+},
+"name": "Darnassian Bleu",
+"stack": 5
+},
+"3927": {
+"costs": {
+"6": 1800
+},
+"name": "Fine Aged Cheddar",
+"stack": 5
+},
+"414": {
+"costs": {
+"6": 113
+},
+"name": "Dalaran Sharp",
+"stack": 5
+},
+"422": {
+"costs": {
+"6": 450
+},
+"name": "Dwarven Mild",
+"stack": 5
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8932": {
+"costs": {
+"6": 3600
+},
+"name": "Alterac Swiss",
+"stack": 5
+}
+}
+},
 "6791": {
 "builds": [
 "1.60.1.70450",
@@ -39930,12 +40847,12 @@
 "1.60.1.70862",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Kurran Steele",
 "positions": [
 {
 "mapX": 0.4144,
-"mapY": 0.6565,
+"mapY": 0.6567,
 "uiMap": 1429
 }
 ],
@@ -39943,84 +40860,96 @@
 "sells": {
 "1839": {
 "costs": {
-"5": 184
+"5": 184,
+"6": 166
 },
 "name": "Rough Leather Belt",
 "stack": 1
 },
 "1840": {
 "costs": {
-"5": 185
+"5": 185,
+"6": 167
 },
 "name": "Rough Leather Bracers",
 "stack": 1
 },
 "3602": {
 "costs": {
-"5": 145
+"5": 145,
+"6": 131
 },
 "name": "Knitted Belt",
 "stack": 1
 },
 "3603": {
 "costs": {
-"5": 145
+"5": 145,
+"6": 131
 },
 "name": "Knitted Bracers",
 "stack": 1
 },
 "792": {
 "costs": {
-"5": 207
+"5": 207,
+"6": 187
 },
 "name": "Knitted Sandals",
 "stack": 1
 },
 "793": {
 "costs": {
-"5": 139
+"5": 139,
+"6": 126
 },
 "name": "Knitted Gloves",
 "stack": 1
 },
 "794": {
 "costs": {
-"5": 279
+"5": 279,
+"6": 252
 },
 "name": "Knitted Pants",
 "stack": 1
 },
 "795": {
 "costs": {
-"5": 280
+"5": 280,
+"6": 252
 },
 "name": "Knitted Tunic",
 "stack": 1
 },
 "796": {
 "costs": {
-"5": 264
+"5": 264,
+"6": 238
 },
 "name": "Rough Leather Boots",
 "stack": 1
 },
 "797": {
 "costs": {
-"5": 176
+"5": 176,
+"6": 159
 },
 "name": "Rough Leather Gloves",
 "stack": 1
 },
 "798": {
 "costs": {
-"5": 354
+"5": 354,
+"6": 319
 },
 "name": "Rough Leather Pants",
 "stack": 1
 },
 "799": {
 "costs": {
-"5": 355
+"5": 355,
+"6": 320
 },
 "name": "Rough Leather Vest",
 "stack": 1
@@ -40422,13 +41351,13 @@
 "name": "Amy Davenport",
 "positions": [
 {
-"mapX": 0.2406,
-"mapY": 0.4764,
+"mapX": 0.2385,
+"mapY": 0.4771,
 "uiMap": 1433
 },
 {
-"mapX": 0.2377,
-"mapY": 0.4756,
+"mapX": 0.2406,
+"mapY": 0.4759,
 "uiMap": 1433
 }
 ],
@@ -40843,13 +41772,8 @@
 "name": "Lindsay Ashlock",
 "positions": [
 {
-"mapX": 0.2348,
-"mapY": 0.4752,
-"uiMap": 1433
-},
-{
-"mapX": 0.2371,
-"mapY": 0.4748,
+"mapX": 0.2367,
+"mapY": 0.4755,
 "uiMap": 1433
 }
 ],
@@ -42590,14 +43514,15 @@
 "1.60.1.70790",
 "1.60.1.70840",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-14",
 "name": "Gina MacGregor",
 "positions": [
 {
 "mapX": 0.5757,
-"mapY": 0.5396,
+"mapY": 0.5398,
 "uiMap": 1436
 }
 ],
@@ -42830,14 +43755,15 @@
 "1.60.1.70790",
 "1.60.1.70840",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Innkeeper Heather",
 "positions": [
 {
-"mapX": 0.5286,
-"mapY": 0.5364,
+"mapX": 0.529,
+"mapY": 0.5369,
 "uiMap": 1436
 }
 ],

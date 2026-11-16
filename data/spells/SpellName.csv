@@ -9611,6 +9611,7 @@ ID,Name_lang
 48200,"Healer Aura"
 48309,"Cure Infection"
 50015,"Zombie Spawn"
+50146,"Righteous Purge"
 50817,"Cure Nearby Units"
 51241,"ZP - Retch! (Bunny Aura)"
 51242,"ZP - Retch! (Bunny)"
@@ -10781,7 +10782,6 @@ ID,Name_lang
 429311,"Engrave Bracers - Balefire Bolt"
 429314,"Aku'mai Phase Transition"
 429336,"S03 - Flag Tracking Quest - Twilight Artisan 01"
-432293,"Engrave Helm - Combat Potency"
 429337,"S03 - Give Item - Twilight Artisan 02 - Shadow Scales"
 429338,"S03 - Flag Tracking Quest - Twilight Artisan 02"
 429339,"Shifting Scale Talisman"
@@ -10919,6 +10919,7 @@ ID,Name_lang
 432275,Carnage
 432288,Rowboat
 432291,"Engrave Helm - Focused Attacks"
+432293,"Engrave Helm - Combat Potency"
 432295,"Engrave Helm - Honor Among Thieves"
 432297,"Engrave Bracers - Cut to the Chase"
 432299,"Engrave Bracers - Carnage"
@@ -12019,7 +12020,6 @@ ID,Name_lang
 456492,"S03 - Item - T1 - Paladin - Holy 6P Bonus"
 456494,"S03 - Item - T1 - Paladin - Retribution 2P Bonus"
 456533,"S03 - Item - T1 - Paladin - Retribution 6P Bonus"
-459695,"Priest Racial Ability"
 456536,"S03 - Item - T1 - Paladin - Protection 2P Bonus"
 456538,"S03 - Item - T1 - Paladin - Protection 4P Bonus"
 456540,"Bastion of Light"
@@ -12149,6 +12149,7 @@ ID,Name_lang
 459617,"Legacy of Valor"
 459620,"[DNT] Spawn Challenge"
 459692,Swimming
+459695,"Priest Racial Ability"
 459736,"Warmed Rumsey with Cream"
 459837,"Shadow Ritual of Great Sacrifice"
 460001,"Summon Heliath"
@@ -14565,7 +14566,6 @@ ID,Name_lang
 1240337,"Test Profession"
 1240345,"Smelt Copper (Test)"
 1240571,"S03 - Item - Scarlet Enclave - Paladin - Shockadin 2P Bonus"
-1248739,Soulstaff
 1240573,"S03 - Item - Scarlet Enclave - Paladin - Shockadin 6P Bonus"
 1240692,"Fel Timbers"
 1240710,"Fel Flames"
@@ -14711,6 +14711,7 @@ ID,Name_lang
 1248672,"[DNT] Rimtori Ritual Trigger"
 1248682,"Destroy Seals"
 1248703,"Glimmering Staff"
+1248739,Soulstaff
 1248745,"Orb of Mystic Insight"
 1248748,"Orb of Souls"
 1248752,"Mystic Mushroom"
@@ -17393,6 +17394,21 @@ ID,Name_lang
 1327009,"(DNT) Immol'thar Encounter Record Aura"
 1327064,Hunger...
 1327211,"Cosmetic Aura"
+1327245,Warstomp
+1327736,"Elixir of Endless Intellect"
+1327737,"Elixir of Endless Power"
+1327738,"Elixir of Endless Healing"
+1327751,"Elixir of Endless Rapidity"
+1327753,"Elixir of Endless Opportunity"
+1327754,"Scroll of Endless Fortitude"
+1327926,"Ultra Hogger"
+1327961,"Giga Hogger"
+1327963,"Cosmic Hogger"
+1328022,Ding!
+1328032,"Elixir of Endless Mana"
+1328118,"Elixir of Endless Growth"
+1328119,"Scroll of Endless Speed"
+1328127,"Elixir of Endless Experience"
 1328198,"Echo of Light"
 1328206,"Echo of Wisdom"
 1328348,"Throw Violet Dust"
@@ -17415,6 +17431,28 @@ ID,Name_lang
 1329284,"Flash of Steel"
 1329285,"Boot Knife"
 1329554,"Reckless Swings"
+1330423,"Portal to Auberdine"
+1330426,"Portal to Southshore"
+1330427,"Portal to Theramore"
+1330428,"Portal to Menethil"
+1330431,"Portal to Grom'gol"
+1313392,"Summon Shen'dorei Wisp"
+1313504,"Create Item"
+1313543,"Arcane Marker"
+1313907,Dummy
+1313969,Opening
+1313978,"Frigid Depths"
+1314190,Cleansing
+1314294,"Tear of Anguish"
+1314330,"Arcanum of Binding"
+1314774,"Place Ancient Hilt"
+1314794,"Chilling Breath"
+1314917,"Wield Eluvi'tor"
+1314923,Binding
+1314956,"Beckon Ancient Spirit"
+1315056,"Ancient Wisdom"
+1315246,"Ping Pet"
+1321504,"Shen'dorei Spirit"
 1321233,"Spectral Wolf Pack"
 1323476,"Spirit of the Spectral Wolf Pack"
 1323493,"[DNT] Summon Spectral Wolf"
@@ -17427,10 +17465,226 @@ ID,Name_lang
 142904,"Blossoming Ancient Passive Effect"
 1236676,"Ensemble: Stillwater Fisher Attire"
 1325145,"Adventurer's Tent"
+1328862,Camping
 1321200,"Verdant Sea Turtle"
 308853,"Battle Pet Periodic"
 464808,Gill'el
 464847,Summon
+1240568,"Bell Turned On Dummy"
+1267176,Illusion
+1267189,"Summon Arcane Companion"
+1267192,"Summon Watery Companion"
+1267194,"Summon Fiery Companion"
+1271375,Blizzard
+1271419,Intruders!
+1271604,"Searing Scales"
+1271753,Shadowstep
+1271761,"Grievous Garrote"
+1275847,"Reveal Form"
+1277741,"Command: Bite!"
+1280011,"Rending Whirl"
+1280081,"Force Compliance"
+1280259,Convert
+1280262,"Shadow Infusion"
+1282071,"Frightening Howl"
+1282076,"Command: Kill!"
+1282386,"Mugg's Fury"
+1282393,"Set of Maces"
+1282394,"Set of Mauls"
+1282396,"Crushing Slam"
+1282504,"Monstrous Slam"
+1282511,"Undying Oath"
+1282517,"Rotted Strike"
+1282611,"Healing Wave"
+1282615,Harpoon
+1282842,Embrine
+1282860,"Waterbolt Volley"
+1282921,"Blood Rite"
+1283019,"Poisoned Blood"
+1283034,Bloodbolt
+1283073,Charge
+1283076,Strike
+1283081,"Shield Slam"
+1283083,"Shield Spike"
+1283086,Fireball
+1283087,"Curse of Blood"
+1283233,Deluge
+1283250,Drench
+1283266,"Drain Blood"
+1283295,Transform
+1283313,"Poison Bolt Volley"
+1283327,"Fatal Bite"
+1283347,"Horrifying Presence"
+1283361,"Curse of Weakness"
+1283362,"Shadow Bolt"
+1283364,Net
+1283365,"Shadow Shot"
+1283366,"Shadow Shell"
+1283390,"Sunder Armor"
+1283405,"Muscle Tear"
+1283407,"Shield Charge"
+1283409,Hex
+1283410,Frostbolt
+1283413,Cleave
+1283414,"Mortal Strike"
+1283416,"Poisonous Stab"
+1283419,"Frost Armor"
+1283421,"Lightning Bolt"
+1283423,Rend
+1283424,"Knock Away"
+1283425,"War Stomp"
+1283527,"Navis Mortis"
+1283586,"Profane Ritual"
+1283679,Shoot
+1283681,"Chain Lightning"
+1283684,"Permanent Feign Death"
+1283849,"Roll Dice!"
+1283854,"Seasalt Lager"
+1283855,"Brilliant Conflagration"
+1283866,Fishing
+1283934,Fear
+1284543,"Theramore Marine Disguise"
+1285368,"Gathering Intelligence"
+1285369,"Standing ""Guard"""
+1285370,DNT
+1285371,"Remove Disguise"
+1287127,"Cosmetic Lightning"
+1287151,Eating
+1287360,Threatening
+1287444,Stealth
+1287747,Berserk
+1287756,"Fiery Talons"
+1287872,"Tail Lash"
+1287876,"Trihorn Charge"
+1287886,Puncture
+1289213,"Conjure Spirit"
+1289279,"(DNT) Spawn Visuals"
+1289280,Souldrained
+1290463,"Powerful Slam"
+1290464,"Sonic Screech"
+1290472,"Crystal Selection"
+1290506,Energize
+1290510,Energized
+1290533,Thrash
+1290818,"Powering Up"
+1290858,"Pylon Powered"
+1290868,"(DNT) Primeval Elemental Freeze Self"
+1290947,"Blood Bolt"
+1290978,Waterbolt
+1290980,"Freeze Water"
+1291176,"Blast Wave"
+1291274,"Poison Cloud"
+1291301,Poison
+1291446,"(DNT) Drowned City Pearl Channel Visuals"
+1291448,"Disrupt Barrier"
+1291499,Dismissal
+1291515,Germinate
+1291516,Spores
+1291554,Blinded
+1291672,Regenesis
+1291692,"Throw Dynamite"
+1291712,"Head Smash"
+1291730,"Pierce Armor"
+1294312,"Mighty Blow"
+1294313,"Terrifying Roar"
+1295543,"Find Players"
+1300699,"(DNT) Beam Visuals"
+1300716,"Frost Nova"
+1300979,"(DNT) Unstable Components Cosmetic Aura"
+1300992,"Arcane Explosion"
+1300993,"Unstable Components"
+1300996,Parrotmorph
+1301001,"Arcane Fury"
+1301011,"Summon Arcane Wraith"
+1301017,"Arcane Idiocy"
+1301019,Shrunk
+1301023,"Keelhauler's Curse"
+1301218,"(DNT) Summon Crystal"
+1301223,"(DNT) Mount Vehicle"
+1301264,"(DNT) Cosmetic Aura"
+1301265,"Restorative Essence"
+1301299,"Blood Ritual"
+1301343,"(DNT) Deathless Marrow Intro Missiles"
+1301411,"(DNT) Deathless Marrow Intro Orb"
+1302039,"Curse of Tongues"
+1304536,"Lightning Strike"
+1304765,"(DNT) Darkness Effect"
+1304886,"(DNT) Death Transform"
+1306734,"Combine Insignias"
+1306800,"Alcaz Operative"
+1306816,"Bigger Rock to the Face"
+1307404,"[DNT] Teleport to The Drowned City"
+1308151,"Blue Transmutation"
+1308153,"Red Transmutation"
+1308154,"Yellow Transmutation"
+1308155,"Green Transmutation"
+1308171,"Blue Aura"
+1308172,"Red Aura"
+1308174,"Yellow Aura"
+1308175,"Green Aura"
+1308216,"Blue Infusion"
+1309189,Deathblow
+1309967,"Rock to the Face"
+1310251,Roar
+1310266,"Radiating Heat"
+1310505,Desaturate
+1310506,Activate
+1310512,Conflagration
+1310514,"Howling Blast"
+1310515,"Demoralizing Roar"
+1311505,"Grounded Electroshocks"
+1311844,"(DNT) Min'loth Cosmetic Aura"
+1323128,"[DNT] FPT - Westfall"
+1323129,"[DNT] FPT - Arathi"
+1323130,"[DNT] FPT - Wetlands"
+1323131,"[DNT] FPT - Badlands"
+1323132,"[DNT] FPT - Riverglades"
+1323133,"[DNT] FPT - Redridge"
+1323134,"[DNT] FPT - Hillsbrad"
+1323135,"[DNT] FPT - Duskwood"
+1323136,"[DNT] FPT - Stormwind"
+1324335,"[DNT] FPT - Ashenvale"
+1324336,"[DNT] FPT - Ashenvale, Splintertree Post"
+1324337,"[DNT] FPT - Ashenvale, Zoram'gar Outpost"
+1324338,"[DNT] FPT - Azshara"
+1324339,"[DNT] FPT - Blasted Lands"
+1324340,"[DNT] FPT - Burning Steppes"
+1324341,"[DNT] FPT - Darkshore"
+1324342,"[DNT] FPT - Desolace"
+1324343,"[DNT] FPT - Dustwallow Marsh"
+1324344,"[DNT] FPT - Eastern Plaguelands"
+1324345,"[DNT] FPT - Felwood"
+1324346,"[DNT] FPT - Feralas"
+1324347,"[DNT] FPT - Feralas, Feathermoon"
+1324348,"[DNT] FPT - Feralas,Thalanaar"
+1324349,"[DNT] FPT - Ironforge"
+1324350,"[DNT] FPT - Loch Modan"
+1324351,"[DNT] FPT - Moonglade"
+1324352,"[DNT] FPT - Mount Hyjal, Summit of Eternity"
+1324353,"[DNT] FPT - Mount Hyjal, Tainted Foothills"
+1324354,"[DNT] FPT - Orgrimmar"
+1324355,"[DNT] FPT - Searing Gorge"
+1324356,"[DNT] FPT - Silithus"
+1324357,"[DNT] FPT - Silverpine Forest"
+1324358,"[DNT] FPT - Stonetalon Mountains"
+1324359,"[DNT] FPT - Stranglethorn"
+1324360,"[DNT] FPT - Stranglethorn, Booty Bay"
+1324361,"[DNT] FPT - Stranglethorn, Grom'gol"
+1324362,"[DNT] FPT - Swamp of Sorrows"
+1324363,"[DNT] FPT - Tanaris"
+1324364,"[DNT] FPT - Teldrassil"
+1324365,"[DNT] FPT - The Barrens"
+1324366,"[DNT] FPT - The Barrens, Camp Taurajo"
+1324367,"[DNT] FPT - The Barrens, Crossroads"
+1324368,"[DNT] FPT - The Barrens, Ratchet"
+1324369,"[DNT] FPT - The Hinterlands"
+1324370,"[DNT] FPT - Thousand Needles"
+1324371,"[DNT] FPT - Thunder Bluff"
+1324372,"[DNT] FPT - Undercity"
+1324373,"[DNT] FPT - Un'Goro Crater"
+1324374,"[DNT] FPT - Western Plaguelands"
+1324375,"[DNT] FPT - Winterspring"
+1324635,Wormhole
 1318286,"Summon Azurky"
 1321221,"Crimson Rooster"
 8327,Suicide
@@ -17668,6 +17922,7 @@ ID,Name_lang
 1240287,Charge
 1240288,Charge
 1240289,Charge
+1328028,Charge
 6772,Trip
 463001,"Time Step"
 1221794,"Time Step"
@@ -18249,6 +18504,7 @@ ID,Name_lang
 1270201,"Chain Lightning"
 1303551,"Chain Lightning"
 1321196,"Chain Lightning"
+1328034,"Chain Lightning"
 1348,Earthquake
 19798,Earthquake
 431,Drink
@@ -18267,6 +18523,7 @@ ID,Name_lang
 29007,Drink
 446714,Drink
 468767,Drink
+1330734,Drink
 434,Food
 435,Food
 1127,Food
@@ -19236,6 +19493,8 @@ ID,Name_lang
 1232676,Cleave
 1232677,Cleave
 1327248,Cleave
+1327716,Cleave
+1328013,Cleave
 800,"Twin Teleport"
 1217328,"Twin Teleport"
 1217333,"Twin Teleport"
@@ -19347,7 +19606,6 @@ ID,Name_lang
 23931,Thunderclap
 26554,Thunderclap
 1213464,Thunderclap
-1327245,Thunderclap
 6231,"Holy Ward"
 6494,"Mind Bomb"
 1353,"Group Astral Recall"
@@ -20623,6 +20881,7 @@ ID,Name_lang
 31688,"Frost Breath"
 425895,"Frost Breath"
 1266641,"Frost Breath"
+1327657,"Frost Breath"
 1236125,"Rend Flesh"
 1309069,"Rend Flesh"
 9791,"Head Crack"
@@ -22003,6 +22262,7 @@ ID,Name_lang
 1220545,"Holy Power"
 1220546,"Holy Power"
 1226461,"Holy Power"
+1310077,"Holy Power"
 5928,"Holy Focus"
 5929,"Holy Focus"
 424799,Shiv
@@ -22101,6 +22361,7 @@ ID,Name_lang
 23470,"Lesser Healthstone"
 23471,"Lesser Healthstone"
 8260,"Rushing Charge"
+1327726,"Rushing Charge"
 8136,"Naralex's Awakening"
 18289,"Creeping Mold"
 6281,"Pet Hardiness"
@@ -23433,6 +23694,7 @@ ID,Name_lang
 21553,"Mortal Strike"
 24573,"Mortal Strike"
 27580,"Mortal Strike"
+1328019,"Mortal Strike"
 1248647,"Increase Nature Dam 20"
 25109,"Increase Spell Dam 8"
 446470,"Increase Healing 18"
@@ -24251,6 +24513,7 @@ ID,Name_lang
 19132,"Mighty Blow"
 29685,"Terrifying Roar"
 1324618,"Terrifying Roar"
+1327713,"Terrifying Roar"
 15652,"Head Smash"
 1292039,Spikes
 16407,"Frost Blast"
@@ -24677,6 +24940,8 @@ ID,Name_lang
 1289129,Hurricane
 1289130,Hurricane
 1316319,Hurricane
+1328040,Hurricane
+1328041,Hurricane
 19609,"Thick Hide"
 1306459,"Thick Hide"
 1314143,"Ancestor's Vengeance"
@@ -25300,6 +25565,7 @@ ID,Name_lang
 428728,Frenzy
 431606,Frenzy
 1215755,Frenzy
+1327978,Frenzy
 21047,"Corrosive Acid Spit"
 24467,"Improved Serpent Sting"
 19655,"Tainted Blood"
@@ -25811,10 +26077,14 @@ ID,Name_lang
 23492,"Separation Anxiety"
 464629,Manastorm
 464630,Manastorm
+1327984,Manastorm
+1327987,Manastorm
 28534,Chill
 28547,Chill
 1219357,Chill
 1308651,Chill
+1327989,Chill
+1327990,Chill
 21174,"Aura of Battle"
 21172,"Grip of Command"
 21149,"Egg Nog"
@@ -25915,6 +26185,7 @@ ID,Name_lang
 22008,"Netherwind Focus"
 22811,"Increased Crossbow"
 27744,"Increased Crossbow"
+1330841,"Summon Flare Gun DND"
 22192,"Heated Ground"
 22193,"Heated Ground"
 22194,"Heated Ground"
@@ -26083,7 +26354,9 @@ ID,Name_lang
 23013,"Summon Orphan"
 459599,"Mana Shield Absorb Increase"
 461962,"Call Anathema"
+1327991,"Call Anathema"
 461961,"Call Benediction"
+1327993,"Call Benediction"
 459604,"Mind Blast Cast Pushback Reduction"
 459607,"Searing Pain Cast Pushback Reduction"
 459605,"Sprint Duration Increase"
@@ -26881,7 +27154,6 @@ ID,Name_lang
 467762,"Despawn Self"
 1231902,"Despawn Self"
 1237638,"Despawn Self"
-1310077,"Greater Firepower"
 26418,"Small Red Rocket"
 26416,"Small Blue Rocket"
 26417,"Small Green Rocket"
@@ -27449,11 +27721,16 @@ ID,Name_lang
 48318,Retch!
 51230,Retch!
 1327082,"You're Infected!"
+48953,Infect!
 56528,"Zombie Explosion!"
 55720,"You're a...! (NPC)"
 55721,"You're a...! (NPC)"
 55722,"You're a...! (NPC)"
 55723,"You're a...! (NPC)"
+55724,"You're a...! (NPC)"
+55725,"You're a...! (NPC)"
+55726,"You're a...! (NPC)"
+55727,"You're a...! (NPC)"
 401724,"Hot Streak"
 56787,"Zombie Spawn"
 415706,"The Art of War"
@@ -28813,6 +29090,10 @@ ID,Name_lang
 1231900,"Summon Infernal"
 1231901,"Summon Infernal"
 1231906,"Summon Infernal"
+1328067,"Summon Infernal"
+1328068,"Summon Infernal"
+1328069,"Summon Infernal"
+1328117,"Summon Infernal"
 437846,"Infernal Presence"
 437922,"Infernal Presence"
 1231897,"Infernal Presence"
@@ -29891,6 +30172,8 @@ ID,Name_lang
 1245683,"Fel Pervasion Visual"
 1217683,"(DNT) Summon Kharon"
 1217868,"Intolerable Heat"
+1330429,"Portal to Undercity"
+1330430,"Portal to Orgrimmar"
 1218092,Quietude
 1218988,"Subjugated Spinners"
 1218271,"Authority of the Frozen Wastes"
@@ -31185,6 +31468,7 @@ ID,Name_lang
 1252183,Cable
 1252512,"Lower Lift"
 1252576,"Savory Whimsyfin Delight"
+1330181,"Portal to Dalaran"
 1253356,Timer
 1253372,Timer
 1253946,Timer
@@ -31594,6 +31878,7 @@ ID,Name_lang
 1283825,"Chef's Hat"
 1284701,"Sprinkle Concoction"
 1284041,"Portal to Stormwind"
+1330425,"Portal to Stormwind"
 1284194,"Summon Hippogryph"
 1284195,"Summon Hippogryph"
 1299525,"Elbow Grease Applied"
@@ -31778,6 +32063,7 @@ ID,Name_lang
 1310029,"Comprehend Scroll"
 1310030,"Comprehend Scroll"
 1296076,"Caught Sheep"
+1328261,"Caught Sheep"
 1296347,"Emboldened Training"
 1296348,"Emboldened Training"
 1296349,"Emboldened Training"
@@ -31891,6 +32177,8 @@ ID,Name_lang
 1323433,Dummy
 1326363,Dummy
 1329183,Dummy
+1330836,Dummy
+1330842,Dummy
 1306811,"Lunar Rage"
 1306891,"Lunar Rage"
 1306934,"Yjn'raathma, Sword of the Still Wind"
@@ -32060,6 +32348,7 @@ ID,Name_lang
 1324895,"Override Interact Radius"
 1324903,"Override Interact Radius"
 1324906,"Override Interact Radius"
+1330855,"Gloves of Holy Might"
 1325535,"Improving Form"
 1325754,"Call Guard"
 1326168,"Dark Inspiration"
@@ -32078,11 +32367,126 @@ ID,Name_lang
 1328826,Poised
 1328827,Poised
 1328829,Poised
+1330741,Poised
+1330746,Poised
+1330763,Poised
+1330765,Poised
 1329286,"Boot Knife"
 1329555,"Reckless Swings"
+1313642,"Create Item"
+1314266,"Create Item"
+1314742,"Create Item"
+1314986,"Create Item"
+1321040,"Create Item"
+1321097,"Create Item"
+1313545,"Arcane Marker"
+1313580,"Arcane Marker"
+1314003,"Arcane Marker"
+1314004,"Arcane Marker"
+1314017,"Arcane Marker"
+1314019,"Arcane Marker"
+1314025,"Arcane Marker"
+1314111,"Arcane Marker"
+1314699,Dummy
+1314761,Dummy
+1314922,Dummy
+1314930,Dummy
+1314940,Dummy
+1314960,Dummy
+1315044,Dummy
+1315045,Dummy
+1315047,Dummy
+1315234,Dummy
+1315261,Dummy
+1315309,Dummy
+1313983,"Frigid Depths"
+1314297,Cleansing
+1314331,"Arcanum of Binding"
+1314858,"Chilling Breath"
+1314931,Binding
+1315067,"Ancient Wisdom"
+1315088,"Ancient Wisdom"
 1322724,"Spectral Wolf Pack"
 1323449,"Spectral Wolf Pack"
 1323877,"Spectral Wolf Pack"
 1323902,"Spirit of the Spectral Wolf Pack"
 1323903,"Spirit of the Spectral Wolf Pack"
 1325147,"Adventurer's Tent"
+1271394,Blizzard
+1291167,Blizzard
+1291168,Blizzard
+1296130,"Rending Whirl"
+1280082,"Force Compliance"
+1280085,"Force Compliance"
+1280265,"Shadow Infusion"
+1282082,"Command: Kill!"
+1282387,"Mugg's Fury"
+1282397,"Crushing Slam"
+1282519,"Rotted Strike"
+1283422,"Healing Wave"
+1283680,"Healing Wave"
+1282659,Harpoon
+1282746,Harpoon
+1282753,Harpoon
+1282843,Embrine
+1282844,Embrine
+1282845,Embrine
+1283033,"Blood Rite"
+1283027,"Poisoned Blood"
+1283234,Deluge
+1283237,Deluge
+1283238,Deluge
+1283239,Deluge
+1283241,Deluge
+1283269,"Drain Blood"
+1304773,Transform
+1310365,"Poison Bolt Volley"
+1283348,"Horrifying Presence"
+1289322,"Shadow Bolt"
+1283420,Frostbolt
+1300715,Frostbolt
+1310353,Frostbolt
+1294310,"Mortal Strike"
+1290536,Rend
+1283531,"Navis Mortis"
+1291380,"Chain Lightning"
+1310513,"Chain Lightning"
+1313471,Fear
+1287879,"Trihorn Charge"
+1289276,"Conjure Spirit"
+1289302,"Conjure Spirit"
+1290507,Energize
+1290508,Energize
+1290509,Energize
+1290511,Energized
+1290512,Energized
+1290513,Energized
+1290819,"Powering Up"
+1290822,"Powering Up"
+1290823,"Powering Up"
+1290983,"Freeze Water"
+1291313,"Poison Cloud"
+1299337,"Disrupt Barrier"
+1291517,Germinate
+1291548,Germinate
+1310146,Regenesis
+1310148,Regenesis
+1310151,Regenesis
+1301016,"Frost Nova"
+1310354,"Frost Nova"
+1301471,"(DNT) Deathless Marrow Intro Orb"
+1310142,"Lightning Strike"
+1310516,"Lightning Strike"
+1304898,"(DNT) Death Transform"
+1313687,"(DNT) Death Transform"
+1308215,"Blue Transmutation"
+1308220,"Red Transmutation"
+1308221,"Red Transmutation"
+1308222,"Yellow Transmutation"
+1308223,"Yellow Transmutation"
+1308224,"Green Transmutation"
+1308225,"Green Transmutation"
+1310267,"Radiating Heat"
+1310507,Activate
+1310508,Activate
+1310509,Activate

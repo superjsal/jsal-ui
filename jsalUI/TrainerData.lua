@@ -391,6 +391,6 @@ ns.TrainerData = {
         { npc = 2704, name = "Hanashi", tag = "Weapon Master", map = 1454, x = 0.8142, y = 0.1931, a = false, h = true, teaches = { 196, 197, 227, 264, 2567 } },
         { npc = 11866, name = "Ilyenia Moonfire", tag = "Weapon Master", map = 1457, x = 0.578, y = 0.465, a = true, h = false, teaches = { 227, 264, 1180, 2567, 15590 } },
         { npc = 11868, name = "Sayoc", tag = "Weapon Master", map = 1454, x = 0.8151, y = 0.1933, a = false, h = true, teaches = { 196, 197, 264, 1180, 2567, 15590 } },
-        { npc = 11867, name = "Woo Ping", tag = "Weapon Master", map = 1453, x = 0.6381, y = 0.6897, a = true, h = false, teaches = { 200, 201, 202, 227, 1180, 5011 } },
+        { npc = 11867, name = "Woo Ping", tag = "Weapon Master", map = 1453, x = 0.6387, y = 0.6899, a = true, h = false, teaches = { 200, 201, 202, 227, 1180, 5011 } },
     },
 }
