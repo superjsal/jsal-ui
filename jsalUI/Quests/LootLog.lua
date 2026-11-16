@@ -40,6 +40,12 @@ ns.LootLog = LootLog
 
 LootLog.FLOOR = 10      -- tries an item needs before its chance is said
 local CORPSES = 300     -- corpses remembered as counted, before the oldest are let go
+-- Kinds of creature kept, before the one looted longest ago is let go: every kind you loot
+-- while a quest wants an item is kept, and nothing ever went.
+LootLog.CREATURES = 500
+-- An item's finds and tries, kept until a loot changes them: every quest tag asks for each of
+-- its items each time it's drawn, and each ask went through every creature kept.
+local seenFor, seenIn = {}, nil
 
 -- The saved counts: creatures[name] = { n = loots, tries = { [item] = n }, finds = { [item] = n } },
 -- and ids[item name] = item ID, for the build that ships them.
@@ -156,12 +162,22 @@ function LootLog.Count(creature, wanted, found)
     local log = Log()
     local c = log.creatures[creature]
     if type(c) ~= "table" then
+        -- Room for a new kind: past the limit, the one looted longest ago goes.
+        local count, oldest, oldestAt = 0, nil, nil
+        for name, other in pairs(log.creatures) do
+            count = count + 1
+            local t = type(other) == "table" and tonumber(other.t) or 0
+            if not oldestAt or t < oldestAt then oldest, oldestAt = name, t end
+        end
+        if count >= LootLog.CREATURES and oldest then log.creatures[oldest] = nil end
         c = { n = 0, tries = {}, finds = {} }
         log.creatures[creature] = c
     end
     c.tries = type(c.tries) == "table" and c.tries or {}
     c.finds = type(c.finds) == "table" and c.finds or {}
     c.n = (tonumber(c.n) or 0) + 1
+    c.t = Compat.ServerTime()
+    seenFor = {}
     for lower, name in pairs(wanted) do
         c.tries[name] = (c.tries[name] or 0) + 1
         if found[lower] then
@@ -178,8 +194,12 @@ end
 function LootLog.Seen(itemName)
     if type(itemName) ~= "string" then return 0, 0 end
     local lower = itemName:lower()
+    local creatures = Log().creatures
+    if seenIn ~= creatures then seenFor, seenIn = {}, creatures end
+    local kept = seenFor[lower]
+    if kept then return kept[1], kept[2] end
     local finds, tries = 0, 0
-    for _, c in pairs(Log().creatures) do
+    for _, c in pairs(creatures) do
         if type(c) == "table" and type(c.finds) == "table" then
             for name, n in pairs(c.finds) do
                 if name:lower() == lower and n > 0 then
@@ -189,8 +209,12 @@ function LootLog.Seen(itemName)
             end
         end
     end
+    seenFor[lower] = { finds, tries }
     return finds, tries
 end
+
+-- What's kept of the counts is forgotten: for anything that changes them from outside a loot.
+function LootLog.Forget() seenFor = {} end
 
 -- The chance a creature that has a quest item has it (0 to 1), and how many loots that's from; or
 -- nil while the part is off or the loots are fewer than FLOOR. The quest isn't needed to find it,
@@ -297,6 +321,7 @@ local function Called(kind, name)
                 end
             end
             log.creatures[numbered] = nil
+            seenFor = {}
         end
     end
     return log.names[kind] or numbered

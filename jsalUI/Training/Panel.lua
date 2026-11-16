@@ -951,11 +951,19 @@ function Panel:OnEnable()
     for _, event in ipairs({ "PLAYER_MONEY", "SPELLS_CHANGED", "PLAYER_LEVEL_UP", "UNIT_PET", "TRAINER_UPDATE" }) do
         pcall(events.RegisterEvent, events, event)
     end
+    -- A burst of news is one repaint. Each spell bought brings three of these, and each
+    -- asked for a repaint of its own: Train all for ten spells read your spells, every saved
+    -- trainer and the whole panel thirty times over.
+    local queued = false
     events:SetScript("OnEvent", function(_, event)
         if event == "ADDON_LOADED" then
             Hook()
-        elseif panel and panel:IsShown() then
-            Compat.After(0.2, Refresh)
+        elseif panel and panel:IsShown() and not queued then
+            queued = true
+            Compat.After(0.2, function()
+                queued = false
+                Refresh()
+            end)
         end
     end)
     self.events = events

@@ -273,11 +273,18 @@ end
 -- Edit Mode can't hide it. Faded and unclickable rather than hidden, as the
 -- game shows it again by itself; only put back if it was this that faded it.
 -- (John, 16 Nov 2026: "yes hide it while the flight bar shows".)
-local exitFaded = false
+local exitFaded, exitWanted = false, false
 local function GameExit(hide)
+    exitWanted = hide
     local button = MainMenuBarVehicleLeaveButton
     if not button or hide == exitFaded then return end
-    if InCombatLockdown and InCombatLockdown() then return end
+    -- It can't be touched in a fight: done once the fight is over, as things stand then. Left
+    -- at that, a flight that ended in a fight kept the button unseen and unclickable until the
+    -- next flight.
+    if InCombatLockdown and InCombatLockdown() then
+        ns.AfterCombat(function() GameExit(exitWanted) end)
+        return
+    end
     button:SetAlpha(hide and 0 or 1)
     button:EnableMouse(not hide)
     exitFaded = hide

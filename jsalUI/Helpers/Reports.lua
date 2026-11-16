@@ -190,9 +190,22 @@ end
 -- confirmed, and its sender drops it.
 ---------------------------------------------------------------------------
 local partial = {}
+local KEEP_IN = 200   -- reports kept on the taker's side; past it the oldest go
 
+-- Whether a name is in your guild, by its roster; with no roster in yet, nobody is.
+local function Guildmate(name)
+    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
+        local full = GetGuildRosterInfo(i)
+        if full and Ambiguate(full, "none") == name then return true end
+    end
+    return false
+end
+
+-- Only from a guildmate: a whisper on the hidden channel can come from anyone, and whatever
+-- anyone sent was kept, with no end to how much. (One not let in is sent again by its
+-- sender's jsal.ui later, so a roster that's late loading loses nothing.)
 local function Received(payload, name, _, sender)
-    if not Reports.Receiving() then return end
+    if not Reports.Receiving() or not Guildmate(name) then return end
     local id, i, n, piece = (payload or ""):match("^(%x+);(%d+);(%d+);(.*)$")
     i, n = tonumber(i), tonumber(n)
     if not id or n < 1 or n > MAX_PARTS or i < 1 or i > n then return end
@@ -217,6 +230,7 @@ local function Received(payload, name, _, sender)
         In()[#In() + 1] = { id = id, from = name, at = Compat.ServerTime(), text = text or "",
                             details = details or "", error = err or "" }
         ns.Print(("A problem report from %s: %s"):format(name, text or ""))
+        while #In() > KEEP_IN do table.remove(In(), 1) end
     end
     Comms.Send("BA", id, "WHISPER", sender)
 end
