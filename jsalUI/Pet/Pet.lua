@@ -3822,6 +3822,10 @@ end
 Pet.PLAY = { stroke = 8, strokes = 3, rest = 1.2, hide = 30, quiet = 20, every = { 150, 330 }, wished = { 15, 35 },
     flash = 4, gaps = { mail = 60, whisper = 20 } }
 Pet.Dice = math.random
+-- What it does of its own accord (IDLE, ON_THE_GO, poorly), and its lean:
+-- a stroke breaks off any of these, and it leans into your hand. (Mid-sit
+-- or mid-yawn, it took the strokes and the hearts rose, but it didn't lean.)
+Pet.FIDGETS = { lean = true, sit = true, idle = true, special = true, yawn = true, dig = true, poorly = true }
 -- The hiding places, one for each scene in the order of SCENES, in
 -- hides.png (tools/make_pet_hides.py): 48-pixel cells, each thing standing
 -- on its cell's bottom edge, drawn twice its size in the pen's bottom left
@@ -3933,7 +3937,8 @@ function Pet.Stroking(sheet, dt)
     -- turning with every pass of the pointer had it flip to and fro.
     rub.facing = rub.facing or (x < walk.x + size / 2 and "left" or "right")
     walk.facing = rub.facing
-    if not walk.act or walk.act.name == "lean" then Pet.Play(walk, sheet, "lean") end
+    -- Something it was doing of its own accord, it leaves off for your hand.
+    if not walk.act or Pet.FIDGETS[walk.act.name] then Pet.Play(walk, sheet, "lean") end
     Pet.Heart()
     if rub.strokes == Pet.PLAY.strokes then
         local _, what = Rules.Stroke(s, Now())
