@@ -9,7 +9,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
     "The Gear plan no longer gets stuck checking: it settles by itself, no /reload needed",
-    "The dungeon guide lists loot for every boss from 50 to 60 and the raids; other classes' loot folds away",
+    "Stat weights from WoWSims Forever's latest, and fresher spells, quest tags, trainers and vendors",
     "Coming from 0.3.42 or earlier, restart the game: 0.3.43 added files",
 }
 
