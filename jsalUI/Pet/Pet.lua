@@ -3880,7 +3880,7 @@ function Pet.Heart()
 end
 
 -- Stroked: the pointer moved to and fro over it, in its pen or out with
--- you. Each stroke it stops, turns to your hand and leans into it, eyes
+-- you. Each stroke it stops, faces your hand and leans into it, eyes
 -- shut, and a heart rises; a few strokes and it's pleased: its own happy
 -- dance, and the bond hears of it (Rules.Stroke, once a day). Called each
 -- frame it's awake; true on a stroke.
@@ -3919,7 +3919,10 @@ function Pet.Stroking(sheet, dt)
     play.touched = Pet.tick or 0
     walk.chase, walk.running, walk.whim = nil, nil, nil
     walk.tx, walk.ty, walk.wait = walk.x, walk.y, math.max(walk.wait, 1.5)
-    walk.facing = x < walk.x + size / 2 and "left" or "right"
+    -- It turns to your hand once, on the first stroke, and stays that way:
+    -- turning with every pass of the pointer had it flip to and fro.
+    rub.facing = rub.facing or (x < walk.x + size / 2 and "left" or "right")
+    walk.facing = rub.facing
     if not walk.act or walk.act.name == "lean" then Pet.Play(walk, sheet, "lean") end
     Pet.Heart()
     if rub.strokes == Pet.PLAY.strokes then
