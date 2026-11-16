@@ -28,7 +28,7 @@ local function Greys()
             local item = Compat.BagItem(bag, slot)
             if item and item.quality == POOR and not item.hasNoValue and not item.isLocked then
                 local price = item.hyperlink and Compat.SellPrice(item.hyperlink) or 0
-                list[#list + 1] = { bag = bag, slot = slot, value = (price or 0) * (item.stackCount or 1) }
+                list[#list + 1] = { bag = bag, slot = slot, id = item.itemID, value = (price or 0) * (item.stackCount or 1) }
             end
         end
     end
@@ -45,17 +45,24 @@ local function Report(repaired, sold, earned)
 end
 
 -- Sells a few at a time, a moment apart, and stops if the vendor closes.
-local function Sell(list, start, repaired, earned)
-    if not open then return Report(repaired, start - 1, earned) end
+-- A slot is sold only if it still holds the grey that was listed: between one handful and
+-- the next something else can land there, and it was sold for a grey.
+local function Sell(list, start, repaired, earned, sold)
+    sold = sold or 0
+    if not open then return Report(repaired, sold, earned) end
     local last = math.min(start + BATCH - 1, #list)
     for i = start, last do
-        Compat.UseBagItem(list[i].bag, list[i].slot)
-        earned = earned + list[i].value
+        local entry = list[i]
+        local now = Compat.BagItem(entry.bag, entry.slot)
+        if now and now.itemID == entry.id and now.quality == POOR and not now.hasNoValue and not now.isLocked then
+            Compat.UseBagItem(entry.bag, entry.slot)
+            earned, sold = earned + entry.value, sold + 1
+        end
     end
     if last < #list then
-        Compat.After(0.3, function() Sell(list, last + 1, repaired, earned) end)
+        Compat.After(0.3, function() Sell(list, last + 1, repaired, earned, sold) end)
     else
-        Report(repaired, #list, earned)
+        Report(repaired, sold, earned)
     end
 end
 

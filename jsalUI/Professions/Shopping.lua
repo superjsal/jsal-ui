@@ -361,6 +361,9 @@ local function Build()
         end)
         frame.shopLines[i] = b
     end
+    -- "and 3 more crafts": what a list is too long to show still counts, and says so.
+    frame.more = {}
+    for i = 1, 3 do frame.more[i] = Style.Text(frame, 11, "muted") end
     frame.empty = Style.Text(frame, 12, "muted")
     frame.empty:SetWidth(WIDTH - PAD * 2)
     frame.empty:SetText("Nothing on the list yet. Add an item above, a craft from the profession window, or the road from jsal.ui's profession panel.")
@@ -537,6 +540,18 @@ Paint = function()
         end)
     end
 
+    -- A list longer than its rows says how many more there are: they were left out without
+    -- a word, and still counted in what's left to get.
+    local mores = 0
+    local function More(n, words)
+        if n <= 0 then return end
+        mores = mores + 1
+        local t = frame.more[mores]
+        t:SetText(words:format(n))
+        Place(t, y + 2)
+        y = y + 20
+    end
+
     -- Crafts, by name.
     local crafts = {}
     for spell, count in pairs(s.crafts) do crafts[#crafts + 1] = { spell = spell, count = count, recipe = Recipe(spell) } end
@@ -556,6 +571,7 @@ Paint = function()
             Buttons(r, s.crafts, c.spell)
             y = y + ROW_H
         end
+        More(#crafts - MAX_CRAFTS, "and %d more not shown, counted below")
         y = y + 6
     else
         frame.craftsHead:Hide()
@@ -583,6 +599,7 @@ Paint = function()
             Buttons(r, s.items, e.item)
             y = y + ROW_H
         end
+        More(#items - MAX_ITEMS, "and %d more not shown, counted below")
         y = y + 6
     else
         frame.itemsHead:Hide()
@@ -671,11 +688,13 @@ Paint = function()
         -- ("WORLDabout 30g", John's screenshot of 14 Nov 2026).
         Group("AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
         Group("YOU HAVE ENOUGH", nil, enough)
+        More(#vendor + #other + #enough - listed, "and %d more not shown, counted in the total")
     else
         frame.buyHead:Hide()
     end
     for i = groups + 1, #frame.groups do frame.groups[i]:Hide() end
     for i = shopLines + 1, #frame.shopLines do frame.shopLines[i]:Hide() end
+    for i = mores + 1, #frame.more do frame.more[i]:Hide() end
     for i = used + 1, #rows do rows[i]:Hide() end
 
     local empty = #crafts == 0 and #items == 0
