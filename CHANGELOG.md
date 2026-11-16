@@ -1,4 +1,9 @@
-# jsal.ui 0.3.51
+# jsal.ui 0.3.52
+
+- **Quest reward star.** When a quest lets you choose a reward, a gold star marks the one the Gear plan scores the biggest upgrade for your spec, in the quest window, the quest log and the map. Point at a reward for how much better it is for you ("Best of these for you: +4%"). Nothing is starred when no reward is better than what you wear. Turn it on in Settings, Leveling: Quest reward star.
+- **Pet feeding, for hunters.** While your pet is out and not happy, a glowing tile shows beside the food reminder: click it to feed your pet, or point at it for the food in your bags your pet eats and click one. It hides in a fight and once your pet is happy, and drags anywhere. Turn it on in Settings, Around the UI: Pet feeding.
+
+## In 0.3.51
 
 - **Jsal's Pals: more to do together.** Move the pointer to and fro over your pal to stroke it: it leans into your hand with its eyes shut, and after a few strokes does a happy dance of its own. Now and then it hides in its pen behind a bush or a rock: click where it is to find it. While you quest it sometimes finds a little something, a few things in every zone, and keeps them on a new shelf on its page. And it perks up when mail comes (it brings you a letter) or someone whispers you. Catching a tossed treat is easier to time: the treat sparkles and your pal gets ready to leap for the moment it can be caught, and that moment is about twice as long. All of it comes with Jsal's Pals, with nothing to turn on.
 - **Gear plan: "of Frozen Wrath" and other one-school greens count.** Spell damage of one school, like a Frost, Fire or Shadow Wrath green's, now counts for the trees that cast it, by WoWSims' own weights: fully for a Frost mage's Frost or a Shadow priest's Shadow, in part where a tree casts two schools, and not at all for anyone else.
