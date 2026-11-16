@@ -60,7 +60,7 @@ local BOOK_PAGE = 4
 local SIZES = { 64, 96, 128 }
 -- How far down the pen the grass starts: its feet stay below this.
 local GRASS = 110
-local WIN_W, WIN_H = PEN_W + PAD * 2, 600
+local WIN_W, WIN_H = PEN_W + PAD * 2, 666
 local HEAP_W = 32       -- a dropping, and the bowl, treat and ball: 32-pixel pictures
 local SPEED = 40          -- pixels a second
 local STEP_TIME = 0.28    -- seconds each walking frame shows
@@ -170,10 +170,13 @@ function Pet.Tossed(t)
     return -0.45 - 0.5 * t + 5.2 * t * (1 - t), t >= CATCH_FROM and t <= CATCH_TO
 end
 -- What can be on its mind, as a small bubble over its head: the cell of
--- bubble.png (tools/make_pet_bubble.py) for each. A bubble comes up for
+-- bubble.png (tools/make_pet_bubble.py) for each, eight to a row. And what
+-- it's telling you about (Pet.Flash): someone whispered you, mail has come,
+-- and from `gift` on, each thing it can find (Rules.TRINKETS, in order). A bubble comes up for
 -- BUBBLE_FOR seconds in every BUBBLE_EVERY; a wish, which is there all day
 -- until it's granted, only one time in three, so it doesn't nag.
-local BUBBLES = { hungry = 0, scoop = 1, dirty = 2, bored = 3, poorly = 4, wish = 5, bags = 6 }
+local BUBBLES = { hungry = 0, scoop = 1, dirty = 2, bored = 3, poorly = 4, wish = 5, bags = 6, whisper = 7, letter = 8, gift = 9 }
+Pet.BUBBLES = BUBBLES
 local BUBBLE_EVERY, BUBBLE_FOR, BAGS_FULL = 24, 6, 4
 -- Its pen is in the kind of country you're in: a scene for each kind (each
 -- with a sunset and a night of its own, tools/make_pet_night.py), by zone.
@@ -306,6 +309,13 @@ local function Packed(file, lay)
     for row, anim in ipairs({ { "run", 0.08 }, { "cheer", 0.11 }, { "dig", 0.11 }, { "yawn", 0.16 }, { "catch", 0.1 } }) do
         sheet[anim[1]] = { first = (row - 1) * 10, count = 8, time = anim[2], file = more, cell = 96, w = 1024, h = 512 }
     end
+    -- Stroked, it leans into your hand with its eyes shut: one frame of its
+    -- yawn, the one where they're shut (`lay.calm`, counted from 0), held a
+    -- moment and held again with each stroke (Pet.Stroking).
+    sheet.lean = { first = sheet.yawn.first + (lay.calm or 0), count = 1, time = 0.6, file = more, cell = 96, w = 1024, h = 512 }
+    -- Hiding, it crouches where it is: the last frame of sitting down, held
+    -- for as long as it hides (Pet.HideStep sets how long).
+    sheet.crouch = { first = sheet.sit.first + sheet.sit.count - 1, count = 1, time = 1 }
     -- A first form has one more again: its egg rocking, cracking and
     -- breaking open round it, ten frames in a row (tools/make_pet_hatch.py).
     if lay.hatch then
@@ -313,39 +323,40 @@ local function Packed(file, lay)
     end
     return sheet
 end
+-- (`calm` in each: which frame of its yawn has its eyes shut, for Pet.Stroking.)
 local SHEETS = {
-    briarboar = Packed("briarboar_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    thornhog = Packed("thornhog_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    brambletusk = Packed("brambletusk_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    wispkin = Packed("wispkin_sheet", { hatch = true }),
-    gloamtail = Packed("gloamtail_sheet"),
-    wispjester = Packed("wispjester_sheet", { cell = 80, cols = 12, w = 1024, h = 512 }),
-    scrapwing = Packed("scrapwing_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    jabdrake = Packed("jabdrake_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    flarechamp = Packed("flarechamp_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    stormcub = Packed("stormcub_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    thundermane = Packed("thundermane_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    tempestmane = Packed("tempestmane_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    capling = Packed("capling_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    lanternshell = Packed("lanternshell_sheet", { cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    bloomsage = Packed("bloomsage_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    boltusk = Packed("boltusk_sheet", { hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    rumbletrunk = Packed("rumbletrunk_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    warmammoth = Packed("warmammoth_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    gemlet = Packed("gemlet_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    miragehoof = Packed("miragehoof_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    sandseer = Packed("sandseer_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    pebblebill = Packed("pebblebill_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    cobbleback = Packed("cobbleback_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    rockwarden = Packed("rockwarden_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    snowlet = Packed("snowlet_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    frostmantle = Packed("frostmantle_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    briarboar = Packed("briarboar_sheet", { calm = 6, hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    thornhog = Packed("thornhog_sheet", { calm = 5, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    brambletusk = Packed("brambletusk_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    wispkin = Packed("wispkin_sheet", { calm = 4, hatch = true }),
+    gloamtail = Packed("gloamtail_sheet", { calm = 0 }),
+    wispjester = Packed("wispjester_sheet", { calm = 0, cell = 80, cols = 12, w = 1024, h = 512 }),
+    scrapwing = Packed("scrapwing_sheet", { calm = 6, hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    jabdrake = Packed("jabdrake_sheet", { calm = 6, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    flarechamp = Packed("flarechamp_sheet", { calm = 6, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    stormcub = Packed("stormcub_sheet", { calm = 5, hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    thundermane = Packed("thundermane_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    tempestmane = Packed("tempestmane_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    capling = Packed("capling_sheet", { calm = 5, hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    lanternshell = Packed("lanternshell_sheet", { calm = 6, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    bloomsage = Packed("bloomsage_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    boltusk = Packed("boltusk_sheet", { calm = 5, hatch = true, cols = 16, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    rumbletrunk = Packed("rumbletrunk_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    warmammoth = Packed("warmammoth_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    gemlet = Packed("gemlet_sheet", { calm = 4, hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    miragehoof = Packed("miragehoof_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    sandseer = Packed("sandseer_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    pebblebill = Packed("pebblebill_sheet", { calm = 6, hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    cobbleback = Packed("cobbleback_sheet", { calm = 6, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    rockwarden = Packed("rockwarden_sheet", { calm = 6, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    snowlet = Packed("snowlet_sheet", { calm = 5, hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    frostmantle = Packed("frostmantle_sheet", { calm = 6, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     -- Its wings open wide in its idle and its special: larger cells for both.
-    auroracrown = Packed("auroracrown_sheet", { cell = 112, cols = 9, w = 1024, h = 1024, walk = 8, walkTime = 0.1, special = 112 }),
-    starwhelp = Packed("starwhelp_sheet", { hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
-    moondrake = Packed("moondrake_sheet", { cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    auroracrown = Packed("auroracrown_sheet", { calm = 5, cell = 112, cols = 9, w = 1024, h = 1024, walk = 8, walkTime = 0.1, special = 112 }),
+    starwhelp = Packed("starwhelp_sheet", { calm = 5, hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    moondrake = Packed("moondrake_sheet", { calm = 5, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
     -- The largest of them all: its open wings are 120 pixels across.
-    eclipselord = Packed("eclipselord_sheet", { cell = 128, cols = 16, w = 2048, h = 1024, walk = 8, walkTime = 0.1,
+    eclipselord = Packed("eclipselord_sheet", { calm = 6, cell = 128, cols = 16, w = 2048, h = 1024, walk = 8, walkTime = 0.1,
         special = 128, specialW = 2048 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
@@ -668,7 +679,7 @@ local mute, ground, bubble
 -- itself, and this file was at the edge of both (limits_test.lua). A new
 -- part of the window goes in here, not in a local of its own.
 local ui = { chrome = {}, eggSlots = {}, picks = {}, roamers = {}, yardRows = {}, album = {}, book = {},
-    bookTurn = {}, bars = {}, care = {}, heaps = {} }
+    bookTurn = {}, bars = {}, care = {}, heaps = {}, play = { notice = {} } }
 -- The parts of the window that make it a window (its fill, edges and shadow,
 -- the pen's edges and meadows): all hidden while it's out with you.
 
@@ -699,7 +710,7 @@ end
 local yard, albumOpen = false, false
 -- Which page of the album is showing, and its arrows and "1 / 2".
 local albumPage = 1
-local HEAP_AT = { 30, 140, 260, 380 }
+local HEAP_AT = { 100, 180, 260, 380 }
 local said
 
 -- A form being looked at ahead of time (/jsal pet look): only what's drawn
@@ -903,6 +914,7 @@ local function Sky()
     for _, heap in ipairs(ui.heaps) do heap.pile:SetVertexColor(r, g, b) end
     prop:SetVertexColor(r, g, b)
     effect:SetVertexColor(r, g, b)
+    if ui.hideSpot then ui.hideSpot.picture:SetVertexColor(r, g, b) end
 end
 
 local function PaintWalk()
@@ -1052,18 +1064,23 @@ local function PaintWalk()
         local beat = math.floor(tick * 14)
         if beat % 70 < 6 then shiver = beat % 2 == 0 and 1 or -1 end
     end
-    local bx, by = math.floor(walk.x + 0.5) + shiver, -math.floor(walk.y + 0.5)
+    -- Leaning into your hand, it's a pixel or two nearer it.
+    local lean = act and act.name == "lean" and (walk.facing == "right" and 1 or -1) * math.max(1, math.floor(walk.size / 48)) or 0
+    local bx, by = math.floor(walk.x + 0.5) + shiver + lean, -math.floor(walk.y + 0.5)
     if body.bx ~= bx or body.by ~= by then
         body.bx, body.by = bx, by
         body:ClearAllPoints()
         body:SetPoint("TOPLEFT", pen, "TOPLEFT", bx, by)
     end
-    -- What's on its mind, in a bubble by its head, for a few seconds now and then.
-    local think = pen.thought and BUBBLES[pen.thought]
-    local musing = think ~= nil and not act and not s.asleep and not walk.nap and tick % BUBBLE_EVERY < BUBBLE_FOR
-        and (pen.thought ~= "wish" or math.floor(tick / BUBBLE_EVERY) % 3 == 0)
+    -- What's on its mind, in a bubble by its head, for a few seconds now and
+    -- then; or news it's telling you (Pet.Flash), at once and whatever it's doing.
+    local flash = ui.play.flash
+    local think = flash and flash.cell or pen.thought and BUBBLES[pen.thought]
+    local musing = think ~= nil and not s.asleep and not walk.nap and (flash ~= nil or (not act and tick % BUBBLE_EVERY < BUBBLE_FOR
+        and (pen.thought ~= "wish" or math.floor(tick / BUBBLE_EVERY) % 3 == 0)))
     if musing then
-        bubble:SetTexCoord(think * 32 / 256, (think + 1) * 32 / 256, 0, 1)
+        local col, row = think % 8, math.floor(think / 8)
+        bubble:SetTexCoord(col / 8, (col + 1) / 8, row / 4, (row + 1) / 4)
         if bubble.size ~= walk.size then
             bubble.size = walk.size
             bubble:ClearAllPoints()
@@ -1105,7 +1122,8 @@ local function PaintWalk()
             prop:SetPoint("BOTTOM", body, "TOP", math.floor(walk.size * 0.3 * t) * way, math.floor(walk.size * (Pet.Tossed(t))))
         elseif (act and act.prop) or (errand and (errand.phase == "wait" or errand.phase == "back")) then
             -- Carried home, it's held a little off the ground.
-            if errand and errand.phase == "back" and not act then up = up + math.floor(walk.size * 0.22) end
+            -- (And a letter it's bringing you, held up to show you.)
+            if (errand and errand.phase == "back" and not act) or (act and act.carry) then up = up + math.floor(walk.size * 0.22) end
             if walk.facing == "right" then
                 prop:SetPoint("BOTTOMLEFT", body, "BOTTOMRIGHT", -over, up)
             else
@@ -1592,6 +1610,7 @@ local function Refresh()
         Sky()
         Pet.PaintNest(s)
         Pet.PaintVisitor(s)
+        Pet.PaintPlay(s)
         return
     end
     s = Rules.Advance(s, Now())
@@ -1617,6 +1636,7 @@ local function Refresh()
         Pet.PaintNest(s)
         Pet.PaintVisitor(s)
         Pet.PaintWeather()
+        Pet.PaintPlay(s)
         return PaintYard(s)
     end
     for _, r in ipairs(ui.roamers) do r.body:Hide() end
@@ -1750,6 +1770,7 @@ local function Refresh()
         or ("Eggs turn up from your play once %s is fully grown."):format(s.name))
     -- The card for a companion that has just settled, over the top of the page.
     Pet.PaintFarewell()
+    Pet.PaintPlay(s)
     -- Repainted while an egg is hatching, the buttons stay greyed.
     if pen.busy then Pet.Grey(true) end
     -- Just hatched and not yet named: the name box opens by itself, with the
@@ -1774,6 +1795,7 @@ Pet.Refresh = Refresh
 local function Do(act, show, thing, over, sound)
     -- Not while an egg is hatching: the scene has the pen to itself.
     if pen and pen.hatching then return false end
+    ui.play.touched = Pet.tick or 0
     local s = Pet.State()
     local grubby, ill = Rules.Dirty(s), s.sick
     local ok, what = act(s, Now())
@@ -1834,6 +1856,8 @@ function Pet.Clicked(x, y)
     if s.unchosen or s.asleep then return end
     if not x then x, y = Compat.CursorAt(pen) end
     if not x then return end
+    ui.play.touched = Pet.tick or 0
+    if Pet.Seek(x, y) then return end
     local held, errand = pen.held, walk.errand
     if held and held.scrub then return end      -- the brush is for the creature, not the grass
     if held then
@@ -1869,6 +1893,9 @@ end
 -- one click is all you get. A treat nobody caught lands on the grass, and
 -- it's eaten there (Tend).
 function Pet.Petted(button)
+    ui.play.touched = Pet.tick or 0
+    -- Hiding: there it is!
+    if button ~= "RightButton" and Pet.Seek(nil, nil, true) then return end
     if button == "RightButton" then return Pet.Trick() end
     local held, toss = pen.held, pen.toss
     if toss then
@@ -1926,7 +1953,7 @@ end
 -- it for CHASE seconds, and when it gets there it pounces (Rules.Pounce).
 local function Chase(sheet, dt)
     local chase = walk.chase
-    if pen.held or pen.toss or walk.errand or walk.act or not pen:IsMouseOver() then
+    if pen.held or pen.toss or walk.errand or walk.act or (ui.play.rub and ui.play.rub.strokes > 0) or not pen:IsMouseOver() then
         pen.trail = nil
         if chase then walk.chase, walk.running = nil, nil end
         return
@@ -2373,6 +2400,7 @@ local function BuildPen()
                     walk.wait = math.max(walk.wait, 0.5)
                 end
             else
+                Pet.Stroking(sheet, dt)
                 if not window.out then Tend(sheet, dt) end
                 local walking = walk.wait <= 0
                 Pet.Step(walk, dt, math.random)
@@ -2382,7 +2410,7 @@ local function BuildPen()
                 -- Just arrived somewhere, and not hurrying after you: now and then it does something.
                 local moving = going and going.moving
                 if not moving then walk.whim = nil end
-                if sheet and not walk.act and not walk.errand and not walk.chase then
+                if sheet and not walk.act and not walk.errand and not walk.chase and not ui.play.hide then
                     -- At rest, as it arrives somewhere; on the move with you, wherever it
                     -- is on its strip when the whim takes it. It stops, does it, and goes on.
                     local due
@@ -2397,6 +2425,7 @@ local function BuildPen()
             end
         end
         PaintWalk()
+        Pet.PlayStep(dt)
         Pet.RoamVisitor(dt)
         Pet.Hatching(dt)
         -- Its needs move slowly: look again twice a minute.
@@ -2732,16 +2761,16 @@ local function BuildParts()
     local hint = Style.Text(parts, 11, "muted")
     hint:SetPoint("TOPLEFT", 0, -(CARE_Y + CARE_H + 8))
     hint:SetWidth(PEN_W)
-    hint:SetText("Point at a button for what it does and how you earn more. Click your pal for a pat, right-click for a trick, the grass to call it over, a dropping to scoop it.")
+    hint:SetText("Point at a button for what it does and how you earn more. Click your pal for a pat or stroke it, right-click for a trick, the grass to call it over, a dropping to scoop it.")
     -- The eggs you hold: what they are, then one picture each to click.
     ui.eggLine = Style.Text(parts, 12, "secondary")
-    ui.eggLine:SetPoint("TOPLEFT", 0, -300)
+    ui.eggLine:SetPoint("TOPLEFT", 0, -366)
     ui.eggLine:SetWidth(PEN_W)
     ui.eggLine:SetWordWrap(false)
     for i = 1, Rules.MAX_EGGS do
         local slot = CreateFrame("Button", nil, parts)
         slot:SetSize(EGG_W + 8, EGG_W + 4)
-        slot:SetPoint("TOPLEFT", (i - 1) * (EGG_W + 12), -318)
+        slot:SetPoint("TOPLEFT", (i - 1) * (EGG_W + 12), -384)
         slot.picture = slot:CreateTexture(nil, "ARTWORK")
         slot.picture:SetSize(EGG_W, EGG_W)
         slot.picture:SetPoint("BOTTOM", 0, 0)
@@ -2769,9 +2798,9 @@ local function BuildParts()
     -- confirming the name offered, keeps that name.
     ui.renameButton = Style.Button(parts, "Confirm", "plain", 141)
     ui.renameButton:SetHeight(28)
-    ui.renameButton:SetPoint("TOPLEFT", 298, -322)
+    ui.renameButton:SetPoint("TOPLEFT", 298, -388)
     ui.nameBox = Style.Field(parts, 141)
-    ui.nameBox.well:SetPoint("TOPLEFT", 149, -323)
+    ui.nameBox.well:SetPoint("TOPLEFT", 149, -389)
     ui.nameBox.well:Hide()
     ui.nameBox:SetMaxLetters(16)
     ui.nameBox:SetScript("OnEnterPressed", TakeName)
@@ -2789,6 +2818,7 @@ local function Build()
     BuildYard()
     BuildPicks()
     BuildParts()
+    Pet.BuildPlay()
     Layout()
     Place()
 end
@@ -2806,6 +2836,7 @@ function Pet.Open()
     if not window then Build() end
     if IsOpen() then return window:Hide() end
     said, Pet.armed, yard, albumOpen = nil, nil, false, false
+    ui.play.hide, ui.play.nextHide = nil, nil
     Pet.letting, Pet.lifting = nil, nil
     pen.shade = nil     -- opened, it's day or night at once, with no fade
     Layout()            -- as it was left: a window, the pen alone, or out with you
@@ -3760,6 +3791,473 @@ function Pet.Home()
     return true
 end
 
+---------------------------------------------------------------------------
+-- Play: stroking it, hide and seek in its pen, the little things it finds
+-- while you quest (kept on a shelf on its page), and noticing your mail and
+-- your whispers. All of it is part of Jsal's Pals, with no switch of its
+-- own (John, 16 Nov 2026: "no switch. these are just jsal pals features").
+-- What it's in the middle of is kept in `ui.play`.
+---------------------------------------------------------------------------
+-- `stroke`: how far the pointer goes one way before turning back, in
+-- pixels, for that to be a stroke; `strokes`, how many make a proper fuss
+-- (it's pleased, and the bond hears of it: Rules.Stroke); `rest`, seconds
+-- the pointer can be off it or still before a fuss starts over.
+-- `hide`: seconds it stays hidden before it gives up and pops out; `quiet`,
+-- seconds since you last did anything with it before it will hide; `every`,
+-- how long it waits between hides (seconds its pen is showing and it's
+-- free), and `wished`, the same when hide and seek is today's wish.
+-- `flash`: seconds a bubble about mail, a whisper or a find stays up;
+-- `gaps`, the least seconds between two of each, so a busy inbox or chat
+-- doesn't keep it at it.
+Pet.PLAY = { stroke = 8, strokes = 3, rest = 1.2, hide = 12, quiet = 20, every = { 150, 330 }, wished = { 15, 35 },
+    flash = 4, gaps = { mail = 60, whisper = 20 } }
+Pet.Dice = math.random
+-- The hiding places, one for each scene in the order of SCENES, in
+-- hides.png (tools/make_pet_hides.py): 48-pixel cells, each thing standing
+-- on its cell's bottom edge, drawn twice its size in the pen's bottom left
+-- corner (`at`), its foot a little under the edge. `size` is each thing's
+-- own width and height in its cell.
+Pet.HIDES = { at = { x = -8, y = -12 }, cell = 48, picture = { 512, 64 }, size = {
+    meadow = { 34, 32 }, snow = { 35, 38 }, desert = { 38, 34 }, swamp = { 44, 45 }, coast = { 38, 39 },
+    darkwood = { 45, 43 }, savanna = { 38, 32 }, volcanic = { 36, 31 }, jungle = { 48, 48 },
+} }
+
+-- Where the hiding place for a scene is in the pen (from its top left, as
+-- the walk counts): the thing itself, not its cell; and its cell's number.
+function Pet.HideSpot(scene)
+    local H, cell = Pet.HIDES, 0
+    for i, name in ipairs(SCENES) do
+        if name == scene then cell = i - 1 end
+    end
+    local size = H.size[scene] or H.size.meadow
+    local top = PEN_H - H.at.y - size[2] * 2
+    return { x = H.at.x + math.floor((H.cell - size[1]) / 2) * 2, y = top, w = size[1] * 2, h = PEN_H - top, cell = cell }
+end
+
+-- A bubble over it about something it's telling you: mail, a whisper, a
+-- find. It's up at once, whatever it's doing, for a few seconds.
+function Pet.Flash(cell)
+    ui.play.flash = { cell = cell, left = Pet.PLAY.flash }
+end
+
+-- The pointer going to and fro: `rub` keeps where it was and which way it
+-- went. True when it has just turned back after going far enough one way.
+function Pet.Rub(rub, x)
+    local dx = x - (rub.x or x)
+    rub.x = x
+    if dx == 0 then return false end
+    local way = dx > 0 and 1 or -1
+    if way ~= rub.way then
+        local stroke = rub.way ~= nil and (rub.run or 0) >= Pet.PLAY.stroke
+        rub.way, rub.run = way, math.abs(dx)
+        return stroke
+    end
+    rub.run = (rub.run or 0) + math.abs(dx)
+    return false
+end
+
+-- A small heart rising from its head and fading, one a stroke.
+function Pet.Heart()
+    local play = ui.play
+    play.hearts = play.hearts or {}
+    local heart
+    for _, one in ipairs(play.hearts) do
+        if not one.age then heart = one end
+    end
+    if not heart then
+        if #play.hearts >= 4 then return end
+        heart = { picture = body:CreateTexture(nil, "OVERLAY", nil, 3) }
+        heart.picture:SetTexture(Art("heart"), "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(heart.picture)
+        play.hearts[#play.hearts + 1] = heart
+    end
+    -- The heart's own 16 dots, twice over on a large pal out with you.
+    local side = 16 * math.max(1, math.floor(walk.size / 96))
+    heart.age, heart.dx = 0, (Pet.Dice(0, 2) - 1) * math.floor(walk.size * 0.12)
+    heart.picture:SetSize(side, side)
+    heart.picture:SetAlpha(1)
+    heart.picture:Show()
+end
+
+-- Stroked: the pointer moved to and fro over it, in its pen or out with
+-- you. Each stroke it stops, turns to your hand and leans into it, eyes
+-- shut, and a heart rises; a few strokes and it's pleased: its own happy
+-- dance, and the bond hears of it (Rules.Stroke, once a day). Called each
+-- frame it's awake; true on a stroke.
+function Pet.Stroking(sheet, dt)
+    local play, s = ui.play, Pet.State()
+    local x, y
+    if not (pen.held or pen.toss or walk.errand or play.hide or pen.hatching or yard or s.unchosen or s.asleep or walk.nap)
+        and pen:IsMouseOver() then
+        x, y = Compat.CursorAt(pen)
+    end
+    local size = walk.size
+    local on = x ~= nil and x >= walk.x + size * 0.15 and x <= walk.x + size * 0.85 and y >= walk.y + size * 0.2 and y <= walk.y + size
+    play.over = on or nil
+    local rub = play.rub
+    if not on then
+        if rub then
+            -- A stroke turns back on it: where the pointer went off it is forgotten.
+            rub.x, rub.way, rub.run = nil, nil, nil
+            rub.idle = rub.idle + dt
+            if rub.idle >= Pet.PLAY.rest then play.rub = nil end
+        end
+        return false
+    end
+    if not rub then
+        rub = { idle = 0, strokes = 0 }
+        play.rub = rub
+    end
+    local before = rub.x
+    if not Pet.Rub(rub, x) then
+        -- Resting on it is not stroking it: a while of that and the fuss starts over.
+        rub.idle = before == x and rub.idle + dt or 0
+        if rub.idle >= Pet.PLAY.rest then rub.strokes = 0 end
+        return false
+    end
+    rub.idle, rub.strokes = 0, rub.strokes + 1
+    play.touched = Pet.tick or 0
+    walk.chase, walk.running, walk.whim = nil, nil, nil
+    walk.tx, walk.ty, walk.wait = walk.x, walk.y, math.max(walk.wait, 1.5)
+    walk.facing = x < walk.x + size / 2 and "left" or "right"
+    if not walk.act or walk.act.name == "lean" then Pet.Play(walk, sheet, "lean") end
+    Pet.Heart()
+    if rub.strokes == Pet.PLAY.strokes then
+        local _, what = Rules.Stroke(s, Now())
+        if Pet.Play(walk, sheet, "cheer") or Pet.Play(walk, sheet, "jump") then Pet.Sound("pat") end
+        said = what
+        Refresh()
+    end
+    return true
+end
+
+-- Whether it's free to hide: in its pen (not out with you, nor the
+-- paddock), awake and well, not eating, bathing or playing, not hatching or
+-- ready to grow, and not just now with you doing something with it.
+function Pet.CanHide(s)
+    if not walk or window.out or yard or looking or pen.hatching or pen.busy or not Sheet() then return false end
+    if not Rules.CanHide(s) or s.grewFrom or walk.nap then return false end
+    if pen.held or pen.toss or walk.errand or walk.chase or walk.act or walk.doting or ui.play.rub then return false end
+    return (Pet.tick or 0) - (ui.play.touched or -1e9) >= Pet.PLAY.quiet
+end
+
+-- How long until it next hides: sooner when hide and seek is today's wish.
+function Pet.NextHide(s)
+    local wish = Rules.Wish(s, Now())
+    local range = (wish.kind == "seek" and not wish.done) and Pet.PLAY.wished or Pet.PLAY.every
+    ui.play.nextHide = Pet.Dice(range[1], range[2])
+end
+
+-- Off it goes, at a run, to crouch behind the hiding place: the top of its
+-- head over it, its tail out at the side.
+function Pet.Hide()
+    local spot = Pet.HideSpot(Pet.Scene(Pet.where))
+    local size = walk.size
+    local x = math.floor(spot.x + spot.w / 2 - size / 2 + size * 0.1)
+    local y = math.floor(spot.y - size * 0.4)
+    ui.play.hide = { phase = "going", x = x, y = y, walk = walk }
+    walk.tx, walk.ty, walk.wait, walk.clock, walk.running = x, y, 0, 0, true
+    walk.facing = x > walk.x and "right" or "left"
+    walk.whim = nil
+end
+
+-- Hide and seek, moved on by `dt`: on its way, hidden, or waiting for the
+-- next time. Anything else it's called away to (care, a click, the pen
+-- closed or folded out) ends a hide quietly.
+function Pet.HideStep(dt)
+    local play = ui.play
+    local hide, s = play.hide, Pet.State()
+    if hide then
+        if hide.walk ~= walk or window.out or yard or s.asleep or s.sick then
+            play.hide = nil
+            return
+        end
+        local act = walk.act
+        if hide.phase == "going" then
+            if walk.errand or walk.chase or pen.held or pen.toss or act then
+                play.hide = nil
+            elseif walk.wait > 0 then
+                if math.abs(walk.x - hide.x) >= 1 or math.abs(walk.y - hide.y) >= 1 then
+                    play.hide = nil
+                    return
+                end
+                hide.phase, hide.left = "hidden", Pet.PLAY.hide
+                walk.facing, walk.wait, walk.running = "left", Pet.PLAY.hide + 1, nil
+                if Pet.Play(walk, Sheet(), "crouch") then walk.act.length = Pet.PLAY.hide + 1 end
+                said = nil
+                Refresh()
+            end
+            return
+        end
+        if not (act and act.name == "crouch") then
+            play.hide = nil
+            return Refresh()
+        end
+        hide.left = hide.left - dt
+        if hide.left > 0 then return end
+        -- Nobody found it: out it pops by itself.
+        play.hide, walk.act = nil, nil
+        Pet.Play(walk, Sheet(), "jump")
+        walk.wait = 1.5
+        said = ("%s pops out by itself. It was there all along!"):format(s.name)
+        Pet.NextHide(s)
+        return Refresh()
+    end
+    if not Pet.CanHide(s) then return end
+    if not play.nextHide then Pet.NextHide(s) end
+    play.nextHide = play.nextHide - dt
+    if play.nextHide > 0 then return end
+    play.nextHide = nil
+    Pet.Hide()
+end
+
+-- A click while it hides: on it, or on what it's behind, and it's found.
+-- (`onBody`: it was the creature that was clicked.) True when the click was
+-- part of the game, so nothing else takes it.
+function Pet.Seek(x, y, onBody)
+    local hide = ui.play.hide
+    if not (hide and walk) then return false end
+    if hide.phase ~= "hidden" then
+        -- On its way to hide, and you've something else in mind: never mind.
+        ui.play.hide = nil
+        return false
+    end
+    local s = Pet.State()
+    local spot = Pet.HideSpot(Pet.Scene(Pet.where))
+    local there = x ~= nil and x >= spot.x and x <= spot.x + spot.w and y >= spot.y
+    if not (onBody or there) then
+        said = ("Not there. Where could %s be?"):format(s.name)
+        Refresh()
+        return true
+    end
+    ui.play.hide, walk.act = nil, nil
+    Rules.Seek(s, Now())
+    if not Pet.Play(walk, Sheet(), "cheer") then Pet.Play(walk, Sheet(), "jump") end
+    walk.wait = math.max(walk.wait, 2)
+    Pet.Sound("pat")
+    said = ("Found you! %s pops out, pleased as anything."):format(s.name)
+    Pet.NextHide(s)
+    Refresh()
+    return true
+end
+
+-- Every frame, after it's drawn: news bubbles and hearts fade, and hide and
+-- seek goes on.
+function Pet.PlayStep(dt)
+    local play = ui.play
+    local flash = play.flash
+    if flash then
+        flash.left = flash.left - dt
+        if flash.left <= 0 then play.flash = nil end
+    end
+    for _, heart in ipairs(play.hearts or {}) do
+        if heart.age then
+            heart.age = heart.age + dt
+            if heart.age >= 1 or not walk then
+                heart.age = nil
+                heart.picture:Hide()
+            else
+                heart.picture:ClearAllPoints()
+                heart.picture:SetPoint("BOTTOM", body, "TOP", heart.dx, math.floor(walk.size * (heart.age * 0.35 - 0.3)))
+                heart.picture:SetAlpha(math.max(0, 1 - heart.age * heart.age))
+            end
+        end
+    end
+    if walk then Pet.HideStep(dt) end
+end
+
+-- Mail has come, or someone has whispered you, while it's on your screen
+-- or in its open pen: it perks up. Mail, and it fetches you a letter (held
+-- up, with a letter in a bubble); a whisper, and it looks round at your
+-- chat, with "..." over it. Not in a fight, not asleep, not while it's busy
+-- with you, and not more than once in a while (Pet.PLAY.gaps). True when it
+-- did.
+function Pet.Notice(kind)
+    local gap = Pet.PLAY.gaps[kind]
+    if not (gap and Pet.running and IsOpen() and walk) or yard or Compat.InCombat() then return false end
+    local s, play = Pet.State(), ui.play
+    if s.unchosen or s.asleep or walk.nap or pen.hatching or pen.held or pen.toss or walk.errand or play.hide then return false end
+    local now = Now()
+    if now - (play.notice[kind] or -1e9) < gap then return false end
+    play.notice[kind] = now
+    walk.chase = nil
+    if kind == "mail" then
+        if Pet.Play(walk, Sheet(), "cheer") or Pet.Play(walk, Sheet(), "jump") then walk.act.prop, walk.act.carry = "letter", true end
+        Pet.Flash(BUBBLES.letter)
+        Pet.Sound("sparkle")
+    else
+        walk.facing = Pet.ChatSide() or walk.facing
+        walk.tx, walk.ty, walk.wait, walk.running = walk.x, walk.y, math.max(walk.wait, 3), nil
+        Pet.Flash(BUBBLES.whisper)
+    end
+    return true
+end
+
+-- Which way your chat is from it, "left" or "right"; nil when the game
+-- can't say where either is.
+function Pet.ChatSide()
+    local chat = DEFAULT_CHAT_FRAME
+    local cx = chat and chat.GetCenter and chat:GetCenter()
+    local bx = body and body:GetCenter()
+    if not (cx and bx) then return nil end
+    return cx < bx and "left" or "right"
+end
+
+-- A quest handed in while it's with you: now and then it has found a
+-- little something in this zone, and brings it to you (Rules.Gift says
+-- what, and keeps it on the shelf). `roll` is the luck of it, 0 up to 1;
+-- left out, it's rolled here. The key of what it found, or nil.
+function Pet.Gift(roll)
+    if not (Pet.running and IsOpen() and walk) then return nil end
+    local s = Pet.State()
+    if s.unchosen then return nil end
+    local zone = ZoneName()
+    local shelf = Rules.Shelf(ns.db.petShelf)
+    ns.db.petShelf = shelf
+    local key = Rules.Gift(shelf, zone, Now(), roll or Pet.Luck())
+    if not key then return nil end
+    local name, cell = Rules.Trinket(key)
+    Pet.Flash(BUBBLES.gift + cell)
+    ns.Print(("%s found %s in %s and brings it to you. It's on the shelf on its page."):format(s.name, name, zone))
+    local J = ns.Journal
+    if J and J.running then J.Note("pet", ("%s found %s in %s"):format(s.name, name, zone)) end
+    said = ("%s brings you %s!"):format(s.name, name)
+    Refresh()
+    return key
+end
+
+-- The hiding place in the pen, and the shelf under the care buttons.
+Pet.SHELF = { y = 306, slots = 13, side = 32 }
+function Pet.BuildPlay()
+    ui.sub = sub
+    -- The hiding place: over the creature, at the pen's front edge, so that
+    -- whatever is behind it is behind it.
+    local spot = CreateFrame("Frame", nil, pen)
+    spot:SetSize(Pet.HIDES.cell * 2, Pet.HIDES.cell * 2)
+    spot:SetPoint("BOTTOMLEFT", pen, "BOTTOMLEFT", Pet.HIDES.at.x, Pet.HIDES.at.y)
+    spot:SetFrameLevel((body:GetFrameLevel() or 1) + 2)
+    spot.picture = spot:CreateTexture(nil, "ARTWORK")
+    spot.picture:SetAllPoints()
+    spot.picture:SetTexture(Art("hides"), "CLAMP", "CLAMP", "NEAREST")
+    Compat.Crisp(spot.picture)
+    spot:Hide()
+    ui.hideSpot = spot
+    -- The shelf: a line saying how many, then this zone's three things (the
+    -- ones not found yet in shadow), a gap, and others found elsewhere,
+    -- standing on a plank.
+    local S, shelf = Pet.SHELF, { slots = {} }
+    ui.shelf = shelf
+    local head = Style.Text(parts, 11, "muted", nil, true)
+    head:SetPoint("TOPLEFT", 0, -S.y)
+    head:SetText("SHELF")
+    shelf.line = Style.Text(parts, 12, "secondary")
+    shelf.line:SetPoint("TOPLEFT", 50, -(S.y - 1))
+    shelf.line:SetWidth(PEN_W - 50)
+    shelf.line:SetWordWrap(false)
+    for i, part in ipairs({ { 0.42, 0.29, 0.17, 4 }, { 0.23, 0.16, 0.09, 2 } }) do
+        local plank = parts:CreateTexture(nil, "ARTWORK")
+        plank:SetColorTexture(part[1], part[2], part[3])
+        plank:SetPoint("TOPLEFT", 0, -(S.y + 18 + S.side + (i - 1) * 4))
+        plank:SetSize(PEN_W, part[4])
+    end
+    local here = Rules.SHELF.here
+    for i = 1, S.slots do
+        local slot = CreateFrame("Button", nil, parts)
+        slot:SetSize(S.side, S.side)
+        slot:SetPoint("TOPLEFT", (i - 1) * (S.side + 1) + (i > here and 10 or 0), -(S.y + 18))
+        slot.picture = slot:CreateTexture(nil, "ARTWORK")
+        slot.picture:SetAllPoints()
+        slot.picture:SetTexture(Art("trinkets"), "CLAMP", "CLAMP", "NEAREST")
+        Compat.Crisp(slot.picture)
+        slot:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.name or "")
+            GameTooltip:AddLine(self.where or "", 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        slot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        slot:Hide()
+        shelf.slots[i] = slot
+    end
+    local gap = parts:CreateTexture(nil, "ARTWORK")
+    gap:SetColorTexture(Style.Color("line"))
+    gap:SetPoint("TOPLEFT", here * (S.side + 1) + 4, -(S.y + 20))
+    gap:SetSize(1, S.side - 4)
+end
+
+-- One place on the shelf: the thing, or its shadow if it isn't found yet.
+function Pet.DressSlot(slot, key, where)
+    local name, cell = Rules.Trinket(key)
+    slot.picture:SetTexCoord(cell * 16 / 256, (cell + 1) * 16 / 256, 0, 1)
+    if where then
+        slot.picture:SetVertexColor(1, 1, 1)
+        slot.name, slot.where = name:gsub("^%l", string.upper), "Found in " .. where
+    else
+        slot.picture:SetVertexColor(0.12, 0.12, 0.14)
+        slot.name, slot.where = "Something to find here", "It turns things up as you hand in quests with it along."
+    end
+    slot:Show()
+end
+
+function Pet.PaintShelf()
+    local shelf = ui.shelf
+    if not shelf then return end
+    local kept = Rules.Shelf(ns.db.petShelf)
+    ns.db.petShelf = kept
+    local zone = Pet.where
+    local all = Rules.ShelfCount(kept)
+    local slots, here = shelf.slots, Rules.SHELF.here
+    local got = {}
+    for _, key in ipairs(zone and kept.found[zone] or {}) do got[key] = true end
+    local found = 0
+    for i = 1, here do
+        local key = zone and Rules.ZoneTrinkets(zone)[i]
+        if key then
+            Pet.DressSlot(slots[i], key, got[key] and zone or nil)
+            if got[key] then found = found + 1 end
+        else
+            slots[i]:Hide()
+        end
+    end
+    -- Then what it found elsewhere, by zone.
+    local others = {}
+    for where, keys in pairs(kept.found) do
+        if where ~= zone then
+            for _, key in ipairs(keys) do others[#others + 1] = { where, key } end
+        end
+    end
+    table.sort(others, function(a, b) return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]) end)
+    for i = here + 1, #slots do
+        local other = others[i - here]
+        if other then Pet.DressSlot(slots[i], other[2], other[1]) else slots[i]:Hide() end
+    end
+    shelf.line:SetText(zone and ("%s  ·  %d of %d found here  ·  %d in all"):format(zone, found, here, all)
+        or ("%d found in all"):format(all))
+end
+
+-- Everything of play that's drawn on its page: the hiding place (in its
+-- pen only), the headline while it hides, and the shelf.
+function Pet.PaintPlay(s)
+    local spot = ui.hideSpot
+    if spot then
+        local show = not window.out and not yard and not window.picking and not looking
+        spot:SetShown(show)
+        local scene = Pet.Scene(Pet.where)
+        if show and spot.scene ~= scene then
+            spot.scene = scene
+            local H, cell = Pet.HIDES, Pet.HideSpot(scene).cell
+            spot.picture:SetTexCoord(cell * H.cell / H.picture[1], (cell + 1) * H.cell / H.picture[1], 0, H.cell / H.picture[2])
+        end
+    end
+    local hide = ui.play.hide
+    if hide and hide.phase == "hidden" and ui.headline and not window.picking then
+        ui.headline:SetText(("Where's %s?"):format(s.name))
+        ui.sub:SetText("Hiding somewhere in the pen. Click where it is.")
+    end
+    Pet.PaintShelf()
+end
+
+
 function Pet:OnEnable()
     Pet.Home()
     Pet.Movable()
@@ -3793,6 +4291,11 @@ function Pet:OnEnable()
     events:RegisterEvent("PLAYER_TARGET_CHANGED")
     events:RegisterEvent("CHAT_MSG_LOOT")
     events:RegisterEvent("CHAT_MSG_TEXT_EMOTE")
+    -- Mail come, and someone whispering you: it perks up (Pet.Notice).
+    events:RegisterEvent("UPDATE_PENDING_MAIL")
+    events:RegisterEvent("CHAT_MSG_WHISPER")
+    events:RegisterEvent("CHAT_MSG_BN_WHISPER")
+    local mailed = HasNewMail and HasNewMail() and true or false
     -- Out of a fight. (A boss brought down, ENCOUNTER_END, is kept for rarer
     -- eggs to come: John, 12 Nov 2026.)
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -3854,6 +4357,7 @@ function Pet:OnEnable()
             Pet.Found("quest")
             Pet.React("quest")
             Pet.Along()
+            Pet.Gift()
         elseif event == "PLAYER_LEVEL_UP" then
             Pet.Earn("treat", 2)
             Pet.Earn("soap", 1)
@@ -3874,6 +4378,14 @@ function Pet:OnEnable()
                 or text:find("|cffff8000", 1, true) or text:find("|cnIQ[345]:")) then
                 Pet.React("loot")
             end
+        elseif event == "UPDATE_PENDING_MAIL" then
+            -- The game says this for more than new mail: only mail that's new
+            -- since it last looked counts, once.
+            local new = HasNewMail and HasNewMail() and true or false
+            if new and not mailed then Pet.Notice("mail") end
+            mailed = new
+        elseif event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_BN_WHISPER" then
+            Pet.Notice("whisper")
         elseif event == "PLAYER_DEAD" then
             Pet.React("died")
         elseif event == "PLAYER_UNGHOST" then

@@ -288,7 +288,7 @@ end
 ---------------------------------------------------------------------------
 local DAY = 86400
 -- Each level of the bond, and the points it starts at. With a wish granted
--- and a day's care, a day is worth about six.
+-- and a day's care (a feed, a pat, a scoop and a stroke), a day is worth about seven.
 Rules.BONDS = {
     { 0, "Wary" }, { 6, "Curious" }, { 18, "Friendly" }, { 40, "Fond" }, { 75, "Devoted" }, { 130, "Inseparable" },
 }
@@ -303,6 +303,9 @@ Rules.WISHES = {
     { kind = "play", need = 1, text = "wants a game with a toy" },
     { kind = "fetch", need = 3, text = "wants a proper game of fetch: three throws" },
     { kind = "catch", need = 1, text = "wants to catch a treat out of the air" },
+    -- Stroked with the pointer (Rules.Stroke), and found when it hides in its pen (Rules.Seek).
+    { kind = "stroke", need = 1, text = "wants stroking: move the pointer to and fro over it" },
+    { kind = "seek", need = 1, text = "wants a game of hide and seek: find it when it hides" },
 }
 local WISH = {}
 for _, wish in ipairs(Rules.WISHES) do WISH[wish.kind] = wish end
@@ -592,6 +595,132 @@ function Rules.Pat(s, now)
     Cared(s, now, "pat")
     Rules.Did(s, "pat", now)
     return true, "It leans into your hand."
+end
+
+-- Stroked: the pointer moved to and fro over it, in its pen or out with you.
+-- It leans into your hand. The first stroking of a day brings you a point
+-- closer, as the first feed, pat and scoop do, and the first few of a day
+-- are a little fun; after that it's for the pleasure of it, so it can't be
+-- farmed. Poorly, it still likes it.
+Rules.STROKES = 3
+function Rules.Stroke(s, now)
+    Rules.Advance(s, now)
+    if s.asleep then return false, "It's asleep." end
+    local day = math.floor(now / DAY)
+    if type(s.strokes) ~= "table" or s.strokes.day ~= day then s.strokes = { day = day, count = 0 } end
+    if s.strokes.count < Rules.STROKES then
+        s.strokes.count = s.strokes.count + 1
+        s.fun = Clamp(s.fun + 4)
+    end
+    Cared(s, now, "stroke")
+    Rules.Did(s, "stroke", now)
+    return true, s.sick and "It leans into your hand. That helps a little." or "It leans into your hand, eyes shut."
+end
+
+-- Hide and seek, in its pen: now and then it hides behind the scenery, and
+-- found, it's pleased with itself. Not while it's poorly or asleep (what
+-- else it mustn't be doing is the pen's to know: Pet.CanHide). Found, it's a
+-- little fun the first few times a day, and may be the day's wish.
+Rules.SEEKS = 3
+function Rules.CanHide(s)
+    return not (s.unchosen or s.asleep or s.sick or s.unnamed)
+end
+function Rules.Seek(s, now)
+    Rules.Advance(s, now)
+    local day = math.floor(now / DAY)
+    if type(s.seeks) ~= "table" or s.seeks.day ~= day then s.seeks = { day = day, count = 0 } end
+    if s.seeks.count < Rules.SEEKS then
+        s.seeks.count = s.seeks.count + 1
+        s.fun = Clamp(s.fun + 5)
+    end
+    Rules.Did(s, "seek", now)
+    return true
+end
+
+-- The little things it finds while you quest and brings you: a few kept in
+-- each zone (Rules.ZoneTrinkets picks which, the same every time), so each
+-- place has something of its own to find. The order is the pictures' in
+-- bubble.png and trinkets.png (tools/make_pet_bubble.py).
+Rules.TRINKETS = {
+    { key = "pebble", name = "a shiny pebble" }, { key = "feather", name = "a blue feather" },
+    { key = "coin", name = "a lost copper coin" }, { key = "acorn", name = "an acorn" },
+    { key = "shell", name = "a pink shell" }, { key = "ribbon", name = "a red ribbon" },
+    { key = "button", name = "a brass button" }, { key = "marble", name = "a glass marble" },
+    { key = "key", name = "a little old key" }, { key = "leaf", name = "a golden leaf" },
+    { key = "bell", name = "a tiny bell" }, { key = "clover", name = "a four-leaf clover" },
+}
+local TRINKET = {}
+for i, t in ipairs(Rules.TRINKETS) do TRINKET[t.key] = i end
+-- How many each zone has; how many it may find in a day, and the chance of
+-- one each time you hand in a quest; and the most zones the shelf keeps
+-- (there are fewer than that in the world, so it's only a ceiling).
+Rules.SHELF = { here = 3, aDay = 2, chance = 0.25, zones = 150 }
+-- Which of them a zone has: the same three every time, worked out from its
+-- name with small numbers only (the game's Lua and the tests' count alike).
+function Rules.ZoneTrinkets(zone)
+    local h = 7
+    for i = 1, #zone do h = (h * 31 + zone:byte(i)) % 65521 end
+    local pool, picked = {}, {}
+    for i = 1, #Rules.TRINKETS do pool[i] = i end
+    for n = 1, Rules.SHELF.here do
+        h = (h * 75 + 74) % 65537
+        local at = h % #pool + 1
+        picked[n] = Rules.TRINKETS[pool[at]].key
+        table.remove(pool, at)
+    end
+    return picked
+end
+-- The shelf as saved, made right if it isn't: { day, today, found = {
+-- [zone] = { key, ... } } }, only known things, at most `here` a zone.
+function Rules.Shelf(shelf)
+    if type(shelf) ~= "table" then shelf = {} end
+    if type(shelf.found) ~= "table" then shelf.found = {} end
+    for zone, keys in pairs(shelf.found) do
+        local good = {}
+        if type(zone) == "string" and type(keys) == "table" then
+            for _, key in ipairs(keys) do
+                if TRINKET[key] and #good < Rules.SHELF.here then good[#good + 1] = key end
+            end
+        end
+        shelf.found[zone] = #good > 0 and good or nil
+    end
+    shelf.day, shelf.today = tonumber(shelf.day) or 0, tonumber(shelf.today) or 0
+    return shelf
+end
+-- How many it has found in all, and in how many zones.
+function Rules.ShelfCount(shelf)
+    local all, zones = 0, 0
+    for _, keys in pairs(shelf.found) do all, zones = all + #keys, zones + 1 end
+    return all, zones
+end
+-- A quest handed in in `zone`: it may have found something there. `roll` is
+-- the luck, 0 up to 1. The key of what it found, or nil: never more than
+-- `aDay` a day, never what it found here before, nothing once a zone's
+-- three are found.
+function Rules.Gift(shelf, zone, now, roll)
+    if type(zone) ~= "string" or zone == "" then return nil end
+    local day = math.floor(now / DAY)
+    if shelf.day ~= day then shelf.day, shelf.today = day, 0 end
+    if shelf.today >= Rules.SHELF.aDay or roll >= Rules.SHELF.chance then return nil end
+    local have = shelf.found[zone] or {}
+    local _, zones = Rules.ShelfCount(shelf)
+    if not shelf.found[zone] and zones >= Rules.SHELF.zones then return nil end
+    local got = {}
+    for _, key in ipairs(have) do got[key] = true end
+    for _, key in ipairs(Rules.ZoneTrinkets(zone)) do
+        if not got[key] then
+            have[#have + 1] = key
+            shelf.found[zone] = have
+            shelf.today = shelf.today + 1
+            return key
+        end
+    end
+    return nil
+end
+-- A thing's name ("a shiny pebble") and its place in the pictures (from 0).
+function Rules.Trinket(key)
+    local i = TRINKET[key]
+    return i and Rules.TRINKETS[i].name, i and i - 1
 end
 
 ---------------------------------------------------------------------------
