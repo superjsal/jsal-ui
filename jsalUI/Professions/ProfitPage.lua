@@ -106,6 +106,9 @@ local function Tooltip(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     if row.item then GameTooltip:SetItemByID(row.item) else GameTooltip:SetSpellByID(row.spell) end
     GameTooltip:AddLine(" ")
+    if row.missing then
+        GameTooltip:AddLine("No price seen yet for " .. ItemName(row.missing) .. ": search for it at the auction house.", 0.94, 0.48, 0.4, true)
+    end
     GameTooltip:AddLine("To make one:", 0.89, 0.69, 0.29)
     for _, part in ipairs(row.parts or {}) do
         local how = part.how == "craft" and "you make it" or part.how
@@ -135,6 +138,8 @@ local function Row(i)
     for c = 1, 5 do
         local t = Style.Text(r, 12, "secondary")
         t:SetWordWrap(false)
+        -- A number column holds its own width, so nothing runs into the next.
+        if c > 1 then t:SetWidth(86) end
         r.cells[c] = t
     end
     r.cells[1]:SetPoint("LEFT", 32, 0)
@@ -193,7 +198,9 @@ local function PaintProfitCells(r, row)
     else
         Cell(r, 4, "")
     end
-    if row.missing then Cell(r, 5, ItemName(row.missing) .. " not seen", "muted")
+    -- What has no price is named in the tooltip: a material's name here ran
+    -- across the other columns (John's screenshot, 16 Nov 2026).
+    if row.missing then Cell(r, 5, "needs a price", "muted")
     elseif row.cost and row.sells then Cell(r, 5, Ago(row.age), row.old and "red" or "muted")
     else Cell(r, 5, "") end
 end
