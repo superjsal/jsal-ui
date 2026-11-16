@@ -20,7 +20,7 @@
 - **Setup: a fight closing it isn't you skipping it.** It opens again at your next login, and says that /jsal setup brings it back.
 - **Unlock Mode: undoing a piece you had never moved puts its gold box back too.**
 - **Dungeon guide: another dungeon opens at its top,** not as far down as you had scrolled the last one.
-- **Jsal's Pals: a worn-out pal sleeps on.** Woken while it was worn out, it sulked, ate its breakfast and was asleep again a moment later. Now it says it's too tired to wake yet, and nothing is lost; once it has rested a little it wakes as before.
+- **Jsal's Pals: a worn-out pal sleeps on.** Woken while it was worn out, it sulked, ate its breakfast and was asleep again a moment later. Now its Wake it button is greyed, it says it's too tired to wake yet, and nothing is lost; once it has rested a little it wakes as before.
 - **Smaller ones.** Chess: a challenge you turn down reaches someone who has only just logged in. Favourite recipes: "needs more gold" is said only when that's why one wasn't bought. Guild crafters: someone not heard from in two months is no longer listed. Jsal's Pals: /jsal pet paddock waits while an egg hatches. Training Planner: lighter while you buy spells.
 
 ## In 0.3.51

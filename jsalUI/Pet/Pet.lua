@@ -1374,7 +1374,12 @@ function Pet.DressCare(s)
     local wants = { meal = s.hunger < 35, toy = s.fun < 35, soap = s.clean < 35, lights = s.energy < 35, medicine = s.sick and true or false }
     for key, b in pairs(ui.care) do
         local left = s.supplies[key]
-        local none = left == 0 or (key == "medicine" and not s.sick)
+        -- Worn out and asleep, it can't be woken yet (Rules.Lights): "Wake it" is greyed like a
+        -- button with nothing left, and says why when pointed at. A click still says so too.
+        -- (John, 16 Nov 2026: "Go ahead and gray it out".)
+        local tired = key == "lights" and s.asleep and s.energy <= Rules.WORN
+        b.why = tired and "It's too tired to wake yet. Give it a little while." or nil
+        local none = left == 0 or (key == "medicine" and not s.sick) or tired
         local wanted = wants[key] == true and not none and (key == "medicine" or not s.asleep)
         b.word:SetText(key == "lights" and (s.asleep and "Wake it" or "Lights out") or b.name)
         -- Asleep, its button is a sun to wake it, where a moon put it to bed.
@@ -2768,6 +2773,8 @@ local function BuildParts()
             GameTooltip:SetOwner(self, "ANCHOR_TOP")
             GameTooltip:SetText(self.word:GetText() or name)
             GameTooltip:AddLine(tip, 1, 1, 1, true)
+            -- Why it's greyed just now, when that isn't for want of supplies.
+            if self.why then GameTooltip:AddLine(self.why, 0.89, 0.69, 0.29, true) end
             GameTooltip:Show()
         end)
         b:HookScript("OnLeave", function() GameTooltip:Hide() end)
