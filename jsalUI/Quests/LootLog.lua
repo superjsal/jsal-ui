@@ -424,14 +424,17 @@ function LootLog.Changed(name)
     end
 end
 
+-- Your own word comes back on the guild's channel, under your whole name (Compat.MyName; the
+-- game's own name for you is the first name only, and never matched): it was kept as a
+-- guildmate's, and your loots counted twice.
 local function HeardCount(payload, sender)
-    if not LootLog.Sharing() or sender == Compat.Name("player") then return end
+    if not LootLog.Sharing() or sender == Compat.MyName() then return end
     local name, finds, tries = (payload or ""):match("^(.-);(%d+);(%d+)$")
     if name then LootLog.Heard(sender, name, finds, tries, Compat.ServerTime()) end
 end
 
 local function HeardAsk(_, sender)
-    if not LootLog.Sharing() or sender == Compat.Name("player") then return end
+    if not LootLog.Sharing() or sender == Compat.MyName() then return end
     -- Once in ten minutes at most, and not all at the same instant as everyone else.
     local now = GetTime()
     if lastAnswered and now - lastAnswered < 600 then return end

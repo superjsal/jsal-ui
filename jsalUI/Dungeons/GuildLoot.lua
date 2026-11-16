@@ -121,9 +121,9 @@ end
 function GuildLoot.Dropped(enc, link)
     if not (On() and enc and type(link) == "string") then return end
     local item = tonumber(link:match("item:(%d+)"))
-    local color = link:match("|c%x%x(%x%x%x%x%x%x)")
-    local low = color and (color:lower() == "9d9d9d" or color:lower() == "ffffff")
-    if not item or low then return end
+    -- Uncommon or better, by the dungeon guide's own reading of the link.
+    local quality = ns.Dungeons and ns.Dungeons.LinkQuality and ns.Dungeons.LinkQuality(link)
+    if not item or (quality or 0) < 2 then return end
     local tag = GuildLoot.GroupTag()
     if Drop(enc, item, tag) then
         Comms.Send("LD", enc .. ";" .. item .. ";" .. tag, "GUILD")

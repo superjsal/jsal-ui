@@ -86,13 +86,26 @@ end
 ---------------------------------------------------------------------------
 local QUALITY = { ["9d9d9d"] = 0, ["ffffff"] = 1, ["1eff00"] = 2, ["0070dd"] = 3, ["a335ee"] = 4, ["ff8000"] = 5 }
 
+-- An item's quality from its link: the game's own word for the item where it has one, else
+-- the link's colour, in the newer form ("|cnIQ3:") or the older ("|cff0070dd"). Only the older
+-- was read, and a link in the newer one counted as below uncommon: nothing was learned.
+function Dungeons.LinkQuality(link)
+    if type(link) ~= "string" then return nil end
+    local id = tonumber(link:match("item:(%d+)"))
+    local quality = id and C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(id)
+    if type(quality) == "number" then return quality end
+    local named = link:match("|cnIQ(%d):")
+    if named then return tonumber(named) end
+    local color = link:match("|c%x%x(%x%x%x%x%x%x)")
+    return color and QUALITY[color:lower()] or nil
+end
+
 function Dungeons.Learn(boss, link)
     local key = Key(boss)
     if not (key and type(link) == "string") then return false end
     local id = tonumber(link:match("item:(%d+)"))
     local name = link:match("%[(.-)%]")
-    local color = link:match("|c%x%x(%x%x%x%x%x%x)")
-    local quality = color and QUALITY[color:lower()]
+    local quality = Dungeons.LinkQuality(link)
     if not (id and name) or (quality or 0) < 2 then return false end
     local loot = Dungeons.Loot()
     loot[key] = loot[key] or {}
