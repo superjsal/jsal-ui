@@ -2,6 +2,8 @@
 # rounded to a radius of N pixels and smooth edges. Style.Round stretches one
 # over a frame with its corners kept at their own size, and tints it, for a
 # button, a card or a pill with round corners.
+# And circle.tga: a white disc, 64 by 64, that Style.Circle draws whole at
+# whatever size a round sign is.
 #
 # Run from the repo root: python -I tools/make_round.py
 import os
@@ -18,7 +20,7 @@ def tga(alpha):
     # shape in its alpha.
     head = bytearray(18)
     head[2] = 2
-    struct.pack_into("<HH", head, 12, SIZE, SIZE)
+    struct.pack_into("<HH", head, 12, alpha.size[0], alpha.size[1])
     head[16] = 32
     head[17] = 8 | 32
     body = bytearray()
@@ -36,5 +38,11 @@ def main():
         with open(os.path.join(out, "r%d.tga" % radius), "wb") as f:
             f.write(tga(alpha))
         print("r%d.tga" % radius)
+    disc = 64
+    big = Image.new("L", (disc * OVER, disc * OVER), 0)
+    ImageDraw.Draw(big).ellipse((0, 0, disc * OVER - 1, disc * OVER - 1), fill=255)
+    with open(os.path.join(out, "circle.tga"), "wb") as f:
+        f.write(tga(big.resize((disc, disc), Image.LANCZOS)))
+    print("circle.tga")
 
 main()

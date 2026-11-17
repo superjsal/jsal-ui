@@ -179,6 +179,12 @@ function Style.Rounded()
     return Enum ~= nil and Enum.UITextureSliceMode ~= nil and not ns.needsRestart
 end
 
+-- Colours a shape: a picture is tinted, a square one filled.
+local function PaintShape(self, key, alpha)
+    local r, g, b = Style.Color(key)
+    if self.round then self:SetVertexColor(r, g, b, alpha or 1) else self:SetColorTexture(r, g, b, alpha or 1) end
+end
+
 -- A filled shape with corners of `radius`, over the whole frame until it's
 -- placed otherwise. Paint(colorKey, alpha) colours it.
 function Style.Round(frame, radius, colorKey, layer, level)
@@ -190,12 +196,15 @@ function Style.Round(frame, radius, colorKey, layer, level)
         t:SetTextureSliceMargins(radius, radius, radius, radius)
         t:SetTextureSliceMode(Enum.UITextureSliceMode.Stretched)
     end
-    function t:Paint(key, alpha)
-        local r, g, b = Style.Color(key)
-        if self.round then self:SetVertexColor(r, g, b, alpha or 1) else self:SetColorTexture(r, g, b, alpha or 1) end
-    end
+    t.Paint = PaintShape
     t:Paint(colorKey or "well")
     return t
+end
+
+-- Colours a box: its fill, its line, or both; nil leaves one as it is.
+local function PaintBox(self, fill, line)
+    if fill then self.fill:Paint(fill) end
+    if line then self.line:Paint(line) end
 end
 
 -- A box with round corners: a line a pixel wide round a fill, drawn as one
@@ -210,19 +219,44 @@ function Style.Box(frame, radius, fillKey, lineKey)
     box.fill:ClearAllPoints()
     box.fill:SetPoint("TOPLEFT", px, -px)
     box.fill:SetPoint("BOTTOMRIGHT", -px, px)
-    function box:Paint(fill, line)
-        if fill then self.fill:Paint(fill) end
-        if line then self.line:Paint(line) end
-    end
+    box.Paint = PaintBox
     return box
+end
+
+-- A disc with a line round it, for a round sign: one picture of a circle
+-- drawn whole, twice, the fill a pixel inside the line. Paint(fillKey,
+-- lineKey) colours them. Where round corners can't be drawn it's a square.
+local CIRCLE = "Interface\\AddOns\\" .. addonName .. "\\Media\\Round\\circle"
+
+function Style.Circle(frame, fillKey, lineKey)
+    local function Disc(level, key)
+        local t = frame:CreateTexture(nil, "BACKGROUND", nil, level)
+        t:SetAllPoints()
+        -- Round only where the corners are: a round sign among square
+        -- buttons would look like a mistake.
+        if t.SetTextureSliceMargins and Style.Rounded() then
+            t.round = true
+            t:SetTexture(CIRCLE)
+        end
+        t.Paint = PaintShape
+        t:Paint(key)
+        return t
+    end
+    local disc = { line = Disc(0, lineKey), fill = Disc(1, fillKey), Paint = PaintBox }
+    local px = Compat.OnePixel(frame)
+    disc.fill:ClearAllPoints()
+    disc.fill:SetPoint("TOPLEFT", px, -px)
+    disc.fill:SetPoint("BOTTOMRIGHT", -px, px)
+    return disc
 end
 
 -- The fill of a part that sits against a round box's edge, round only where
 -- the box's corners are. `where` says which of the part's corners those
 -- are: "TOP" (a bar across the box's top, when not given), "BOTTOM" (a strip
--- along its bottom), or one corner alone, as "BOTTOMLEFT" for a column down
--- its left side that stops short of the top. It's a round shape with a flat
--- one over each half that must stay square.
+-- along its bottom), "LEFT" or "RIGHT" (a stretch at one end of a bar), or
+-- one corner alone, as "BOTTOMLEFT" for a column down its left side that
+-- stops short of the top. It's a round shape with a flat one over each half
+-- that must stay square.
 function Style.Cap(frame, radius, colorKey, where)
     where = where or "TOP"
     local round = Style.Round(frame, radius, colorKey)
@@ -233,7 +267,11 @@ function Style.Cap(frame, radius, colorKey, where)
         t:SetPoint(second)
         t:SetPoint(side, frame, "CENTER")
     end
-    if where:find("TOP", 1, true) then Flat("BOTTOMLEFT", "BOTTOMRIGHT", "TOP") else Flat("TOPLEFT", "TOPRIGHT", "BOTTOM") end
+    if where:find("TOP", 1, true) then
+        Flat("BOTTOMLEFT", "BOTTOMRIGHT", "TOP")
+    elseif where:find("BOTTOM", 1, true) then
+        Flat("TOPLEFT", "TOPRIGHT", "BOTTOM")
+    end
     if where:find("LEFT", 1, true) then
         Flat("TOPRIGHT", "BOTTOMRIGHT", "LEFT")
     elseif where:find("RIGHT", 1, true) then

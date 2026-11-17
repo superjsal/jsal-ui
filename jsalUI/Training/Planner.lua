@@ -1,29 +1,35 @@
 -- The Training Planner page. At the top, one line of what's ready and what
--- it costs, and one of whether your gold covers it. Under that, three
--- columns. First, what you can train now: a line for each spell with its
--- price and Skip, and the sums right under it. In the middle, the road to
--- 60, down the whole page: the next trainer visit spelled out, then a line
--- down the page with a mark a level and each visit's spells as their
--- symbols. Last, a hunter's pet, and under it the weapon skills.
+-- it costs, and one of whether your gold covers it. Under that, two cards
+-- side by side: what you can train now, a line for each spell with its price
+-- and Skip, the visit's sum along the card's foot; and a hunter's pet, its
+-- abilities as pictures under a heading for how each is got, with the
+-- weapon skills under it. Across the bottom, the road to 60, drawn as a
+-- road: you at its start, a round sign for each trainer visit, and under
+-- each sign what the visit costs and teaches, a picture a spell. Words are
+-- for what you act on now; what's ahead is pictures, named when pointed at.
 local _, ns = ...
 local Style, Compat, Window, Training = ns.Style, ns.Compat, ns.Window, ns.Training
 
-local CART_W, SIDE_W, GAP = 322, 300, 24   -- the first and last columns; the road has the rest
-local VISIT_H, FOLD_H = 46, 34   -- a spell in the visit's list; the line that folds the skipped ones away
-local NAME_X, COST_W = 52, 76    -- on the road: where names start, and the cost column
-local STEP_H = 24                -- a spell of the next visit
-local GLYPH, GLYPH_GAP = 28, 4   -- a spell of a later visit, as its symbol
-local LINE_X = 8                 -- the road's line, down the left of the later visits
-local LIST_TOP = 44  -- where the list to train now starts, under its headings
-local ROW_H = 28     -- a weapon skill's row
-local PET_H = 24     -- a pet ability's row
+local LEFT_W, GAP = 496, 24      -- the card of what to train now; the pet and weapon skills have the rest
+local UP_MIN = 330                -- the two cards' room, over the road: more when a visit of many spells needs it
+local HEAD_H = 26                 -- a section's heading, down to what's under it
+local ROW_W = LEFT_W - 2          -- a row inside the card's line
+local VISIT_H, DENSE_H, FOLD_H, STRIP_H = 60, 44, 34, 38   -- a spell to train now, roomy and compact; the line that folds the skipped ones away; the sums
+-- How the spells to train now are laid out, the roomiest that fits first:
+-- a row each, a compact row each, then compact and two across.
+local LAYOUTS = { { key = "roomy", high = VISIT_H, across = 1 }, { key = "dense", high = DENSE_H, across = 1 }, { key = "pair", high = DENSE_H, across = 2 } }
 local SKIP_W = 40
-local SUB_H = 26     -- a heading inside the pet's list
-local TOTALS_H = 112 -- the sums: four lines in a box
+local GLYPH, ROAD_GLYPH = 28, 22  -- a spell as its picture: a pet's ability or a weapon skill, and one on the road
+local GLYPHS_W = ROAD_GLYPH * 3 + 4   -- three across under a sign
+local SUB_H = 20                  -- a heading inside the pet's card
+-- The road: a sign every PITCH, the first FIRST_X along; each has STOP_W for
+-- what's under it. The band is the road itself; you stand YOU_X along it.
+local PITCH, STOP_W, FIRST_X, YOU_X = 87, 88, 56, 30
+local SIGN, BAND_H = 40, 26
 
--- A hunter's pet abilities, grouped by how each is got, in this order.
+-- A hunter's pet abilities, grouped by how each is got, in this order. One
+-- that's ready to teach isn't here: it's among what to train now.
 local PET_GROUPS = {
-    { "ready", "Ready to teach" },
     { "points", "Not enough training points" },
     { "trainer", "From a pet trainer" },
     { "level" },   -- headed by the level each waits on: "Waiting on pet level 30"
@@ -85,24 +91,6 @@ local function Section(parent, width, ruled)
     return s
 end
 
--- Column headings over a list: each { words, x }, a negative x from the right.
-local function Columns(parent, width, labels)
-    local c = CreateFrame("Frame", nil, parent)
-    c:SetSize(width, 18)
-    for _, label in ipairs(labels) do
-        local t = Style.Text(c, 10, "muted", nil, true)
-        if label[2] < 0 then
-            t:SetPoint("TOPRIGHT", label[2], 0)
-            t:SetJustifyH("RIGHT")
-        else
-            t:SetPoint("TOPLEFT", label[2], 0)
-        end
-        t:SetText(label[1])
-    end
-    Style.Rule(c, "BOTTOM", "lineStrong")
-    return c
-end
-
 local function Tooltip(frame)
     frame:SetScript("OnEnter", function(self)
         if not self.spellID then return end
@@ -138,9 +126,13 @@ end
 
 Window.Page("training", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
-    local roadW = width - CART_W - SIDE_W - GAP * 2
-    local sideX, sideW = width - SIDE_W, SIDE_W - 8
+    local sideX, sideW = LEFT_W + GAP, width - LEFT_W - GAP - 8
     local top = 88
+    -- The page's height under its top lines, less the gap over the road, the
+    -- road's heading and the line that explains its marks: what the cards
+    -- and the road share. The road has what its tallest stop needs, at most
+    -- what leaves the cards their least.
+    local shared = height - top - 24 - 30 - 22
     local Paint
     -- What the page is made of, in one table: Paint uses so much from outside
     -- itself that it was at the edge of what the game's Lua allows one
@@ -177,97 +169,96 @@ Window.Page("training", function(page)
     end
 
     ---------------------------------------------------------------------------
-    -- First: what to train now.
+    -- At the left: what to train now, a card.
     ---------------------------------------------------------------------------
     local cart = CreateFrame("Frame", nil, page)
     cart:SetPoint("TOPLEFT", 0, -top)
-    cart:SetSize(CART_W, height - top)
-    ui.cartHead = Section(cart, CART_W)
+    cart:SetSize(LEFT_W, UP_MIN)
+    ui.cartHead = Section(cart, LEFT_W)
     ui.cartHead:SetPoint("TOPLEFT")
     ui.cartHead.title:SetText("TRAIN NOW")
-    Columns(cart, CART_W, { { "SPELL", 2 }, { "COST", -(SKIP_W + 6) } }):SetPoint("TOPLEFT", 0, -24)
-    -- The list is as tall as what's in it (Paint sizes it), so the sums sit
-    -- right under it: they were at the foot of the page, most of a screen
-    -- below a list of one.
-    ui.cardScroll, ui.cardList = Style.Scroller(cart, CART_W, VISIT_H, nil, 6)
-    ui.cardScroll:SetPoint("TOPLEFT", 0, -LIST_TOP)
+    -- The card is as tall as what's in it (Paint sizes it): the spells, then a
+    -- strip along its bottom with the visit's sum and what's left after.
+    local box = CreateFrame("Frame", nil, cart)
+    box:SetPoint("TOPLEFT", 0, -HEAD_H)
+    box:SetWidth(LEFT_W)
+    Style.Box(box, 6, "well", "cardLine")
+    ui.cartBox = box
+    ui.cardScroll, ui.cardList = Style.Scroller(box, ROW_W, VISIT_H, ROW_W, -4)
+    ui.cardScroll:SetPoint("TOPLEFT", 1, -1)
     ui.empty = Style.Text(ui.cardList, 13, "muted")
-    ui.empty:SetPoint("TOPLEFT", 2, -10)
-    ui.empty:SetWidth(CART_W - 4)
-
-    -- The sums, each a label and an amount: this visit, your gold, what's
-    -- left after, and everything still to buy on the way to 60.
-    local totals = CreateFrame("Frame", nil, cart)
-    totals:SetSize(CART_W, TOTALS_H)
-    Style.Box(totals, 6, "well", "cardLine")
-    ui.totals = totals
-    local function Sum(i, label, size, colorKey, bold)
-        local l = Style.Text(totals, 12, "muted")
-        l:SetPoint("TOPLEFT", 14, -(12 + (i - 1) * 24))
-        l:SetText(label)
-        local amount = Style.Text(totals, size, colorKey, nil, bold)
-        amount:SetPoint("TOPRIGHT", -14, -(12 + (i - 1) * 24 - (size > 12 and 2 or 0)))
-        amount:SetJustifyH("RIGHT")
-        return amount, l
-    end
-    ui.visitCost = Sum(1, "This visit", 15, "gold", true)
-    ui.haveText = Sum(2, "You have", 12, "text")
-    ui.spareText, ui.spareLabel = Sum(3, "Left after", 12, "text")
-    ui.restText = Sum(4, "All training to 60", 12, "text")
-    local sumRule = totals:CreateTexture(nil, "ARTWORK")
-    sumRule:SetColorTexture(Style.Color("line"))
-    sumRule:SetPoint("TOPLEFT", 14, -80)
-    sumRule:SetPoint("TOPRIGHT", -14, -80)
-    sumRule:SetHeight(1)
+    ui.empty:SetPoint("TOPLEFT", 16, -22)
+    ui.empty:SetWidth(ROW_W - 32)
+    local strip = CreateFrame("Frame", nil, box)
+    strip:SetPoint("BOTTOMLEFT", 1, 1)
+    strip:SetPoint("BOTTOMRIGHT", -1, 1)
+    strip:SetHeight(STRIP_H)
+    Style.Cap(strip, 5, "titleBar", "BOTTOM")
+    Style.Rule(strip, "TOP", "cardLine")
+    local visitLabel = Style.Text(strip, 12, "muted")
+    visitLabel:SetPoint("LEFT", 16, 0)
+    visitLabel:SetText("This visit")
+    ui.visitCost = Style.Text(strip, 14, "gold", nil, true)
+    ui.visitCost:SetPoint("LEFT", visitLabel, "RIGHT", 10, 0)
+    ui.spareText = Style.Text(strip, 13, "green", nil, true)
+    ui.spareText:SetPoint("RIGHT", -16, 0)
+    ui.spareText:SetJustifyH("RIGHT")
+    ui.spareLabel = Style.Text(strip, 12, "muted")
+    ui.spareLabel:SetPoint("RIGHT", ui.spareText, "LEFT", -10, 0)
+    ui.spareLabel:SetJustifyH("RIGHT")
     ui.priceNote = Style.Text(cart, 11, "muted")
-    ui.priceNote:SetPoint("TOPLEFT", totals, "BOTTOMLEFT", 2, -6)
-    ui.priceNote:SetWidth(CART_W - 4)
+    ui.priceNote:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 2, -6)
+    ui.priceNote:SetWidth(LEFT_W - 4)
     ui.priceNote:SetWordWrap(false)
 
-    -- The last column: a hunter's pet (what it can learn, by how each is
-    -- got, a line an ability), and under it the weapon skills, in one list
-    -- that scrolls when the two run past the foot of the page.
-    ui.sideScroll, ui.petList = Style.Scroller(page, sideW, height - top, nil, 6)
-    ui.sideScroll:SetPoint("TOPLEFT", sideX, -top)
-    ui.petHead = Section(ui.petList, sideW, true)
-    ui.petHead.title:SetText("YOUR PET")
-    ui.petHead:Hide()
-
-    -- The rows this page has made and reuses, by kind.
-    local made = { cards = {}, stops = {}, steps = {}, glyphs = {}, heads = {}, weapons = {}, subs = {}, pets = {} }
-    -- A spell to train now: its icon, name and rank, its price, and Skip.
+    -- The rows and marks this page has made and reuses, by kind.
+    local made = { cards = {}, stops = {}, glyphs = {}, tiles = {}, subs = {}, dashes = {} }
+    -- A spell to train now: its icon, name and rank, its price, and Skip. A
+    -- right-click skips it too, which is the only way where the rows are two
+    -- across and have no room for the word.
     local function Card()
-        local c = CreateFrame("Frame", nil, ui.cardList)
-        c:SetSize(CART_W, VISIT_H)
+        local c = CreateFrame("Button", nil, ui.cardList)
+        c:RegisterForClicks("RightButtonUp")
         Style.Rule(c, "BOTTOM", "line")
         c.icon = c:CreateTexture(nil, "ARTWORK")
-        c.icon:SetSize(28, 28)
-        c.icon:SetPoint("LEFT", 2, 0)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        c.name = Style.Text(c, 13, "text", nil, true)
+        c.name = Style.Text(c, 14, "text", nil, true)
         c.name:SetWordWrap(false)
         c.new = Style.Tag(c, "new", true, true)
         c.new:SetPoint("LEFT", c.name, "RIGHT", 8, 0)
-        c.sub = Style.Text(c, 11, "muted")
+        c.sub = Style.Text(c, 12, "muted")
         c.sub:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -3)
-        c.sub:SetWidth(CART_W - 40 - SKIP_W - 70)
         c.sub:SetWordWrap(false)
         c.skip = Link(c, SKIP_W)
-        c.skip:SetPoint("RIGHT", -2, 0)
-        c.cost = Style.Text(c, 13, "text", nil, true)
-        c.cost:SetPoint("RIGHT", -(SKIP_W + 6), 0)
+        c.skip:SetPoint("RIGHT", -16, 0)
+        c.cost = Style.Text(c, 14, "text", nil, true)
         c.cost:SetJustifyH("RIGHT")
+        -- Sized for its layout; returns the room its name has.
+        function c:Lay(layout)
+            local pair = layout.across == 2
+            local icon, pad = layout.high == VISIT_H and 36 or 28, pair and 12 or 16
+            self.pad = pad + icon + (pair and 10 or 14)
+            self:SetSize(ROW_W / layout.across, layout.high)
+            self.icon:SetSize(icon, icon)
+            self.icon:ClearAllPoints()
+            self.icon:SetPoint("LEFT", pad, 0)
+            self.skip:SetShown(not pair)
+            self.cost:ClearAllPoints()
+            self.cost:SetPoint("RIGHT", pair and -12 or -(16 + SKIP_W + 14), 0)
+            local room = ROW_W / layout.across - self.pad - (pair and 12 + 66 or 16 + SKIP_W + 14 + 90)
+            self.sub:SetWidth(room)
+            return room
+        end
         -- With no line under it, the name sits in the middle of the row.
         function c:SetDetail(text)
             self.sub:SetText(text or "")
             self.name:ClearAllPoints()
             if text and text ~= "" then
-                self.name:SetPoint("BOTTOMLEFT", self.icon, "RIGHT", 10, 1)
+                self.name:SetPoint("BOTTOMLEFT", self, "LEFT", self.pad, 1)
             else
-                self.name:SetPoint("LEFT", self.icon, "RIGHT", 10, 0)
+                self.name:SetPoint("LEFT", self.pad, 0)
             end
         end
-        c:EnableMouse(true)
         Tooltip(c)
         return c
     end
@@ -276,12 +267,12 @@ Window.Page("training", function(page)
     -- opens it to show them, each with Unskip.
     local showSkipped = false
     local fold = CreateFrame("Button", nil, ui.cardList)
-    fold:SetSize(CART_W, FOLD_H)
+    fold:SetSize(ROW_W, FOLD_H)
     fold.sign = Style.Text(fold, 14, "gold", nil, true)
-    fold.sign:SetPoint("LEFT", 4, 0)
+    fold.sign:SetPoint("LEFT", 18, 0)
     fold.text = Style.Text(fold, 12, "muted")
-    fold.text:SetPoint("LEFT", 20, 0)
-    fold.text:SetWidth(CART_W - 20)
+    fold.text:SetPoint("LEFT", 36, 0)
+    fold.text:SetWidth(ROW_W - 52)
     fold.text:SetWordWrap(false)
     fold:SetScript("OnClick", function()
         showSkipped = not showSkipped
@@ -291,26 +282,91 @@ Window.Page("training", function(page)
     ui.fold = fold
 
     ---------------------------------------------------------------------------
-    -- In the middle: the road to 60, in words.
+    -- At the right: a hunter's pet, what it can learn as a picture each under
+    -- a heading for how it's got; and under it the weapon skills. One list,
+    -- that scrolls when the two run past the room they have.
     ---------------------------------------------------------------------------
-    local roadHead = Section(page, roadW)
-    roadHead:SetPoint("TOPLEFT", CART_W + GAP, -top)
-    roadHead.title:SetText("YOUR ROAD TO 60")
-    roadHead.note:SetText("gold: new to you  ·  right-click skips")
-    Columns(page, roadW, { { "LEVEL", 2 }, { "WHAT YOU LEARN", NAME_X }, { "COST", -10 } }):SetPoint("TOPLEFT", CART_W + GAP, -(top + 24))
-    -- The road has the height of the page. (It was a box of four visits to
-    -- scroll, over a pet's list that needed scrolling too.)
-    local road
-    ui.roadScroll, road = Style.Scroller(page, roadW - 8, height - top - 50, nil, 6)
-    ui.roadScroll:SetPoint("TOPLEFT", CART_W + GAP, -(top + 50))
-    ui.road = road
+    ui.sideScroll, ui.petList = Style.Scroller(page, sideW, UP_MIN, nil, 6)
+    ui.sideScroll:SetPoint("TOPLEFT", sideX, -top)
+    ui.petHead = Section(ui.petList, sideW)
+    ui.petHead.title:SetText("YOUR PET")
+    ui.petHead:Hide()
+    ui.petBox = CreateFrame("Frame", nil, ui.petList)
+    ui.petBox:SetWidth(sideW)
+    Style.Box(ui.petBox, 6, "well", "cardLine")
+    ui.petBox:Hide()
+    ui.petNone = Style.Text(ui.petBox, 13, "muted")
+    ui.petNone:SetPoint("TOPLEFT", 16, -14)
+    ui.petNone:SetText("Call your pet to see what it can learn.")
+    ui.weaponHead = Section(ui.petList, sideW)
+    ui.weaponHead.title:SetText("WEAPON SKILLS")
+    ui.weaponBox = CreateFrame("Frame", nil, ui.petList)
+    ui.weaponBox:SetWidth(sideW)
+    Style.Box(ui.weaponBox, 6, "well", "cardLine")
+    ui.weaponSum = Style.Text(ui.weaponBox, 12, "muted")
+
+    ---------------------------------------------------------------------------
+    -- Across the bottom: the road to 60. A road with a dashed middle, you at
+    -- its start, and a round sign for each trainer visit with what it
+    -- teaches under it. With more visits than fit across, the mouse wheel
+    -- moves along it.
+    ---------------------------------------------------------------------------
+    ui.roadHead = Section(page, width)
+    ui.roadHead.title:SetText("YOUR ROAD TO 60")
+    ui.roadScroll = CreateFrame("ScrollFrame", nil, page)
+    ui.roadScroll:SetSize(width, shared - UP_MIN)
+    local road = CreateFrame("Frame", nil, ui.roadScroll)
+    road:SetSize(width, shared - UP_MIN)
+    ui.roadScroll:SetScrollChild(road)
+    ui.road, ui.roadMost = road, 0
     ui.roadEmpty = Style.Text(road, 13, "muted")
     ui.roadEmpty:SetPoint("TOPLEFT", 2, -10)
     ui.roadEmpty:SetText("Nothing left to learn on the way to 60.")
-    ui.roadLine = road:CreateTexture(nil, "BACKGROUND")
-    ui.roadLine:SetColorTexture(Style.Color("lineStrong"))
-    ui.roadLine:SetWidth(2)
-    ui.roadLine:Hide()
+    local band = CreateFrame("Frame", nil, road)
+    band:SetPoint("TOPLEFT", 0, -(SIGN - BAND_H) / 2)
+    band:SetSize(width, BAND_H)
+    Style.Box(band, 13, "titleBar", "lineStrong")
+    ui.band = band
+    -- Where you are: the road's start, in dim gold, with a gold mark on it.
+    local done = CreateFrame("Frame", nil, band)
+    done:SetPoint("TOPLEFT", 1, -1)
+    done:SetSize(FIRST_X - 6, BAND_H - 2)
+    Style.Cap(done, 12, "needFill", "LEFT")
+    local you = done:CreateTexture(nil, "ARTWORK")
+    you:SetColorTexture(Style.Color("gold"))
+    you:SetSize(12, 12)
+    you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
+    you:SetRotation(math.rad(45))
+    ui.youText = Style.Text(road, 10, "gold", nil, true)
+    ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
+    ui.youText:SetJustifyH("CENTER")
+    -- A thin bar under the road shows where along it you're looking.
+    local thumb = page:CreateTexture(nil, "OVERLAY")
+    thumb:SetColorTexture(Style.Color("thumb"))
+    thumb:SetHeight(3)
+    thumb:Hide()
+    function ui.PlaceRoad()
+        local most = ui.roadMost
+        local at = math.max(0, math.min(most, ui.roadScroll:GetHorizontalScroll() or 0))
+        ui.roadScroll:SetHorizontalScroll(at)
+        thumb:SetShown(most > 0)
+        if most > 0 then
+            local size = math.max(40, width * width / (width + most))
+            thumb:SetWidth(size)
+            thumb:ClearAllPoints()
+            thumb:SetPoint("TOPLEFT", ui.roadScroll, "BOTTOMLEFT", (width - size) * at / most, -2)
+        end
+    end
+    ui.roadScroll:EnableMouseWheel(true)
+    ui.roadScroll:SetScript("OnMouseWheel", function(self, delta)
+        self:SetHorizontalScroll((self:GetHorizontalScroll() or 0) - delta * PITCH)
+        ui.PlaceRoad()
+    end)
+    ui.legend = Style.Text(page, 11, "muted")
+    ui.legend:SetPoint("BOTTOMLEFT", 0, 0)
+    ui.legend:SetWidth(width)
+    ui.legend:SetJustifyH("LEFT")
+    ui.legend:SetWordWrap(false)
 
     local used
 
@@ -326,7 +382,7 @@ Window.Page("training", function(page)
         return item
     end
 
-    -- A right-click on a road spell skips it, or puts it back.
+    -- A right-click on a picture skips its spell, or puts it back.
     local function SkipClick(self)
         if self.spell then
             Training.Skip(self.spell.id, not self.spell.skipped)
@@ -334,81 +390,52 @@ Window.Page("training", function(page)
         end
     end
 
-    -- The next visit: a card with its level and cost, a line for each spell.
-    ui.nextCard = CreateFrame("Frame", nil, road)
-    ui.nextCard:SetWidth(roadW - 8)
-    Style.Fill(ui.nextCard, "well"):SetAlpha(0.5)
-    do
-        local edge = ui.nextCard:CreateTexture(nil, "ARTWORK")
-        edge:SetColorTexture(Style.Color("gold"))
-        edge:SetPoint("TOPLEFT")
-        edge:SetPoint("BOTTOMLEFT")
-        edge:SetWidth(3)
-        ui.nextLevel = Style.Text(ui.nextCard, 15, "text", nil, true)
-        ui.nextLevel:SetPoint("TOPLEFT", 14, -8)
-        Style.Tag(ui.nextCard, "next visit", nil, true):SetPoint("TOPLEFT", NAME_X, -10)
-        ui.nextCost = Style.Text(ui.nextCard, 13, "text", nil, true)
-        ui.nextCost:SetPoint("TOPRIGHT", -10, -9)
-        ui.nextCost:SetJustifyH("RIGHT")
-        -- What a hunter's pet can learn by then, under the visit's spells.
-        ui.nextPet = Style.Tag(ui.nextCard, "your pet", nil, true)
-        ui.nextPetText = Style.Text(ui.nextCard, 12, "muted")
-        ui.nextPetText:SetPoint("LEFT", ui.nextPet, "RIGHT", 8, 0)
-        ui.nextPetText:SetWidth(roadW - 8 - NAME_X - 70)
-        ui.nextPetText:SetWordWrap(false)
+    -- A dash of the road's middle line.
+    local function MakeDash()
+        local t = band:CreateTexture(nil, "ARTWORK")
+        t:SetColorTexture(Style.Color("lineStrong"))
+        t:SetSize(12, 2)
+        return t
     end
 
-    -- A spell of the next visit: its icon, its name, that it's new or its
-    -- rank, and its price.
-    local function MakeStep()
-        local r = CreateFrame("Button", nil, road)
-        r:SetSize(roadW - 8, STEP_H)
-        -- Above the card: both are the road's children, and at one level the
-        -- game may draw the card's fill over the line.
-        r:SetFrameLevel(road:GetFrameLevel() + 3)
-        r:RegisterForClicks("RightButtonUp")
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(18, 18)
-        r.icon:SetPoint("LEFT", 14, 0)
-        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.name = Style.Text(r, 13, "text")
-        r.name:SetPoint("LEFT", NAME_X, 0)
-        r.name:SetWordWrap(false)
-        r.new = Style.Tag(r, "new", true, true)
-        r.new:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
-        r.rank = Style.Text(r, 12, "muted")
-        r.rank:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
-        r.cost = Style.Text(r, 12, "muted")
-        r.cost:SetPoint("RIGHT", -10, 0)
-        r.cost:SetJustifyH("RIGHT")
-        Tooltip(r)
-        Style.Hover(r)
-        r:SetScript("OnClick", SkipClick)
-        return r
-    end
-
-    -- A later visit: a mark on the road's line, its level, the symbols of
-    -- what it teaches (laid out by Glyphs), and its cost.
+    -- A visit: a round sign on the road with its level, and its cost under
+    -- it. What it teaches is laid out under that by Glyphs. Pointing at the
+    -- sign says how many spells it is and what they cost to the copper.
     local function MakeStop()
         local s = CreateFrame("Frame", nil, road)
-        s.node = s:CreateTexture(nil, "ARTWORK")
-        s.node:SetSize(8, 8)
-        s.node:SetPoint("TOPLEFT", LINE_X - 3, -(8 + (GLYPH - 8) / 2))
-        s.level = Style.Text(s, 13, "secondary", nil, true)
-        s.level:SetPoint("LEFT", s, "TOPLEFT", 20, -(8 + GLYPH / 2))
-        s.cost = Style.Text(s, 12, "text")
-        s.cost:SetPoint("RIGHT", s, "TOPRIGHT", -10, -(8 + GLYPH / 2))
-        s.cost:SetJustifyH("RIGHT")
-        s.pet = Style.Tag(s, "your pet", nil, true)
+        s:SetSize(STOP_W, SIGN + 30)
+        -- Above the road's band: both are the road's children, and at one
+        -- level the game may draw the band over the sign.
+        s:SetFrameLevel(road:GetFrameLevel() + 3)
+        s.sign = CreateFrame("Frame", nil, s)
+        s.sign:SetSize(SIGN, SIGN)
+        s.sign:SetPoint("TOP")
+        s.disc = Style.Circle(s.sign, "well", "lineStrong")
+        s.level = Style.Text(s.sign, 15, "text", nil, true)
+        s.level:SetPoint("CENTER")
+        s.level:SetJustifyH("CENTER")
+        s.cost = Style.Text(s, 11, "text", nil, true)
+        s.cost:SetPoint("TOP", 0, -(SIGN + 8))
+        s.cost:SetJustifyH("CENTER")
+        s.sign:EnableMouse(true)
+        s.sign:SetScript("OnEnter", function(self)
+            if not self.title then return end
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(self.title)
+            if self.line then GameTooltip:AddLine(self.line, 1, 1, 1) end
+            GameTooltip:Show()
+        end)
+        s.sign:SetScript("OnLeave", function() GameTooltip:Hide() end)
         return s
     end
 
-    -- A spell of a later visit is its symbol, to take in at a glance: a
-    -- gold frame round an ability new to you, a higher rank's number in its
-    -- corner. Pointing at it names it; a right-click skips it.
-    local function MakeGlyph()
-        local g = CreateFrame("Button", nil, road)
-        g:SetSize(GLYPH, GLYPH)
+    -- A spell as its picture, to take in at a glance: a gold frame round an
+    -- ability new to you, a higher rank's number in its corner. Pointing at
+    -- it names it; a right-click skips it.
+    local function MakeGlyph(parent, size)
+        local g = CreateFrame("Button", nil, parent)
+        g:SetSize(size, size)
+        g:SetFrameLevel(parent:GetFrameLevel() + 5)
         g:RegisterForClicks("RightButtonUp")
         g.frame = g:CreateTexture(nil, "BACKGROUND")
         g.frame:SetAllPoints()
@@ -425,16 +452,26 @@ Window.Page("training", function(page)
         g:SetScript("OnClick", SkipClick)
         return g
     end
+    -- The two kinds: a small one on the road, a larger one for a pet's
+    -- abilities and the weapon skills.
+    local KINDS = {
+        glyphs = { size = ROAD_GLYPH, gap = 2, make = function() return MakeGlyph(road, ROAD_GLYPH) end },
+        tiles = { size = GLYPH, gap = 3, make = function() return MakeGlyph(ui.petList, GLYPH) end },
+    }
 
-    -- Lays a visit's spells out as symbols from (x0, y0), wrapping at maxW,
-    -- the abilities new to you first; returns how tall they came to, and
-    -- whether any is new. A spell's rank is its `number`, or read from its
-    -- rank's words.
-    local function Glyphs(spells, x0, y0, maxW)
-        local list, any = {}, false
+    -- Lays spells out as pictures of one kind from (x0, y0), wrapping at
+    -- maxW, the abilities new to you first; returns how tall they came to.
+    -- A spell's rank is its `number`, or read from its rank's words; it's
+    -- new to you at rank 1, unless its `fresh` says otherwise. One with a
+    -- `hint` of its own shows that in its tooltip; a `fixed` one can't be
+    -- skipped; a `dim` one is something you can't get yet.
+    local function Glyphs(spells, x0, y0, maxW, pool)
+        local kind, list = KINDS[pool], {}
         for k, spell in ipairs(spells) do
             local rank = spell.number or RankNumber(spell.rank) or 1
-            list[k] = { spell = spell, rank = rank, fresh = rank <= 1, at = k }
+            local fresh = rank <= 1
+            if spell.fresh ~= nil then fresh = spell.fresh end
+            list[k] = { spell = spell, rank = rank, fresh = fresh, at = k }
         end
         table.sort(list, function(a, b)
             if a.fresh ~= b.fresh then return a.fresh end
@@ -442,109 +479,41 @@ Window.Page("training", function(page)
         end)
         local x, y = 0, 0
         for _, e in ipairs(list) do
-            local g, spell = Take("glyphs", MakeGlyph), e.spell
-            g.spell, g.spellID, g.hint = spell, spell.id, Hint(spell)
+            local g, spell = Take(pool, kind.make), e.spell
+            g.spell, g.spellID, g.hint = not spell.fixed and spell or nil, spell.id, spell.hint or Hint(spell)
             g.icon:SetTexture(spell.icon)
             g.icon:SetDesaturated(spell.skipped and true or false)
             g.frame:SetColorTexture(Style.Color(e.fresh and "gold" or "lineStrong"))
-            g.back:SetShown(not e.fresh)
-            g.rank:SetText(e.fresh and "" or e.rank)
-            if not e.fresh then g.back:SetSize(e.rank > 9 and 16 or 11, 12) end
-            any = any or (e.fresh and not spell.skipped)
-            if x > 0 and x + GLYPH > maxW then
-                x, y = 0, y + GLYPH + GLYPH_GAP
+            local numbered = not e.fresh and e.rank > 1
+            g.back:SetShown(numbered)
+            g.rank:SetText(numbered and e.rank or "")
+            if numbered then g.back:SetSize(e.rank > 9 and 16 or 11, 12) end
+            if x > 0 and x + kind.size > maxW then
+                x, y = 0, y + kind.size + kind.gap
             end
             g:ClearAllPoints()
             g:SetPoint("TOPLEFT", x0 + x, -(y0 + y))
-            g:SetAlpha(spell.skipped and 0.4 or 1)
-            x = x + GLYPH + GLYPH_GAP
+            g:SetAlpha(spell.skipped and 0.4 or (spell.dim and 0.45 or 1))
+            x = x + kind.size + kind.gap
         end
-        return y + GLYPH, any
+        return #list > 0 and (y + kind.size) or 0
     end
 
-    local function MakeHead()
-        return Section(ui.petList, sideW, true)
-    end
-
-    -- A heading inside the pet's list: how the abilities under it are got,
+    -- A heading inside the pet's card: how the abilities under it are got,
     -- and how many there are.
     local function MakeSub()
-        local s = CreateFrame("Frame", nil, ui.petList)
-        s:SetSize(sideW, SUB_H)
-        s.text = Style.Text(s, 12, "secondary", nil, true)
-        s.text:SetPoint("BOTTOMLEFT", 2, 4)
-        s.count = Style.Text(s, 11, "muted")
-        s.count:SetPoint("BOTTOMRIGHT", -2, 4)
-        s.count:SetJustifyH("RIGHT")
+        local s = CreateFrame("Frame", nil, ui.petBox)
+        s:SetSize(sideW - 32, SUB_H)
+        s.text = Style.Text(s, 10, "muted", nil, true)
+        s.text:SetPoint("LEFT")
+        s.count = Style.Text(s, 10, "secondary", nil, true)
+        s.count:SetPoint("LEFT", s.text, "RIGHT", 6, 0)
         return s
-    end
-
-    -- A pet ability: its icon, name and rank on one line, what it's waiting
-    -- on where its heading doesn't say, and Skip.
-    local function MakePet()
-        local r = CreateFrame("Frame", nil, ui.petList)
-        r:SetSize(sideW, PET_H)
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(18, 18)
-        r.icon:SetPoint("LEFT", 2, 0)
-        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT", 28, 0)
-        r.rank = Style.Text(r, 11, "muted")
-        r.rank:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
-        r.skip = Link(r, SKIP_W)
-        r.skip:SetPoint("RIGHT", -2, 0)
-        r.state = Style.Text(r, 11, "muted")
-        r.state:SetPoint("RIGHT", -(SKIP_W + 8), 0)
-        r.state:SetJustifyH("RIGHT")
-        -- The rank stops short of what's said at the right, and is cut there
-        -- if it's too long, where it used to run on under it.
-        r.rank:SetPoint("RIGHT", r.state, "LEFT", -8, 0)
-        r.rank:SetJustifyH("LEFT")
-        r.rank:SetWordWrap(false)
-        r:EnableMouse(true)
-        Tooltip(r)
-        Style.Hover(r, 4)
-        return r
-    end
-
-    -- A weapon skill: its icon and name, its price or state, and a Skip
-    -- button for one not learned yet.
-    local function MakeWeapon()
-        local r = CreateFrame("Frame", nil, ui.petList)
-        r:SetSize(sideW, ROW_H)
-        Style.Rule(r, "BOTTOM", "line")
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(18, 18)
-        r.icon:SetPoint("LEFT", 4, 0)
-        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT", 32, 0)
-        r.skip = Link(r, SKIP_W)
-        r.skip:SetPoint("RIGHT", -4, 0)
-        r.state = Style.Text(r, 12, "text", nil, true)
-        r.state:SetPoint("RIGHT", -(SKIP_W + 12), 0)
-        r.state:SetJustifyH("RIGHT")
-        r:EnableMouse(true)
-        Tooltip(r)
-        Style.Hover(r, 4)
-        return r
-    end
-
-    -- Shows a row's Skip button for the spell it would skip, or hides it.
-    local function SkipButton(r, spellID, skipped)
-        r.skip:SetShown(spellID ~= nil)
-        if not spellID then return end
-        r.skip:SetLabel(skipped and "Unskip" or "Skip")
-        r.skip:SetScript("OnClick", function()
-            Training.Skip(spellID, not skipped)
-            Paint()
-        end)
     end
 
     -- A visit's cost in words: the sum of what isn't skipped or free, "?"
     -- where a price hasn't been seen, nothing where there's nothing to pay.
-    -- `round`: to the silver, for a visit far enough off that copper is
+    -- `round`: to the silver, for under a sign on the road, where copper is
     -- only three more things to read.
     local function StopCost(spells, round)
         local sum, missing = 0, false
@@ -557,70 +526,116 @@ Window.Page("training", function(page)
         return sum > 0 and Compat.Money(sum) or (missing and "|cff9a9688?|r" or "")
     end
 
-    -- The weapon skills, from y down the last column's list: ones to learn
-    -- first, then skipped ones, then the ones you know. Returns where they end.
-    function ui.PaintWeapons(data, y)
-        local head = Take("heads", MakeHead)
-        head:ClearAllPoints()
-        head:SetPoint("TOPLEFT", 0, -y)
-        head.title:SetText("WEAPON SKILLS")
-        head.note:SetText("a master teaches only some")
-        y = y + 22
-        local weapons = {}
-        for _, w in ipairs(data.weapons) do weapons[#weapons + 1] = w end
-        local function Order(w) return w.known and 3 or (w.skipped and 2 or 1) end
-        table.sort(weapons, function(a, b)
-            if Order(a) ~= Order(b) then return Order(a) < Order(b) end
-            return a.name < b.name
-        end)
-        for _, w in ipairs(weapons) do
-            local r = Take("weapons", MakeWeapon)
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 0, -y)
-            r.spellID, r.hint = w.id, not w.known and (w.at and ("Taught by " .. w.at .. ".")
-                or "Each weapon master teaches only some weapons, and jsal.ui hasn't seen who teaches this one. Visit one and it remembers.") or nil
-            r.icon:SetTexture(w.icon)
-            r.name:SetText(w.name)
-            if w.known then
-                r.state:SetText("Known")
-                r.state:SetTextColor(Style.Color("muted"))
-            elseif w.skipped then
-                r.state:SetText("Skipped")
-                r.state:SetTextColor(Style.Color("muted"))
-            else
-                r.state:SetText(w.cost and Compat.Money(w.cost) or "?")
-                r.state:SetTextColor(Style.Color(w.cost and "text" or "muted"))
-            end
-            SkipButton(r, not w.known and w.id or nil, w.skipped)
-            r:SetAlpha((w.known or w.skipped) and 0.6 or 1)
-            y = y + ROW_H
+    -- What a pet ability's picture says when pointed at: how it's got, what
+    -- it's waiting on, and that a right-click skips it.
+    local function PetEntry(row, pet)
+        local need, hint = row.spell.level, nil
+        local low = (pet.level or 0) < need
+        if row.state == "known" then
+            hint = "Your pet knows it."
+        elseif row.state == "ready" then
+            hint = (row.points and (row.points .. " training points. ") or "") .. "Teach it from your Beast Training."
+        elseif row.state == "points" then
+            hint = ("Your pet has %d training points free and this takes %d: %d short."):format(pet.free or 0, row.points, row.short)
+        elseif row.state == "level" then
+            hint = "In your Beast Training. Your pet needs level " .. need .. "."
+        elseif row.state == "trainer" then
+            hint = "Buy it from a pet trainer, then teach it from your Beast Training." .. (low and (" Your pet needs level " .. need .. ".") or "")
+        elseif row.state == "tame" then
+            hint = "Not in your Beast Training yet: tame a beast that has it, and you learn it." .. (low and (" Your pet needs level " .. need .. ".") or "")
+        else
+            hint = "Open Beast Training once so jsal.ui can see what's in it."
         end
-        return y
+        local known = row.state == "known"
+        if not known then hint = hint .. (row.skipped and " Skipped: right-click to put it back." or " Right-click to skip it.") end
+        return { id = row.spell.pet, icon = row.icon, number = math.max(1, row.spell.rank or 1), fresh = not known and (row.spell.rank or 0) <= 1,
+                 skipped = row.skipped, hint = hint, fixed = known, dim = known or (row.state ~= "ready" and low) }
     end
 
-    -- A hunter's pet, at the top of the last column: each ability's next
-    -- rank under a heading for how it's got. The ones waiting on your pet's
-    -- level are headed by that level, so it's said once and not on every
-    -- row. Returns where it ends down the column's list: 0 with no pet.
+    -- The weapon skills, from y down the right column's list: a picture for
+    -- each still to learn (a skipped one dimmed), and how many there are and
+    -- what they cost. The ones you know are counted in the heading. Returns
+    -- where they end.
+    function ui.PaintWeapons(data, y)
+        local list, known, n, sum, same, missing = {}, 0, 0, 0, nil, false
+        local weapons = {}
+        for _, w in ipairs(data.weapons) do
+            if w.known then known = known + 1 else weapons[#weapons + 1] = w end
+        end
+        table.sort(weapons, function(a, b)
+            if (a.skipped and true or false) ~= (b.skipped and true or false) then return not a.skipped end
+            return a.name < b.name
+        end)
+        for k, w in ipairs(weapons) do
+            list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false,
+                hint = (w.at and ("Taught by " .. w.at .. ".")
+                    or "Each weapon master teaches only some weapons, and jsal.ui hasn't seen who teaches this one. Visit one and it remembers.")
+                    .. (w.cost and (" " .. Compat.Money(w.cost) .. ".") or "")
+                    .. (w.skipped and " Skipped: right-click to put it back." or " Right-click to skip it.") }
+            if not w.skipped then
+                n = n + 1
+                if w.cost then
+                    sum = sum + w.cost
+                    if same == nil then same = w.cost elseif same ~= w.cost then same = false end
+                else
+                    missing = true
+                end
+            end
+        end
+        ui.weaponHead:ClearAllPoints()
+        ui.weaponHead:SetPoint("TOPLEFT", 0, -y)
+        ui.weaponHead.note:SetText(known > 0 and (known .. " known") or "")
+        y = y + HEAD_H
+        ui.weaponBox:ClearAllPoints()
+        ui.weaponBox:SetPoint("TOPLEFT", 0, -y)
+        local tall = Glyphs(list, 16, y + 12, sideW - 32, "tiles")
+        local words
+        if #list == 0 then
+            words = "Nothing left to learn from a weapon master."
+        elseif n == 0 then
+            words = "All skipped."
+        else
+            words = n .. " to learn"
+            if same and not missing then
+                words = words .. ",  |cffece6d6" .. Compat.Money(same) .. "|r each"
+            elseif sum > 0 then
+                words = words .. " for " .. (missing and "at least " or "") .. "|cffece6d6" .. Compat.Money(sum) .. "|r"
+            end
+        end
+        ui.weaponSum:SetText(words)
+        -- The words stand right of the pictures where one row of them leaves
+        -- the room, and under them where it doesn't.
+        local beside = tall == GLYPH and #list * (GLYPH + 3) + 190 <= sideW - 32
+        ui.weaponSum:ClearAllPoints()
+        if tall == 0 then
+            ui.weaponSum:SetPoint("TOPLEFT", 16, -14)
+        elseif beside then
+            ui.weaponSum:SetPoint("RIGHT", ui.weaponBox, "TOPRIGHT", -16, -(12 + GLYPH / 2))
+        else
+            ui.weaponSum:SetPoint("TOPLEFT", 16, -(12 + tall + 8))
+        end
+        local boxH = tall == 0 and 44 or (12 + tall + (beside and 12 or 34))
+        ui.weaponBox:SetHeight(boxH)
+        return y + boxH
+    end
+
+    -- A hunter's pet, at the top of the right column: a card with each
+    -- ability's next rank as a picture, under a heading for how it's got.
+    -- The ones waiting on your pet's level are headed by that level. Returns
+    -- where it ends down the column's list: 0 with no pet.
     function ui.PaintPet(pet)
         ui.petHead:SetShown(pet ~= nil)
+        ui.petBox:SetShown(pet ~= nil)
         if not pet then return 0 end
         ui.petHead:ClearAllPoints()
         ui.petHead:SetPoint("TOPLEFT", 0, 0)
-        local y = 22
+        ui.petBox:ClearAllPoints()
+        ui.petBox:SetPoint("TOPLEFT", 0, -HEAD_H)
+        ui.petNone:SetShown(pet.none == true)
+        local y = 10
         if pet.none then
             ui.petHead.note:SetText("")
-            local r = Take("pets", MakePet)
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 0, -(y + 4))
-            r.spellID, r.hint = nil, nil
-            r.icon:SetTexture(select(2, Compat.SpellInfo(883)))
-            r.name:SetText("Call your pet to see what it can learn")
-            r.rank:SetText("")
-            r.state:SetText("")
-            SkipButton(r, nil)
-            r:SetAlpha(1)
-            y = y + 4 + PET_H
+            y = 44
         else
             local note = ("%s, a level %d %s"):format(pet.name or "Your pet", pet.level or 0, (pet.family or "pet"):lower())
             if pet.free then note = note .. ("  ·  %d TP free"):format(pet.free) end
@@ -652,57 +667,18 @@ Window.Page("training", function(page)
             for _, group in ipairs(groups) do
                 local s = Take("subs", MakeSub)
                 s:ClearAllPoints()
-                s:SetPoint("TOPLEFT", 0, -y)
-                s.text:SetText(group[1])
-                s.count:SetText(#group[2] == 1 and "1 ability" or (#group[2] .. " abilities"))
+                s:SetPoint("TOPLEFT", 16, -y)
+                s.text:SetText(group[1]:upper())
+                s.count:SetText(#group[2])
                 y = y + SUB_H
-                for _, row in ipairs(group[2]) do
-                    local r = Take("pets", MakePet)
-                    r:ClearAllPoints()
-                    r:SetPoint("TOPLEFT", 0, -y)
-                    r.spellID = row.spell.pet
-                    r.icon:SetTexture(row.icon)
-                    r.name:SetText(row.name)
-                    local rank = row.spell.rank > 0 and ("Rank " .. row.spell.rank) or ""
-                    -- The heading says how it's got; the row adds only what
-                    -- that doesn't: to teach it now, or the level your pet
-                    -- still needs.
-                    local state, color = "", "muted"
-                    if row.state == "known" then
-                        r.hint = nil
-                    elseif row.state == "ready" then
-                        -- The heading says it's ready; the row says what it
-                        -- costs, at the right, where "Teach now" stood with
-                        -- the cost running under it. Green only when the
-                        -- game says the pet has the points.
-                        state, color = row.points and (row.points .. " TP") or "", pet.free and "green" or "text"
-                        r.hint = "Teach it from your Beast Training."
-                    elseif row.state == "points" then
-                        state, color = row.points .. " TP", "text"
-                        r.hint = ("Your pet has %d training points free and this takes %d: %d short."):format(pet.free or 0, row.points, row.short)
-                    elseif row.state == "level" then
-                        r.hint = "In your Beast Training. Your pet needs level " .. row.spell.level .. "."
-                    else
-                        if (pet.level or 0) < row.spell.level then state = "Pet level " .. row.spell.level end
-                        if row.state == "trainer" then
-                            r.hint = "Buy it from a pet trainer, then teach it from your Beast Training."
-                        elseif row.state == "tame" then
-                            r.hint = "Not in your Beast Training yet: tame a beast that has it, and you learn it."
-                        else
-                            r.hint = "Open Beast Training once so jsal.ui can see what's in it."
-                        end
-                    end
-                    if row.skipped then state, color = "Skipped", "muted" end
-                    r.rank:SetText(rank)
-                    r.state:SetText(state)
-                    r.state:SetTextColor(Style.Color(color))
-                    SkipButton(r, row.state ~= "known" and row.spell.pet or nil, row.skipped)
-                    r:SetAlpha((row.state == "known" or row.skipped) and 0.6 or 1)
-                    y = y + PET_H
-                end
+                local list = {}
+                for k, row in ipairs(group[2]) do list[k] = PetEntry(row, pet) end
+                y = y + Glyphs(list, 16, HEAD_H + y, sideW - 32, "tiles") + 8
             end
+            y = y + 4
         end
-        return y
+        ui.petBox:SetHeight(y)
+        return HEAD_H + y
     end
 
     Paint = function()
@@ -784,25 +760,64 @@ Window.Page("training", function(page)
         else
             ui.gold:SetText("You have " .. Compat.Money(money))
         end
-        local at, shown = 0, 0
+        -- The road is as tall as its tallest stop: the sign, the cost, and
+        -- its pictures three across. The cards have the rest of the page.
+        local levels, rows = {}, 2
+        for stop, list in pairs(ahead) do
+            levels[#levels + 1] = stop
+            rows = math.max(rows, math.ceil(#list / 3))
+        end
+        table.sort(levels)
+        local roadH = math.min(shared - UP_MIN, SIGN + 8 + 16 + 8 + rows * (ROAD_GLYPH + 2) + 6)
+        -- The spells to train now, in the roomiest layout the cards' room
+        -- holds: counted as the rows of what's ready, the fold's line, and
+        -- the skipped ones' rows when the fold is open.
+        local function Tall(layout)
+            local lines = math.ceil(#active / layout.across) + ((showSkipped and #skipped > 0) and math.ceil(#skipped / layout.across) or 0)
+            return math.max(lines * layout.high, #now == 0 and VISIT_H or 0) + (#skipped > 0 and FOLD_H or 0)
+        end
+        local frame = HEAD_H + 2 + STRIP_H + 22   -- the card's heading, line, strip of sums and the note under it
+        local layout = LAYOUTS[#LAYOUTS]
+        for _, try in ipairs(LAYOUTS) do
+            if frame + Tall(try) <= shared - roadH then
+                layout = try
+                break
+            end
+        end
+        local upH = math.max(UP_MIN, math.min(shared - roadH, frame + Tall(layout)))
+        cart:SetHeight(upH)
+        ui.sideScroll:SetHeight(upH)
+        ui.roadHead:ClearAllPoints()
+        ui.roadHead:SetPoint("TOPLEFT", 0, -(top + upH + 24))
+        ui.roadScroll:ClearAllPoints()
+        ui.roadScroll:SetPoint("TOPLEFT", 0, -(top + upH + 24 + 30))
+        ui.roadScroll:SetHeight(roadH)
+        ui.road:SetHeight(roadH)
+
+        local at, shown, beside = 0, 0, false
         local function Put(spell)
             shown = shown + 1
             local c = made.cards[shown] or Card()
             made.cards[shown] = c
+            local room = c:Lay(layout)
             c.spellID = spell.id
             c.icon:SetTexture(spell.icon)
             c.name:SetWidth(0)
             c.name:SetText(spell.name)
             local fresh = New(spell)
-            if Style.Wide(c.name, 0) > CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0) then c.name:SetWidth(CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0)) end
-            c.new:SetShown(fresh)
+            -- Two across there's no room for the tag after the name: "new"
+            -- leads the line under it.
+            local tagged = fresh and layout.across == 1
+            if Style.Wide(c.name, 0) > room - (tagged and 44 or 0) then c.name:SetWidth(room - (tagged and 44 or 0)) end
+            c.new:SetShown(tagged)
             -- A new ability says so in its tag; a higher rank says which.
             local detail = not fresh and spell.rank or nil
             if spell.source == "demon" then detail = spell.group .. " · Grimoire" .. (detail and (" · " .. detail) or "")
             elseif spell.group then detail = spell.group .. (detail and (" · " .. detail) or "")
             elseif spell.via then detail = VIA[spell.via].card .. (detail and (" · " .. detail) or "") end
+            if fresh and not tagged then detail = Style.Tint("gold") .. "new|r" .. (detail and (" · " .. detail) or "") end
             c:SetDetail(detail)
-            c.hint = spell.via and VIA[spell.via].hint or nil
+            c.hint = (spell.via and (VIA[spell.via].hint .. " ") or "") .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
             if spell.source == "beast" then
                 c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
             elseif Free(spell) then
@@ -810,18 +825,28 @@ Window.Page("training", function(page)
             else
                 c.cost:SetText(Price(spell) or "|cff9a9688?|r")
             end
-            c.skip:SetLabel(spell.skipped and "Unskip" or "Skip")
-            c.skip:SetScript("OnClick", function()
+            local function Flip()
                 Training.Skip(spell.id, not spell.skipped)
                 Paint()
-            end)
+            end
+            c.skip:SetLabel(spell.skipped and "Unskip" or "Skip")
+            c.skip:SetScript("OnClick", Flip)
+            c:SetScript("OnClick", Flip)
             c:SetAlpha(spell.skipped and 0.6 or 1)
             c:ClearAllPoints()
-            c:SetPoint("TOPLEFT", 0, -at)
+            if beside then
+                -- The second of a pair, beside the one just placed.
+                c:SetPoint("TOPLEFT", ROW_W / 2, -(at - layout.high))
+                beside = false
+            else
+                c:SetPoint("TOPLEFT", 0, -at)
+                at = at + layout.high
+                beside = layout.across == 2
+            end
             c:Show()
-            at = at + VISIT_H
         end
         for _, spell in ipairs(active) do Put(spell) end
+        beside = false
         ui.fold:SetShown(#skipped > 0)
         if #skipped > 0 then
             local names = {}
@@ -837,138 +862,78 @@ Window.Page("training", function(page)
         end
         for i = shown + 1, #made.cards do made.cards[i]:Hide() end
         ui.empty:SetShown(#now == 0)
-        ui.empty:SetText("Nothing to train right now. The road beside this shows what's next.")
+        ui.empty:SetText("Nothing to train right now. The road below shows what's next.")
         ui.cardList:SetHeight(math.max(1, at))
-        -- The list is as tall as what's in it, and the sums sit right under
-        -- it. A list too long for the column scrolls, the sums still under it.
-        local room = height - top - LIST_TOP - 10 - TOTALS_H - 26
-        local listH = math.max(1, math.min(math.max(at, #now == 0 and 44 or 0), room))
+        -- The card is as tall as what's in it, the strip of sums at its foot.
+        -- A list too long even two across scrolls inside the card.
+        local listH = math.max(1, math.min(math.max(at, #now == 0 and VISIT_H or 0), upH - frame))
         ui.cardScroll:SetHeight(listH)
-        ui.totals:ClearAllPoints()
-        ui.totals:SetPoint("TOPLEFT", 0, -(LIST_TOP + listH + 10))
+        ui.cartBox:SetHeight(listH + 2 + STRIP_H)
         ui.cardScroll:UpdateScrollChildRect()
         ui.cardScroll:Place()
 
-        -- The sums.
+        -- The sums: this visit, and what's left after it or how much short.
         ui.visitCost:SetText(cost > 0 and Compat.Money(cost) or (unknown > 0 and "?" or "Nothing"))
-        ui.haveText:SetText(Compat.Money(money))
         ui.spareLabel:SetText(short and "Short by" or "Left after")
         ui.spareText:SetText(Compat.Money(math.abs(money - cost)))
         ui.spareText:SetTextColor(Style.Color(short and "red" or "green"))
         ui.spareLabel:SetShown(cost > 0)
         ui.spareText:SetShown(cost > 0)
-        -- "from": some prices on the way haven't been seen at a trainer.
-        ui.restText:SetText(rest > 0 and ((restUnknown > 0 and "from " or "") .. Compat.Money(rest)) or "?")
         ui.priceNote:SetText(data.haveTrainer
             and (unknown > 0 and ("%d price%s not seen at a trainer yet."):format(unknown, unknown == 1 and "" or "s") or "")
             or "Prices fill in the first time you open a class trainer.")
 
-        -- The road: the next visit spelled out, a line for each one after.
+        -- The road: a sign for each visit ahead, the next one's in gold, the
+        -- last level's ringed in gold. "from": some prices on the way haven't
+        -- been seen at a trainer.
         used = {}
-        local y = 0
-        -- What a hunter's pet can learn by each stop: the next rank of each
-        -- ability, at the stop your pet's level reaches what it needs.
-        local petAt = {}
-        for _, row in ipairs(pet and pet.rows or {}) do
-            local stop = Stop(row.spell.level)
-            if row.state ~= "known" and row.state ~= "ready" and not row.skipped
-                and row.spell.level > (pet.level or 0) and stop > level then
-                petAt[stop] = petAt[stop] or {}
-                table.insert(petAt[stop], { id = row.spell.pet, name = row.name, icon = row.icon, level = row.spell.level,
-                                            number = row.spell.rank, group = "Your pet", source = "beast" })
-                ahead[stop] = ahead[stop] or {}
-            end
-        end
-        local levels = {}
-        for stop in pairs(ahead) do levels[#levels + 1] = stop end
-        table.sort(levels)
-        ui.nextCard:SetShown(#levels > 0)
-        -- The road's line, from under the next visit's card to the last mark.
-        local lineFrom, lineTo
-        for i, stop in ipairs(levels) do
-            local list, mine = ahead[stop], petAt[stop]
-            if i == 1 then
-                ui.nextCard:ClearAllPoints()
-                ui.nextCard:SetPoint("TOPLEFT", 0, -y)
-                ui.nextCard:SetHeight(34 + #list * STEP_H + 6 + (mine and 22 or 0))
-                ui.nextPet:SetShown(mine ~= nil)
-                ui.nextPetText:SetShown(mine ~= nil)
-                if mine then
-                    ui.nextPet:ClearAllPoints()
-                    ui.nextPet:SetPoint("TOPLEFT", NAME_X, -(34 + #list * STEP_H + 4))
-                    local names = {}
-                    for k, a in ipairs(mine) do names[k] = a.name .. (a.number > 1 and (" " .. a.number) or "") end
-                    ui.nextPetText:SetText(table.concat(names, ", "))
-                end
-                ui.nextLevel:SetText(stop)
-                ui.nextCost:SetText(StopCost(list))
-                y = y + 34
-                for _, spell in ipairs(list) do
-                    local r = Take("steps", MakeStep)
-                    r.spell, r.spellID, r.hint = spell, spell.id, Hint(spell)
-                    r.icon:SetTexture(spell.icon)
-                    r.icon:SetDesaturated(spell.skipped)
-                    r.name:SetText(spell.name)
-                    local fresh = New(spell)
-                    r.name:SetTextColor(Style.Color(fresh and "text" or "secondary"))
-                    r.new:SetShown(fresh)
-                    r.rank:SetText(not fresh and spell.rank or "")
-                    r.cost:SetText(spell.skipped and "skipped" or (Free(spell) and VIA[spell.via].tag or (Price(spell) or "?")))
-                    r:SetAlpha(spell.skipped and 0.4 or 1)
-                    r:ClearAllPoints()
-                    r:SetPoint("TOPLEFT", 0, -y)
-                    y = y + STEP_H
-                end
-                y = y + 6 + 6 + (mine and 22 or 0)
-            else
-                local s = Take("stops", MakeStop)
-                local roomW = roadW - 8 - NAME_X - COST_W - 8
-                -- A stop your pet alone has something at has no row of spells.
-                local h, fresh = 8, false
-                if #list > 0 then
-                    local tall
-                    tall, fresh = Glyphs(list, NAME_X, y + h, roomW)
-                    h = h + tall + GLYPH_GAP
-                end
-                s.pet:SetShown(mine ~= nil)
-                if mine then
-                    -- Your pet's, after a tag that says whose they are.
-                    s.pet:ClearAllPoints()
-                    s.pet:SetPoint("LEFT", s, "TOPLEFT", NAME_X, -(h + GLYPH / 2))
-                    h = h + Glyphs(mine, NAME_X + s.pet.wide + 8, y + h, roomW - s.pet.wide - 8) + GLYPH_GAP
-                end
-                h = h + 6
-                s:ClearAllPoints()
-                s:SetPoint("TOPLEFT", 0, -y)
-                s:SetSize(roadW - 8, h)
-                -- Gold where the visit teaches something new to you.
-                s.node:SetColorTexture(Style.Color(fresh and "gold" or "lineStrong"))
-                s.level:SetText(stop)
-                s.level:SetTextColor(Style.Color(fresh and "text" or "secondary"))
-                s.cost:SetText(StopCost(list, true))
-                lineFrom = lineFrom or y
-                lineTo = y + 8 + GLYPH / 2
-                y = y + h
-            end
-        end
-        ui.roadLine:SetShown(lineFrom ~= nil)
-        if lineFrom then
-            ui.roadLine:ClearAllPoints()
-            ui.roadLine:SetPoint("TOPLEFT", LINE_X, -(lineFrom - 6))
-            ui.roadLine:SetHeight(lineTo - lineFrom + 6)
-        end
+        ui.roadHead.note:SetText(rest > 0 and ((restUnknown > 0 and "from " or "") .. Compat.Money(rest) .. " in all") or "")
+        ui.band:SetShown(#levels > 0)
+        ui.youText:SetShown(#levels > 0)
+        ui.youText:SetText(("YOU, %d"):format(level))
         ui.roadEmpty:SetShown(#levels == 0)
-        if #levels == 0 then y = 34 end
-        ui.road:SetHeight(math.max(1, y))
+        for i, stop in ipairs(levels) do
+            local list = ahead[stop]
+            local s = Take("stops", MakeStop)
+            local x = FIRST_X + (i - 1) * PITCH
+            s:ClearAllPoints()
+            s:SetPoint("TOPLEFT", x, 0)
+            local first, last = i == 1, stop >= 60
+            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
+            s.level:SetText(stop)
+            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
+            s.cost:SetText(StopCost(list, true))
+            local count = 0
+            for _, spell in ipairs(list) do
+                if not spell.skipped then count = count + 1 end
+            end
+            local exact = StopCost(list)
+            s.sign.title = (first and "Your next visit: level " or "Level ") .. stop
+            s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
+            Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
+        end
+        -- The road is as long as its visits; the dashes run its length.
+        local long = math.max(width, FIRST_X + math.max(0, #levels - 1) * PITCH + STOP_W + 2)
+        ui.road:SetWidth(long)
+        ui.band:SetWidth(long)
+        for x = FIRST_X + 8, long - 34, 22 do
+            local dash = Take("dashes", MakeDash)
+            dash:ClearAllPoints()
+            dash:SetPoint("LEFT", ui.band, "LEFT", x, 0)
+        end
+        ui.roadMost = long - width
         ui.roadScroll:UpdateScrollChildRect()
-        ui.roadScroll:Place()
-        -- The last column: the pet, then the weapon skills under it.
+        ui.PlaceRoad()
+        ui.legend:SetText("A gold frame is a spell new to you; the number is its rank. Point at one for what it does, right-click to skip it."
+            .. (ui.roadMost > 0 and "  The mouse wheel moves along the road." or ""))
+
+        -- The right column: the pet, then the weapon skills under it.
         local down = ui.PaintPet(pet)
-        down = ui.PaintWeapons(data, down > 0 and down + 18 or 0)
+        down = ui.PaintWeapons(data, down > 0 and down + 14 or 0)
         ui.petList:SetHeight(math.max(1, down))
         ui.sideScroll:UpdateScrollChildRect()
         ui.sideScroll:Place()
-        for _, pool in ipairs({ "stops", "steps", "glyphs", "heads", "weapons", "subs", "pets" }) do
+        for _, pool in ipairs({ "stops", "glyphs", "tiles", "subs", "dashes" }) do
             local list = made[pool]
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
         end
