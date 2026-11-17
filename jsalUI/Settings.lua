@@ -4,10 +4,10 @@
 -- the page shows the open group's parts in two columns, a small heading
 -- over each handful that belong together. A part is a row: its picture, its
 -- name with a line under it on what it does, and its switch. The whole of
--- what it does is in a tooltip when it's pointed at. A part with options of
--- its own has a small arrowhead before its switch, and a click on that
--- opens them under its row. The box at
--- the top finds a part or an option in any group, and shows what it finds
+-- what it does is said in a card at the foot of the page while it's pointed
+-- at. A part with options of its own has a small arrowhead before its
+-- switch, and a click on that opens them under its row. The box at the top
+-- finds a part or an option in any group, and shows what it finds
 -- under each group's name. A part's switch applies after a reload, since
 -- modules start once, at login (addons can't reload the game themselves on
 -- Forever): a bar at the foot says which changes are waiting, with a button
@@ -16,8 +16,11 @@ local _, ns = ...
 local Style, Window = ns.Style, ns.Window
 
 local ROW_H, OPTION_H, GROUP_H, HEAD_H, GROUP_GAP = 52, 30, 30, 24, 18
-local TABS_Y, TOP, BAR_H, COLUMN_GAP, COLUMNS = 44, 86, 64, 40, 2
-local SWITCH_W, TEXT_X, MARK_W = 36, 36, 18
+local TABS_Y, TOP, BAR_H, INFO_H, COLUMN_GAP, COLUMNS = 44, 86, 64, 48, 40, 2
+-- A switch's width; where a row's words start; and the arrowhead's button,
+-- wide and as tall as its row, so a click meant for it doesn't land on the
+-- row and flip the switch.
+local SWITCH_W, TEXT_X, MARK_W = 36, 36, 40
 
 -- The groups, in the order of their tabs, and inside each a heading for each
 -- handful of parts that belong together. A part not listed joins the last
@@ -44,7 +47,7 @@ local GROUPS = {
 
 -- What each part does, in a line short enough to take in at a glance: it's
 -- under the part's name on its row. The part's own note, which says all of
--- it, is in the row's tooltip.
+-- it, is in the card at the page's foot while the part is pointed at.
 local SHORT = {
     dailyword = "One word a day, the same for everyone",
     iconguess = "Name the spell from its icon",
@@ -112,11 +115,6 @@ local function Short(module)
     if SHORT[module.key] then return SHORT[module.key] end
     local note = module.note or ""
     return note:match("^(.-)%. ") or note
-end
-
--- The slash command a part's note names, for a line in its tooltip.
-local function Command(module)
-    return (module.note or ""):match("(/jsal %a+)")
 end
 
 local function Grouped()
@@ -199,8 +197,16 @@ local function PartRow(parent, width)
     -- short strokes. It points right, and down while the options are open
     -- under the row; a click opens and closes them.
     row.options = CreateFrame("Button", nil, row)
-    row.options:SetSize(MARK_W, 20)
-    row.options:SetPoint("RIGHT", row.switch, "LEFT", -8, 0)
+    row.options:SetWidth(MARK_W)
+    row.options:SetHeight(ROW_H)
+    row.options:SetPoint("RIGHT", row.switch, "LEFT", -4, 0)
+    -- Under the pointer it has a small box of its own behind it, lighter
+    -- than the row's light.
+    row.options.glow = Style.Round(row.options, 5, "wellHover", "BACKGROUND", 2)
+    row.options.glow:ClearAllPoints()
+    row.options.glow:SetSize(28, 28)
+    row.options.glow:SetPoint("CENTER")
+    row.options.glow:Hide()
     row.options.strokes = {}
     for i = 1, 2 do
         local stroke = row.options:CreateTexture(nil, "ARTWORK")
@@ -243,8 +249,18 @@ local function PartRow(parent, width)
     end
     row:SetScript("OnEnter", Enter)
     row:SetScript("OnLeave", Leave)
-    row.options:SetScript("OnEnter", Enter)
-    row.options:SetScript("OnLeave", Leave)
+    -- And under the pointer its arrowhead is gold on its lit box, so it's
+    -- plain it's a thing of its own to click, apart from the row.
+    row.options:SetScript("OnEnter", function(self)
+        Enter()
+        self.glow:Show()
+        self:Point(self.selected, "gold")
+    end)
+    row.options:SetScript("OnLeave", function(self)
+        Leave()
+        self.glow:Hide()
+        self:Point(self.selected, self.selected and "gold" or "muted")
+    end)
     -- What it is, what it does in a line, and where it stands. `tag` is the
     -- word for its gold tag, or nil.
     function row:Set(title, short, on, options, open, tag)
@@ -260,7 +276,7 @@ local function PartRow(parent, width)
         self.options.count = options
         if options > 0 then
             self.options:Point(open, open and "gold" or "muted")
-            taken = taken + 8 + MARK_W
+            taken = taken + 4 + MARK_W
         end
         self.tag:SetShown(tag ~= nil)
         if tag then
@@ -283,8 +299,8 @@ local function PartRow(parent, width)
 end
 
 -- One of a part's options, under its row on a darker fill with a gold edge:
--- its name and its switch. What it does is said in a tooltip when it's
--- pointed at.
+-- its name and its switch. What it does is said at the page's foot when
+-- it's pointed at.
 local function OptionRow(parent, width)
     local row = CreateFrame("Button", nil, parent)
     row:SetSize(width, OPTION_H)
@@ -398,7 +414,7 @@ Window.Page("settings", function(page)
     -- The open group's parts, a row each, in two columns. The list scrolls
     -- when options are open and a column runs past the foot.
     ---------------------------------------------------------------------
-    local scroll, list = Style.Scroller(page, width, height - TOP - BAR_H - 12, width, 0)
+    local scroll, list = Style.Scroller(page, width, height - TOP - BAR_H - INFO_H - 8 - 12, width, 0)
     scroll:SetPoint("TOPLEFT", 0, -TOP)
     local none = Style.Text(list, 13, "muted")
     none:SetPoint("TOPLEFT", 6, -14)
@@ -431,12 +447,28 @@ Window.Page("settings", function(page)
     end
 
     ---------------------------------------------------------------------
-    -- The foot: the version, quietly; or, while a change waits for a
-    -- reload, the bar that lists the changes.
+    -- The foot. A card says all of the part or option under the pointer:
+    -- its name, then what it does in full, and how many options it has.
+    -- With nothing pointed at it says to point, and the version. While a
+    -- change waits for a reload, the bar that lists the changes is under
+    -- it, and the card stands on the bar.
     ---------------------------------------------------------------------
-    local version = Style.Text(page, 11, "muted")
-    version:SetPoint("BOTTOMLEFT", 0, 4)
-    version:SetText("jsal.ui " .. ns.version .. ", free from jsal.io")
+    local info = CreateFrame("Frame", nil, page)
+    info:SetSize(width, INFO_H)
+    Style.Box(info, 6, "well", "cardLine")
+    info.title = Style.Text(info, 13, "text", nil, true)
+    info.title:SetPoint("LEFT", 16, 0)
+    info.note = Style.Text(info, 12, "muted")
+    info.note:SetPoint("LEFT", info.title, "RIGHT", 10, 0)
+    info.note:SetJustifyH("LEFT")
+    if info.note.SetMaxLines then info.note:SetMaxLines(2) end
+    info.idle = Style.Text(info, 12, "muted")
+    info.idle:SetPoint("LEFT", 16, 0)
+    info.idle:SetText("Point at a part for all it does")
+    info.version = Style.Text(info, 11, "muted")
+    info.version:SetPoint("RIGHT", -16, 0)
+    info.version:SetJustifyH("RIGHT")
+    info.version:SetText("jsal.ui " .. ns.version .. ", free from jsal.io")
 
     local bar = CreateFrame("Frame", nil, page)
     bar:SetPoint("BOTTOMLEFT")
@@ -461,23 +493,27 @@ Window.Page("settings", function(page)
         Paint()
     end)
 
-    -- The whole of what a part or an option does, in a tooltip while it's
-    -- pointed at: its row has room for a line only. Then its command, and
-    -- how many options it has (`options`, for a part).
-    local function Point(titleText, full, command, owner, options)
+    -- What's under the pointer, said in the card: (its name, all of what it
+    -- does, how many options it has), or nothing to put the hint back.
+    local function Point(titleText, full, options)
+        local pointed = titleText ~= nil
+        info.title:SetShown(pointed)
+        info.note:SetShown(pointed)
+        info.idle:SetShown(not pointed)
+        info.version:SetShown(not pointed)
+        if not pointed then return end
         options = options or 0
-        if not ((full and full ~= "") or command or options > 0) then return end
-        GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
-        GameTooltip:SetText(titleText)
-        if full and full ~= "" then GameTooltip:AddLine(full, 1, 1, 1, true) end
-        if command then GameTooltip:AddLine(command, Style.Color("gold")) end
+        local words = full or ""
         if options > 0 then
-            GameTooltip:AddLine((options == 1 and "1 option" or (options .. " options")) .. ": click the arrow before its switch", Style.Color("muted"))
+            words = words .. (words ~= "" and " " or "") .. (options == 1 and "1 option." or (options .. " options."))
         end
-        GameTooltip:Show()
+        info.title:SetText(titleText)
+        info.note:SetText(words)
+        -- The words have the card from the name to its right edge.
+        info.note:SetWidth(width - 16 - Style.Wide(info.title, #titleText * 7) - 10 - 16)
     end
     local function Unpoint()
-        GameTooltip:Hide()
+        Point(nil)
     end
 
     local function PaintBar()
@@ -488,7 +524,8 @@ Window.Page("settings", function(page)
             end
         end
         bar:SetShown(#names > 0)
-        version:SetShown(#names == 0)
+        info:ClearAllPoints()
+        info:SetPoint("BOTTOMLEFT", 0, #names > 0 and (BAR_H + 8) or 0)
         if #names == 0 then return end
         barTitle:SetText(#names == 1 and "1 change waits for a reload" or (#names .. " changes wait for a reload"))
         barList:SetText(table.concat(names, ", "))
@@ -522,7 +559,7 @@ Window.Page("settings", function(page)
                 module.failed and "error" or (Changed(module) and "reload") or nil)
             if module.failed then row.name:SetTextColor(Style.Color("muted")) end
             row:Picture(module.key)
-            row.onPoint = function(self) Point(module.title, full, Command(module), self, #options) end
+            row.onPoint = function() Point(module.title, full, #options) end
             row.onLeave = Unpoint
             row.onChange = function(now)
                 ns.db.modules[module.key] = now
@@ -536,7 +573,7 @@ Window.Page("settings", function(page)
                 used = used + 1
                 local o = Option(used)
                 o:Set(option.title, option.note, ns.OptionOn(module.key, option.key))
-                o.onPoint = function(self) Point(option.title, option.note or "", nil, self) end
+                o.onPoint = function() Point(option.title, option.note or "") end
                 o.onLeave = Unpoint
                 o.onChange = function(now)
                     ns.SetOption(module.key, option.key, now)
@@ -649,6 +686,7 @@ Window.Page("settings", function(page)
     end
 
     page.Refresh = function()
+        Point(nil)
         Paint()
     end
 end, nil, true)
