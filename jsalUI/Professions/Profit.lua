@@ -90,6 +90,27 @@ function CraftProfit.Holds(stamp)
     return stamp == CraftProfit.Stamp() and not CraftProfit.atAuction
 end
 
+-- The page's rows took 32 ms to work out on its first open after a reload, even once they were
+-- kept between opens. They're worked out ahead now: a while after logging in, and a few seconds
+-- after the auction house closes. Not at the auction house, where they aren't kept, and not in a
+-- fight. A newer wait replaces an older one. Not after Changed: that comes with every skill
+-- point while you craft, and working them out there was a 32 ms stutter a few seconds after each.
+local warmRun = 0
+function CraftProfit.WarmSoon(after)
+    warmRun = warmRun + 1
+    local run = warmRun
+    local function Try()
+        if run ~= warmRun or not CraftProfit.running or CraftProfit.atAuction then return end
+        if Compat.InCombat() then return Compat.After(5, Try) end
+        local page = ns.CraftProfitPage
+        if not (page and page.Warm) then return end
+        local started = debugprofilestop()
+        xpcall(page.Warm, ns.Report)
+        ns.Timed("Crafting profit, worked out ahead", started)
+    end
+    Compat.After(after, Try)
+end
+
 function CraftProfit.Changed()
     if not CraftProfit.running then return end
     Copy()
@@ -300,6 +321,7 @@ function CraftProfit:OnEnable()
             -- Whatever Auctionator scanned there is in the next rows.
             CraftProfit.atAuction = event == "AUCTION_HOUSE_SHOW"
             CraftProfit.changes = (CraftProfit.changes or 0) + 1
+            if not CraftProfit.atAuction then CraftProfit.WarmSoon(3) end
         elseif event == "GET_ITEM_INFO_RECEIVED" then
             -- A name or quality comes a moment after it's first asked for:
             -- paint once for a burst of them.
@@ -320,6 +342,8 @@ function CraftProfit:OnEnable()
     -- Copied here and now: Changed waits for the part to be running, which it only is once
     -- this returns, so a character's recipes weren't kept until its profession window opened.
     Copy()
+    -- After the Gear plan has filled ahead (it starts at 8 seconds), so the two don't meet.
+    CraftProfit.WarmSoon(15)
 end
 
 function CraftProfit:OnDisable()

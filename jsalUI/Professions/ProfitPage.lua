@@ -273,6 +273,12 @@ local function Rows(v, keep)
     return rows, names, count
 end
 
+-- Works the rows out ahead, for the list the page will open on, so that open only draws
+-- them. Nothing is drawn, and nothing is worked out while the kept rows still hold.
+function P.Warm()
+    Rows(View(), false)
+end
+
 -- The rows for the profession chosen and the search.
 local function Pick(v, keep)
     local all, names, count = Rows(v, keep)
