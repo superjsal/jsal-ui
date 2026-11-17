@@ -1063,8 +1063,10 @@ function Style.Tag(parent, words, tone, small)
     return t
 end
 
--- An on/off switch, a pill with a round knob: gold when on.
-function Style.Switch(parent, onChange)
+-- An on/off switch, a pill with a round knob: gold when on. A `quiet` one
+-- is dim gold with a gold knob when on, for a page of many switches, where
+-- bright ones, all on, are a wall of gold.
+function Style.Switch(parent, onChange, quiet)
     local s = CreateFrame("Button", nil, parent)
     s:SetSize(36, 20)
     s.box = Style.PillBox(s, "well", "lineStrong")
@@ -1076,8 +1078,8 @@ function Style.Switch(parent, onChange)
         self.knob:ClearAllPoints()
         if self.on then
             self.knob:SetPoint("RIGHT", -3, 0)
-            self.knob:Paint("onGold")
-            self.box:Paint("gold", "gold")
+            self.knob:Paint(quiet and "gold" or "onGold")
+            self.box:Paint(quiet and "needFill" or "gold", quiet and "needFill" or "gold")
         else
             self.knob:SetPoint("LEFT", 3, 0)
             self.knob:Paint("muted")

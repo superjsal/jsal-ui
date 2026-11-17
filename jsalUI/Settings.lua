@@ -1,46 +1,49 @@
--- Settings: a switch for each part of jsal.ui, all of them on one screen. A
--- part is a row: its picture, its name and its switch. The rows stand in
--- three columns by group, a small heading over each handful of parts that
--- belong together. What a part does is said at the foot of the page, in
--- full, while it's pointed at. A part with options of its own says how many,
--- and a click opens them under its row. The box at the top finds a part or
--- an option in any group. A part's switch applies after a reload, since
+-- Settings: a switch for each part of jsal.ui, a group of them at a time. A
+-- bar of tabs under the page's name has a tab for each group (Games,
+-- Professions, Leveling, Around the UI) with how many parts it holds, and
+-- the page shows the open group's parts in two columns, a small heading
+-- over each handful that belong together. A part is a row: its picture, its
+-- name with a line under it on what it does, and its switch. The whole of
+-- what it does is in a tooltip when it's pointed at. A part with options of
+-- its own says how many, and a click opens them under its row. The box at
+-- the top finds a part or an option in any group, and shows what it finds
+-- under each group's name. A part's switch applies after a reload, since
 -- modules start once, at login (addons can't reload the game themselves on
 -- Forever): a bar at the foot says which changes are waiting, with a button
 -- to undo them and one to reload. Options apply at once.
 local _, ns = ...
 local Style, Window = ns.Style, ns.Window
 
-local ROW_H, OPTION_H, GROUP_H, HEAD_H, GROUP_GAP = 36, 30, 30, 24, 18
-local TOP, BAR_H, COLUMN_GAP, COLUMNS = 50, 64, 28, 3
-local SWITCH_W = 36
+local ROW_H, OPTION_H, GROUP_H, HEAD_H, GROUP_GAP = 52, 30, 30, 24, 18
+local TABS_Y, TOP, BAR_H, COLUMN_GAP, COLUMNS = 44, 86, 64, 40, 2
+local SWITCH_W, TEXT_X = 36, 36
 
--- Where each part goes: the column its group stands in, and inside the group
--- a heading for each handful of parts that belong together. A part not
--- listed joins the last group's last handful. A heading that names a part
--- has another to go by while that part isn't there.
+-- The groups, in the order of their tabs, and inside each a heading for each
+-- handful of parts that belong together. A part not listed joins the last
+-- group's last handful. A heading that names a part has another to go by
+-- while that part isn't there.
 local GROUPS = {
-    { title = "Games", column = 1, sections = {
+    { key = "games", title = "Games", sections = {
         { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" }, { chess = "Puzzles" } },
         { "Company", { "guild", "pet", "palrun" } },
     } },
-    { title = "Leveling", column = 2, sections = {
+    { key = "professions", title = "Professions", sections = {
+        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "orders", "craftprofit" } },
+    } },
+    { key = "leveling", title = "Leveling", sections = {
         { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
         { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
-    { title = "Professions", column = 1, sections = {
-        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "orders", "craftprofit" } },
-    } },
-    { title = "Around the UI", column = 3, sections = {
+    { key = "around", title = "Around the UI", sections = {
         { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
         { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "petfeed", "rangecheck" } },
         { "Everything else", { "sharedFonts" } },
     } },
 }
 
--- What each part does, in a line short enough to take in at a glance: it
--- follows the part's name at the foot of the page, over the part's own note,
--- which says all of it.
+-- What each part does, in a line short enough to take in at a glance: it's
+-- under the part's name on its row. The part's own note, which says all of
+-- it, is in the row's tooltip.
 local SHORT = {
     dailyword = "One word a day, the same for everyone",
     iconguess = "Name the spell from its icon",
@@ -110,7 +113,7 @@ local function Short(module)
     return note:match("^(.-)%. ") or note
 end
 
--- The slash command a part's note names, for a tag beside its name.
+-- The slash command a part's note names, for a line in its tooltip.
 local function Command(module)
     return (module.note or ""):match("(/jsal %a+)")
 end
@@ -134,7 +137,7 @@ local function Grouped()
             end
             sections[#sections + 1] = { title = title, modules = list }
         end
-        groups[i] = { title = group.title, column = group.column, modules = all, sections = sections }
+        groups[i] = { key = group.key, title = group.title, modules = all, sections = sections }
     end
     local last = groups[#groups]
     for _, module in ipairs(ns.moduleOrder) do
@@ -161,11 +164,13 @@ local function Matches(module, words)
     return text:lower():find(words, 1, true) ~= nil
 end
 
--- A part's row: its picture in a small tile, its name, and its switch at the
--- right, with how many options it has before the switch and a tag when a
--- reload is owed for it or it stopped on an error. A click anywhere on it
--- flips the switch, which calls row.onChange. Pointing at it lights it and
--- calls row.onPoint; the page says there what the part does.
+-- A part's row: its picture, its name over a line on what it does, and its
+-- switch at the right, with how many options it has before the switch and a
+-- tag when a reload is owed for it or it stopped on an error. The switch is
+-- the quiet kind: a page of bright ones, all on, is a wall of gold. A click
+-- anywhere on the row flips it, which calls row.onChange. Pointing at the
+-- row lights it and calls row.onPoint; the page shows the whole of what the
+-- part does there.
 local function PartRow(parent, width)
     local row = CreateFrame("Button", nil, parent)
     row:SetSize(width, ROW_H)
@@ -176,29 +181,35 @@ local function PartRow(parent, width)
     row.hover:SetPoint("TOPLEFT", -6, 0)
     row.hover:SetPoint("BOTTOMRIGHT", 6, 0)
     row.hover:Hide()
-    local tile = CreateFrame("Frame", nil, row)
-    tile:SetSize(28, 28)
-    tile:SetPoint("LEFT")
-    Style.Box(tile, 5, "titleBar", "line")
-    row.icon = tile:CreateTexture(nil, "ARTWORK")
+    Style.Rule(row, "BOTTOM", "line")
+    row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(20, 20)
-    row.icon:SetPoint("CENTER")
+    row.icon:SetPoint("LEFT", 2, 0)
+    row.icon:SetAlpha(0.8)
     row.switch = Style.Switch(row, function(on)
         if row.onChange then row.onChange(on) end
-    end)
+    end, true)
     row.switch:SetPoint("RIGHT")
     -- "2 options", before the switch: a click opens them under the row.
     row.options = CreateFrame("Button", nil, row)
-    row.options:SetHeight(20)
+    row.options:SetHeight(18)
     row.options:SetPoint("RIGHT", row.switch, "LEFT", -12, 0)
     row.options.label = Style.Text(row.options, 11, "muted")
     row.options.label:SetPoint("RIGHT")
     row.options.label:SetJustifyH("RIGHT")
+    row.options.line = row.options:CreateTexture(nil, "ARTWORK")
+    row.options.line:SetPoint("BOTTOMLEFT")
+    row.options.line:SetPoint("BOTTOMRIGHT")
+    row.options.line:SetHeight(1)
     row.tag = Style.Tag(row, "", true)
-    row.name = Style.Text(row, 13, "text")
-    row.name:SetPoint("LEFT", tile, "RIGHT", 10, 0)
+    row.name = Style.Text(row, 14, "text")
+    row.name:SetPoint("TOPLEFT", TEXT_X, -9)
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
+    row.short = Style.Text(row, 12, "muted")
+    row.short:SetPoint("TOPLEFT", TEXT_X, -29)
+    row.short:SetJustifyH("LEFT")
+    row.short:SetWordWrap(false)
     row:SetScript("OnClick", function() row.switch:Click() end)
     -- The options' button is part of the row to the pointer: it lights the
     -- row and says the part too.
@@ -214,11 +225,13 @@ local function PartRow(parent, width)
     row:SetScript("OnLeave", Leave)
     row.options:SetScript("OnEnter", Enter)
     row.options:SetScript("OnLeave", Leave)
-    -- What it is and where it stands. `tag` is the word for its gold tag, or nil.
-    function row:Set(title, on, options, open, tag)
+    -- What it is, what it does in a line, and where it stands. `tag` is the
+    -- word for its gold tag, or nil.
+    function row:Set(title, short, on, options, open, tag)
         self.title = title
         self.name:SetText(title)
         self.name:SetTextColor(Style.Color(on and "text" or "muted"))
+        self.short:SetText(short or "")
         self.switch:SetOn(on)
         self.icon:SetVertexColor(Style.Color(on and "gold" or "muted"))
         local taken = SWITCH_W
@@ -227,6 +240,7 @@ local function PartRow(parent, width)
         if options > 0 then
             self.options.label:SetText(options == 1 and "1 option" or (options .. " options"))
             self.options.label:SetTextColor(Style.Color(open and "gold" or "muted"))
+            self.options.line:SetColorTexture(Style.Color(open and "gold" or "lineStrong"))
             local wide = Style.Wide(self.options.label, 56) + 2
             self.options:SetWidth(wide)
             taken = taken + 12 + wide
@@ -238,8 +252,10 @@ local function PartRow(parent, width)
             self.tag:SetPoint("RIGHT", self, "RIGHT", -(taken + 10), 0)
             taken = taken + 10 + self.tag:GetWidth()
         end
-        -- The name has what's left, and is cut short rather than run under anything.
-        self.name:SetWidth(math.max(40, self.wide - 38 - taken - 10))
+        -- The words have what's left, and are cut short rather than run under anything.
+        local room = math.max(40, self.wide - TEXT_X - taken - 10)
+        self.name:SetWidth(room)
+        self.short:SetWidth(room)
     end
     -- A part's picture, by its key; none for a part that has none.
     function row:Picture(key)
@@ -250,8 +266,8 @@ local function PartRow(parent, width)
 end
 
 -- One of a part's options, under its row on a darker fill with a gold edge:
--- its name and its switch. What it does is said where the part's is, when
--- it's pointed at.
+-- its name and its switch. What it does is said in a tooltip when it's
+-- pointed at.
 local function OptionRow(parent, width)
     local row = CreateFrame("Button", nil, parent)
     row:SetSize(width, OPTION_H)
@@ -271,7 +287,7 @@ local function OptionRow(parent, width)
     row.edge:SetColorTexture(Style.Color("gold"))
     row.switch = Style.Switch(row, function(on)
         if row.onChange then row.onChange(on) end
-    end)
+    end, true)
     row.switch:SetPoint("RIGHT", -8, 0)
     row.name = Style.Text(row, 12, "text")
     row.name:SetPoint("LEFT", 26, 0)
@@ -301,7 +317,7 @@ Window.Page("settings", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local colW = math.floor((width - 12 - COLUMN_GAP * (COLUMNS - 1)) / COLUMNS)
     local groups = Grouped()
-    local openKey, words = nil, ""
+    local open, openKey, words = groups[1].key, nil, ""
     local Paint
 
     ---------------------------------------------------------------------
@@ -349,8 +365,21 @@ Window.Page("settings", function(page)
     end
 
     ---------------------------------------------------------------------
-    -- Every part on one screen, a row each, in three columns by group. The
-    -- list scrolls when options are open and a column runs past the foot.
+    -- A tab for each group, with how many parts it holds. One group's parts
+    -- show at a time, so there's a handful to read and not all of them.
+    ---------------------------------------------------------------------
+    local items = {}
+    for i, group in ipairs(groups) do items[i] = { group.key, group.title } end
+    local tabs = Style.Tabs(page, items, function(key)
+        open, openKey = key, nil
+        Paint()
+    end)
+    tabs:SetPoint("TOPLEFT", 0, -TABS_Y)
+    for _, group in ipairs(groups) do tabs:Set(group.key, nil, #group.modules) end
+
+    ---------------------------------------------------------------------
+    -- The open group's parts, a row each, in two columns. The list scrolls
+    -- when options are open and a column runs past the foot.
     ---------------------------------------------------------------------
     local scroll, list = Style.Scroller(page, width, height - TOP - BAR_H - 12, width, 0)
     scroll:SetPoint("TOPLEFT", 0, -TOP)
@@ -374,8 +403,7 @@ Window.Page("settings", function(page)
         if not optionRows[i] then optionRows[i] = OptionRow(list, colW) end
         return optionRows[i]
     end
-    -- A group's heading: its name in gold, how many of its parts are on at
-    -- the right, and a rule under it.
+    -- A group's name in gold over what the box found in it, with a rule.
     local function GroupHead(i)
         if not groupHeads[i] then groupHeads[i] = Style.Section(list, colW) end
         return groupHeads[i]
@@ -386,43 +414,12 @@ Window.Page("settings", function(page)
     end
 
     ---------------------------------------------------------------------
-    -- The foot. With nothing waiting it says all of the part or option under
-    -- the pointer: its picture, name, short line and command, then what it
-    -- does in full. While a change waits for a reload, the bar that lists
-    -- the changes is there in its place, and a pointed part's words are in a
-    -- tooltip.
+    -- The foot: the version, quietly; or, while a change waits for a
+    -- reload, the bar that lists the changes.
     ---------------------------------------------------------------------
-    local info = CreateFrame("Frame", nil, page)
-    info:SetPoint("BOTTOMLEFT")
-    info:SetSize(width, BAR_H)
-    Style.Box(info, 6, "well", "cardLine")
-    local infoTile = CreateFrame("Frame", nil, info)
-    infoTile:SetSize(40, 40)
-    infoTile:SetPoint("LEFT", 14, 0)
-    Style.Box(infoTile, 5, "titleBar", "line")
-    info.icon = infoTile:CreateTexture(nil, "ARTWORK")
-    info.icon:SetSize(28, 28)
-    info.icon:SetPoint("CENTER")
-    info.icon:SetVertexColor(Style.Color("gold"))
-    info.tile = infoTile
-    info.title = Style.Text(info, 14, "text", nil, true)
-    info.title:SetPoint("TOPLEFT", 68, -11)
-    info.short = Style.Text(info, 12, "secondary")
-    info.short:SetPoint("LEFT", info.title, "RIGHT", 10, 0)
-    info.command = Style.Tag(info, "")
-    info.command:SetPoint("LEFT", info.short, "RIGHT", 10, 0)
-    info.note = Style.Text(info, 12, "muted")
-    info.note:SetPoint("TOPLEFT", 68, -33)
-    info.note:SetWidth(width - 68 - 16)
-    info.note:SetJustifyH("LEFT")
-    if info.note.SetMaxLines then info.note:SetMaxLines(2) end
-    info.idle = Style.Text(info, 12, "muted")
-    info.idle:SetPoint("LEFT", 16, 0)
-    info.idle:SetText("Point at a part for all it does")
-    info.version = Style.Text(info, 11, "muted")
-    info.version:SetPoint("RIGHT", -16, 0)
-    info.version:SetJustifyH("RIGHT")
-    info.version:SetText("jsal.ui " .. ns.version .. ", free from jsal.io")
+    local version = Style.Text(page, 11, "muted")
+    version:SetPoint("BOTTOMLEFT", 0, 4)
+    version:SetText("jsal.ui " .. ns.version .. ", free from jsal.io")
 
     local bar = CreateFrame("Frame", nil, page)
     bar:SetPoint("BOTTOMLEFT")
@@ -447,37 +444,18 @@ Window.Page("settings", function(page)
         Paint()
     end)
 
-    -- What's under the pointer, said at the foot: (title, short line, all of
-    -- it, its command, its picture's key), or nothing to put the hint back.
-    local function Say(titleText, short, full, command, key)
-        local pointed = titleText ~= nil
-        for _, region in ipairs({ info.tile, info.title, info.short, info.note }) do region:SetShown(pointed) end
-        info.idle:SetShown(not pointed)
-        info.version:SetShown(not pointed)
-        info.command:SetShown(pointed and command ~= nil)
-        if not pointed then return end
-        info.title:SetText(titleText)
-        info.short:SetText(short or "")
-        info.note:SetText(full or "")
-        if command then info.command:Say(command) end
-        info.icon:SetShown(key ~= nil and ICON[key] ~= nil)
-        if key and ICON[key] then info.icon:SetTexture(ICON_PATH .. ICON[key]) end
-    end
-    local function Point(titleText, short, full, command, key, owner)
-        if bar:IsShown() then
-            if full and full ~= "" then
-                GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
-                GameTooltip:SetText(titleText)
-                GameTooltip:AddLine(full, 1, 1, 1, true)
-                GameTooltip:Show()
-            end
-        else
-            Say(titleText, short, full, command, key)
-        end
+    -- The whole of what a part or an option does, in a tooltip while it's
+    -- pointed at: its row has room for a line only.
+    local function Point(titleText, full, command, owner)
+        if not ((full and full ~= "") or command) then return end
+        GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
+        GameTooltip:SetText(titleText)
+        if full and full ~= "" then GameTooltip:AddLine(full, 1, 1, 1, true) end
+        if command then GameTooltip:AddLine(command, Style.Color("gold")) end
+        GameTooltip:Show()
     end
     local function Unpoint()
         GameTooltip:Hide()
-        Say(nil)
     end
 
     local function PaintBar()
@@ -488,15 +466,16 @@ Window.Page("settings", function(page)
             end
         end
         bar:SetShown(#names > 0)
-        info:SetShown(#names == 0)
+        version:SetShown(#names == 0)
         if #names == 0 then return end
         barTitle:SetText(#names == 1 and "1 change waits for a reload" or (#names .. " changes wait for a reload"))
         barList:SetText(table.concat(names, ", "))
     end
 
     Paint = function()
-        -- With words in the box, only the parts that have them, each with
-        -- its options open, still under their groups.
+        -- With words in the box, the parts that have them in any group, each
+        -- with its options open, under their groups' names; else the open
+        -- group's.
         local finding = words ~= ""
         local on, total = 0, 0
         for _, module in ipairs(ns.moduleOrder) do
@@ -504,6 +483,7 @@ Window.Page("settings", function(page)
             if ns.ModuleWanted(module) then on = on + 1 end
         end
         summary:SetText(("%d of %d parts are on"):format(on, total))
+        tabs:Pick(not finding and open or nil)
 
         local parts, used, grouped, headed, shown = 0, 0, 0, 0, 0
         -- A part's row at (x, y), its options under it when they're open.
@@ -514,13 +494,13 @@ Window.Page("settings", function(page)
             row.module = module
             local wanted = ns.ModuleWanted(module)
             local options = module.options or {}
-            local open = #options > 0 and (openKey == module.key or finding)
+            local opened = #options > 0 and (openKey == module.key or finding)
             local full = module.failed and "Turned off after an error this session. BugSack has the details." or module.note or ""
-            row:Set(module.title, wanted, #options, open,
+            row:Set(module.title, Short(module), wanted, #options, opened,
                 module.failed and "error" or (Changed(module) and "reload") or nil)
             if module.failed then row.name:SetTextColor(Style.Color("muted")) end
             row:Picture(module.key)
-            row.onPoint = function(self) Point(module.title, Short(module), full, Command(module), module.key, self) end
+            row.onPoint = function(self) Point(module.title, full, Command(module), self) end
             row.onLeave = Unpoint
             row.onChange = function(now)
                 ns.db.modules[module.key] = now
@@ -530,11 +510,11 @@ Window.Page("settings", function(page)
             row:SetPoint("TOPLEFT", x, -at)
             row:Show()
             local tall = ROW_H
-            for _, option in ipairs(open and options or {}) do
+            for _, option in ipairs(opened and options or {}) do
                 used = used + 1
                 local o = Option(used)
                 o:Set(option.title, option.note, ns.OptionOn(module.key, option.key))
-                o.onPoint = function(self) Point(option.title, module.title, option.note or "", nil, module.key, self) end
+                o.onPoint = function(self) Point(option.title, option.note or "", nil, self) end
                 o.onLeave = Unpoint
                 o.onChange = function(now)
                     ns.SetOption(module.key, option.key, now)
@@ -551,49 +531,83 @@ Window.Page("settings", function(page)
             return tall + (tall > ROW_H and 6 or 0)
         end
 
+        -- How far down each column has got, and where a column starts.
         local at = {}
-        for _, group in ipairs(groups) do
-            local column = math.max(1, math.min(COLUMNS, group.column or COLUMNS))
-            local x = 6 + (column - 1) * (colW + COLUMN_GAP)
-            -- What this group shows, a list for each of its headings.
-            local lists, any, groupOn = {}, 0, 0
-            for i, section in ipairs(group.sections) do
-                lists[i] = {}
-                for _, module in ipairs(section.modules) do
-                    if ns.ModuleWanted(module) then groupOn = groupOn + 1 end
-                    if not finding or Matches(module, words) then
-                        lists[i][#lists[i] + 1] = module
-                        any = any + 1
+        for column = 1, COLUMNS do at[column] = 0 end
+        local function X(column) return 6 + (column - 1) * (colW + COLUMN_GAP) end
+        local function Shorter()
+            local best = 1
+            for column = 2, COLUMNS do
+                if at[column] < at[best] then best = column end
+            end
+            return best
+        end
+        -- A handful of parts down a column, under a small heading (or under
+        -- the room one takes, with no words, to stand level with its
+        -- neighbour's).
+        local function Handful(column, heading, modules)
+            local y = at[column] + (at[column] > 0 and 10 or 0)
+            if heading ~= "" then
+                headed = headed + 1
+                local small = Head(headed)
+                small:SetText(heading:upper())
+                small:ClearAllPoints()
+                small:SetPoint("TOPLEFT", X(column), -(y + 2))
+                small:Show()
+            end
+            y = y + HEAD_H
+            for _, module in ipairs(modules) do
+                y = y + Place(module, X(column), y)
+                shown = shown + 1
+            end
+            at[column] = y
+        end
+
+        if finding then
+            for _, group in ipairs(groups) do
+                local found = {}
+                for _, module in ipairs(group.modules) do
+                    if Matches(module, words) then found[#found + 1] = module end
+                end
+                if #found > 0 then
+                    local column = Shorter()
+                    local y = at[column] + (at[column] > 0 and GROUP_GAP or 0)
+                    grouped = grouped + 1
+                    local head = GroupHead(grouped)
+                    head.title:SetText(group.title:upper())
+                    head.note:SetText("")
+                    head:ClearAllPoints()
+                    head:SetPoint("TOPLEFT", X(column), -y)
+                    head:Show()
+                    y = y + GROUP_H
+                    for _, module in ipairs(found) do
+                        y = y + Place(module, X(column), y)
+                        shown = shown + 1
                     end
+                    at[column] = y
                 end
             end
-            if any > 0 then
-                local y = at[column] and (at[column] + GROUP_GAP) or 0
-                grouped = grouped + 1
-                local head = GroupHead(grouped)
-                head.title:SetText(group.title:upper())
-                head.note:SetText(("%d of %d on"):format(groupOn, #group.modules))
-                head:ClearAllPoints()
-                head:SetPoint("TOPLEFT", x, -y)
-                head:Show()
-                y = y + GROUP_H
-                for i, section in ipairs(group.sections) do
-                    if #lists[i] > 0 then
-                        headed = headed + 1
-                        local small = Head(headed)
-                        small:SetText(section.title:upper())
-                        small:ClearAllPoints()
-                        small:SetPoint("TOPLEFT", x, -(y + 2))
-                        small:Show()
-                        y = y + HEAD_H
-                        for _, module in ipairs(lists[i]) do
-                            y = y + Place(module, x, y)
-                            shown = shown + 1
-                        end
-                        y = y + 6
-                    end
+        else
+            local group = groups[1]
+            for _, g in ipairs(groups) do
+                if g.key == open then group = g end
+            end
+            local sections = {}
+            for _, section in ipairs(group.sections) do
+                if #section.modules > 0 then sections[#sections + 1] = section end
+            end
+            if #sections == 1 and #sections[1].modules > 3 then
+                -- One handful alone: its first half down the first column
+                -- and the rest down the second, so the page isn't half empty.
+                local all, half = sections[1].modules, math.ceil(#sections[1].modules / 2)
+                local first, rest = {}, {}
+                for i, module in ipairs(all) do
+                    if i <= half then first[#first + 1] = module else rest[#rest + 1] = module end
                 end
-                at[column] = y
+                Handful(1, sections[1].title, first)
+                Handful(2, "", rest)
+            else
+                for _, section in ipairs(sections) do Handful(Shorter(), section.title, section.modules) end
             end
         end
         for i = parts + 1, #rows do rows[i]:Hide() end
@@ -601,7 +615,9 @@ Window.Page("settings", function(page)
         for i = grouped + 1, #groupHeads do groupHeads[i]:Hide() end
         for i = headed + 1, #heads do heads[i]:Hide() end
         none:SetShown(shown == 0)
-        if shown == 0 then none:SetText(("Nothing in jsal.ui matches \"%s\"."):format(words)) end
+        if shown == 0 then
+            none:SetText(finding and ("Nothing in jsal.ui matches \"%s\"."):format(words) or "Nothing here.")
+        end
         local tallest = 1
         for column = 1, COLUMNS do tallest = math.max(tallest, at[column] or 0) end
         list:SetHeight(tallest)
@@ -611,7 +627,6 @@ Window.Page("settings", function(page)
     end
 
     page.Refresh = function()
-        Say(nil)
         Paint()
     end
 end, nil, true)
