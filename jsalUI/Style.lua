@@ -530,6 +530,33 @@ function Style.ItemTip(frame, more)
     Style.Hover(frame, 6)
 end
 
+-- A page's small print (where its numbers come from, how far to trust
+-- them): one quiet link, "About these numbers", read when it's pointed at
+-- and not printed on the page. `note` is its words, a paragraph a line, or
+-- a function that gives them; `about.note` can be set later.
+function Style.About(parent, note)
+    local b = CreateFrame("Button", nil, parent)
+    b.note = note
+    b.text = Style.Text(b, 12, "muted")
+    b.text:SetPoint("RIGHT")
+    b.text:SetText("About these numbers")
+    b:SetSize(Style.Wide(b.text, 124), 18)
+    Style.Rule(b, "BOTTOM", "lineStrong")
+    b:SetScript("OnEnter", function(self)
+        self.text:SetTextColor(Style.Color("text"))
+        local words = type(self.note) == "function" and self.note() or self.note
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
+        GameTooltip:SetText("About these numbers")
+        for line in (words or ""):gmatch("[^\n]+") do GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true) end
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function(self)
+        self.text:SetTextColor(Style.Color("muted"))
+        GameTooltip:Hide()
+    end)
+    return b
+end
+
 -- Buttons, with softly rounded corners. "primary" is gold with dark text,
 -- for the one main action on a page; "plain" is a well with a line around
 -- it. Under the pointer both light up a step, and a plain one darkens while

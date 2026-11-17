@@ -10,7 +10,7 @@ local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 -- Rows and text a size up from the first build.
-local ROW_H, LIST_TOP, FOOT_H = 32, 150, 48
+local ROW_H, LIST_TOP, FOOT_H = 32, 150, 34
 -- A line of the professions' buttons.
 local CHIP_ROW = 32
 local DAY = 86400
@@ -372,7 +372,8 @@ local function PaintFoot(v, all, names, losing, count)
     else
         from = "Prices from your own auction house searches. With Auctionator installed, its prices are used."
     end
-    P.foot:SetText(who .. "\n" .. from)
+    -- Read on a hover over the link at the page's foot.
+    P.about.note = who .. "\n" .. from
     local cut = math.floor(ns.ItemPrices.CUT * 100 + 0.5)
     local making = 0
     for _, row in ipairs(all) do if row.profit and row.profit > 0 then making = making + 1 end end
@@ -593,10 +594,9 @@ Window.Page("craftprofit", function(page)
     P.bar:Hide()
     P.empty = Style.Text(page, 13, "muted")
     P.empty:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(LIST_TOP + 16))
-    P.foot = Style.Text(page, 12, "muted")
-    P.foot:SetPoint("BOTTOMLEFT", 0, 0)
-    P.foot:SetWidth(width)
-    P.foot:SetJustifyH("LEFT")
+    -- The page's small print: whose recipes these are, and where the prices come from.
+    P.about = Style.About(page)
+    P.about:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", width, 0)
     page.Refresh = function() P.Paint(nil, true) end
 -- A window of its own beside the dashboard, as the Gear plan and the dungeon
 -- guide have, and as big as the dashboard.

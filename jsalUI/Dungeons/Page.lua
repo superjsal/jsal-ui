@@ -458,24 +458,8 @@ Window.Page("dungeons", function(page)
             .. "\"For you\" is by your Gear plan's stat weights, which are estimates: roll by what you know of your spec.",
         quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
     }
-    local about = CreateFrame("Button", nil, right)
-    about.text = Style.Text(about, 12, "muted")
-    about.text:SetPoint("RIGHT")
-    about.text:SetText("About these numbers")
-    about:SetSize(Style.Wide(about.text, 124), 18)
+    local about = Style.About(right, function() return NOTE[tab] end)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
-    Style.Rule(about, "BOTTOM", "lineStrong")
-    about:SetScript("OnEnter", function(self)
-        self.text:SetTextColor(Style.Color("text"))
-        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-        GameTooltip:SetText("About these numbers")
-        for line in NOTE[tab]:gmatch("[^\n]+") do GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true) end
-        GameTooltip:Show()
-    end)
-    about:SetScript("OnLeave", function(self)
-        self.text:SetTextColor(Style.Color("muted"))
-        GameTooltip:Hide()
-    end)
 
     -- The window is as tall as what's in the list, between a least and the
     -- size it was made at; a longer list scrolls. It keeps its top where it

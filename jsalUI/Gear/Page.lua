@@ -11,6 +11,7 @@ local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
 local WINDOW_W, WINDOW_H = 1240, 860
+local FOOT = 34                    -- under the list: room for the link to the page's small print
 local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 540, 40, 1, 30, 54, 20
 local UP_X = 220               -- in a slot's row, where its best upgrade starts
 local OPT_H, OPT_GAP = 54, 6   -- an upgrade's card, and the room between two
@@ -448,7 +449,7 @@ Window.Page("gear", function(page)
     -- Beside the slots: the chosen slot's plan.
     local list = CreateFrame("Frame", nil, page)
     list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", paneW + LIST_GAP, -top)
-    list:SetSize(listW, height - top - 60)
+    list:SetSize(listW, height - top - FOOT)
     Style.Rule(list, "LEFT", "line")
     local wearHead = Style.Text(list, 12, "gold", nil, true)
     wearHead:SetPoint("TOPLEFT", 14, 0)
@@ -477,7 +478,7 @@ Window.Page("gear", function(page)
     -- thin bar on the right when there are more than fit.
     local ADD_H = 58
     local OPT_TOP = 18 + ROW_H + 14 + FILTER_H + 18 + 6
-    local VIEW_H = (height - top - 60) - OPT_TOP - ADD_H
+    local VIEW_H = (height - top - FOOT) - OPT_TOP - ADD_H
     local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
 
@@ -630,14 +631,11 @@ Window.Page("gear", function(page)
         if box:HasFocus() and type(link) == "string" and link:find("|Hitem:") then box:SetText(link) end
     end))
 
-    -- Two lines in the 60 under the list: where the items come from, and that the stat weights are
-    -- estimates.
-    local note = Style.Text(page, 12, "muted")
-    note:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 0, 0)
-    note:SetWidth(width)
-    note:SetJustifyH("LEFT")
-    note:SetText("Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30.\n"
+    -- The page's small print, read on a hover at its foot: where the items come from, and that
+    -- the stat weights are estimates.
+    local about = Style.About(page, "Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30.\n"
         .. "Stat weights are estimates from WoWSims' Forever sims at level 60: a guide, not the last word. Change them under Weights.")
+    about:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", width, 0)
 
     -- Where an item comes from, in two parts: how it's got (crafted, a
     -- quest, who drops it), and where or from whom. Profession gear says who
