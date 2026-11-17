@@ -1,32 +1,35 @@
 -- The Professions page: where you stand in the chosen profession on one
--- bar, your professions in a row under it, then two columns: the step to
--- do now with what it takes and the steps after it (with when the next
--- rank is learned), and everything the road needs with the nearest
--- trainer. The recipes you know are the ones seen the last time its
--- profession window was open. It reads as the profession panel does.
+-- bar, your professions in a row under it, then three columns: the step to
+-- do now with what it takes; the steps after it, with when the next rank is
+-- learned; and everything the road needs, with the nearest trainer. The
+-- recipes you know are the ones seen the last time its profession window
+-- was open. It reads as the profession panel does.
 local _, ns = ...
 local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window, ns.Professions, ns.Road
 
-local GAP, TILE_H, NEED_H, RANK_H = 28, 44, 22, Road.RANK_H
+local GAP, TILE_H, NEED_H, RANK_H = 24, 48, 24, Road.RANK_H
+local NOW_W, NEED_W = 330, 288      -- the first and last columns; the middle has the rest
+local TILE_W, TILE_GAP = 242, 16    -- a profession's tile, at its widest
 -- The page's road is the panel's without its prices; true would show them here too.
 local FULL = false
 
 Window.Page("professions", function(page)
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = Window.fullWidth, Window.contentHeight
     local selected
-    -- Down the page: the bar, the row of professions, then the two columns.
+    -- Down the page: the bar, the row of professions, then the three columns.
     local BAR_Y, TILES_Y = 60, 94
-    local bodyY = TILES_Y + TILE_H + 18
-    local leftW = math.floor((width - GAP) * 0.58)
-    local rightX = leftW + GAP
-    local rightW = width - rightX
-    local top = bodyY
+    local bodyY = TILES_Y + TILE_H + 20
+    -- Across it: what to do now, then the steps after it, then all it takes.
+    local thenX = NOW_W + GAP
+    local thenW = width - NOW_W - NEED_W - GAP * 2
+    local rightX = width - NEED_W
+    local rightW = NEED_W
 
     -- The top: the chosen profession, your skill in it, its rank, and one
     -- bar from the rank's first point to its cap with the next rank marked.
-    local title = Style.Text(page, 21, "text", nil, true)
+    local title = Style.Text(page, 23, "text", nil, true)
     title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    local points = Style.Text(page, 21, "text", nil, true)
+    local points = Style.Text(page, 23, "text", nil, true)
     points:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width, -8)
     points:SetJustifyH("RIGHT")
     local sub = Style.Text(page, 13, "muted")
@@ -57,11 +60,10 @@ Window.Page("professions", function(page)
         if cards[i] then return cards[i] end
         local c = CreateFrame("Button", nil, page)
         c:SetHeight(TILE_H)
-        Style.Fill(c, "well")
-        c.edges = Style.Border(c, "cardLine")
+        c.edges = { Style.Box(c, 6, "well", "cardLine").line }
         c.icon = c:CreateTexture(nil, "ARTWORK")
-        c.icon:SetSize(24, 24)
-        c.icon:SetPoint("LEFT", 10, 0)
+        c.icon:SetSize(28, 28)
+        c.icon:SetPoint("LEFT", 12, 0)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         c.name = Style.Text(c, 12, "text", nil, true)
         c.name:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 8, 2)
@@ -77,23 +79,26 @@ Window.Page("professions", function(page)
     none:SetPoint("TOPLEFT", 0, -TILES_Y)
     none:SetWidth(width)
 
-    -- Left: the step in hand and the steps after it, in a scrolling list.
-    local scroll, list = Style.Scroller(page, leftW, height - bodyY, leftW - 8)
-    scroll:SetPoint("TOPLEFT", 0, -bodyY)
-    local innerW = leftW - 8
-    local message = Style.Text(list, 13, "muted")
-    message:SetWidth(innerW)
+    -- First: the step in hand, as a card: what to make, how many (and how
+    -- many to be safe), and each thing it takes with what you have of it.
+    local message = Style.Text(page, 13, "muted")
+    message:SetWidth(NOW_W)
     message:SetJustifyH("LEFT")
-    local nowHead = Style.Section(list, innerW)
+    local nowHead = Style.Section(page, NOW_W)
+    local card = Road.Card(page, NOW_W, FULL)
+    -- The next rank, once you're at the skill for it, comes before the card.
+    local rankNow = Road.RankRow(page, NOW_W, true)
+
+    -- In the middle: the steps after it, in a list that scrolls when the
+    -- road is long.
+    local scroll, list = Style.Scroller(page, thenW, height - bodyY, thenW - 8)
+    scroll:SetPoint("TOPLEFT", thenX, -bodyY)
+    local innerW = thenW - 8
     local thenHead = Style.Section(list, innerW)
     thenHead.title:SetText("THEN")
     local note = Style.Text(list, 12, "muted")
     note:SetWidth(innerW)
     note:SetJustifyH("LEFT")
-
-    -- The step in hand, as a card: what to make, how many (and how many to
-    -- be safe), and each thing it takes with what you have of it.
-    local card = Road.Card(list, innerW, FULL)
 
     -- A later step, on one line; a line under it only when there's
     -- something to do first (learn it, buy its pattern).
@@ -107,7 +112,7 @@ Window.Page("professions", function(page)
     -- its skill. A click pins the nearest trainer who teaches it.
     local rankRow = Road.RankRow(list, innerW, true)
 
-    -- Right: everything the road needs, then the shopping list and the
+    -- Last: everything the road needs, then the shopping list and the
     -- nearest trainer.
     local needHead = Style.Section(page, rightW)
     needHead.note:SetText("have / need")
@@ -144,6 +149,11 @@ Window.Page("professions", function(page)
         region:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -y)
         region:Show()
     end
+    local function PlaceNow(region, y)
+        region:ClearAllPoints()
+        region:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -(bodyY + y))
+        region:Show()
+    end
     local function PlaceRight(region, y)
         region:ClearAllPoints()
         region:SetPoint("TOPLEFT", page, "TOPLEFT", rightX, -(bodyY + y))
@@ -158,11 +168,10 @@ Window.Page("professions", function(page)
     ---------------------------------------------------------------------
     local guildCard = CreateFrame("Button", nil, page)
     guildCard:SetHeight(TILE_H)
-    Style.Fill(guildCard, "well")
-    guildCard.edges = Style.Border(guildCard, "cardLine")
+    guildCard.edges = { Style.Box(guildCard, 6, "well", "cardLine").line }
     local guildIcon = guildCard:CreateTexture(nil, "ARTWORK")
-    guildIcon:SetSize(24, 24)
-    guildIcon:SetPoint("LEFT", 10, 0)
+    guildIcon:SetSize(28, 28)
+    guildIcon:SetPoint("LEFT", 12, 0)
     guildIcon:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Icons\\guild")
     local guildName = Style.Text(guildCard, 12, "text", nil, true)
     guildName:SetPoint("TOPLEFT", guildIcon, "TOPRIGHT", 8, 2)
@@ -176,7 +185,7 @@ Window.Page("professions", function(page)
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(needs) do r:Hide() end
         for _, m in ipairs(card.mats) do m:Hide() end
-        for _, region in ipairs({ nowHead, thenHead, note, card, rankRow, message, needHead, needMore, addRoad, where, pin }) do
+        for _, region in ipairs({ nowHead, thenHead, note, card, rankRow, rankNow, message, needHead, needMore, addRoad, where, pin }) do
             region:Hide()
         end
         if bar then
@@ -194,13 +203,13 @@ Window.Page("professions", function(page)
         end
         -- The row of professions, with the guild's crafters last in it.
         local tiles = #mine + (guildOn and 1 or 0)
-        local tileW = tiles > 0 and math.min(180, math.floor((width - (tiles - 1) * 10) / tiles)) or 180
+        local tileW = tiles > 0 and math.min(TILE_W, math.floor((width - (tiles - 1) * TILE_GAP) / tiles)) or TILE_W
         local tilesY = #mine > 0 and TILES_Y or (TILES_Y + none:GetStringHeight() + 12)
         guildCard:SetShown(guildOn)
         if guildOn then
             guildCard:ClearAllPoints()
             guildCard:SetSize(tileW, TILE_H)
-            guildCard:SetPoint("TOPLEFT", #mine * (tileW + 10), -tilesY)
+            guildCard:SetPoint("TOPLEFT", #mine * (tileW + TILE_GAP), -tilesY)
             guildCard:SetScript("OnClick", function() ns.GuildCrafts.Show("crafters") end)
         end
         local current
@@ -208,7 +217,7 @@ Window.Page("professions", function(page)
             local c = Card(i)
             c:ClearAllPoints()
             c:SetSize(tileW, TILE_H)
-            c:SetPoint("TOPLEFT", (i - 1) * (tileW + 10), -TILES_Y)
+            c:SetPoint("TOPLEFT", (i - 1) * (tileW + TILE_GAP), -TILES_Y)
             c:Show()
             c.icon:SetTexture(p.icon)
             c.name:SetText(p.name)
@@ -279,31 +288,38 @@ Window.Page("professions", function(page)
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
 
-        local y, ranked = 0, false
-        local function Rank()
-            Road.PaintRank(rankRow, line, rank, rankIndex, rankAt, skill)
-            Place(rankRow, y)
-            y = y + RANK_H
-            ranked = true
-        end
-
+        -- The first column, down from its top: `at`.
+        local at, ranked = 0, false
         if not seen and not Professions.IsGathering(line) then
             message:SetText(("Open your %s window once so this uses the recipes you know."):format(current.name))
-            Place(message, y)
-            y = y + message:GetStringHeight() + 12
+            PlaceNow(message, at)
+            at = at + message:GetStringHeight() + 12
         end
 
         -- The step in hand.
         local first = road[1]
         nowHead.title:SetText(first and "DO THIS NOW" or (skill >= cap and "AT THE CAP" or "NOTHING TO MAKE YET"))
         nowHead.note:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
-        Place(nowHead, y)
-        y = y + 28
-        if rankAt and skill >= rankAt then Rank() y = y + 4 end
+        PlaceNow(nowHead, at)
+        at = at + 28
+        if rankAt and skill >= rankAt then
+            Road.PaintRank(rankNow, line, rank, rankIndex, rankAt, skill)
+            PlaceNow(rankNow, at)
+            at = at + RANK_H + 4
+            ranked = true
+        end
         if first then
             Road.PaintCard(card, line, first, skill)
-            Place(card, y)
-            y = y + card:GetHeight() + 16
+            PlaceNow(card, at)
+        end
+
+        -- The middle column, down its list: `y`.
+        local y = 0
+        local function Rank()
+            Road.PaintRank(rankRow, line, rank, rankIndex, rankAt, skill)
+            Place(rankRow, y)
+            y = y + RANK_H
+            ranked = true
         end
 
         -- The steps after it, with the next rank where it falls among them.
@@ -334,6 +350,7 @@ Window.Page("professions", function(page)
         end
         list:SetHeight(math.max(1, y))
         scroll:UpdateScrollChildRect()
+        scroll:Place()
 
         -- Everything the road needs, the biggest shortfall first.
         local all = {}
@@ -406,4 +423,4 @@ Window.Page("professions", function(page)
             if page:IsVisible() then xpcall(Paint, ns.Report) end
         end)
     end)
-end)
+end, nil, true)
