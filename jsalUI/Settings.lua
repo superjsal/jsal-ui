@@ -1,11 +1,12 @@
 -- Settings: a switch for each part of jsal.ui, a group of them at a time. A
--- bar of tabs under the page's name has a tab for each group (Games,
--- Professions, Leveling, Around the UI) with how many parts it holds, and
+-- bar of tabs under the page's name has a tab for each group (Around the
+-- UI, Professions, Leveling, Games) with how many parts it holds, and
 -- the page shows the open group's parts in two columns, a small heading
 -- over each handful that belong together. A part is a row: its picture, its
 -- name with a line under it on what it does, and its switch. The whole of
 -- what it does is in a tooltip when it's pointed at. A part with options of
--- its own says how many, and a click opens them under its row. The box at
+-- its own has a small arrowhead before its switch, and a click on that
+-- opens them under its row. The box at
 -- the top finds a part or an option in any group, and shows what it finds
 -- under each group's name. A part's switch applies after a reload, since
 -- modules start once, at login (addons can't reload the game themselves on
@@ -16,16 +17,17 @@ local Style, Window = ns.Style, ns.Window
 
 local ROW_H, OPTION_H, GROUP_H, HEAD_H, GROUP_GAP = 52, 30, 30, 24, 18
 local TABS_Y, TOP, BAR_H, COLUMN_GAP, COLUMNS = 44, 86, 64, 40, 2
-local SWITCH_W, TEXT_X = 36, 36
+local SWITCH_W, TEXT_X, MARK_W = 36, 36, 18
 
 -- The groups, in the order of their tabs, and inside each a heading for each
 -- handful of parts that belong together. A part not listed joins the last
--- group's last handful. A heading that names a part has another to go by
--- while that part isn't there.
+-- handful of the group marked `rest`. A heading that names a part has
+-- another to go by while that part isn't there.
 local GROUPS = {
-    { key = "games", title = "Games", sections = {
-        { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" }, { chess = "Puzzles" } },
-        { "Company", { "guild", "pet", "palrun" } },
+    { key = "around", title = "Around the UI", rest = true, sections = {
+        { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
+        { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "petfeed", "rangecheck" } },
+        { "Everything else", { "sharedFonts" } },
     } },
     { key = "professions", title = "Professions", sections = {
         { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "orders", "craftprofit" } },
@@ -34,10 +36,9 @@ local GROUPS = {
         { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
         { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
-    { key = "around", title = "Around the UI", sections = {
-        { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
-        { "Helpers", { "vendor", "warnings", "waypoint", "foodtile", "petfeed", "rangecheck" } },
-        { "Everything else", { "sharedFonts" } },
+    { key = "games", title = "Games", sections = {
+        { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" }, { chess = "Puzzles" } },
+        { "Company", { "guild", "pet", "palrun" } },
     } },
 }
 
@@ -137,13 +138,16 @@ local function Grouped()
             end
             sections[#sections + 1] = { title = title, modules = list }
         end
-        groups[i] = { key = group.key, title = group.title, modules = all, sections = sections }
+        groups[i] = { key = group.key, title = group.title, modules = all, sections = sections, rest = group.rest }
     end
-    local last = groups[#groups]
+    local rest = groups[#groups]
+    for _, group in ipairs(groups) do
+        if group.rest then rest = group end
+    end
     for _, module in ipairs(ns.moduleOrder) do
         if not placed[module.key] then
-            table.insert(last.modules, module)
-            table.insert(last.sections[#last.sections].modules, module)
+            table.insert(rest.modules, module)
+            table.insert(rest.sections[#rest.sections].modules, module)
         end
     end
     return groups
@@ -165,8 +169,9 @@ local function Matches(module, words)
 end
 
 -- A part's row: its picture, its name over a line on what it does, and its
--- switch at the right, with how many options it has before the switch and a
--- tag when a reload is owed for it or it stopped on an error. The switch is
+-- switch at the right, with an arrowhead before the switch when it has
+-- options and a tag when a reload is owed for it or it stopped on an error.
+-- The switch is
 -- the quiet kind: a page of bright ones, all on, is a wall of gold. A click
 -- anywhere on the row flips it, which calls row.onChange. Pointing at the
 -- row lights it and calls row.onPoint; the page shows the whole of what the
@@ -190,17 +195,32 @@ local function PartRow(parent, width)
         if row.onChange then row.onChange(on) end
     end, true)
     row.switch:SetPoint("RIGHT")
-    -- "2 options", before the switch: a click opens them under the row.
+    -- A part with options has a small arrowhead before its switch: two
+    -- short strokes. It points right, and down while the options are open
+    -- under the row; a click opens and closes them.
     row.options = CreateFrame("Button", nil, row)
-    row.options:SetHeight(18)
-    row.options:SetPoint("RIGHT", row.switch, "LEFT", -12, 0)
-    row.options.label = Style.Text(row.options, 11, "muted")
-    row.options.label:SetPoint("RIGHT")
-    row.options.label:SetJustifyH("RIGHT")
-    row.options.line = row.options:CreateTexture(nil, "ARTWORK")
-    row.options.line:SetPoint("BOTTOMLEFT")
-    row.options.line:SetPoint("BOTTOMRIGHT")
-    row.options.line:SetHeight(1)
+    row.options:SetSize(MARK_W, 20)
+    row.options:SetPoint("RIGHT", row.switch, "LEFT", -8, 0)
+    row.options.strokes = {}
+    for i = 1, 2 do
+        local stroke = row.options:CreateTexture(nil, "ARTWORK")
+        stroke:SetSize(7, 1.5)
+        row.options.strokes[i] = stroke
+    end
+    function row.options:Point(down, colorKey)
+        local turn = math.rad(45)
+        for i, stroke in ipairs(self.strokes) do
+            local first = i == 1
+            stroke:ClearAllPoints()
+            if down then
+                stroke:SetPoint("CENTER", first and -2.3 or 2.3, 0)
+            else
+                stroke:SetPoint("CENTER", 0, first and 2.3 or -2.3)
+            end
+            stroke:SetRotation(first and -turn or turn)
+            stroke:SetColorTexture(Style.Color(colorKey))
+        end
+    end
     row.tag = Style.Tag(row, "", true)
     row.name = Style.Text(row, 14, "text")
     row.name:SetPoint("TOPLEFT", TEXT_X, -9)
@@ -237,13 +257,10 @@ local function PartRow(parent, width)
         local taken = SWITCH_W
         self.options:SetShown(options > 0)
         self.options.selected = open
+        self.options.count = options
         if options > 0 then
-            self.options.label:SetText(options == 1 and "1 option" or (options .. " options"))
-            self.options.label:SetTextColor(Style.Color(open and "gold" or "muted"))
-            self.options.line:SetColorTexture(Style.Color(open and "gold" or "lineStrong"))
-            local wide = Style.Wide(self.options.label, 56) + 2
-            self.options:SetWidth(wide)
-            taken = taken + 12 + wide
+            self.options:Point(open, open and "gold" or "muted")
+            taken = taken + 8 + MARK_W
         end
         self.tag:SetShown(tag ~= nil)
         if tag then
@@ -445,13 +462,18 @@ Window.Page("settings", function(page)
     end)
 
     -- The whole of what a part or an option does, in a tooltip while it's
-    -- pointed at: its row has room for a line only.
-    local function Point(titleText, full, command, owner)
-        if not ((full and full ~= "") or command) then return end
+    -- pointed at: its row has room for a line only. Then its command, and
+    -- how many options it has (`options`, for a part).
+    local function Point(titleText, full, command, owner, options)
+        options = options or 0
+        if not ((full and full ~= "") or command or options > 0) then return end
         GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
         GameTooltip:SetText(titleText)
         if full and full ~= "" then GameTooltip:AddLine(full, 1, 1, 1, true) end
         if command then GameTooltip:AddLine(command, Style.Color("gold")) end
+        if options > 0 then
+            GameTooltip:AddLine((options == 1 and "1 option" or (options .. " options")) .. ": click the arrow before its switch", Style.Color("muted"))
+        end
         GameTooltip:Show()
     end
     local function Unpoint()
@@ -500,7 +522,7 @@ Window.Page("settings", function(page)
                 module.failed and "error" or (Changed(module) and "reload") or nil)
             if module.failed then row.name:SetTextColor(Style.Color("muted")) end
             row:Picture(module.key)
-            row.onPoint = function(self) Point(module.title, full, Command(module), self) end
+            row.onPoint = function(self) Point(module.title, full, Command(module), self, #options) end
             row.onLeave = Unpoint
             row.onChange = function(now)
                 ns.db.modules[module.key] = now
