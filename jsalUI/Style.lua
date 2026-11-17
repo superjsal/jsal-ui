@@ -432,6 +432,52 @@ function Style.Button(parent, label, kind, width)
     return b
 end
 
+-- A page's tabs, as one long pill: a segment for each choice, the chosen one
+-- lit. `items` is a list of { key, label }; onPick(key) is called when one
+-- is clicked. Pick(key) marks one as chosen without calling it.
+function Style.Tabs(parent, items, onPick)
+    local bar = CreateFrame("Frame", nil, parent)
+    bar:SetHeight(30)
+    Style.Box(bar, 13, "titleBar", "line")
+    bar.buttons = {}
+    local function Paint(b)
+        local lit = b.selected or b.hover
+        b.box.line:SetShown(b.selected == true)
+        b.box.fill:SetShown(b.selected == true)
+        b.label:SetTextColor(Style.Color(lit and "text" or "secondary"))
+    end
+    local x = 3
+    for i, item in ipairs(items) do
+        local b = CreateFrame("Button", nil, bar)
+        b.key = item[1]
+        b.box = Style.Box(b, 12, "wellHover", "lineStrong")
+        b.label = Style.Text(b, 13, "secondary", nil, true)
+        b.label:SetPoint("CENTER")
+        b.label:SetJustifyH("CENTER")
+        b.label:SetText(item[2])
+        local wide = Style.Wide(b.label, #item[2] * 8) + 32
+        b:SetSize(wide, 24)
+        b:SetPoint("LEFT", x, 0)
+        x = x + wide + 2
+        b:SetScript("OnClick", function()
+            bar:Pick(b.key)
+            if onPick then onPick(b.key) end
+        end)
+        b:SetScript("OnEnter", function() b.hover = true; Paint(b) end)
+        b:SetScript("OnLeave", function() b.hover = false; Paint(b) end)
+        bar.buttons[i] = b
+    end
+    bar:SetWidth(x + 1)
+    function bar:Pick(key)
+        for _, b in ipairs(self.buttons) do
+            b.selected = b.key == key
+            Paint(b)
+        end
+    end
+    bar:Pick(nil)
+    return bar
+end
+
 -- A list that scrolls with the mouse wheel. A thin bar at its right shows
 -- where it is whenever there's more than fits, and follows by itself as the
 -- list grows, shrinks or moves. Returns the scroll frame, to place, and the

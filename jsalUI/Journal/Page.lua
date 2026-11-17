@@ -6,7 +6,7 @@
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local TAB_W, GAP, MODEL_W = 130, 8, 170
+local GAP, MODEL_W = 8, 170
 
 local function Hours(seconds)
     seconds = math.floor(seconds or 0)
@@ -65,6 +65,13 @@ local function Ago(t)
     return math.floor(days / 30) .. " months ago"
 end
 
+-- The time of day, by the clock the game is set to show.
+local function Clock(t)
+    local h, m = tonumber(date("%H", t)) or 0, date("%M", t)
+    if GetCVarBool and GetCVarBool("timeMgrUseMilitaryTime") then return ("%d:%s"):format(h, m) end
+    return ("%d:%s %s"):format((h + 11) % 12 + 1, m, h < 12 and "am" or "pm")
+end
+
 local function ClassColor(classFile)
     local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
     return c and ("|cff%02x%02x%02x"):format(math.floor(c.r * 255), math.floor(c.g * 255), math.floor(c.b * 255)) or "|cffece6d6"
@@ -73,44 +80,54 @@ end
 Window.Page("journal", function(page)
     local J = ns.Journal
     local width, height = Window.contentWidth, Window.contentHeight
-    local tabs, views, current = {}, {}, "summary"
+    local views, current = {}, "summary"
 
-    local function View(key)
+    -- A tab's page, under the tabs. A wide one has the dashboard's whole
+    -- width; any other keeps the width it was laid out for, in the middle.
+    local function View(key, wide)
         local v = CreateFrame("Frame", nil, page)
-        v:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -52)
-        v:SetSize(width, height - 52)
+        if wide then
+            v:SetPoint("TOPLEFT", 0, -44)
+        else
+            v:SetPoint("TOP", page, "TOP", 0, -44)
+        end
+        v:SetSize(wide and Window.fullWidth or width, height - 52)
         v:Hide()
         views[key] = v
         return v
     end
 
     local Paint
-    for i, tab in ipairs({ { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "characters", "Characters" } }) do
-        local b = Style.Button(page, tab[2], "tab", TAB_W)
-        b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", (i - 1) * (TAB_W + 6), -8)
-        b:SetScript("OnClick", function()
-            current = tab[1]
+    local tabs = Style.Tabs(page, { { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "characters", "Characters" } },
+        function(key)
+            current = key
             Paint()
         end)
-        tabs[tab[1]] = b
-    end
+    tabs:SetPoint("TOPLEFT")
+
+    -- A moment's colour, by its kind: the Story's rows and filters wear it,
+    -- and the Summary's latest moments.
+    local TINT = { level = { Style.Color("gold") }, kill = { Style.Color("red") }, boss = { Style.Color("red") },
+                   loot = { 0.30, 0.62, 1 }, death = { Style.Color("muted") }, pet = { 0.94, 0.42, 0.54 } }
+    local OTHER = { 0.36, 0.76, 0.69 }
 
     -----------------------------------------------------------------
     -- Summary.
     -----------------------------------------------------------------
-    local summary = View("summary")
-    -- Summary: who you are, how far to the next level, three things about
-    -- you, your levels as a chart, your numbers with a picture each, and
-    -- your favourites as bars.
-    local M = { cards = {}, bars = {}, tiles = {}, HERO_H = 196, CHART_H = 64, TILE_H = 54, LIST_H = 26,
+    local summary = View("summary", true)
+    -- Summary, across the whole width: who you are, how far to the next
+    -- level, three things about you, your levels as a chart, your numbers
+    -- with a picture each, and your favourites and latest moments as lists.
+    local width = Window.fullWidth
+    local M = { cards = {}, bars = {}, tiles = {}, lately = {}, HERO_H = 196, CHART_H = 76, TILE_H = 70, TILE_GAP = 12, LIST_H = 26, LIST_GAP = 16,
                 ICONS = "Interface\\Icons\\" }
     M.TILE_ICON = { "Ability_DualWield", "Ability_Rogue_Sprint", "INV_Misc_Note_01", "INV_Misc_Head_Dragon_01", "Ability_Hunter_EagleEye",
-                    "Ability_Rogue_FeignDeath", "INV_Misc_Coin_01", "Ability_Warrior_Challange", "Ability_Hunter_AspectOfTheMonkey" }
+                    "Ability_Rogue_FeignDeath", "INV_Misc_Coin_01", "Ability_Warrior_Challange", "Ability_Hunter_AspectOfTheMonkey",
+                    "INV_Misc_PocketWatch_01" }
     local modelWell = CreateFrame("Frame", nil, summary)
     modelWell:SetPoint("TOPLEFT")
     modelWell:SetSize(MODEL_W, M.HERO_H)
-    Style.Fill(modelWell, "well")
-    Style.Border(modelWell, "cardLine")
+    Style.Box(modelWell, 6, "well", "cardLine")
     local model = CreateFrame("PlayerModel", nil, modelWell)
     model:SetPoint("TOPLEFT", 1, -1)
     model:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -165,7 +182,7 @@ Window.Page("journal", function(page)
         local c = CreateFrame("Frame", nil, summary)
         c:SetSize(M.cardW, 70)
         c:SetPoint("TOPLEFT", M.heroX + (i - 1) * (M.cardW + 8), -96)
-        Style.Fill(c, "well")
+        Style.Box(c, 6, "well", "cardLine")
         c.head = Style.Text(c, 10, "gold", nil, true)
         c.head:SetPoint("TOPLEFT", 12, -8)
         -- The picture in the corner, so the words have the card's width:
@@ -249,37 +266,38 @@ Window.Page("journal", function(page)
         return b
     end
 
-    -- Your numbers, three across: a picture, the number, what it counts and
-    -- a few words beside that.
+    -- Your numbers, five across in two rows: a picture, the number, what it
+    -- counts, and a few words under that.
     M.tilesY = M.chartY + 24 + M.CHART_H + 26
-    M.tileW = math.floor((width - 2 * GAP) / 3)
-    for i = 1, 9 do
+    M.tileW = math.floor((width - 4 * M.TILE_GAP) / 5)
+    for i = 1, 10 do
         local t = CreateFrame("Frame", nil, summary)
         t:SetSize(M.tileW, M.TILE_H)
-        t:SetPoint("TOPLEFT", ((i - 1) % 3) * (M.tileW + GAP), -(M.tilesY + math.floor((i - 1) / 3) * (M.TILE_H + GAP)))
-        Style.Fill(t, "well")
+        t:SetPoint("TOPLEFT", ((i - 1) % 5) * (M.tileW + M.TILE_GAP), -(M.tilesY + math.floor((i - 1) / 5) * (M.TILE_H + M.TILE_GAP)))
+        Style.Box(t, 6, "well", "cardLine")
         t.icon = t:CreateTexture(nil, "ARTWORK")
-        t.icon:SetSize(30, 30)
+        t.icon:SetSize(34, 34)
         t.icon:SetPoint("LEFT", 12, 0)
         t.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         t.icon:SetTexture(M.ICONS .. M.TILE_ICON[i])
         t.n = Style.Text(t, 17, "gold", nil, true)
-        t.n:SetPoint("TOPLEFT", 52, -7)
+        t.n:SetPoint("TOPLEFT", 58, -8)
         t.label = Style.Text(t, 12, "text")
-        t.label:SetPoint("TOPLEFT", 52, -31)
-        -- Beside the number, where there's more room than beside the
-        -- words under it ("Gold earned" left "most from ve...").
+        t.label:SetPoint("TOPLEFT", 58, -31)
         t.note = Style.Text(t, 11, "muted")
-        t.note:SetPoint("BOTTOMLEFT", t.n, "BOTTOMRIGHT", 8, 2)
-        t.note:SetPoint("RIGHT", t, "RIGHT", -10, 0)
-        t.note:SetWordWrap(false)
-        t.note:SetJustifyH("RIGHT")
+        t.note:SetPoint("TOPLEFT", 58, -48)
+        -- Each line has the tile's width and is cut short rather than wrapped.
+        for _, line in ipairs({ t.n, t.label, t.note }) do
+            line:SetWidth(M.tileW - 58 - 10)
+            line:SetWordWrap(false)
+            line:SetJustifyH("LEFT")
+        end
         M.tiles[i] = t
     end
 
     -- Your favourites, as bars: the longest is the most, in gold.
-    M.listY = M.tilesY + 3 * (M.TILE_H + GAP) + 10
-    M.halfW = math.floor((width - 24) / 2)
+    M.listY = M.tilesY + 2 * (M.TILE_H + M.TILE_GAP) + 10
+    M.halfW = math.floor((width - 2 * M.LIST_GAP) / 3)
     function M.List(x, title, pictures)
         local head = Style.Text(summary, 12, "gold", nil, true)
         head:SetPoint("TOPLEFT", x, -M.listY)
@@ -316,7 +334,30 @@ Window.Page("journal", function(page)
         return rows
     end
     local usedRows = M.List(0, "MOST USED", true)
-    local zoneRows = M.List(M.halfW + 24, "MOST TIME IN")
+    local zoneRows = M.List(M.halfW + M.LIST_GAP, "MOST TIME IN")
+    -- Lately: the Story's last five moments, each with when it was and a
+    -- square in its kind's colour.
+    do
+        local x = 2 * (M.halfW + M.LIST_GAP)
+        local head = Style.Text(summary, 12, "gold", nil, true)
+        head:SetPoint("TOPLEFT", x, -M.listY)
+        head:SetText("LATELY")
+        for i = 1, 5 do
+            local r = CreateFrame("Frame", nil, summary)
+            r:SetSize(M.halfW, M.LIST_H)
+            r:SetPoint("TOPLEFT", x, -(M.listY + 22 + (i - 1) * M.LIST_H))
+            if i == 1 then Style.Rule(r, "TOP", "lineStrong") end
+            r.when = Style.Text(r, 11, "muted")
+            r.when:SetPoint("LEFT")
+            r.mark = r:CreateTexture(nil, "ARTWORK")
+            r.mark:SetSize(7, 7)
+            r.mark:SetPoint("LEFT", 68, 0)
+            r.text = Style.Text(r, 12, "text")
+            r.text:SetWordWrap(false)
+            r.text:SetJustifyH("LEFT")
+            M.lately[i] = r
+        end
+    end
     M.foot = Style.Text(summary, 11, "muted")
     M.foot:SetPoint("TOPLEFT", 0, -(M.listY + 22 + 5 * M.LIST_H + 10))
 
@@ -409,8 +450,8 @@ Window.Page("journal", function(page)
                 if not longest or took > levels[longest].seconds then longest = lv end
             end
         end
-        local gap = last > 40 and 2 or 3
-        local barW = math.max(2, math.min(24, math.floor((width - (last - 1) * gap) / last)))
+        local gap = last > 40 and 2 or 4
+        local barW = math.max(2, math.min(30, math.floor((width - (last - 1) * gap) / last)))
         for i = 1, last do
             local b, row = M.Bar(i), levels[i]
             local took = row and row.seconds or 0
@@ -454,6 +495,7 @@ Window.Page("journal", function(page)
             { Gold(J.Total("earned")), "Gold earned", source and ("most from " .. source) or "" },
             { ("%d-%d"):format(duelsWon, duelsLost), "Duels won and lost", "" },
             { Count(J.Stat("jumps")), "Jumps", hours >= 1 and Rate(J.Stat("jumps"), hours, " an hour") or "" },
+            { Hours(seconds), "On record", "since " .. (date("%d %B", book.since or Compat.ServerTime()):gsub("^0", "")) },
         }
         for i, t in ipairs(M.tiles) do
             t.n:SetText(data[i][1])
@@ -462,6 +504,23 @@ Window.Page("journal", function(page)
         end
         FillList(usedRows, spells, Count, "Nothing cast yet")
         FillList(zoneRows, zones, Hours, "Nowhere yet")
+        -- The latest moments: today's by the clock, an older one by its day.
+        local moments, today = J.Story(), date("%Y%m%d")
+        for i, r in ipairs(M.lately) do
+            local e = moments[i]
+            r:SetShown(e ~= nil or i == 1)
+            r.mark:SetShown(e ~= nil)
+            r.text:ClearAllPoints()
+            r.text:SetPoint("LEFT", e and 84 or 0, 0)
+            r.text:SetWidth(M.halfW - (e and 84 or 0))
+            r.text:SetText(e and (e.s or "") or "Nothing yet. It fills in as you play.")
+            r.text:SetTextColor(Style.Color(e and "text" or "muted"))
+            r.when:SetText(e and (date("%Y%m%d", e.t or 0) == today and Clock(e.t or 0) or (date("%d %b", e.t or 0):gsub("^0", ""))) or "")
+            if e then
+                local c = TINT[e.k] or OTHER
+                r.mark:SetColorTexture(c[1], c[2], c[3])
+            end
+        end
         M.foot:SetText(("Distance and jumps are counted since %s."):format((date("%d %B %Y", book.since or Compat.ServerTime()):gsub("^0", ""))))
     end
 
@@ -472,12 +531,12 @@ Window.Page("journal", function(page)
     -- don't already say. The same thing several times in a day is one row
     -- that says how many.
     -----------------------------------------------------------------
+    -- The other tabs keep the width they were laid out for.
+    local width = Window.contentWidth
     local story = View("story")
     local S = { filters = {}, rows = {}, heads = {}, offset = 0, TOP = 30, HEAD_H = 34, ROW_H = 26, TALL_H = 42, TEXT_X = 86 }
     S.room = height - 52 - S.TOP - 24
-    S.TINT = { level = { Style.Color("gold") }, kill = { Style.Color("red") }, boss = { Style.Color("red") },
-               loot = { 0.30, 0.62, 1 }, death = { Style.Color("muted") }, pet = { 0.94, 0.42, 0.54 } }
-    S.OTHER = { 0.36, 0.76, 0.69 }
+    S.TINT, S.OTHER = TINT, OTHER
     for i, f in ipairs({ { nil, "All" }, { "levels", "Levels", "level" }, { "kills", "Kills", "kill" }, { "loot", "Loot", "loot" },
                          { "deaths", "Deaths", "death" }, { "pals", "Pals", "pet" }, { "more", "More" } }) do
         local b = Style.Button(story, f[2], "tab", 84)
@@ -520,12 +579,7 @@ Window.Page("journal", function(page)
         return ((date(form, t):gsub("^0", "")):upper())
     end
 
-    -- The time of day, by the clock the game is set to show.
-    function S.Clock(t)
-        local h, m = tonumber(date("%H", t)) or 0, date("%M", t)
-        if GetCVarBool and GetCVarBool("timeMgrUseMilitaryTime") then return ("%d:%s"):format(h, m) end
-        return ("%d:%s %s"):format((h + 11) % 12 + 1, m, h < 12 and "am" or "pm")
-    end
+    S.Clock = Clock
 
     -- What the page lists, from the moments newest first: a heading where a
     -- day starts, then a row a moment. The same words again in a day join
@@ -1088,7 +1142,7 @@ Window.Page("journal", function(page)
     end
 
     Paint = function()
-        for key, b in pairs(tabs) do b:SetSelected(key == current) end
+        tabs:Pick(current)
         for key, v in pairs(views) do v:SetShown(key == current) end
         if not J.running then return end
         if current == "summary" then PaintSummary()
@@ -1103,4 +1157,4 @@ Window.Page("journal", function(page)
     off:SetText("The Journal is switched off in Settings.")
     page:HookScript("OnShow", function() off:SetShown(not J.running) end)
     off:SetShown(not J.running)
-end)
+end, nil, true)
