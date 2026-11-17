@@ -10,6 +10,7 @@ Restart the game after updating (exit and start it again): this version adds new
 - **Shopping list: clearing it takes away the buy pop-up beside a vendor.** It kept offering what had been on the list until you bought or sold something.
 - **Dungeon guide: a quest's level and the level you can take it at.** The level column showed one number that meant two things: "level 45" for how hard a quest you can take is, and "needs level 39" for one you can't yet. It shows both now, as in "level 45 · take at 37".
 - **Dungeon guide: the game's own quest marks.** Each quest to pick up has a gold ! before it, grey while you're under its level. One in your quest log has a ?, grey while you're doing it and gold when it's ready to hand in, in place of the "in your quest log" tag.
+- **Dungeon guide: the lead-ins Wowhead leaves out, in the new dungeons.** Quests in Forever's nine new dungeons that need others done first, which players list in Wowhead's comments but its quest pages don't, are chains now, from the first quest to pick up: the Drowned City's (from the Rebel Camp in Stranglethorn, or Kin'weelay at Grom'gol), The Wrath of Rath'mael, The New Plague, Horrors in the Highland, Highland Hides, Starving Arcane, the Horde's Heart of Disruption, Alcaz Prison's from Mathias Shaw, and Krol'dok's from the Riverglades.
 
 ## In 0.3.52
 

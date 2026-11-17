@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-15",
+ "fetched": "2026-11-16",
  "quests": {
   "1013": {
    "n": "The Book of Ur",
@@ -789,6 +789,36 @@
     57
    ]
   },
+  "203": {
+   "n": "The Second Rebellion",
+   "prev": null,
+   "s": [
+    "npc",
+    733,
+    "Sergeant Yohwa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    38,
+    3.4
+   ]
+  },
+  "204": {
+   "n": "Bad Medicine",
+   "prev": null,
+   "s": [
+    "npc",
+    733,
+    "Sergeant Yohwa"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    38,
+    3.4
+   ]
+  },
   "2040": {
    "n": "Underground Assault",
    "prev": 2041,
@@ -817,6 +847,36 @@
     "Ironforge",
     69.4,
     50.6
+   ]
+  },
+  "205": {
+   "n": "Troll Witchery",
+   "prev": 207,
+   "s": [
+    "npc",
+    739,
+    "Brother Nimetz"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    37.8,
+    3.6
+   ]
+  },
+  "207": {
+   "n": "Kurzen's Mystery",
+   "prev": null,
+   "s": [
+    "npc",
+    739,
+    "Brother Nimetz"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    37.8,
+    3.6
    ]
   },
   "214": {
@@ -1125,6 +1185,36 @@
     52.8
    ]
   },
+  "275": {
+   "n": "Blisters on the Land",
+   "prev": 277,
+   "s": [
+    "npc",
+    1244,
+    "Rethiel the Greenwarden"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    56.2,
+    40.4
+   ]
+  },
+  "276": {
+   "n": "Tramping Paws",
+   "prev": 463,
+   "s": [
+    "npc",
+    1244,
+    "Rethiel the Greenwarden"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    56.2,
+    40.4
+   ]
+  },
   "2768": {
    "n": "Divino-matic Rod",
    "prev": null,
@@ -1153,6 +1243,21 @@
     "Ironforge",
     68.2,
     46.2
+   ]
+  },
+  "277": {
+   "n": "Fire Taboo",
+   "prev": 276,
+   "s": [
+    "npc",
+    1244,
+    "Rethiel the Greenwarden"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    56.2,
+    40.4
    ]
   },
   "2770": {
@@ -1812,6 +1917,21 @@
     "Tanaris",
     67,
     22.4
+   ]
+  },
+  "356": {
+   "n": "Rear Guard Patrol",
+   "prev": null,
+   "s": [
+    "npc",
+    1495,
+    "Deathguard Linnea"
+   ],
+   "z": [
+    85,
+    "Tirisfal Glades",
+    65.4,
+    60.2
    ]
   },
   "3636": {
@@ -2687,6 +2807,81 @@
     0
    ]
   },
+  "447": {
+   "n": "A Recipe For Death",
+   "prev": null,
+   "s": [
+    "npc",
+    1937,
+    "Apothecary Renferrel"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    42.8,
+    40.8
+   ]
+  },
+  "450": {
+   "n": "A Recipe For Death",
+   "prev": 447,
+   "s": [
+    "npc",
+    2055,
+    "Master Apothecary Faranell"
+   ],
+   "z": [
+    1497,
+    "Undercity",
+    48.4,
+    69.4
+   ]
+  },
+  "451": {
+   "n": "A Recipe For Death",
+   "prev": 450,
+   "s": [
+    "npc",
+    1937,
+    "Apothecary Renferrel"
+   ],
+   "z": [
+    130,
+    "Silverpine Forest",
+    42.8,
+    40.8
+   ]
+  },
+  "463": {
+   "n": "The Greenwarden",
+   "prev": null,
+   "s": [
+    "npc",
+    1239,
+    "First Mate Fitzsimmons"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    10.8,
+    59.6
+   ]
+  },
+  "469": {
+   "n": "Daily Delivery",
+   "prev": null,
+   "s": [
+    "npc",
+    2093,
+    "Einar Stonegrip"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    49.8,
+    39.4
+   ]
+  },
   "4701": {
    "n": "Put Her Down",
    "prev": null,
@@ -2895,6 +3090,21 @@
     "Tanaris",
     66.8,
     24
+   ]
+  },
+  "484": {
+   "n": "Young Crocolisk Skins",
+   "prev": 469,
+   "s": [
+    "npc",
+    2094,
+    "James Halloran"
+   ],
+   "z": [
+    11,
+    "Wetlands",
+    8.6,
+    55.6
    ]
   },
   "4862": {
@@ -3401,6 +3611,36 @@
     73.8
    ]
   },
+  "544": {
+   "n": "Prison Break In",
+   "prev": null,
+   "s": [
+    "npc",
+    2410,
+    "Magus Wordeen Voidglare"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.6,
+    20.8
+   ]
+  },
+  "545": {
+   "n": "Dalaran Patrols",
+   "prev": 544,
+   "s": [
+    "npc",
+    2410,
+    "Magus Wordeen Voidglare"
+   ],
+   "z": [
+    267,
+    "Hillsbrad Foothills",
+    61.6,
+    20.8
+   ]
+  },
   "5461": {
    "n": "The Human, Ras Frostwhisper",
    "prev": null,
@@ -3795,6 +4035,21 @@
     "Eastern Plaguelands",
     26.6,
     74.8
+   ]
+  },
+  "629": {
+   "n": "The Vile Reef",
+   "prev": null,
+   "s": [
+    "npc",
+    2519,
+    "Kin'weelay"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    27.8
    ]
   },
   "6403": {
@@ -7225,6 +7480,81 @@
     31.4
    ]
   },
+  "94744": {
+   "n": "The Wayward Warrior",
+   "prev": 95428,
+   "s": [
+    "npc",
+    256418,
+    "Krom'rosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    59.4,
+    45.6
+   ]
+  },
+  "94745": {
+   "n": "Carving a Path",
+   "prev": null,
+   "s": [
+    "npc",
+    258570,
+    "Da'grosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    33.4,
+    38
+   ]
+  },
+  "94748": {
+   "n": "Break Their Chains",
+   "prev": null,
+   "s": [
+    "npc",
+    258570,
+    "Da'grosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    33.4,
+    38
+   ]
+  },
+  "94768": {
+   "n": "Bring Me His Head",
+   "prev": null,
+   "s": [
+    "npc",
+    258570,
+    "Da'grosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    33.4,
+    38
+   ]
+  },
+  "94890": {
+   "n": "Bring Me His Head",
+   "prev": null,
+   "s": [
+    "npc",
+    258023,
+    "Sergeant Riftan"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    30.6,
+    49
+   ]
+  },
   "94907": {
    "n": "A Small Favor",
    "prev": null,
@@ -7435,11 +7765,56 @@
    "s": null,
    "z": null
   },
+  "95194": {
+   "n": "Our Man in Theramore",
+   "prev": null,
+   "s": [
+    "npc",
+    332,
+    "Master Mathias Shaw"
+   ],
+   "z": [
+    1519,
+    "Stormwind City",
+    75.8,
+    59.8
+   ]
+  },
   "95195": {
    "n": "Bloodied Insignia",
    "prev": null,
    "s": null,
    "z": null
+  },
+  "95196": {
+   "n": "Watch Yer Back",
+   "prev": 95194,
+   "s": [
+    "npc",
+    260146,
+    "Sully McCleary"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    66.2,
+    45.2
+   ]
+  },
+  "95198": {
+   "n": "The Return of the King?",
+   "prev": 95196,
+   "s": [
+    "npc",
+    260271,
+    "Sully McCleary"
+   ],
+   "z": [
+    15,
+    "Dustwallow Marsh",
+    63.4,
+    42.4
+   ]
   },
   "95204": {
    "n": "Crest of Lordaeron",
@@ -7488,6 +7863,21 @@
    "prev": 95262,
    "s": null,
    "z": null
+  },
+  "95278": {
+   "n": "It Is Time, Brother...",
+   "prev": null,
+   "s": [
+    "npc",
+    258570,
+    "Da'grosh"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    33.4,
+    38
+   ]
   },
   "95283": {
    "n": "The Missing Kor'kron",
@@ -7547,6 +7937,36 @@
     "Dustwallow Marsh",
     70.3,
     19.1
+   ]
+  },
+  "95428": {
+   "n": "Clugfist's Decree",
+   "prev": null,
+   "s": [
+    "npc",
+    255829,
+    "Clugfist"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    64.4,
+    14.8
+   ]
+  },
+  "95432": {
+   "n": "Rise Up!",
+   "prev": null,
+   "s": [
+    "npc",
+    260993,
+    "Crag'rog"
+   ],
+   "z": [
+    16591,
+    "Riverglades",
+    27.4,
+    37
    ]
   },
   "95454": {
@@ -7657,6 +8077,36 @@
     48.4
    ]
   },
+  "95748": {
+   "n": "The Gurubashi Legends of Old",
+   "prev": null,
+   "s": [
+    "npc",
+    2519,
+    "Kin'weelay"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    27.8
+   ]
+  },
+  "95770": {
+   "n": "Locating the Lost City",
+   "prev": null,
+   "s": [
+    "npc",
+    2519,
+    "Kin'weelay"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    27.8
+   ]
+  },
   "95772": {
    "n": "Songblade Search",
    "prev": null,
@@ -7670,6 +8120,21 @@
     "Redridge Mountains",
     30.8,
     46.6
+   ]
+  },
+  "95773": {
+   "n": "Enemies in the Water",
+   "prev": null,
+   "s": [
+    "npc",
+    2464,
+    "Commander Aggro'gosh"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    32.2,
+    28.8
    ]
   },
   "95775": {
@@ -7700,6 +8165,21 @@
     "Stranglethorn Vale",
     32.2,
     28.8
+   ]
+  },
+  "95786": {
+   "n": "An Acquaintance in Southshore",
+   "prev": null,
+   "s": [
+    "npc",
+    739,
+    "Brother Nimetz"
+   ],
+   "z": [
+    33,
+    "Stranglethorn Vale",
+    37.8,
+    3.6
    ]
   },
   "95787": {
@@ -8373,6 +8853,21 @@
    "prev": null,
    "s": null,
    "z": null
+  },
+  "99156": {
+   "n": "Rear Guard Patrol",
+   "prev": 356,
+   "s": [
+    "npc",
+    1495,
+    "Deathguard Linnea"
+   ],
+   "z": [
+    85,
+    "Tirisfal Glades",
+    65.4,
+    60.2
+   ]
   },
   "99187": {
    "n": "The Reliquary of Tyr",

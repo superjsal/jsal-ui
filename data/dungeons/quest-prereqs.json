@@ -1,0 +1,117 @@
+{
+  "about": "The quest before a dungeon quest, or before a step of its lead-in, where Wowhead Forever's quest page names none but players on it do. Read from the comments on each new dungeon's quests on 2026-11-16 (all 86 quests of the nine dungeons Forever added). build_dungeons.py puts each 'prev' into the quest's start, over Wowhead's own; each step named here has its start read with tools/wowhead/quests.js like any other. 'from' says whose comment, on which quest's page.",
+  "prev": {
+    "95787": {
+      "prev": 95786,
+      "from": "95787: Senthri; vklortho and Punie list the whole lead-in (The Second Rebellion, Bad Medicine, Kurzen's Mystery, Troll Witchery, then An Acquaintance in Southshore)"
+    },
+    "95788": {
+      "prev": 95786,
+      "from": "95788: Senthri, vklortho, Punie (as for Take Two With Water)"
+    },
+    "95786": {
+      "prev": 205,
+      "from": "95788: 'I did not get the prerequisite quest after Colonel Kurzen. I did, however, get access to it after turning in Troll Witchery'; Punie's list"
+    },
+    "95775": {
+      "prev": 95770,
+      "from": "95775: ootti8, 'Must first complete The Vile Reef, 95748 and then Locating the Lost City'"
+    },
+    "95770": {
+      "prev": 95748,
+      "from": "95775: ootti8 (the order of the three)"
+    },
+    "95748": {
+      "prev": 629,
+      "from": "95775: ootti8; 95776: snufseren, 'a questchain which begins with The Vile Reef'"
+    },
+    "95776": {
+      "prev": 95773,
+      "from": "95776: snufseren, 'Available after delivering 95773'; Ascedia, 'have to complete Locating the Lost City first too'"
+    },
+    "95773": {
+      "prev": 95770,
+      "from": "95776: Ascedia (Locating the Lost City first)"
+    },
+    "92422": {
+      "prev": 99156,
+      "from": "92422: Shrugtal, Akitos, Polyblank2 ('the two part quest Rear Guard Patrol now', new after the beta)"
+    },
+    "95216": {
+      "prev": 451,
+      "from": "95216: ProjectNerb and others, the whole 'A Recipe for Death' chain; dabudabu, 'starts from Apothecary Renferrel after completing 451'"
+    },
+    "95646": {
+      "prev": 275,
+      "from": "95646: Gurkenklaus, The Greenwarden, Tramping Paws, Fire Taboo, Blisters on the Land; LimeScout and Punie agree"
+    },
+    "98815": {
+      "prev": 484,
+      "from": "98815: Gurkenklaus, Rippy8787, 'Young Crocolisk Skins completed, 2 quests open up'"
+    },
+    "92457": {
+      "prev": 92432,
+      "from": "92457: 'The breadcrumb is An Alarming Request and unlocks both this quest and Heart of Disruption'"
+    },
+    "92434": {
+      "prev": 545,
+      "from": "96984: Kucky, Prison Break then Dalaran Patrols before Blood in the Streets; aimpup, 'Requires Dalaran Patrols kill quest first'"
+    },
+    "95262": {
+      "prev": 95198,
+      "from": "95263 and 96377: Anonimouz, the breadcrumb from Mathias Shaw, then Jaina's tower, then back to the dwarf for two Alcaz quests; 96381: Cronium, 'straight after spying on Jaina for 95198'"
+    },
+    "96381": {
+      "prev": 95198,
+      "from": "96381: Cronium, 'You can get this from Sully straight after spying on Jaina for 95198'"
+    },
+    "94975": {
+      "prev": 94768,
+      "from": "94968: Powdercake, 'Complete 94768, which unlocks 94975'"
+    },
+    "94968": {
+      "prev": 95278,
+      "from": "94968 and 94972: Powdercake, 'Complete 95278. This unlocks 94968 and 94972'"
+    },
+    "94972": {
+      "prev": 95278,
+      "from": "94968 and 94972: Powdercake"
+    },
+    "95278": {
+      "prev": 94768,
+      "from": "94968: Powdercake (in that order)"
+    },
+    "94983": {
+      "prev": 94890,
+      "from": "94983: Herbboio, 'unlocked after handing in Kilgar's head to Sergeant Riftan in Bring Me His Head'"
+    },
+    "207": {
+      "prev": 204,
+      "from": "95787 and 95788: Punie and vklortho, The Second Rebellion and Bad Medicine, then Kurzen's Mystery (Wowhead names nothing before Kurzen's Mystery)"
+    },
+    "204": {
+      "prev": 203,
+      "from": "95787: Punie's order, The Second Rebellion then Bad Medicine (both from Sergeant Yohwa; vklortho has them the other way round, so either order)"
+    },
+    "484": {
+      "prev": null,
+      "from": "98815: Gurkenklaus (21 votes), 'There is no need to do Daily Delivery beforehand', though Wowhead's series puts it first"
+    },
+    "94768": {
+      "prev": 95432,
+      "from": "94968: Powdercake, 'Complete 94748, 94745, and 95432' before 94768 (the three in any order; shown in Powdercake's)"
+    },
+    "95432": {
+      "prev": 94745,
+      "from": "94968: Powdercake (any order of the three)"
+    },
+    "94745": {
+      "prev": 94748,
+      "from": "94968: Powdercake (any order of the three)"
+    },
+    "94748": {
+      "prev": 94744,
+      "from": "94968: Powdercake, 'Complete 94744' first"
+    }
+  }
+}

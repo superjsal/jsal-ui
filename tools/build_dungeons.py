@@ -25,7 +25,8 @@ The Lost Dwarves, by theirs), and Blackrock Spire's and Dire Maul's quests go to
 
 Where each quest starts, and the quest before it, comes from data/dungeons/quest-starts.json
 (tools/wowhead/quests.js) and the game's UiMapAssignment table in data/maps/, from
-https://wago.tools/db2/UiMapAssignment/csv?build=<the build below>.
+https://wago.tools/db2/UiMapAssignment/csv?build=<the build below>. Where Wowhead's page names no
+quest before one but its comments do, data/dungeons/quest-prereqs.json (kept by hand) says which.
 
 Run: python -I tools/build_dungeons.py
 """
@@ -223,6 +224,15 @@ def build_starts():
         print("No data/dungeons/quest-starts.json: no quest starts written")
         return []
     starts = json.loads(path.read_text(encoding="utf-8"))
+    # The quest before one, where Wowhead's page names none but players on it do
+    # (data/dungeons/quest-prereqs.json, kept by hand from the comments): it wins.
+    prereqs = SRC / "quest-prereqs.json"
+    if prereqs.exists():
+        for qid, p in json.loads(prereqs.read_text(encoding="utf-8"))["prev"].items():
+            if qid not in starts["quests"]:
+                sys.exit(f"quest-prereqs.json names quest {qid}, whose start isn't read: "
+                         "run tools/wowhead/quests.js for it")
+            starts["quests"][qid]["prev"] = p["prev"]
     ui_map = {}
     with open(ROOT / "data" / "maps" / "UiMapAssignment.csv", newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
