@@ -96,7 +96,7 @@ local function Tooltip(frame)
         if not self.spellID then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetSpellByID(self.spellID)
-        if self.hint then GameTooltip:AddLine(self.hint, 0.6, 0.59, 0.53) end
+        if self.hint then GameTooltip:AddLine(self.hint, 0.6, 0.59, 0.53, true) end
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -382,12 +382,33 @@ Window.Page("training", function(page)
         return item
     end
 
-    -- A right-click on a picture skips its spell, or puts it back.
-    local function SkipClick(self)
-        if self.spell then
+    -- A right-click on a picture skips its spell, or puts it back. A click
+    -- on one with a trainer to show (a weapon skill) pins that trainer on
+    -- the map.
+    local function SkipClick(self, button)
+        if button == "LeftButton" then
+            if self.pin and ns.Trainers then ns.Trainers.Pin(self.pin) end
+        elseif self.spell then
             Training.Skip(self.spell.id, not self.spell.skipped)
             Paint()
         end
+    end
+
+    -- The nearest weapon master of your side who teaches a weapon skill.
+    local function Master(id)
+        local T, best, near = ns.Trainers, nil, nil
+        if not (T and T.Friendly and T.Distance) then return nil end
+        for _, master in ipairs(ns.TrainerData and ns.TrainerData.weapons or {}) do
+            if T.Friendly(master) then
+                for _, taught in ipairs(master.teaches or {}) do
+                    if taught == id then
+                        local far = T.Distance(master)
+                        if not best or far < near then best, near = master, far end
+                    end
+                end
+            end
+        end
+        return best
     end
 
     -- A dash of the road's middle line.
@@ -436,7 +457,7 @@ Window.Page("training", function(page)
         local g = CreateFrame("Button", nil, parent)
         g:SetSize(size, size)
         g:SetFrameLevel(parent:GetFrameLevel() + 5)
-        g:RegisterForClicks("RightButtonUp")
+        g:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         g.frame = g:CreateTexture(nil, "BACKGROUND")
         g.frame:SetAllPoints()
         g.icon = g:CreateTexture(nil, "ARTWORK")
@@ -464,7 +485,8 @@ Window.Page("training", function(page)
     -- A spell's rank is its `number`, or read from its rank's words; it's
     -- new to you at rank 1, unless its `fresh` says otherwise. One with a
     -- `hint` of its own shows that in its tooltip; a `fixed` one can't be
-    -- skipped; a `dim` one is something you can't get yet.
+    -- skipped; a `dim` one is something you can't get yet; one with a `pin`
+    -- shows that trainer on the map when clicked.
     local function Glyphs(spells, x0, y0, maxW, pool)
         local kind, list = KINDS[pool], {}
         for k, spell in ipairs(spells) do
@@ -481,6 +503,7 @@ Window.Page("training", function(page)
         for _, e in ipairs(list) do
             local g, spell = Take(pool, kind.make), e.spell
             g.spell, g.spellID, g.hint = not spell.fixed and spell or nil, spell.id, spell.hint or Hint(spell)
+            g.pin = spell.pin
             g.icon:SetTexture(spell.icon)
             g.icon:SetDesaturated(spell.skipped and true or false)
             g.frame:SetColorTexture(Style.Color(e.fresh and "gold" or "lineStrong"))
@@ -554,8 +577,9 @@ Window.Page("training", function(page)
 
     -- The weapon skills, from y down the right column's list: a picture for
     -- each still to learn (a skipped one dimmed), and how many there are and
-    -- what they cost. The ones you know are counted in the heading. Returns
-    -- where they end.
+    -- what they cost. Pointing at one names the masters who teach it; a
+    -- click pins the nearest. The ones you know are counted in the heading.
+    -- Returns where they end.
     function ui.PaintWeapons(data, y)
         local list, known, n, sum, same, missing = {}, 0, 0, 0, nil, false
         local weapons = {}
@@ -567,10 +591,12 @@ Window.Page("training", function(page)
             return a.name < b.name
         end)
         for k, w in ipairs(weapons) do
-            list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false,
+            local master = Master(w.id)
+            list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master,
                 hint = (w.at and ("Taught by " .. w.at .. ".")
                     or "Each weapon master teaches only some weapons, and jsal.ui hasn't seen who teaches this one. Visit one and it remembers.")
                     .. (w.cost and (" " .. Compat.Money(w.cost) .. ".") or "")
+                    .. (master and (" Click to show " .. master.name .. " on the map.") or "")
                     .. (w.skipped and " Skipped: right-click to put it back." or " Right-click to skip it.") }
             if not w.skipped then
                 n = n + 1
