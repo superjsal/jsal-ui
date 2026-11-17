@@ -1,14 +1,14 @@
 -- The Training Planner page. At the top, one line of what's ready and what
--- it costs, and one of whether your gold covers it. On the left, what you
--- can train now: a line for each spell with its price and Skip, the sums
--- right under it, and under those a hunter's pet. On the right, the road to
+-- it costs, and one of whether your gold covers it. Under that, three
+-- columns. First, what you can train now: a line for each spell with its
+-- price and Skip, and the sums right under it. In the middle, the road to
 -- 60, down the whole page: the next trainer visit spelled out, then a line
 -- down the page with a mark a level and each visit's spells as their
--- symbols, and after the last the weapon skills.
+-- symbols. Last, a hunter's pet, and under it the weapon skills.
 local _, ns = ...
 local Style, Compat, Window, Training = ns.Style, ns.Compat, ns.Window, ns.Training
 
-local CART_W, GAP = 330, 28
+local CART_W, SIDE_W, GAP = 322, 300, 24   -- the first and last columns; the road has the rest
 local VISIT_H, FOLD_H = 46, 34   -- a spell in the visit's list; the line that folds the skipped ones away
 local NAME_X, COST_W = 52, 76    -- on the road: where names start, and the cost column
 local STEP_H = 24                -- a spell of the next visit
@@ -145,8 +145,9 @@ local function Link(parent, width)
 end
 
 Window.Page("training", function(page)
-    local width, height = Window.contentWidth, Window.contentHeight
-    local roadW = width - CART_W - GAP
+    local width, height = Window.fullWidth, Window.contentHeight
+    local roadW = width - CART_W - SIDE_W - GAP * 2
+    local sideX, sideW = width - SIDE_W, SIDE_W - 8
     local top = 88
     local Paint
     -- What the page is made of, in one table: Paint uses so much from outside
@@ -156,7 +157,7 @@ Window.Page("training", function(page)
 
     -- The top: how many spells are ready and what they cost, whether your
     -- gold covers it, your nearest class trainer, and a pin on the map.
-    ui.title = Style.Text(page, 21, "text", nil, true)
+    ui.title = Style.Text(page, 23, "text", nil, true)
     ui.title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
     ui.gold = Style.Text(page, 13, "muted")
     ui.gold:SetPoint("TOPLEFT", ui.title, "BOTTOMLEFT", 0, -5)
@@ -184,7 +185,7 @@ Window.Page("training", function(page)
     end
 
     ---------------------------------------------------------------------------
-    -- Left: what to train now.
+    -- First: what to train now.
     ---------------------------------------------------------------------------
     local cart = CreateFrame("Frame", nil, page)
     cart:SetPoint("TOPLEFT", 0, -top)
@@ -206,7 +207,7 @@ Window.Page("training", function(page)
     -- left after, and everything still to buy on the way to 60.
     local totals = CreateFrame("Frame", nil, cart)
     totals:SetSize(CART_W, TOTALS_H)
-    Style.Fill(totals, "well")
+    Style.Box(totals, 6, "well", "cardLine")
     ui.totals = totals
     local function Sum(i, label, size, colorKey, bold)
         local l = Style.Text(totals, 12, "muted")
@@ -231,14 +232,14 @@ Window.Page("training", function(page)
     ui.priceNote:SetWidth(CART_W - 4)
     ui.priceNote:SetWordWrap(false)
 
-    -- Under the sums, a hunter's pet: what it can learn, by how each is
-    -- got, a line an ability. (It was under the road, each ability two
-    -- lines tall with "Pet level 30" beside every one of eight.)
-    ui.petHead = Section(cart, CART_W, true)
+    -- The last column: a hunter's pet (what it can learn, by how each is
+    -- got, a line an ability), and under it the weapon skills, in one list
+    -- that scrolls when the two run past the foot of the page.
+    ui.sideScroll, ui.petList = Style.Scroller(page, sideW, height - top, nil, 6)
+    ui.sideScroll:SetPoint("TOPLEFT", sideX, -top)
+    ui.petHead = Section(ui.petList, sideW, true)
     ui.petHead.title:SetText("YOUR PET")
-    ui.petScroll, ui.petList = Style.Scroller(cart, CART_W, PET_H, nil, 6)
     ui.petHead:Hide()
-    ui.petScroll:Hide()
 
     -- The rows this page has made and reuses, by kind.
     local made = { cards = {}, stops = {}, steps = {}, glyphs = {}, heads = {}, weapons = {}, subs = {}, pets = {} }
@@ -298,15 +299,14 @@ Window.Page("training", function(page)
     ui.fold = fold
 
     ---------------------------------------------------------------------------
-    -- Right: the road to 60, in words.
+    -- In the middle: the road to 60, in words.
     ---------------------------------------------------------------------------
     local roadHead = Section(page, roadW)
     roadHead:SetPoint("TOPLEFT", CART_W + GAP, -top)
     roadHead.title:SetText("YOUR ROAD TO 60")
     roadHead.note:SetText("gold frame: new to you  ·  right-click skips")
     Columns(page, roadW, { { "LEVEL", 2 }, { "WHAT YOU LEARN", NAME_X }, { "COST", -10 } }):SetPoint("TOPLEFT", CART_W + GAP, -(top + 24))
-    -- The road has the height of the page, and the weapon skills come after
-    -- its last stop in the same list. (It was a box of four visits to
+    -- The road has the height of the page. (It was a box of four visits to
     -- scroll, over a pet's list that needed scrolling too.)
     local road
     ui.roadScroll, road = Style.Scroller(page, roadW - 8, height - top - 50, nil, 6)
@@ -471,14 +471,14 @@ Window.Page("training", function(page)
     end
 
     local function MakeHead()
-        return Section(road, roadW - 8, true)
+        return Section(ui.petList, sideW, true)
     end
 
     -- A heading inside the pet's list: how the abilities under it are got,
     -- and how many there are.
     local function MakeSub()
         local s = CreateFrame("Frame", nil, ui.petList)
-        s:SetSize(CART_W, SUB_H)
+        s:SetSize(sideW, SUB_H)
         s.text = Style.Text(s, 12, "secondary", nil, true)
         s.text:SetPoint("BOTTOMLEFT", 2, 4)
         s.count = Style.Text(s, 11, "muted")
@@ -491,7 +491,7 @@ Window.Page("training", function(page)
     -- on where its heading doesn't say, and Skip.
     local function MakePet()
         local r = CreateFrame("Frame", nil, ui.petList)
-        r:SetSize(CART_W, PET_H)
+        r:SetSize(sideW, PET_H)
         r.icon = r:CreateTexture(nil, "ARTWORK")
         r.icon:SetSize(18, 18)
         r.icon:SetPoint("LEFT", 2, 0)
@@ -519,8 +519,8 @@ Window.Page("training", function(page)
     -- A weapon skill: its icon and name, its price or state, and a Skip
     -- button for one not learned yet.
     local function MakeWeapon()
-        local r = CreateFrame("Frame", nil, road)
-        r:SetSize(roadW - 8, ROW_H)
+        local r = CreateFrame("Frame", nil, ui.petList)
+        r:SetSize(sideW, ROW_H)
         Style.Rule(r, "BOTTOM", "line")
         r.icon = r:CreateTexture(nil, "ARTWORK")
         r.icon:SetSize(18, 18)
@@ -565,8 +565,8 @@ Window.Page("training", function(page)
         return sum > 0 and Compat.Money(sum) or (missing and "|cff9a9688?|r" or "")
     end
 
-    -- The weapon skills, from y down the road's list: ones to learn first,
-    -- then skipped ones, then the ones you know. Returns where they end.
+    -- The weapon skills, from y down the last column's list: ones to learn
+    -- first, then skipped ones, then the ones you know. Returns where they end.
     function ui.PaintWeapons(data, y)
         local head = Take("heads", MakeHead)
         head:ClearAllPoints()
@@ -606,19 +606,16 @@ Window.Page("training", function(page)
         return y
     end
 
-    -- A hunter's pet, under the sums: each ability's next rank under a
-    -- heading for how it's got. The ones waiting on your pet's level are
-    -- headed by that level, so it's said once and not on every row.
+    -- A hunter's pet, at the top of the last column: each ability's next
+    -- rank under a heading for how it's got. The ones waiting on your pet's
+    -- level are headed by that level, so it's said once and not on every
+    -- row. Returns where it ends down the column's list: 0 with no pet.
     function ui.PaintPet(pet)
         ui.petHead:SetShown(pet ~= nil)
-        ui.petScroll:SetShown(pet ~= nil)
-        if not pet then return end
+        if not pet then return 0 end
         ui.petHead:ClearAllPoints()
-        ui.petHead:SetPoint("TOPLEFT", 0, -ui.petTop)
-        ui.petScroll:ClearAllPoints()
-        ui.petScroll:SetPoint("TOPLEFT", 0, -(ui.petTop + 22))
-        ui.petScroll:SetHeight(math.max(PET_H, height - top - ui.petTop - 22))
-        local y = 0
+        ui.petHead:SetPoint("TOPLEFT", 0, 0)
+        local y = 22
         if pet.none then
             ui.petHead.note:SetText("")
             local r = Take("pets", MakePet)
@@ -713,9 +710,7 @@ Window.Page("training", function(page)
                 end
             end
         end
-        ui.petList:SetHeight(math.max(1, y))
-        ui.petScroll:UpdateScrollChildRect()
-        ui.petScroll:Place()
+        return y
     end
 
     Paint = function()
@@ -850,17 +845,15 @@ Window.Page("training", function(page)
         end
         for i = shown + 1, #made.cards do made.cards[i]:Hide() end
         ui.empty:SetShown(#now == 0)
-        ui.empty:SetText("Nothing to train right now. The road on the right shows what's next.")
+        ui.empty:SetText("Nothing to train right now. The road beside this shows what's next.")
         ui.cardList:SetHeight(math.max(1, at))
         -- The list is as tall as what's in it, and the sums sit right under
-        -- it. With a pet's list to fit under those, it has half the room at
-        -- most, and scrolls past that.
+        -- it. A list too long for the column scrolls, the sums still under it.
         local room = height - top - LIST_TOP - 10 - TOTALS_H - 26
-        local listH = math.max(1, math.min(math.max(at, #now == 0 and 44 or 0), pet and math.floor(room / 2) or room))
+        local listH = math.max(1, math.min(math.max(at, #now == 0 and 44 or 0), room))
         ui.cardScroll:SetHeight(listH)
         ui.totals:ClearAllPoints()
         ui.totals:SetPoint("TOPLEFT", 0, -(LIST_TOP + listH + 10))
-        ui.petTop = LIST_TOP + listH + 10 + TOTALS_H + 26 + 14
         ui.cardScroll:UpdateScrollChildRect()
         ui.cardScroll:Place()
 
@@ -974,11 +967,15 @@ Window.Page("training", function(page)
         end
         ui.roadEmpty:SetShown(#levels == 0)
         if #levels == 0 then y = 34 end
-        y = ui.PaintWeapons(data, y + 18)
         ui.road:SetHeight(math.max(1, y))
         ui.roadScroll:UpdateScrollChildRect()
         ui.roadScroll:Place()
-        ui.PaintPet(pet)
+        -- The last column: the pet, then the weapon skills under it.
+        local down = ui.PaintPet(pet)
+        down = ui.PaintWeapons(data, down > 0 and down + 18 or 0)
+        ui.petList:SetHeight(math.max(1, down))
+        ui.sideScroll:UpdateScrollChildRect()
+        ui.sideScroll:Place()
         for _, pool in ipairs({ "stops", "steps", "glyphs", "heads", "weapons", "subs", "pets" }) do
             local list = made[pool]
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
@@ -1009,4 +1006,4 @@ Window.Page("training", function(page)
             if page:IsVisible() then xpcall(Paint, ns.Report) end
         end)
     end)
-end)
+end, nil, true)
