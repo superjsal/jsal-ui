@@ -2,9 +2,9 @@
 -- Three tabs. For you: what guildmates asked for that you know how to make.
 -- Your orders: ask the guild for a craft or an enchant, and where each of
 -- yours stands. Crafters: who makes what (Guild crafters' own list). An
--- order is waiting for a crafter, being made, or done, and each state has a
--- colour and a sign that are the same everywhere: in the counts at the top
--- of a tab, in its headings, down a row's left edge and on its track.
+-- order is waiting for a crafter, being made, sent, or done, and each state
+-- has a colour and a sign that are the same everywhere: in the counts at the
+-- top of a tab, in its headings, down a row's left edge and on its track.
 --
 -- The window comes in two sizes, swapped by a switch in the title bar: the
 -- full one, and a small one to leave open while you play, with a line an
@@ -17,7 +17,8 @@ ns.GuildCrafts = C
 
 local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 82, 40, 26, 52, 76
 -- A row's track, and the room kept after its materials for "+2 more".
-local TRACK_W, MORE_W = 196, 64
+local TRACK_GAP = 86
+local TRACK_W, MORE_W = 3 * TRACK_GAP + 24, 64
 -- The least room who makes it has in the asking card's foot.
 local MAKERS_W = 250
 local TOP, FOOT = 116, 30
@@ -25,10 +26,13 @@ local TOP, FOOT = 116, 30
 -- saying why something couldn't be done. And the card's height.
 local CARD_Y, ASK_H = 80, 160
 local ENCHANTING = 333
--- A state's colour. "todo" is an order you accepted: the one thing that
--- waits on you.
-local STATE = { todo = "gold", waiting = "amber", making = "sky", done = "green" }
-local STEP = { waiting = 1, todo = 2, making = 2, done = 3 }
+-- A state's colour. "todo" is an order you accepted and "got" one of yours
+-- that was sent to you: the two things that wait on you. "sent" is one you
+-- sent, waiting for whoever asked to say Got it.
+local STATE = { todo = "gold", got = "gold", waiting = "amber", making = "sky", sent = "sky", done = "green" }
+local STEP = { waiting = 1, todo = 2, making = 2, sent = 3, got = 3, done = 4 }
+local WAITS_ON_YOU = { todo = true, got = true }
+local UNDER_WAY = { making = true, sent = true }
 local DAY = 86400
 local DOT = "   ·   "
 
@@ -90,6 +94,11 @@ local function Who(name, roster)
     return ("|cff%02x%02x%02x%s|r"):format(Part(colour.r), Part(colour.g), Part(colour.b), name)
 end
 
+-- A guildmate's name in their class's colour, for the card at the mailbox.
+function C.Who(name)
+    return Who(name, Roster())
+end
+
 local function Whisper(name, roster)
     local entry = roster and roster[name]
     local tell = (ChatFrameUtil and ChatFrameUtil.SendTell) or ChatFrame_SendTell
@@ -114,6 +123,7 @@ local function Title(order)
     end
     return text
 end
+C.Title = Title
 
 -- What an order's materials would cost, to go on the line under its name; nothing when the
 -- asker has them, or when one has no price.
@@ -137,7 +147,7 @@ end
 -- Small parts.
 ---------------------------------------------------------------------------
 -- A state's sign: a full square for what waits on you, an outline for
--- waiting, a half for being made, a tick for done.
+-- waiting, a half for being made or sent, a tick for done.
 local function Mark(parent, size)
     local m = CreateFrame("Frame", nil, parent)
     m:SetSize(size, size)
@@ -166,9 +176,9 @@ local function Mark(parent, size)
     m.long:SetRotation(math.rad(50))
     function m:Set(state)
         local r, g, b = Style.Color(STATE[state])
-        self.full:SetShown(state == "todo")
-        self.half:SetShown(state == "making")
-        for _, t in ipairs(self.edges) do t:SetShown(state == "waiting" or state == "making") end
+        self.full:SetShown(WAITS_ON_YOU[state] == true)
+        self.half:SetShown(UNDER_WAY[state] == true)
+        for _, t in ipairs(self.edges) do t:SetShown(state == "waiting" or UNDER_WAY[state] == true) end
         self.short:SetShown(state == "done")
         self.long:SetShown(state == "done")
         for _, t in ipairs({ self.full, self.half, self.short, self.long }) do t:SetColorTexture(r, g, b) end
@@ -242,13 +252,13 @@ local function Chip(parent)
     return c
 end
 
--- Where an order stands: asked, being made, done. The same on every row.
+-- Where an order stands: asked, being made, sent, got it. The same on every row.
 local function Track(parent)
     local t = CreateFrame("Frame", nil, parent)
     t:SetSize(TRACK_W, 32)
     t.nodes, t.holes, t.lines, t.labels = {}, {}, {}, {}
-    for i, label in ipairs({ "Asked", "Being made", "Done" }) do
-        local x = (i - 1) * 86
+    for i, label in ipairs({ "Asked", "Being made", "Sent", "Got it" }) do
+        local x = (i - 1) * TRACK_GAP
         local node = t:CreateTexture(nil, "ARTWORK")
         node:SetSize(10, 10)
         node:SetPoint("TOPLEFT", x, 0)
@@ -261,9 +271,9 @@ local function Track(parent)
         text:SetJustifyH("CENTER")
         text:SetText(label)
         t.nodes[i], t.holes[i], t.labels[i] = node, hole, text
-        if i < 3 then
+        if i < 4 then
             local line = t:CreateTexture(nil, "ARTWORK")
-            line:SetSize(76, 1)
+            line:SetSize(TRACK_GAP - 10, 1)
             line:SetPoint("LEFT", node, "RIGHT", 0, 0)
             t.lines[i] = line
         end
@@ -271,7 +281,7 @@ local function Track(parent)
     function t:Set(state)
         local at = STEP[state]
         local r, g, b = Style.Color(STATE[state])
-        for i = 1, 3 do
+        for i = 1, 4 do
             local reached = i <= at
             if reached then self.nodes[i]:SetColorTexture(r, g, b) else self.nodes[i]:SetColorTexture(Style.Color("lineStrong")) end
             self.holes[i]:SetShown(not reached)
@@ -448,6 +458,26 @@ local function Do(action, id)
     local ok, why = action(id)
     if not ok and why then ns.Print(why) end
     C.Repaint()
+end
+
+-- The crafter's button on an order they accepted: Sent for an item (done
+-- once whoever asked says Got it), Done for an enchant (given in a trade).
+local function Finish(order)
+    local id, O = order.id, ns.Orders
+    if O.MakesItem(order) then return { "Sent", function() Do(O.Sent, id) end } end
+    return { "Done", function() Do(O.Done, id) end }
+end
+
+-- Whether what an order makes is in your bags (some of it, at least).
+local function InBags(order)
+    local recipe = ns.Orders.Recipe(order.spell)
+    return recipe and recipe.item and Compat.ItemCount(recipe.item) > 0 or false
+end
+C.InBags = InBags
+
+-- "sent by mail 2 min ago", or "sent 2 min ago" for one handed over.
+local function SentWhen(order)
+    return (order.s == "m" and "sent by mail " or "sent ") .. Ago(order.e)
 end
 
 -- Fills a row: `state` is its colour, `second` its line under the name,
@@ -630,10 +660,11 @@ local function PaintForYou()
         for _, o in ipairs(me.todo) do
             local where = roster[o.by] and roster[o.by].online and (roster[o.by].zone or "online") or "offline"
             local second = Who(o.by, roster) .. DOT .. where .. DOT .. "accepted " .. Ago(o.e) .. CostNote(o)
+                .. (InBags(o) and (DOT .. Style.Tint("green") .. "in your bags|r") or "")
                 .. (o.note and ("   “" .. o.note .. "”") or "")
             local id, by = o.id, o.by
             waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "todo", second, false, {
-                main = { "Done", function() Do(O.Done, id) end },
+                main = Finish(o),
                 plain = { "Whisper", function() Whisper(by, Roster()) end },
                 lesser = { "Give it back", function() Do(O.Release, id) end },
             }) or waiting
@@ -652,16 +683,25 @@ local function PaintForYou()
             }) or waiting
         end
     end
+    if #me.sent > 0 then
+        Head(list, "sent", "SENT", #me.sent, "waiting for them to say Got it")
+        for _, o in ipairs(me.sent) do
+            local by = o.by
+            waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "sent", Who(o.by, roster) .. DOT .. SentWhen(o), false, {
+                plain = { "Whisper", function() Whisper(by, Roster()) end },
+            }) or waiting
+        end
+    end
     if #me.done > 0 then
         Head(list, "done", "DONE", #me.done, "kept here for 3 days")
         for _, o in ipairs(me.done) do Done(list, o, "made for", o.by) end
     end
-    if #me.todo + #me.waiting + #me.done == 0 then
+    if #me.todo + #me.waiting + #me.sent + #me.done == 0 then
         Note(list, "No orders for you just now. When a guildmate asks for something you know how to make, it shows here and you're told in chat.")
     end
     Close(list)
     C.foot:SetText((me.other > 0 and ("%d more open %s for a profession you don't have. "):format(me.other, Plural(me.other, "order is", "orders are")) or "")
-        .. "An enchant is done in a trade: Whisper sets up where to meet. An order nobody accepts closes by itself after 7 days.")
+        .. "Mail what you made from any mailbox: the letter marks it sent. An enchant is done in a trade: Whisper sets up where to meet.")
     C.Later(waiting)
 end
 
@@ -1068,7 +1108,7 @@ local function PaintYours()
     end
     local O = ns.Orders
     local mine, roster, list = O.Mine(), Roster(), view.list
-    local open = #mine.waiting + #mine.making
+    local open = #mine.waiting + #mine.making + #mine.sent
     C.title:SetText(open > 0 and ("%d %s of yours %s open"):format(open, Plural(open, "order", "orders"), Plural(open, "is", "are")) or "Ask the guild for something")
     C.sub:SetText("Ask the guild for a craft or an enchant.")
     C.right:SetText("")
@@ -1114,6 +1154,17 @@ local function PaintYours()
                 main = { "Got it", function() Do(O.GotIt, id) end },
                 plain = { "Whisper", function() Whisper(crafter, Roster()) end },
                 lesser = { "Cancel", function() Do(O.Cancel, id) end },
+            }) or waiting
+        end
+    end
+    if #mine.sent > 0 then
+        Head(list, "got", "SENT TO YOU", #mine.sent, "say Got it once you have it")
+        for _, o in ipairs(mine.sent) do
+            local second = "made by " .. Who(o.c, roster) .. DOT .. SentWhen(o) .. (o.s == "m" and ": check your mailbox" or "")
+            local id, crafter = o.id, o.c
+            waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "got", second, true, {
+                main = { "Got it", function() Do(O.GotIt, id) end },
+                plain = { "Whisper", function() Whisper(crafter, Roster()) end },
             }) or waiting
         end
     end
@@ -1705,7 +1756,8 @@ local function SmallForYou(list)
         SmallHead(list, "todo", "TO DO", #me.todo)
         for _, o in ipairs(me.todo) do
             local id = o.id
-            Line(list, o, "todo", Second(o), { "Done", function() Do(O.Done, id) end, true })
+            local finish = Finish(o)
+            Line(list, o, "todo", Second(o), { finish[1], finish[2], true })
         end
     end
     if #me.waiting > 0 then
@@ -1715,7 +1767,11 @@ local function SmallForYou(list)
             Line(list, o, "waiting", Second(o), { "Accept", function() Do(O.Accept, id) end, true })
         end
     end
-    if #me.todo + #me.waiting == 0 then
+    if #me.sent > 0 then
+        SmallHead(list, "sent", "SENT", #me.sent)
+        for _, o in ipairs(me.sent) do Line(list, o, "sent", Who(o.by, roster) .. SMALL_DOT .. SentWhen(o)) end
+    end
+    if #me.todo + #me.waiting + #me.sent == 0 then
         Take(list, "note", MakeSmallNote, 54).text:SetText("No orders for you just now. When a guildmate asks for something you can make, it shows here.")
     end
     Tail(list, #me.done, "by you, lately")
@@ -1742,7 +1798,14 @@ local function SmallYours(list)
             Line(list, o, "making", Who(o.c, roster) .. " is making it", { "Got it", function() Do(O.GotIt, id) end, true })
         end
     end
-    if #mine.waiting + #mine.making == 0 then
+    if #mine.sent > 0 then
+        SmallHead(list, "got", "SENT TO YOU", #mine.sent)
+        for _, o in ipairs(mine.sent) do
+            local id = o.id
+            Line(list, o, "got", Who(o.c, roster) .. SMALL_DOT .. SentWhen(o), { "Got it", function() Do(O.GotIt, id) end, true })
+        end
+    end
+    if #mine.waiting + #mine.making + #mine.sent == 0 then
         Take(list, "note", MakeSmallNote, 54).text:SetText("Nothing of yours is open.")
     end
     Tail(list, #mine.done, "lately")

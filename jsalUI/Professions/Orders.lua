@@ -1,6 +1,8 @@
 -- Guild orders: ask the guild for a craft or an enchant, and accept what
--- guildmates ask for. An order is waiting for a crafter, being made, or
--- done; whoever asked can cancel it, whoever accepted can give it back.
+-- guildmates ask for. An order is waiting for a crafter, being made, sent,
+-- or done; whoever asked can cancel it, whoever accepted can give it back.
+-- The crafter says it's sent (a letter to whoever asked, with the item in
+-- it, says so by itself), and it's done when whoever asked says Got it.
 -- Orders travel through the game's hidden addon channel to guildmates who
 -- have jsal.ui with this on, and each jsal.ui passes on what it has heard,
 -- so an order outlives the session it was posted in. Kept per guild, for
@@ -35,8 +37,10 @@ local FRESH = 600
 local PACK = 230                          -- letters in one message
 local ASK_AGAIN, ASK_ANYONE, ANSWER_AGAIN = 300, 20, 60
 
--- The states, as one letter each: open, taken, done, gone (cancelled).
-local STATES = { o = true, t = true, d = true, x = true }
+-- The states, as one letter each: open, taken, sent, mailed (sent by a
+-- letter), done, gone (cancelled).
+local STATES = { o = true, t = true, s = true, m = true, d = true, x = true }
+local SENT = { s = true, m = true }
 
 local function On()
     return Orders.running and IsInGuild and IsInGuild() and true or false
@@ -154,12 +158,18 @@ local function Prune(book)
     for i = 1, #list - MAX do book[list[i].id] = nil end
 end
 
--- Where an order stands now: "waiting", "making", "done", or nil for one not
--- shown any more (cancelled, closed by itself, or finished a while ago).
+-- Where an order stands now: "waiting", "making", "sent", "done", or nil for
+-- one not shown any more (cancelled, closed by itself, or finished a while
+-- ago). One sent that nobody says Got it to counts as done after OPEN_FOR.
 function Orders.State(order, now)
     now = now or Compat.ServerTime()
     if order.s == "o" then return now <= order.t + OPEN_FOR and "waiting" or nil end
     if order.s == "t" then return "making" end
+    if SENT[order.s] then
+        local e = order.e or order.t
+        if now <= e + OPEN_FOR then return "sent" end
+        return now <= e + OPEN_FOR + SHOWN and "done" or nil
+    end
     if order.s == "d" then return now <= (order.e or order.t) + SHOWN and "done" or nil end
     return nil
 end
@@ -198,7 +208,7 @@ local function Read(line)
     if not (by and r and e and spell and n) then return nil end
     if t > now + AHEAD or e > now + AHEAD or now > t + LIFE then return nil end
     if r < 1 or r > 9999 or n < 1 or n > 200 or not STATES[s] or #c > NAME then return nil end
-    if s == "t" and c == "" then return nil end
+    if (s == "t" or SENT[s]) and c == "" then return nil end
     if not Orders.Recipe(spell) then return nil end
     return {
         id = id, by = by, t = t, r = r, e = e, s = s, spell = spell, n = n, have = have == "1",
@@ -259,13 +269,16 @@ local function Tell(new, old)
             ns.Print(("%s accepted your order: %s."):format(new.c, Label(new)))
         elseif new.s == "o" and old.s == "t" then
             ns.Print(("%s gave your order back: %s. It's waiting for a crafter again."):format(old.c or "The crafter", Label(new)))
-        elseif new.s == "d" and old.s ~= "d" then
+        elseif SENT[new.s] and not SENT[old.s] then
+            ns.Print(("%s sent your order%s: %s. Say Got it once you have it. /jsal crafts")
+                :format(new.c or "The crafter", new.s == "m" and " by mail" or "", Label(new)))
+        elseif new.s == "d" and old.s ~= "d" and not SENT[old.s] then
             ns.Print(("%s finished your order: %s."):format(new.c or "A guildmate", Label(new)))
         end
-    elseif old.s == "t" and old.c == me then
+    elseif (old.s == "t" or SENT[old.s]) and old.c == me then
         if new.s == "x" then
             ns.Print(("%s cancelled the order you accepted: %s."):format(new.by, Label(new)))
-        elseif new.s == "t" and new.c ~= me then
+        elseif new.s == "t" and old.s == "t" and new.c ~= me then
             ns.Print(("%s accepted %s's order a moment before you: %s."):format(new.c, new.by, Label(new)))
         elseif new.s == "d" then
             ns.Print(("%s has their order: %s."):format(new.by, Label(new)))
@@ -370,7 +383,7 @@ function Orders.Release(id)
     return Step(order, "o", nil)
 end
 
--- The crafter's "Done".
+-- The crafter's "Done", for an enchant: it was given in a trade, so it's done.
 function Orders.Done(id)
     local order, why = Find(id)
     if not order then return false, why end
@@ -378,12 +391,57 @@ function Orders.Done(id)
     return Step(order, "d", order.c)
 end
 
+-- The crafter's "Sent", for an item: it's on its way, and done once whoever
+-- asked says Got it. `mailed` when a letter carried it.
+function Orders.Sent(id, mailed)
+    local order, why = Find(id)
+    if not order then return false, why end
+    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "That one isn't yours to send." end
+    return Step(order, mailed and "m" or "s", order.c)
+end
+
 -- The asker's "Got it".
 function Orders.GotIt(id)
     local order, why = Find(id)
     if not order then return false, why end
-    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t") then return false, "That one isn't yours to close." end
+    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t" or SENT[order.s]) then return false, "That one isn't yours to close." end
     return Step(order, "d", order.c)
+end
+
+-- Whether an order makes an item (one that can be mailed), not an enchant.
+function Orders.MakesItem(order)
+    local recipe = Orders.Recipe(order.spell)
+    return recipe and recipe.item and true or false
+end
+
+-- A letter, from the moment Send is pressed until the game says it went:
+-- who it's to, and how many of each item it carries.
+local letter
+local function Addressee(name)
+    return tostring(name or ""):gsub("%-.*$", ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
+end
+
+function Orders.Mailing(to, items)
+    letter = to and { to = Addressee(to), items = items or {} } or nil
+end
+
+-- The letter went: each order you accepted from whoever it was to, for an
+-- item it carried, is sent. Gives how many.
+function Orders.Mailed()
+    local sent, n = letter, 0
+    letter = nil
+    local book = sent and On() and Book()
+    if not book then return 0 end
+    local me, ids = Compat.MyName(), {}
+    for id, o in pairs(book) do
+        local recipe = o.s == "t" and o.c == me and Addressee(o.by) == sent.to and Orders.Recipe(o.spell)
+        if recipe and recipe.item and (sent.items[recipe.item] or 0) > 0 then ids[#ids + 1] = id end
+    end
+    table.sort(ids)
+    for _, id in ipairs(ids) do
+        if Orders.Sent(id, true) then n = n + 1 end
+    end
+    return n
 end
 
 function Orders.Cancel(id)
@@ -407,10 +465,11 @@ local function LatestDone(a, b)
 end
 
 -- For you: `todo` (you accepted them), `waiting` (open, and you know the
--- recipe), `done` (you made them, lately), and how many more are waiting
--- for a profession you don't have.
+-- recipe), `sent` (you sent them; whoever asked hasn't said Got it), `done`
+-- (you made them, lately), and how many more are waiting for a profession
+-- you don't have.
 function Orders.ForMe()
-    local out = { todo = {}, waiting = {}, done = {}, other = 0, open = 0 }
+    local out = { todo = {}, waiting = {}, sent = {}, done = {}, other = 0, open = 0 }
     local book = On() and Book()
     if not book then return out end
     local me, now = Compat.MyName(), Compat.ServerTime()
@@ -421,19 +480,23 @@ function Orders.ForMe()
             out.todo[#out.todo + 1] = o
         elseif state == "waiting" and o.by ~= me then
             if Orders.CanMake(o.spell) then out.waiting[#out.waiting + 1] = o else out.other = out.other + 1 end
+        elseif state == "sent" and o.c == me and o.by ~= me then
+            out.sent[#out.sent + 1] = o
         elseif state == "done" and o.c == me and o.by ~= me then
             out.done[#out.done + 1] = o
         end
     end
     table.sort(out.todo, Newest)
     table.sort(out.waiting, Newest)
+    table.sort(out.sent, LatestDone)
     table.sort(out.done, LatestDone)
     return out
 end
 
--- Your own orders: `waiting`, `making` and `done`.
+-- Your own orders: `waiting`, `making`, `sent` (on their way to you: say
+-- Got it) and `done`.
 function Orders.Mine()
-    local out = { waiting = {}, making = {}, done = {} }
+    local out = { waiting = {}, making = {}, sent = {}, done = {} }
     local book = On() and Book()
     if not book then return out end
     local me, now = Compat.MyName(), Compat.ServerTime()
@@ -443,12 +506,14 @@ function Orders.Mine()
     end
     table.sort(out.waiting, Newest)
     table.sort(out.making, Newest)
+    table.sort(out.sent, LatestDone)
     table.sort(out.done, LatestDone)
     return out
 end
 
--- The number for the menu and the For you tab: what waits on you, and with
--- `new`, also the orders you could accept that you haven't looked at yet.
+-- The number for the menu and the For you tab: what waits on you (orders you
+-- accepted, and yours that were sent to you), and with `new`, also the orders
+-- you could accept that you haven't looked at yet.
 function Orders.Badge(new)
     local book = On() and Book()
     if not book then return 0 end
@@ -456,6 +521,8 @@ function Orders.Badge(new)
     for id, o in pairs(book) do
         local state = Orders.State(o, now)
         if state == "making" and o.c == me then
+            n = n + 1
+        elseif state == "sent" and o.by == me then
             n = n + 1
         elseif new and state == "waiting" and o.by ~= me and not seen[id] and Orders.CanMake(o.spell) then
             n = n + 1
@@ -532,9 +599,11 @@ function Orders:OnEnable()
     Comms.On("OQ", Asked)
     local book = IsInGuild and IsInGuild() and Book()
     if book then Prune(book) end
+    if ns.OrderMail then ns.OrderMail.Start() end
 end
 
 function Orders:OnDisable()
     Comms.On("OO", nil)
     Comms.On("OQ", nil)
+    if ns.OrderMail then ns.OrderMail.Stop() end
 end
