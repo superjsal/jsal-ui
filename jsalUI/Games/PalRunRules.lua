@@ -17,7 +17,7 @@ local RUN = 7             -- tiles a second at a run
 local ACCEL, AIR = 70, 40 -- how fast it gets up to speed: on the ground, in the air
 local STOP = 90           -- how fast it stops on the ground once you let go
 local GRAVITY = 60
-local JUMP = 20.2         -- the speed it leaves the ground at: a jump 3.4 tiles high
+local JUMP = 20.2         -- the speed it leaves the ground at: a held jump is about 3.2 tiles high
 local CUT = 0.45          -- letting go of jump on the way up keeps this much of its speed
 local FALL = 24           -- the fastest it falls
 local COYOTE = 6          -- steps after running off an edge in which a jump still counts
@@ -26,10 +26,11 @@ local GROUND = 6          -- the row every piece's ground is at where it joins t
 
 -- The pieces a course is made of, drawn as they stand: # is ground, o a
 -- treat. Each starts and ends on two tiles of ground at the same height, so
--- any two join. Every one can be run along its lowest road by jumping at
--- each edge and wall; the treats are off that road, and worth the detour or
--- not.
-local PIECES = {
+-- any two join, and each can be got through from a standing start. They come
+-- in three lots by how hard they are. The easy ones can be run by jumping
+-- at each edge and wall; the treats are off that road, and worth the detour
+-- or not.
+local EASY = {
     { "              ", "              ", "              ", "       o      ", "              ", "              ",
       "#####   ######", "#####   ######" },
     { "                  ", "                  ", "                  ", "    o        o    ", "                  ", "                  ",
@@ -59,9 +60,172 @@ local PIECES = {
     { "                  ", "          o       ", "                  ", "         ###      ", "                  ", "    ###           ",
       "########  ########", "########  ########" },
 }
+-- Wider gaps, pillars a tile wide and climbs over pits: a jump has to be
+-- judged, not only made.
+local MEDIUM = {
+    {
+      "              ",
+      "              ",
+      "              ",
+      "      oo      ",
+      "              ",
+      "              ",
+      "#####    #####",
+      "#####    #####",
+    },
+    {
+      "                ",
+      "                ",
+      "                ",
+      "      o  o      ",
+      "                ",
+      "                ",
+      "####  #  #  ####",
+      "####  #  #  ####",
+    },
+    {
+      "                   ",
+      "             o     ",
+      "                   ",
+      "             ##    ",
+      "         ##  ##    ",
+      "     ##  ##  ##    ",
+      "###  ##  ##  ##  ##",
+      "###  ##  ##  ##  ##",
+    },
+    {
+      "                ",
+      "      o         ",
+      "                ",
+      "    ##          ",
+      "    ##          ",
+      "    ##          ",
+      "######    ######",
+      "######    ######",
+    },
+    {
+      "                    ",
+      "            o       ",
+      "                    ",
+      "         ##         ",
+      "         ##         ",
+      "     ##  ##         ",
+      "###  ##  ##   ######",
+      "###  ##  ##   ######",
+    },
+    {
+      "                    ",
+      "                    ",
+      "          oo        ",
+      "                    ",
+      "          ##        ",
+      "      ##     ##     ",
+      "####            ####",
+      "####            ####",
+    },
+    {
+      "                ",
+      "                ",
+      "       o        ",
+      "                ",
+      "    ##   ##     ",
+      "    ##   ##     ",
+      "######   #######",
+      "######   #######",
+    },
+}
+-- The widest gaps and the smallest landings.
+local HARD = {
+    {
+      "               ",
+      "               ",
+      "      ooo      ",
+      "               ",
+      "               ",
+      "               ",
+      "#####     #####",
+      "#####     #####",
+    },
+    {
+      "                   ",
+      "                   ",
+      "                   ",
+      "       o   o       ",
+      "                   ",
+      "                   ",
+      "####   #   #   ####",
+      "####   #   #   ####",
+    },
+    {
+      "                    ",
+      "            o       ",
+      "         ##         ",
+      "    ##   ##         ",
+      "    ##   ##         ",
+      "    ##   ##         ",
+      "######   ##    #####",
+      "######   ##    #####",
+    },
+    {
+      "                  ",
+      "           o      ",
+      "                  ",
+      "           #      ",
+      "        #  #      ",
+      "     #  #  #      ",
+      "###  #  #  #   ###",
+      "###  #  #  #   ###",
+    },
+    {
+      "                 ",
+      "                 ",
+      "         oo      ",
+      "                 ",
+      "         ##      ",
+      "         ##      ",
+      "#####    ########",
+      "#####    ########",
+    },
+    {
+      "                      ",
+      "                      ",
+      "         o     o      ",
+      "                      ",
+      "         #     #      ",
+      "      #     #         ",
+      "####              ####",
+      "####              ####",
+    },
+    -- A gap under a low roof: a full jump hits it and drops short.
+    {
+      "             ",
+      "             ",
+      "   #######   ",
+      "             ",
+      "             ",
+      "      o      ",
+      "#####   #####",
+      "#####   #####",
+    },
+    -- A lone pillar two tiles high, three tiles from either side.
+    {
+      "              ",
+      "              ",
+      "      o       ",
+      "              ",
+      "      #       ",
+      "      #       ",
+      "###   #   ####",
+      "###   #   ####",
+    },
+}
+local PIECES = { EASY, MEDIUM, HARD }
 Rules.PIECES = PIECES
 local FLAT = { "        ", "        ", "        ", "        ", "        ", "        ", "########", "########" }
-Rules.LENGTH = 9          -- pieces in a course, between its first stretch and its last
+-- How many of each lot a course has, in the order it meets them: it starts
+-- easy and ends hard.
+Rules.MIX = { 2, 3, 4 }
+Rules.LENGTH = Rules.MIX[1] + Rules.MIX[2] + Rules.MIX[3]   -- pieces in a course, between its first stretch and its last
 Rules.LANDS = { "meadow", "snow", "desert", "swamp", "coast", "darkwood", "savanna", "volcanic", "jungle" }
 
 -- A course of these pieces, one after another between a flat start and a
@@ -99,14 +263,16 @@ end
 -- A course from `random` (random(n) gives 1 to n): the same numbers give
 -- the same course.
 function Rules.Course(random)
-    local order = {}
-    for i = 1, #PIECES do order[i] = i end
-    for i = #order, 2, -1 do
-        local j = random(i)
-        order[i], order[j] = order[j], order[i]
-    end
     local pieces = {}
-    for i = 1, math.min(Rules.LENGTH, #order) do pieces[i] = PIECES[order[i]] end
+    for level, lot in ipairs(PIECES) do
+        local order = {}
+        for i = 1, #lot do order[i] = i end
+        for i = #order, 2, -1 do
+            local j = random(i)
+            order[i], order[j] = order[j], order[i]
+        end
+        for i = 1, math.min(Rules.MIX[level], #order) do pieces[#pieces + 1] = lot[order[i]] end
+    end
     return Rules.Lay(pieces, Rules.LANDS[random(#Rules.LANDS)])
 end
 
