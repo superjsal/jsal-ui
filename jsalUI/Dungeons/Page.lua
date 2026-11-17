@@ -674,7 +674,7 @@ Window.Page("dungeons", function(page)
         l.box = CreateFrame("Frame", nil, l)
         l.box:SetSize(12, 12)
         l.box:SetPoint("LEFT", 10, 0)
-        l.fill = Style.Fill(l.box, "wordGreen")
+        l.fill = Style.Round(l.box, 6, "wordGreen")
         l.tick = l.box:CreateTexture(nil, "OVERLAY")
         l.tick:SetSize(14, 14)
         l.tick:SetPoint("CENTER", 1, 0)
@@ -721,6 +721,9 @@ Window.Page("dungeons", function(page)
         c.every = Style.Text(c, 11, "muted")
         c.every:SetPoint("LEFT", c.own, "RIGHT", 6, 0)
         c.every:SetText("every step")
+        -- A card that ends in more than one of the dungeon's quests says so.
+        c.opens = Style.Tag(c, "", nil, true)
+        c.opens:SetPoint("LEFT", c.count, "RIGHT", 6, 0)
         c.level = Style.Text(c, 12, "muted")
         c.level:SetPoint("TOPRIGHT", -6, -10)
         c.level:SetJustifyH("RIGHT")
@@ -748,7 +751,9 @@ Window.Page("dungeons", function(page)
         st.badge = CreateFrame("Frame", nil, st)
         st.badge:SetHeight(18)
         st.badge:SetPoint("CENTER", st, "LEFT", 26, 0)
-        st.badgeFill = Style.Fill(st.badge, "line")
+        -- Round, as a stop's sign on a road is; a pill when it holds a run
+        -- of numbers.
+        st.disc = Style.Box(st.badge, 9, "line", "lineStrong")
         st.number = Style.Text(st.badge, 10, "muted", nil, true)
         st.number:SetPoint("CENTER")
         st.tick = st.badge:CreateTexture(nil, "OVERLAY")
@@ -771,6 +776,10 @@ Window.Page("dungeons", function(page)
         st.who:SetPoint("RIGHT", -8, 0)
         st.who:SetJustifyH("LEFT")
         st.who:SetWordWrap(false)
+        -- Its own level, where a card ends in quests of different levels.
+        st.level = Style.Text(st, 12, "muted")
+        st.level:SetPoint("RIGHT", -6, 0)
+        st.level:SetJustifyH("RIGHT")
         QuestTip(st)
         Q.steps[i] = st
         return st
@@ -1056,18 +1065,15 @@ Window.Page("dungeons", function(page)
         return s[2] .. "  ·  " .. zone .. (spot and (" " .. spot) or "")
     end
 
-    -- The level column: the quest's own level, and the level you can take
-    -- it at when that's lower, in red when you're under it. One number alone
-    -- reads as two kinds of thing ("level 45" beside "needs level 39"), so
-    -- both show: "level 45 · take at 37".
+    -- The level column: the quest's own level. The level you can take it at
+    -- is said only while you're under it, in red; once you can take it, it
+    -- has nothing more to tell you.
     function Q.Level(q, mine)
         local take = q[4] or q[3]
-        local early = take < q[3]
         if take > mine then
-            if not early then return ("%sneeds level %d|r"):format(RED, take) end
+            if take >= q[3] then return ("%sneeds level %d|r"):format(RED, take) end
             return ("level %d · %sneeds level %d|r"):format(q[3], RED, take)
         end
-        if early then return ("level %d · take at %d"):format(q[3], take) end
         return ("level %d"):format(q[3])
     end
 
@@ -1094,8 +1100,9 @@ Window.Page("dungeons", function(page)
             entries[q[1]] = e
         end
         -- A later part: its first part is on the list and still to do. It
-        -- goes with that one; the rest are what a place has for you now.
-        local under, places, order, later = {}, {}, {}, 0
+        -- goes with that one; the rest are what there is to pick up, and
+        -- are placed further down, once their chains are known.
+        local under, tops, later = {}, {}, 0
         for _, q in ipairs(todo) do
             local e = entries[q[1]]
             if e.before and entries[e.before] and e.before ~= q[1] then
@@ -1103,13 +1110,7 @@ Window.Page("dungeons", function(page)
                 table.insert(under[e.before], e)
                 later = later + 1
             else
-                local place = places[e.place]
-                if not place then
-                    place = { name = e.place, kind = e.kind, list = {} }
-                    places[e.place] = place
-                    order[#order + 1] = place
-                end
-                place.list[#place.list + 1] = e
+                tops[#tops + 1] = e
             end
         end
         local function ByLevel(x, y)
@@ -1117,14 +1118,7 @@ Window.Page("dungeons", function(page)
             return x.q[1] < y.q[1]
         end
         for _, list in pairs(under) do table.sort(list, ByLevel) end
-        for _, place in ipairs(order) do table.sort(place.list, ByLevel) end
-        -- Places, the ones with most to pick up first; inside the dungeon
-        -- and the unknown last.
-        table.sort(order, function(x, y)
-            if x.kind ~= y.kind then return x.kind < y.kind end
-            if #x.list ~= #y.list then return #x.list > #y.list end
-            return x.name < y.name
-        end)
+        table.sort(tops, ByLevel)
 
         -- The line at the top: what's here in plain words, and one word
         -- about your level in place of "needs level N" down every row.
@@ -1150,10 +1144,14 @@ Window.Page("dungeons", function(page)
         Q.low:SetText(tooLow > 0 and ("%sYou're level %d: %s level %d or more|r"):format(RED, mine, many, least) or "")
         Q.low:ClearAllPoints()
         Q.low:SetPoint("TOPRIGHT", bossList, "TOPLEFT", rightW, -(by + 5))
-        for _, region in ipairs({ Q.sum, Q.more, Q.low, Q.cols }) do region:SetShown(#quests > 0) end
+        -- That line shows only when it has more to say than the count the
+        -- tab already gives: some above your level, later parts, some done.
+        local said = #quests > 0 and (tooLow > 0 or #more > 0)
+        for _, region in ipairs({ Q.sum, Q.more, Q.low }) do region:SetShown(said) end
+        Q.cols:SetShown(#quests > 0)
         hint:SetText((#quests > 0 and ns.DungeonQuestStarts) and "click a quest, a step or a place for a map pin" or "")
         if #quests > 0 then
-            by = by + 28
+            if said then by = by + 28 end
             Q.cols:ClearAllPoints()
             Q.cols:SetPoint("TOPLEFT", 0, -by)
             by = by + 28
@@ -1207,7 +1205,8 @@ Window.Page("dungeons", function(page)
         -- A run of three or more steps of one name, none of them the
         -- dungeon's own, is one line: "2-7  The True Masters, six parts",
         -- with the places it takes you through.
-        local function Folded(chain)
+        local function Folded(chain, offset)
+            offset = offset or 0
             local shown, i = {}, 1
             while i <= #chain do
                 local j = i
@@ -1221,37 +1220,62 @@ Window.Page("dungeons", function(page)
                     end
                     if #route > 4 then route = { route[1], route[2], route[3], "…", route[#route] } end
                     local count = j - i + 1
-                    shown[#shown + 1] = { number = ("%d–%d"):format(i, j), name = ("%s, %s parts"):format(chain[i].name, WORDS[count] or count),
+                    shown[#shown + 1] = { number = ("%d–%d"):format(i + offset, j + offset), name = ("%s, %s parts"):format(chain[i].name, WORDS[count] or count),
                         who = table.concat(route, " → ") .. (done > 0 and done < count and ("  ·  %d done"):format(done) or ""),
                         done = done == count, first = chain[i + done] or chain[i] }
                 else
                     j = i
-                    shown[#shown + 1] = { number = tostring(i), name = chain[i].name, who = Q.Giver(chain[i].s, true), done = chain[i].done,
+                    shown[#shown + 1] = { number = tostring(i + offset), name = chain[i].name, who = Q.Giver(chain[i].s, true), done = chain[i].done,
                         own = chain[i].own, first = chain[i] }
                 end
                 i = j + 1
             end
             return shown
         end
-        local function PaintCard(e, chain)
+        -- A block is what a card or a line shows: one of the dungeon's quests,
+        -- or several whose chains share the steps that lead up to them
+        -- (`lead`, with each one's own steps after it in `tails`).
+        local function PaintCard(block)
             cards = cards + 1
             local c = Q.Card(cards)
-            local shown = Folded(chain)
-            c.title:SetText(e.q[2])
-            c.count:Say(#chain == 1 and "1 step" or ("%d-step chain"):format(#chain))
+            local e, shown, count = block.list[1], nil, 0
+            if block.tails then
+                shown = Folded(block.lead)
+                for _, tail in ipairs(block.tails) do
+                    for _, step in ipairs(Folded(tail, #block.lead)) do shown[#shown + 1] = step end
+                    count = math.max(count, #block.lead + #tail)
+                end
+            else
+                shown, count = Folded(block.chain), #block.chain
+            end
+            local names = {}
+            for i, entry in ipairs(block.list) do names[i] = entry.q[2] end
+            c.title:SetText(#names <= 2 and table.concat(names, Style.Tint("muted") .. " and |r")
+                or (names[1] .. Style.Tint("muted") .. (" and %d more"):format(#names - 1) .. "|r"))
+            c.count:Say(count == 1 and "1 step" or ("%d-step chain"):format(count))
+            c.opens:SetShown(#block.list > 1)
+            if #block.list > 1 then c.opens:Say(("opens %d quests"):format(#block.list)) end
             -- Every step this dungeon's own: said once, in the heading.
             local every = true
-            for _, step in ipairs(chain) do
+            for _, step in ipairs(block.chain) do
                 if not step.own then every = false end
             end
             c.own:SetShown(every)
             c.every:SetShown(every)
-            c.level:SetText(Q.Level(e.q, mine))
+            -- The level, once for the card when its quests share one; else
+            -- each quest's on its own step.
+            local level, same = Q.Level(e.q, mine), true
+            for _, entry in ipairs(block.list) do
+                if Q.Level(entry.q, mine) ~= level then same = false end
+            end
+            c.level:SetText(same and level or "")
             local tall = 34 + #shown * 24 + 8
             c:SetHeight(tall)
             c:ClearAllPoints()
             c:SetPoint("TOPLEFT", 4, -by)
             c:Show()
+            -- Who gives a step is said on the first of a run that share it.
+            local lastWho
             local y, begun = by + 34, false
             for _, step in ipairs(shown) do
                 steps = steps + 1
@@ -1263,7 +1287,7 @@ Window.Page("dungeons", function(page)
                 st.number:SetText(step.done and "" or step.number)
                 st.tick:SetShown(step.done == true)
                 st.badge:SetWidth(math.max(18, Q.Wide(st.number, #step.number * 5) + 10))
-                st.badgeFill:SetColorTexture(Style.Color(step.done and "wordGreen" or (start and "gold" or "line")))
+                if step.done then st.disc:Paint("wordGreen", "wordGreen") elseif start then st.disc:Paint("gold", "gold") else st.disc:Paint("line", "lineStrong") end
                 st.number:SetTextColor(Style.Color(start and "onGold" or "muted"))
                 st.name:SetText(step.name)
                 st.name:SetTextColor(Style.Color(start and "text" or "muted"))
@@ -1286,7 +1310,17 @@ Window.Page("dungeons", function(page)
                 local ends = 48 + Q.Wide(st.name, 0) + (start and 22 or 0) + (tagged and st.start.wide + 4 or 0)
                     + ((step.own and not every) and st.own.wide + 8 or 0)
                 st.who:SetPoint("LEFT", math.max(WHO_X - 4, ends + 14), 0)
-                st.who:SetText(step.who)
+                local who = step.who
+                if step.done then
+                    who = ""
+                elseif who == lastWho then
+                    who = ""
+                else
+                    lastWho = who
+                end
+                st.who:SetText(who)
+                local own = not same and step.own and step.first.q or nil
+                st.level:SetText(own and Q.Level(own, mine) or "")
                 st:SetAlpha(step.done and 0.6 or 1)
                 st:ClearAllPoints()
                 st:SetPoint("TOPLEFT", 4, -y)
@@ -1295,6 +1329,9 @@ Window.Page("dungeons", function(page)
             end
             by = by + tall + 8
         end
+        -- A quest alone, on a line. Who gives it is said on the first of a
+        -- run of lines that share them.
+        local lineWho
         local function PaintLine(e)
             lines = lines + 1
             local row = Q.Line(lines)
@@ -1302,32 +1339,94 @@ Window.Page("dungeons", function(page)
             row.spot = Starts.Spot(e.q[1], QuestDone)
             row.name:SetText(e.q[2])
             QuestMark(row.mark, e.q[1], e.q[4] or e.q[3], mine)
-            row.who:SetText(Q.Giver(e.s, false))
+            local who = Q.Giver(e.s, false)
+            row.who:SetText(who == lineWho and "" or who)
+            lineWho = who
             row.level:SetText(Q.Level(e.q, mine))
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", 0, -by)
             row:Show()
             by = by + 26
         end
-        for _, place in ipairs(order) do
+
+        -- What there is to pick up, as blocks. A chain's lead is its steps
+        -- before the dungeon's own quest. Quests whose leads are the same
+        -- steps, with one of them still to do, are one block: the lead
+        -- once, then each quest's own steps.
+        -- Returns the places they're filed under, in the order they're shown.
+        local function Places()
+            local blocks, shared = {}, {}
+            for _, e in ipairs(tops) do
+                local chain = Chain(e)
+                local lead, tail, key, open = {}, {}, {}, false
+                for _, step in ipairs(chain) do
+                    if #tail == 0 and not step.own then
+                        lead[#lead + 1] = step
+                        key[#key + 1] = step.id
+                        if not step.done then open = true end
+                    else
+                        tail[#tail + 1] = step
+                    end
+                end
+                local id = open and table.concat(key, ",") or nil
+                local block = id and shared[id]
+                if block then
+                    if not block.tails then block.lead, block.tails = lead, { block.tail } end
+                    block.list[#block.list + 1] = e
+                    block.tails[#block.tails + 1] = tail
+                    for _, step in ipairs(tail) do block.chain[#block.chain + 1] = step end
+                else
+                    block = { list = { e }, chain = #chain > 1 and chain or nil, tail = tail }
+                    if id then shared[id] = block end
+                    blocks[#blocks + 1] = block
+                end
+            end
+            -- A block is filed where its next step is: for a quest alone, where
+            -- it starts; for a chain, where the first step still to do does.
+            local places, order = {}, {}
+            for _, block in ipairs(blocks) do
+                local e = block.list[1]
+                local name, kind = e.place, e.kind
+                for _, step in ipairs(block.chain or {}) do
+                    if not step.done then
+                        if step.s then name, kind = Starts.Place(step.s) end
+                        break
+                    end
+                end
+                local place = places[name]
+                if not place then
+                    place = { name = name, kind = kind, blocks = {}, quests = 0 }
+                    places[name] = place
+                    order[#order + 1] = place
+                end
+                place.blocks[#place.blocks + 1] = block
+                place.quests = place.quests + #block.list
+            end
+            -- Places, the ones with most to pick up first; inside the dungeon
+            -- and the unknown last.
+            table.sort(order, function(x, y)
+                if x.kind ~= y.kind then return x.kind < y.kind end
+                if x.quests ~= y.quests then return x.quests > y.quests end
+                return x.name < y.name
+            end)
+            return order
+        end
+        for _, place in ipairs(Places()) do
             heads = heads + 1
             local h = Q.Head(heads)
             h.name:SetText(place.name)
             -- What's here: a quest alone is a line, a chain a card.
-            local blocks, chains = {}, 0
-            for _, e in ipairs(place.list) do
-                local chain = Chain(e)
-                blocks[#blocks + 1] = { e = e, chain = #chain > 1 and chain or nil }
-                if #chain > 1 then chains = chains + 1 end
+            local chains, spots = 0, {}
+            for _, block in ipairs(place.blocks) do
+                if block.chain then chains = chains + 1 end
+                for _, e in ipairs(block.list) do
+                    local spot = Starts.Spot(e.q[1], QuestDone)
+                    if spot then spots[#spots + 1] = spot end
+                end
             end
-            local count = ("%d quest%s"):format(#place.list, #place.list == 1 and "" or "s")
+            local count = ("%d quest%s"):format(place.quests, place.quests == 1 and "" or "s")
             if chains > 0 then count = count .. ("  ·  %d chain%s"):format(chains, chains == 1 and "" or "s") end
             h.count:SetText(count)
-            local spots = {}
-            for _, e in ipairs(place.list) do
-                local spot = Starts.Spot(e.q[1], QuestDone)
-                if spot then spots[#spots + 1] = spot end
-            end
             h.stops = Starts.Stops(spots)
             -- A different place under this bar starts again at its first stop.
             if h.place ~= place.name then h.place, h.at = place.name, nil end
@@ -1337,8 +1436,14 @@ Window.Page("dungeons", function(page)
             h:SetPoint("TOPLEFT", 0, -by)
             h:Show()
             by = by + 36
-            for _, block in ipairs(blocks) do
-                if block.chain then PaintCard(block.e, block.chain) else PaintLine(block.e) end
+            lineWho = nil
+            for _, block in ipairs(place.blocks) do
+                if block.chain then
+                    PaintCard(block)
+                    lineWho = nil
+                else
+                    PaintLine(block.list[1])
+                end
             end
             by = by + 8
         end
