@@ -5,9 +5,11 @@
 -- trainer. The recipes you know are the ones seen the last time its
 -- profession window was open. It reads as the profession panel does.
 local _, ns = ...
-local Style, Compat, Window, Professions = ns.Style, ns.Compat, ns.Window, ns.Professions
+local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window, ns.Professions, ns.Road
 
-local GAP, TILE_H, STEP_H, NOTE_H, MAT_H, NEED_H, RANK_H = 28, 44, 30, 14, 36, 22, 38
+local GAP, TILE_H, NEED_H, RANK_H = 28, 44, 22, Road.RANK_H
+-- The page's road is the panel's without its prices; true would show them here too.
+local FULL = false
 
 Window.Page("professions", function(page)
     local width, height = Window.contentWidth, Window.contentHeight
@@ -91,118 +93,19 @@ Window.Page("professions", function(page)
 
     -- The step in hand, as a card: what to make, how many (and how many to
     -- be safe), and each thing it takes with what you have of it.
-    local card = CreateFrame("Frame", nil, list)
-    card:SetWidth(innerW)
-    Style.Fill(card, "well")
-    card.edge = card:CreateTexture(nil, "ARTWORK")
-    card.edge:SetColorTexture(Style.Color("gold"))
-    card.edge:SetPoint("TOPLEFT")
-    card.edge:SetPoint("BOTTOMLEFT")
-    card.edge:SetWidth(3)
-    card.icon = card:CreateTexture(nil, "ARTWORK")
-    card.icon:SetSize(36, 36)
-    card.icon:SetPoint("TOPLEFT", 14, -12)
-    card.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    card.count = Style.Text(card, 20, "gold", nil, true)
-    card.count:SetPoint("TOPRIGHT", -12, -10)
-    card.count:SetJustifyH("RIGHT")
-    card.safe = Style.Text(card, 11, "muted")
-    card.safe:SetPoint("TOPRIGHT", -12, -36)
-    card.safe:SetJustifyH("RIGHT")
-    card.name = Style.Text(card, 15, "text", nil, true)
-    card.name:SetPoint("TOPLEFT", 60, -11)
-    card.name:SetPoint("RIGHT", card.count, "LEFT", -8, 0)
-    card.name:SetJustifyH("LEFT")
-    card.name:SetWordWrap(false)
-    card.detail = Style.Text(card, 12, "muted")
-    card.detail:SetPoint("TOPLEFT", 60, -33)
-    card.detail:SetWidth(innerW - 60 - 12)
-    card.detail:SetJustifyH("LEFT")
-    card.detail:SetWordWrap(false)
-    card.rule = card:CreateTexture(nil, "BORDER")
-    card.rule:SetColorTexture(Style.Color("line"))
-    card.rule:SetPoint("TOPLEFT", 14, -60)
-    card.rule:SetSize(innerW - 28, Compat.OnePixel(card))
-    Style.ItemTip(card)
-    local mats = {}
-    local function Mat(i)
-        if mats[i] then return mats[i] end
-        local m = CreateFrame("Frame", nil, card)
-        m:SetSize(innerW - 28, MAT_H)
-        m.icon = m:CreateTexture(nil, "ARTWORK")
-        m.icon:SetSize(18, 18)
-        m.icon:SetPoint("TOPLEFT", 0, -2)
-        m.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        m.count = Style.Text(m, 13, "muted")
-        m.count:SetPoint("TOPRIGHT", 0, -2)
-        m.count:SetJustifyH("RIGHT")
-        m.name = Style.Text(m, 13, "text")
-        m.name:SetPoint("TOPLEFT", 26, -2)
-        m.name:SetPoint("RIGHT", m.count, "LEFT", -8, 0)
-        m.name:SetJustifyH("LEFT")
-        m.name:SetWordWrap(false)
-        m.note = Style.Text(m, 11, "muted")
-        m.note:SetPoint("TOPLEFT", 26, -19)
-        m.note:SetWidth(innerW - 28 - 26)
-        m.note:SetJustifyH("LEFT")
-        m.note:SetWordWrap(false)
-        Style.ItemTip(m)
-        mats[i] = m
-        return m
-    end
+    local card = Road.Card(list, innerW, FULL)
 
     -- A later step, on one line; a line under it only when there's
     -- something to do first (learn it, buy its pattern).
     local steps, needs = {}, {}
     local function Step(i)
-        if steps[i] then return steps[i] end
-        local s = CreateFrame("Frame", nil, list)
-        s:SetSize(innerW, STEP_H)
-        s.levels = Style.Text(s, 12, "muted")
-        s.levels:SetPoint("TOPLEFT", 0, -6)
-        s.icon = s:CreateTexture(nil, "ARTWORK")
-        s.icon:SetSize(22, 22)
-        s.icon:SetPoint("TOPLEFT", 76, -2)
-        s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        s.count = Style.Text(s, 13, "text", nil, true)
-        s.count:SetPoint("TOPRIGHT", 0, -5)
-        s.count:SetJustifyH("RIGHT")
-        s.name = Style.Text(s, 13, "text")
-        s.name:SetPoint("TOPLEFT", 106, -5)
-        s.name:SetPoint("RIGHT", s.count, "LEFT", -8, 0)
-        s.name:SetJustifyH("LEFT")
-        s.name:SetWordWrap(false)
-        s.detail = Style.Text(s, 11, "gold")
-        s.detail:SetPoint("TOPLEFT", 106, -23)
-        s.detail:SetWidth(innerW - 106)
-        s.detail:SetJustifyH("LEFT")
-        s.detail:SetWordWrap(false)
-        Style.Rule(s, "BOTTOM", "line")
-        Style.ItemTip(s)
-        steps[i] = s
-        return s
+        if not steps[i] then steps[i] = Road.Step(list, innerW, FULL) end
+        return steps[i]
     end
 
     -- Learning the next rank, as a row of its own where the road reaches
     -- its skill. A click pins the nearest trainer who teaches it.
-    local rankRow = CreateFrame("Button", nil, list)
-    rankRow:SetSize(innerW, RANK_H - 4)
-    Style.Fill(rankRow, "well")
-    rankRow.edge = rankRow:CreateTexture(nil, "ARTWORK")
-    rankRow.edge:SetColorTexture(Style.Color("gold"))
-    rankRow.edge:SetPoint("TOPLEFT")
-    rankRow.edge:SetPoint("BOTTOMLEFT")
-    rankRow.edge:SetWidth(3)
-    rankRow.title = Style.Text(rankRow, 12, "gold", nil, true)
-    rankRow.title:SetPoint("TOPLEFT", 14, -4)
-    rankRow.sub = Style.Text(rankRow, 11, "muted")
-    rankRow.sub:SetPoint("TOPLEFT", 14, -19)
-    rankRow.sub:SetWidth(innerW - 28)
-    rankRow.sub:SetJustifyH("LEFT")
-    rankRow.sub:SetWordWrap(false)
-    rankRow:SetScript("OnClick", function(self)
-        if self.trainer and ns.Trainers then ns.Trainers.Pin(self.trainer) end
-    end)
+    local rankRow = Road.RankRow(list, innerW, true)
 
     -- Right: everything the road needs, then the shopping list and the
     -- nearest trainer.
@@ -247,13 +150,6 @@ Window.Page("professions", function(page)
         region:Show()
     end
 
-    local function RecipeName(recipe)
-        return recipe.label or (recipe.item and Compat.ItemName(recipe.item)) or (Compat.SpellInfo(recipe.spell)) or "..."
-    end
-    local function RecipeIcon(recipe)
-        return (recipe.item and Compat.ItemIcon(recipe.item)) or select(2, Compat.SpellInfo(recipe.spell))
-    end
-
     ---------------------------------------------------------------------
     -- Guild crafters: a card beside your professions. Who makes what has a
     -- window of its own now, Guild Crafts, with the guild's orders beside it;
@@ -279,7 +175,7 @@ Window.Page("professions", function(page)
     local function HideRoad(bar)
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(needs) do r:Hide() end
-        for _, m in ipairs(mats) do m:Hide() end
+        for _, m in ipairs(card.mats) do m:Hide() end
         for _, region in ipairs({ nowHead, thenHead, note, card, rankRow, message, needHead, needMore, addRoad, where, pin }) do
             region:Hide()
         end
@@ -351,8 +247,8 @@ Window.Page("professions", function(page)
         fill:SetWidth(math.max(1, width * math.max(0, math.min(1, (skill - floor) / span))))
         from:SetText(floor)
         capText:SetText(cap)
-        local what, about, who
-        if rankAt and Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
+        local what
+        if rankAt and Professions.RankFrom then what = Professions.RankFrom(line, rank.next) end
         local doing = what or (rank.next and ("train " .. rank.next)) or ""
         local ahead = rankAt ~= nil and skill < rankAt
         marker:SetShown(ahead)
@@ -386,16 +282,7 @@ Window.Page("professions", function(page)
 
         local y, ranked = 0, false
         local function Rank()
-            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
-            local place = trainer and ns.Trainers.Zone(trainer)
-            rankRow.trainer = trainer
-            rankRow.title:SetText(skill >= rankAt and (doing:sub(1, 1):upper() .. doing:sub(2) .. " now") or ("At %d, %s"):format(rankAt, doing))
-            local parts = {}
-            if about and not who then parts[#parts + 1] = about end
-            if trainer then parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "") .. " · click for a map pin" end
-            if not what and (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
-            if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
-            rankRow.sub:SetText(table.concat(parts, " · "))
+            Road.PaintRank(rankRow, line, rank, rankIndex, rankAt, skill)
             Place(rankRow, y)
             y = y + RANK_H
             ranked = true
@@ -415,60 +302,7 @@ Window.Page("professions", function(page)
         y = y + 28
         if rankAt and skill >= rankAt then Rank() y = y + 4 end
         if first then
-            local recipe = first.recipe
-            card.item, card.spell = recipe.item, recipe.spell
-            card.icon:SetTexture(RecipeIcon(recipe))
-            card.name:SetText(RecipeName(recipe))
-            card.count:SetText(("×%d"):format(first.crafts))
-            card.safe:SetText((first.safe or 0) > first.crafts and ("%d to be safe"):format(first.safe) or "")
-            if recipe.vein then
-                card.detail:SetText(("Mine them: a sure point each until %d"):format(recipe.yellow))
-            elseif first.buy then
-                card.detail:SetText(ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
-                    or ("Buy the pattern from a vendor, from %d"):format(recipe.learn))
-            elseif first.learn then
-                card.detail:SetText(("Learn it at the trainer, from %d"):format(recipe.learn))
-            elseif not recipe.yellow then
-                card.detail:SetText("")
-            elseif skill < recipe.yellow then
-                card.detail:SetText(("a point every craft until %d"):format(recipe.yellow))
-            else
-                local odds = Professions.Chance and math.max(1, math.floor(Professions.Chance(recipe, skill) * 10 + 0.5)) or 10
-                card.detail:SetText(odds >= 10 and "a point from nearly every craft" or ("a point from about %d crafts in 10"):format(odds))
-            end
-            local my, shown = 68, 0
-            for i, reagent in ipairs(recipe.reagents) do
-                shown = i
-                local m = Mat(i)
-                m:ClearAllPoints()
-                m:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -my)
-                m:Show()
-                m.item = reagent.item
-                local need = reagent.count * first.crafts
-                local have = Compat.ItemCount(reagent.item, true)
-                m.icon:SetTexture(Compat.ItemIcon(reagent.item))
-                m.name:SetText(Compat.ItemName(reagent.item) or "...")
-                m.count:SetText(("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need))
-                local price = Professions.IsVendor(reagent.item)
-                -- What's in your bank counts as yours, and is said to be
-                -- there: "you have enough" of four hides that were all in
-                -- the bank read as four in your bags.
-                local carried = Compat.ItemCount(reagent.item, false) or 0
-                if have >= need and carried < need then
-                    m.note:SetText(("%d to fetch from your bank"):format(need - carried))
-                elseif have >= need then
-                    m.note:SetText("you have enough")
-                elseif price then
-                    m.note:SetText(("vendor · %d more for %s"):format(need - have, Compat.Money((need - have) * price)))
-                elseif Professions.MadeBy and Professions.MadeBy(line, reagent.item) then
-                    m.note:SetText(("%d short · you can make it"):format(need - have))
-                else
-                    m.note:SetText(("%d short"):format(need - have))
-                end
-                my = my + MAT_H
-            end
-            card.rule:SetShown(shown > 0)
-            card:SetHeight(shown > 0 and (my + 6) or 60)
+            Road.PaintCard(card, line, first, skill)
             Place(card, y)
             y = y + card:GetHeight() + 16
         end
@@ -483,23 +317,9 @@ Window.Page("professions", function(page)
             local step = road[i]
             if not ranked and rankAt and step.from >= rankAt then Rank() end
             local s = Step(i - 1)
-            s.item, s.spell = step.recipe.item, step.recipe.spell
-            s.levels:SetText(("%d → %d"):format(step.from, step.to))
-            s.icon:SetTexture(RecipeIcon(step.recipe))
-            s.name:SetText(RecipeName(step.recipe))
-            s.count:SetText(("×%d"):format(step.crafts))
-            local todo
-            if step.buy then
-                todo = ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(step.recipe.spell)
-                    or ("buy the pattern from a vendor, from %d"):format(step.recipe.learn)
-            elseif step.learn then
-                todo = ("learn it at the trainer, from %d"):format(step.recipe.learn)
-            end
-            s.detail:SetText(todo or "")
-            s.detail:SetShown(todo ~= nil)
-            s:SetHeight(STEP_H + (todo and NOTE_H or 0))
+            local tall = Road.PaintStep(s, step)
             Place(s, y)
-            y = y + STEP_H + (todo and NOTE_H or 0)
+            y = y + tall
         end
         if not ranked and ahead then Rank() end
         local last
