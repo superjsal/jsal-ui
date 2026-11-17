@@ -341,6 +341,16 @@ local function Paint()
     ui.pal:SetSize(size, size)
     ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor((run.x + Rules.W / 2) * TILE), -math.floor(middle))
 
+    -- A heart for each fall the run has left; one that's gone is greyed, from the right.
+    if ui.fallen ~= run.falls then
+        ui.fallen = run.falls
+        for i, heart in ipairs(ui.hearts) do
+            local gone = i > Rules.FALLS - run.falls
+            heart:SetDesaturated(gone)
+            heart:SetAlpha(gone and 0.4 or 1)
+        end
+    end
+
     ui.clock:SetText(run.started and Rules.Clock(Rules.Ticks(run)) or "0:00.00")
     if flash > 0 then
         ui.clock:SetTextColor(Style.Color("green"))
@@ -560,6 +570,15 @@ local function Build()
     ui.bonus:SetShadowColor(0.08, 0.06, 0.1, 1)
     ui.bonus:SetShadowOffset(1, -1)
     ui.bonus:SetText("-0.50")
+    -- The falls a run has left, in the corner: the pals' heart, twice its size.
+    ui.hearts = {}
+    for i = 1, Rules.FALLS do
+        local heart = hud:CreateTexture(nil, "ARTWORK")
+        heart:SetSize(32, 32)
+        heart:SetPoint("TOPLEFT", 14 + (i - 1) * 38, -14)
+        heart:SetTexture(Art("heart"), "CLAMP", "CLAMP", "NEAREST")
+        ui.hearts[i] = heart
+    end
 
     -- The card over the course: how to play before a run, and how it went after.
     local card = CreateFrame("Frame", nil, hud)
