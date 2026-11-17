@@ -1,9 +1,10 @@
 -- Guild orders to mail. At a mailbox, a card under the mail window lists the
--- orders you accepted whose item is in your bags. Fill in writes whoever
--- asked into the letter's To box and the order into its Subject; the item is
--- dragged in and the letter sent by hand. When the game says a letter went to
--- them with the item in it, the order is sent (Orders.Mailed) and they're
--- told. Sent marks one sent by hand, for an item handed over in a trade.
+-- orders you accepted whose item is in your bags. Fill in letter writes
+-- whoever ordered it into the letter's To box and the order into its Subject;
+-- the item is dragged in and the letter sent by hand. When the game says a
+-- letter went to them with the item in it, the order is marked sent
+-- (Orders.Mailed) and they're told. Mark sent is for an item handed over in a
+-- trade.
 --
 -- The card is a child of UIParent, placed from the mail window's edges and
 -- never anchored to it. Fill in only sets the text of the To and Subject
@@ -17,6 +18,7 @@ ns.OrderMail = M
 
 local HEAD, ROW, FOOT, GAP, MIN_W = 34, 34, 30, 30, 300
 local MAX_ROWS = 6
+local HOW = "Fill in letter, drag the item in, then Send."
 
 -- The orders to mail: accepted by you, for an item, with some of it in your bags.
 function M.ToMail()
@@ -68,9 +70,9 @@ local function MakeRow(parent)
     r.who = Style.Text(r, 11, "muted")
     r.who:SetPoint("TOPLEFT", 32, -19)
     r.who:SetWordWrap(false)
-    r.fill = Quiet(r, "Fill in", "gold")
+    r.fill = Quiet(r, "Fill in letter", "gold")
     r.fill:SetPoint("RIGHT", 0, 0)
-    r.sent = Quiet(r, "Sent", "muted")
+    r.sent = Quiet(r, "Mark sent", "muted")
     r.sent:SetPoint("RIGHT", r.fill, "LEFT", -14, 0)
     r.rule = Style.Rule(r, "BOTTOM", "line")
     return r
@@ -102,7 +104,7 @@ local function Build()
     rule:SetHeight(Compat.OnePixel(card))
     card.foot = Style.Text(card, 11, "muted")
     card.foot:SetPoint("BOTTOMLEFT", 14, 10)
-    card.foot:SetText("Fill in writes the name and subject. Drag the item in.")
+    card.foot:SetText(HOW)
     card.rows = {}
     -- While it shows: keep it under the mail window, and Fill in only on the Send Mail page.
     local wait = 0
@@ -137,7 +139,7 @@ function M.FillState()
     if not card then return end
     local open = SendMailFrame and SendMailFrame:IsShown() and true or false
     for _, r in ipairs(card.rows) do
-        r.fill.why = not open and "Open the Send Mail page to fill in a letter." or nil
+        r.fill.why = not open and "Open the Send Mail tab first." or nil
         r.fill.label:SetTextColor(Style.Color(open and "gold" or "muted"))
     end
 end
@@ -194,8 +196,7 @@ function M.Paint()
         r:Show()
     end
     for i = shown + 1, #card.rows do card.rows[i]:Hide() end
-    card.foot:SetText(#list > shown and ("And %d more in Guild Crafts. "):format(#list - shown) .. "Fill in writes the name and subject."
-        or "Fill in writes the name and subject. Drag the item in.")
+    card.foot:SetText(#list > shown and ("And %d more in Guild Crafts."):format(#list - shown) or HOW)
     M.Place()
     M.FillState()
     card:Show()

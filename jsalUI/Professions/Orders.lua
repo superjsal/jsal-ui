@@ -1,8 +1,9 @@
 -- Guild orders: ask the guild for a craft or an enchant, and accept what
 -- guildmates ask for. An order is waiting for a crafter, being made, sent,
 -- or done; whoever asked can cancel it, whoever accepted can give it back.
--- The crafter says it's sent (a letter to whoever asked, with the item in
--- it, says so by itself), and it's done when whoever asked says Got it.
+-- The crafter marks it sent (a letter to whoever asked, with the item in
+-- it, does so by itself), and it's done when whoever asked marks it
+-- received. One never marked received is "not confirmed" after a week.
 -- Orders travel through the game's hidden addon channel to guildmates who
 -- have jsal.ui with this on, and each jsal.ui passes on what it has heard,
 -- so an order outlives the session it was posted in. Kept per guild, for
@@ -158,9 +159,10 @@ local function Prune(book)
     for i = 1, #list - MAX do book[list[i].id] = nil end
 end
 
--- Where an order stands now: "waiting", "making", "sent", "done", or nil for
--- one not shown any more (cancelled, closed by itself, or finished a while
--- ago). One sent that nobody says Got it to counts as done after OPEN_FOR.
+-- Where an order stands now: "waiting", "making", "sent", "unconfirmed",
+-- "done", or nil for one not shown any more (cancelled, closed by itself, or
+-- finished a while ago). One sent and not marked received in OPEN_FOR is
+-- "unconfirmed": never called done, since nobody said they had it.
 function Orders.State(order, now)
     now = now or Compat.ServerTime()
     if order.s == "o" then return now <= order.t + OPEN_FOR and "waiting" or nil end
@@ -168,7 +170,7 @@ function Orders.State(order, now)
     if SENT[order.s] then
         local e = order.e or order.t
         if now <= e + OPEN_FOR then return "sent" end
-        return now <= e + OPEN_FOR + SHOWN and "done" or nil
+        return now <= e + OPEN_FOR + SHOWN and "unconfirmed" or nil
     end
     if order.s == "d" then return now <= (order.e or order.t) + SHOWN and "done" or nil end
     return nil
@@ -260,28 +262,31 @@ local function Tell(new, old)
     if not old then
         if new.s == "o" and new.by ~= me and Orders.CanMake(new.spell)
             and Compat.ServerTime() - new.t <= FRESH then
-            ns.Print(("%s asks the guild for %s, and you can make it. /jsal crafts"):format(new.by, Label(new)))
+            ns.Print(("%s ordered %s from the guild, and you can make it. Accept it in /jsal crafts."):format(new.by, Label(new)))
         end
         return
     end
     if new.by == me then
         if new.s == "t" and (old.s ~= "t" or old.c ~= new.c) and new.c ~= me then
-            ns.Print(("%s accepted your order: %s."):format(new.c, Label(new)))
+            ns.Print(("%s accepted your order for %s."):format(new.c, Label(new)))
         elseif new.s == "o" and old.s == "t" then
-            ns.Print(("%s gave your order back: %s. It's waiting for a crafter again."):format(old.c or "The crafter", Label(new)))
-        elseif SENT[new.s] and not SENT[old.s] then
-            ns.Print(("%s sent your order%s: %s. Say Got it once you have it. /jsal crafts")
-                :format(new.c or "The crafter", new.s == "m" and " by mail" or "", Label(new)))
+            ns.Print(("%s gave up your order for %s. It's open for another crafter."):format(old.c or "The crafter", Label(new)))
+        elseif new.s == "m" and not SENT[old.s] then
+            ns.Print(("%s mailed you your order of %s. Once it's in your bags, mark it received in /jsal crafts.")
+                :format(new.c or "The crafter", Label(new)))
+        elseif new.s == "s" and not SENT[old.s] then
+            ns.Print(("%s sent your order of %s. Once you have it, mark it received in /jsal crafts.")
+                :format(new.c or "The crafter", Label(new)))
         elseif new.s == "d" and old.s ~= "d" and not SENT[old.s] then
-            ns.Print(("%s finished your order: %s."):format(new.c or "A guildmate", Label(new)))
+            ns.Print(("%s finished your order for %s."):format(new.c or "A guildmate", Label(new)))
         end
     elseif (old.s == "t" or SENT[old.s]) and old.c == me then
         if new.s == "x" then
-            ns.Print(("%s cancelled the order you accepted: %s."):format(new.by, Label(new)))
+            ns.Print(("%s cancelled their order for %s, which you'd accepted."):format(new.by, Label(new)))
         elseif new.s == "t" and old.s == "t" and new.c ~= me then
-            ns.Print(("%s accepted %s's order a moment before you: %s."):format(new.c, new.by, Label(new)))
+            ns.Print(("%s accepted %s's order for %s just before you did."):format(new.c, new.by, Label(new)))
         elseif new.s == "d" then
-            ns.Print(("%s has their order: %s."):format(new.by, Label(new)))
+            ns.Print(("%s received the %s you made."):format(new.by, Label(new)))
         end
     end
 end
@@ -341,11 +346,11 @@ end
 function Orders.Post(spell, count, have, on, note)
     if not Orders.running then return false, "Guild orders are off. Turn them on in Settings, under Professions." end
     local book = IsInGuild and IsInGuild() and Book()
-    if not book then return false, "Orders go to your guild. Join one to ask." end
+    if not book then return false, "Orders go to your guild: join one to order something." end
     if not Orders.Recipe(spell) then return false, "Pick something a profession makes." end
     local me, now = Compat.MyName(), Compat.ServerTime()
     if MineOpen(book, me, now) >= MINE_MAX then
-        return false, ("You have %d orders open already. Cancel one, or wait for one to be made."):format(MINE_MAX)
+        return false, ("You already have %d open orders. Cancel one, or wait until one is sent."):format(MINE_MAX)
     end
     count = math.max(1, math.min(200, math.floor(tonumber(count) or 1)))
     local id, k = me .. "@" .. Code(now), 1
@@ -369,9 +374,9 @@ function Orders.Accept(id)
     local order, why = Find(id)
     if not order then return false, why end
     local me = Compat.MyName()
-    if order.by == me then return false, "That one is your own." end
-    if Orders.State(order) ~= "waiting" then return false, "Someone has it already." end
-    if not Orders.CanMake(order.spell) then return false, "You don't know that recipe. Open the profession's window if you've just learned it." end
+    if order.by == me then return false, "You can't accept your own order." end
+    if Orders.State(order) ~= "waiting" then return false, "Someone else has already accepted it." end
+    if not Orders.CanMake(order.spell) then return false, "You don't know that recipe. If you've just learned it, open your profession window first." end
     return Step(order, "t", me)
 end
 
@@ -379,32 +384,32 @@ end
 function Orders.Release(id)
     local order, why = Find(id)
     if not order then return false, why end
-    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "That one isn't yours to give back." end
+    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "Only the crafter who accepted it can give it up." end
     return Step(order, "o", nil)
 end
 
--- The crafter's "Done", for an enchant: it was given in a trade, so it's done.
+-- The crafter's "Mark done", for an enchant: it was given in a trade, so it's done.
 function Orders.Done(id)
     local order, why = Find(id)
     if not order then return false, why end
-    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "That one isn't yours to finish." end
+    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "Only the crafter who accepted it can mark it done." end
     return Step(order, "d", order.c)
 end
 
--- The crafter's "Sent", for an item: it's on its way, and done once whoever
--- asked says Got it. `mailed` when a letter carried it.
+-- The crafter's "Mark sent", for an item: it's on its way, and done once
+-- whoever asked marks it received. `mailed` when a letter carried it.
 function Orders.Sent(id, mailed)
     local order, why = Find(id)
     if not order then return false, why end
-    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "That one isn't yours to send." end
+    if not (order.s == "t" and order.c == Compat.MyName()) then return false, "Only the crafter who accepted it can mark it sent." end
     return Step(order, mailed and "m" or "s", order.c)
 end
 
--- The asker's "Got it".
+-- The asker's "Mark received".
 function Orders.GotIt(id)
     local order, why = Find(id)
     if not order then return false, why end
-    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t" or SENT[order.s]) then return false, "That one isn't yours to close." end
+    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t" or SENT[order.s]) then return false, "Only the person who ordered it can mark it received." end
     return Step(order, "d", order.c)
 end
 
@@ -447,7 +452,7 @@ end
 function Orders.Cancel(id)
     local order, why = Find(id)
     if not order then return false, why end
-    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t") then return false, "That one isn't yours to cancel." end
+    if order.by ~= Compat.MyName() or not (order.s == "o" or order.s == "t") then return false, "Only the person who ordered it can cancel it, and only before it's sent." end
     return Step(order, "x", order.c)
 end
 
@@ -465,11 +470,12 @@ local function LatestDone(a, b)
 end
 
 -- For you: `todo` (you accepted them), `waiting` (open, and you know the
--- recipe), `sent` (you sent them; whoever asked hasn't said Got it), `done`
--- (you made them, lately), and how many more are waiting for a profession
--- you don't have.
+-- recipe), `sent` (you sent them; whoever asked hasn't marked them
+-- received), `unconfirmed` (sent over a week ago and never marked received),
+-- `done` (you made them, lately), and how many more are waiting for a
+-- profession you don't have.
 function Orders.ForMe()
-    local out = { todo = {}, waiting = {}, sent = {}, done = {}, other = 0, open = 0 }
+    local out = { todo = {}, waiting = {}, sent = {}, unconfirmed = {}, done = {}, other = 0, open = 0 }
     local book = On() and Book()
     if not book then return out end
     local me, now = Compat.MyName(), Compat.ServerTime()
@@ -480,8 +486,8 @@ function Orders.ForMe()
             out.todo[#out.todo + 1] = o
         elseif state == "waiting" and o.by ~= me then
             if Orders.CanMake(o.spell) then out.waiting[#out.waiting + 1] = o else out.other = out.other + 1 end
-        elseif state == "sent" and o.c == me and o.by ~= me then
-            out.sent[#out.sent + 1] = o
+        elseif (state == "sent" or state == "unconfirmed") and o.c == me and o.by ~= me then
+            out[state][#out[state] + 1] = o
         elseif state == "done" and o.c == me and o.by ~= me then
             out.done[#out.done + 1] = o
         end
@@ -489,14 +495,16 @@ function Orders.ForMe()
     table.sort(out.todo, Newest)
     table.sort(out.waiting, Newest)
     table.sort(out.sent, LatestDone)
+    table.sort(out.unconfirmed, LatestDone)
     table.sort(out.done, LatestDone)
     return out
 end
 
--- Your own orders: `waiting`, `making`, `sent` (on their way to you: say
--- Got it) and `done`.
+-- Your own orders: `waiting`, `making`, `sent` (on their way to you: mark
+-- them received), `unconfirmed` (sent over a week ago, never marked
+-- received) and `done`.
 function Orders.Mine()
-    local out = { waiting = {}, making = {}, sent = {}, done = {} }
+    local out = { waiting = {}, making = {}, sent = {}, unconfirmed = {}, done = {} }
     local book = On() and Book()
     if not book then return out end
     local me, now = Compat.MyName(), Compat.ServerTime()
@@ -507,6 +515,7 @@ function Orders.Mine()
     table.sort(out.waiting, Newest)
     table.sort(out.making, Newest)
     table.sort(out.sent, LatestDone)
+    table.sort(out.unconfirmed, LatestDone)
     table.sort(out.done, LatestDone)
     return out
 end
