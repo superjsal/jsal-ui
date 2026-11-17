@@ -21,7 +21,7 @@ local SWITCH_W = 36
 local GROUPS = {
     { title = "Games", width = 100, sections = {
         { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" } },
-        { "Company", { "guild", "pet" } },
+        { "Company", { "guild", "pet", "palrun" } },
     } },
     { title = "Leveling", width = 110, sections = {
         { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
@@ -42,6 +42,7 @@ local GROUPS = {
 local SHORT = {
     dailyword = "One word a day, the same for everyone",
     iconguess = "Name the spell from its icon",
+    palrun = "A platformer for your pal, timed",
     chess = "Chess with guildmates, move by move",
     flight = "Route, time left and games in flight",
     guild = "Guildmates' scores and the Guild Word",
@@ -87,7 +88,7 @@ local SHORT = {
 local ICON_PATH = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local ICON = {
     dailyword = "Parts\\dailyword", iconguess = "Menu\\help", chess = "Parts\\chess", flight = "Parts\\flight",
-    guild = "Menu\\guild", pet = "Parts\\pet",
+    guild = "Menu\\guild", pet = "Parts\\pet", palrun = "Parts\\palrun",
     talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", dungeons = "Parts\\dungeons",
     nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
     guidetags = "Menu\\quests", lootlog = "Menu\\collections",

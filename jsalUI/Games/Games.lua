@@ -27,10 +27,12 @@ function Games.Random(seed)
 end
 
 -- The Games page: a card for each daily game, with how today's stands, your
--- record, and a button to play it or see how it went.
+-- record, and a button to play it or see how it went. Pal run can be run
+-- again for a better time, so its button always plays.
 local GAMES = {
     { label = "Daily Word", icon = "word", game = function() return ns.DailyWord end },
     { label = "Icon Guess", icon = "icons", game = function() return ns.IconGuess end, practice = true },
+    { label = "Pal run", icon = "run", game = function() return ns.PalRun end, practice = true, again = true },
 }
 
 -- A game's record without its own name in front ("Daily Word: 1 played"
@@ -89,14 +91,14 @@ Window.Page("games", function(page)
             c.state:SetText(game and game.Status() or "Turned off in Settings")
             c.state:SetTextColor(Style.Color(on and "text" or "muted"))
             c.record:SetText(game and Tidy(game.Record()) or "")
-            c.play:SetLabel(done and "Result" or "Play")
+            c.play:SetLabel((done and not entry.again) and "Result" or (done and "Play again" or "Play"))
             -- Gold marks the first one still to play, and only that one.
             c.play:SetKind((on and not done and left == 0) and "primary" or "plain")
             c.play:SetEnabled(on)
             if c.practice then c.practice:SetEnabled(on) end
             if on and not done then left = left + 1 end
         end
-        title:SetText((left == 0 and "Today's puzzles are done" or (left == 1 and "1 puzzle left today" or (left .. " puzzles to play today")))
+        title:SetText((left == 0 and "Today's games are done" or (left == 1 and "1 game left today" or (left .. " games to play today")))
             .. ("   |cff9a9688#%d|r"):format(Games.Today()))
     end
 end)

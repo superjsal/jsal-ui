@@ -8,8 +8,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "New: Guild Crafts, for who in the guild makes what, and orders between guildmates: ask for a craft, or take one on",
-    "Dungeon guide: the game's own quest marks, and each quest's level beside the level you can take it at",
+    "New: Pal run, a platformer for your pal, timed, with your guild's times beside it. Turn it on in Settings > Games",
     "Restart the game once for this version: it adds new files",
 }
 
@@ -94,6 +93,7 @@ function Today.Games()
     for _, entry in ipairs({
         { game = ns.DailyWord, label = "Daily Word", icon = "word" },
         { game = ns.IconGuess, label = "Icon Guess", icon = "icons" },
+        { game = ns.PalRun, label = "Pal run", icon = "run" },
     }) do
         if entry.game and entry.game.running and not entry.game.DailyDone() then list[#list + 1] = entry end
     end

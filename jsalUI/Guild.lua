@@ -87,6 +87,8 @@ local function Status()
         ns.GuildLoot and ns.GuildLoot.Signature() or "",
         -- How many guild orders this player has heard, and their revisions added up.
         ns.Orders and ns.Orders.Signature() or "",
+        -- Today's Pal run: its day and this player's best time, "day:steps".
+        ns.PalRun and ns.PalRun.Signature() or "",
     }, ";")
 end
 
@@ -143,7 +145,8 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot, orders = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot, orders, run = strsplit(";", payload or "")
+    local runDay, runSteps = (run or ""):match("^(%d+):(%d+)$")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
     if ns.GuildLoot then ns.GuildLoot.HeardHello(name, loot, sender or name) end
     if ns.Orders then ns.Orders.HeardHello(name, orders, sender or name) end
@@ -162,6 +165,8 @@ local function Store(payload, name, sender)
         guildID = tonumber(guildID),
         guildScore = guildScore ~= "" and guildScore or nil,
         takesReports = reports == "R",
+        runDay = tonumber(runDay),
+        runSteps = tonumber(runSteps),
         seen = GetTime(),
     }
 end

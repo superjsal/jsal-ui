@@ -1,3 +1,9 @@
+# jsal.ui 0.3.54
+
+Restart the game after updating (exit and start it again): this version adds new files and pictures, and a /reload doesn't load them.
+
+- **Pal run.** A platformer for your pal: run and jump a course to its flag, against the clock. There's one course a day, the same for everyone, and your best time of the day stands beside your guildmates' (those with jsal.ui and the Guild tab on). A and D run, Space jumps, R starts again; a fall puts you back at the start of that stretch with the clock still running, and each treat takes half a second off. Practice courses are random and count for nothing. Every kind of pal runs and jumps the same, and with no pal of your own a Briarboar runs for you. It starts off: Settings > Games > Pal run turns it on, then it's on the Games page or /jsal run.
+
 # jsal.ui 0.3.53
 
 Restart the game after updating (exit and start it again): this version adds new files and pictures, and a /reload doesn't load them.

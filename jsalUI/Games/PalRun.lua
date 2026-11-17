@@ -1,0 +1,556 @@
+-- Pal run: a platformer for your pal. One course a day, the same for
+-- everyone, against the clock: your best time of the day stands, and the
+-- guild's times are listed beside the course. Practice courses are random
+-- and count for nothing. The rules are in PalRunRules.lua; this is the
+-- window, the keys and what's kept.
+local _, ns = ...
+local Style, Compat, Games, Rules = ns.Style, ns.Compat, ns.Games, ns.PalRunRules
+
+local PalRun = ns.NewModule("palrun", {
+    title = "Pal run",
+    note = "A platformer for your pal: one course a day, the same for everyone, against the clock, with your guild's times beside it. /jsal run",
+    defaultOn = false,
+})
+ns.PalRun = PalRun
+
+local ART = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
+local TILE = 48                       -- a tile of the course, in pixels: its 16-pixel picture three times over
+local FIELD_W, FIELD_H = 880, 400
+local PAD, BOARD_W, ROW_H, ROWS_SHOWN = 16, 240, 30, 6
+local SCALE = 2                       -- the pal is drawn at twice its picture's size
+local FLAG_W, FLAG_H = 16, 35         -- the flag's size in run.png (tools/make_run_tiles.py prints it)
+
+-- Where each kind's feet are in the 64 pixels it stands in, counted down
+-- from the top, so each stands on the ground and not in or over it.
+local FEET = {
+    briarboar = 57, thornhog = 58, brambletusk = 64, wispkin = 56, gloamtail = 62, wispjester = 61,
+    scrapwing = 57, jabdrake = 59, flarechamp = 61, stormcub = 57, thundermane = 59, tempestmane = 63,
+    capling = 56, lanternshell = 57, bloomsage = 60, boltusk = 58, rumbletrunk = 61, warmammoth = 65,
+    gemlet = 57, miragehoof = 59, sandseer = 65, pebblebill = 53, cobbleback = 54, rockwarden = 63,
+    snowlet = 57, frostmantle = 62, auroracrown = 64, starwhelp = 55, moondrake = 60, eclipselord = 69,
+}
+PalRun.FEET = FEET
+
+---------------------------------------------------------------------------
+-- What's kept, for the whole account: today's best time and how many runs
+-- it took, and the fastest daily course ever. Times are in steps, sixty to
+-- the second.
+---------------------------------------------------------------------------
+local function Saved()
+    local s = ns.db.palrun
+    if type(s) ~= "table" then
+        s = {}
+        ns.db.palrun = s
+    end
+    if s.day ~= Games.Today() then s.day, s.best, s.tries = Games.Today(), nil, 0 end
+    return s
+end
+
+function PalRun.DailyDone()
+    local s = ns.db.palrun
+    return type(s) == "table" and s.day == Games.Today() and s.best ~= nil
+end
+
+-- Today's day and best time, once there is one.
+function PalRun.Result()
+    if not PalRun.DailyDone() then return nil end
+    return ns.db.palrun.day, ns.db.palrun.best
+end
+
+-- What the guild is told: "day:steps", or nothing while the part is off or
+-- today's course hasn't been run.
+function PalRun.Signature()
+    local day, best = PalRun.Result()
+    if not (PalRun.running and day) then return "" end
+    return ("%d:%d"):format(day, best)
+end
+
+function PalRun.Status()
+    if not PalRun.running then return "Turned off in Settings" end
+    local s = Saved()
+    if s.best then return ("Today's best %s"):format(Rules.Clock(s.best)) end
+    return ("#%d is ready"):format(s.day)
+end
+
+function PalRun.Record()
+    local s = ns.db.palrun
+    if type(s) ~= "table" or not s.ever then return "Pal run: no course finished yet." end
+    return ("Pal run: fastest ever %s, on #%d."):format(Rules.Clock(s.ever), s.everDay or 0)
+end
+
+-- A run is over, in `steps`. Today's course: "first" for the day's first
+-- time, "best" for one that beats it (and by how many steps), "slower"
+-- otherwise. A practice course is only ever "practice".
+function PalRun.Finished(mode, steps)
+    if mode ~= "daily" then return "practice" end
+    local s = Saved()
+    s.tries = (s.tries or 0) + 1
+    local was = s.best
+    if was and steps >= was then return "slower" end
+    s.best = steps
+    if not s.ever or steps < s.ever then s.ever, s.everDay = steps, s.day end
+    if ns.Guild then ns.Guild.Announce() end
+    if ns.Flight then ns.Flight.Refresh() end
+    return was and "best" or "first", was and (was - steps) or nil
+end
+
+-- Today's times, fastest first: yours, and those of guildmates heard this
+-- session.
+function PalRun.Board()
+    local today, me, list = Games.Today(), Compat.MyName(), {}
+    local day, best = PalRun.Result()
+    if day then list[#list + 1] = { name = me, steps = best, mine = true } end
+    for name, m in pairs(ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}) do
+        if name ~= me and m.runDay == today and m.runSteps then list[#list + 1] = { name = name, steps = m.runSteps } end
+    end
+    table.sort(list, function(a, b)
+        if a.steps ~= b.steps then return a.steps < b.steps end
+        return a.name < b.name
+    end)
+    return list
+end
+
+-- The pal that runs: yours as it is now, or a Briarboar while you have none.
+function PalRun.Runner()
+    local Pet, PetRules, s = ns.Pet, ns.PetRules, ns.db.pet
+    if Pet and Pet.running and PetRules and type(s) == "table" and not s.unchosen then
+        local sprites = PetRules.Species(s).sprites
+        local sprite = sprites[s.grewFrom or s.form] or sprites[1]
+        if Pet.SHEETS[sprite] then return sprite end
+    end
+    return "briarboar"
+end
+
+-- Which of the 16 ground tiles is drawn where four squares meet, from which
+-- of them are ground (tools/make_run_tiles.py packs them in this order).
+-- Past the course's ends and under it, the ground is as its nearest square.
+local function Ground(course, col, row)
+    col = math.max(0, math.min(course.cols - 1, col))
+    return Rules.Solid(course, col, math.min(Rules.ROWS - 1, row))
+end
+function PalRun.Tile(course, col, row)
+    return (Ground(course, col - 1, row - 1) and 8 or 0) + (Ground(course, col, row - 1) and 4 or 0)
+        + (Ground(course, col - 1, row) and 2 or 0) + (Ground(course, col, row) and 1 or 0)
+end
+
+-- The cell of its sheet the pal shows: cheering at the flag, mid-jump in
+-- the air, running, or standing. Returns the cell and what it's a cell of.
+function PalRun.Cell(sheet, run, clock)
+    local anim, cell
+    if run.done and sheet.cheer then
+        anim = sheet.cheer
+        cell = anim.first + math.floor(clock / anim.time) % anim.count
+    elseif not run.grounded then
+        anim = sheet.jump
+        cell = anim.first + math.min(anim.count - 1, run.vy < 0 and 3 or 4)
+    elseif math.abs(run.vx) > 0.5 then
+        anim = sheet.run or sheet.walk
+        cell = anim.first + math.floor(clock / anim.time) % anim.count
+    else
+        return sheet.stand, sheet
+    end
+    return cell, anim.file and anim or sheet
+end
+
+---------------------------------------------------------------------------
+-- The window.
+---------------------------------------------------------------------------
+local ui = {}
+local mode, seed, course, run
+local held = {}
+local behind, clock, flash, boardAge = 0, 0, 0, 0
+
+-- A guildmate's class, for their name's colour.
+local function Classes()
+    local class = {}
+    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
+        local full, _, _, _, _, _, _, _, _, _, file = GetGuildRosterInfo(i)
+        if full then class[Ambiguate(full, "none")] = file end
+    end
+    return class
+end
+
+local function PaintBoard()
+    local list, online = PalRun.Board(), Compat.GuildOnline()
+    local class, me = Classes(), Compat.MyName()
+    ui.day:SetText(("#%d"):format(Games.Today()))
+    ui.empty:SetShown(#list == 0)
+    for i, row in ipairs(ui.rows) do
+        local entry = list[i]
+        row:SetShown(entry ~= nil)
+        if entry then
+            local colour = RAID_CLASS_COLORS and RAID_CLASS_COLORS[class[entry.name] or (entry.mine and select(2, UnitClass("player"))) or ""]
+            row.rank:SetText(tostring(i))
+            row.name:SetText(entry.name)
+            if colour then row.name:SetTextColor(colour.r, colour.g, colour.b) else row.name:SetTextColor(Style.Color("text")) end
+            row.time:SetText(Rules.Clock(entry.steps))
+            row.dot:SetColorTexture(Style.Color((entry.name == me or online[entry.name]) and "green" or "lineStrong"))
+            row.fill:SetShown(entry.mine == true)
+            row.edge:SetShown(entry.mine == true)
+            row.rule:SetShown(not entry.mine)
+        end
+    end
+    if #list > #ui.rows then
+        ui.more:SetText(("and %d more"):format(#list - #ui.rows))
+        ui.more:Show()
+    else
+        ui.more:Hide()
+    end
+    local s = Saved()
+    ui.today:SetText(s.best and Rules.Clock(s.best) or "-")
+    ui.ever:SetText(s.ever and Rules.Clock(s.ever) or "-")
+end
+
+-- The course's ground, treats and flag, laid once in a strip that slides
+-- under the window as the pal runs.
+local function Lay()
+    local world = ui.world
+    world:SetSize(course.cols * TILE, Rules.ROWS * TILE)
+    ui.backdrop:SetTexture(ART .. "paddock_" .. course.land, "CLAMP", "CLAMP", "NEAREST")
+    local land = 0
+    for i, name in ipairs(Rules.LANDS) do
+        if name == course.land then land = i - 1 end
+    end
+    local ox, oy = (land % 4) * 64, math.floor(land / 4) * 64
+    local used = 0
+    for row = 0, Rules.ROWS do
+        for col = 0, course.cols do
+            local tile = PalRun.Tile(course, col, row)
+            if tile > 0 then
+                used = used + 1
+                local t = ui.tiles[used]
+                if not t then
+                    t = world:CreateTexture(nil, "ARTWORK")
+                    t:SetSize(TILE, TILE)
+                    t:SetTexture(ART .. "run", "CLAMP", "CLAMP", "NEAREST")
+                    ui.tiles[used] = t
+                end
+                local x, y = ox + (tile % 4) * 16, oy + math.floor(tile / 4) * 16
+                t:SetTexCoord(x / 256, (x + 16) / 256, y / 256, (y + 16) / 256)
+                t:ClearAllPoints()
+                t:SetPoint("TOPLEFT", world, "TOPLEFT", (col - 0.5) * TILE, -(row - 0.5) * TILE)
+                t:Show()
+            end
+        end
+    end
+    for i = used + 1, #ui.tiles do ui.tiles[i]:Hide() end
+    for i, treat in ipairs(course.treats) do
+        local t = ui.treats[i]
+        if not t then
+            t = world:CreateTexture(nil, "OVERLAY")
+            t:SetSize(32, 32)
+            t:SetTexture(ART .. "treat", "CLAMP", "CLAMP", "NEAREST")
+            ui.treats[i] = t
+        end
+        t:ClearAllPoints()
+        t:SetPoint("CENTER", world, "TOPLEFT", (treat.col + 0.5) * TILE, -(treat.row + 0.5) * TILE)
+        t:Show()
+    end
+    for i = #course.treats + 1, #ui.treats do ui.treats[i]:Hide() end
+    ui.flag:ClearAllPoints()
+    ui.flag:SetPoint("BOTTOM", world, "TOPLEFT", (course.flag + 0.5) * TILE, -6 * TILE)
+end
+
+-- Where everything is this frame: the strip under the pal, the pal on it,
+-- the clock.
+local function Paint()
+    local cam = math.floor(math.max(0, math.min(course.cols * TILE - FIELD_W, run.x * TILE - FIELD_W * 0.35)))
+    ui.world:SetPoint("TOPLEFT", ui.field, "TOPLEFT", -cam, -(FIELD_H - Rules.ROWS * TILE))
+
+    local sprite = ui.runner
+    local sheet = ns.Pet.SHEETS[sprite]
+    local cell, from = PalRun.Cell(sheet, run, clock)
+    local cols = from.cols or math.floor(from.w / from.cell)
+    local col, row = cell % cols, math.floor(cell / cols)
+    local left, right = col * from.cell / from.w, (col + 1) * from.cell / from.w
+    -- The pictures face left.
+    if run.facing > 0 then left, right = right, left end
+    ui.pal:SetTexCoord(left, right, row * from.cell / from.h, (row + 1) * from.cell / from.h)
+    local file = ART .. from.file
+    if ui.pal.file ~= file then
+        ui.pal.file = file
+        ui.pal:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
+    end
+    -- Its picture is centred on the 64 pixels it stands in, whose feet line
+    -- sits on the bottom of the pal's box.
+    local size = from.cell * SCALE
+    local middle = (run.y + Rules.H) * TILE - (FEET[sprite] or 57) * SCALE + 32 * SCALE
+    ui.pal:SetSize(size, size)
+    ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor((run.x + Rules.W / 2) * TILE), -math.floor(middle))
+
+    ui.clock:SetText(run.started and Rules.Clock(Rules.Ticks(run)) or "0:00.00")
+    if flash > 0 then
+        ui.clock:SetTextColor(Style.Color("green"))
+        ui.bonus:SetAlpha(math.min(1, flash * 2))
+    else
+        ui.clock:SetTextColor(Style.Color("text"))
+        ui.bonus:SetAlpha(0)
+    end
+end
+
+local function ShowCard(title, sub, detail)
+    ui.card:Show()
+    ui.cardTitle:SetText(title)
+    ui.cardSub:SetText(sub)
+    ui.cardDetail:SetText(detail or "")
+    ui.again:SetShown(run.done == true)
+    ui.share:SetShown(run.done == true)
+    ui.share:SetLabel(mode == "daily" and "Share to guild" or "New course")
+    ui.share:SetEnabled(mode ~= "daily" or PalRun.DailyDone())
+    ui.other:SetLabel(mode == "daily" and "Practice course" or "Today's course")
+    -- One button stands in the middle; three stand in a row.
+    ui.other:ClearAllPoints()
+    if run.done then ui.other:SetPoint("BOTTOMLEFT", ui.card, "BOTTOM", 73, 16) else ui.other:SetPoint("BOTTOM", ui.card, "BOTTOM", 0, 16) end
+end
+
+-- A fresh run on the course there is, or on a new one: today's, or a
+-- practice course from `newSeed`.
+local function Begin(newMode, newSeed)
+    if newMode then
+        mode = newMode
+        seed = mode == "daily" and (Games.Today() * 7919 + 211) or newSeed
+        course = Rules.Course(Games.Random(seed))
+        Lay()
+    end
+    run = Rules.New(course)
+    behind, clock, flash = 0, 0, 0
+    for i in ipairs(course.treats) do ui.treats[i]:Show() end
+    ui.runner = PalRun.Runner()
+    ShowCard(mode == "daily" and ("Today's course   |cff9a9688#%d|r"):format(Games.Today()) or "Practice course",
+        "A and D to run, Space to jump. The clock starts when you move.",
+        "Each treat takes half a second off. R starts again.")
+    Paint()
+    PaintBoard()
+end
+
+local function Finish()
+    local steps = Rules.Ticks(run)
+    local how, by = PalRun.Finished(mode, steps)
+    local sub
+    if how == "first" then
+        sub = "Your first time today. Run again to beat it."
+    elseif how == "best" then
+        sub = ("A new best today, by %s."):format(Rules.Clock(by))
+    elseif how == "slower" then
+        sub = ("Your best today is still %s."):format(Rules.Clock(Saved().best))
+    else
+        sub = "A practice course: it isn't kept."
+    end
+    ShowCard(Rules.Clock(steps), sub, ("%d of %d treats   ·   %s"):format(run.got, #course.treats,
+        run.falls == 0 and "no falls" or (run.falls == 1 and "1 fall" or (run.falls .. " falls"))))
+    PaintBoard()
+    ns.Window.Refresh()
+end
+
+local function Tick(_, elapsed)
+    -- A long pause between frames isn't made up for: the pal doesn't leap ahead.
+    behind = math.min(behind + elapsed, 0.25)
+    clock = clock + elapsed
+    flash = math.max(0, flash - elapsed)
+    while behind >= Rules.STEP do
+        behind = behind - Rules.STEP
+        if run.done then break end
+        local started = run.started
+        Rules.Step(run, held.left, held.right, held.jump)
+        if run.started and not started then ui.card:Hide() end
+        if run.fresh then
+            ui.treats[run.fresh]:Hide()
+            run.fresh = nil
+            flash = 0.6
+        end
+        if run.done then
+            clock = 0
+            Finish()
+        end
+    end
+    Paint()
+    boardAge = boardAge + elapsed
+    if boardAge > 2 then
+        boardAge = 0
+        PaintBoard()
+    end
+end
+
+-- The keys the game takes while its window is open; every other key goes
+-- on to the game as usual.
+local KEYS = { A = "left", LEFT = "left", D = "right", RIGHT = "right", SPACE = "jump", W = "jump", UP = "jump" }
+local function Key(self, key, down)
+    local what = KEYS[key]
+    -- The game won't have this changed in a fight, when the window shuts anyway.
+    if not Compat.InCombat() then self:SetPropagateKeyboardInput(not (what or key == "R" or key == "ESCAPE")) end
+    if what then
+        held[what] = down
+    elseif down and key == "R" then
+        Begin()
+    elseif down and key == "ESCAPE" then
+        ui.frame:Hide()
+    end
+end
+
+-- The run in the window: where the pal is and how it's going.
+function PalRun.Now() return run end
+
+local function ShareLine()
+    return ("Pal run #%d: %s"):format(Games.Today(), Rules.Clock(Saved().best or 0))
+end
+PalRun.ShareLine = ShareLine
+
+local function Build()
+    local frame = Style.Panel("jsalUIPalRun", PAD * 3 + FIELD_W + BOARD_W, 32 + PAD * 2 + FIELD_H, "Pal run")
+    ui.frame = frame
+    frame:EnableKeyboard(true)
+    frame:SetScript("OnKeyDown", function(self, key) Key(self, key, true) end)
+    frame:SetScript("OnKeyUp", function(self, key) Key(self, key, false) end)
+    frame:SetScript("OnUpdate", ns.Safe(PalRun, Tick))
+    frame:SetScript("OnHide", function() held = {} end)
+
+    local field = CreateFrame("Frame", nil, frame)
+    ui.field = field
+    field:SetSize(FIELD_W, FIELD_H)
+    field:SetPoint("TOPLEFT", PAD, -(32 + PAD))
+    field:SetClipsChildren(true)
+    -- The paddock's scenery: its 220 by 100 picture, four times over.
+    ui.backdrop = field:CreateTexture(nil, "BACKGROUND")
+    ui.backdrop:SetAllPoints()
+    ui.backdrop:SetTexCoord(0, 220 / 256, 0, 100 / 128)
+    local edge = CreateFrame("Frame", nil, frame)
+    edge:SetAllPoints(field)
+    edge:SetFrameLevel(field:GetFrameLevel() + 5)
+    Style.Border(edge, "lineStrong")
+
+    ui.world = CreateFrame("Frame", nil, field)
+    ui.tiles, ui.treats = {}, {}
+    ui.flag = ui.world:CreateTexture(nil, "ARTWORK", nil, 2)
+    ui.flag:SetSize(FLAG_W * 3, FLAG_H * 3)
+    ui.flag:SetTexture(ART .. "run", "CLAMP", "CLAMP", "NEAREST")
+    -- The flag stands on the bottom edge of the cell after the last country's, centred.
+    local fx, fy = 64 + (64 - FLAG_W) / 2, 128 + 64 - FLAG_H
+    ui.flag:SetTexCoord(fx / 256, (fx + FLAG_W) / 256, fy / 256, (fy + FLAG_H) / 256)
+    ui.pal = ui.world:CreateTexture(nil, "OVERLAY", nil, 2)
+
+    local hud = CreateFrame("Frame", nil, field)
+    hud:SetAllPoints()
+    hud:SetFrameLevel(field:GetFrameLevel() + 3)
+    ui.clock = Style.Text(hud, 30, "text", nil, true)
+    ui.clock:SetPoint("TOP", 0, -14)
+    ui.clock:SetShadowColor(0.08, 0.06, 0.1, 1)
+    ui.clock:SetShadowOffset(2, -2)
+    ui.bonus = Style.Text(hud, 15, "green", nil, true)
+    ui.bonus:SetPoint("LEFT", ui.clock, "RIGHT", 10, 0)
+    ui.bonus:SetShadowColor(0.08, 0.06, 0.1, 1)
+    ui.bonus:SetShadowOffset(1, -1)
+    ui.bonus:SetText("-0.50")
+
+    -- The card over the course: how to play before a run, and how it went after.
+    local card = CreateFrame("Frame", nil, hud)
+    ui.card = card
+    card:SetSize(460, 176)
+    card:SetPoint("CENTER", 0, 10)
+    card:SetFrameLevel(hud:GetFrameLevel() + 2)
+    Style.Fill(card, "titleBar"):SetAlpha(0.92)
+    Style.Border(card, "lineStrong")
+    ui.cardTitle = Style.Text(card, 24, "text", nil, true)
+    ui.cardTitle:SetPoint("TOP", 0, -22)
+    ui.cardSub = Style.Text(card, 13, "secondary")
+    ui.cardSub:SetPoint("TOP", ui.cardTitle, "BOTTOM", 0, -10)
+    ui.cardDetail = Style.Text(card, 12, "muted")
+    ui.cardDetail:SetPoint("TOP", ui.cardSub, "BOTTOM", 0, -6)
+    ui.again = Style.Button(card, "Run again", "primary", 134)
+    ui.again:SetPoint("BOTTOMRIGHT", card, "BOTTOM", -73, 16)
+    ui.again:SetScript("OnClick", function() Begin() end)
+    ui.share = Style.Button(card, "Share to guild", "plain", 134)
+    ui.share:SetPoint("BOTTOM", card, "BOTTOM", 0, 16)
+    ui.share:SetScript("OnClick", function()
+        if mode ~= "daily" then return Begin("practice", math.random(1, 2000000000)) end
+        if not IsInGuild() then return ns.Print("Join a guild to share.") end
+        Compat.SendChat(ShareLine(), "GUILD")
+        ui.share:SetEnabled(false)
+    end)
+    ui.other = Style.Button(card, "Practice course", "plain", 134)
+    ui.other:SetScript("OnClick", function()
+        if mode == "daily" then Begin("practice", math.random(1, 2000000000)) else Begin("daily") end
+    end)
+
+    -- Beside the course: today's times in the guild, then your own.
+    local x = PAD * 2 + FIELD_W
+    local head = Style.Section(frame, BOARD_W)
+    head:SetPoint("TOPLEFT", x, -(32 + PAD))
+    head.title:SetText("TODAY IN THE GUILD")
+    ui.day = head.note
+    ui.rows = {}
+    for i = 1, ROWS_SHOWN do
+        local row = CreateFrame("Frame", nil, frame)
+        row:SetSize(BOARD_W, ROW_H)
+        row:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(6 + (i - 1) * ROW_H))
+        row.fill = Style.Fill(row, "well")
+        row.edge = row:CreateTexture(nil, "BORDER")
+        row.edge:SetColorTexture(Style.Color("gold"))
+        row.edge:SetPoint("TOPLEFT")
+        row.edge:SetPoint("BOTTOMLEFT")
+        row.edge:SetWidth(2)
+        row.rule = Style.Rule(row, "BOTTOM", "line")
+        row.rank = Style.Text(row, 13, "muted")
+        row.rank:SetPoint("LEFT", 12, 0)
+        row.dot = row:CreateTexture(nil, "ARTWORK")
+        row.dot:SetSize(6, 6)
+        row.dot:SetPoint("LEFT", 30, 0)
+        row.time = Style.Text(row, 14, "text", nil, true)
+        row.time:SetPoint("RIGHT", -10, 0)
+        row.name = Style.Text(row, 13, "text", nil, true)
+        row.name:SetPoint("LEFT", 44, 0)
+        row.name:SetPoint("RIGHT", row.time, "LEFT", -8, 0)
+        row.name:SetJustifyH("LEFT")
+        row.name:SetWordWrap(false)
+        ui.rows[i] = row
+    end
+    ui.empty = Style.Text(frame, 12, "muted")
+    ui.empty:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -12)
+    ui.empty:SetWidth(BOARD_W)
+    ui.empty:SetJustifyH("LEFT")
+    ui.empty:SetText("No times yet today. Yours could be the first.")
+    ui.more = Style.Text(frame, 12, "muted")
+    ui.more:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(10 + ROWS_SHOWN * ROW_H))
+
+    local mine = Style.Section(frame, BOARD_W)
+    mine:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(40 + ROWS_SHOWN * ROW_H))
+    mine.title:SetText("YOUR BEST")
+    for i, label in ipairs({ "Today", "Fastest ever" }) do
+        local name = Style.Text(frame, 13, "secondary")
+        name:SetPoint("TOPLEFT", mine, "BOTTOMLEFT", 0, -(10 + (i - 1) * 26))
+        name:SetText(label)
+        local value = Style.Text(frame, 14, "text", nil, true)
+        value:SetPoint("TOPRIGHT", mine, "BOTTOMRIGHT", -10, -(9 + (i - 1) * 26))
+        ui[i == 1 and "today" or "ever"] = value
+    end
+    local hint = Style.Text(frame, 12, "muted")
+    hint:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", x, PAD)
+    hint:SetWidth(BOARD_W)
+    hint:SetJustifyH("LEFT")
+    hint:SetSpacing(4)
+    hint:SetText("A and D to run, Space to jump.\nR starts the course again.")
+end
+
+local function Start(newMode)
+    if not PalRun.running then
+        return ns.Print("Pal run is turned off. /jsal settings turns it on.")
+    end
+    if Compat.InCombat() then
+        return ns.Print("Pal run opens once combat ends.")
+    end
+    if not ui.frame then Build() end
+    Begin(newMode, math.random(1, 2000000000))
+    ui.frame:Show()
+end
+
+function PalRun.Open() Start("daily") end
+function PalRun.Practice() Start("practice") end
+
+function PalRun:OnEnable()
+    local events = CreateFrame("Frame")
+    events:RegisterEvent("PLAYER_REGEN_DISABLED")
+    events:SetScript("OnEvent", ns.Safe(self, function()
+        if ui.frame then ui.frame:Hide() end
+    end))
+end
+
+ns.Command("run", function() PalRun.Open() end)
