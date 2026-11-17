@@ -480,6 +480,10 @@ local function FillOrder(r, order, state, second, mine, buttons)
             right = right + b:GetWidth() + (key == "lesser" and 0 or 8) + (key == "plain" and 6 or 0)
         end
     end
+    -- The two lines of words have the row up to its buttons, however many there are.
+    local words = r:GetWidth() - 68 - right - 16
+    r.l1:SetWidth(words)
+    r.l2:SetWidth(words)
     return waiting
 end
 
@@ -995,9 +999,10 @@ local function PaintYours()
             elseif people[1] then
                 who = Who(people[1].name, roster) .. " makes this, " .. ns.Crafters.Ago(people[1].seen)
             else
-                who = "No guildmate sharing their recipes makes this yet"
+                who = "nobody sharing recipes makes this yet"
             end
-            local second = "Asked " .. Ago(o.t) .. DOT .. who .. CostNote(o) .. (o.note and ("   “" .. o.note .. "”") or "")
+            -- The cost before who makes it: if the line runs out of room, the number isn't what's cut.
+            local second = "Asked " .. Ago(o.t) .. CostNote(o) .. DOT .. who .. (o.note and ("   “" .. o.note .. "”") or "")
             local id = o.id
             waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "waiting", second, true, {
                 plain = maker and { "Whisper " .. (maker:match("^%S+") or maker), function() Whisper(maker, Roster()) end } or nil,
