@@ -15,16 +15,18 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local C = { views = {}, ask = { have = true } }
 ns.GuildCrafts = C
 
-local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 82, 40, 26, 52, 76
--- A row's track, and the room kept after its materials for "+2 more".
-local TRACK_GAP = 86
-local TRACK_W, MORE_W = 3 * TRACK_GAP + 24, 64
+local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 88, 40, 26, 52, 76
+-- An order is a card this tall, in a row with a gap under it; what's in it
+-- starts this far from its sides.
+local ORDER_H, ORDER_PAD = 80, 14
+-- The room an order's track has (four dots and the name of the step it's
+-- at), and the room kept after its materials for "+2 more".
+local TRACK_W, MORE_W = 140, 64
 -- The least room who makes it has in the asking card's foot.
 local MAKERS_W = 250
 local TOP, FOOT = 116, 30
--- Where the asking card starts under the counts (which are 52 high): the gap holds a line
--- saying why something couldn't be done. And the card's height.
-local CARD_Y, ASK_H = 80, 160
+-- The asking card's height.
+local ASK_H = 160
 local ENCHANTING = 333
 -- A state's colour. "todo" is an order you accepted and "got" one of yours
 -- that was sent to you: the two things that wait on you. "sent" is one you
@@ -259,77 +261,29 @@ local function Chip(parent)
 end
 
 -- Where an order stands: asked, being made, sent, received. The same on every row.
+local STEPS = { "Asked", "Being made", "Sent", "Received" }
 local function Track(parent)
     local t = CreateFrame("Frame", nil, parent)
-    t:SetSize(TRACK_W, 32)
-    t.nodes, t.holes, t.lines, t.labels = {}, {}, {}, {}
-    for i, label in ipairs({ "Asked", "Being made", "Sent", "Received" }) do
-        local x = (i - 1) * TRACK_GAP
-        local node = t:CreateTexture(nil, "ARTWORK")
-        node:SetSize(10, 10)
-        node:SetPoint("TOPLEFT", x, 0)
-        local hole = t:CreateTexture(nil, "OVERLAY")
-        hole:SetSize(8, 8)
-        hole:SetPoint("CENTER", node, "CENTER")
-        hole:SetColorTexture(Style.Color("window"))
-        local text = Style.Text(t, 10, "muted")
-        text:SetPoint("TOP", node, "BOTTOM", 0, -5)
-        text:SetJustifyH("CENTER")
-        text:SetText(label)
-        t.nodes[i], t.holes[i], t.labels[i] = node, hole, text
-        if i < 4 then
-            local line = t:CreateTexture(nil, "ARTWORK")
-            line:SetSize(TRACK_GAP - 10, 1)
-            line:SetPoint("LEFT", node, "RIGHT", 0, 0)
-            t.lines[i] = line
-        end
+    t:SetSize(TRACK_W, 16)
+    -- The step it's at, named at the right; the four dots before it.
+    t.label = Style.Text(t, 12, "muted", nil, true)
+    t.label:SetPoint("RIGHT")
+    t.label:SetJustifyH("RIGHT")
+    t.nodes = {}
+    for i = 4, 1, -1 do
+        local node = Style.Round(t, 4, "lineStrong", "ARTWORK")
+        node:ClearAllPoints()
+        node:SetSize(8, 8)
+        if i == 4 then node:SetPoint("RIGHT", t.label, "LEFT", -8, 0) else node:SetPoint("RIGHT", t.nodes[i + 1], "LEFT", -5, 0) end
+        t.nodes[i] = node
     end
     function t:Set(state)
         local at = STEP[state]
-        local r, g, b = Style.Color(STATE[state])
-        for i = 1, 4 do
-            local reached = i <= at
-            if reached then self.nodes[i]:SetColorTexture(r, g, b) else self.nodes[i]:SetColorTexture(Style.Color("lineStrong")) end
-            self.holes[i]:SetShown(not reached)
-            if i == at then self.labels[i]:SetTextColor(r, g, b) else self.labels[i]:SetTextColor(Style.Color("muted")) end
-            if self.lines[i] then
-                if i < at then self.lines[i]:SetColorTexture(r, g, b) else self.lines[i]:SetColorTexture(Style.Color("lineStrong")) end
-            end
-        end
+        for i = 1, 4 do self.nodes[i]:Paint(i <= at and STATE[state] or "lineStrong") end
+        self.label:SetText(STEPS[at])
+        self.label:SetTextColor(Style.Color(STATE[state]))
     end
     return t
-end
-
--- How things stand, at a glance: a number for a state.
-local function CountBox(parent, width)
-    local box = CreateFrame("Frame", nil, parent)
-    box:SetSize(width, 52)
-    Style.Box(box, 6, "well", "cardLine")
-    -- The state's colour down the left, clear of the round corners.
-    box.edge = box:CreateTexture(nil, "ARTWORK")
-    box.edge:SetPoint("TOPLEFT", 0, -6)
-    box.edge:SetPoint("BOTTOMLEFT", 0, 6)
-    box.edge:SetWidth(3)
-    box.number = Style.Text(box, 26, "text", nil, true)
-    box.number:SetPoint("LEFT", 20, 0)
-    box.number:SetJustifyV("MIDDLE")
-    box.mark = Mark(box, 10)
-    box.mark:SetPoint("TOPLEFT", 62, -12)
-    box.label = Style.Text(box, 11, "text", nil, true)
-    box.label:SetPoint("LEFT", box.mark, "RIGHT", 8, 0)
-    box.say = Style.Text(box, 11, "muted")
-    box.say:SetPoint("TOPLEFT", 62, -30)
-    function box:Set(state, n, label, say)
-        local r, g, b = Style.Color(STATE[state])
-        self.edge:SetColorTexture(r, g, b)
-        self.number:SetText(n)
-        if n > 0 then self.number:SetTextColor(r, g, b) else self.number:SetTextColor(Style.Color("muted")) end
-        self.mark:Set(state)
-        self.label:SetText(label)
-        self.label:SetTextColor(r, g, b)
-        self.say:SetText(say)
-    end
-    return box
 end
 
 ---------------------------------------------------------------------------
@@ -443,34 +397,32 @@ local function ShowTip(self)
 end
 
 local function MakeOrder(parent, width)
+    -- A card, with its state's colour down its left edge.
     local r = CreateFrame("Frame", nil, parent)
-    r:SetSize(width, ROW)
-    r.edge = r:CreateTexture(nil, "ARTWORK")
-    r.edge:SetPoint("TOPLEFT", 0, -8)
-    r.edge:SetPoint("BOTTOMLEFT", 0, 10)
-    r.edge:SetWidth(2)
+    r:SetSize(width, ORDER_H)
+    Style.Box(r, 6, "well", "cardLine")
+    r.edge = Style.Edge(r, 6)
     r.icon = r:CreateTexture(nil, "ARTWORK")
     r.icon:SetSize(40, 40)
-    r.icon:SetPoint("TOPLEFT", 14, -10)
+    r.icon:SetPoint("TOPLEFT", ORDER_PAD + 2, -12)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.l1 = Style.Text(r, 14, "text", nil, true)
-    r.l1:SetPoint("TOPLEFT", 68, -8)
-    r.l1:SetWidth(width - 68 - 300)
+    r.l1:SetPoint("TOPLEFT", 70, -10)
+    r.l1:SetWidth(width - 70 - 300)
     r.l1:SetWordWrap(false)
     r.l2 = Style.Text(r, 12, "muted")
-    r.l2:SetPoint("TOPLEFT", 68, -30)
-    r.l2:SetWidth(width - 68 - 300)
+    r.l2:SetPoint("TOPLEFT", 70, -31)
+    r.l2:SetWidth(width - 70 - 300)
     r.l2:SetWordWrap(false)
     r.pill = Pill(r)
-    r.pill:SetPoint("TOPLEFT", 68, -52)
+    r.pill:SetPoint("TOPLEFT", 70, -52)
     r.chips = {}
     r.more = Style.Text(r, 11, "muted")
     r.main = Style.Button(r, "", "primary", 90)
     r.plain = Style.Button(r, "Whisper", "plain", 84)
     r.lesser = Quiet(r)
     r.track = Track(r)
-    r.track:SetPoint("BOTTOMRIGHT", 0, 6)
-    Style.Rule(r, "BOTTOM", "line")
+    r.track:SetPoint("BOTTOMRIGHT", -ORDER_PAD, 11)
     r:EnableMouse(true)
     r:SetScript("OnEnter", ShowTip)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -509,7 +461,7 @@ end
 -- `buttons` = { main = { label, fn }, plain = { label, fn }, lesser = { label, fn } }.
 local function FillOrder(r, order, state, second, mine, buttons)
     r.order = order
-    r.edge:SetColorTexture(Style.Color(STATE[state]))
+    r.edge:Paint(STATE[state])
     r.icon:SetTexture(Icon(order))
     r.l1:SetText(Title(order))
     r.l2:SetText(second)
@@ -522,7 +474,7 @@ local function FillOrder(r, order, state, second, mine, buttons)
     -- named in the row's tooltip.
     local after, waiting, shown = r.pill, false, 0
     local materials = ns.Orders.Materials(order)
-    local room = r:GetWidth() - 68 - TRACK_W - 24 - r.pill:GetWidth()
+    local room = r:GetWidth() - 70 - TRACK_W - ORDER_PAD - 24 - r.pill:GetWidth()
     for i, m in ipairs(materials) do
         local chip = r.chips[i]
         if not chip then
@@ -560,13 +512,13 @@ local function FillOrder(r, order, state, second, mine, buttons)
                 b:SetSize(TextWidth(b.label, #spec[1] * 7) + (key == "main" and 36 or 28), 28)
             end
             b:ClearAllPoints()
-            b:SetPoint("TOPRIGHT", -right, key == "lesser" and -14 or -9)
+            b:SetPoint("TOPRIGHT", -(ORDER_PAD + right), key == "lesser" and -16 or -11)
             b:SetScript("OnClick", spec[2])
             right = right + b:GetWidth() + (key == "lesser" and 0 or 8) + (key == "plain" and 6 or 0)
         end
     end
     -- The two lines of words have the row up to its buttons, however many there are.
-    local words = r:GetWidth() - 68 - right - 16
+    local words = r:GetWidth() - 70 - ORDER_PAD - right - 16
     r.l1:SetWidth(words)
     r.l2:SetWidth(words)
     return waiting
@@ -633,17 +585,6 @@ local function Note(list, text)
     Take(list, "note", MakeNote, 44).text:SetText(text)
 end
 
--- A row of three count boxes across a view.
-local function Boxes(view, width)
-    view.boxes = {}
-    local w = math.floor((width - 20) / 3)
-    for i = 1, 3 do
-        local box = CountBox(view, w)
-        box:SetPoint("TOPLEFT", (i - 1) * (w + 10), 0)
-        view.boxes[i] = box
-    end
-end
-
 -- With orders off, an order tab says where to turn them on.
 local function Off(view, width)
     view.off = CreateFrame("Frame", nil, view)
@@ -685,9 +626,6 @@ local function PaintForYou()
     end
     C.sub:SetText("What guildmates asked for that you know how to make.")
     C.right:SetText(("%d open in the guild"):format(me.open))
-    view.boxes[1]:Set("todo", #me.todo, "TO DO", #me.todo > 0 and ("you accepted " .. Plural(#me.todo, "it", "these")) or "nothing accepted")
-    view.boxes[2]:Set("waiting", #me.waiting, "WAITING", #me.waiting > 0 and "you can accept " .. Plural(#me.waiting, "it", "these") or "nothing to accept")
-    view.boxes[3]:Set("done", #me.done, "DONE", #me.done > 0 and "made by you, lately" or "nothing lately")
     Reset(list)
     local waiting = false
     if #me.todo > 0 then
@@ -975,7 +913,7 @@ end
 local function BuildCard(view, width)
     local card = CreateFrame("Frame", nil, view.body)
     card:SetSize(width, ASK_H)
-    card:SetPoint("TOPLEFT", 0, -CARD_Y)
+    card:SetPoint("TOPLEFT")
     Style.Box(card, 6, "well", "cardLine")
     C.card = card
     card.strip = CreateFrame("Frame", nil, card)
@@ -1150,11 +1088,6 @@ local function PaintYours()
     C.title:SetText(open > 0 and ("%d %s of yours %s open"):format(open, Plural(open, "order", "orders"), Plural(open, "is", "are")) or "Ask the guild for something")
     C.sub:SetText("Ask the guild for a craft or an enchant.")
     C.right:SetText("")
-    view.boxes[1]:Set("waiting", #mine.waiting, "WAITING",
-        #mine.waiting > 0 and ("nobody has accepted " .. Plural(#mine.waiting, "it", "them") .. " yet") or "nothing waiting")
-    view.boxes[2]:Set("making", #mine.making, "BEING MADE",
-        #mine.making > 0 and ("a guildmate accepted " .. Plural(#mine.making, "it", "them")) or "nothing being made")
-    view.boxes[3]:Set("done", #mine.done, "DONE", #mine.done > 0 and "received lately" or "nothing lately")
     PaintAsk()
     Reset(list)
     local waiting = false
@@ -1560,25 +1493,22 @@ Window.Page("guildcrafts", function(page)
     C.foot:SetWordWrap(false)
     local bodyH = height - TOP - FOOT
 
-    -- For you: the counts, then the list.
+    -- For you: the list, a heading a state. The headings count; there are
+    -- no boxes of numbers over them saying the same.
     local foryou = BuildView(page, "foryou", width, bodyH)
     Off(foryou, width)
     foryou.body = CreateFrame("Frame", nil, foryou)
     foryou.body:SetAllPoints()
-    Boxes(foryou.body, width)
-    foryou.boxes = foryou.body.boxes
-    foryou.list = List(foryou.body, width, bodyH - 70)
-    foryou.list.scroll:SetPoint("TOPLEFT", 0, -70)
+    foryou.list = List(foryou.body, width, bodyH)
+    foryou.list.scroll:SetPoint("TOPLEFT")
 
-    -- Your orders: the counts, the asking card, then the list.
+    -- Your orders: the asking card, then the list.
     local yours = BuildView(page, "yours", width, bodyH)
     Off(yours, width)
     yours.body = CreateFrame("Frame", nil, yours)
     yours.body:SetAllPoints()
-    Boxes(yours.body, width)
-    yours.boxes = yours.body.boxes
-    yours.list = List(yours.body, width, bodyH - CARD_Y - ASK_H - 20)
-    yours.list.scroll:SetPoint("TOPLEFT", 0, -(CARD_Y + ASK_H + 20))
+    yours.list = List(yours.body, width, bodyH - ASK_H - 14)
+    yours.list.scroll:SetPoint("TOPLEFT", 0, -(ASK_H + 14))
     BuildCard(yours, width)
 
     -- Crafters: the search, then what it finds or everyone who shares.

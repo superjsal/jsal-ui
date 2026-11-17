@@ -272,7 +272,10 @@ function Style.Edge(card, radius, colorKey)
         edge:SetPoint("TOPLEFT", 0, -radius)
         edge:SetPoint("BOTTOMLEFT", 0, radius)
         edge.shape = Style.Fill(edge, colorKey or "gold", "ARTWORK")
+        edge.shape.Paint = PaintShape
     end
+    -- Another colour, for a card whose edge says the state it's in.
+    function edge:Paint(key) self.shape:Paint(key) end
     return edge
 end
 
