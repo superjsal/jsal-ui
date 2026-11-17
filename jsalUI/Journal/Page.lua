@@ -79,19 +79,14 @@ end
 
 Window.Page("journal", function(page)
     local J = ns.Journal
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = Window.fullWidth, Window.contentHeight
     local views, current = {}, "summary"
 
-    -- A tab's page, under the tabs. A wide one has the dashboard's whole
-    -- width; any other keeps the width it was laid out for, in the middle.
-    local function View(key, wide)
+    -- A tab's page, under the tabs, with the dashboard's whole width.
+    local function View(key)
         local v = CreateFrame("Frame", nil, page)
-        if wide then
-            v:SetPoint("TOPLEFT", 0, -44)
-        else
-            v:SetPoint("TOP", page, "TOP", 0, -44)
-        end
-        v:SetSize(wide and Window.fullWidth or width, height - 52)
+        v:SetPoint("TOPLEFT", 0, -44)
+        v:SetSize(width, height - 52)
         v:Hide()
         views[key] = v
         return v
@@ -114,11 +109,10 @@ Window.Page("journal", function(page)
     -----------------------------------------------------------------
     -- Summary.
     -----------------------------------------------------------------
-    local summary = View("summary", true)
+    local summary = View("summary")
     -- Summary, across the whole width: who you are, how far to the next
     -- level, three things about you, your levels as a chart, your numbers
     -- with a picture each, and your favourites and latest moments as lists.
-    local width = Window.fullWidth
     local M = { cards = {}, bars = {}, tiles = {}, lately = {}, HERO_H = 196, CHART_H = 76, TILE_H = 70, TILE_GAP = 12, LIST_H = 26, LIST_GAP = 16,
                 ICONS = "Interface\\Icons\\" }
     M.TILE_ICON = { "Ability_DualWield", "Ability_Rogue_Sprint", "INV_Misc_Note_01", "INV_Misc_Head_Dragon_01", "Ability_Hunter_EagleEye",
@@ -526,57 +520,97 @@ Window.Page("journal", function(page)
 
     -----------------------------------------------------------------
     -- Story: the moments by day, newest first. A day has a heading; a
-    -- moment has its time, a square in its kind's colour (the filter
-    -- buttons wear the same), its words, and where it was when the words
-    -- don't already say. The same thing several times in a day is one row
-    -- that says how many.
+    -- moment has its time, a square in its kind's colour, its words, and
+    -- where it was when the words don't already say. The same thing several
+    -- times in a day is one row that says how many. A column at the left
+    -- chooses what to show, all of it or one kind, each kind with its square
+    -- and how many moments it has; under those are the days, each with its
+    -- count, and a click on one brings it to the top.
     -----------------------------------------------------------------
-    -- The other tabs keep the width they were laid out for.
-    local width = Window.contentWidth
     local story = View("story")
-    local S = { filters = {}, rows = {}, heads = {}, offset = 0, TOP = 30, HEAD_H = 34, ROW_H = 26, TALL_H = 42, TEXT_X = 86 }
-    S.room = height - 52 - S.TOP - 24
+    local S = { filters = {}, days = {}, rows = {}, heads = {}, offset = 0, RAIL_W = 220, KIND_H = 32, DAY_H = 26, DAYS = 12,
+                HEAD_H = 40, ROW_H = 32, TALL_H = 48, TEXT_X = 96 }
+    -- The moments stand right of the column, with the rest of the width.
+    S.X = S.RAIL_W + 26
+    S.W = width - S.X
+    S.room = height - 52 - 24
     S.TINT, S.OTHER = TINT, OTHER
+
+    -- A row of the column at the left: a word, and a count at its right.
+    -- Its word lights under the pointer, and stays lit while it's chosen.
+    function S.RailRow(y, tall, size)
+        local b = CreateFrame("Button", nil, story)
+        b:SetSize(S.RAIL_W, tall)
+        b:SetPoint("TOPLEFT", 0, -y)
+        b.label = Style.Text(b, size, "secondary")
+        b.label:SetPoint("LEFT", 10, 0)
+        b.count = Style.Text(b, 12, "muted")
+        b.count:SetPoint("RIGHT", -10, 0)
+        b.count:SetJustifyH("RIGHT")
+        b:SetScript("OnEnter", function(self) self.label:SetTextColor(Style.Color("text")) end)
+        b:SetScript("OnLeave", function(self) self.label:SetTextColor(Style.Color(self.selected and "text" or "secondary")) end)
+        return b
+    end
+
+    -- What to show: all of it, or one kind, each with its square and how
+    -- many moments it has.
+    local showHead = Style.Text(story, 11, "gold", nil, true)
+    showHead:SetPoint("TOPLEFT", 10, -10)
+    showHead:SetText("SHOW")
     for i, f in ipairs({ { nil, "All" }, { "levels", "Levels", "level" }, { "kills", "Kills", "kill" }, { "loot", "Loot", "loot" },
-                         { "deaths", "Deaths", "death" }, { "pals", "Pals", "pet" }, { "more", "More" } }) do
-        local b = Style.Button(story, f[2], "tab", 84)
-        b:SetHeight(24)
-        b:SetPoint("TOPLEFT", (i - 1) * 90, 0)
-        if f[3] then
-            local c = S.TINT[f[3]]
-            local mark = b:CreateTexture(nil, "ARTWORK")
-            mark:SetSize(7, 7)
-            mark:SetPoint("LEFT", 9, 0)
-            mark:SetColorTexture(c[1], c[2], c[3])
-            -- The word moves over for it.
-            if b.label then
-                b.label:ClearAllPoints()
-                b.label:SetPoint("CENTER", 7, 0)
-            end
-        end
+                         { "deaths", "Deaths", "death" }, { "pals", "Pals", "pet" }, { "more", "More", "other" } }) do
+        local b = S.RailRow(34 + (i - 1) * S.KIND_H, S.KIND_H, 13)
+        b.fill = Style.Round(b, 5, "well")
+        b.mark = b:CreateTexture(nil, "ARTWORK")
+        b.mark:SetSize(8, 8)
+        b.mark:SetPoint("LEFT", 10, 0)
+        local c = f[3] and (S.TINT[f[3]] or S.OTHER) or { Style.Color("muted") }
+        b.mark:SetColorTexture(c[1], c[2], c[3])
+        b.label:ClearAllPoints()
+        b.label:SetPoint("LEFT", 28, 0)
+        b.label:SetText(f[2])
         b:SetScript("OnClick", function()
             S.filter, S.offset = f[1], 0
             Paint()
         end)
         S.filters[#S.filters + 1] = { key = f[1], button = b }
     end
-    S.count = Style.Text(story, 12, "muted")
-    S.count:SetPoint("TOPRIGHT", 0, -5)
-    S.count:SetJustifyH("RIGHT")
+    -- The days, newest first, each with how many moments it has: a click
+    -- brings that day to the top. The last row stands for all the days
+    -- past those listed.
+    S.daysY = 34 + 7 * S.KIND_H + 24
+    local jumpHead = Style.Text(story, 11, "gold", nil, true)
+    jumpHead:SetPoint("TOPLEFT", 10, -S.daysY)
+    jumpHead:SetText("JUMP TO")
+    for i = 1, S.DAYS + 1 do
+        local b = S.RailRow(S.daysY + 22 + (i - 1) * S.DAY_H, S.DAY_H, 12)
+        b:SetScript("OnClick", function(self)
+            if not self.at then return end
+            S.offset = self.at
+            Paint()
+        end)
+        S.days[i] = b
+    end
+
     local storyFoot = Style.Text(story, 11, "muted")
-    storyFoot:SetPoint("BOTTOMLEFT")
+    storyFoot:SetPoint("BOTTOMLEFT", S.X, 0)
     story:EnableMouseWheel(true)
     story:SetScript("OnMouseWheel", function(_, delta)
         S.offset = math.max(0, S.offset - delta * 3)
         Paint()
     end)
 
-    -- A day's heading: "TODAY", "YESTERDAY" or "12 NOVEMBER".
-    function S.DayHead(t)
+    -- A day's name: "Today", "Yesterday" or "12 November".
+    function S.DayName(t)
         local word = Day(t)
-        if word == "today" or word == "yesterday" then return word:upper() end
+        if word == "today" or word == "yesterday" then return word:sub(1, 1):upper() .. word:sub(2) end
         local form = date("%Y", t) == date("%Y", Compat.ServerTime()) and "%d %B" or "%d %B %Y"
-        return ((date(form, t):gsub("^0", "")):upper())
+        return (date(form, t):gsub("^0", ""))
+    end
+
+    -- A day's heading: its name in capitals.
+    function S.DayHead(t)
+        return S.DayName(t):upper()
     end
 
     S.Clock = Clock
@@ -584,16 +618,19 @@ Window.Page("journal", function(page)
     -- What the page lists, from the moments newest first: a heading where a
     -- day starts, then a row a moment. The same words again in a day join
     -- the row that already has them. A pal's moment of two sentences has its
-    -- second on a line of its own.
+    -- second on a line of its own. A heading knows its day's name and how
+    -- many moments the day has, for the column's list of days.
     function S.Items(list)
-        local items, day, head, byText = {}, nil, nil, nil
+        local items, day, head, byText, top = {}, nil, nil, nil, nil
         for _, e in ipairs(list) do
             local t = e.t or 0
             local d = date("%Y%m%d", t)
             if d ~= day then
                 day, head, byText = d, S.DayHead(t), {}
-                items[#items + 1] = { head = head, h = S.HEAD_H }
+                top = { head = head, name = S.DayName(t), moments = 0, h = S.HEAD_H }
+                items[#items + 1] = top
             end
+            top.moments = top.moments + 1
             local key = tostring(e.k) .. ":" .. tostring(e.s)
             local same = byText[key]
             if same then
@@ -622,10 +659,10 @@ Window.Page("journal", function(page)
         local h = S.heads[i]
         if h then return h end
         h = CreateFrame("Frame", nil, story)
-        h:SetSize(width, S.HEAD_H - 6)
+        h:SetSize(S.W, S.HEAD_H - 6)
         Style.Rule(h, "BOTTOM", "lineStrong")
         h.text = Style.Text(h, 11, "secondary", nil, true)
-        h.text:SetPoint("BOTTOMLEFT", 0, 7)
+        h.text:SetPoint("BOTTOMLEFT", 0, 8)
         S.heads[i] = h
         return h
     end
@@ -634,32 +671,29 @@ Window.Page("journal", function(page)
         local r = S.rows[i]
         if r then return r end
         r = CreateFrame("Frame", nil, story)
-        r:SetSize(width, S.ROW_H)
+        r:SetSize(S.W, S.ROW_H)
         Style.Rule(r, "BOTTOM", "line")
         r.time = Style.Text(r, 11, "muted")
-        r.time:SetPoint("TOPRIGHT", r, "TOPLEFT", 58, -7)
+        r.time:SetPoint("TOPRIGHT", r, "TOPLEFT", 64, -9)
         r.time:SetJustifyH("RIGHT")
         r.mark = r:CreateTexture(nil, "ARTWORK")
-        r.mark:SetSize(7, 7)
-        r.mark:SetPoint("TOPLEFT", 68, -10)
-        r.text = Style.Text(r, 13, "text")
-        r.text:SetPoint("TOPLEFT", S.TEXT_X, -5)
+        r.mark:SetSize(8, 8)
+        r.mark:SetPoint("TOPLEFT", 76, -12)
+        r.text = Style.Text(r, 14, "text")
+        r.text:SetPoint("TOPLEFT", S.TEXT_X, -7)
         r.text:SetWordWrap(false)
         r.text:SetJustifyH("LEFT")
         r.more = Style.Text(r, 11, "muted")
-        r.more:SetPoint("TOPLEFT", S.TEXT_X, -24)
-        r.more:SetWidth(width - S.TEXT_X - 190)
+        r.more:SetPoint("TOPLEFT", S.TEXT_X, -28)
+        r.more:SetWidth(S.W - S.TEXT_X - 240)
         r.more:SetWordWrap(false)
         r.more:SetJustifyH("LEFT")
         -- How many times, on a row that stands for several.
-        r.times = CreateFrame("Frame", nil, r)
-        r.times:SetPoint("TOPLEFT", r.text, "TOPRIGHT", 8, -1)
-        Style.Fill(r.times, "line")
-        r.times.text = Style.Text(r.times, 10, "text")
-        r.times.text:SetPoint("CENTER")
+        r.times = Style.Tag(r, "")
+        r.times:SetPoint("LEFT", r.text, "RIGHT", 10, 0)
         r.where = Style.Text(r, 11, "muted")
-        r.where:SetPoint("TOPRIGHT", 0, -7)
-        r.where:SetWidth(180)
+        r.where:SetPoint("TOPRIGHT", 0, -9)
+        r.where:SetWidth(230)
         r.where:SetJustifyH("RIGHT")
         r.where:SetWordWrap(false)
         S.rows[i] = r
@@ -667,9 +701,48 @@ Window.Page("journal", function(page)
     end
 
     local function PaintStory()
-        for _, f in ipairs(S.filters) do f.button:SetSelected(f.key == S.filter) end
+        -- The column: which kind is chosen, and how many moments each has.
+        -- The chosen kind's list is asked for last, so it's the one in hand.
+        for _, f in ipairs(S.filters) do
+            local b, chosen = f.button, f.key == S.filter
+            b.selected = chosen
+            b.fill:SetShown(chosen)
+            b.label:SetTextColor(Style.Color(chosen and "text" or "secondary"))
+            if not chosen then b.count:SetText(tostring(#J.Story(f.key))) end
+        end
         local list = J.Story(S.filter)
+        for _, f in ipairs(S.filters) do
+            if f.key == S.filter then f.button.count:SetText(tostring(#list)) end
+        end
         local items = S.Items(list)
+        -- Its days: a row for each of the first few, then one for the rest.
+        local listed, rest = 0, nil
+        for index, it in ipairs(items) do
+            if it.head then
+                if listed < S.DAYS then
+                    listed = listed + 1
+                    local b = S.days[listed]
+                    b.at = index - 1
+                    b.label:SetText(it.name)
+                    b.count:SetText(tostring(it.moments))
+                    b:Show()
+                elseif rest then
+                    rest.moments = rest.moments + it.moments
+                else
+                    rest = { at = index - 1, moments = it.moments }
+                end
+            end
+        end
+        for i = listed + 1, #S.days do S.days[i]:Hide() end
+        if rest then
+            local b = S.days[S.DAYS + 1]
+            b.at = rest.at
+            b.label:SetText("Earlier")
+            b.count:SetText(tostring(rest.moments))
+            b:Show()
+        end
+        jumpHead:SetShown(listed > 0)
+
         -- The furthest down the list can start with the page still full,
         -- with room kept for the day's heading at the top.
         local room, last = S.room - S.HEAD_H, #items + 1
@@ -683,7 +756,7 @@ Window.Page("journal", function(page)
             heads = heads + 1
             local h = S.Head(heads)
             h:ClearAllPoints()
-            h:SetPoint("TOPLEFT", 0, -(S.TOP + y))
+            h:SetPoint("TOPLEFT", S.X, -y)
             h.text:SetText(text)
             h:Show()
             y = y + S.HEAD_H
@@ -698,7 +771,7 @@ Window.Page("journal", function(page)
                 rows = rows + 1
                 local r, e = S.Row(rows), it.e
                 r:ClearAllPoints()
-                r:SetPoint("TOPLEFT", 0, -(S.TOP + y))
+                r:SetPoint("TOPLEFT", S.X, -y)
                 r:SetHeight(it.h)
                 r.time:SetText(S.Clock(e.t or 0))
                 local c = S.TINT[e.k] or S.OTHER
@@ -716,16 +789,12 @@ Window.Page("journal", function(page)
                 -- to the last one's width would measure no wider than that.
                 r.text:SetWidth(0)
                 r.text:SetText(text)
-                local room = width - S.TEXT_X - (place ~= "" and 190 or 8) - (it.n > 1 and 40 or 0)
+                local most = S.W - S.TEXT_X - (place ~= "" and 240 or 8) - (it.n > 1 and 50 or 0)
                 local wide = r.text.GetStringWidth and r.text:GetStringWidth()
-                r.text:SetWidth((type(wide) == "number" and wide > 0) and math.min(room, wide + 2) or room)
+                r.text:SetWidth((type(wide) == "number" and wide > 0) and math.min(most, wide + 2) or most)
                 r.more:SetText(it.more or "")
                 r.times:SetShown(it.n > 1)
-                if it.n > 1 then
-                    r.times.text:SetText("×" .. it.n)
-                    local w = r.times.text.GetStringWidth and r.times.text:GetStringWidth()
-                    r.times:SetSize(((type(w) == "number" and w > 0) and w or 16) + 12, 16)
-                end
+                if it.n > 1 then r.times:Say("×" .. it.n) end
                 r:Show()
                 y = y + it.h
             end
@@ -733,7 +802,6 @@ Window.Page("journal", function(page)
         end
         for i = heads + 1, #S.heads do S.heads[i]:Hide() end
         for i = rows + 1, #S.rows do S.rows[i]:Hide() end
-        S.count:SetText(#list == 0 and "" or ("%d moment%s"):format(#list, #list == 1 and "" or "s"))
         storyFoot:SetText(#list == 0 and "Nothing here yet. It fills in as you play."
             or ((items[at] or S.offset > 0) and "Scroll for older and newer days." or ""))
     end
@@ -746,13 +814,17 @@ Window.Page("journal", function(page)
     -- rule under it where every other one had a band. The level you're on is
     -- marked, XP an hour has a bar beside it, gold and silver each have a
     -- place of their own so a column reads down, the net has its sign and
-    -- colour, and a death is red.
+    -- colour, and a death is red. The time a level took has a grey bar beside
+    -- it, against the longest. Over the table, four records: the fastest
+    -- level and the longest, of those seen start to end, the one with the
+    -- most deaths, and the one that earned the most over what it spent.
     -----------------------------------------------------------------
     local levels = View("levels")
-    local L = { rows = {}, open = {}, offset = 0, ROW_H = 30, GROUP_H = 36, GROUP_GAP = 12, TOP = 24, BAR_W = 36, GOLD = 34 }
-    -- Where each column ends; the level's is where it starts.
-    L.X = { level = 12, time = 144, xp = 214, bar = width - 504, rate = width - 416, earned = width - 338, spent = width - 258,
-            net = width - 178, foes = width - 130, quests = width - 70, deaths = width - 8 }
+    local L = { rows = {}, records = {}, open = {}, offset = 0, ROW_H = 30, GROUP_H = 36, GROUP_GAP = 12, TOP = 104, BAR_W = 66, TIME_W = 66,
+                GOLD = 34, RECORD_H = 64 }
+    -- Where each column ends; the level's, and each bar's, is where it starts.
+    L.X = { level = 12, time = 166, timeBar = 176, xp = 338, bar = 348, rate = 500, earned = 604, spent = 708,
+            net = 812, foes = 882, quests = 952, deaths = width - 8 }
     -- The room for the lines, over the totals and the words under them.
     L.room = height - 52 - L.TOP - (L.ROW_H + 14) - 44
     L.max = math.max(1, math.floor(L.room / L.ROW_H))
@@ -777,9 +849,31 @@ Window.Page("journal", function(page)
         return cells
     end
 
+    -- The records, four across: what it's the record for, the level in large
+    -- figures, and its figure at the right.
+    L.recordW = math.floor((width - 3 * 12) / 4)
+    for i, record in ipairs({ { "FASTEST", "green" }, { "LONGEST", "text" }, { "MOST DEATHS", "red" }, { "BEST FOR GOLD", "green" } }) do
+        local c = CreateFrame("Frame", nil, levels)
+        c:SetSize(L.recordW, L.RECORD_H)
+        c:SetPoint("TOPLEFT", (i - 1) * (L.recordW + 12), 0)
+        Style.Box(c, 6, "well", "cardLine")
+        c.head = Style.Text(c, 11, "gold", nil, true)
+        c.head:SetPoint("TOPLEFT", 16, -14)
+        c.head:SetText(record[1])
+        local under = Style.Text(c, 12, "muted")
+        under:SetPoint("TOPLEFT", 16, -33)
+        under:SetText("level")
+        c.level = Style.Text(c, 26, "text", nil, true)
+        c.level:SetPoint("LEFT", 16 + Style.Wide(c.head, #record[1] * 8) + 14, 0)
+        c.value = Style.Text(c, 14, record[2], nil, true)
+        c.value:SetPoint("RIGHT", -16, 0)
+        c.value:SetJustifyH("RIGHT")
+        L.records[i] = c
+    end
+
     local header = CreateFrame("Frame", nil, levels)
     header:SetSize(width, 20)
-    header:SetPoint("TOPLEFT")
+    header:SetPoint("TOPLEFT", 0, -(L.TOP - 24))
     Style.Rule(header, "BOTTOM", "lineStrong")
     for _, col in ipairs({ { "LEVEL", "level", true }, { "TIME", "time" }, { "XP", "xp" }, { "XP AN HOUR", "rate" }, { "GOLD IN", "earned" },
                            { "GOLD OUT", "spent" }, { "NET", "net" }, { "KILLS", "foes" }, { "QUESTS", "quests" }, { "DEATHS", "deaths" } }) do
@@ -811,14 +905,17 @@ Window.Page("journal", function(page)
         r.edge:SetWidth(3)
         r.cells = L.Cells(r, 12)
         -- The level you're on.
-        r.now = CreateFrame("Frame", nil, r)
-        r.now:SetPoint("LEFT", r.cells.level, "RIGHT", 8, 0)
-        Style.Fill(r.now, "gold")
-        r.now.text = Style.Text(r.now, 10, "onGold", nil, true)
-        r.now.text:SetPoint("CENTER")
-        r.now.text:SetText("now")
-        local wide = r.now.text.GetStringWidth and r.now.text:GetStringWidth()
-        r.now:SetSize(((type(wide) == "number" and wide > 0) and wide or 20) + 12, 16)
+        r.now = Style.Tag(r, "now", true)
+        r.now:SetPoint("LEFT", r.cells.level, "RIGHT", 10, 0)
+        -- How long the level took, beside the longest of them.
+        r.timeTrack = CreateFrame("Frame", nil, r)
+        r.timeTrack:SetSize(L.TIME_W, 4)
+        r.timeTrack:SetPoint("LEFT", L.X.timeBar, 0)
+        Style.Fill(r.timeTrack, "line")
+        r.timeBar = r.timeTrack:CreateTexture(nil, "ARTWORK")
+        r.timeBar:SetPoint("TOPLEFT")
+        r.timeBar:SetPoint("BOTTOMLEFT")
+        r.timeBar:SetColorTexture(Style.Color("lineStrong"))
         -- How fast the level went, beside the fastest of them.
         r.track = CreateFrame("Frame", nil, r)
         r.track:SetSize(L.BAR_W, 4)
@@ -892,8 +989,25 @@ Window.Page("journal", function(page)
         local all = J.Book().levels or {}
         local now = UnitLevel("player")
         local groups, byTen, total, best, began, count = {}, {}, {}, 0, nil, 0
+        -- The records: fastest, longest, most deaths, best for gold; and the
+        -- longest any level took, for the time's bar.
+        local records, slowest = { {}, {}, {}, {} }, 0
+        local function Record(i, level, n, less)
+            local held = records[i]
+            if not held.level or (less and n < held.n) or (not less and n > held.n) or (n == held.n and level < held.level) then
+                records[i] = { level = level, n = n }
+            end
+        end
         for level, row in pairs(all) do
             count = count + 1
+            local took, died, net = row.seconds or 0, row.deaths or 0, (row.earned or 0) - (row.spent or 0)
+            slowest = math.max(slowest, took)
+            if level ~= now and not row.partial and took >= 60 then
+                Record(1, level, took, true)
+                Record(2, level, took)
+            end
+            if died > 0 then Record(3, level, died) end
+            if net > 0 then Record(4, level, net) end
             local ten = math.floor(level / 10) * 10
             local g = byTen[ten]
             if not g then
@@ -910,6 +1024,14 @@ Window.Page("journal", function(page)
             if row.partial then began = level end
         end
         table.sort(groups, function(a, b) return a.ten > b.ten end)
+        for i, card in ipairs(L.records) do
+            local held = records[i]
+            local n = held.n or 0
+            card.level:SetText(held.level and tostring(held.level) or "–")
+            card.level:SetTextColor(Style.Color(held.level and "text" or "muted"))
+            card.value:SetText(not held.level and "" or (i <= 2 and Hours(n)) or (i == 3 and ("%d death%s"):format(n, n == 1 and "" or "s"))
+                or ("+" .. Coins(n)))
+        end
         -- The page's lines: a line a ten, and under an open one its levels.
         -- With levels in one ten only, there's nothing to fold.
         local items, tens = {}, #groups > 1
@@ -973,6 +1095,8 @@ Window.Page("journal", function(page)
             end
             r.track:SetShown(rate ~= nil and best > 0)
             if rate and best > 0 then r.bar:SetWidth(math.max(1, L.BAR_W * rate / best)) end
+            r.timeTrack:SetShown(it.group == nil and slowest > 0)
+            if not it.group and slowest > 0 then r.timeBar:SetWidth(math.max(1, L.TIME_W * (it.row.seconds or 0) / slowest)) end
             y = y + h
         end
         for i = used + 1, #L.rows do L.rows[i]:Hide() end
@@ -991,90 +1115,109 @@ Window.Page("journal", function(page)
     end
 
     -----------------------------------------------------------------
-    -- Characters.
+    -- Characters: every character of yours the Journal has seen.
     -----------------------------------------------------------------
     local chars = View("characters")
-    -- A table, one row a character, the same thing in the same place down
-    -- the list: who it is, its level, where it is, its gold, its professions
-    -- and its rested XP.
-    local CHAR_H = 54
-    local COL = { name = 14, level = 232, where = 268, gold = 466, profs = 486, rest = width - 90 }
+    -- A card a character, three across, the highest first: who it is and its
+    -- level, then where it is, its gold, its rested XP and its professions,
+    -- each in the same place on every card.
+    local C = { cards = {}, GAP = 16, H = 200, TOP = 42, PROFS = 3, TRACK = 96,
+                CLASSES = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES" }
+    C.W = math.floor((width - 2 * C.GAP) / 3)
     local charCount = Style.Text(chars, 17, "text", nil, true)
     charCount:SetPoint("TOPLEFT", 0, 0)
     local charGold = Style.Text(chars, 13, "muted")
     charGold:SetPoint("BOTTOMLEFT", charCount, "BOTTOMRIGHT", 12, 1)
-    local charCols = CreateFrame("Frame", nil, chars)
-    charCols:SetSize(width, 18)
-    charCols:SetPoint("TOPLEFT", 0, -36)
-    for _, label in ipairs({ { "CHARACTER", COL.name }, { "LEVEL", COL.level, true }, { "WHERE", COL.where }, { "GOLD", COL.gold, true },
-                             { "PROFESSIONS", COL.profs }, { "RESTED", COL.rest } }) do
-        local t = Style.Text(charCols, 10, "muted", nil, true)
-        if label[3] then
-            t:SetPoint("TOPRIGHT", charCols, "TOPLEFT", label[2], 0)
-            t:SetJustifyH("RIGHT")
-        else
-            t:SetPoint("TOPLEFT", label[2], 0)
-        end
-        t:SetText(label[1])
-    end
-    Style.Rule(charCols, "BOTTOM", "lineStrong")
-    local charRows = math.max(1, math.floor((height - 52 - 58 - 30) / CHAR_H))
-    local cards = {}
-    for i = 1, charRows do
+    C.rows = math.max(1, math.floor((height - 52 - C.TOP - 30 + C.GAP) / (C.H + C.GAP)))
+    for i = 1, C.rows * 3 do
         local c = CreateFrame("Frame", nil, chars)
-        c:SetSize(width, CHAR_H)
-        c:SetPoint("TOPLEFT", 0, -(58 + (i - 1) * CHAR_H))
-        -- The one you're on has a fill and a gold edge.
-        c.fill = Style.Fill(c, "well")
+        c:SetSize(C.W, C.H)
+        c:SetPoint("TOPLEFT", ((i - 1) % 3) * (C.W + C.GAP), -(C.TOP + math.floor((i - 1) / 3) * (C.H + C.GAP)))
+        Style.Box(c, 6, "well", "cardLine")
+        -- The one you're on has a gold edge and a tag.
         c.edge = c:CreateTexture(nil, "ARTWORK")
         c.edge:SetColorTexture(Style.Color("gold"))
-        c.edge:SetPoint("TOPLEFT")
-        c.edge:SetPoint("BOTTOMLEFT")
+        c.edge:SetPoint("TOPLEFT", 0, -4)
+        c.edge:SetPoint("BOTTOMLEFT", 0, 4)
         c.edge:SetWidth(3)
-        Style.Rule(c, "BOTTOM", "line")
-        c.name = Style.Text(c, 14, "text", nil, true)
-        c.name:SetPoint("TOPLEFT", COL.name, -9)
-        c.name:SetWidth(COL.level - COL.name - 34)
+        -- Its class's picture, in a line of the class's colour.
+        c.face = CreateFrame("Frame", nil, c)
+        c.face:SetSize(44, 44)
+        c.face:SetPoint("TOPLEFT", 16, -14)
+        Style.Fill(c.face, "titleBar")
+        c.face.edges = Style.Border(c.face, "lineStrong")
+        c.face.icon = c.face:CreateTexture(nil, "ARTWORK")
+        c.face.icon:SetPoint("TOPLEFT", 1, -1)
+        c.face.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        c.face.icon:SetTexture(C.CLASSES)
+        c.level = Style.Text(c, 27, "text", nil, true)
+        c.level:SetPoint("TOPRIGHT", -16, -18)
+        c.level:SetJustifyH("RIGHT")
+        c.name = Style.Text(c, 16, "text", nil, true)
+        c.name:SetPoint("TOPLEFT", 72, -14)
+        c.name:SetWidth(C.W - 72 - 16 - 50)
         c.name:SetJustifyH("LEFT")
         c.name:SetWordWrap(false)
         -- Under the name: its class, and when you last played it, or a tag
         -- for the one you're on.
-        c.sub = Style.Text(c, 11, "muted")
-        c.sub:SetPoint("TOPLEFT", COL.name, -30)
-        c.now = CreateFrame("Frame", nil, c)
-        c.now:SetPoint("LEFT", c.sub, "RIGHT", 6, 0)
-        Style.Fill(c.now, "gold")
-        c.now.text = Style.Text(c.now, 10, "onGold", nil, true)
-        c.now.text:SetPoint("CENTER")
-        c.now.text:SetText("playing now")
-        local wide = c.now.text.GetStringWidth and c.now.text:GetStringWidth()
-        c.now:SetSize(((type(wide) == "number" and wide > 0) and wide or 62) + 14, 17)
-        c.level = Style.Text(c, 15, "text", nil, true)
-        c.level:SetPoint("RIGHT", c, "LEFT", COL.level, 0)
-        c.level:SetJustifyH("RIGHT")
-        c.where = Style.Text(c, 12, "secondary")
-        c.where:SetPoint("LEFT", COL.where, 0)
-        c.where:SetWidth(COL.gold - COL.where - 84)
+        c.sub = Style.Text(c, 12, "muted")
+        c.sub:SetPoint("TOPLEFT", 72, -39)
+        c.now = Style.Tag(c, "playing now", true)
+        c.now:SetPoint("LEFT", c.sub, "RIGHT", 8, 0)
+        local rule = c:CreateTexture(nil, "ARTWORK")
+        rule:SetColorTexture(Style.Color("line"))
+        rule:SetPoint("TOPLEFT", 16, -70)
+        rule:SetPoint("TOPRIGHT", -16, -70)
+        rule:SetHeight(1)
+        local function Label(text, y)
+            local t = Style.Text(c, 12, "muted")
+            t:SetPoint("TOPLEFT", 16, y)
+            t:SetText(text)
+        end
+        Label("Where", -82)
+        c.where = Style.Text(c, 13, "text")
+        c.where:SetPoint("TOPLEFT", 80, -81)
+        c.where:SetWidth(C.W - 80 - 16 - 96)
         c.where:SetJustifyH("LEFT")
         c.where:SetWordWrap(false)
-        c.gold = Style.Text(c, 12, "text")
-        c.gold:SetPoint("RIGHT", c, "LEFT", COL.gold, 0)
+        c.gold = Style.Text(c, 13, "text", nil, true)
+        c.gold:SetPoint("TOPRIGHT", -16, -81)
         c.gold:SetJustifyH("RIGHT")
-        c.profs = Style.Text(c, 11, "secondary")
-        c.profs:SetPoint("LEFT", COL.profs, 0)
-        c.profs:SetWidth(COL.rest - COL.profs - 10)
-        c.profs:SetJustifyH("LEFT")
-        if c.profs.SetMaxLines then c.profs:SetMaxLines(3) end
+        Label("Rested", -106)
         c.track = CreateFrame("Frame", nil, c)
-        c.track:SetSize(80, 5)
-        c.track:SetPoint("TOPLEFT", COL.rest, -17)
-        Style.Fill(c.track, "line")
+        c.track:SetSize(C.TRACK, 6)
+        c.track:SetPoint("TOPLEFT", 80, -111)
+        Style.Fill(c.track, "window")
         c.bar = c.track:CreateTexture(nil, "ARTWORK")
         c.bar:SetPoint("TOPLEFT")
         c.bar:SetPoint("BOTTOMLEFT")
         c.bar:SetColorTexture(Style.Color("blue"))
-        c.rest = Style.Text(c, 11, "muted")
-        cards[i] = c
+        c.rest = Style.Text(c, 12, "muted")
+        -- Its professions, a line each: the name, a bar for how far through
+        -- the rank it is, and the skill.
+        c.profs = {}
+        for k = 1, C.PROFS do
+            local p = { name = Style.Text(c, 12, "text"), skill = Style.Text(c, 12, "text"), track = CreateFrame("Frame", nil, c) }
+            local y = -134 - (k - 1) * 20
+            p.name:SetPoint("TOPLEFT", 16, y)
+            p.name:SetWidth(112)
+            p.name:SetJustifyH("LEFT")
+            p.name:SetWordWrap(false)
+            p.skill:SetPoint("TOPRIGHT", -16, y)
+            p.skill:SetJustifyH("RIGHT")
+            p.track:SetPoint("TOPLEFT", 136, y - 5)
+            p.track:SetSize(C.W - 136 - 16 - 70, 6)
+            Style.Fill(p.track, "window")
+            p.bar = p.track:CreateTexture(nil, "ARTWORK")
+            p.bar:SetPoint("TOPLEFT")
+            p.bar:SetPoint("BOTTOMLEFT")
+            p.bar:SetColorTexture(Style.Color("gold"))
+            c.profs[k] = p
+        end
+        c.none = Style.Text(c, 12, "muted")
+        c.none:SetPoint("TOPLEFT", 16, -134)
+        c.none:SetText("no professions yet")
+        C.cards[i] = c
     end
     local charFoot = Style.Text(chars, 11, "muted")
 
@@ -1092,52 +1235,64 @@ Window.Page("journal", function(page)
         charCount:SetText(("%d character%s"):format(#list, #list == 1 and "" or "s"))
         charGold:SetText(#list > 1 and (Compat.Money(total) .. " between them") or "")
         local me = Compat.MyName()
-        for i, card in ipairs(cards) do
+        for i, card in ipairs(C.cards) do
             local c = list[i]
             card:SetShown(c ~= nil)
             if c then
                 local mine = c.name == me
-                card.fill:SetShown(mine)
                 card.edge:SetShown(mine)
-                card.name:SetText(ClassColor(c.classFile) .. (c.name or "?") .. "|r")
                 card.now:SetShown(mine)
-                card.sub:SetText((c.class or "") .. ((mine or c.updated) and "  ·  " or "")
-                    .. ((not mine and c.updated) and ("played " .. Ago(c.updated)) or ""))
+                card.name:SetText(ClassColor(c.classFile) .. (c.name or "?") .. "|r")
+                card.sub:SetText((c.class or "") .. ((not mine and c.updated) and ("  ·  played " .. Ago(c.updated)) or ""))
+                -- The class's picture is a part of one sheet of them all.
+                local coords = CLASS_ICON_TCOORDS and c.classFile and CLASS_ICON_TCOORDS[c.classFile]
+                local colour = RAID_CLASS_COLORS and c.classFile and RAID_CLASS_COLORS[c.classFile]
+                card.face.icon:SetShown(coords ~= nil)
+                if coords then card.face.icon:SetTexCoord(coords[1], coords[2], coords[3], coords[4]) end
+                for _, edge in ipairs(card.face.edges) do
+                    if colour then edge:SetColorTexture(colour.r, colour.g, colour.b) else edge:SetColorTexture(Style.Color("lineStrong")) end
+                end
                 card.level:SetText(c.level or "?")
                 -- A character too low to have done much is quieter.
                 card.level:SetTextColor(Style.Color((c.level or 0) >= 10 and "text" or "muted"))
                 card.where:SetText(c.zone or "somewhere")
                 -- Nothing to show is said in grey, so it steps back.
                 local money = c.money or 0
-                card.gold:SetText(money > 0 and Compat.Money(money) or "none")
+                card.gold:SetText(money > 0 and Compat.Money(money) or "no gold")
                 card.gold:SetTextColor(Style.Color(money > 0 and "text" or "muted"))
-                card.gold:SetAlpha(money > 0 and 1 or 0.6)
-                local profs = {}
-                for _, p in ipairs(c.professions or {}) do profs[#profs + 1] = ("%s %d"):format(p.name, p.skill or 0) end
-                card.profs:SetText(#profs > 0 and table.concat(profs, ", ") or "none yet")
-                card.profs:SetTextColor(Style.Color(#profs > 0 and "secondary" or "muted"))
-                card.profs:SetAlpha(#profs > 0 and 1 or 0.6)
                 -- Rested: a bar, and how much of a level it is. Nothing at
                 -- 60, where there's no level left to rest for.
                 local rested = J.RestedNow(c)
                 card.track:SetShown(rested ~= nil)
                 card.rest:ClearAllPoints()
                 if rested then
-                    card.bar:SetWidth(math.max(1, 80 * math.min(1, rested / 1.5)))
-                    card.rest:SetPoint("TOPLEFT", COL.rest, -27)
+                    card.bar:SetWidth(math.max(1, C.TRACK * math.min(1, rested / 1.5)))
+                    card.rest:SetPoint("LEFT", card.track, "RIGHT", 10, 0)
                     card.rest:SetText(rested >= 1.5 and ("|cff" .. Style.Quality(3) .. "fully rested|r") or ("%d%% of a level"):format(math.floor(rested * 100)))
-                    card.rest:SetAlpha(1)
                 else
-                    card.rest:SetPoint("LEFT", COL.rest, 0)
+                    card.rest:SetPoint("TOPLEFT", 80, -106)
                     card.rest:SetText((c.level or 0) >= 60 and "" or "not known yet")
-                    card.rest:SetAlpha(0.6)
+                end
+                local profs = c.professions or {}
+                card.none:SetShown(#profs == 0)
+                for k, p in ipairs(card.profs) do
+                    local known = profs[k]
+                    for _, region in ipairs({ p.name, p.skill, p.track }) do region:SetShown(known ~= nil) end
+                    if known then
+                        local skill, cap = known.skill or 0, known.cap or 0
+                        p.name:SetText(known.name or "")
+                        p.skill:SetText(cap > 0 and ("%d |cff9a9688/ %d|r"):format(skill, cap) or tostring(skill))
+                        p.track:SetShown(cap > 0)
+                        if cap > 0 then p.bar:SetWidth(math.max(1, (C.W - 136 - 16 - 70) * math.min(1, skill / cap))) end
+                    end
                 end
             end
         end
-        local shown = math.min(#list, #cards)
+        local shown = math.min(#list, #C.cards)
+        local lines = math.ceil(shown / 3)
         charFoot:ClearAllPoints()
-        charFoot:SetPoint("TOPLEFT", 0, -(58 + shown * CHAR_H + 12))
-        charFoot:SetText((#list > #cards and ("And %d more. "):format(#list - #cards) or "")
+        charFoot:SetPoint("TOPLEFT", 0, -(C.TOP + lines * (C.H + C.GAP) - C.GAP + 14))
+        charFoot:SetText((#list > #C.cards and ("And %d more. "):format(#list - #C.cards) or "")
             .. "A character joins the list the first time you log in on it.")
     end
 
