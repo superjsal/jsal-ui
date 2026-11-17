@@ -19,7 +19,10 @@ local Shopping = ns.NewModule("shopping", {
 ns.Shopping = Shopping
 
 local WIDTH, PAD, ROW_H = 380, 14, 30
-local MAX_CRAFTS, MAX_ITEMS, MAX_BUY = 8, 8, 12
+local MAX_CRAFTS, MAX_ITEMS, MAX_BUY, MAX_ENOUGH = 8, 8, 12, 9
+-- A count's pill; a group's card: its heading's height, and how far in its
+-- rows start; the bar beside how many more.
+local STEP_W, HEAD_H, CARD_PAD, BAR_W = 84, 30, 13, 48
 
 ---------------------------------------------------------------------------
 -- The list, per character: crafts by recipe and other items by item.
@@ -93,40 +96,104 @@ end
 local frame, box, qty
 local rows = {}
 
-local function Small(parent, label, width)
-    local b = Style.Button(parent, label, "plain", width or 20)
-    b:SetHeight(20)
+-- A quiet link: words that light up under the pointer. `under` draws a
+-- thin line beneath them, for one that's read on a hover.
+local function Link(parent, words, under)
+    local b = CreateFrame("Button", nil, parent)
+    b.text = Style.Text(b, 12, "muted")
+    b.text:SetPoint("CENTER")
+    if under then
+        b.line = b:CreateTexture(nil, "ARTWORK")
+        b.line:SetColorTexture(Style.Color("lineStrong"))
+        b.line:SetPoint("BOTTOMLEFT")
+        b.line:SetPoint("BOTTOMRIGHT")
+        b.line:SetHeight(1)
+    end
+    function b:SetLabel(text)
+        self.label = text
+        self.text:SetText(text)
+        self:SetSize(Style.Wide(self.text, #text * 7) + 2, 18)
+    end
+    b:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("text")) end)
+    b:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("muted")) end)
+    b:SetLabel(words)
     return b
 end
 
+-- Less or more, at one end of a count's pill.
+local function Sign(pill, glyph, side)
+    local b = CreateFrame("Button", nil, pill)
+    b:SetSize(26, 22)
+    b:SetPoint(side)
+    b.text = Style.Text(b, 14, "secondary", nil, true)
+    b.text:SetPoint("CENTER")
+    b.text:SetText(glyph)
+    b:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("gold")) end)
+    b:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("secondary")) end)
+    return b
+end
+
+-- What a row adds to the game's tooltip: its note, and what a right-click
+-- does.
+local function RowTip(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
+    if self.note then GameTooltip:AddLine(self.note, Style.Color("text")) end
+    if self.drop then GameTooltip:AddLine("Right-click to take it off the list", Style.Color("muted")) end
+    GameTooltip:Show()
+end
+
+-- A row is one of two things. Something you put on the list, a craft or an
+-- item: its count in a pill, with less and more either side (less than one
+-- takes it off, and so does a right-click). Or something still to get, in a
+-- group's card: how many more, with a bar for how much of it you have.
 local function Row(i)
     local r = rows[i]
     if r then return r end
     r = CreateFrame("Frame", nil, frame)
     r:SetSize(WIDTH - PAD * 2, ROW_H)
+    -- Over a group's card, which is the window's child as it is.
+    r:SetFrameLevel((frame:GetFrameLevel() or 0) + 3)
+    r.rule = r:CreateTexture(nil, "BORDER")
+    r.rule:SetColorTexture(Style.Color("line"))
+    r.rule:SetPoint("TOPLEFT", 1, 0)
+    r.rule:SetPoint("TOPRIGHT", -1, 0)
+    r.rule:SetHeight(Compat.OnePixel(r))
     r.icon = r:CreateTexture(nil, "ARTWORK")
     r.icon:SetSize(20, 20)
-    r.icon:SetPoint("LEFT")
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    r.remove = Small(r, "x")
-    r.remove:SetPoint("RIGHT")
-    r.plus = Small(r, "+")
-    r.plus:SetPoint("RIGHT", r.remove, "LEFT", -10, 0)
-    r.minus = Small(r, "-")
-    r.minus:SetPoint("RIGHT", r.plus, "LEFT", -4, 0)
+    r.step = CreateFrame("Frame", nil, r)
+    r.step:SetSize(STEP_W, 22)
+    r.step:SetPoint("RIGHT")
+    Style.Box(r.step, 11, "titleBar", "lineStrong")
+    r.count = Style.Text(r.step, 13, "text", nil, true)
+    r.count:SetPoint("CENTER")
+    r.minus = Sign(r.step, "-", "LEFT")
+    r.plus = Sign(r.step, "+", "RIGHT")
     r.status = Style.Text(r, 12, "muted")
+    r.status:SetPoint("RIGHT", r.step, "LEFT", -10, 0)
     r.status:SetJustifyH("RIGHT")
+    r.more = Style.Text(r, 14, "text", nil, true)
+    r.more:SetPoint("RIGHT", -CARD_PAD, 0)
+    r.more:SetJustifyH("RIGHT")
+    r.bar = CreateFrame("Frame", nil, r)
+    r.bar:SetSize(BAR_W, 4)
+    r.bar:SetPoint("RIGHT", -(CARD_PAD + 44), 0)
+    Style.Fill(r.bar, "line")
+    r.fill = r.bar:CreateTexture(nil, "ARTWORK")
+    r.fill:SetColorTexture(Style.Color("gold"))
+    r.fill:SetPoint("TOPLEFT")
+    r.fill:SetPoint("BOTTOMLEFT")
     r.name = Style.Text(r, 13, "text")
-    r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+    r.name:SetJustifyH("LEFT")
     r.name:SetWordWrap(false)
     r:EnableMouse(true)
-    r:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
-        GameTooltip:Show()
-    end)
+    r:SetScript("OnEnter", RowTip)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(r, 6)
+    r:SetScript("OnMouseUp", function(self, button)
+        if button == "RightButton" and self.drop then self.drop() end
+    end)
+    r.glow = Style.Hover(r, 6)
     rows[i] = r
     return r
 end
@@ -328,37 +395,71 @@ local function Build()
 
     frame.craftsHead = Heading("CRAFTS")
     frame.itemsHead = Heading("OTHER ITEMS")
-    frame.buyHead = Heading("STILL TO GET", "have / need")
-    -- What's still to get is in three groups, each under a small heading
-    -- with its total: a vendor's, the auction house's or the world's, and
-    -- what you already have enough of.
+    frame.buyHead = Heading("STILL TO GET", "more to get")
+    -- What's still to get is a card a group, each with its heading and its
+    -- total: what a vendor sells, and what comes from the auction house or
+    -- the world. Along the foot of the vendor's: where to go for them.
     frame.groups = {}
-    for i = 1, 3 do
+    for i = 1, 2 do
         local g = CreateFrame("Frame", nil, frame)
-        g:SetSize(WIDTH - PAD * 2, 16)
+        g:SetWidth(WIDTH - PAD * 2)
+        Style.Box(g, 6, "well", "cardLine")
         g.title = Style.Text(g, 11, "muted", nil, true)
-        g.title:SetPoint("LEFT")
-        g.note = Style.Text(g, 11, "muted")
-        g.note:SetPoint("RIGHT")
+        g.title:SetPoint("TOPLEFT", CARD_PAD, -9)
+        g.note = Style.Text(g, 12, "secondary")
+        g.note:SetPoint("TOPRIGHT", -CARD_PAD, -9)
         g.note:SetJustifyH("RIGHT")
+        g.strip = CreateFrame("Frame", nil, g)
+        g.strip:SetPoint("BOTTOMLEFT", 1, 1)
+        g.strip:SetPoint("BOTTOMRIGHT", -1, 1)
+        Style.Cap(g.strip, 5, "titleBar", "BOTTOM")
+        Style.Rule(g.strip, "TOP", "cardLine")
         frame.groups[i] = g
     end
-    -- Where to buy what a vendor sells: a line or two under that group's heading. A click
-    -- anywhere on one pins its vendor on the map.
+    -- Where to buy what a vendor sells: a line or two along that card's
+    -- foot. A click anywhere on one pins its vendor on the map.
     frame.shopLines = {}
     for i = 1, 2 do
         local b = CreateFrame("Button", nil, frame)
-        b:SetSize(WIDTH - PAD * 2, 16)
-        b.text = Style.Text(b, 11, "secondary")
+        b:SetSize(WIDTH - PAD * 2 - CARD_PAD * 2, 18)
+        b:SetFrameLevel((frame:GetFrameLevel() or 0) + 3)
+        b.link = Style.Text(b, 12, "gold", nil, true)
+        b.link:SetPoint("RIGHT")
+        b.link:SetText("show on map")
+        b.text = Style.Text(b, 12, "muted")
         b.text:SetPoint("LEFT")
-        b.text:SetPoint("RIGHT")
+        b.text:SetPoint("RIGHT", b.link, "LEFT", -8, 0)
         b.text:SetJustifyH("LEFT")
         b.text:SetWordWrap(false)
         b:SetScript("OnClick", function(self)
             if self.shop and ns.Trainers then ns.Trainers.Pin(self.shop) end
         end)
+        b:SetScript("OnEnter", function(self) self.link:SetTextColor(Style.Color("goldHover")) end)
+        b:SetScript("OnLeave", function(self) self.link:SetTextColor(Style.Color("gold")) end)
         frame.shopLines[i] = b
     end
+    -- What you already have enough of: small pictures on one line, dimmed.
+    -- Point at one for what it is and how many you have.
+    frame.enough = CreateFrame("Frame", nil, frame)
+    frame.enough:SetSize(WIDTH - PAD * 2, 22)
+    frame.enough.label = Style.Text(frame.enough, 12, "muted")
+    frame.enough.label:SetPoint("LEFT")
+    frame.enough.label:SetText("You have enough of")
+    frame.enough.icons = {}
+    for i = 1, MAX_ENOUGH do
+        local e = CreateFrame("Frame", nil, frame.enough)
+        e:SetSize(18, 18)
+        e:SetPoint("LEFT", frame.enough.label, "RIGHT", 10 + (i - 1) * 22, 0)
+        e:SetAlpha(0.55)
+        e.icon = e:CreateTexture(nil, "ARTWORK")
+        e.icon:SetAllPoints()
+        e.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        e:EnableMouse(true)
+        e:SetScript("OnEnter", RowTip)
+        e:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        frame.enough.icons[i] = e
+    end
+    frame.enough.more = Style.Text(frame.enough, 12, "muted")
     -- "and 3 more crafts": what a list is too long to show still counts, and says so.
     frame.more = {}
     for i = 1, 3 do frame.more[i] = Style.Text(frame, 11, "muted") end
@@ -369,9 +470,17 @@ local function Build()
     frame.rule:SetColorTexture(Style.Color("line"))
     frame.rule:SetSize(WIDTH - PAD * 2, Compat.OnePixel(frame))
     frame.total = Style.Text(frame, 12, "muted")
-    frame.total:SetWidth(WIDTH - PAD * 2 - 90)
-    frame.clear = Style.Button(frame, "Clear", "plain", 80)
-    frame.clear:SetHeight(26)
+    -- Where the prices come from, read on a hover.
+    frame.about = Link(frame, "about these prices", true)
+    frame.about:SetPoint("LEFT", frame.total, "RIGHT", 10, 0)
+    frame.about:HookScript("OnEnter", function(self)
+        if not self.tip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(self.tip, Style.Color("text"))
+        GameTooltip:Show()
+    end)
+    frame.about:HookScript("OnLeave", function() GameTooltip:Hide() end)
+    frame.clear = Link(frame, "Clear")
     -- Clearing asks once: the first click arms it for a moment.
     local armed = 0
     frame.clear:SetScript("OnClick", function()
@@ -512,17 +621,34 @@ local function PaintList()
     local s = List()
     local used = 0
     local y = 36 + 12 + 26 + 18
-    local function Next()
+    -- The next row: `counted`, one you put on the list, with its pill; else
+    -- one still to get, in a group's card.
+    local function Next(counted)
         used = used + 1
         local r = Row(used)
-        r.minus:Show(); r.plus:Show(); r.remove:Show()
-        r.status:ClearAllPoints()
-        r.status:SetPoint("RIGHT", r.minus, "LEFT", -8, 0)
-        r.name:SetPoint("RIGHT", r.status, "LEFT", -8, 0)
+        r.step:SetShown(counted)
+        r.status:SetShown(counted)
+        r.rule:SetShown(not counted)
+        r.bar:SetShown(not counted)
+        r.more:SetShown(not counted)
+        r.icon:ClearAllPoints()
+        r.icon:SetPoint("LEFT", counted and 0 or CARD_PAD, 0)
+        r.name:ClearAllPoints()
+        r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+        r.name:SetPoint("RIGHT", counted and r.status or r.bar, "LEFT", -8, 0)
+        r.drop, r.note = nil, nil
+        -- The light under the pointer: past the row's ends, or within its card.
+        if r.glow then
+            r.glow:ClearAllPoints()
+            r.glow:SetPoint("TOPLEFT", counted and -6 or 1, 0)
+            r.glow:SetPoint("BOTTOMRIGHT", counted and 6 or -1, 0)
+        end
         r:SetAlpha(1)
         return r
     end
-    local function Buttons(r, list, key)
+    -- Its count, and what less, more and a right-click do.
+    local function Count(r, list, key)
+        r.count:SetText(list[key])
         r.minus:SetScript("OnClick", function()
             list[key] = (list[key] or 1) > 1 and list[key] - 1 or nil
             Paint()
@@ -531,10 +657,10 @@ local function PaintList()
             list[key] = (list[key] or 0) + 1
             Paint()
         end)
-        r.remove:SetScript("OnClick", function()
+        r.drop = function()
             list[key] = nil
             Paint()
-        end)
+        end
     end
 
     -- A list longer than its rows says how many more there are: they were left out without
@@ -559,13 +685,13 @@ local function PaintList()
         y = y + 22
         for i, c in ipairs(crafts) do
             if i > MAX_CRAFTS then break end
-            local r = Next()
+            local r = Next(true)
             Place(r, y)
             r.item, r.spell = c.recipe and c.recipe.item, c.spell
             r.icon:SetTexture((r.item and Compat.ItemIcon(r.item)) or select(2, Compat.SpellInfo(c.spell)))
-            r.name:SetText(((r.item and Compat.ItemName(r.item)) or (Compat.SpellInfo(c.spell)) or "...") .. "  |cff9a9688×" .. c.count .. "|r")
+            r.name:SetText((r.item and Compat.ItemName(r.item)) or (Compat.SpellInfo(c.spell)) or "...")
             r.status:SetText("")
-            Buttons(r, s.crafts, c.spell)
+            Count(r, s.crafts, c.spell)
             y = y + ROW_H
         end
         More(#crafts - MAX_CRAFTS, "and %d more not shown, counted below")
@@ -584,16 +710,16 @@ local function PaintList()
         y = y + 22
         for i, e in ipairs(items) do
             if i > MAX_ITEMS then break end
-            local r = Next()
+            local r = Next(true)
             Place(r, y)
             r.item, r.spell = e.item, nil
             r.icon:SetTexture(Compat.ItemIcon(e.item))
-            r.name:SetText(ItemName(e.item) .. "  |cff9a9688×" .. e.count .. "|r")
+            r.name:SetText(ItemName(e.item))
             local have = Compat.ItemCount(e.item, true)
             local enough = have >= e.count
             r.status:SetText(enough and (Style.Tint("green") .. "have %d|r"):format(have) or (Style.Tint("red") .. "have %d|r"):format(have))
             r:SetAlpha(enough and 0.5 or 1)
-            Buttons(r, s.items, e.item)
+            Count(r, s.items, e.item)
             y = y + ROW_H
         end
         More(#items - MAX_ITEMS, "and %d more not shown, counted below")
@@ -602,10 +728,11 @@ local function PaintList()
         frame.itemsHead:Hide()
     end
 
-    -- Still to get: everything needed, in three groups. What a vendor
-    -- sells, with its cost; what comes from the auction house or the world;
-    -- and, greyed, what you already have enough of. Each row says how many
-    -- more to get, as that's what you shop by, with have / need beside it.
+    -- Still to get: everything needed, less what you have. What a vendor
+    -- sells, with its cost, and what comes from the auction house or the
+    -- world are a card each; a row says how many more to get, as that's
+    -- what you shop by, and its bar how much of it you have. What you
+    -- already have enough of is small pictures under them.
     local vendor, other, enough = {}, {}, {}
     local count = ns.ItemPrices.Counting()
     local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
@@ -641,51 +768,70 @@ local function PaintList()
         g.title:SetText(title)
         g.note:SetText(note or "")
         Place(g, y)
-        y = y + 20
-        -- Where to go for these, under the heading.
-        for _, line in ipairs(where or {}) do
-            shopLines = shopLines + 1
-            local b = frame.shopLines[shopLines]
-            if not b then break end
-            b.shop = line.shop
-            b.text:SetText(line.text .. "  " .. Style.Tint("gold") .. "show on map|r")
-            Place(b, y - 2)
-            y = y + 18
-        end
+        local tall = HEAD_H
         for _, e in ipairs(list) do
             if listed >= MAX_BUY then break end
             listed = listed + 1
-            local r = Next()
-            Place(r, y)
-            r.minus:Hide(); r.plus:Hide(); r.remove:Hide()
-            r.status:ClearAllPoints()
-            r.status:SetPoint("RIGHT")
+            local r = Next(false)
+            Place(r, y + tall)
             r.item, r.spell = e.item, nil
             r.icon:SetTexture(Compat.ItemIcon(e.item))
             r.name:SetText(ItemName(e.item))
-            if e.short > 0 then
-                r.status:SetText(("%d / %d    |cffece6d6%d more|r"):format(e.have, e.need, e.short))
-            else
-                r.status:SetText(("%d / %d"):format(e.have, e.need))
-            end
-            r:SetAlpha(e.short > 0 and 1 or 0.5)
-            y = y + ROW_H
+            r.more:SetText(e.short)
+            r.fill:SetShown(e.have > 0)
+            r.fill:SetWidth(math.max(1, BAR_W * math.min(1, e.have / e.need)))
+            r.note = ("You have %d of %d."):format(e.have, e.need)
+            tall = tall + ROW_H
         end
-        y = y + 4
+        -- Where to go for these, along the card's foot.
+        local lines = 0
+        for _, line in ipairs(where or {}) do
+            local b = frame.shopLines[shopLines + 1]
+            if not b then break end
+            shopLines, lines = shopLines + 1, lines + 1
+            b.shop = line.shop
+            b.text:SetText(line.text)
+            b:ClearAllPoints()
+            b:SetPoint("TOPLEFT", frame, "TOPLEFT", PAD + CARD_PAD, -(y + tall + 7 + (lines - 1) * 20))
+            b:Show()
+        end
+        g.strip:SetShown(lines > 0)
+        if lines > 0 then
+            g.strip:SetHeight(lines * 20 + 12)
+            tall = tall + lines * 20 + 12
+        end
+        g:SetHeight(tall)
+        y = y + tall + 8
     end
-    if #vendor + #other + #enough > 0 then
+    if #vendor + #other > 0 then
         Place(frame.buyHead, y)
         y = y + 24
         local buying = {}
         for _, e in ipairs(vendor) do buying[#buying + 1] = e.item end
         Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor, Shopping.WhereToBuy(buying))
-        -- "FROM THE AUCTION HOUSE OR THE WORLD" ran under its own sum at this window's
-        -- width.
         Group("AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
-        Group("YOU HAVE ENOUGH", nil, enough)
-        More(#vendor + #other + #enough - listed, "and %d more not shown, counted in the total")
+        More(#vendor + #other - listed, "and %d more not shown, counted in the total")
     else
         frame.buyHead:Hide()
+    end
+    if #enough > 0 then
+        local shown = math.min(#enough, MAX_ENOUGH)
+        for i, icon in ipairs(frame.enough.icons) do
+            local e = enough[i]
+            icon:SetShown(i <= shown)
+            if i <= shown then
+                icon.item = e.item
+                icon.icon:SetTexture(Compat.ItemIcon(e.item))
+                icon.note = ("You have %d of %d."):format(e.have, e.need)
+            end
+        end
+        frame.enough.more:SetText(#enough > shown and ("+%d"):format(#enough - shown) or "")
+        frame.enough.more:ClearAllPoints()
+        frame.enough.more:SetPoint("LEFT", frame.enough.icons[shown], "RIGHT", 6, 0)
+        Place(frame.enough, y + 2)
+        y = y + 26
+    else
+        frame.enough:Hide()
     end
     for i = groups + 1, #frame.groups do frame.groups[i]:Hide() end
     for i = shopLines + 1, #frame.shopLines do frame.shopLines[i]:Hide() end
@@ -705,9 +851,6 @@ local function PaintList()
     if total > 0 then
         text = ("About |cffece6d6%s|r in all"):format(Compat.Money(total))
         if unpriced > 0 then text = text .. (" · %d not priced"):format(unpriced) end
-        if auctionCost > 0 then
-            text = text .. " · auction prices from " .. ns.ItemPrices.From(count)
-        end
     elseif unpriced > 0 then
         text = ("%d still to get, no price known yet"):format(unpriced)
     else
@@ -715,13 +858,16 @@ local function PaintList()
     end
     frame.total:SetText(text)
     Place(frame.total, y + 4)
+    -- Where an auction price comes from is read on a hover.
+    frame.about.tip = auctionCost > 0 and ("Auction prices are from %s."):format(ns.ItemPrices.From(count)) or nil
+    frame.about:SetShown(auctionCost > 0)
     frame.clear:ClearAllPoints()
-    frame.clear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, -y)
+    frame.clear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, -(y + 2))
     frame.clear:SetShown(not empty)
     frame:SetHeight(y + 26 + PAD)
 end
 
--- Every change to the list (a row's -, + or x, Clear, an add) paints it,
+-- Every change to the list (a row's less or more, Clear, an add) paints it,
 -- and the vendor's pop-up follows. It kept offering what had been on the
 -- list after Clear.
 Paint = function()
