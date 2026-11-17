@@ -1,5 +1,5 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
--- your pal, the shopping list, Crafting profit, the planners, the gear plan,
+-- your pal, the shopping list, Crafting profit, Guild Crafts, the planners, the gear plan,
 -- the dungeon guide) and the layer you're in, that can be dragged anywhere by
 -- its grip, so nobody has to type /jsal. The three games share one button
 -- that opens a menu of them.
@@ -165,6 +165,17 @@ PLACES = {
       ready = function() return ns.CraftProfit and ns.CraftProfit.running end,
       open = Page("craftprofit"),
       note = "A button for the Crafting profit window: a click opens it, another closes it. Needs Crafting profit on." },
+    -- Guild Crafts: while Guild crafters or Guild orders is on. Its dot is for an order you
+    -- accepted, or one asked for that you could make and haven't looked at. It starts
+    -- switched off, as every button added after the bar does.
+    { key = "crafts", label = "Guild Crafts", icon = OWN .. "crafts", off = true,
+      ready = function() return (ns.Crafters and ns.Crafters.running) or (ns.Orders and ns.Orders.running) end,
+      open = function() ns.GuildCrafts.Toggle() end,
+      waiting = function()
+          local n = ns.Orders and ns.Orders.Badge(true) or 0
+          if n > 0 then return n == 1 and "1 order for you" or (n .. " orders for you") end
+      end,
+      note = "A button for Guild Crafts: a click opens it, another closes it, with a gold dot when an order is waiting for you. Needs Guild crafters or Guild orders on." },
     { key = "build", label = "Build Planner", icon = OWN .. "build",
       open = Page("build") },
     { key = "training", label = "Training Planner", icon = OWN .. "training",

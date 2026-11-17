@@ -19,6 +19,9 @@ local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 82, 40, 26, 52, 76
 -- A row's track, and the room kept after its materials for "+2 more".
 local TRACK_W, MORE_W = 196, 64
 local TOP, FOOT = 116, 30
+-- Where the asking card starts under the counts (which are 52 high): the gap holds a line
+-- saying why something couldn't be done. And the card's height.
+local CARD_Y, ASK_H = 80, 160
 local ENCHANTING = 333
 -- A state's colour. "todo" is an order you accepted: the one thing that
 -- waits on you.
@@ -661,7 +664,8 @@ local function Names()
     return list
 end
 
--- Recipes whose name has the text in it: those starting with it first.
+-- Recipes whose name has the text in it: those starting with it first. Also how many there
+-- were before the list was cut to `limit`.
 function C.Find(text, limit)
     text = strtrim(text or ""):lower()
     local first, rest = {}, {}
@@ -671,8 +675,9 @@ function C.Find(text, limit)
         if at == 1 then first[#first + 1] = entry elseif at then rest[#rest + 1] = entry end
     end
     for _, entry in ipairs(rest) do first[#first + 1] = entry end
+    local total = #first
     for i = (limit or 8) + 1, #first do first[i] = nil end
-    return first
+    return first, total
 end
 
 -- What an enchant goes on, from its name: the slot, and a word for it.
@@ -798,9 +803,13 @@ end
 -- The names under the search box as you type.
 local function PaintDrop()
     local card = C.card
-    local found = card.what:HasFocus() and C.Find(card.what:GetText(), 8) or {}
+    local found, total = {}, 0
+    if card.what:HasFocus() then found, total = C.Find(card.what:GetText(), 8) end
+    -- More than fit: the last line says how many, and how to get to them.
+    local more = total - #found
     card.drop:SetShown(#found > 0)
-    card.drop:SetHeight(#found * 26 + 2)
+    card.drop:SetHeight(#found * 26 + 2 + (more > 0 and 24 or 0))
+    card.drop.more:SetText(more > 0 and ("and %d more: type more of its name"):format(more) or "")
     for i, row in ipairs(card.drop.rows) do
         local entry = found[i]
         row:SetShown(entry ~= nil)
@@ -834,8 +843,8 @@ end
 
 local function BuildCard(view, width)
     local card = CreateFrame("Frame", nil, view.body)
-    card:SetSize(width, 160)
-    card:SetPoint("TOPLEFT", 0, -70)
+    card:SetSize(width, ASK_H)
+    card:SetPoint("TOPLEFT", 0, -CARD_Y)
     Style.Fill(card, "well")
     Style.Border(card, "cardLine")
     C.card = card
@@ -938,7 +947,7 @@ local function BuildCard(view, width)
     card.takes:SetText("Takes")
     card.chips = {}
     card.message = Style.Text(card, 12, "red")
-    card.message:SetPoint("BOTTOMLEFT", card, "TOPLEFT", 0, 4)
+    card.message:SetPoint("BOTTOMLEFT", card, "TOPLEFT", 0, 7)
 
     -- The names under the search box.
     card.drop = CreateFrame("Frame", nil, card)
@@ -963,6 +972,8 @@ local function BuildCard(view, width)
         Style.Hover(row)
         card.drop.rows[i] = row
     end
+    card.drop.more = Style.Text(card.drop, 11, "muted")
+    card.drop.more:SetPoint("BOTTOMLEFT", 10, 7)
     card.drop:Hide()
     card.what:SetScript("OnTextChanged", function(self, userInput)
         -- Typing over a picked name lets go of the pick.
@@ -1466,8 +1477,8 @@ Window.Page("guildcrafts", function(page)
     yours.body:SetAllPoints()
     Boxes(yours.body, width)
     yours.boxes = yours.body.boxes
-    yours.list = List(yours.body, width, bodyH - 70 - 160 - 20)
-    yours.list.scroll:SetPoint("TOPLEFT", 0, -(70 + 160 + 20))
+    yours.list = List(yours.body, width, bodyH - CARD_Y - ASK_H - 20)
+    yours.list.scroll:SetPoint("TOPLEFT", 0, -(CARD_Y + ASK_H + 20))
     BuildCard(yours, width)
 
     -- Crafters: the search, then what it finds or everyone who shares.
@@ -1925,7 +1936,11 @@ local function Slash()
     if not on then
         return ns.Print("Guild Crafts is off. Turn on Guild crafters or Guild orders in Settings, under Professions, then reload.")
     end
-    -- A second /jsal crafts closes it, as the menu's other windows do.
+    C.Toggle()
+end
+
+-- Opens it, in the size it was left in; open already, closes it.
+function C.Toggle()
     if C.small and C.small:IsShown() then return C.small:Hide() end
     if Window.IsOpen("guildcrafts") then return Window.Close("guildcrafts") end
     C.Show()
