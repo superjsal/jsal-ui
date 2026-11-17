@@ -676,15 +676,37 @@ function C.Find(text, limit)
 end
 
 -- What an enchant goes on, from its name: the slot, and a word for it.
+-- Each: the words in the enchant's name, the slot it's worn in, a word for what you wear
+-- there, the kinds of item it can go on (as the game names where an item is worn), and how
+-- to ask for one.
 local SLOTS = {
-    { "2H Weapon", 16, "weapon" }, { "Weapon", 16, "weapon" }, { "Shield", 17, "shield" }, { "Bracer", 9, "bracers" },
-    { "Chest", 5, "chest" }, { "Cloak", 15, "cloak" }, { "Boots", 8, "boots" }, { "Gloves", 10, "gloves" },
+    { "2H Weapon", 16, "weapon", { INVTYPE_2HWEAPON = true }, "a two-handed weapon" },
+    { "Weapon", 16, "weapon", { INVTYPE_WEAPON = true, INVTYPE_WEAPONMAINHAND = true, INVTYPE_WEAPONOFFHAND = true, INVTYPE_2HWEAPON = true },
+      "a weapon" },
+    { "Shield", 17, "shield", { INVTYPE_SHIELD = true }, "a shield" },
+    { "Bracer", 9, "bracers", { INVTYPE_WRIST = true }, "bracers" },
+    { "Chest", 5, "chest", { INVTYPE_CHEST = true, INVTYPE_ROBE = true }, "a chest piece" },
+    { "Cloak", 15, "cloak", { INVTYPE_CLOAK = true }, "a cloak" },
+    { "Boots", 8, "boots", { INVTYPE_FEET = true }, "boots" },
+    { "Gloves", 10, "gloves", { INVTYPE_HAND = true }, "gloves" },
 }
 local function SlotFor(spell)
     local name = Compat.SpellInfo(spell) or ""
     for _, slot in ipairs(SLOTS) do
-        if name:find("Enchant " .. slot[1], 1, true) then return slot[2], slot[3] end
+        if name:find("Enchant " .. slot[1], 1, true) then return slot[2], slot[3], slot[4], slot[5] end
     end
+end
+
+-- Whether an enchant can go on an item: the item is worn where the enchant's name says.
+-- An enchant whose name names no slot takes anything that can be worn. Without the game's
+-- word for where an item is worn, anything is taken. Also gives what to ask for instead.
+local function Fits(spell, item)
+    local _, _, fits, say = SlotFor(spell)
+    local info = C_Item and C_Item.GetItemInfoInstant
+    if not info then return true, say end
+    local _, _, _, worn = info(item)
+    if fits then return worn ~= nil and fits[worn] == true, say end
+    return worn ~= nil and worn ~= "" and worn ~= "INVTYPE_NON_EQUIP_IGNORE", "something you can wear"
 end
 
 local function IsEnchant(spell)
@@ -699,6 +721,8 @@ function C.Pick(spell)
     if spell and IsEnchant(spell) then
         local slot, word = SlotFor(spell)
         local worn = slot and GetInventoryItemID and GetInventoryItemID("player", slot)
+        -- Only what the enchant can go on: a one-handed weapon isn't offered for a two-hander's enchant.
+        if worn and not Fits(spell, worn) then worn = nil end
         a.on, a.worn = worn or nil, worn and word or nil
     end
     if C.card then
@@ -851,6 +875,12 @@ local function BuildCard(view, width)
         local kind, item = GetCursorInfo()
         if kind ~= "item" or not item then return end
         ClearCursor()
+        local fits, say = Fits(C.ask.spell, item)
+        if not fits then
+            C.card.message:SetText(("%s can't take this enchant. Drop %s on the box."):format(Compat.ItemName(item) or "That", say or "an item it goes on"))
+            return
+        end
+        C.card.message:SetText("")
         C.ask.on, C.ask.worn = item, nil
         PaintAsk()
     end
@@ -859,7 +889,7 @@ local function BuildCard(view, width)
     card.on:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText("What the enchant goes on")
-        GameTooltip:AddLine("It starts as what you're wearing there. Drop another item on this box to change it.", 1, 1, 1, true)
+        GameTooltip:AddLine("It starts as what you're wearing there. Drop another item the enchant can go on to change it.", 1, 1, 1, true)
         GameTooltip:Show()
     end)
     card.on:SetScript("OnLeave", function() GameTooltip:Hide() end)
