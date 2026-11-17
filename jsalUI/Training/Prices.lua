@@ -267,6 +267,8 @@ events:SetScript("OnEvent", function(_, event)
     -- The list fills in a moment after the window opens.
     Compat.After(0.3, function()
         xpcall(RECORD[event], ns.Report)
+        -- The spells as last read don't have what was just saved.
+        if ns.Training and ns.Training.Forget then ns.Training.Forget() end
         -- The Training panel painted before this was saved; it paints again.
         if Prices.OnSaved then xpcall(Prices.OnSaved, ns.Report) end
     end)

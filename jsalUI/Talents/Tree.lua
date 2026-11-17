@@ -35,8 +35,7 @@ end
 -- A class's trees: talents with their place, ranks, spell and what they
 -- need. For your own class, each talent also carries the ranks you've
 -- learned, and the data carries what's needed to learn more.
-function Tree.Read(classID)
-    classID = classID or Tree.PlayerClass()
+local function ReadNow(classID)
     local source = ns.TalentData[classID]
     if not source then return nil end
     local own = classID == Tree.PlayerClass()
@@ -63,6 +62,31 @@ function Tree.Read(classID)
     end
     return data
 end
+
+-- Home's cards, the menu's count, the talent helper and the Build Planner
+-- each asked for the trees, so one click on the dashboard asked the game
+-- about every talent four or five times. A class's trees are kept until
+-- your talents, level or spells change. Your own aren't kept while the game
+-- has no talent config to read them from yet, as just after logging in.
+local kept = {}
+function Tree.Read(classID)
+    classID = classID or Tree.PlayerClass()
+    local data = kept[classID]
+    if data then return data end
+    data = ReadNow(classID)
+    if data and (data.configID or not data.own) then kept[classID] = data end
+    return data
+end
+
+function Tree.Forget() kept = {} end
+
+local forget = CreateFrame("Frame")
+for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "TRAIT_NODE_CHANGED", "TRAIT_TREE_CURRENCY_INFO_UPDATED",
+    "TRAIT_CONFIG_LIST_UPDATED", "CHARACTER_POINTS_CHANGED", "PLAYER_TALENT_UPDATE", "PLAYER_LEVEL_UP",
+    "PLAYER_ENTERING_WORLD", "SPELLS_CHANGED" }) do
+    forget:RegisterEvent(event)
+end
+forget:SetScript("OnEvent", Tree.Forget)
 
 -- The plan's rules, as the game applies them: a row opens after 5 points
 -- per row above it in that tree, a talent with an arrow into it needs the

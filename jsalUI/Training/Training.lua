@@ -179,7 +179,7 @@ end
 -- icon, price (nil when no trainer has shown it yet), whether you know it,
 -- and whether you've chosen to skip it; and each weapon skill with its price
 -- and who teaches it, once a weapon master has been opened.
-function Training.Read()
+local function ReadNow()
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID]
     if not source then return nil end
@@ -325,6 +325,27 @@ function Training.Read()
     return data
 end
 
+-- Reading every spell is the costly part of opening the dashboard: Home's
+-- cards, the menu's counts and the Training Planner each asked for it, so
+-- one click on the dashboard read the whole spellbook two or three times
+-- (Home 18 ms, Training 11 ms in his /jsal perf). The reading is kept until
+-- something it reads changes: a spell learned, a level, a pet, a trainer or
+-- Grimoire vendor saved, a spell skipped. Whoever uses it only reads it.
+local kept
+function Training.Read()
+    if not kept then kept = ReadNow() end
+    return kept
+end
+
+function Training.Forget() kept = nil end
+
+local forget = CreateFrame("Frame")
+for _, event in ipairs({ "SPELLS_CHANGED", "SKILL_LINES_CHANGED", "PLAYER_LEVEL_UP", "PLAYER_ENTERING_WORLD",
+    "TRAINER_UPDATE", "TRAINER_CLOSED", "UNIT_PET", "PET_BAR_UPDATE" }) do
+    forget:RegisterEvent(event)
+end
+forget:SetScript("OnEvent", Training.Forget)
+
 -- A hunter's pet as last seen: its family, level and the abilities it knows.
 local function NotePet(source)
     local family = UnitExists("pet") and Compat.Family("pet")
@@ -367,6 +388,7 @@ local function NoteAll()
             if IsSpellKnown(entry[1], true) then ns.char.petKnown[entry[1]] = true end
         end
     end
+    kept = nil
 end
 
 watcher:SetScript("OnEvent", function(_, event, unit)
@@ -484,6 +506,7 @@ end
 function Training.Skip(spellID, on)
     ns.char.trainingSkips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     ns.char.trainingSkips[spellID] = on or nil
+    kept = nil
 end
 
 -- Sorts the spells into what's ready now, coming soon, later and skipped,
