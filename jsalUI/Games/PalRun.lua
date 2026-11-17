@@ -209,6 +209,8 @@ end
 ---------------------------------------------------------------------------
 local ui = {}
 local mode, seed, course, run
+local courseDay   -- the day the day's course in the window was laid for
+local shared      -- the day and time last said in guild chat, so one time is said once
 local held = {}
 local behind, clock, flash, boardAge = 0, 0, 0, 0
 
@@ -367,7 +369,8 @@ local function ShowCard(title, sub, detail)
     ui.cardDetail:SetText(detail or "")
     ui.again:SetLabel(mode == "daily" and "Retry" or "Run again")
     ui.share:SetLabel(mode == "daily" and "Share to guild" or "New course")
-    ui.share:SetEnabled(mode ~= "daily" or PalRun.Result() ~= nil)
+    local day, best = PalRun.Result()
+    ui.share:SetEnabled(mode ~= "daily" or (best ~= nil and shared ~= day .. ":" .. best))
     ui.other:SetLabel(mode == "daily" and "Practice course" or "Today's course")
     -- The buttons there are stand in a row, centred.
     local row = {}
@@ -384,9 +387,17 @@ end
 
 -- A fresh run on the course there is, or on a new one: today's, or a
 -- practice course from `newSeed`.
+-- The day's course in the window was laid before the daily reset: it's yesterday's.
+local function Stale()
+    return mode == "daily" and courseDay ~= Games.Today()
+end
+
 local function Begin(newMode, newSeed)
+    -- A fresh run at the day's course is always at today's.
+    if not newMode and Stale() then newMode = "daily" end
     if newMode then
         mode = newMode
+        courseDay = Games.Today()
         seed = mode == "daily" and (Games.Today() * 7919 + 211) or newSeed
         course = Rules.Course(Games.Random(seed), mode ~= "daily" and Rules.PRACTICE or nil)
         Lay()
@@ -412,9 +423,13 @@ end
 
 local function Finish()
     local steps = Rules.Ticks(run)
-    local how, by = PalRun.Finished(mode, steps)
+    -- A run the daily reset overtook was on yesterday's course: it isn't today's time.
+    local how, by = "stale", nil
+    if not Stale() then how, by = PalRun.Finished(mode, steps) end
     local sub
-    if how == "first" then
+    if how == "stale" then
+        sub = "The daily reset came during that run: it isn't kept."
+    elseif how == "first" then
         sub = PalRun.Left() > 0 and "Your first time today. Retry to beat it." or "Your time for today."
     elseif how == "best" then
         sub = ("A new best today, by %s."):format(Rules.Clock(by))
@@ -448,7 +463,7 @@ local function Tick(_, elapsed)
         Rules.Step(run, held.left, held.right, held.jump)
         if run.started and not started then
             ui.card:Hide()
-            PalRun.Started(mode)
+            if not Stale() then PalRun.Started(mode) end
             PaintBoard()
         end
         if run.fresh then
@@ -467,6 +482,8 @@ local function Tick(_, elapsed)
     boardAge = boardAge + elapsed
     if boardAge > 2 then
         boardAge = 0
+        -- Left open over the daily reset with no run under way: today's course takes its place.
+        if Stale() and not run.started then Begin("daily") end
         PaintBoard()
     end
 end
@@ -493,7 +510,8 @@ end
 function PalRun.Now() return run end
 
 local function ShareLine()
-    return ("Pal run #%d: %s"):format(Games.Today(), Rules.Clock(Saved().best or 0))
+    local name = PalRun.PalName()
+    return ("Pal run #%d: %s%s"):format(Games.Today(), name and (name .. ", ") or "", Rules.Clock(Saved().best or 0))
 end
 PalRun.ShareLine = ShareLine
 
@@ -566,6 +584,8 @@ local function Build()
         if mode ~= "daily" then return Begin("practice", math.random(1, 2000000000)) end
         if not IsInGuild() then return ns.Print("Join a guild to share.") end
         Compat.SendChat(ShareLine(), "GUILD")
+        local day, best = PalRun.Result()
+        shared = day .. ":" .. best
         ui.share:SetEnabled(false)
     end)
     ui.other = Style.Button(card, "Practice course", "plain", 134)
@@ -604,7 +624,6 @@ local function Build()
         row.name:SetJustifyH("LEFT")
         row.name:SetWordWrap(false)
         row:EnableMouse(true)
-        Style.Hover(row)
         row:SetScript("OnEnter", function(self)
             if not self.owner then return end
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -617,6 +636,8 @@ local function Build()
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        -- The light under the pointer adds itself to the two scripts above, so it comes after them.
+        Style.Hover(row)
         ui.rows[i] = row
     end
     ui.empty = Style.Text(frame, 12, "muted")
