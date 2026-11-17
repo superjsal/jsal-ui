@@ -9,6 +9,7 @@ Restart the game after updating (exit and start it again): this version adds new
 - **Pet feeding: clicking a food feeds your pet.** With the game set to act as a key goes down, a click on a food in the row did nothing. The tile itself now works like the food reminder beside it: point at it for the row, click a food, drag it to move it. Pointing at either tile closes the other's row, so the two no longer lie over each other.
 - **Shopping list: clearing it takes away the buy pop-up beside a vendor.** It kept offering what had been on the list until you bought or sold something.
 - **Dungeon guide: a quest's level and the level you can take it at.** The level column showed one number that meant two things: "level 45" for how hard a quest you can take is, and "needs level 39" for one you can't yet. It shows both now, as in "level 45 · take at 37".
+- **Dungeon guide: the game's own quest marks.** Each quest to pick up has a gold ! before it, grey while you're under its level. One in your quest log has a ?, grey while you're doing it and gold when it's ready to hand in, in place of the "in your quest log" tag.
 
 ## In 0.3.52
 

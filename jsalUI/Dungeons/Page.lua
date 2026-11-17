@@ -43,6 +43,30 @@ local function QuestHeld(id)
     return false
 end
 
+-- The game's own quest marks, as over a quest giver's head: a gold ! for a
+-- quest you can pick up, grey while you're under the level it's taken at;
+-- a ? once it's in your log, grey while it's being done and gold when it's
+-- ready to hand in. In place of an "in your quest log" tag (John, 16 Nov
+-- 2026: "replace the in your quest log with the appropriate symbols").
+-- The two pictures are the ones Forever's own QuestUtils uses; grey is the
+-- same picture without its colour.
+local OFFER_MARK = "Interface\\GossipFrame\\AvailableQuestIcon"
+local ACTIVE_MARK = "Interface\\GossipFrame\\ActiveQuestIcon"
+local function QuestMark(texture, id, take, mine)
+    local held = QuestHeld(id)
+    local lit
+    if held then
+        lit = C_QuestLog and C_QuestLog.IsComplete and C_QuestLog.IsComplete(id) and true or false
+    else
+        lit = not (take and mine and take > mine)
+    end
+    texture:SetTexture(held and ACTIVE_MARK or OFFER_MARK)
+    texture:SetDesaturated(not lit)
+    texture:SetAlpha(lit and 1 or 0.7)
+    texture:Show()
+    return held
+end
+
 -- Where a quest starts, and the quest before it, from ns.DungeonQuestStarts:
 -- { name, who or what starts it, kind (1 NPC, 2 object, 3 item), area, map
 -- for a pin (0 inside a dungeon), x, y (0 to 100), the quest before it, and
@@ -578,12 +602,12 @@ Window.Page("dungeons", function(page)
         q.level = Style.Text(q, 12, "muted")
         q.level:SetPoint("RIGHT", -10, 0)
         q.level:SetJustifyH("RIGHT")
+        q.mark = q:CreateTexture(nil, "ARTWORK")
+        q.mark:SetSize(16, 16)
+        q.mark:SetPoint("LEFT", 8, 0)
         q.name = Style.Text(q, 13, "text")
-        q.name:SetPoint("LEFT", 10, 0)
+        q.name:SetPoint("LEFT", 30, 0)
         q.name:SetWordWrap(false)
-        q.log = Tag(q)
-        q.log:SetPoint("LEFT", q.name, "RIGHT", 8, 0)
-        q.log:Say("in your quest log")
         q.who = Style.Text(q, 12, "muted")
         q.who:SetPoint("LEFT", WHO_X, 0)
         q.who:SetPoint("RIGHT", q.level, "LEFT", -12, 0)
@@ -697,8 +721,12 @@ Window.Page("dungeons", function(page)
         st.name = Style.Text(st, 13, "muted")
         st.name:SetPoint("LEFT", 48, 0)
         st.name:SetWordWrap(false)
+        -- The step to do now has the quest's mark after its name.
+        st.mark = st:CreateTexture(nil, "ARTWORK")
+        st.mark:SetSize(16, 16)
+        st.mark:SetPoint("LEFT", st.name, "RIGHT", 6, 0)
         st.start = Tag(st, true)
-        st.start:SetPoint("LEFT", st.name, "RIGHT", 8, 0)
+        st.start:SetPoint("LEFT", st.mark, "RIGHT", 4, 0)
         st.start:Say("start here")
         st.own = Tag(st)
         st.own:Say("this dungeon's quest")
@@ -1166,14 +1194,23 @@ Window.Page("dungeons", function(page)
                 st.number:SetTextColor(Style.Color(start and "onGold" or "muted"))
                 st.name:SetText(step.name)
                 st.name:SetTextColor(Style.Color(start and "text" or "muted"))
-                -- The step to do now: "start here", or that you have it.
-                st.start:SetShown(start)
-                if start then st.start:Say(QuestHeld(step.first.id) and "in your quest log" or "start here") end
+                -- The step to do now: its mark, and "start here" until
+                -- it's in your log.
+                local held = false
+                if start then
+                    local q = step.first.q
+                    held = QuestMark(st.mark, step.first.id, q and (q[4] or q[3]), mine)
+                else
+                    st.mark:Hide()
+                end
+                local tagged = start and not held
+                st.start:SetShown(tagged)
                 st.own:SetShown(step.own == true)
                 st.own:ClearAllPoints()
-                st.own:SetPoint("LEFT", start and st.start or st.name, "RIGHT", start and 6 or 8, 0)
+                st.own:SetPoint("LEFT", tagged and st.start or (start and st.mark or st.name), "RIGHT", start and 6 or 8, 0)
                 -- The giver starts at its column, or past a long name's tags.
-                local ends = 48 + Q.Wide(st.name, 0) + (start and st.start.wide + 8 or 0) + (step.own and st.own.wide + 8 or 0)
+                local ends = 48 + Q.Wide(st.name, 0) + (start and 22 or 0) + (tagged and st.start.wide + 4 or 0)
+                    + (step.own and st.own.wide + 8 or 0)
                 st.who:SetPoint("LEFT", math.max(WHO_X - 4, ends + 14), 0)
                 st.who:SetText(step.who)
                 st:SetAlpha(step.done and 0.6 or 1)
@@ -1190,7 +1227,7 @@ Window.Page("dungeons", function(page)
             row.quest = e.q[1]
             row.spot = Starts.Spot(e.q[1], QuestDone)
             row.name:SetText(e.q[2])
-            row.log:SetShown(QuestHeld(e.q[1]))
+            QuestMark(row.mark, e.q[1], e.q[4] or e.q[3], mine)
             row.who:SetText(Q.Giver(e.s, false))
             row.level:SetText(Q.Level(e.q, mine))
             row:ClearAllPoints()
