@@ -12,9 +12,9 @@ ns.ItemPrices = ItemPrices
 
 local DAY = 86400
 
--- The auction house's cut of a sale: Classic's at a faction's own auction
--- house. Not yet confirmed for Forever (the "Auction successful" mail shows
--- the cut); one number here, so a correction is one line.
+-- The auction house's cut of a sale at a faction's own auction house. Seen on
+-- Forever in two "Auction successful" mails (16 Nov 2026): 13 Fish Oil sold for
+-- 1s 43c with a 7c cut, and Hillman's Leather Gloves for 10s 45c with 52c.
 ItemPrices.CUT = 0.05
 -- A price older than this is shown as old.
 ItemPrices.OLD = 7 * DAY
