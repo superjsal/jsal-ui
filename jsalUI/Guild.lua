@@ -85,6 +85,8 @@ local function Status()
         ns.restartSince or "",
         -- How many boss kills and drops this player has heard, for guild loot.
         ns.GuildLoot and ns.GuildLoot.Signature() or "",
+        -- How many guild orders this player has heard, and their revisions added up.
+        ns.Orders and ns.Orders.Signature() or "",
     }, ";")
 end
 
@@ -141,9 +143,10 @@ local function NoteSeen(name, version)
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot, orders = strsplit(";", payload or "")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
     if ns.GuildLoot then ns.GuildLoot.HeardHello(name, loot, sender or name) end
+    if ns.Orders then ns.Orders.HeardHello(name, orders, sender or name) end
     if ns.LayerSwitch and ns.Layers and ns.Layers.running then ns.LayerSwitch.Heard(name, layer, sender or name) end
     CheckVersion(version, name, restartSince)
     NoteSeen(name, version)

@@ -42,8 +42,7 @@ Window.Page("professions", function(page)
     local leftW = math.floor((width - GAP) * 0.58)
     local rightX = leftW + GAP
     local rightW = width - rightX
-    -- The guild view has the whole width under the row of professions.
-    local roadW, top = width, bodyY
+    local top = bodyY
 
     -- The top: the chosen profession, your skill in it, its rank, and one
     -- bar from the rank's first point to its cap with the next rank marked.
@@ -280,9 +279,10 @@ Window.Page("professions", function(page)
     end
 
     ---------------------------------------------------------------------
-    -- Guild crafters: a card beside your professions. Its view lists the
-    -- guildmates who share, with their professions, and searches what they
-    -- make, crafts someone online makes first.
+    -- Guild crafters: a card beside your professions. Who makes what has a
+    -- window of its own now, Guild Crafts, with the guild's orders beside it;
+    -- the card stays here, where it's been looked for, and opens that window
+    -- on its Crafters tab.
     ---------------------------------------------------------------------
     local guildCard = CreateFrame("Button", nil, page)
     guildCard:SetHeight(TILE_H)
@@ -299,270 +299,7 @@ Window.Page("professions", function(page)
     guildSub:SetPoint("TOPLEFT", guildName, "BOTTOMLEFT", 0, -2)
     guildSub:SetText("who makes what")
 
-    local G_ROW = 46
-    local guildView = CreateFrame("Frame", nil, page)
-    guildView:SetPoint("TOPLEFT", 0, -top)
-    guildView:SetSize(roadW, height - top)
-    guildView:Hide()
-    local gHead = Section(guildView, roadW)
-    gHead:SetPoint("TOPLEFT")
-    gHead.title:SetText("GUILD CRAFTERS")
-    local searchWell = CreateFrame("Frame", nil, guildView)
-    searchWell:SetPoint("TOPLEFT", 0, -32)
-    searchWell:SetSize(roadW, 34)
-    Style.Fill(searchWell, "well")
-    Style.Border(searchWell, "lineStrong")
-    local search = CreateFrame("EditBox", nil, searchWell)
-    search:SetAllPoints()
-    search:SetTextInsets(10, 10, 0, 0)
-    search:SetAutoFocus(false)
-    search:SetMaxLetters(40)
-    search:SetFont(Style.font, 14, "")
-    search:SetTextColor(Style.Color("text"))
-    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    search:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-    searchWell:EnableMouse(true)
-    searchWell:SetScript("OnMouseDown", function() search:SetFocus() end)
-    local searchHint = Style.Text(searchWell, 13, "muted")
-    searchHint:SetPoint("LEFT", 10, 0)
-    searchHint:SetText("Search what you need: a bag, a potion, bracers")
-    local gMessage = Style.Text(guildView, 13, "muted")
-    gMessage:SetPoint("TOPLEFT", 0, -82)
-    gMessage:SetWidth(roadW)
-    gMessage:SetJustifyH("LEFT")
-    local gFoot = Style.Text(guildView, 11, "muted")
-    gFoot:SetPoint("BOTTOMLEFT", 0, 0)
-    gFoot:SetWidth(roadW)
-    gFoot:SetJustifyH("LEFT")
-    local gRows = {}
-    local function GuildRow(i)
-        if gRows[i] then return gRows[i] end
-        local r = CreateFrame("Frame", nil, guildView)
-        r:SetSize(roadW, G_ROW)
-        Style.Rule(r, "BOTTOM", "line")
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(28, 28)
-        r.icon:SetPoint("LEFT", 0, 0)
-        r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.name = Style.Text(r, 13, "text")
-        r.name:SetPoint("BOTTOMLEFT", r.icon, "RIGHT", 10, 1)
-        r.name:SetWidth(roadW - 200)
-        r.name:SetWordWrap(false)
-        r.who = Style.Text(r, 11, "muted")
-        r.who:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -2)
-        r.who:SetWidth(roadW - 200)
-        r.who:SetWordWrap(false)
-        r.whisper = Style.Button(r, "Whisper", "plain", 140)
-        r.whisper:SetHeight(26)
-        r.whisper:SetPoint("RIGHT", 0, 0)
-        Tooltip(r)
-        gRows[i] = r
-        return r
-    end
-
-    -- Before anything is typed: the guildmates who share, a row each, online
-    -- first, with their professions. A click on a profession lists what they
-    -- make with it.
-    local PaintGuild
-    local GV = { rows = {}, ROW = 44, TOP = 82, CHIPS_X = 190 }
-    GV.max = math.max(1, math.floor((height - top - GV.TOP - 22 - 40) / GV.ROW))
-    GV.cols = CreateFrame("Frame", nil, guildView)
-    GV.cols:SetSize(roadW, 18)
-    GV.cols:SetPoint("TOPLEFT", 0, -GV.TOP)
-    for _, label in ipairs({ { "GUILDMATE", 22 }, { "PROFESSIONS", GV.CHIPS_X } }) do
-        local t = Style.Text(GV.cols, 10, "muted", nil, true)
-        t:SetPoint("TOPLEFT", label[2], 0)
-        t:SetText(label[1])
-    end
-    Style.Rule(GV.cols, "BOTTOM", "lineStrong")
-    -- One guildmate's profession, opened: whose it is, and the way back.
-    GV.title = Style.Text(guildView, 13, "text", nil, true)
-    GV.title:SetPoint("TOPLEFT", 0, -(GV.TOP + 4))
-    GV.back = Style.Button(guildView, "All guildmates", "plain", 130)
-    GV.back:SetHeight(24)
-    GV.back:SetPoint("TOPRIGHT", guildView, "TOPLEFT", roadW, -(GV.TOP - 1))
-    GV.back:SetScript("OnClick", function()
-        GV.pick = nil
-        xpcall(PaintGuild, ns.Report)
-    end)
-
-    -- A profession on a guildmate's row: its name and skill, to click.
-    function GV.Chip(r, k)
-        if r.chips[k] then return r.chips[k] end
-        local c = CreateFrame("Button", nil, r)
-        c:SetHeight(22)
-        Style.Fill(c, "line")
-        c.text = Style.Text(c, 11, "text")
-        c.text:SetPoint("CENTER")
-        Style.Hover(c)
-        c:SetScript("OnClick", function(self)
-            if not self.prof or self.prof.recipes == 0 then return end
-            GV.pick = { name = self.person.name, line = self.prof.line, label = self.prof.name }
-            search:SetText("")
-            search:ClearFocus()
-            xpcall(PaintGuild, ns.Report)
-        end)
-        r.chips[k] = c
-        return c
-    end
-
-    function GV.Row(i)
-        if GV.rows[i] then return GV.rows[i] end
-        local r = CreateFrame("Frame", nil, guildView)
-        r:SetSize(roadW, GV.ROW)
-        r:SetPoint("TOPLEFT", 0, -(GV.TOP + 22 + (i - 1) * GV.ROW))
-        Style.Rule(r, "BOTTOM", "line")
-        -- Green while they're online.
-        r.dot = r:CreateTexture(nil, "ARTWORK")
-        r.dot:SetSize(7, 7)
-        r.dot:SetPoint("TOPLEFT", 8, -11)
-        r.name = Style.Text(r, 13, "text", nil, true)
-        r.name:SetPoint("TOPLEFT", 22, -6)
-        r.name:SetWidth(GV.CHIPS_X - 30)
-        r.name:SetWordWrap(false)
-        r.sub = Style.Text(r, 11, "muted")
-        r.sub:SetPoint("TOPLEFT", 22, -25)
-        r.sub:SetWidth(GV.CHIPS_X - 30)
-        r.sub:SetWordWrap(false)
-        r.chips = {}
-        r.more = Style.Text(r, 11, "muted")
-        r.whisper = Style.Button(r, "Whisper", "plain", 84)
-        r.whisper:SetHeight(26)
-        r.whisper:SetPoint("RIGHT", -2, 0)
-        GV.rows[i] = r
-        return r
-    end
-
-    -- The guildmates who share, down the view.
-    function GV.Paint(people)
-        local Crafters = ns.Crafters
-        local on = 0
-        for _, p in ipairs(people) do if p.online then on = on + 1 end end
-        gHead.note:SetText(("%d guildmate%s sharing  ·  %d online"):format(#people, #people == 1 and "" or "s", on))
-        GV.cols:Show()
-        for i = 1, math.min(#people, GV.max) do
-            local p, r = people[i], GV.Row(i)
-            r:Show()
-            r.dot:SetColorTexture(Style.Color(p.online and "green" or "lineStrong"))
-            r.name:SetText(p.name)
-            r.name:SetTextColor(Style.Color(p.online and "text" or "secondary"))
-            r.sub:SetText(p.online and ("online" .. (p.zone and ("  ·  " .. p.zone) or "")) or Crafters.Ago(p.seen))
-            local x, limit, left = GV.CHIPS_X, roadW - 100, 0
-            for k, prof in ipairs(p.profs) do
-                local c = GV.Chip(r, k)
-                -- A gathering skill is shared in steps of 25: "125+".
-                local words = ("%s  %d%s"):format(prof.name, prof.skill, prof.steps and "+" or "")
-                c.text:SetText(words)
-                -- One with recipes to list is brighter: it opens them.
-                c.text:SetTextColor(Style.Color(prof.recipes > 0 and "text" or "muted"))
-                local w = c.text.GetStringWidth and c.text:GetStringWidth()
-                w = ((type(w) == "number" and w > 0) and w or #words * 6) + 16
-                c.person, c.prof = p, prof
-                if x + w > limit then
-                    c:Hide()
-                    left = left + 1
-                else
-                    c:SetWidth(w)
-                    c:ClearAllPoints()
-                    c:SetPoint("LEFT", x, 0)
-                    c:Show()
-                    x = x + w + 6
-                end
-            end
-            for k = #p.profs + 1, #r.chips do r.chips[k]:Hide() end
-            r.more:SetText(left > 0 and ("+" .. left) or "")
-            r.more:ClearAllPoints()
-            r.more:SetPoint("LEFT", x, 0)
-            r.whisper:SetShown(p.online)
-            r.whisper:SetScript("OnClick", function() Crafters.Whisper(p) end)
-        end
-        gFoot:SetText((#people > GV.max and ("And %d more. "):format(#people - GV.max) or "")
-            .. "Click a profession to see what they make with it. Guildmates who have jsal.ui with Guild crafters on are listed.")
-    end
-
-    PaintGuild = function()
-        local Crafters = ns.Crafters
-        local sharing = Crafters.Count()
-        gHead.note:SetText(sharing > 0 and ("%d guildmate%s sharing"):format(sharing, sharing == 1 and "" or "s") or "")
-        local text = search:GetText()
-        searchHint:SetShown(text == "" and not search:HasFocus())
-        for _, r in ipairs(gRows) do r:Hide() end
-        for _, r in ipairs(GV.rows) do r:Hide() end
-        for _, region in ipairs({ GV.cols, GV.title, GV.back }) do region:Hide() end
-        gFoot:SetText("")
-        local typed = strtrim(text) ~= ""
-        -- Typing goes back to the search of everyone's crafts.
-        if typed then GV.pick = nil end
-        local note
-        if not IsInGuild() then
-            note = "Guild crafters shows what your guildmates can make. Join a guild to use it."
-        elseif sharing == 0 then
-            note = "No recipes heard yet. Guildmates with jsal.ui share theirs once they've opened their profession windows, and their crafts show here as they come in."
-        end
-        local people = (not note and not typed and not GV.pick and Crafters.Sharing) and Crafters.Sharing() or nil
-        if people and #people > 0 then
-            gMessage:Hide()
-            GV.Paint(people)
-            return
-        end
-        local found, base = {}, 76
-        if not note then
-            if GV.pick then
-                found, base = Crafters.Makes(GV.pick.name, GV.pick.line), GV.TOP + 30
-                GV.title:SetText(("%s's %s  ·  %d recipe%s"):format(GV.pick.name, GV.pick.label, #found, #found == 1 and "" or "s"))
-                GV.title:Show()
-                GV.back:Show()
-                if #found == 0 then note = "Nothing to list yet: the game is still loading their names." end
-            elseif not typed then
-                note = "Type what you need. Guildmates online now come first, with a button to whisper them."
-            else
-                found = Crafters.Search(text, 200)
-                if #found == 0 then note = "No guildmate makes anything by that name yet." end
-            end
-        end
-        gMessage:ClearAllPoints()
-        gMessage:SetPoint("TOPLEFT", 0, -(base + 6))
-        gMessage:SetText(note or "")
-        gMessage:SetShown(note ~= nil)
-        local fit = math.max(1, math.floor((height - top - base - 24) / G_ROW))
-        for i = 1, math.min(#found, fit) do
-            local entry, r = found[i], GuildRow(i)
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 0, -(base + (i - 1) * G_ROW))
-            r:Show()
-            r.item = entry.row.item
-            r.spell = not entry.row.item and entry.row.spell or nil
-            r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(entry.row.spell)))
-            r.name:SetText(entry.name)
-            local on, off = {}, {}
-            for _, p in ipairs(entry.people) do
-                if p.online then
-                    on[#on + 1] = Style.Tint("green") .. p.name .. "|r"
-                elseif #off < 3 then
-                    off[#off + 1] = #off == 0 and (p.name .. " (" .. Crafters.Ago(p.seen) .. ")") or p.name
-                end
-            end
-            local who = table.concat(on, ", ")
-            if #off > 0 then who = who .. (who ~= "" and "   " or "") .. table.concat(off, ", ") end
-            r.who:SetText(who)
-            local first = entry.people[1]
-            r.whisper:SetShown(first.online)
-            if first.online then
-                r.whisper.label:SetText("Whisper " .. (first.name:match("^%S+") or first.name))
-                r.whisper:SetScript("OnClick", function() Crafters.Whisper(first, entry.name) end)
-            end
-        end
-        if #found > fit then
-            gFoot:SetText(GV.pick and ("Showing %d of %d."):format(fit, #found)
-                or ("Showing %d of %d. Type more to narrow it."):format(fit, #found))
-        end
-    end
-    search:SetScript("OnTextChanged", function() xpcall(PaintGuild, ns.Report) end)
-    search:SetScript("OnEditFocusGained", function() searchHint:Hide() end)
-    search:SetScript("OnEditFocusLost", function() searchHint:SetShown(search:GetText() == "") end)
-
-    -- Everything of the road, out of sight: for the guild view, and before
-    -- each painting of it.
+    -- Everything of the road, out of sight, before each painting of it.
     local function HideRoad(bar)
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(needs) do r:Hide() end
@@ -579,10 +316,9 @@ Window.Page("professions", function(page)
         local mine = Professions.Mine()
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
-        local guildOn = ns.Crafters and ns.Crafters.running
-        if selected == "guild" and not guildOn then selected = nil end
-        if selected ~= "guild" and (not selected or not Professions.Name(selected)) then
-            selected = (mine[1] and mine[1].line) or (guildOn and "guild") or nil
+        local guildOn = ns.Crafters ~= nil and ns.Crafters.running == true and ns.GuildCrafts ~= nil
+        if not selected or not Professions.Name(selected) then
+            selected = mine[1] and mine[1].line or nil
         end
         -- The row of professions, with the guild's crafters last in it.
         local tiles = #mine + (guildOn and 1 or 0)
@@ -593,13 +329,8 @@ Window.Page("professions", function(page)
             guildCard:ClearAllPoints()
             guildCard:SetSize(tileW, TILE_H)
             guildCard:SetPoint("TOPLEFT", #mine * (tileW + 10), -tilesY)
-            Style.SetBorder(guildCard.edges, selected == "guild" and "gold" or "cardLine")
-            guildCard:SetScript("OnClick", function()
-                selected = "guild"
-                Paint()
-            end)
+            guildCard:SetScript("OnClick", function() ns.GuildCrafts.Show("crafters") end)
         end
-        guildView:SetShown(selected == "guild")
         local current
         for i, p in ipairs(mine) do
             local c = Card(i)
@@ -620,13 +351,7 @@ Window.Page("professions", function(page)
         for i = #mine + 1, #cards do cards[i]:Hide() end
 
         HideRoad(true)
-        scroll:SetShown(selected ~= "guild" and current ~= nil)
-        if selected == "guild" then
-            title:SetText("Guild crafters")
-            sub:SetText("Who in your guild makes what, with a whisper to the ones online")
-            PaintGuild()
-            return
-        end
+        scroll:SetShown(current ~= nil)
         if not current then
             title:SetText("Professions")
             sub:SetText("What to craft, and how many, to reach each profession's next rank")

@@ -2,15 +2,15 @@
 -- recipes its character knows (as seen the last time the profession window
 -- was open) with guildmates who ask. A short fingerprint of them rides in
 -- the Guild tab's hello, so a guildmate asks again only after it changes;
--- what they hear is kept between sessions, per guild. The Professions page
--- lists who shares, with their professions, and searches what they make;
+-- what they hear is kept between sessions, per guild. Guild Crafts' Crafters
+-- tab lists who shares, with their professions, and searches what they make;
 -- item tooltips name the guildmates who make the item.
 local _, ns = ...
 local Compat, Comms, Professions = ns.Compat, ns.Comms, ns.Professions
 
 local Crafters = ns.NewModule("crafters", {
     title = "Guild crafters",
-    note = "Shares your recipes with guildmates who have jsal.ui, so anyone can see who makes what. On the Professions page and in item tooltips.",
+    note = "Shares your recipes with guildmates who have jsal.ui, so anyone can see who makes what. In Guild Crafts and in item tooltips. /jsal crafts",
 })
 ns.Crafters = Crafters
 

@@ -28,7 +28,7 @@ local GROUPS = {
         { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
     { title = "Professions", width = 130, sections = {
-        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "craftprofit" } },
+        { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "orders", "craftprofit" } },
     } },
     { title = "Around the UI", width = 150, sections = {
         { "Buttons and bars", { "launcher", "minimap", "menubar", "bagbutton" } },
@@ -64,6 +64,7 @@ local SHORT = {
     profwindow = "Extras in the game's profession window",
     shopping = "What to craft and buy, with prices",
     crafters = "Who in your guild makes what",
+    orders = "Ask the guild for a craft",
     craftprofit = "What your recipes earn at auction",
     launcher = "A small bar of buttons you can move",
     minimap = "Opens the dashboard from the minimap",
@@ -91,7 +92,7 @@ local ICON = {
     nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
     guidetags = "Menu\\quests", lootlog = "Menu\\collections",
     tametip = "Parts\\tametip", rewardstar = "Menu\\quests",
-    professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group",
+    professionpanel = "Menu\\professions", profwindow = "Parts\\profwindow", shopping = "Parts\\shopping", crafters = "Menu\\group", orders = "Menu\\guild",
     craftprofit = "Menu\\shop",
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
     vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",

@@ -35,6 +35,13 @@ for key, hex in pairs({
     green = "62b35a",
     onGold = "16130c",
     blue = "2f5db5",
+    -- An order's states in Guild Crafts: amber while it waits for a crafter, sky while
+    -- it's being made (green is done, gold what waits on you). Both keep 4.5:1 on a card.
+    amber = "d68c3c",
+    sky = "60a5eb",
+    -- Behind "has the materials" and "needs the materials": green and gold, dimmed.
+    goodFill = "203626",
+    needFill = "3e3118",
     white = "ffffff",
     -- Daily Word's tiles, in the green, yellow and grey word-game players know.
     wordGreen = "56944f",

@@ -6,6 +6,7 @@
 //
 //   profit  a stack of coins  Crafting profit
 //   pals    a paw             Jsal's Pals (the paw its Settings card has)
+//   crafts  an order sheet    Guild Crafts
 //
 // Uses Playwright from jsal.io's build tools to draw the shapes, as make_menu_icons.mjs does.
 // Run from the repo root: node tools/make_tile_icons.mjs
@@ -25,6 +26,8 @@ const band = (y) => `M5 ${y}c0 1.66 3.13 3 7 3s7-1.34 7-3v2.4c0 1.66-3.13 3-7 3s
 const ICONS = {
   profit: `<ellipse cx="12" cy="6.6" rx="7" ry="3" fill="${GOLD}"/><path fill="${GOLD}" d="${band(7.8)} ${band(11.4)} ${band(15)}"/>`,
   pals: `<path fill="${GOLD}" d="M6.5 9.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm11 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM10 6.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm4 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 10.5c3 0 6 3.5 6 6.5 0 2-1.5 3-3 3-1.2 0-1.8-.6-3-.6s-1.8.6-3 .6c-1.5 0-3-1-3-3 0-3 3-6.5 6-6.5z"/>`,
+  // A sheet with a turned corner and three lines on it: what's been asked for.
+  crafts: `<path fill-rule="evenodd" fill="${GOLD}" d="M5.5 2.5h9L19 7v14.5H5.5zM8 9.6v2h8.5v-2zm0 3.9v2h8.5v-2zm0 3.9v2h5v-2z"/>`,
 };
 
 const icons = join(dirname(fileURLToPath(import.meta.url)), '..', 'jsalUI', 'Media', 'Icons');

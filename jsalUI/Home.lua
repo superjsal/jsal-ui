@@ -295,6 +295,9 @@ function Today.Badge(key)
         n = #Today.Games()
     elseif key == "chess" then
         n = Today.Chess() and 1 or nil
+    elseif key == "guildcrafts" then
+        -- Orders you accepted, and ones you could accept that you haven't looked at yet.
+        n = ns.Orders and ns.Orders.Badge(true) or nil
     end
     return n and n > 0 and n or nil
 end

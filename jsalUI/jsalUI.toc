@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.52
+## Version: 0.3.53-beta.1
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -77,6 +77,7 @@ Professions\ItemPrices.lua
 Professions\RecipeSources.lua
 Professions\Sources.lua
 Professions\Crafters.lua
+Professions\Orders.lua
 Professions\Panel.lua
 Professions\Page.lua
 Professions\Window.lua
@@ -84,6 +85,7 @@ Professions\Favorites.lua
 Professions\Shopping.lua
 Professions\Profit.lua
 Professions\ProfitPage.lua
+Professions\Crafts.lua
 
 # Everyday helpers.
 Helpers\Vendor.lua

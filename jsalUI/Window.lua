@@ -28,6 +28,14 @@ local PAGES = {
     { key = "professions", label = "Professions", icon = OWN .. "professions" },
     { key = "craftprofit", label = "Crafting profit", icon = OWN .. "profit",
       when = function() return ns.CraftProfit ~= nil and ns.CraftProfit.running == true end },
+    -- Who in the guild makes what, and the orders guildmates ask each other for: in the
+    -- menu while either part is on.
+    { key = "guildcrafts", label = "Guild Crafts", icon = OWN .. "crafts",
+      when = function()
+          return (ns.Crafters ~= nil and ns.Crafters.running == true) or (ns.Orders ~= nil and ns.Orders.running == true)
+      end,
+      -- In the size it was last left in: the full window, or the small one.
+      open = function() ns.GuildCrafts.Show() end },
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
@@ -381,9 +389,11 @@ local function OpenOwn(page)
     own.frame:Raise()
 end
 
-function Window.Open(key)
+-- `direct` opens a page's own window even when the entry has an `open` of its own (Guild
+-- Crafts' picks between its two sizes, and comes back here for the full one).
+function Window.Open(key, direct)
     local page = byKey[key] or byKey.home
-    if page.open then return page.open() end
+    if page.open and not direct then return page.open() end
     -- A page that isn't in the menu just now (/jsal install with no look to
     -- install) opens the dashboard's home instead.
     if page.when and not page.when() then page = byKey.home end
