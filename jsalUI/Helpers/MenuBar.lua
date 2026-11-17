@@ -72,7 +72,7 @@ local function Paint(button)
     Fade(button)
     local enabled = button:IsEnabled()
     local open = button:GetButtonState() == "PUSHED"
-    s.fill:SetColorTexture(Style.Color((s.hover and enabled) and "wellHover" or "well"))
+    s.fill:Paint((s.hover and enabled) and "wellHover" or "well")
     Style.SetBorder(s.edges, ((s.hover and enabled) or open) and "gold" or "lineStrong")
     if enabled then
         local r, g, b = Style.Color("gold")
@@ -95,8 +95,8 @@ local function Skin(button, icon)
     local tile = CreateFrame("Frame", nil, button)
     tile:SetPoint("CENTER")
     s.tile = tile
-    s.fill = Style.Fill(tile, "well")
-    s.edges = Style.Border(tile, "lineStrong")
+    local box = Style.Box(tile, 5, "well", "lineStrong")
+    s.fill, s.edges = box.fill, { box.line }
     -- Inside the well, the raised slate square jsal.ui's own icons have,
     -- then the gold shape on it.
     s.slate = tile:CreateTexture(nil, "ARTWORK")
@@ -155,8 +155,7 @@ local function Frame()
     if menu.BorderArt then menu.BorderArt:SetAlpha(0) end
     back = CreateFrame("Frame", nil, menu)
     back:SetFrameLevel(math.max(0, menu:GetFrameLevel() - 1))
-    Style.Fill(back, "window")
-    Style.Border(back, "lineStrong")
+    Style.Box(back, 6, "window", "lineStrong")
     Style.Shadow(back, 10)
     local fit = MenuBar.fit or { 32, 32, 28 }
     MenuBar.FitFrame(fit[1], fit[2], fit[3])

@@ -984,12 +984,7 @@ local function BuildCard(view, width)
     card.strip:SetHeight(38)
     -- Round at the bottom, with the card; square at the top, where it meets
     -- the card's own fill.
-    Style.Round(card.strip, 5, "titleBar")
-    local top = card.strip:CreateTexture(nil, "BACKGROUND")
-    top:SetColorTexture(Style.Color("titleBar"))
-    top:SetPoint("TOPLEFT")
-    top:SetPoint("TOPRIGHT")
-    top:SetHeight(19)
+    Style.Cap(card.strip, 5, "titleBar", true)
     Style.Rule(card.strip, "TOP", "cardLine")
 
     Label(card, "ASK THE GUILD FOR", 16, -12)

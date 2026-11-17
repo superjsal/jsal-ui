@@ -279,19 +279,21 @@ local function Build()
         local point, _, relative, x, y = holder:GetPoint(1)
         if ns.db then ns.db.petFeedAt = { point, relative, x, y } end
     end)
-    tile.fill = Style.Fill(tile, "well")
-    tile.edges = Style.Border(tile, "gold")
+    -- Round, as the quick buttons' tiles are: the icon sits far enough in
+    -- for its square corners to clear the round line.
+    local box = Style.Box(tile, 5, "well", "gold")
+    tile.fill, tile.edges = box.fill, { box.line }
     tile.icon = tile:CreateTexture(nil, "ARTWORK")
     tile.icon:SetTexture(ICON)
     tile.icon:SetPoint("TOPLEFT", 3, -3)
     tile.icon:SetPoint("BOTTOMRIGHT", -3, 3)
     tile.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     tile:SetScript("OnEnter", function(self)
-        self.fill:SetColorTexture(Style.Color("wellHover"))
+        self.fill:Paint("wellHover")
         OpenRow()
     end)
     tile:SetScript("OnLeave", function(self)
-        self.fill:SetColorTexture(Style.Color("well"))
+        self.fill:Paint("well")
         if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
     end)
     glow = Glow(tile)

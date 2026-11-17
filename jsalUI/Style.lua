@@ -217,6 +217,19 @@ function Style.Box(frame, radius, fillKey, lineKey)
     return box
 end
 
+-- The fill of a bar across the top of a round box: round at its top
+-- corners, square below. `bottom` turns it over, for a strip along the
+-- bottom of one.
+function Style.Cap(frame, radius, colorKey, bottom)
+    local round = Style.Round(frame, radius, colorKey)
+    local flat = frame:CreateTexture(nil, "BACKGROUND")
+    flat:SetColorTexture(Style.Color(colorKey))
+    flat:SetPoint(bottom and "TOPLEFT" or "BOTTOMLEFT")
+    flat:SetPoint(bottom and "TOPRIGHT" or "BOTTOMRIGHT")
+    flat:SetPoint(bottom and "BOTTOM" or "TOP", frame, "CENTER")
+    return round
+end
+
 -- A 1px rule along one side of a frame.
 function Style.Rule(frame, side, colorKey)
     local t = frame:CreateTexture(nil, "BORDER")
