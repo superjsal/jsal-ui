@@ -70,6 +70,26 @@ function Road.Needs(self)
     end
 end
 
+-- The label under the bar's mark for the next rank: centred on the mark,
+-- unless that would run it off the bar or into the number at either end;
+-- then it stops short of that number. With the mark at the cap itself the
+-- label starts with the cap's number, so it takes that number's place.
+-- `x` is how far along the bar the mark is, `width` the bar's length.
+function Road.PlaceMark(mark, track, x, width, from, cap, atCap)
+    local half = Style.Wide(mark, 120) / 2
+    local left = Style.Wide(from, 20) + 10
+    local right = width - (atCap and 0 or (Style.Wide(cap, 20) + 10))
+    cap:SetShown(not atCap)
+    mark:ClearAllPoints()
+    if x + half > right then
+        mark:SetPoint("TOPRIGHT", track, "BOTTOMLEFT", right, -5)
+    elseif x - half < left then
+        mark:SetPoint("TOPLEFT", track, "BOTTOMLEFT", left, -5)
+    else
+        mark:SetPoint("TOP", track, "BOTTOMLEFT", x, -5)
+    end
+end
+
 ---------------------------------------------------------------------------
 -- The step in hand, as a card: what to make, how many (and how many to be
 -- safe), and each thing it takes with what you have of it.

@@ -588,13 +588,13 @@ function Paint()
     local ahead = rankAt ~= nil and skill < rankAt
     panel.marker:SetShown(ahead)
     panel.markText:SetShown(ahead)
+    panel.cap:Show()
     if ahead then
         local x = width * (rankAt - floor) / span
         panel.marker:ClearAllPoints()
         panel.marker:SetPoint("CENTER", panel.track, "LEFT", x, 0)
         panel.markText:SetText(("%d · train %s"):format(rankAt, rank.next))
-        panel.markText:ClearAllPoints()
-        panel.markText:SetPoint("TOP", panel.track, "BOTTOMLEFT", x, -5)
+        Road.PlaceMark(panel.markText, panel.track, x, width, panel.from, panel.cap, rankAt >= cap)
     end
 
     -- What you know, asked once for the whole list, and kept for the

@@ -258,8 +258,7 @@ Window.Page("professions", function(page)
             marker:ClearAllPoints()
             marker:SetPoint("CENTER", track, "LEFT", x, 0)
             markText:SetText(("%d · %s"):format(rankAt, doing))
-            markText:ClearAllPoints()
-            markText:SetPoint("TOP", track, "BOTTOMLEFT", x, -5)
+            Road.PlaceMark(markText, track, x, width, from, capText, rankAt >= cap)
         end
 
         -- What you know: as last seen in its window, else every trainer
