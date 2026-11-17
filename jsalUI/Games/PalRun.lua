@@ -620,3 +620,15 @@ function PalRun:OnEnable()
 end
 
 ns.Command("run", function() PalRun.Open() end)
+
+-- For trying it out while it's being made, in a beta build only (one whose
+-- version says so; a release has no such command): /jsal run reset wipes
+-- today's runs and today's time, as if the day were new.
+if ns.IsBeta(ns.version) then
+    ns.Command("run reset", function()
+        local s = Saved()
+        s.best, s.tries = nil, 0
+        ns.Print("Pal run: today's time is gone and its three runs are back.")
+        if ui.frame and ui.frame:IsShown() then Begin("daily") end
+    end)
+end
