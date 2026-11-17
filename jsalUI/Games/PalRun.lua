@@ -1,7 +1,7 @@
 -- Pal run: a platformer for your pal. One course a day, the same for
--- everyone, against the clock: your best time of the day stands, and the
--- guild's times are listed beside the course. Practice courses are random
--- and count for nothing. The rules are in PalRunRules.lua; this is the
+-- everyone, against the clock: three runs at it a day, the best of them
+-- stands, and the guild's times are listed beside the course. Three falls
+-- end a run. Practice courses are random and count for nothing. The rules are in PalRunRules.lua; this is the
 -- window, the keys and what's kept.
 local _, ns = ...
 local Style, Compat, Games, Rules = ns.Style, ns.Compat, ns.Games, ns.PalRunRules
@@ -34,10 +34,12 @@ local FEET = {
 PalRun.FEET = FEET
 
 ---------------------------------------------------------------------------
--- What's kept, for the whole account: today's best time and how many runs
--- it took, and the fastest daily course ever. Times are in steps, sixty to
--- the second.
+-- What's kept, for the whole account: today's best time, how many runs at
+-- the day's course have been started, and the fastest daily course ever.
+-- Times are in steps, sixty to the second.
 ---------------------------------------------------------------------------
+PalRun.RUNS = 3   -- runs at the day's course: one, and two retries
+
 local function Saved()
     local s = ns.db.palrun
     if type(s) ~= "table" then
@@ -48,15 +50,23 @@ local function Saved()
     return s
 end
 
+-- Runs still to be had at today's course.
+function PalRun.Left()
+    return math.max(0, PalRun.RUNS - (Saved().tries or 0))
+end
+
+-- Today's course is done with: it has a time, or its runs are used up.
 function PalRun.DailyDone()
     local s = ns.db.palrun
-    return type(s) == "table" and s.day == Games.Today() and s.best ~= nil
+    if type(s) ~= "table" or s.day ~= Games.Today() then return false end
+    return s.best ~= nil or (s.tries or 0) >= PalRun.RUNS
 end
 
 -- Today's day and best time, once there is one.
 function PalRun.Result()
-    if not PalRun.DailyDone() then return nil end
-    return ns.db.palrun.day, ns.db.palrun.best
+    local s = ns.db.palrun
+    if type(s) ~= "table" or s.day ~= Games.Today() or not s.best then return nil end
+    return s.day, s.best
 end
 
 -- What the guild is told: "day:steps", or nothing while the part is off or
@@ -69,8 +79,11 @@ end
 
 function PalRun.Status()
     if not PalRun.running then return "Turned off in Settings" end
-    local s = Saved()
-    if s.best then return ("Today's best %s"):format(Rules.Clock(s.best)) end
+    local s, left = Saved(), PalRun.Left()
+    local runs = left == 0 and "no runs left" or (left == 1 and "1 run left" or (left .. " runs left"))
+    if s.best then return ("Today's best %s, %s"):format(Rules.Clock(s.best), runs) end
+    if left == 0 then return "No time today: the runs are used up" end
+    if (s.tries or 0) > 0 then return ("No time yet, %s"):format(runs) end
     return ("#%d is ready"):format(s.day)
 end
 
@@ -80,13 +93,20 @@ function PalRun.Record()
     return ("Pal run: fastest ever %s, on #%d."):format(Rules.Clock(s.ever), s.everDay or 0)
 end
 
+-- A run has started. One at the day's course is counted there and then, so
+-- starting again, or leaving, doesn't give it back.
+function PalRun.Started(mode)
+    if mode ~= "daily" then return end
+    local s = Saved()
+    s.tries = (s.tries or 0) + 1
+end
+
 -- A run is over, in `steps`. Today's course: "first" for the day's first
 -- time, "best" for one that beats it (and by how many steps), "slower"
 -- otherwise. A practice course is only ever "practice".
 function PalRun.Finished(mode, steps)
     if mode ~= "daily" then return "practice" end
     local s = Saved()
-    s.tries = (s.tries or 0) + 1
     local was = s.best
     if was and steps >= was then return "slower" end
     s.best = steps
@@ -112,12 +132,14 @@ function PalRun.Board()
     return list
 end
 
--- The pal that runs: yours as it is now, or a Briarboar while you have none.
+-- The pal that runs: your pal's kind in its first form, whatever it has grown
+-- into, so every runner is near enough one size; a Briarboar while you have
+-- none.
 function PalRun.Runner()
     local Pet, PetRules, s = ns.Pet, ns.PetRules, ns.db.pet
     if Pet and Pet.running and PetRules and type(s) == "table" and not s.unchosen then
         local sprites = PetRules.Species(s).sprites
-        local sprite = sprites[s.grewFrom or s.form] or sprites[1]
+        local sprite = sprites[1]
         if Pet.SHEETS[sprite] then return sprite end
     end
     return "briarboar"
@@ -200,6 +222,7 @@ local function PaintBoard()
     end
     local s = Saved()
     ui.today:SetText(s.best and Rules.Clock(s.best) or "-")
+    ui.left:SetText(tostring(PalRun.Left()))
     ui.ever:SetText(s.ever and Rules.Clock(s.ever) or "-")
 end
 
@@ -290,19 +313,37 @@ local function Paint()
     end
 end
 
+-- How many runs at the day's course are left, as the card says it.
+local function LeftLine()
+    if mode ~= "daily" then return "Practice runs aren't counted." end
+    local left = PalRun.Left()
+    if left == 0 then return "No runs left today." end
+    return left == 1 and "1 run left today." or (left .. " runs left today.")
+end
+
 local function ShowCard(title, sub, detail)
+    local over = run.done == true or run.failed == true
+    -- The day's course with its runs used up: nothing more to run today.
+    local spent = mode == "daily" and PalRun.Left() == 0
     ui.card:Show()
     ui.cardTitle:SetText(title)
     ui.cardSub:SetText(sub)
     ui.cardDetail:SetText(detail or "")
-    ui.again:SetShown(run.done == true)
-    ui.share:SetShown(run.done == true)
+    ui.again:SetLabel(mode == "daily" and "Retry" or "Run again")
     ui.share:SetLabel(mode == "daily" and "Share to guild" or "New course")
-    ui.share:SetEnabled(mode ~= "daily" or PalRun.DailyDone())
+    ui.share:SetEnabled(mode ~= "daily" or PalRun.Result() ~= nil)
     ui.other:SetLabel(mode == "daily" and "Practice course" or "Today's course")
-    -- One button stands in the middle; three stand in a row.
-    ui.other:ClearAllPoints()
-    if run.done then ui.other:SetPoint("BOTTOMLEFT", ui.card, "BOTTOM", 73, 16) else ui.other:SetPoint("BOTTOM", ui.card, "BOTTOM", 0, 16) end
+    -- The buttons there are stand in a row, centred.
+    local row = {}
+    for _, entry in ipairs({ { ui.again, over and not spent }, { ui.share, over or spent }, { ui.other, true } }) do
+        entry[1]:SetShown(entry[2])
+        if entry[2] then row[#row + 1] = entry[1] end
+    end
+    local left = -(#row * 134 + (#row - 1) * 12) / 2
+    for i, button in ipairs(row) do
+        button:ClearAllPoints()
+        button:SetPoint("BOTTOMLEFT", ui.card, "BOTTOM", left + (i - 1) * 146, 16)
+    end
 end
 
 -- A fresh run on the course there is, or on a new one: today's, or a
@@ -311,16 +352,24 @@ local function Begin(newMode, newSeed)
     if newMode then
         mode = newMode
         seed = mode == "daily" and (Games.Today() * 7919 + 211) or newSeed
-        course = Rules.Course(Games.Random(seed))
+        course = Rules.Course(Games.Random(seed), mode ~= "daily" and Rules.PRACTICE or nil)
         Lay()
     end
     run = Rules.New(course)
     behind, clock, flash = 0, 0, 0
     for i in ipairs(course.treats) do ui.treats[i]:Show() end
     ui.runner = PalRun.Runner()
-    ShowCard(mode == "daily" and ("Today's course   |cff9a9688#%d|r"):format(Games.Today()) or "Practice course",
-        "A and D to run, Space to jump. The clock starts when you move.",
-        "Each treat takes half a second off. R starts again.")
+    if mode == "daily" and PalRun.Left() == 0 then
+        -- Its runs are used up: the course is shown, and stays still.
+        run.locked = true
+        local _, best = PalRun.Result()
+        ShowCard(best and ("Today's best   " .. Rules.Clock(best)) or "No time today",
+            "No runs left today. A new course comes with the daily reset.", "Practice courses are never counted.")
+    else
+        ShowCard(mode == "daily" and ("Today's course   |cff9a9688#%d|r"):format(Games.Today()) or "Practice course",
+            "The clock starts when you move. Each treat takes half a second off.",
+            ("%d falls end a run.   %s"):format(Rules.FALLS, LeftLine()))
+    end
     Paint()
     PaintBoard()
 end
@@ -330,7 +379,7 @@ local function Finish()
     local how, by = PalRun.Finished(mode, steps)
     local sub
     if how == "first" then
-        sub = "Your first time today. Run again to beat it."
+        sub = PalRun.Left() > 0 and "Your first time today. Retry to beat it." or "Your time for today."
     elseif how == "best" then
         sub = ("A new best today, by %s."):format(Rules.Clock(by))
     elseif how == "slower" then
@@ -338,8 +387,15 @@ local function Finish()
     else
         sub = "A practice course: it isn't kept."
     end
-    ShowCard(Rules.Clock(steps), sub, ("%d of %d treats   ·   %s"):format(run.got, #course.treats,
-        run.falls == 0 and "no falls" or (run.falls == 1 and "1 fall" or (run.falls .. " falls"))))
+    ShowCard(Rules.Clock(steps), sub, ("%d of %d treats   ·   %s   ·   %s"):format(run.got, #course.treats,
+        run.falls == 0 and "no falls" or (run.falls == 1 and "1 fall" or (run.falls .. " falls")), LeftLine()))
+    PaintBoard()
+    ns.Window.Refresh()
+end
+
+-- The last fall a run is allowed: it's over, with no time.
+local function Fail()
+    ShowCard(("%d falls"):format(Rules.FALLS), "That run is over, with no time.", LeftLine())
     PaintBoard()
     ns.Window.Refresh()
 end
@@ -351,10 +407,14 @@ local function Tick(_, elapsed)
     flash = math.max(0, flash - elapsed)
     while behind >= Rules.STEP do
         behind = behind - Rules.STEP
-        if run.done then break end
+        if run.done or run.failed or run.locked then break end
         local started = run.started
         Rules.Step(run, held.left, held.right, held.jump)
-        if run.started and not started then ui.card:Hide() end
+        if run.started and not started then
+            ui.card:Hide()
+            PalRun.Started(mode)
+            PaintBoard()
+        end
         if run.fresh then
             ui.treats[run.fresh]:Hide()
             run.fresh = nil
@@ -363,6 +423,8 @@ local function Tick(_, elapsed)
         if run.done then
             clock = 0
             Finish()
+        elseif run.failed then
+            Fail()
         end
     end
     Paint()
@@ -383,7 +445,9 @@ local function Key(self, key, down)
     if what then
         held[what] = down
     elseif down and key == "R" then
-        Begin()
+        -- On the day's last run, R would throw it away: it's left running.
+        local live = run.started and not (run.done or run.failed)
+        if not (mode == "daily" and live and PalRun.Left() == 0) then Begin() end
     elseif down and key == "ESCAPE" then
         ui.frame:Hide()
     end
@@ -516,20 +580,20 @@ local function Build()
     local mine = Style.Section(frame, BOARD_W)
     mine:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -(40 + ROWS_SHOWN * ROW_H))
     mine.title:SetText("YOUR BEST")
-    for i, label in ipairs({ "Today", "Fastest ever" }) do
+    for i, label in ipairs({ "Today", "Fastest ever", "Runs left today" }) do
         local name = Style.Text(frame, 13, "secondary")
         name:SetPoint("TOPLEFT", mine, "BOTTOMLEFT", 0, -(10 + (i - 1) * 26))
         name:SetText(label)
         local value = Style.Text(frame, 14, "text", nil, true)
         value:SetPoint("TOPRIGHT", mine, "BOTTOMRIGHT", -10, -(9 + (i - 1) * 26))
-        ui[i == 1 and "today" or "ever"] = value
+        ui[({ "today", "ever", "left" })[i]] = value
     end
     local hint = Style.Text(frame, 12, "muted")
     hint:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", x, PAD)
     hint:SetWidth(BOARD_W)
     hint:SetJustifyH("LEFT")
     hint:SetSpacing(4)
-    hint:SetText("A and D to run, Space to jump.\nR starts the course again.")
+    hint:SetText("A and D to run, Space to jump.\nR starts again, and uses a run.")
 end
 
 local function Start(newMode)

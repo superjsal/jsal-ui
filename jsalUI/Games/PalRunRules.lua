@@ -11,6 +11,7 @@ Rules.ROWS = 8            -- rows of tiles in a course, counted down from 0 at t
 Rules.STEP = 1 / 60       -- seconds in one step
 Rules.W, Rules.H = 1.2, 1.6   -- the pal's size: the same for every kind, so none has the easier run
 Rules.TREAT = 30          -- steps a treat takes off your time (half a second)
+Rules.FALLS = 3           -- falls into a pit that end a run
 
 local ROWS, W, H = Rules.ROWS, Rules.W, Rules.H
 local RUN = 7             -- tiles a second at a run
@@ -156,15 +157,16 @@ local HARD = {
       "####   #   #   ####",
       "####   #   #   ####",
     },
+    -- Up a wall, over a wide pit to a tower a tile wide, and down over another.
     {
-      "                    ",
-      "            o       ",
-      "         ##         ",
-      "    ##   ##         ",
-      "    ##   ##         ",
-      "    ##   ##         ",
-      "######   ##    #####",
-      "######   ##    #####",
+      "                     ",
+      "             o       ",
+      "          #          ",
+      "    ##    #          ",
+      "    ##    #          ",
+      "    ##    #          ",
+      "######    #    ######",
+      "######    #    ######",
     },
     {
       "                  ",
@@ -207,25 +209,91 @@ local HARD = {
       "#####   #####",
       "#####   #####",
     },
-    -- A lone pillar two tiles high, three tiles from either side.
+    -- A lone pillar two tiles high, four tiles off and three from the far side.
     {
-      "              ",
-      "              ",
-      "      o       ",
-      "              ",
-      "      #       ",
-      "      #       ",
-      "###   #   ####",
-      "###   #   ####",
+      "               ",
+      "               ",
+      "       o       ",
+      "               ",
+      "       #       ",
+      "       #       ",
+      "###    #   ####",
+      "###    #   ####",
+    },
+    -- A gap of five up onto a ledge.
+    {
+      "                ",
+      "                ",
+      "       oo       ",
+      "                ",
+      "                ",
+      "          ###   ",
+      "#####     ######",
+      "#####     ######",
+    },
+    -- Three single tiles rising over a pit, and a long drop from the last.
+    {
+      "                     ",
+      "           o         ",
+      "                     ",
+      "           #         ",
+      "        #            ",
+      "     #               ",
+      "###              ####",
+      "###              ####",
+    },
+    -- Two gaps under one low roof.
+    {
+      "                   ",
+      "                   ",
+      "   #############   ",
+      "                   ",
+      "                   ",
+      "      o     o      ",
+      "#####   ###   #####",
+      "#####   ###   #####",
+    },
+    -- A lone tile with a gap of five before it and four after.
+    {
+      "                  ",
+      "                  ",
+      "                  ",
+      "         o        ",
+      "                  ",
+      "                  ",
+      "####     #    ####",
+      "####     #    ####",
+    },
+    -- Over a wall and down two single tiles hung over a long pit.
+    {
+      "                      ",
+      "        o             ",
+      "                      ",
+      "   ##                 ",
+      "   ##   #             ",
+      "   ##       #         ",
+      "#####             ####",
+      "#####             ####",
+    },
+    -- Two towers a tile wide over pits, each two tiles higher.
+    {
+      "                   ",
+      "              o    ",
+      "           #       ",
+      "           #       ",
+      "      #    #       ",
+      "      #    #       ",
+      "###   #    #    ###",
+      "###   #    #    ###",
     },
 }
 local PIECES = { EASY, MEDIUM, HARD }
 Rules.PIECES = PIECES
 local FLAT = { "        ", "        ", "        ", "        ", "        ", "        ", "########", "########" }
--- How many of each lot a course has, in the order it meets them: it starts
--- easy and ends hard.
-Rules.MIX = { 2, 3, 4 }
-Rules.LENGTH = Rules.MIX[1] + Rules.MIX[2] + Rules.MIX[3]   -- pieces in a course, between its first stretch and its last
+-- How many of each lot a course has, in the order it meets them. The day's
+-- course is hard pieces only; a practice course starts easy and ends hard.
+Rules.MIX = { 0, 0, 8 }
+Rules.PRACTICE = { 2, 3, 4 }
 Rules.LANDS = { "meadow", "snow", "desert", "swamp", "coast", "darkwood", "savanna", "volcanic", "jungle" }
 
 -- A course of these pieces, one after another between a flat start and a
@@ -261,8 +329,10 @@ function Rules.Lay(pieces, land)
 end
 
 -- A course from `random` (random(n) gives 1 to n): the same numbers give
--- the same course.
-function Rules.Course(random)
+-- the same course. `mix` is how many pieces of each lot it has (the day's,
+-- unless told).
+function Rules.Course(random, mix)
+    mix = mix or Rules.MIX
     local pieces = {}
     for level, lot in ipairs(PIECES) do
         local order = {}
@@ -271,7 +341,7 @@ function Rules.Course(random)
             local j = random(i)
             order[i], order[j] = order[j], order[i]
         end
-        for i = 1, math.min(Rules.MIX[level], #order) do pieces[#pieces + 1] = lot[order[i]] end
+        for i = 1, math.min(mix[level], #order) do pieces[#pieces + 1] = lot[order[i]] end
     end
     return Rules.Lay(pieces, Rules.LANDS[random(#Rules.LANDS)])
 end
@@ -306,7 +376,7 @@ end
 
 -- One step of a run, with the keys as they're held: left, right, jump.
 function Rules.Step(run, left, right, jump)
-    if run.done then return run end
+    if run.done or run.failed then return run end
     local course, dt = run.course, Rules.STEP
     if not run.started then
         if not (left or right or jump) then return run end
@@ -362,9 +432,14 @@ function Rules.Step(run, left, right, jump)
             if col <= run.x then run.safe = col end
         end
     end
-    -- Down a pit: back to the start of the piece, the clock still running.
+    -- Down a pit: back to the start of the piece, the clock still running. The
+    -- last fall it's allowed ends the run where it fell.
     if run.y > ROWS + 2 then
         run.falls = run.falls + 1
+        if run.falls >= Rules.FALLS then
+            run.failed = true
+            return run
+        end
         run.x, run.y, run.vx, run.vy, run.grounded = run.safe + 0.5, GROUND - H, 0, 0, true
     end
     for i, treat in ipairs(course.treats) do
