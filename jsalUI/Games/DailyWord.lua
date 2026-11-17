@@ -157,6 +157,13 @@ function DailyWord.Numbers()
     return list
 end
 
+-- How many of your games took each number of tries, one to six; and the
+-- tries today's took, once it's solved.
+function DailyWord.Tries()
+    local day, score = DailyWord.Result()
+    return Stats().dist or {}, day and tonumber(score) or nil
+end
+
 function DailyWord.Record()
     local s = Stats()
     if s.played == 0 then return "Daily Word: no games yet." end

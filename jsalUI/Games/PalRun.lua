@@ -113,6 +113,19 @@ function PalRun.Status()
     return ("#%d is ready"):format(s.day)
 end
 
+-- Steps as a time, for a page that shows the board.
+function PalRun.Clock(steps)
+    return Rules.Clock(steps)
+end
+
+-- Your record as numbers, for the Games page's card: your fastest course
+-- ever and the day it was, once there's one.
+function PalRun.Numbers()
+    local s = ns.db.palrun
+    if type(s) ~= "table" or not s.ever then return {} end
+    return { { Rules.Clock(s.ever), ("fastest ever, on #%d"):format(s.everDay or 0) } }
+end
+
 function PalRun.Record()
     local s = ns.db.palrun
     if type(s) ~= "table" or not s.ever then return "Pal run: no course finished yet." end

@@ -105,6 +105,14 @@ function IconGuess.Status()
     return ("#%d is ready"):format(state.day)
 end
 
+-- Your record as numbers, for the Games page's card: your best practice
+-- round, once there's one.
+function IconGuess.Numbers()
+    local best = ns.db.iconBest
+    if not best then return {} end
+    return { { ("%d of %d"):format(best, ROUND), "best practice round" } }
+end
+
 function IconGuess.Record()
     local best = ns.db.iconBest
     if not best then return "Icon Guess: no practice rounds yet." end
