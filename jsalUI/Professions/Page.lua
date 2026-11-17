@@ -3,9 +3,7 @@
 -- do now with what it takes and the steps after it (with when the next
 -- rank is learned), and everything the road needs with the nearest
 -- trainer. The recipes you know are the ones seen the last time its
--- profession window was open. It reads as the profession panel does
--- (John, 13 Nov 2026, of the page as it was: "anything to change about
--- this as well?").
+-- profession window was open. It reads as the profession panel does.
 local _, ns = ...
 local Style, Compat, Window, Professions = ns.Style, ns.Compat, ns.Window, ns.Professions
 
@@ -364,8 +362,7 @@ Window.Page("professions", function(page)
 
     -- Before anything is typed: the guildmates who share, a row each, online
     -- first, with their professions. A click on a profession lists what they
-    -- make with it. (John, 14 Nov 2026, of the page with only a search box:
-    -- "are we able to list the professions of guild members as well?")
+    -- make with it.
     local PaintGuild
     local GV = { rows = {}, ROW = 44, TOP = 82, CHIPS_X = 190 }
     GV.max = math.max(1, math.floor((height - top - GV.TOP - 22 - 40) / GV.ROW))
@@ -754,9 +751,7 @@ Window.Page("professions", function(page)
                 local price = Professions.IsVendor(reagent.item)
                 -- What's in your bank counts as yours, and is said to be
                 -- there: "you have enough" of four hides that were all in
-                -- the bank read as four in your bags. (John, 14 Nov 2026:
-                -- "its also telling me i still have 4 cured light hide but
-                -- i dont have them", then "maybe its in my bank".)
+                -- the bank read as four in your bags.
                 local carried = Compat.ItemCount(reagent.item, false) or 0
                 if have >= need and carried < need then
                     m.note:SetText(("%d to fetch from your bank"):format(need - carried))

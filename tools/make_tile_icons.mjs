@@ -14,7 +14,8 @@ import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-const require = createRequire('C:/Users/JSAL/Desktop/jsal.io/.github/build/package.json');
+const here = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(join(here, '..', '..', 'jsal.io', '.github', 'build', 'package.json'));
 const { chromium } = require('playwright');
 
 const GOLD = '#e3b04b';

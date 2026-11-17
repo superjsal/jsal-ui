@@ -164,8 +164,8 @@ local function Stop(module, err)
 end
 
 -- jsal.ui's slow moments since the last reload: anything that took 10 ms or
--- more, by what it was, for /jsal perf. John's jsal.ui went over 50 ms in a
--- frame 14 times in a session with no way to tell which part (15 Nov 2026).
+-- more, by what it was, for /jsal perf: without it there's no way to tell
+-- which part a slow frame came from.
 local SLOW_MS = 10
 local slow = {}
 local function NoteSlow(label, took)

@@ -1,14 +1,13 @@
 -- Settings: a switch for each part of jsal.ui, one group to a tab. A part is
 -- a card: its name, what it does in one short line, and its switch; the
--- whole of what it does is a point away, in its tooltip. (John, 14 Nov 2026,
--- of a page of two-line descriptions: "it is mostly all text and a lot of
--- it".) Inside a tab, a small heading sits over each handful of parts that
--- belong together. A part with options of its own says how many, and a
--- click opens them under its card. The box at the top finds a part or an
--- option in any group. A part's switch applies after a reload, since
--- modules start once, at login (addons can't reload the game themselves on
--- Forever): a bar at the bottom says which changes are waiting, with a
--- button to undo them and one to reload. Options apply at once.
+-- whole of what it does is a point away, in its tooltip. Inside a tab, a
+-- small heading sits over each handful of parts that belong together. A part
+-- with options of its own says how many, and a click opens them under its
+-- card. The box at the top finds a part or an option in any group. A part's
+-- switch applies after a reload, since modules start once, at login (addons
+-- can't reload the game themselves on Forever): a bar at the bottom says
+-- which changes are waiting, with a button to undo them and one to reload.
+-- Options apply at once.
 local _, ns = ...
 local Style, Window = ns.Style, ns.Window
 
@@ -56,8 +55,7 @@ local SHORT = {
     journal = "Your story, stats and characters",
     questtags = "A quest's chain, and how long it takes",
     -- These two shipped in 0.3.43 with no line here, and their cards showed the start of the
-    -- long note, cut off: "Left of RestedXP's guide window: bes...". (John's screenshot, 14 Nov
-    -- 2026: "we should clean up the description text".)
+    -- long note, cut off: "Left of RestedXP's guide window: bes...".
     guidetags = "Tags beside RestedXP's guide steps",
     lootlog = "Counts the quest items your kills drop",
     tametip = "Which beasts teach a new pet ability",
@@ -176,10 +174,7 @@ end
 -- anywhere on it flips the switch, which calls row.onChange. Pointing at a
 -- card shows the whole of what it does. A small card is one of a part's
 -- options, under it on a darker fill: its name and its switch, with what it
--- does in its tooltip alone. (It had a line under its name, cut short.
--- John, 14 Nov 2026: "i think we can get rid of the text underneath the
--- share boss loot, since you hover over it anyway", "that applies to all
--- the settings".)
+-- does in its tooltip alone.
 local function Card(parent, width, small)
     local row = CreateFrame("Button", nil, parent)
     row:SetSize(width, small and OPTION_H or CARD_H)
@@ -211,10 +206,9 @@ local function Card(parent, width, small)
         row.name:SetPoint("TOPLEFT", textX, -11)
     end
     row.name:SetWordWrap(false)
-    -- An option's name stops short of its switch, like its line under it.
-    -- (A part's name is short, and has its tags after it.) John's
-    -- screenshot, 14 Nov 2026: "Add something you can craft as its craft,
-    -- with its mats" ran on under the switch.
+    -- An option's name stops short of its switch, like its line under it,
+    -- so a long one never runs on under the switch. (A part's name is short,
+    -- and has its tags after it.)
     if small then
         row.name:SetWidth(width - textX - SWITCH_W - 28)
         row.name:SetJustifyH("LEFT")
@@ -440,9 +434,8 @@ Window.Page("settings", function(page)
             if ns.ModuleWanted(module) then on = on + 1 end
         end
         -- Short enough to fit beside the widest row of tabs: with "point at
-        -- one for all it does" after it, its start ran under the last tab
-        -- (John's screenshot, 14 Nov 2026: "s are on · point at one for all
-        -- it does"). That hint is at the foot of the page now.
+        -- one for all it does" after it, its start ran under the last tab.
+        -- That hint is at the foot of the page now.
         summary:SetText(("%d of %d parts are on"):format(on, total))
 
         -- A part's card at (x, y), its options under it when they're open.

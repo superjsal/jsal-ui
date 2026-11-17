@@ -237,8 +237,7 @@ end
 
 -- What the next level brings, a row for each thing: its picture, what it
 -- is, and a word more at the right (what the visit costs and whether you
--- have it, say). It was three right-aligned lines of text (John, 13 Nov
--- 2026: "maybe a whole card instead since it looks like we have space").
+-- have it, say). It was three right-aligned lines of text.
 function Today.NextLevelRows(info)
     local rows = {}
     if info.talent then
@@ -400,15 +399,13 @@ Window.Page("home", function(page)
     local who = Style.Text(page, 13, "muted")
     who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 
-    -- The date, beside the title (John, 13 Nov 2026: "i also think we
-    -- should have the date here").
+    -- The date, beside the title.
     local today = Style.Text(page, 13, "muted")
     today:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 12, 2)
 
     -- Your pal, when it wants something: its picture, what it wants and
     -- what you have for it, under your name; a click opens its pen. It was
-    -- a row of Ready now (John, 13 Nov 2026: "how about if we add jsal
-    -- pal's any immediate needs as well?"); it's said once, here.
+    -- a row of Ready now; it's said once, here.
     local pal = CreateFrame("Button", nil, page)
     pal:SetSize(half - GAP, 40)
     pal:SetPoint("TOPLEFT", who, "BOTTOMLEFT", -4, -8)
