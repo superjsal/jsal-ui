@@ -46,8 +46,7 @@ end
 -- The game's own quest marks, as over a quest giver's head: a gold ! for a
 -- quest you can pick up, grey while you're under the level it's taken at;
 -- a ? once it's in your log, grey while it's being done and gold when it's
--- ready to hand in. In place of an "in your quest log" tag (John, 16 Nov
--- 2026: "replace the in your quest log with the appropriate symbols").
+-- ready to hand in. They stand in place of an "in your quest log" tag.
 -- The two pictures are the ones Forever's own QuestUtils uses; grey is the
 -- same picture without its colour.
 local OFFER_MARK = "Interface\\GossipFrame\\AvailableQuestIcon"
@@ -992,8 +991,8 @@ Window.Page("dungeons", function(page)
 
     -- The level column: the quest's own level, and the level you can take
     -- it at when that's lower, in red when you're under it. One number alone
-    -- read as two kinds of thing ("level 45" beside "needs level 39"), so
-    -- both show (John, 16 Nov 2026: "level 45 · take at 37").
+    -- reads as two kinds of thing ("level 45" beside "needs level 39"), so
+    -- both show: "level 45 · take at 37".
     function Q.Level(q, mine)
         local take = q[4] or q[3]
         local early = take < q[3]
