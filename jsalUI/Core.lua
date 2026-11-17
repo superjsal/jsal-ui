@@ -114,6 +114,14 @@ end
 ns.modules = {}
 ns.moduleOrder = {}
 
+-- Parts put away for now. A shelved part's files stop at their first line,
+-- so it's as if it weren't there: no switch in Settings, no entry in the
+-- menu, no command, and a line that would name it leaves it out. Its code
+-- and what it saved are untouched: take its name off this list and it's
+-- back whole.
+ns.SHELVED = { chess = true }
+function ns.Shelved(key) return ns.SHELVED[key] == true end
+
 function ns.NewModule(key, module)
     module.key = key
     module.title = module.title or key
@@ -312,7 +320,8 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print("/jsal opens the dashboard. Also: /jsal word, /jsal icons, /jsal chess, /jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug.")
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug.")
+            :format(commands.chess and "/jsal chess, " or ""))
     end
 end
 

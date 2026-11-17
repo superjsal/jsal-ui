@@ -6,6 +6,7 @@
 -- Squares are numbered 1 to 64: a1 is 1, h1 is 8, a8 is 57. White's pieces
 -- are capital letters (KQRBNP), Black's small (kqrbnp).
 local _, ns = ...
+if ns.Shelved("chess") then return end
 
 local Rules = {}
 ns.ChessRules = Rules

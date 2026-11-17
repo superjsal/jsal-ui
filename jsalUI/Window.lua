@@ -44,7 +44,7 @@ local PAGES = {
       -- In the size it was last left in: the full window, or the small one.
       open = function() ns.GuildCrafts.Show() end },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
-    { key = "chess", label = "Chess", icon = OWN .. "chess" },
+    { key = "chess", label = "Chess", icon = OWN .. "chess", when = function() return ns.Chess ~= nil end },
     -- Only in the menu once its part is switched on: `when` is asked as the
     -- dashboard is built, and a switch waits for a reload anyway. It has a
     -- small window of its own rather than a page here: `open` shows that.

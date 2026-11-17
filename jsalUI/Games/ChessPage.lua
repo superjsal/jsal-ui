@@ -4,6 +4,7 @@
 -- game's buttons and its moves. Click one of your pieces, then a marked
 -- square, to move; a watched game is only to look at.
 local addonName, ns = ...
+if ns.Shelved("chess") then return end
 local Style, Window, Rules = ns.Style, ns.Window, ns.ChessRules
 
 local LIST_W, GUTTER = 200, 18

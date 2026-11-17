@@ -17,10 +17,11 @@ local SWITCH_W = 36
 
 -- Where each part goes: a tab for each group, and inside it a heading for
 -- each handful of parts that belong together. A part not listed joins the
--- last group's last handful.
+-- last group's last handful. A heading that names a part has another to
+-- go by while that part isn't there.
 local GROUPS = {
     { title = "Games", width = 100, sections = {
-        { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" } },
+        { "Puzzles and chess", { "dailyword", "iconguess", "chess", "flight" }, { chess = "Puzzles" } },
         { "Company", { "guild", "pet", "palrun" } },
     } },
     { title = "Leveling", width = 110, sections = {
@@ -126,7 +127,11 @@ local function Grouped()
                     placed[key] = true
                 end
             end
-            sections[#sections + 1] = { title = section[1], modules = list }
+            local title = section[1]
+            for key, without in pairs(section[3] or {}) do
+                if not ns.modules[key] then title = without end
+            end
+            sections[#sections + 1] = { title = title, modules = list }
         end
         groups[i] = { title = group.title, width = group.width, modules = all, sections = sections }
     end

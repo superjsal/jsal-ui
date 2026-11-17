@@ -115,7 +115,7 @@ end
 
 local function GamesTooltip(tip)
     tip:SetText("Games")
-    tip:AddLine("Daily Word, Icon Guess and chess", 1, 1, 1)
+    tip:AddLine(ns.Chess and "Daily Word, Icon Guess and chess" or "Daily Word and Icon Guess", 1, 1, 1)
     for _, place in ipairs(Games()) do
         local waiting = Waiting(place)
         if waiting then tip:AddLine(waiting, 0.89, 0.69, 0.29) end
@@ -137,7 +137,8 @@ PLACES = {
           end
       end,
       tooltip = GamesTooltip,
-      note = "One button for Daily Word, Icon Guess and chess: it opens a menu of them, with a gold dot when one is waiting." },
+      note = ("One button for %s: it opens a menu of them, with a gold dot when one is waiting.")
+          :format(ns.Chess and "Daily Word, Icon Guess and chess" or "Daily Word and Icon Guess") },
     { key = "word", inGames = true, label = "Daily Word", icon = OWN .. "word",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
       open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),

@@ -26,7 +26,8 @@ local STEPS = {
 -- turns its whole group on or off.
 local GROUPS = {
     { label = "Journal, session recap, dungeon guide and gear plan", keys = { "journal", "dungeons", "gear" } },
-    { label = "Daily Word, Icon Guess, chess and the flight bar", keys = { "dailyword", "iconguess", "chess", "flight" } },
+    { label = "Daily Word, Icon Guess, chess and the flight bar", keys = { "dailyword", "iconguess", "chess", "flight" },
+      without = { chess = "Daily Word, Icon Guess and the flight bar" } },
     { label = "Talents, training, level-up help and guide waypoints", keys = { "talents", "trainingpanel", "levelup", "waypoint" } },
     { label = "Professions and the shopping list", keys = { "professionpanel", "profwindow", "shopping" } },
     { label = "Quick buttons and the minimap button", keys = { "launcher", "minimap" } },
@@ -317,7 +318,12 @@ BUILD.parts = function(page)
         local any = false
         for _, key in ipairs(group.keys) do any = any or ns.modules[key] ~= nil end
         if any then
-            switches[#switches + 1] = SwitchRow(page, y, innerW, group.label, function() return GroupOn(group) end,
+            -- A group whose label names a part says it without, while that part isn't there.
+            local label = group.label
+            for key, without in pairs(group.without or {}) do
+                if not ns.modules[key] then label = without end
+            end
+            switches[#switches + 1] = SwitchRow(page, y, innerW, label, function() return GroupOn(group) end,
                 function(on)
                     SetGroup(group, on)
                     preset = nil

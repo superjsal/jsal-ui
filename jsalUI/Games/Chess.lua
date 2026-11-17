@@ -7,6 +7,7 @@
 -- send what the other missed, so a move, a resignation or an accepted
 -- challenge made while one was away still lands.
 local _, ns = ...
+if ns.Shelved("chess") then return end
 local Compat, Comms, Rules = ns.Compat, ns.Comms, ns.ChessRules
 
 local Chess = ns.NewModule("chess", {
