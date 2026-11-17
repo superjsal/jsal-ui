@@ -1294,7 +1294,7 @@ local function ProfChip(card, k)
     Style.Round(c, 11, "line")
     c.text = Style.Text(c, 11, "text")
     c.text:SetPoint("CENTER")
-    Style.Hover(c)
+    Style.Hover(c, 0, 12)
     c:SetScript("OnClick", function(self)
         if not self.prof or self.prof.recipes == 0 then return end
         C.pick = { name = self.person.name, line = self.prof.line, label = self.prof.name }

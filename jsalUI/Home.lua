@@ -595,7 +595,7 @@ local function PageCard(parent, key, label, icon, width, height)
     c:SetScript("OnClick", function() Window.Open(key) end)
     c:SetScript("OnEnter", function(self) Style.SetBorder(self.edges, "gold") end)
     c:SetScript("OnLeave", function(self) Style.SetBorder(self.edges, "cardLine") end)
-    Style.Hover(c)
+    Style.Hover(c, 0, 6)
     return c
 end
 
@@ -927,7 +927,7 @@ local function ReadyCards(page, width)
             Style.SetBorder(self.edges, "cardLine")
             GameTooltip:Hide()
         end)
-        Style.Hover(c)
+        Style.Hover(c, 0, 6)
         cards[i] = c
         return c
     end

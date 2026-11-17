@@ -445,15 +445,27 @@ end
 
 -- A faint light over a row or card under the pointer, so it's clear what a
 -- click or a tooltip will come from. It reaches `pad` past the row's sides
--- for rows whose icon sits on their edge. Call it after the row's own
--- OnEnter and OnLeave are set: it adds to them.
-function Style.Hover(frame, pad)
+-- for rows whose icon sits on their edge. On a round card, `radius` is the
+-- card's: the light is then the shape of the card's fill, a pixel inside
+-- its line, and follows its corners. Call it after the row's own OnEnter
+-- and OnLeave are set: it adds to them.
+function Style.Hover(frame, pad, radius)
     pad = pad or 0
-    local glow = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
-    glow:SetPoint("TOPLEFT", -pad, 0)
-    glow:SetPoint("BOTTOMRIGHT", pad, 0)
-    local r, g, b = Style.Color("text")
-    glow:SetColorTexture(r, g, b, 0.06)
+    local glow
+    if radius then
+        local px = Compat.OnePixel(frame)
+        glow = Style.Round(frame, radius - 1, "text", "BACKGROUND", 7)
+        glow:ClearAllPoints()
+        glow:SetPoint("TOPLEFT", px, -px)
+        glow:SetPoint("BOTTOMRIGHT", -px, px)
+        glow:SetAlpha(0.06)
+    else
+        glow = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
+        glow:SetPoint("TOPLEFT", -pad, 0)
+        glow:SetPoint("BOTTOMRIGHT", pad, 0)
+        local r, g, b = Style.Color("text")
+        glow:SetColorTexture(r, g, b, 0.06)
+    end
     glow:Hide()
     frame:HookScript("OnEnter", function() glow:Show() end)
     frame:HookScript("OnLeave", function() glow:Hide() end)
@@ -517,8 +529,9 @@ function Style.Section(parent, width)
 end
 
 -- The game's tooltip for what a row shows (its `item`, or its `spell`), with
--- the light under the pointer. `more`, when given, adds lines of its own.
-function Style.ItemTip(frame, more)
+-- the light under the pointer. `more`, when given, adds lines of its own;
+-- `radius` is a round card's, for a light that follows its corners.
+function Style.ItemTip(frame, more, radius)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -527,7 +540,7 @@ function Style.ItemTip(frame, more)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame, 6)
+    Style.Hover(frame, radius and 0 or 6, radius)
 end
 
 -- A page's small print (where its numbers come from, how far to trust

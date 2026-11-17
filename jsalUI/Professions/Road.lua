@@ -297,7 +297,7 @@ function Road.NowCard(parent, width)
     card.add:SetPoint("RIGHT", -13, 0)
     card.add:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("goldHover")) end)
     card.add:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
-    Style.ItemTip(card, Road.Needs)
+    Style.ItemTip(card, Road.Needs, 6)
     return card
 end
 
