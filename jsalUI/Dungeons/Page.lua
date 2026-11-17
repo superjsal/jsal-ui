@@ -515,12 +515,15 @@ Window.Page("dungeons", function(page)
         local b = CreateFrame("Frame", nil, bossList)
         b:SetSize(cardW, BOSS_H)
         Style.Box(b, 6, "well", "cardLine")
-        -- Gold down its left when something here is for you.
-        b.edge = b:CreateTexture(nil, "ARTWORK")
-        b.edge:SetColorTexture(Style.Color("gold"))
+        -- Gold down its left when something here is for you: on a frame of
+        -- its own above the lines of loot, whose rules and hover light
+        -- would be drawn over it and cut it into pieces.
+        b.edge = CreateFrame("Frame", nil, b)
+        b.edge:SetFrameLevel((b:GetFrameLevel() or 0) + 6)
         b.edge:SetWidth(3)
         b.edge:SetPoint("TOPLEFT", 0, -6)
         b.edge:SetPoint("BOTTOMLEFT", 0, 6)
+        Style.Fill(b.edge, "gold")
         b.head = CreateFrame("Frame", nil, b)
         b.head:SetPoint("TOPLEFT")
         b.head:SetPoint("TOPRIGHT")
@@ -607,6 +610,7 @@ Window.Page("dungeons", function(page)
             if not self.quest then return end
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetHyperlink(("quest:%d"):format(self.quest))
+            if self.ownQuest then GameTooltip:AddLine("This dungeon's quest.", 0.77, 0.75, 0.69) end
             if self.spot then
                 GameTooltip:AddLine(" ")
                 GameTooltip:AddLine(("Click to pin %s on your map"):format(self.spot[2]), 0.89, 0.69, 0.29)
@@ -618,6 +622,19 @@ Window.Page("dungeons", function(page)
         end)
         frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
         Style.Hover(frame)
+    end
+
+    -- The mark of a quest that's this dungeon's own: jsal.ui's Dungeons
+    -- picture, small, where the words "this dungeon's quest" stood on
+    -- every such step.
+    local function OwnMark(parent)
+        local m = CreateFrame("Frame", nil, parent)
+        m:SetSize(18, 18)
+        m.wide = 18
+        m.icon = m:CreateTexture(nil, "ARTWORK")
+        m.icon:SetAllPoints()
+        m.icon:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Icons\\dungeons")
+        return m
     end
 
     -- A quest that stands alone: its name, who gives it, the level.
@@ -712,6 +729,20 @@ Window.Page("dungeons", function(page)
         c.title:SetPoint("TOPLEFT", 14, -9)
         c.count = Style.Tag(c, "", nil, true)
         c.count:SetPoint("LEFT", c.title, "RIGHT", 8, 0)
+        -- Where every step is this dungeon's own, the mark is here once,
+        -- and not on each step. Pointing at it says what it means.
+        c.own = OwnMark(c)
+        c.own:SetPoint("LEFT", c.count, "RIGHT", 10, 0)
+        c.own:EnableMouse(true)
+        c.own:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Every step is this dungeon's quest")
+            GameTooltip:Show()
+        end)
+        c.own:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        c.every = Style.Text(c, 11, "muted")
+        c.every:SetPoint("LEFT", c.own, "RIGHT", 6, 0)
+        c.every:SetText("every step")
         c.level = Style.Text(c, 12, "muted")
         c.level:SetPoint("TOPRIGHT", -6, -10)
         c.level:SetJustifyH("RIGHT")
@@ -728,10 +759,14 @@ Window.Page("dungeons", function(page)
         -- Above its card: both are the list's children, and at one level the
         -- game may draw the card's fill over the step.
         st:SetFrameLevel(bossList:GetFrameLevel() + 3)
+        -- The line that joins a chain's steps, plain enough to read as one.
         st.rail = st:CreateTexture(nil, "BACKGROUND")
-        st.rail:SetColorTexture(Style.Color("lineStrong"))
-        st.rail:SetPoint("TOPLEFT", 26, 0)
-        st.rail:SetSize(1, 24)
+        do
+            local r, g, b = Style.Color("muted")
+            st.rail:SetColorTexture(r, g, b, 0.6)
+        end
+        st.rail:SetPoint("TOPLEFT", 25, 0)
+        st.rail:SetSize(2, 24)
         st.badge = CreateFrame("Frame", nil, st)
         st.badge:SetHeight(18)
         st.badge:SetPoint("CENTER", st, "LEFT", 26, 0)
@@ -753,7 +788,7 @@ Window.Page("dungeons", function(page)
         st.mark:SetPoint("LEFT", st.name, "RIGHT", 6, 0)
         st.start = Style.Tag(st, "start here", true, true)
         st.start:SetPoint("LEFT", st.mark, "RIGHT", 4, 0)
-        st.own = Style.Tag(st, "this dungeon's quest", nil, true)
+        st.own = OwnMark(st)
         st.who = Style.Text(st, 12, "muted")
         st.who:SetPoint("RIGHT", -8, 0)
         st.who:SetJustifyH("LEFT")
@@ -1225,7 +1260,14 @@ Window.Page("dungeons", function(page)
             local c = Q.Card(cards)
             local shown = Folded(chain)
             c.title:SetText(e.q[2])
-            c.count:Say(("%d step%s"):format(#chain, #chain == 1 and "" or "s"))
+            c.count:Say(#chain == 1 and "1 step" or ("%d-step chain"):format(#chain))
+            -- Every step this dungeon's own: said once, in the heading.
+            local every = true
+            for _, step in ipairs(chain) do
+                if not step.own then every = false end
+            end
+            c.own:SetShown(every)
+            c.every:SetShown(every)
             c.level:SetText(Q.Level(e.q, mine))
             local tall = 34 + #shown * 24 + 8
             c:SetHeight(tall)
@@ -1258,12 +1300,13 @@ Window.Page("dungeons", function(page)
                 end
                 local tagged = start and not held
                 st.start:SetShown(tagged)
-                st.own:SetShown(step.own == true)
+                st.ownQuest = step.own == true
+                st.own:SetShown(step.own == true and not every)
                 st.own:ClearAllPoints()
                 st.own:SetPoint("LEFT", tagged and st.start or (start and st.mark or st.name), "RIGHT", start and 6 or 8, 0)
                 -- The giver starts at its column, or past a long name's tags.
                 local ends = 48 + Q.Wide(st.name, 0) + (start and 22 or 0) + (tagged and st.start.wide + 4 or 0)
-                    + (step.own and st.own.wide + 8 or 0)
+                    + ((step.own and not every) and st.own.wide + 8 or 0)
                 st.who:SetPoint("LEFT", math.max(WHO_X - 4, ends + 14), 0)
                 st.who:SetText(step.who)
                 st:SetAlpha(step.done and 0.6 or 1)
