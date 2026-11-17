@@ -213,17 +213,32 @@ local function Pill(parent)
     return p
 end
 
--- A material: a thin box with "16 Medium Leather" in it.
+-- A material: a thin box with "16 Medium Leather" in it. Pointed at, it shows the game's own
+-- tooltip for the item, with whatever the game and other addons add to one: its vendor and
+-- auction prices among them.
 local function Chip(parent)
     local c = CreateFrame("Frame", nil, parent)
     c:SetHeight(20)
-    Style.Border(c, "cardLine")
+    c.edges = Style.Border(c, "cardLine")
     c.text = Style.Text(c, 11, "secondary")
     c.text:SetPoint("CENTER")
-    function c:Set(label)
+    function c:Set(label, item)
+        self.item = item
         self.text:SetText(label)
         self:SetWidth(TextWidth(self.text, #label * 6) + 14)
     end
+    c:EnableMouse(true)
+    c:SetScript("OnEnter", function(self)
+        if not self.item then return end
+        Style.SetBorder(self.edges, "lineStrong")
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetItemByID(self.item)
+        GameTooltip:Show()
+    end)
+    c:SetScript("OnLeave", function(self)
+        Style.SetBorder(self.edges, "cardLine")
+        GameTooltip:Hide()
+    end)
     return c
 end
 
@@ -376,8 +391,18 @@ local function ShowTip(self)
     if recipe.item then GameTooltip:SetItemByID(recipe.item) else GameTooltip:SetSpellByID(order.spell) end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine(order.have and (order.by .. " has the materials:") or (order.by .. " needs the materials too:"), 0.89, 0.69, 0.29)
-    for _, m in ipairs(ns.Orders.Materials(order)) do
-        GameTooltip:AddLine(m.count .. " " .. (Compat.ItemName(m.item) or "..."), 0.93, 0.9, 0.84)
+    -- Each material with what that many cost, where a price is known, and the lot under them.
+    local prices = ns.ItemPrices and ns.ItemPrices.Of
+    local total, priced, materials = 0, 0, ns.Orders.Materials(order)
+    for _, m in ipairs(materials) do
+        local each = prices and prices(m.item)
+        if each then total, priced = total + each * m.count, priced + 1 end
+        GameTooltip:AddDoubleLine(m.count .. " " .. (Compat.ItemName(m.item) or "..."), each and Compat.Money(each * m.count) or "no price yet",
+            0.93, 0.9, 0.84, each and 0.93 or 0.6, each and 0.9 or 0.59, each and 0.84 or 0.53)
+    end
+    if priced > 0 then
+        GameTooltip:AddDoubleLine(priced == #materials and "All of it, about" or ("The %d with a price, about"):format(priced), Compat.Money(total),
+            0.89, 0.69, 0.29, 0.89, 0.69, 0.29)
     end
     if order.note then GameTooltip:AddLine("“" .. order.note .. "”", 0.77, 0.75, 0.69, true) end
     GameTooltip:Show()
@@ -451,7 +476,7 @@ local function FillOrder(r, order, state, second, mine, buttons)
         end
         local name = Compat.ItemName(m.item)
         if not name then waiting = true end
-        chip:Set(m.count .. " " .. (name or "..."))
+        chip:Set(m.count .. " " .. (name or "..."), m.item)
         -- The last one needs only its own room; any other, room for the count after it too.
         local need = chip:GetWidth() + (after == r.pill and 8 or 5) + (i < #materials and MORE_W or 0)
         if shown == i - 1 and need <= room then
@@ -791,7 +816,7 @@ local function PaintAsk()
             chip = Chip(card.strip)
             card.chips[i] = chip
         end
-        chip:Set(m.count .. " " .. (Compat.ItemName(m.item) or "..."))
+        chip:Set(m.count .. " " .. (Compat.ItemName(m.item) or "..."), m.item)
     end
     local strip = C.width - 2
     local room = strip - 16 - MAKERS_W - 16 - (TextWidth(card.takes, 30) + 8) - (card.list:GetWidth() + 14) - 16
