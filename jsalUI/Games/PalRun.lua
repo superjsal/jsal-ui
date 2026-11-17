@@ -13,7 +13,9 @@ local PalRun = ns.NewModule("palrun", {
 })
 ns.PalRun = PalRun
 
-local ART = "Interface\\AddOns\\jsalUI\\Media\\Pet\\"
+-- Its pictures are the pals' own and PNG, which the game must be told: a path with
+-- no ending is looked for as a BLP or a TGA only.
+local function Art(name) return "Interface\\AddOns\\jsalUI\\Media\\Pet\\" .. name .. ".png" end
 local TILE = 48                       -- a tile of the course, in pixels: its 16-pixel picture three times over
 local FIELD_W, FIELD_H = 880, 400
 local PAD, BOARD_W, ROW_H, ROWS_SHOWN = 16, 240, 30, 6
@@ -206,7 +208,7 @@ end
 local function Lay()
     local world = ui.world
     world:SetSize(course.cols * TILE, Rules.ROWS * TILE)
-    ui.backdrop:SetTexture(ART .. "paddock_" .. course.land, "CLAMP", "CLAMP", "NEAREST")
+    ui.backdrop:SetTexture(Art("paddock_" .. course.land), "CLAMP", "CLAMP", "NEAREST")
     local land = 0
     for i, name in ipairs(Rules.LANDS) do
         if name == course.land then land = i - 1 end
@@ -222,7 +224,7 @@ local function Lay()
                 if not t then
                     t = world:CreateTexture(nil, "ARTWORK")
                     t:SetSize(TILE, TILE)
-                    t:SetTexture(ART .. "run", "CLAMP", "CLAMP", "NEAREST")
+                    t:SetTexture(Art("run"), "CLAMP", "CLAMP", "NEAREST")
                     ui.tiles[used] = t
                 end
                 local x, y = ox + (tile % 4) * 16, oy + math.floor(tile / 4) * 16
@@ -239,7 +241,7 @@ local function Lay()
         if not t then
             t = world:CreateTexture(nil, "OVERLAY")
             t:SetSize(32, 32)
-            t:SetTexture(ART .. "treat", "CLAMP", "CLAMP", "NEAREST")
+            t:SetTexture(Art("treat"), "CLAMP", "CLAMP", "NEAREST")
             ui.treats[i] = t
         end
         t:ClearAllPoints()
@@ -266,7 +268,7 @@ local function Paint()
     -- The pictures face left.
     if run.facing > 0 then left, right = right, left end
     ui.pal:SetTexCoord(left, right, row * from.cell / from.h, (row + 1) * from.cell / from.h)
-    local file = ART .. from.file
+    local file = Art(from.file)
     if ui.pal.file ~= file then
         ui.pal.file = file
         ui.pal:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
@@ -422,7 +424,7 @@ local function Build()
     ui.tiles, ui.treats = {}, {}
     ui.flag = ui.world:CreateTexture(nil, "ARTWORK", nil, 2)
     ui.flag:SetSize(FLAG_W * 3, FLAG_H * 3)
-    ui.flag:SetTexture(ART .. "run", "CLAMP", "CLAMP", "NEAREST")
+    ui.flag:SetTexture(Art("run"), "CLAMP", "CLAMP", "NEAREST")
     -- The flag stands on the bottom edge of the cell after the last country's, centred.
     local fx, fy = 64 + (64 - FLAG_W) / 2, 128 + 64 - FLAG_H
     ui.flag:SetTexCoord(fx / 256, (fx + FLAG_W) / 256, fy / 256, (fy + FLAG_H) / 256)
