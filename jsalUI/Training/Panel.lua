@@ -19,7 +19,8 @@ local Panel = ns.NewModule("trainingpanel", {
 })
 
 local WIDTH, PAD, ROW_H, MAX_ROWS = 330, 14, 30, 8
-local TALL_H, LATER_H = 40, 26   -- a spell with its Train button; one of the next level's
+local TALL_H = 40                -- a spell with its Train button
+local GLYPH, GLYPH_GAP = 30, 6   -- one of the next level's spells, as its picture
 -- The windows it opens beside. Forever's spellbook is the book inside
 -- PlayerSpellsFrame, which loads on demand; older clients' is SpellBookFrame.
 -- Class, pet and weapon trainers share the trainer window, and so does
@@ -107,12 +108,7 @@ local function Row()
         r.name = Style.Text(r, 13, "text")
         r.name:SetWordWrap(false)
         r.rank = Style.Text(r, 12, "muted")
-        r.new = CreateFrame("Frame", nil, r)
-        r.new.fill = Style.Fill(r.new, "gold")
-        r.new.text = Style.Text(r.new, 10, "onGold", nil, true)
-        r.new.text:SetPoint("CENTER")
-        r.new.text:SetText("new")
-        r.new:SetSize(Style.Wide(r.new.text, 17) + 12, 15)
+        r.new = Style.Tag(r, "new", "gold", true)
         r.price = Style.Text(r, 12, "text", nil, true)
         r.price:SetPoint("RIGHT")
         r.price:SetJustifyH("RIGHT")
@@ -139,7 +135,7 @@ local function Row()
         -- A spell's name, and that it's new or its rank. `tall`: on two
         -- lines, the name over the rest, as a row with a Train button is.
         function r:Lay(spell, tall, nameW)
-            self:SetHeight(tall and TALL_H or (self.later and LATER_H or ROW_H))
+            self:SetHeight(tall and TALL_H or ROW_H)
             self.icon:SetSize(tall and 26 or 20, tall and 26 or 20)
             self.icon:SetTexture(spell.icon)
             self.spellID = spell.id
@@ -171,9 +167,40 @@ local function Row()
         end
         rows[used] = r
     end
-    r.later = nil
     r:Show()
     return r
+end
+
+-- One of the next level's spells, as its picture: a gold frame round one
+-- that's new to you, a higher rank's number in its corner. Pointing at it
+-- names it.
+local glyphs = {}
+local function Glyph(i)
+    local g = glyphs[i]
+    if g then return g end
+    g = CreateFrame("Frame", nil, panel)
+    g:SetSize(GLYPH, GLYPH)
+    g.frame = g:CreateTexture(nil, "BACKGROUND")
+    g.frame:SetAllPoints()
+    g.icon = g:CreateTexture(nil, "ARTWORK")
+    g.icon:SetPoint("TOPLEFT", 2, -2)
+    g.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    g.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    g.back = g:CreateTexture(nil, "OVERLAY")
+    g.back:SetColorTexture(0, 0, 0, 0.8)
+    g.back:SetPoint("BOTTOMRIGHT", -2, 2)
+    g.rank = Style.Text(g, 11, "text", "OVERLAY", true, true)
+    g.rank:SetPoint("CENTER", g.back, "CENTER", 0, 0)
+    g:EnableMouse(true)
+    g:SetScript("OnEnter", function(self)
+        if not self.spellID then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetSpellByID(self.spellID)
+        GameTooltip:Show()
+    end)
+    g:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    glyphs[i] = g
+    return g
 end
 
 local function Build()
@@ -245,8 +272,22 @@ local function Build()
     Style.Rule(panel.cols, "BOTTOM", "lineStrong")
 
     panel.nextHead = Style.Text(panel, 12, "gold", nil, true)
-    panel.nextCost = Style.Text(panel, 13, "text", nil, true)
+    panel.nextCost = Style.Text(panel, 12, "text")
     panel.nextCost:SetJustifyH("RIGHT")
+    -- Under the next level's pictures, what a gold frame means.
+    panel.key = CreateFrame("Frame", nil, panel)
+    panel.key:SetSize(120, 12)
+    local keyMark = panel.key:CreateTexture(nil, "ARTWORK")
+    keyMark:SetColorTexture(Style.Color("gold"))
+    keyMark:SetSize(10, 10)
+    keyMark:SetPoint("LEFT")
+    local keyHole = panel.key:CreateTexture(nil, "OVERLAY")
+    keyHole:SetColorTexture(Style.Color("window"))
+    keyHole:SetPoint("TOPLEFT", keyMark, "TOPLEFT", 2, -2)
+    keyHole:SetPoint("BOTTOMRIGHT", keyMark, "BOTTOMRIGHT", -2, 2)
+    local keyWords = Style.Text(panel.key, 11, "muted")
+    keyWords:SetPoint("LEFT", keyMark, "RIGHT", 6, 0)
+    keyWords:SetText("new to you")
     panel.rule1 = panel:CreateTexture(nil, "BORDER")
     panel.rule1:SetColorTexture(Style.Color("lineStrong"))
     panel.rule1:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
@@ -465,27 +506,60 @@ local function Count(n, pet)
     return ("%d spell%s to train"):format(n, n == 1 and "" or "s")
 end
 
--- What the next level brings: its heading, said once, with its cost, and a
--- greyed line for each spell. Returns the y under it.
-local function Later(y, head, cost, list, most)
+-- What the next level brings: its heading, said once, with how many there
+-- are and what they cost, and a picture for each, the new ones first, on as
+-- many lines as they take. Returns the y under them.
+local function Later(y, head, cost, list)
     panel.nextHead:SetText(head)
     Place(panel.nextHead, y + 1)
-    panel.nextCost:SetText(cost > 0 and Compat.Money(cost) or "")
-    PlaceRight(panel.nextCost, y)
+    local things = context == "beast" and (#list == 1 and "ability" or "abilities") or (#list == 1 and "spell" or "spells")
+    panel.nextCost:SetText(Style.Tint("muted") .. #list .. " " .. things .. (cost > 0 and "  ·  " or "") .. "|r" .. (cost > 0 and Compat.Money(cost) or ""))
+    PlaceRight(panel.nextCost, y + 1)
     y = y + 22
     Place(panel.rule1, y)
-    y = y + 4
+    y = y + 8
+    local order, anyNew = {}, false
     for i, spell in ipairs(list) do
-        if i > most then break end
-        local r = Row()
-        r.later = true
-        r:SetWidth(inner)
-        Place(r, y)
-        r:Lay(spell, false, 170)
-        r:SetAlpha(0.7)
-        y = y + LATER_H
+        order[i] = { spell = spell, fresh = New(spell), at = i }
+        anyNew = anyNew or order[i].fresh
+    end
+    table.sort(order, function(a, b)
+        if a.fresh ~= b.fresh then return a.fresh end
+        return a.at < b.at
+    end)
+    local x = 0
+    for i, e in ipairs(order) do
+        local g, spell = Glyph(i), e.spell
+        if x > 0 and x + GLYPH > inner then x, y = 0, y + GLYPH + GLYPH_GAP end
+        Place(g, y, PAD + x)
+        g.spellID = spell.id
+        g.icon:SetTexture(spell.icon)
+        g.frame:SetColorTexture(Style.Color(e.fresh and "gold" or "lineStrong"))
+        local rank = RankNumber(spell.rank) or 1
+        local numbered = not e.fresh and rank > 1
+        g.back:SetShown(numbered)
+        g.rank:SetText(numbered and rank or "")
+        if numbered then g.back:SetSize(rank > 9 and 16 or 11, 12) end
+        x = x + GLYPH + GLYPH_GAP
+    end
+    for i = #order + 1, #glyphs do glyphs[i]:Hide() end
+    y = y + GLYPH
+    if anyNew then
+        Place(panel.key, y + 8)
+        y = y + 20
+    else
+        panel.key:Hide()
     end
     return y
+end
+
+-- With nothing coming at the next level, none of that shows.
+local function NoLater()
+    panel.rule1:Hide()
+    panel.nextHead:Hide()
+    panel.nextCost:Hide()
+    panel.key:Hide()
+    for _, g in ipairs(glyphs) do g:Hide() end
 end
 
 -- Train all, saying how many and for how much, and under it the planner.
@@ -619,11 +693,9 @@ local function Paint()
 
     -- What the next level brings.
     if nextLevel then
-        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList, MAX_ROWS)
+        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList)
     else
-        panel.rule1:Hide()
-        panel.nextHead:Hide()
-        panel.nextCost:Hide()
+        NoLater()
     end
 
     y = y + 10
@@ -799,14 +871,11 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
         end
     end
 
-    -- What the next level brings, greyed: fewer of them when there's a lot
-    -- to train now, so the panel stays on the screen.
+    -- What the next level brings.
     if nextLevel then
-        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList, math.max(2, math.min(5, 11 - math.min(#now, TRAIN_ROWS))))
+        y = Later(y + 14, nextHead:format(nextLevel), nextCost, nextList)
     else
-        panel.rule1:Hide()
-        panel.nextHead:Hide()
-        panel.nextCost:Hide()
+        NoLater()
     end
 
     y = Foot(y + 14, data, #now, nowCost)
