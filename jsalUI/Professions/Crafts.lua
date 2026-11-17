@@ -1598,32 +1598,32 @@ end, { width = 1000, height = 920 })
 -- window).
 ---------------------------------------------------------------------------
 local SMALL_W, LINE, PERSON_LINE = 430, 46, 31
+-- An order's line is a card, LINE tall, with this much under it.
+local LINE_GAP = 6
 
 local function MakeLine(parent, width)
+    -- A small card, with its state's colour down its left edge.
     local r = CreateFrame("Frame", nil, parent)
     r:SetSize(width, LINE)
-    r.edge = r:CreateTexture(nil, "ARTWORK")
-    r.edge:SetPoint("TOPLEFT", 0, -5)
-    r.edge:SetPoint("BOTTOMLEFT", 0, 7)
-    r.edge:SetWidth(2)
+    Style.Box(r, 6, "well", "cardLine")
+    r.edge = Style.Edge(r, 6)
     r.icon = r:CreateTexture(nil, "ARTWORK")
     r.icon:SetSize(28, 28)
-    r.icon:SetPoint("TOPLEFT", 10, -8)
+    r.icon:SetPoint("LEFT", 13, 0)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.l1 = Style.Text(r, 13, "text", nil, true)
-    r.l1:SetPoint("TOPLEFT", 48, -6)
-    r.l1:SetWidth(width - 48 - 96)
+    r.l1:SetPoint("TOPLEFT", 51, -7)
+    r.l1:SetWidth(width - 51 - 106)
     r.l1:SetWordWrap(false)
     r.l2 = Style.Text(r, 11, "muted")
-    r.l2:SetPoint("TOPLEFT", 48, -25)
-    r.l2:SetWidth(width - 48 - 96)
+    r.l2:SetPoint("TOPLEFT", 51, -26)
+    r.l2:SetWidth(width - 51 - 106)
     r.l2:SetWordWrap(false)
     r.main = Style.Button(r, "", "primary", 80)
     r.main:SetHeight(26)
-    r.main:SetPoint("RIGHT", 0, 1)
+    r.main:SetPoint("RIGHT", -10, 0)
     r.lesser = Quiet(r)
-    r.lesser:SetPoint("RIGHT", -4, 1)
-    Style.Rule(r, "BOTTOM", "line")
+    r.lesser:SetPoint("RIGHT", -12, 0)
     r:EnableMouse(true)
     r:SetScript("OnEnter", ShowTip)
     r:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1632,9 +1632,9 @@ end
 
 -- One order in the small window. `button` = { label, fn, main }.
 local function Line(list, order, state, second, button)
-    local r = Take(list, "line", MakeLine, LINE)
+    local r = Take(list, "line", MakeLine, LINE + LINE_GAP)
     r.order = order
-    r.edge:SetColorTexture(Style.Color(STATE[state]))
+    r.edge:Paint(STATE[state])
     r.icon:SetTexture(Icon(order))
     local recipe = ns.Orders.Recipe(order.spell)
     r.l1:SetText(ItemTint(recipe and recipe.item) .. (ns.Orders.Name(order) or "...") .. "|r"
