@@ -28,10 +28,11 @@ local OWN_W, OWN_H = 1000, 860
 -- The game's item class for recipes (patterns, plans, schematics).
 local RECIPE = 9
 -- The tag after an item's name: its words and its tone. A better piece's
--- words are how much better it is.
+-- words are how much better it is; a worse one's (a piece you starred that
+-- what you wear has passed), how much worse.
 local TAGS = {
-    plan = { "gear plan", "gold" },
     better = { nil, "green" },
+    worse = { nil, "red" },
     prof = { "your profession" },
 }
 
@@ -835,6 +836,12 @@ Window.Page("dungeons", function(page)
         -- you wear, or a recipe for a profession of yours.
         it.tag = Style.Tag(it, "", nil, true)
         it.tag:SetPoint("LEFT", it.name, "RIGHT", 8, 0)
+        -- A piece you starred in your Gear plan has the plan's own star
+        -- after its name (the game's yellow one), and its tag after that.
+        it.star = it:CreateTexture(nil, "ARTWORK")
+        it.star:SetSize(14, 14)
+        it.star:SetPoint("LEFT", it.name, "RIGHT", 6, 0)
+        it.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
         it.slot = Style.Text(it, 12, "muted")
         it.slot:SetPoint("BOTTOMLEFT", it.line, "BOTTOMRIGHT", 12, 0)
         it.slot:SetWidth(cardW - 58 - 14 - METER_W - 12)
@@ -963,10 +970,16 @@ Window.Page("dungeons", function(page)
             entry.prof = entry.recipe and trades[subclass or ""] == true
             -- For other classes only, by its own "Classes:" line.
             entry.classes = not entry.starred and not entry.recipe and ForOthers(entry.id) == true
+            entry.better, entry.gain, entry.loss = nil, nil, nil
             if not entry.cant and not entry.classes and not entry.recipe and ns.Gear and ns.Gear.Better then
                 local is, gain = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
                 if is ~= nil then sure = sure + 1 end
-                if is then entry.better, entry.gain = true, gain end
+                if is then
+                    entry.better, entry.gain = true, gain
+                elseif is == false and entry.starred and gain and gain < 0 then
+                    -- Starred when it was an upgrade; what you wear has passed it.
+                    entry.loss = gain
+                end
             end
             entry.away = entry.cant or entry.classes or (entry.recipe and not entry.prof and not entry.starred)
             if entry.starred or entry.better then forYou = forYou + 1 end
@@ -989,12 +1002,23 @@ Window.Page("dungeons", function(page)
             it.item = entry.id
             local name, _, quality, _, req, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
-            local words
+            -- After its name: the star when it's on your gear plan, then how
+            -- much better it is than what you wear, or, for a starred piece
+            -- that no longer is, how much worse.
+            local kind, words = (entry.better and "better") or (entry.loss and "worse") or (entry.prof and "prof") or nil, "better"
             if entry.better and entry.gain then
                 local pct = math.floor(entry.gain * 100 + 0.5)
                 words = pct < 1 and "under 1%" or ("+" .. pct .. "%")
+            elseif entry.loss then
+                local pct = math.floor(-entry.loss * 100 + 0.5)
+                words = pct < 1 and "a little worse" or ("-" .. pct .. "%")
             end
-            local tagW = SetTag(it, entry.starred and "plan" or (entry.better and "better") or (entry.prof and "prof") or nil, words or "better")
+            local tagW = SetTag(it, kind, words)
+            it.starred = entry.starred
+            it.star:SetShown(entry.starred)
+            it.tag:ClearAllPoints()
+            it.tag:SetPoint("LEFT", entry.starred and it.star or it.name, "RIGHT", 8, 0)
+            if entry.starred then tagW = tagW + 20 end
             it.name:SetWidth(0)
             it.name:SetText(("|cff%s%s|r"):format(Style.Quality(q), name or entry.item.n or "..."))
             it.line:SetColorTexture(Hex3(Style.Quality(q)))
@@ -1016,7 +1040,12 @@ Window.Page("dungeons", function(page)
             if chance then it.fill:SetWidth(math.max(1, METER_W * math.min(100, chance) / 100)) end
             -- How often it's been seen is said when it's pointed at.
             it.seen = Seen(entry)
-            it.more = it.seen and { (it.seen:gsub("^%l", string.upper)) .. "." } or nil
+            -- And what its star and a red tag mean.
+            local more = {}
+            if it.seen then more[#more + 1] = (it.seen:gsub("^%l", string.upper)) .. "." end
+            if entry.starred then more[#more + 1] = "Starred in your Gear plan." end
+            if entry.loss then more[#more + 1] = "By your Gear plan's weights it's no longer better than what you wear." end
+            it.more = #more > 0 and more or nil
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end

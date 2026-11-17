@@ -937,9 +937,18 @@ function Gear.Plan(slot, spec, only)
     -- Whether a piece with these stats is an upgrade, then its gain as a share of all you wear's
     -- score (nil when you wear nothing that counts): for a dungeon's loot, which may not be in the
     -- plan's own lists of items. (See Gear.Better.)
+    -- When it scores under what you wear, how much worse comes back with the
+    -- no, as a share below nothing: for a piece you starred that what you
+    -- wear has since passed.
     local function Would(stats)
         local gain = (Gear.Score(stats, weights, slot.dps) or 0) - worn.score
-        if gain <= 0.01 or not (Main(stats) or not anyMain) then return false end
+        if gain <= 0.01 or not (Main(stats) or not anyMain) then
+            if gain < -0.01 then
+                local total = Gear.WornTotal(weights)
+                return false, total > 0 and gain / total or nil
+            end
+            return false
+        end
         local total = Gear.WornTotal(weights)
         return true, total > 0 and gain / total or nil
     end

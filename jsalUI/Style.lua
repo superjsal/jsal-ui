@@ -929,10 +929,11 @@ end
 
 -- A tag: a small pill after a name, as wide as its words (`wide`). Its
 -- tone: gold (or true) is gold with dark words, for what to do or what's
--- best; "green" has green words, for what's good for you; none is a plain
+-- best; "green" has green words, for what's good for you, and "red" red
+-- ones, for what's worse; none is a plain
 -- fill, for what a thing is. Say(text) changes its words, Tone(tone) its
 -- colours. `small` is the size for a row in a dense list.
-local TAG_TONES = { gold = { "gold", "onGold" }, green = { "line", "green" }, plain = { "line", "secondary" } }
+local TAG_TONES = { gold = { "gold", "onGold" }, green = { "line", "green" }, red = { "line", "red" }, plain = { "line", "secondary" } }
 
 function Style.Tag(parent, words, tone, small)
     local t = CreateFrame("Frame", nil, parent)
