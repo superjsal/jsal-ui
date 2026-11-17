@@ -37,21 +37,26 @@ end
 
 -- What a road step adds to the game's tooltip for what it makes: its note
 -- (what there was no room to say on it), then everything its crafts need,
--- with what's in your bags and bank.
+-- with what's in your bags and bank, and last what a click on it does.
 function Road.Needs(self)
     if self.note then
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine(self.note, 0.89, 0.69, 0.29, true)
     end
-    if not (self.needs and #self.needs > 0) then return end
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
-    for _, reagent in ipairs(self.needs) do
-        local need = reagent.count * (self.crafts or 1)
-        local have = Compat.ItemCount(reagent.item, true)
-        local enough = have >= need
-        GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
-            ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
+    if self.needs and #self.needs > 0 then
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
+        for _, reagent in ipairs(self.needs) do
+            local need = reagent.count * (self.crafts or 1)
+            local have = Compat.ItemCount(reagent.item, true)
+            local enough = have >= need
+            GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
+                ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
+        end
+    end
+    if self.hint then
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(self.hint, Style.Color("muted"))
     end
 end
 
@@ -161,6 +166,29 @@ local function Todo(step)
     end
 end
 
+-- Where a click on a step puts the map pin, when the step asks something of
+-- you first: on the vendor who sells its pattern (with where recipes come
+-- from switched on, and their spot known), or on `trainer` for one that's
+-- learned. Returns the click, and the words for it in the tooltip.
+local function Way(step, trainer)
+    local spell = step.recipe.spell
+    if step.buy then
+        local sources = ns.RecipeSourceText
+        local who, faction
+        if sources and sources.Seller then who, faction = sources.Seller(spell) end
+        if who then
+            return function() sources.Pin(spell, faction) end, ("Click to show %s on your map."):format(who)
+        end
+    elseif step.learn and trainer and ns.Trainers then
+        return function() ns.Trainers.Pin(trainer) end, ("Click to show %s on your map."):format(trainer.name)
+    end
+end
+
+-- A click on a part pins what its step set for it, if anything.
+local function Pin(self)
+    if self.pin then self.pin() end
+end
+
 -- How surely a craft of it gives a point at your skill, in words.
 local function Sure(recipe, skill)
     if recipe.vein then return ("Mine them: a sure point each until %d"):format(recipe.yellow) end
@@ -178,7 +206,8 @@ local function Fit(text, words, room)
 end
 
 function Road.NowCard(parent, width)
-    local card = CreateFrame("Frame", nil, parent)
+    local card = CreateFrame("Button", nil, parent)
+    card:SetScript("OnClick", Pin)
     card:SetWidth(width)
     card.width = width
     Style.Box(card, 6, "well", "cardLine")
@@ -251,9 +280,11 @@ local function NowMat(card, i)
 end
 
 -- Fills the card for the road's first step and sets its height. Returns how
--- many materials it shows.
-function Road.PaintNow(card, line, first, skill)
+-- many materials it shows. `trainer` is who a click pins when the step is
+-- learned at one.
+function Road.PaintNow(card, line, first, skill, trainer)
     local recipe = first.recipe
+    card.pin, card.hint = Way(first, trainer)
     card.item, card.spell = recipe.item, recipe.spell
     card.needs, card.crafts = not recipe.vein and recipe.reagents or nil, first.crafts
     card.icon:SetTexture(Road.RecipeIcon(recipe))
@@ -321,8 +352,10 @@ end
 -- then what to make, a pill when there's something to do first, and how
 -- many. Down a road they're on a line beside the sign; `across` one, under
 -- it: the picture, the name on up to two lines, then how many and the pill.
+-- A click on one with a pill puts the map pin where that's got.
 function Road.Stop(parent, width, across)
-    local s = CreateFrame("Frame", nil, parent)
+    local s = CreateFrame("Button", nil, parent)
+    s:SetScript("OnClick", Pin)
     s:SetSize(width, across and Road.ACROSS_H or Road.STOP_H)
     s.width, s.across = width, across and true or false
     s.sign = CreateFrame("Frame", nil, s)
@@ -359,8 +392,9 @@ function Road.Stop(parent, width, across)
     return s
 end
 
-function Road.PaintStop(s, step)
+function Road.PaintStop(s, step, trainer)
     local recipe = step.recipe
+    s.pin, s.hint = Way(step, trainer)
     s.item, s.spell = recipe.item, recipe.spell
     s.needs, s.crafts = not recipe.vein and recipe.reagents or nil, step.crafts
     s.level:SetText(step.to)

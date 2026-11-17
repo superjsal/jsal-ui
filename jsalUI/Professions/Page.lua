@@ -232,7 +232,8 @@ Window.Page("professions", function(page)
     -- each step after the one in hand, the next rank's training where it
     -- falls among them (`o.rankAt`, unless `o.ranked` says it's already
     -- shown above), and the cap at its end when the road gets there
-    -- (`o.capped`). `note` is said at the right of its heading.
+    -- (`o.capped`). `note` is said at the right of its heading; `o.trainer`
+    -- is who a step learned at a trainer pins.
     local function LayRoad(y, plan, note, o)
         roadHead.title:SetText(("YOUR ROAD TO %d"):format(o.cap))
         roadHead.note:SetText(note)
@@ -259,7 +260,7 @@ Window.Page("professions", function(page)
             local step = plan[i]
             if not ranked and o.rankAt and step.from >= o.rankAt then Rank() end
             local s = Step(i - 1)
-            Road.PaintStop(s, step)
+            Road.PaintStop(s, step, o.trainer)
             Put(s)
         end
         if not ranked and o.ahead then Rank() end
@@ -430,6 +431,12 @@ Window.Page("professions", function(page)
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
 
+        -- The nearest trainer for your rank, or the next one once you're
+        -- ready for it: a step that's learned at a trainer pins them, and so
+        -- does the line under the right card.
+        local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
+        local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+
         -- The left card, down from its top: `at`.
         local at = 0
         if not seen and not Professions.IsGathering(line) then
@@ -459,7 +466,7 @@ Window.Page("professions", function(page)
         end
         if first then
             local recipe = first.recipe
-            Road.PaintNow(card, line, first, skill)
+            Road.PaintNow(card, line, first, skill, trainer)
             PlaceNow(card, at)
             at = at + card.tall
             -- The step's crafts onto the shopping list, from the card's foot.
@@ -510,10 +517,7 @@ Window.Page("professions", function(page)
             PlaceRight(needBox, ry)
             ry = ry + tall
         end
-        -- The nearest trainer for your rank, or the next one once you're
-        -- ready for it, with a quiet way to show them on the map.
-        local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
-        local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+        -- That trainer, with a quiet way to show them on the map.
         if trainer then
             local place = ns.Trainers.Zone(trainer)
             where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or ""))
@@ -530,7 +534,7 @@ Window.Page("professions", function(page)
         LayRoad(bodyY + math.max(at, ry) + 22, road,
             last or (crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""),
             { line = line, rank = rank, rankIndex = rankIndex, rankAt = rankAt, skill = skill, cap = cap,
-              ranked = ranked, ahead = ahead, capped = not stuck and skill < cap })
+              ranked = ranked, ahead = ahead, capped = not stuck and skill < cap, trainer = trainer })
     end
 
     page.Refresh = function() xpcall(Paint, ns.Report) end

@@ -123,6 +123,17 @@ function Sources.BuyNote(spell)
     return note
 end
 
+-- Who the map pin for a pattern would go on: the first vendor who sells it
+-- to you, when their spot is known, and the side asked for. Nil with the
+-- switch off.
+function Sources.Seller(spell)
+    if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
+    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
+    local v = Sources.Vendors(spell, faction)[1]
+    if v and v.map and v.map > 0 and v.x then return v.name, faction end
+    return nil
+end
+
 -- Everything known about a recipe's sources, for its tooltip.
 function Sources.Tooltip(tooltip, spell, faction)
     local data = Data()

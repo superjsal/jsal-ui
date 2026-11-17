@@ -695,6 +695,11 @@ function Paint()
     HideGroups()
     if panel.rankRow then panel.rankRow:Hide() end
     if panel.rankStop then panel.rankStop:Hide() end
+    -- The nearest trainer who teaches your rank, or the next one once
+    -- you're ready for it: a step that's learned at a trainer pins them,
+    -- and so does the line at the panel's foot.
+    local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
+    local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
     if view == "road" then
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
@@ -720,7 +725,7 @@ function Paint()
         if first then
             local card = Card()
             local recipe = first.recipe
-            mats = Road.PaintNow(card, line, first, skill)
+            mats = Road.PaintNow(card, line, first, skill, trainer)
             Place(card, y)
             y = y + card:GetHeight() + 8
             -- The step's crafts onto the shopping list, from the card's foot.
@@ -757,7 +762,7 @@ function Paint()
             if not ranked and rankAt and step.from >= rankAt then y = y + RankAt(y) end
             shown = i - 1
             local s = Step(shown)
-            Road.PaintStop(s, step)
+            Road.PaintStop(s, step, trainer)
             Place(s, y)
             y = y + STOP_H
         end
@@ -956,10 +961,7 @@ function Paint()
         panel.laterCount:Hide()
     end
 
-    -- The nearest trainer who teaches your rank, or the next one once
-    -- you're ready for it, with a map pin.
-    local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
-    local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+    -- That trainer, with a map pin.
     if trainer then
         y = y + 10
         local place = ns.Trainers.Zone(trainer)
