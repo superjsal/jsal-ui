@@ -186,6 +186,7 @@ end
 
 function Gear.SetSpec(i)
     if ns.char then ns.char.gearSpec = i end
+    Gear.PlansChanged()
 end
 
 -- WoWSims' weights for a spec. Gear.Weights is these with your own changes
@@ -718,17 +719,29 @@ end
 -- over his gloves; before that, any gain, which called a hunter's Strength legs "better" with
 -- nothing to say by how little.
 --
--- A dungeon's list asks this of every piece, so a slot's plan is kept for as long as the game's
--- clock stands still: the one paint.
+-- A dungeon's list asks this of every piece, so a slot's plan is kept. It was kept for the one
+-- paint, and working the plans out again was 11 of each boss list's 14 ms in his /jsal perf.
+-- Now it's kept until something it's worked out from changes (Gear.PlansChanged: your gear,
+-- bags, level, talents, skills, quests, spec, weights or stars), for ten minutes at most. A
+-- plan still waiting on items the game hasn't sent is worked out again on the next paint.
+Gear.planStamp = 0
+function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
+local PLAN_KEEP = 600
 function Gear.SlotPlan(slot)
     local now = GetTime and GetTime()
     local kept = Gear.slotPlans
-    if not kept or kept.at ~= now or not now then
-        kept = { at = now }
+    if not (kept and now and kept.at and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP) then
+        kept = { at = now, stamp = Gear.planStamp }
         Gear.slotPlans = kept
     end
-    if not kept[slot.key] then kept[slot.key] = Gear.Plan(slot) end
-    return kept[slot.key]
+    local plan = kept[slot.key]
+    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now then plan = nil end
+    if not plan then
+        plan = Gear.Plan(slot)
+        plan.madeAt = now
+        kept[slot.key] = plan
+    end
+    return plan
 end
 
 -- What all you wear scores for a spec's weights: each slot's piece, each ring and trinket, its
@@ -993,6 +1006,7 @@ end
 
 -- Repaints whatever shows stars (the gear plan, the dungeon guide).
 local function StarsChanged()
+    Gear.PlansChanged()
     if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
 end
 
@@ -1050,8 +1064,8 @@ Gear.CharacterButton = Button
 -- The Gear plan's first open after logging in or a level up filled the lists it keeps (the
 -- items near your level, and their stats) all in that one frame: 62 ms in his /jsal perf, the
 -- items 25 and their stats 27. They're filled ahead now, a slot every few frames, starting a
--- while after you log in or level, and waiting out a fight. What a slot works out is thrown
--- away; only what Near and Stats keep is wanted. The page fills anything still missing itself.
+-- while after you log in or level, and waiting out a fight. Each slot's plan is kept as its
+-- Gear.SlotPlan, which the dungeon guide asks for. The page fills anything still missing.
 local WARM_AFTER, WARM_STEP = 8, 0.25
 local warmRun = 0
 function Gear.Warm(after)
@@ -1064,7 +1078,8 @@ function Gear.Warm(after)
         local slot = Gear.SLOTS[i]
         if not slot then return end
         local started = debugprofilestop()
-        xpcall(Gear.Plan, ns.Report, slot)
+        -- Kept as the dungeon guide's slot plans too, so its first open finds them made.
+        xpcall(Gear.SlotPlan, ns.Report, slot)
         ns.Timed("Gear plan, filled ahead: " .. slot.label, started)
         Compat.After(WARM_STEP, Step)
     end
@@ -1077,10 +1092,6 @@ function Gear:OnEnable()
     if b then b:Show() end
     if Gear.StartStars then Gear.StartStars(self) end
     Gear.running = true
-    levels = levels or CreateFrame("Frame")
-    levels:RegisterEvent("PLAYER_LEVEL_UP")
-    -- The new level is the game's a moment after the event.
-    levels:SetScript("OnEvent", function() Gear.Warm(3) end)
     Gear.Warm()
 end
 
@@ -1088,5 +1099,18 @@ function Gear:OnDisable()
     if button then button:Hide() end
     if Gear.StopStars then Gear.StopStars(self) end
     Gear.running = false
-    if levels then levels:UnregisterAllEvents() end
 end
+
+-- What a slot's plan is worked out from changing: the plans kept between paints go (see
+-- Gear.SlotPlan). Heard whether or not the Gear plan is on, as the dungeon guide and the
+-- quest reward star ask for plans either way. A new level also fills the lists ahead again,
+-- a moment after the event, once the level is the game's.
+levels = CreateFrame("Frame")
+for _, event in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "BAG_UPDATE_DELAYED", "PLAYER_LEVEL_UP", "SKILL_LINES_CHANGED",
+    "QUEST_TURNED_IN", "CHARACTER_POINTS_CHANGED", "TRAIT_CONFIG_UPDATED", "PLAYER_ENTERING_WORLD" }) do
+    levels:RegisterEvent(event)
+end
+levels:SetScript("OnEvent", function(_, event)
+    Gear.PlansChanged()
+    if event == "PLAYER_LEVEL_UP" and Gear.running then Gear.Warm(3) end
+end)

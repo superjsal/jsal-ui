@@ -51,6 +51,7 @@ end
 local merged = {}
 local function Changed()
     merged = {}
+    if Gear.PlansChanged then Gear.PlansChanged() end
     if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
 end
 

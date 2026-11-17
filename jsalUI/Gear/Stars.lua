@@ -114,6 +114,7 @@ function Gear.Add(text)
     end
     Gear.Added()[id] = { t = invType, req = info.req }
     Gear.Starred()[id] = true
+    Gear.PlansChanged()
     if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
     return ("%s added under %s, starred."):format(info.name, slot.label), true, slot
 end
