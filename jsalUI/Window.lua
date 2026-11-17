@@ -12,20 +12,22 @@ local PAD_X, PAD_Y, MENU_PAD = 30, 26, 12
 Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
--- The side menu, in order, in its groups; Report a problem and Settings sit
--- at the bottom. Each
--- entry has one of jsal.ui's own icons (gold on a slate tile, in
--- Media\Icons), or a game icon by name. An entry nothing has claimed yet
--- says it's on the way.
+-- The side menu, in order, in its groups: what you plan (your build, training, gear and
+-- dungeons), what you craft, and what you play; Report a problem and Settings sit at the
+-- bottom. A group's heading is on its first entry. Each entry has one of jsal.ui's own icons
+-- (gold on a slate tile, in Media\Icons), or a game icon by name. `short` is an entry's name
+-- in the menu where the page's own would crowd it: the title bar and a page's own window
+-- still say the whole name. An entry nothing has claimed yet says it's on the way.
 local ICONS = "Interface\\Icons\\"
 local OWN = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local PAGES = {
     { key = "home", label = "Home", icon = OWN .. "home" },
     { key = "journal", label = "Journal", icon = OWN .. "journal" },
-    { key = "build", label = "Build Planner", icon = OWN .. "build", group = "PLAN" },
-    { key = "training", label = "Training Planner", icon = OWN .. "training" },
-    { key = "gear", label = "Gear plan", icon = OWN .. "gear" },
-    { key = "professions", label = "Professions", icon = OWN .. "professions" },
+    { key = "build", label = "Build Planner", short = "Build", icon = OWN .. "build", group = "PLAN" },
+    { key = "training", label = "Training Planner", short = "Training", icon = OWN .. "training" },
+    { key = "gear", label = "Gear plan", short = "Gear", icon = OWN .. "gear" },
+    { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
+    { key = "professions", label = "Professions", icon = OWN .. "professions", group = "CRAFT" },
     { key = "craftprofit", label = "Crafting profit", icon = OWN .. "profit",
       when = function() return ns.CraftProfit ~= nil and ns.CraftProfit.running == true end },
     -- Who in the guild makes what, and the orders guildmates ask each other for: in the
@@ -36,7 +38,6 @@ local PAGES = {
       end,
       -- In the size it was last left in: the full window, or the small one.
       open = function() ns.GuildCrafts.Show() end },
-    { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess" },
     -- Only in the menu once its part is switched on: `when` is asked as the
@@ -171,16 +172,18 @@ local function MenuButton(menu, page)
     icon:SetTexture(own and page.icon or (ICONS .. page.icon))
     b.label = Style.Text(b, 13, "secondary")
     b.label:SetPoint("LEFT", frameIcon, "RIGHT", 10, 0)
-    b.label:SetText(page.label)
+    b.label:SetText(page.short or page.label)
     b.badge = CreateFrame("Frame", nil, b)
     b.badge:SetSize(18, 18)
-    b.badge:SetPoint("RIGHT", -4, 0)
+    -- A count sits at the entry's right edge; on an entry with the arrow of a window of its
+    -- own, just left of the arrow, so the two never share a spot.
+    b.badge:SetPoint("RIGHT", page.own and -26 or -4, 0)
     Style.Fill(b.badge, "gold")
     b.count = Style.Text(b.badge, 11, "onGold", nil, true)
     b.count:SetPoint("CENTER")
     b.count:SetJustifyH("CENTER")
     b.badge:Hide()
-    -- A page that opens in a window of its own says so with a small arrow
+    -- A page that opens in a window of its own says so with a small, quiet arrow
     -- out of a corner, so the dashboard staying put is no surprise.
     if page.own then
         local out = CreateFrame("Frame", nil, b)
@@ -188,7 +191,7 @@ local function MenuButton(menu, page)
         out:SetPoint("RIGHT", -10, 0)
         local function Stroke(w, h, angle)
             local t = out:CreateTexture(nil, "ARTWORK")
-            t:SetColorTexture(Style.Color("muted"))
+            t:SetColorTexture(Style.Color("lineStrong"))
             t:SetSize(w, h)
             if angle then t:SetRotation(math.rad(angle)) end
             return t
