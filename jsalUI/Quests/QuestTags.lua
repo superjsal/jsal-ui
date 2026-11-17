@@ -374,9 +374,11 @@ end
 local function MakeTag(parent)
     local tag = CreateFrame("Frame", nil, parent)
     tag:SetSize(PAD * 2, HEIGHT)
-    local fill = Style.Fill(tag, "window")
-    fill:SetAlpha(0.88)
-    Style.Border(tag, "lineStrong")
+    -- Round at both ends, and a little see-through: its line and its fill
+    -- alike, as the line's shape lies whole under the fill.
+    local box = Style.Box(tag, 8, "window", "lineStrong")
+    box.line:SetAlpha(0.88)
+    box.fill:SetAlpha(0.88)
     tag.minutes = Line(tag)
     tag.minutes:SetPoint("RIGHT", tag, "RIGHT", -PAD, 0)
     tag.step = Line(tag)
