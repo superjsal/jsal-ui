@@ -47,6 +47,15 @@ function Reports.Details()
         zone ~= "" and zone or "unknown zone")
 end
 
+-- The same details, each on its own, for the page's card: the version, the
+-- character, and where it is.
+function Reports.Parts()
+    local className = UnitClass("player")
+    local zone = GetRealZoneText and GetRealZoneText() or ""
+    return "jsal.ui " .. (ns.version or "?"), ("%s, level %d"):format(className or "?", UnitLevel("player") or 0),
+        zone ~= "" and zone or "unknown zone"
+end
+
 function Reports.LastError()
     return ns.Errors and ns.Errors.Summary() or "Errors: none lately"
 end
@@ -275,19 +284,23 @@ end)
 -- The page.
 ---------------------------------------------------------------------------
 Window.Page("report", function(page)
-    local width = Window.contentWidth
+    -- Across the dashboard's whole width: the box to write in at the left,
+    -- with Send under it; at the right, what's added for you, and the way
+    -- to send it from outside John's guild.
+    local width = Window.fullWidth
+    local SIDE_W, GAP, LABEL_W = 372, 24, 96
+    local boxW, sideX = width - SIDE_W - GAP, width - SIDE_W
     local title, lead = Window.Header(page, width)
     title:SetText("Tell John what went wrong")
     lead:SetText("Your version, class, level, zone and any jsal.ui error are added for you.")
 
     local well = CreateFrame("Frame", nil, page)
     well:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", 0, -14)
-    well:SetSize(width, 120)
-    Style.Fill(well, "well")
-    Style.Border(well, "lineStrong")
+    well:SetSize(boxW, 320)
+    Style.Box(well, 5, "well", "lineStrong")
     local box = CreateFrame("EditBox", nil, well)
-    box:SetPoint("TOPLEFT", 10, -8)
-    box:SetPoint("BOTTOMRIGHT", -10, 8)
+    box:SetPoint("TOPLEFT", 12, -10)
+    box:SetPoint("BOTTOMRIGHT", -12, 10)
     box:SetMultiLine(true)
     box:SetAutoFocus(false)
     -- Room for the copy version too, which adds the details; a sent report
@@ -299,46 +312,64 @@ Window.Page("report", function(page)
     well:EnableMouse(true)
     well:SetScript("OnMouseDown", function() box:SetFocus() end)
     local hint = Style.Text(well, 13, "muted")
-    hint:SetPoint("TOPLEFT", 10, -9)
+    hint:SetPoint("TOPLEFT", 12, -11)
     hint:SetText("What went wrong, and what were you doing?")
 
-    local label = Style.Text(page, 11, "gold", nil, true)
-    label:SetPoint("TOPLEFT", well, "BOTTOMLEFT", 0, -18)
-    label:SetText("ADDED FOR YOU")
-    local added = CreateFrame("Frame", nil, page)
-    added:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -6)
-    added:SetSize(width, 52)
-    Style.Fill(added, "well")
-    Style.Border(added, "cardLine")
-    local addedText = Style.Text(added, 13, "muted")
-    addedText:SetPoint("TOPLEFT", 10, -9)
-    addedText:SetWidth(width - 20)
-    addedText:SetJustifyH("LEFT")
-
     local send = Style.Button(page, "Send to John", "primary", 150)
-    send:SetPoint("TOPLEFT", added, "BOTTOMLEFT", 0, -18)
+    send:SetPoint("TOPLEFT", well, "BOTTOMLEFT", 0, -14)
     local status = Style.Text(page, 13, "muted")
     status:SetPoint("LEFT", send, "RIGHT", 14, 0)
-    status:SetWidth(width - 170)
+    status:SetWidth(boxW - 170)
     status:SetJustifyH("LEFT")
+
+    -- What's added for you, a row each: the version, the character, where
+    -- it is, the reports still waiting to reach John, and the last errors.
+    local added = Style.Card(page, "Added for you")
+    added:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", sideX, -14)
+    added:SetWidth(SIDE_W)
+    local rows = {}
+    for i, name in ipairs({ "Version", "Character", "Where", "Reports", "Errors" }) do
+        local row = CreateFrame("Frame", nil, added)
+        row:SetSize(SIDE_W - 28, 28)
+        row:SetPoint("TOPLEFT", 14, -(32 + (i - 1) * 28))
+        if i > 1 then Style.Rule(row, "TOP", "line") end
+        local key = Style.Text(row, 12, "muted")
+        key:SetPoint("TOPLEFT", 0, -7)
+        key:SetText(name)
+        row.value = Style.Text(row, 13, "text")
+        row.value:SetPoint("TOPLEFT", LABEL_W, -6)
+        row.value:SetWidth(SIDE_W - 28 - LABEL_W)
+        row.value:SetJustifyH("LEFT")
+        rows[i] = row
+    end
+    local addedText = rows[5].value
 
     -- Outside John's guild: the report to copy and email.
     local other = Style.Text(page, 13, "muted")
-    other:SetPoint("TOPLEFT", send, "BOTTOMLEFT", 0, -26)
-    other:SetWidth(width - 130)
+    other:SetPoint("TOPLEFT", added, "BOTTOMLEFT", 0, -18)
+    other:SetWidth(SIDE_W)
     other:SetJustifyH("LEFT")
     other:SetText("Not in John's guild? Press Copy, then Ctrl+C, and email it to " .. EMAIL .. ".")
     local copy = Style.Button(page, "Copy", "plain", 110)
-    copy:SetPoint("TOPRIGHT", send, "BOTTOMLEFT", width, -20)
+    copy:SetPoint("TOPLEFT", other, "BOTTOMLEFT", 0, -10)
 
     local message
     local function Paint()
         hint:SetShown(box:GetText() == "" and not box:HasFocus())
-        addedText:SetText(Reports.Details() .. "\n" .. Reports.LastError())
-        -- A few long errors wrap to several lines: the box grows to hold
-        -- them, and the Send button below moves down with it.
-        added:SetHeight(math.max(52, addedText:GetStringHeight() + 18))
         local waiting = Reports.Waiting()
+        local version, character, where = Reports.Parts()
+        rows[1].value:SetText(version)
+        rows[2].value:SetText(character)
+        rows[3].value:SetText(where)
+        rows[4].value:SetText(waiting == 0 and "none waiting" or (waiting .. " waiting to reach John"))
+        rows[4].value:SetTextColor(Style.Color(waiting == 0 and "muted" or "text"))
+        -- The errors, without the word the row already says. A few long ones
+        -- wrap to several lines: the card grows to hold them, and the Copy
+        -- line under it moves down with it.
+        local errors = (Reports.LastError():gsub("^Errors:%s*", ""))
+        addedText:SetText(errors)
+        addedText:SetTextColor(Style.Color(errors:find("^none") and "green" or "text"))
+        added:SetHeight(32 + 4 * 28 + math.max(28, addedText:GetStringHeight() + 14) + 6)
         if message then
             status:SetText(message)
         elseif waiting > 0 then
@@ -383,4 +414,4 @@ Window.Page("report", function(page)
         Paint()
     end)
     page.Refresh = Paint
-end)
+end, nil, true)
