@@ -49,10 +49,15 @@ local function EndBefore(text, x, y, row, price, edge)
     end
 end
 
--- What a road step adds to the game's tooltip for what it makes: everything
--- its crafts need in full (its line has room for only a little), with what's
--- in your bags and bank.
+-- What a road step adds to the game's tooltip for what it makes: its note
+-- in full when its line had room for only a few words, then everything its
+-- crafts need (its line has room for only a little), with what's in your
+-- bags and bank.
 function Road.Needs(self)
+    if self.note then
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(self.note, 0.89, 0.69, 0.29, true)
+    end
     if not (self.needs and #self.needs > 0) then return end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
@@ -222,7 +227,8 @@ end
 ---------------------------------------------------------------------------
 -- A later step, on one line: the skill it covers, what to make and how
 -- many; a line under it only when there's something to do first (learn it,
--- buy its pattern) or, on a full one, a price to show.
+-- buy its pattern) or, on a full one, a price to show. Beside a price, what
+-- to do first is said in a few words, and in full in the tooltip.
 ---------------------------------------------------------------------------
 function Road.Step(parent, width, full)
     local s = CreateFrame("Frame", nil, parent)
@@ -264,17 +270,23 @@ function Road.PaintStep(s, step)
     s.icon:SetTexture(Road.RecipeIcon(recipe))
     s.name:SetText(Road.RecipeName(recipe))
     s.count:SetText(("×%d"):format(step.crafts))
-    local todo
+    local todo, short
     if step.buy then
         todo = ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
-            or ("buy the pattern from a vendor, from %d"):format(recipe.learn)
+        if todo then
+            short = ns.RecipeSourceText.BuyShort and ns.RecipeSourceText.BuyShort(recipe.spell)
+        else
+            todo, short = ("buy the pattern from a vendor, from %d"):format(recipe.learn), "pattern from a vendor"
+        end
     elseif step.learn then
-        todo = ("learn it at the trainer, from %d"):format(recipe.learn)
+        todo, short = ("learn it at the trainer, from %d"):format(recipe.learn), ("trainer, from %d"):format(recipe.learn)
     end
-    s.detail:SetText(todo or "")
-    s.detail:SetShown(todo ~= nil)
     local point
     if s.full then point = select(2, Road.Priced(recipe, step.crafts, step.to - step.from)) end
+    local said = (point and short) or todo
+    s.note = said ~= todo and todo or nil
+    s.detail:SetText(said or "")
+    s.detail:SetShown(said ~= nil)
     s.perPoint:SetText(point or "")
     s.perPoint:SetShown(point ~= nil)
     EndBefore(s.detail, 104, -23, s, point and s.perPoint, 0)
