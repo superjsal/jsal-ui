@@ -388,8 +388,8 @@ Window.Page("gear", function(page)
         local b = CreateFrame("Button", nil, page)
         b:SetSize(SLOT_W, SLOT_H)
         b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", x, -y)
-        b.bg = Style.Fill(b, "well")
-        b.edges = Style.Border(b, "gold")
+        local box = Style.Box(b, 5, "well", "gold")
+        b.bg, b.edges = box.fill, { box.line }
         b.box = IconBox(b, ICON)
         b.box:SetPoint("LEFT", 6, 0)
         b.icon = b.box.icon
