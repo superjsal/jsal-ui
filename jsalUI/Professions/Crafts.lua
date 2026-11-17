@@ -18,6 +18,8 @@ ns.GuildCrafts = C
 local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 82, 40, 26, 52, 76
 -- A row's track, and the room kept after its materials for "+2 more".
 local TRACK_W, MORE_W = 196, 64
+-- The least room who makes it has in the asking card's foot.
+local MAKERS_W = 250
 local TOP, FOOT = 116, 30
 -- Where the asking card starts under the counts (which are 52 high): the gap holds a line
 -- saying why something couldn't be done. And the card's height.
@@ -774,31 +776,55 @@ local function PaintAsk()
             makers = table.concat(names, ", ") .. (#people > 3 and (" and %d more"):format(#people - 3) or "")
                 .. Plural(#people, " makes this", " make this") .. DOT .. (on > 0 and (on == #people and "online" or (on .. " online")) or "none online now")
         else
-            makers = "No guildmate who shares their recipes makes this yet. It can still be asked for."
+            makers = "Nobody sharing recipes makes this yet"
         end
         materials = ns.Orders.Materials({ spell = a.spell, n = enchant and 1 or math.max(1, tonumber(card.count:GetText()) or 1) })
     end
     card.makers:SetText(a.spell and makers or "Pick what you need above: who makes it and what it takes show here.")
-    local before
-    for i = #materials, 1, -1 do
+    card.list:SetShown(a.spell ~= nil and ns.Shopping ~= nil and ns.Shopping.running == true)
+    -- From the right: the shopping list's words, then the materials after "Takes". Who makes
+    -- it keeps MAKERS_W at the left; the materials have the rest, as many as fit, and the
+    -- others are counted ("+2 more").
+    for i, m in ipairs(materials) do
         local chip = card.chips[i]
         if not chip then
             chip = Chip(card.strip)
             card.chips[i] = chip
         end
-        chip:Set(materials[i].count .. " " .. (Compat.ItemName(materials[i].item) or "..."))
-        chip:ClearAllPoints()
-        if before then chip:SetPoint("RIGHT", before, "LEFT", -5, 0) else chip:SetPoint("RIGHT", card.list, "LEFT", -14, 0) end
-        chip:Show()
-        before = chip
+        chip:Set(m.count .. " " .. (Compat.ItemName(m.item) or "..."))
+    end
+    local strip = C.width - 2
+    local room = strip - 16 - MAKERS_W - 16 - (TextWidth(card.takes, 30) + 8) - (card.list:GetWidth() + 14) - 16
+    local shown, used = 0, 0
+    for i = 1, #materials do
+        local w = card.chips[i]:GetWidth() + 5
+        -- Any but the last also needs room for the count of the rest after it.
+        if used + w + (i < #materials and MORE_W or 0) > room then break end
+        shown, used = i, used + w
+    end
+    card.more:SetText(shown < #materials and ("+%d more"):format(#materials - shown) or "")
+    local before = card.list
+    if shown < #materials and #materials > 0 then
+        card.more:ClearAllPoints()
+        card.more:SetPoint("RIGHT", card.list, "LEFT", -14, 0)
+        before = card.more
+    end
+    for i = #materials, 1, -1 do
+        local chip = card.chips[i]
+        chip:SetShown(i <= shown)
+        if i <= shown then
+            chip:ClearAllPoints()
+            chip:SetPoint("RIGHT", before, "LEFT", (before == card.list and -14) or (before == card.more and -8) or -5, 0)
+            before = chip
+        end
     end
     for i = #materials + 1, #card.chips do card.chips[i]:Hide() end
-    card.takes:SetShown(before ~= nil)
-    if before then
-        card.takes:ClearAllPoints()
-        card.takes:SetPoint("RIGHT", before, "LEFT", -8, 0)
-    end
-    card.list:SetShown(a.spell ~= nil and ns.Shopping ~= nil and ns.Shopping.running == true)
+    card.takes:SetShown(#materials > 0)
+    card.takes:ClearAllPoints()
+    card.takes:SetPoint("RIGHT", before, "LEFT", -8, 0)
+    -- Who makes it has the strip up to "Takes", and is cut short there, not drawn over it.
+    local taken = #materials > 0 and (used + (shown < #materials and MORE_W or 0) + TextWidth(card.takes, 30) + 8) or 0
+    card.makers:SetWidth(math.max(MAKERS_W, strip - 16 - 16 - taken - (card.list:GetWidth() + 14) - 16))
 end
 
 -- The names under the search box as you type.
@@ -936,6 +962,7 @@ local function BuildCard(view, width)
     card.makers = Style.Text(card.strip, 12, "muted")
     card.makers:SetPoint("LEFT", 16, 0)
     card.makers:SetJustifyV("MIDDLE")
+    card.makers:SetWordWrap(false)
     card.list = Quiet(card.strip, "+ Shopping list")
     card.list:SetPoint("RIGHT", -16, 0)
     card.list:SetScript("OnClick", function()
@@ -946,6 +973,7 @@ local function BuildCard(view, width)
     end)
     card.takes = Style.Text(card.strip, 11, "muted")
     card.takes:SetText("Takes")
+    card.more = Style.Text(card.strip, 11, "muted")
     card.chips = {}
     card.message = Style.Text(card, 12, "red")
     card.message:SetPoint("BOTTOMLEFT", card, "TOPLEFT", 0, 7)
