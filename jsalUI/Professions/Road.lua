@@ -21,37 +21,52 @@ function Road.RecipeIcon(recipe)
     return (recipe.item and Compat.ItemIcon(recipe.item)) or select(2, Compat.SpellInfo(recipe.spell))
 end
 
--- What a step costs to make and sells for, in a line, and what a point of
--- skill comes to after the sale. Nothing for a vein, or while Crafting
--- profit is off; a material with no price is named instead.
-function Road.Priced(recipe, crafts, points)
-    if recipe.vein or not (Professions.Priced and Professions.Priced()) then return nil end
+-- What a craft of a step costs and sells for, and what a point of skill
+-- comes to over the step after the sale's cut (below nothing when it
+-- earns). The first result is false for a vein, or while Crafting profit is
+-- off; with a material unpriced there's no cost, and `missing` is which.
+local function Costs(recipe, crafts, points)
+    if recipe.vein or not (Professions.Priced and Professions.Priced()) then return false end
     local cost, sells, missing = ns.CraftProfit.CraftPrice(recipe)
-    if not cost then return "no price yet for " .. (Compat.ItemName(missing) or "a material"), nil end
-    local line = Compat.Money(cost) .. " to make · " .. (sells and ("sells for " .. Compat.Money(sells)) or "no sale price yet")
+    if not cost then return true, nil, nil, nil, missing end
     local net = cost - (sells and math.floor(sells * (1 - ns.ItemPrices.CUT)) or 0)
-    local per = math.floor(net * crafts / math.max(1, points) + 0.5)
-    if per < 0 then return line, "earns " .. Compat.Money(-per) .. " a point" end
-    return line, Compat.Money(per) .. " a point"
+    return true, cost, sells, math.floor(net * crafts / math.max(1, points) + 0.5)
 end
 
--- What a road step adds to the game's tooltip for what it makes: its note
--- (what there was no room to say on it), then everything its crafts need,
--- with what's in your bags and bank, and last what a click on it does.
+-- What a road's part adds to the game's tooltip for what it makes. Its
+-- facts, a line each: what it is on the left, the number on the right
+-- ({ left, right, tone =, rtone = }; one with no right is words on a line of
+-- their own). Then what its crafts need, as have / need, with what's in your
+-- bags and bank counted. Last, what a click on it does. A part with a
+-- `note` (a material) says that in gold.
 function Road.Needs(self)
+    if self.facts and #self.facts > 0 then
+        GameTooltip:AddLine(" ")
+        for _, fact in ipairs(self.facts) do
+            local lr, lg, lb = Style.Color(fact.tone or "text")
+            if fact[2] then
+                local rr, rg, rb = Style.Color(fact.rtone or "text")
+                GameTooltip:AddDoubleLine(fact[1], fact[2], lr, lg, lb, rr, rg, rb)
+            else
+                GameTooltip:AddLine(fact[1], lr, lg, lb, true)
+            end
+        end
+    end
     if self.note then
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine(self.note, 0.89, 0.69, 0.29, true)
     end
     if self.needs and #self.needs > 0 then
+        local gr, gg, gb = Style.Color("gold")
+        local mr, mg, mb = Style.Color("muted")
+        local tr, tg, tb = Style.Color("text")
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
+        GameTooltip:AddDoubleLine(("For %d"):format(self.crafts or 1), "have / need", gr, gg, gb, mr, mg, mb)
         for _, reagent in ipairs(self.needs) do
             local need = reagent.count * (self.crafts or 1)
             local have = Compat.ItemCount(reagent.item, true)
-            local enough = have >= need
-            GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
-                ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
+            GameTooltip:AddDoubleLine(Compat.ItemName(reagent.item) or "...",
+                ("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need), tr, tg, tb, mr, mg, mb)
         end
     end
     if self.hint then
@@ -176,12 +191,46 @@ local function Way(step, trainer)
         local sources = ns.RecipeSourceText
         local who, faction
         if sources and sources.Seller then who, faction = sources.Seller(spell) end
-        if who then
-            return function() sources.Pin(spell, faction) end, ("Click to show %s on your map."):format(who)
-        end
+        if who then return function() sources.Pin(spell, faction) end, "Click to pin the vendor on your map" end
     elseif step.learn and trainer and ns.Trainers then
-        return function() ns.Trainers.Pin(trainer) end, ("Click to show %s on your map."):format(trainer.name)
+        return function() ns.Trainers.Pin(trainer) end, "Click to pin the trainer on your map"
     end
+end
+
+-- A step's first facts for its tooltip: the skill it covers, then what it
+-- asks of you first, with who sells or teaches it on a line of their own.
+local function Facts(step, trainer)
+    local recipe = step.recipe
+    local facts = { { "On your road", ("%d to %d"):format(step.from, step.to), tone = "gold" } }
+    if step.buy then
+        local sources = ns.RecipeSourceText
+        local who, copper, limited
+        if sources and sources.BuyFrom then who, copper, limited = sources.BuyFrom(recipe.spell) end
+        local other = not who and sources and sources.BuyNote and sources.BuyNote(recipe.spell)
+        if who then
+            facts[#facts + 1] = { "Buy the pattern", copper and Compat.Money(copper) or nil }
+            facts[#facts + 1] = { who .. (limited and " · limited stock" or ""), tone = "muted" }
+        elseif other then
+            -- No vendor sells it to you: a drop, a quest, the other side's.
+            facts[#facts + 1] = { "Get the pattern" }
+            facts[#facts + 1] = { other, tone = "muted" }
+        else
+            facts[#facts + 1] = { "Buy the pattern", "from a vendor" }
+        end
+    elseif step.learn then
+        facts[#facts + 1] = { "Learn at the trainer", ("from %d"):format(recipe.learn) }
+        if trainer and ns.Trainers then
+            local place = ns.Trainers.Zone(trainer)
+            facts[#facts + 1] = { trainer.name .. (place and (", " .. place) or ""), tone = "muted" }
+        end
+    end
+    return facts
+end
+
+-- What a point of skill comes to, as a fact: green when the step earns.
+local function PointFact(per)
+    if per < 0 then return { "A point", "earns " .. Compat.Money(-per), rtone = "green" } end
+    return { "A point", Compat.Money(per) }
 end
 
 -- A click on a part pins what its step set for it, if anything.
@@ -294,17 +343,29 @@ function Road.PaintNow(card, line, first, skill, trainer)
     -- make it; else what a point of skill costs; else how surely a craft
     -- gives one. The others are in the tooltip.
     local todo = Todo(first)
-    local priceLine, pointLine = Road.Priced(recipe, first.crafts, first.to - first.from)
+    local priced, cost, sells, per, missing = Costs(recipe, first.crafts, first.to - first.from)
+    local pointLine = per and (per < 0 and ("earns " .. Compat.Money(-per) .. " a point") or (Compat.Money(per) .. " a point")) or nil
     local sure = Sure(recipe, skill)
     local said = todo or pointLine or sure or ""
     card.detail:SetText(said)
     card.detail:SetTextColor(Style.Color(todo and "gold" or "muted"))
-    local more = {}
-    if sure and said ~= sure then more[#more + 1] = (sure:gsub("^%l", string.upper)) .. "." end
-    if priceLine then more[#more + 1] = (priceLine:gsub("^%l", string.upper)) .. "." end
-    if pointLine and said ~= pointLine then more[#more + 1] = (pointLine:gsub("^%l", string.upper)) .. "." end
-    if (first.safe or 0) > first.crafts then more[#more + 1] = ("Make %d to be safe."):format(first.safe) end
-    card.note = #more > 0 and table.concat(more, "\n") or nil
+    -- All of it in the tooltip, a line a fact.
+    local facts = Facts(first, trainer)
+    if cost then
+        facts[#facts + 1] = { "To make", Compat.Money(cost) }
+        facts[#facts + 1] = { "Sells for", sells and Compat.Money(sells) or "no price yet" }
+        facts[#facts + 1] = PointFact(per)
+    elseif priced then
+        facts[#facts + 1] = { "No price yet for " .. (Compat.ItemName(missing) or "a material"), tone = "muted" }
+    end
+    local gives = sure and sure:match("^a point (.+)$")
+    if gives then
+        facts[#facts + 1] = { "Gives a point", gives }
+    elseif sure then
+        facts[#facts + 1] = { sure, tone = "muted" }
+    end
+    if (first.safe or 0) > first.crafts then facts[#facts + 1] = { "To be safe", ("make %d"):format(first.safe) } end
+    card.facts = facts
     local y, shown, short = NOW_TOP, 0, 0
     for i, reagent in ipairs(recipe.reagents) do
         shown = i
@@ -400,7 +461,7 @@ function Road.PaintStop(s, step, trainer)
     s.level:SetText(step.to)
     s.icon:SetTexture(Road.RecipeIcon(recipe))
     s.count:SetText(("×%d"):format(step.crafts))
-    local todo, word = Todo(step)
+    local word = select(2, Todo(step))
     s.tag:SetShown(word ~= nil)
     if word then s.tag:Say(word) end
     if s.across then
@@ -411,13 +472,12 @@ function Road.PaintStop(s, step, trainer)
     else
         Fit(s.name, Road.RecipeName(recipe), s.width - (Road.SIGN + 48) - 44 - (word and s.tag.wide + 8 or 0))
     end
-    -- In its tooltip: what to do first, in full, and what a point costs.
-    local more = {}
-    if todo then more[#more + 1] = todo .. "." end
-    local point = select(2, Road.Priced(recipe, step.crafts, step.to - step.from))
-    if point then more[#more + 1] = (point:gsub("^%l", string.upper)) .. "." end
-    more[#more + 1] = ("Takes your skill from %d to %d."):format(step.from, step.to)
-    s.note = table.concat(more, "\n")
+    -- In its tooltip: the skill it covers, what to do first, and what a
+    -- point costs.
+    local facts = Facts(step, trainer)
+    local per = select(4, Costs(recipe, step.crafts, step.to - step.from))
+    if per then facts[#facts + 1] = PointFact(per) end
+    s.facts = facts
 end
 
 -- Learning the next rank, a gold stop where the road reaches its skill:

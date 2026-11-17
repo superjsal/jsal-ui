@@ -123,6 +123,17 @@ function Sources.BuyNote(spell)
     return note
 end
 
+-- The same in its parts, for a tooltip that gives each a line: who sells it
+-- to you and where, the price when there is one, and whether their stock
+-- runs out. Nil with the switch off, or when no vendor sells it to your
+-- side.
+function Sources.BuyFrom(spell)
+    if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
+    local v = Sources.Vendors(spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+    if not v then return nil end
+    return With(v.name, v.area), v.copper > 0 and v.copper or nil, v.stock > 0
+end
+
 -- Who the map pin for a pattern would go on: the first vendor who sells it
 -- to you, when their spot is known, and the side asked for. Nil with the
 -- switch off.
