@@ -47,6 +47,19 @@ local function Priced(recipe, crafts, points)
     return line, Compat.Money(per) .. " a point"
 end
 
+-- A line of text that runs up to the price at its right, or to the edge
+-- when there's none, and is cut short there (John's screenshot, 16 Nov 2026:
+-- "Buy the pattern from Rikqiz, Stra." ran into "earns 3s 61c a point").
+local function EndBefore(text, x, y, row, price, edge)
+    text:ClearAllPoints()
+    text:SetPoint("TOPLEFT", x, y)
+    if price then
+        text:SetPoint("RIGHT", price, "LEFT", -10, 0)
+    else
+        text:SetPoint("RIGHT", row, "RIGHT", edge, 0)
+    end
+end
+
 local function Line(name)
     if not name then return nil end
     local line = Professions.LineByName(name)
@@ -292,7 +305,6 @@ local function Step(i)
     s.perPoint:SetJustifyH("RIGHT")
     s.detail = Style.Text(s, 11, "gold")
     s.detail:SetPoint("TOPLEFT", 104, -23)
-    s.detail:SetWidth(WIDTH - PAD * 2 - 104 - 110)
     s.detail:SetJustifyH("LEFT")
     s.detail:SetWordWrap(false)
     s.rule = s:CreateTexture(nil, "BORDER")
@@ -339,7 +351,6 @@ local function Card()
     card.detail:SetWordWrap(false)
     card.price = Style.Text(card, 11, "secondary")
     card.price:SetPoint("TOPLEFT", 60, -51)
-    card.price:SetWidth(WIDTH - PAD * 2 - 60 - 130)
     card.price:SetJustifyH("LEFT")
     card.price:SetWordWrap(false)
     card.perPoint = Style.Text(card, 11, "gold", nil, true)
@@ -887,6 +898,7 @@ function Paint()
             card.price:SetShown(priceLine ~= nil)
             card.perPoint:SetText(pointLine or "")
             card.perPoint:SetShown(pointLine ~= nil)
+            EndBefore(card.price, 60, -51, card, pointLine and card.perPoint, -12)
             local top = priceLine and 74 or 60
             card.rule:ClearAllPoints()
             card.rule:SetPoint("TOPLEFT", 14, -top)
@@ -980,6 +992,7 @@ function Paint()
             local _, point = Priced(step.recipe, step.crafts, step.to - step.from)
             s.perPoint:SetText(point or "")
             s.perPoint:SetShown(point ~= nil)
+            EndBefore(s.detail, 104, -23, s, point and s.perPoint, 0)
             local tall = (todo or point) and NOTE_H or 0
             s:SetHeight(STEP_H + tall)
             Place(s, y)
