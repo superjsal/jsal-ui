@@ -286,6 +286,35 @@ local function Track(parent)
     return t
 end
 
+-- How things stand, at a glance: a number for a state, with its name and a
+-- few words under it. Three of them sit over For you's list.
+local function CountBox(parent, width)
+    local box = CreateFrame("Frame", nil, parent)
+    box:SetSize(width, 52)
+    Style.Box(box, 6, "well", "cardLine")
+    box.edge = Style.Edge(box, 6)
+    box.number = Style.Text(box, 26, "text", nil, true)
+    box.number:SetPoint("LEFT", 20, 0)
+    box.number:SetJustifyV("MIDDLE")
+    box.mark = Mark(box, 10)
+    box.mark:SetPoint("TOPLEFT", 62, -12)
+    box.label = Style.Text(box, 11, "text", nil, true)
+    box.label:SetPoint("LEFT", box.mark, "RIGHT", 8, 0)
+    box.say = Style.Text(box, 11, "muted")
+    box.say:SetPoint("TOPLEFT", 62, -30)
+    function box:Set(state, n, label, say)
+        local r, g, b = Style.Color(STATE[state])
+        self.edge:Paint(STATE[state])
+        self.number:SetText(n)
+        if n > 0 then self.number:SetTextColor(r, g, b) else self.number:SetTextColor(Style.Color("muted")) end
+        self.mark:Set(state)
+        self.label:SetText(label)
+        self.label:SetTextColor(r, g, b)
+        self.say:SetText(say)
+    end
+    return box
+end
+
 ---------------------------------------------------------------------------
 -- A scrolling list of rows of several kinds, each kind kept and reused.
 ---------------------------------------------------------------------------
@@ -585,6 +614,17 @@ local function Note(list, text)
     Take(list, "note", MakeNote, 44).text:SetText(text)
 end
 
+-- A row of three count boxes across a view.
+local function Boxes(view, width)
+    view.boxes = {}
+    local w = math.floor((width - 20) / 3)
+    for i = 1, 3 do
+        local box = CountBox(view, w)
+        box:SetPoint("TOPLEFT", (i - 1) * (w + 10), 0)
+        view.boxes[i] = box
+    end
+end
+
 -- With orders off, an order tab says where to turn them on.
 local function Off(view, width)
     view.off = CreateFrame("Frame", nil, view)
@@ -626,6 +666,9 @@ local function PaintForYou()
     end
     C.sub:SetText("What guildmates asked for that you know how to make.")
     C.right:SetText(("%d open in the guild"):format(me.open))
+    view.boxes[1]:Set("todo", #me.todo, "TO DO", #me.todo > 0 and ("you accepted " .. Plural(#me.todo, "it", "these")) or "nothing accepted")
+    view.boxes[2]:Set("waiting", #me.waiting, "WAITING", #me.waiting > 0 and "you can accept " .. Plural(#me.waiting, "it", "these") or "nothing to accept")
+    view.boxes[3]:Set("done", #me.done, "DONE", #me.done > 0 and "made by you, lately" or "nothing lately")
     Reset(list)
     local waiting = false
     if #me.todo > 0 then
@@ -1493,16 +1536,18 @@ Window.Page("guildcrafts", function(page)
     C.foot:SetWordWrap(false)
     local bodyH = height - TOP - FOOT
 
-    -- For you: the list, a heading a state. The headings count; there are
-    -- no boxes of numbers over them saying the same.
+    -- For you: the counts, then the list, a heading a state.
     local foryou = BuildView(page, "foryou", width, bodyH)
     Off(foryou, width)
     foryou.body = CreateFrame("Frame", nil, foryou)
     foryou.body:SetAllPoints()
-    foryou.list = List(foryou.body, width, bodyH)
-    foryou.list.scroll:SetPoint("TOPLEFT")
+    Boxes(foryou.body, width)
+    foryou.boxes = foryou.body.boxes
+    foryou.list = List(foryou.body, width, bodyH - 66)
+    foryou.list.scroll:SetPoint("TOPLEFT", 0, -66)
 
-    -- Your orders: the asking card, then the list.
+    -- Your orders: the asking card, then the list. No counts here: the
+    -- card has their place, and the headings count.
     local yours = BuildView(page, "yours", width, bodyH)
     Off(yours, width)
     yours.body = CreateFrame("Frame", nil, yours)
