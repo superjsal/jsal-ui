@@ -19,12 +19,14 @@ local VISIT_H, DENSE_H, FOLD_H, STRIP_H = 60, 44, 34, 38   -- a spell to train n
 -- a row each, a compact row each, then compact and two across.
 local LAYOUTS = { { key = "roomy", high = VISIT_H, across = 1 }, { key = "dense", high = DENSE_H, across = 1 }, { key = "pair", high = DENSE_H, across = 2 } }
 local SKIP_W = 40
-local GLYPH, ROAD_GLYPH = 28, 22  -- a spell as its picture: a pet's ability or a weapon skill, and one on the road
-local GLYPHS_W = ROAD_GLYPH * 3 + 4   -- three across under a sign
+local GLYPH, GLYPH_GAP = 28, 3    -- a spell as its picture, and the room between two
+local ACROSS = 4                  -- pictures across under a sign on the road
+local GLYPHS_W = GLYPH * ACROSS + GLYPH_GAP * (ACROSS - 1)
 local SUB_H = 20                  -- a heading inside the pet's card
--- The road: a sign every PITCH, the first FIRST_X along; each has STOP_W for
+-- The road: six visits across the page, the rest a turn of the wheel away.
+-- A sign every PITCH, the first FIRST_X along; each has STOP_W for
 -- what's under it. The band is the road itself; you stand YOU_X along it.
-local PITCH, STOP_W, FIRST_X, YOU_X = 87, 88, 56, 30
+local PITCH, STOP_W, FIRST_X, YOU_X = 160, 152, 56, 30
 local SIGN, BAND_H = 40, 26
 
 -- A hunter's pet abilities, grouped by how each is got, in this order. One
@@ -473,11 +475,11 @@ Window.Page("training", function(page)
         g:SetScript("OnClick", SkipClick)
         return g
     end
-    -- The two kinds: a small one on the road, a larger one for a pet's
+    -- The two kinds: one on the road, and one in the cards for a pet's
     -- abilities and the weapon skills.
     local KINDS = {
-        glyphs = { size = ROAD_GLYPH, gap = 2, make = function() return MakeGlyph(road, ROAD_GLYPH) end },
-        tiles = { size = GLYPH, gap = 3, make = function() return MakeGlyph(ui.petList, GLYPH) end },
+        glyphs = { size = GLYPH, gap = GLYPH_GAP, make = function() return MakeGlyph(road, GLYPH) end },
+        tiles = { size = GLYPH, gap = GLYPH_GAP, make = function() return MakeGlyph(ui.petList, GLYPH) end },
     }
 
     -- Lays spells out as pictures of one kind from (x0, y0), wrapping at
@@ -631,7 +633,7 @@ Window.Page("training", function(page)
         ui.weaponSum:SetText(words)
         -- The words stand right of the pictures where one row of them leaves
         -- the room, and under them where it doesn't.
-        local beside = tall == GLYPH and #list * (GLYPH + 3) + 190 <= sideW - 32
+        local beside = tall == GLYPH and #list * (GLYPH + GLYPH_GAP) + 190 <= sideW - 32
         ui.weaponSum:ClearAllPoints()
         if tall == 0 then
             ui.weaponSum:SetPoint("TOPLEFT", 16, -14)
@@ -787,14 +789,14 @@ Window.Page("training", function(page)
             ui.gold:SetText("You have " .. Compat.Money(money))
         end
         -- The road is as tall as its tallest stop: the sign, the cost, and
-        -- its pictures three across. The cards have the rest of the page.
+        -- its pictures four across. The cards have the rest of the page.
         local levels, rows = {}, 2
         for stop, list in pairs(ahead) do
             levels[#levels + 1] = stop
-            rows = math.max(rows, math.ceil(#list / 3))
+            rows = math.max(rows, math.ceil(#list / ACROSS))
         end
         table.sort(levels)
-        local roadH = math.min(shared - UP_MIN, SIGN + 8 + 16 + 8 + rows * (ROAD_GLYPH + 2) + 6)
+        local roadH = math.min(shared - UP_MIN, SIGN + 8 + 16 + 8 + rows * (GLYPH + GLYPH_GAP) + 6)
         -- The spells to train now, in the roomiest layout the cards' room
         -- holds: counted as the rows of what's ready, the fold's line, and
         -- the skipped ones' rows when the fold is open.
