@@ -26,9 +26,13 @@ local function Remembered()
     return ns.db.ahPrices[realm]
 end
 
+-- How many prices have been seen since the game loaded: a window that keeps
+-- what it worked out from prices works it out again once this has moved.
+ItemPrices.seen = 0
 function ItemPrices.See(item, unit)
     if not (item and unit and unit > 0) then return end
     Remembered()[item] = { price = math.floor(unit), seen = Compat.ServerTime() }
+    ItemPrices.seen = ItemPrices.seen + 1
 end
 
 ---------------------------------------------------------------------------

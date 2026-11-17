@@ -78,6 +78,16 @@ local function Copy()
         end
     end
     priceMakers = nil
+    CraftProfit.changes = (CraftProfit.changes or 0) + 1
+end
+
+-- Whether the rows worked out at `stamp` still hold: no recipe learned and no price seen since,
+-- and not at the auction house, where Auctionator's prices can change at any moment.
+function CraftProfit.Stamp()
+    return (CraftProfit.changes or 0) .. ":" .. (ns.ItemPrices.seen or 0)
+end
+function CraftProfit.Holds(stamp)
+    return stamp == CraftProfit.Stamp() and not CraftProfit.atAuction
 end
 
 function CraftProfit.Changed()
@@ -281,10 +291,16 @@ function CraftProfit:OnEnable()
         for _, event in ipairs(ns.ItemPrices.EVENTS) do pcall(events.RegisterEvent, events, event) end
     end
     pcall(events.RegisterEvent, events, "GET_ITEM_INFO_RECEIVED")
+    events:RegisterEvent("AUCTION_HOUSE_SHOW")
+    events:RegisterEvent("AUCTION_HOUSE_CLOSED")
     local naming = false
     events:SetScript("OnEvent", ns.Safe(CraftProfit, function(_, event, arg1)
         arg1 = Compat.Plain(arg1)
-        if event == "GET_ITEM_INFO_RECEIVED" then
+        if event == "AUCTION_HOUSE_SHOW" or event == "AUCTION_HOUSE_CLOSED" then
+            -- Whatever Auctionator scanned there is in the next rows.
+            CraftProfit.atAuction = event == "AUCTION_HOUSE_SHOW"
+            CraftProfit.changes = (CraftProfit.changes or 0) + 1
+        elseif event == "GET_ITEM_INFO_RECEIVED" then
             -- A name or quality comes a moment after it's first asked for:
             -- paint once for a burst of them.
             if not naming and ns.Window.IsOpen("craftprofit") then

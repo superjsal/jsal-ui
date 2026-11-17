@@ -1047,13 +1047,46 @@ local function Button()
 end
 Gear.CharacterButton = Button
 
+-- The Gear plan's first open after logging in or a level up filled the lists it keeps (the
+-- items near your level, and their stats) all in that one frame: 62 ms in his /jsal perf, the
+-- items 25 and their stats 27. They're filled ahead now, a slot every few frames, starting a
+-- while after you log in or level, and waiting out a fight. What a slot works out is thrown
+-- away; only what Near and Stats keep is wanted. The page fills anything still missing itself.
+local WARM_AFTER, WARM_STEP = 8, 0.25
+local warmRun = 0
+function Gear.Warm(after)
+    warmRun = warmRun + 1
+    local run, i, Compat = warmRun, 0, ns.Compat
+    local function Step()
+        if run ~= warmRun or not Gear.running then return end
+        if Compat.InCombat() then return Compat.After(5, Step) end
+        i = i + 1
+        local slot = Gear.SLOTS[i]
+        if not slot then return end
+        local started = debugprofilestop()
+        xpcall(Gear.Plan, ns.Report, slot)
+        ns.Timed("Gear plan, filled ahead: " .. slot.label, started)
+        Compat.After(WARM_STEP, Step)
+    end
+    Compat.After(after or WARM_AFTER, Step)
+end
+
+local levels
 function Gear:OnEnable()
     local b = Button()
     if b then b:Show() end
     if Gear.StartStars then Gear.StartStars(self) end
+    Gear.running = true
+    levels = levels or CreateFrame("Frame")
+    levels:RegisterEvent("PLAYER_LEVEL_UP")
+    -- The new level is the game's a moment after the event.
+    levels:SetScript("OnEvent", function() Gear.Warm(3) end)
+    Gear.Warm()
 end
 
 function Gear:OnDisable()
     if button then button:Hide() end
     if Gear.StopStars then Gear.StopStars(self) end
+    Gear.running = false
+    if levels then levels:UnregisterAllEvents() end
 end

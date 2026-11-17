@@ -252,16 +252,24 @@ end
 -- Painting.
 ---------------------------------------------------------------------------
 -- The rows for the switch: the recipes your characters know, or every recipe
--- of their professions. Worked out afresh on each paint but while you type in
--- the search box, which keeps the last ones (every recipe is several hundred).
+-- of their professions. Every recipe is several hundred, and working them out
+-- was 35 ms of each open in his /jsal perf, so they're kept: while you type in
+-- the search box, and otherwise until a recipe is learned, a price is seen or
+-- you're at the auction house (ns.CraftProfit.Holds), or an hour has gone by,
+-- as the SEEN column counts in days. Sorting and the list keep each paint.
+local KEEP_FOR = 3600
 local function Rows(v, keep)
     local key = v.all and "all" or "known"
     local c = P.cache
-    if keep and c and c.key == key then return c.rows, c.names, c.count end
+    local CP, now = ns.CraftProfit, ns.Compat.ServerTime()
+    if c and c.key == key and (keep or (CP.Holds(c.stamp) and now - c.at < KEEP_FOR)) then
+        return c.rows, c.names, c.count
+    end
+    local stamp = CP.Stamp()
     local count = ns.ItemPrices.Counting()
     local rows, names
-    if v.all then rows, names = ns.CraftProfit.AllRows() else rows, names = ns.CraftProfit.ProfitRows() end
-    P.cache = { key = key, rows = rows, names = names, count = count }
+    if v.all then rows, names = CP.AllRows() else rows, names = CP.ProfitRows() end
+    P.cache = { key = key, rows = rows, names = names, count = count, stamp = stamp, at = now }
     return rows, names, count
 end
 
