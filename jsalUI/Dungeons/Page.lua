@@ -962,11 +962,18 @@ Window.Page("dungeons", function(page)
         return s[2] .. "  ·  " .. zone .. (spot and (" " .. spot) or "")
     end
 
-    -- The level column: what the quest is, or in red what it needs when
-    -- you're under it.
+    -- The level column: the quest's own level, and the level you can take
+    -- it at when that's lower, in red when you're under it. One number alone
+    -- read as two kinds of thing ("level 45" beside "needs level 39"), so
+    -- both show (John, 16 Nov 2026: "level 45 · take at 37").
     function Q.Level(q, mine)
-        local needs = q[4] or q[3]
-        if needs > mine then return ("%sneeds level %d|r"):format(RED, needs) end
+        local take = q[4] or q[3]
+        local early = take < q[3]
+        if take > mine then
+            if not early then return ("%sneeds level %d|r"):format(RED, take) end
+            return ("level %d · %sneeds level %d|r"):format(q[3], RED, take)
+        end
+        if early then return ("level %d · take at %d"):format(q[3], take) end
         return ("level %d"):format(q[3])
     end
 
