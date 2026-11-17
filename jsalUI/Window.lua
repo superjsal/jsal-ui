@@ -412,6 +412,28 @@ local function OpenOwn(page)
     own.frame:Raise()
 end
 
+-- The second after a page opens, watched: its longest frame, against the game's usual frame
+-- at the time. /jsal perf's own timers see only jsal.ui's code, and the Guild page hitched on
+-- opening with every part of its code under 10 ms (John, 17 Nov 2026). This sees the whole
+-- frame: the game drawing the page, and anything that comes in just after (the guild's
+-- answers to a hello). Noted when the longest is 10 ms or more over the usual.
+local WATCH_FOR = 1
+local watcher = CreateFrame("Frame")
+function Window.Watch(label)
+    local fps = GetFramerate and GetFramerate() or 0
+    if not (fps > 0) then return end
+    local usual, longest, gone = 1000 / fps, 0, 0
+    watcher:SetScript("OnUpdate", function(self, elapsed)
+        elapsed = elapsed or 0
+        longest, gone = math.max(longest, elapsed * 1000), gone + elapsed
+        if gone < WATCH_FOR then return end
+        self:SetScript("OnUpdate", nil)
+        if longest - usual >= 10 then
+            ns.NoteTime("Opening " .. label .. ": its longest frame, over the usual", longest - usual)
+        end
+    end)
+end
+
 -- `direct` opens a page's own window even when the entry has an `open` of its own (Guild
 -- Crafts' picks between its two sizes, and comes back here for the full one).
 function Window.Open(key, direct)
@@ -420,6 +442,7 @@ function Window.Open(key, direct)
     -- A page that isn't in the menu just now (/jsal install with no look to
     -- install) opens the dashboard's home instead.
     if page.when and not page.when() then page = byKey.home end
+    Window.Watch(page.label)
     if page.own and page.build then return OpenOwn(page) end
     if Compat.InCombat() then
         return ns.Print("The dashboard opens once combat ends.")
