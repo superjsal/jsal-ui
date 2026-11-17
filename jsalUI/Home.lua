@@ -8,7 +8,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "New: Guild Crafts, for who in the guild makes what. Orders between guildmates start off: turn them on in Settings",
+    "New: Guild Crafts, for who in the guild makes what, and orders between guildmates: ask for a craft, or take one on",
     "Dungeon guide: the game's own quest marks, and each quest's level beside the level you can take it at",
     "Restart the game once for this version: it adds new files",
 }

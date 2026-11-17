@@ -167,8 +167,8 @@ PLACES = {
       note = "A button for the Crafting profit window: a click opens it, another closes it. Needs Crafting profit on." },
     -- Guild Crafts: while Guild crafters or Guild orders is on. Its dot is for an order you
     -- accepted, or one asked for that you could make and haven't looked at. It starts
-    -- switched off, as every button added after the bar does.
-    { key = "crafts", label = "Guild Crafts", icon = OWN .. "crafts", off = true,
+    -- switched on, as the guild's other parts do.
+    { key = "crafts", label = "Guild Crafts", icon = OWN .. "crafts",
       ready = function() return (ns.Crafters and ns.Crafters.running) or (ns.Orders and ns.Orders.running) end,
       open = function() ns.GuildCrafts.Toggle() end,
       waiting = function()

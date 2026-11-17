@@ -12,7 +12,6 @@ local Compat, Comms, Professions = ns.Compat, ns.Comms, ns.Professions
 local Orders = ns.NewModule("orders", {
     title = "Guild orders",
     note = "Ask the guild for a craft or an enchant, and accept what guildmates ask for, in Guild Crafts. Orders reach guildmates who have jsal.ui with this on. /jsal crafts",
-    defaultOn = false,
 })
 ns.Orders = Orders
 
