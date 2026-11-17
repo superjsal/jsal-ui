@@ -376,7 +376,7 @@ local function MakeTag(parent)
     tag:SetSize(PAD * 2, HEIGHT)
     -- Round at both ends, and a little see-through: its line and its fill
     -- alike, as the line's shape lies whole under the fill.
-    local box = Style.Box(tag, 8, "window", "lineStrong")
+    local box = Style.PillBox(tag, "window", "lineStrong")
     box.line:SetAlpha(0.88)
     box.fill:SetAlpha(0.88)
     tag.minutes = Line(tag)

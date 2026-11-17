@@ -219,7 +219,7 @@ end
 local function Pill(parent)
     local p = CreateFrame("Frame", nil, parent)
     p:SetHeight(20)
-    p.fill = Style.Round(p, 10, "goodFill")
+    p.fill = Style.Pill(p, nil, "goodFill")
     p.text = Style.Text(p, 10, "green", nil, true)
     p.text:SetPoint("CENTER")
     function p:Set(label, kind)
@@ -271,7 +271,7 @@ local function Track(parent)
     t.label:SetJustifyH("RIGHT")
     t.nodes = {}
     for i = 4, 1, -1 do
-        local node = Style.Round(t, 4, "lineStrong", "ARTWORK")
+        local node = Style.Pill(t, 4, "lineStrong", "ARTWORK")
         node:ClearAllPoints()
         node:SetSize(8, 8)
         if i == 4 then node:SetPoint("RIGHT", t.label, "LEFT", -8, 0) else node:SetPoint("RIGHT", t.nodes[i + 1], "LEFT", -5, 0) end
@@ -358,7 +358,7 @@ local function MakeHead(parent, width)
     local h = CreateFrame("Frame", nil, parent)
     h:SetSize(width, HEAD_ROW)
     -- Behind a state's sign, name and number: a pill tinted with its colour.
-    h.pill = Style.Round(h, 10)
+    h.pill = Style.Pill(h, 10)
     h.pill:ClearAllPoints()
     h.pill:SetPoint("LEFT", 0, 0)
     h.mark = Mark(h, 10)
@@ -1291,10 +1291,10 @@ local function ProfChip(card, k)
     if c then return c end
     c = CreateFrame("Button", nil, card)
     c:SetHeight(22)
-    Style.Round(c, 11, "line")
+    Style.Pill(c, nil, "line")
     c.text = Style.Text(c, 11, "text")
     c.text:SetPoint("CENTER")
-    Style.Hover(c, 0, 12)
+    Style.Hover(c, 0, "pill")
     c:SetScript("OnClick", function(self)
         if not self.prof or self.prof.recipes == 0 then return end
         C.pick = { name = self.person.name, line = self.prof.line, label = self.prof.name }

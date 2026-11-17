@@ -756,7 +756,7 @@ Window.Page("dungeons", function(page)
         -- run of numbers ("2-8") is wider than it's tall, and a circle
         -- pulled wide is an egg: that one is a box with round corners.
         st.disc = Style.Circle(st.badge, "line", "lineStrong")
-        st.pill = Style.Box(st.badge, 9, "line", "lineStrong")
+        st.pill = Style.PillBox(st.badge, "line", "lineStrong")
         st.number = Style.Text(st.badge, 10, "muted", nil, true)
         st.number:SetPoint("CENTER")
         st.tick = st.badge:CreateTexture(nil, "OVERLAY")

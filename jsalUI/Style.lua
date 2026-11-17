@@ -250,6 +250,110 @@ function Style.Circle(frame, fillKey, lineKey)
     return disc
 end
 
+-- A pill: a shape whose ends are half circles, whatever its size and the
+-- screen's. It's the circle's picture in three pieces: its left half, a
+-- flat middle, its right half. A sliced corner (Style.Round) is drawn at a
+-- size of its own, about half what it's set to on a screen where a unit is
+-- a pixel, so a shape that's round at its ends can't be made with one.
+-- `radius` is half the pill's height, for one the caller places and sizes:
+-- what this returns is placed, sized, shown and painted as a shape from
+-- Style.Round is. Without a radius the pill fills its frame, as tall as the
+-- frame comes to be, `inset` in from its edges. Where round shapes can't be
+-- drawn its ends are square.
+function Style.Pill(frame, radius, colorKey, layer, level, inset)
+    layer, level = layer or "BACKGROUND", level or 0
+    -- What a caller places: nothing to see, over the pill's whole
+    -- rectangle, with the three pieces hung on it.
+    local p = frame:CreateTexture(nil, layer, nil, level)
+    p:SetColorTexture(0, 0, 0, 0)
+    if inset then
+        p:SetPoint("TOPLEFT", inset, -inset)
+        p:SetPoint("BOTTOMRIGHT", -inset, inset)
+    else
+        p:SetAllPoints()
+    end
+    p.round = p.SetTextureSliceMargins ~= nil and Style.Rounded()
+    p.left = frame:CreateTexture(nil, layer, nil, level)
+    p.mid = frame:CreateTexture(nil, layer, nil, level)
+    p.right = frame:CreateTexture(nil, layer, nil, level)
+    if p.round then
+        p.left:SetTexture(CIRCLE)
+        p.left:SetTexCoord(0, 0.5, 0, 1)
+        p.right:SetTexture(CIRCLE)
+        p.right:SetTexCoord(0.5, 1, 0, 1)
+    end
+    -- An end is as wide as half the pill's height.
+    local function Lay(r)
+        p.radius = r
+        p.left:ClearAllPoints()
+        p.left:SetPoint("TOPLEFT", p, "TOPLEFT")
+        p.left:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT")
+        p.left:SetWidth(r)
+        p.right:ClearAllPoints()
+        p.right:SetPoint("TOPRIGHT", p, "TOPRIGHT")
+        p.right:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT")
+        p.right:SetWidth(r)
+        p.mid:ClearAllPoints()
+        p.mid:SetPoint("TOPLEFT", p, "TOPLEFT", r, 0)
+        p.mid:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", -r, 0)
+    end
+    if radius then
+        Lay(radius)
+    else
+        local function Follow()
+            local tall = frame:GetHeight()
+            if type(tall) == "number" and tall > 0 then Lay(math.max(1, tall / 2 - (inset or 0))) end
+        end
+        frame:HookScript("OnSizeChanged", Follow)
+        Follow()
+    end
+    function p:Paint(key, alpha)
+        local r, g, b = Style.Color(key)
+        alpha = alpha or 1
+        if self.round then
+            self.left:SetVertexColor(r, g, b, alpha)
+            self.right:SetVertexColor(r, g, b, alpha)
+        else
+            self.left:SetColorTexture(r, g, b, alpha)
+            self.right:SetColorTexture(r, g, b, alpha)
+        end
+        self.mid:SetColorTexture(r, g, b, alpha)
+    end
+    local show, hide = p.Show, p.Hide
+    function p:Show()
+        show(self)
+        self.left:Show()
+        self.mid:Show()
+        self.right:Show()
+    end
+    function p:Hide()
+        hide(self)
+        self.left:Hide()
+        self.mid:Hide()
+        self.right:Hide()
+    end
+    function p:SetShown(on)
+        if on then self:Show() else self:Hide() end
+    end
+    function p:SetAlpha(alpha)
+        self.left:SetAlpha(alpha)
+        self.mid:SetAlpha(alpha)
+        self.right:SetAlpha(alpha)
+    end
+    p:Paint(colorKey or "well")
+    return p
+end
+
+-- A pill with a line round it, over its whole frame: one pill a pixel
+-- inside another. Paint(fillKey, lineKey) colours them, as a box's.
+function Style.PillBox(frame, fillKey, lineKey)
+    return {
+        line = Style.Pill(frame, nil, lineKey, "BACKGROUND", 0),
+        fill = Style.Pill(frame, nil, fillKey, "BACKGROUND", 1, Compat.OnePixel(frame)),
+        Paint = PaintBox,
+    }
+end
+
 -- The mark of a card that's yours, next or current: its left edge in
 -- colour, three wide, following the card's round corners. It's a frame of
 -- its own above what's in the card (rows drawn over an edge cut it into
@@ -447,12 +551,15 @@ end
 -- click or a tooltip will come from. It reaches `pad` past the row's sides
 -- for rows whose icon sits on their edge. On a round card, `radius` is the
 -- card's: the light is then the shape of the card's fill, a pixel inside
--- its line, and follows its corners. Call it after the row's own OnEnter
--- and OnLeave are set: it adds to them.
+-- its line, and follows its corners; on a pill it's "pill". Call it after
+-- the row's own OnEnter and OnLeave are set: it adds to them.
 function Style.Hover(frame, pad, radius)
     pad = pad or 0
     local glow
-    if radius then
+    if radius == "pill" then
+        glow = Style.Pill(frame, nil, "text", "BACKGROUND", 7, Compat.OnePixel(frame))
+        glow:SetAlpha(0.06)
+    elseif radius then
         local px = Compat.OnePixel(frame)
         glow = Style.Round(frame, radius - 1, "text", "BACKGROUND", 7)
         glow:ClearAllPoints()
@@ -609,7 +716,7 @@ function Style.Button(parent, label, kind, width)
     local b = CreateFrame("Button", nil, parent)
     b:SetSize(width or 140, 28)
     b.kind = kind or "plain"
-    b.box = Style.Box(b, b.kind == "tab" and 10 or 5, "well", "lineStrong")
+    b.box = b.kind == "tab" and Style.PillBox(b, "well", "lineStrong") or Style.Box(b, 5, "well", "lineStrong")
     -- Its fill and its line, for a page that shows or hides them itself.
     b.bg, b.edges = b.box.fill, { b.box.line }
     b.label = Style.Text(b, 13, "text", nil, true)
@@ -651,7 +758,7 @@ function Style.Tabs(parent, items, onPick, width, small)
     local bar = CreateFrame("Frame", nil, parent)
     local high, pad, badgeHigh = small and 20 or 24, small and 10 or 16, small and 14 or 18
     bar:SetHeight(high + 6)
-    Style.Box(bar, 13, "titleBar", "line")
+    Style.PillBox(bar, "titleBar", "line")
     bar.buttons, bar.byKey = {}, {}
     local function Paint(b)
         local lit = b.selected or b.hover
@@ -662,13 +769,13 @@ function Style.Tabs(parent, items, onPick, width, small)
     for i, item in ipairs(items) do
         local b = CreateFrame("Button", nil, bar)
         b.key, b.words = item[1], item[2]
-        b.box = Style.Box(b, small and 10 or 12, "wellHover", "lineStrong")
+        b.box = Style.PillBox(b, "wellHover", "lineStrong")
         b.label = Style.Text(b, small and 12 or 13, "secondary", nil, true)
         b.label:SetText(item[2])
         b.badge = CreateFrame("Frame", nil, b)
         b.badge:SetHeight(badgeHigh)
         b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 0)
-        b.badge.fill = Style.Round(b.badge, small and 7 or 9, "line")
+        b.badge.fill = Style.Pill(b.badge, nil, "line")
         b.count = Style.Text(b.badge, small and 10 or 11, "secondary", nil, true)
         b.count:SetPoint("CENTER")
         b.badge:Hide()
@@ -938,7 +1045,7 @@ local TAG_TONES = { gold = { "gold", "onGold" }, green = { "line", "green" }, re
 function Style.Tag(parent, words, tone, small)
     local t = CreateFrame("Frame", nil, parent)
     t:SetHeight(small and 16 or 20)
-    t.fill = Style.Round(t, small and 8 or 10, "line")
+    t.fill = Style.Pill(t, nil, "line")
     t.text = Style.Text(t, small and 10 or 11, "secondary", nil, true)
     t.text:SetPoint("CENTER")
     function t:Say(text)
@@ -960,8 +1067,8 @@ end
 function Style.Switch(parent, onChange)
     local s = CreateFrame("Button", nil, parent)
     s:SetSize(36, 20)
-    s.box = Style.Box(s, 10, "well", "lineStrong")
-    s.knob = Style.Round(s, 7, "muted", "ARTWORK")
+    s.box = Style.PillBox(s, "well", "lineStrong")
+    s.knob = Style.Pill(s, 7, "muted", "ARTWORK")
     s.knob:ClearAllPoints()
     s.knob:SetSize(14, 14)
     function s:SetOn(on)
