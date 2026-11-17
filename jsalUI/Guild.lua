@@ -336,27 +336,32 @@ local function Tries(score)
 end
 
 Window.Page("guild", function(page)
-    local width = Window.contentWidth
+    -- Across the dashboard's whole width: the guildmates at the left, and at
+    -- the right a column for the Guild Word and today's best.
+    local width = Window.fullWidth
+    local SIDE_W, GAP = 300, 24
+    local tableW, sideX = width - SIDE_W - GAP, width - SIDE_W
     local title, lead = Window.Header(page, width)
     lead:SetText("How guildmates with jsal.ui did today. Those not online now are dimmed, with when they were last seen.")
 
     -- The Guild Word card: what's set and a Play button; the guild master gets a
     -- box to set a new one.
     local card = Style.Card(page, "Guild Word")
-    card:SetSize(width, 84)
-    card:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", 0, -14)
+    card:SetSize(SIDE_W, 136)
+    card:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", sideX, -14)
     local wordText = Style.Text(card, 13, "text")
     wordText:SetPoint("TOPLEFT", card.heading, "BOTTOMLEFT", 0, -8)
-    wordText:SetWidth(width - 160)
+    wordText:SetWidth(SIDE_W - 24)
+    wordText:SetJustifyH("LEFT")
     local play = Style.Button(card, "Play", "primary", 110)
-    play:SetPoint("TOPRIGHT", -12, -12)
+    play:SetPoint("TOPLEFT", 12, -92)
     play:SetScript("OnClick", function()
         local word = Guild.Word()
         if word then ns.DailyWord.OpenGuild(word) end
     end)
     local box = CreateFrame("EditBox", nil, card)
     box:SetSize(120, 24)
-    box:SetPoint("BOTTOMLEFT", 12, 10)
+    box:SetPoint("TOPLEFT", 12, -134)
     box:SetAutoFocus(false)
     box:SetMaxLetters(8)
     box:SetFont(Style.font, 12, "")
@@ -368,8 +373,28 @@ Window.Page("guild", function(page)
     set:SetHeight(24)
     set:SetPoint("LEFT", box, "RIGHT", 6, 0)
     local setNote = Style.Text(card, 11, "muted")
-    setNote:SetPoint("LEFT", set, "RIGHT", 10, 0)
+    setNote:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -8)
+    setNote:SetWidth(SIDE_W - 24)
+    setNote:SetJustifyH("LEFT")
     setNote:SetText("Guild master: a word of 5 to 8 letters for the whole guild.")
+
+    -- Under it, today's best: who solved the Daily Word in the fewest tries,
+    -- who named the most icons, and whose average is lowest.
+    local bestHead = Style.Section(page, SIDE_W)
+    bestHead:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 0, -22)
+    bestHead.title:SetText("TODAY'S BEST")
+    local bests = {}
+    for i, label in ipairs({ "Daily Word", "Icon Guess", "Word average" }) do
+        local b = Style.Card(page, label)
+        b:SetSize(SIDE_W, 58)
+        b:SetPoint("TOPLEFT", bestHead, "BOTTOMLEFT", 0, -(10 + (i - 1) * 68))
+        b.name = Style.Text(b, 14, "text", nil, true)
+        b.name:SetPoint("BOTTOMLEFT", 12, 10)
+        b.value = Style.Text(b, 14, "gold", nil, true)
+        b.value:SetPoint("BOTTOMRIGHT", -12, 10)
+        b.value:SetJustifyH("RIGHT")
+        bests[i] = b
+    end
     local function SetWord()
         local ok, why = Guild.SetWord(box:GetText())
         if ok then
@@ -385,11 +410,11 @@ Window.Page("guild", function(page)
     box:SetScript("OnEnterPressed", SetWord)
     box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
-    local COLUMNS = { { "Name", 0 }, { "Daily Word", 200 }, { "Word average", 310 }, { "Icon Guess", 440 },
-        { "Guild Word", 550 }, { "Version", 660 } }
+    local COLUMNS = { { "Name", 0 }, { "Daily Word", 210 }, { "Word average", 320 }, { "Icon Guess", 446 },
+        { "Guild Word", 552 }, { "Version", 642 } }
     local header = CreateFrame("Frame", nil, page)
-    header:SetSize(width, 24)
-    header:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 0, -16)
+    header:SetSize(tableW, 24)
+    header:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", 0, -14)
     Style.Rule(header, "BOTTOM", "lineStrong")
     for _, column in ipairs(COLUMNS) do
         local t = Style.Text(header, 11, "muted", nil, true)
@@ -400,13 +425,17 @@ Window.Page("guild", function(page)
     local rows = {}
     for i = 1, MAX_ROWS do
         local row = CreateFrame("Frame", nil, page)
-        row:SetSize(width, 28)
+        row:SetSize(tableW, 28)
         row:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -(i - 1) * 28)
         Style.Rule(row, "BOTTOM", "line")
+        -- A small square before the name: green while they're on.
+        row.dot = row:CreateTexture(nil, "ARTWORK")
+        row.dot:SetSize(7, 7)
+        row.dot:SetPoint("LEFT", 0, 0)
         row.cells = {}
         for c, column in ipairs(COLUMNS) do
             local t = Style.Text(row, 13, c == 1 and "text" or "muted")
-            t:SetPoint("LEFT", column[2], 0)
+            t:SetPoint("LEFT", column[2] + (c == 1 and 14 or 0), 0)
             row.cells[c] = t
         end
         rows[i] = row
@@ -414,7 +443,7 @@ Window.Page("guild", function(page)
 
     local empty = Style.Text(page, 13, "text")
     empty:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -12)
-    empty:SetWidth(width)
+    empty:SetWidth(tableW)
     local more = Style.Text(page, 11, "muted")
     more:SetPoint("TOPLEFT", rows[MAX_ROWS], "BOTTOMLEFT", 0, -8)
 
@@ -442,7 +471,7 @@ Window.Page("guild", function(page)
         box:SetShown(Guild.running and officer)
         set:SetShown(Guild.running and officer)
         setNote:SetShown(Guild.running and officer)
-        card:SetHeight((Guild.running and officer) and 84 or 56)
+        card:SetHeight((Guild.running and officer) and 204 or 136)
         if not (Guild.running and inGuild) then
             wordText:SetText("Join a guild, and turn on the Guild tab, to play the Guild Word.")
             play:Hide()
@@ -470,6 +499,7 @@ Window.Page("guild", function(page)
         for i, row in ipairs(rows) do
             local e = Guild.running and list[i]
             row:SetShown(e and true or false)
+            if e then row.dot:SetColorTexture(Style.Color(e.away and "lineStrong" or "green")) end
             if e and e.away then
                 -- Not online now: greyed, with when they were last seen
                 -- beside the name, where it sat under the Daily Word heading
@@ -490,7 +520,28 @@ Window.Page("guild", function(page)
             end
         end
         more:SetText(#list > MAX_ROWS and ("and %d more"):format(#list - MAX_ROWS) or "")
+
+        -- Today's best, of those who've played: the first in the list where
+        -- two are level.
+        local live = Guild.running and inGuild
+        bestHead:SetShown(live)
+        local word1, icons1, average1
+        for _, e in ipairs(live and list or {}) do
+            local tries = tonumber(e.word)
+            if tries and (not word1 or tries < tonumber(word1.word)) then word1 = e end
+            local named = tonumber(e.icons)
+            if named and (not icons1 or named > tonumber(icons1.icons)) then icons1 = e end
+            if e.average and (e.solved or 0) > 0 and (not average1 or e.average < average1.average) then average1 = e end
+        end
+        for i, found in ipairs({ { word1, word1 and ("in " .. word1.word) }, { icons1, icons1 and (icons1.icons .. " of 10") },
+                                 { average1, average1 and ("%.1f tries"):format(average1.average) } }) do
+            local b = bests[i]
+            b:SetShown(live)
+            b.name:SetText(found[1] and found[1].name or "No one yet")
+            b.name:SetTextColor(Style.Color(found[1] and "text" or "muted"))
+            b.value:SetText(found[2] or "")
+        end
     end
-end)
+end, nil, true)
 
 ns.Guild = Guild
