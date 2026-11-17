@@ -66,12 +66,6 @@ end
 -- starts again from everything, so a filter you forgot never hides an upgrade.
 local sourceOn = {}
 
--- A text's width, or a guess where the game hasn't one to give.
-local function Wide(text, guess)
-    local w = text.GetStringWidth and text:GetStringWidth()
-    return (type(w) == "number" and w > 0) and w or guess
-end
-
 -- The filter over a slot's upgrades: a chip for each kind of source the slot has (a dungeon, a
 -- quest, a vendor...), each with how many, and "All". Click one to see only that kind, another to
 -- add its kind, "All" for everything again. It holds the count at the right of the slot's heading
@@ -130,7 +124,7 @@ local function SourceFilter(list, listW, top, Repaint)
             b:SetShown(show)
             if show then
                 b.countText:SetText(tostring(n))
-                local w = math.floor(Wide(b.kindText, #b.word * 7) + 3 + Wide(b.countText, 8) + 12 + 0.5)
+                local w = math.floor(Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) + 12 + 0.5)
                 b:SetWidth(w)
                 b:ClearAllPoints()
                 b:SetPoint("TOPLEFT", x, 0)

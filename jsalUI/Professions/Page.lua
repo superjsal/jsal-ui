@@ -9,30 +9,6 @@ local Style, Compat, Window, Professions = ns.Style, ns.Compat, ns.Window, ns.Pr
 
 local GAP, TILE_H, STEP_H, NOTE_H, MAT_H, NEED_H, RANK_H = 28, 44, 30, 14, 36, 22, 38
 
--- A section heading: a title, a note, and a rule.
-local function Section(parent, width)
-    local s = CreateFrame("Frame", nil, parent)
-    s:SetSize(width, 20)
-    s.title = Style.Text(s, 11, "gold", nil, true)
-    s.title:SetPoint("LEFT")
-    s.note = Style.Text(s, 11, "muted")
-    s.note:SetPoint("RIGHT")
-    s.note:SetJustifyH("RIGHT")
-    Style.Rule(s, "BOTTOM", "line")
-    return s
-end
-
-local function Tooltip(frame)
-    frame:EnableMouse(true)
-    frame:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
-        GameTooltip:Show()
-    end)
-    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame, 6)
-end
-
 Window.Page("professions", function(page)
     local width, height = Window.contentWidth, Window.contentHeight
     local selected
@@ -106,8 +82,8 @@ Window.Page("professions", function(page)
     local message = Style.Text(list, 13, "muted")
     message:SetWidth(innerW)
     message:SetJustifyH("LEFT")
-    local nowHead = Section(list, innerW)
-    local thenHead = Section(list, innerW)
+    local nowHead = Style.Section(list, innerW)
+    local thenHead = Style.Section(list, innerW)
     thenHead.title:SetText("THEN")
     local note = Style.Text(list, 12, "muted")
     note:SetWidth(innerW)
@@ -147,7 +123,7 @@ Window.Page("professions", function(page)
     card.rule:SetColorTexture(Style.Color("line"))
     card.rule:SetPoint("TOPLEFT", 14, -60)
     card.rule:SetSize(innerW - 28, Compat.OnePixel(card))
-    Tooltip(card)
+    Style.ItemTip(card)
     local mats = {}
     local function Mat(i)
         if mats[i] then return mats[i] end
@@ -170,7 +146,7 @@ Window.Page("professions", function(page)
         m.note:SetWidth(innerW - 28 - 26)
         m.note:SetJustifyH("LEFT")
         m.note:SetWordWrap(false)
-        Tooltip(m)
+        Style.ItemTip(m)
         mats[i] = m
         return m
     end
@@ -202,7 +178,7 @@ Window.Page("professions", function(page)
         s.detail:SetJustifyH("LEFT")
         s.detail:SetWordWrap(false)
         Style.Rule(s, "BOTTOM", "line")
-        Tooltip(s)
+        Style.ItemTip(s)
         steps[i] = s
         return s
     end
@@ -230,7 +206,7 @@ Window.Page("professions", function(page)
 
     -- Right: everything the road needs, then the shopping list and the
     -- nearest trainer.
-    local needHead = Section(page, rightW)
+    local needHead = Style.Section(page, rightW)
     needHead.note:SetText("have / need")
     local function Need(i)
         if needs[i] then return needs[i] end
@@ -244,7 +220,7 @@ Window.Page("professions", function(page)
         r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
-        Tooltip(r)
+        Style.ItemTip(r)
         needs[i] = r
         return r
     end

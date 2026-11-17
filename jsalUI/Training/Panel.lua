@@ -84,12 +84,6 @@ end
 ---------------------------------------------------------------------------
 local rows, used = {}, 0
 
--- How wide a line of text is drawn, or a guess where that isn't known.
-local function Wide(text, guess)
-    local w = text.GetStringWidth and text:GetStringWidth()
-    return (type(w) == "number" and w > 0) and w or guess
-end
-
 -- The rank number of a spell ("Rank 3" -> 3); none for one-rank spells.
 local function RankNumber(rank)
     return rank and tonumber(rank:match("(%d+)")) or nil
@@ -118,7 +112,7 @@ local function Row()
         r.new.text = Style.Text(r.new, 10, "onGold", nil, true)
         r.new.text:SetPoint("CENTER")
         r.new.text:SetText("new")
-        r.new:SetSize(Wide(r.new.text, 17) + 12, 15)
+        r.new:SetSize(Style.Wide(r.new.text, 17) + 12, 15)
         r.price = Style.Text(r, 12, "text", nil, true)
         r.price:SetPoint("RIGHT")
         r.price:SetJustifyH("RIGHT")
@@ -151,7 +145,7 @@ local function Row()
             self.spellID = spell.id
             self.name:SetWidth(0)
             self.name:SetText(spell.name)
-            self.name:SetWidth(math.min(Wide(self.name, #spell.name * 7) + 2, nameW))
+            self.name:SetWidth(math.min(Style.Wide(self.name, #spell.name * 7) + 2, nameW))
             local fresh = New(spell)
             self.new:SetShown(fresh)
             self.rank:SetText(not fresh and spell.rank or "")

@@ -67,12 +67,6 @@ local function New(spell)
     return (RankNumber(spell.rank) or 1) == 1
 end
 
--- How wide a line of text is drawn, or a guess where that isn't known.
-local function Wide(text, guess)
-    local w = text.GetStringWidth and text:GetStringWidth()
-    return (type(w) == "number" and w > 0) and w or guess
-end
-
 -- A section's heading: a title in gold and a note at the right. `ruled`: a
 -- line under it, for one with no column headings of its own.
 local function Section(parent, width, ruled)
@@ -112,7 +106,7 @@ local function Tag(parent, words, gold)
     t.text = Style.Text(t, 10, gold and "onGold" or "text", nil, gold)
     t.text:SetPoint("CENTER")
     t.text:SetText(words)
-    t.wide = Wide(t.text, #words * 5.2) + 12
+    t.wide = Style.Wide(t.text, #words * 5.2) + 12
     t:SetSize(t.wide, 15)
     return t
 end
@@ -813,7 +807,7 @@ Window.Page("training", function(page)
             c.name:SetWidth(0)
             c.name:SetText(spell.name)
             local fresh = New(spell)
-            if Wide(c.name, 0) > CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0) then c.name:SetWidth(CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0)) end
+            if Style.Wide(c.name, 0) > CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0) then c.name:SetWidth(CART_W - 40 - SKIP_W - 70 - (fresh and 40 or 0)) end
             c.new:SetShown(fresh)
             -- A new ability says so in its tag; a higher rank says which.
             local detail = not fresh and spell.rank or nil

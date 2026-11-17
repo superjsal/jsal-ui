@@ -321,10 +321,7 @@ end
 
 -- "today", "yesterday", or how many days ago.
 local function Ago(t)
-    local days = math.floor((Compat.ServerTime() - (t or 0)) / 86400)
-    if days <= 0 then return "today" end
-    if days == 1 then return "yesterday" end
-    return days .. " days ago"
+    return Compat.DaysAgo(math.floor((Compat.ServerTime() - (t or 0)) / 86400))
 end
 
 local function Tries(score)

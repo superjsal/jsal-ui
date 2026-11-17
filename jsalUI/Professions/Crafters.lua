@@ -194,20 +194,6 @@ local function Index()
     return index
 end
 
--- The guild by name: true for those online now, and where each of them is.
-local function OnlineNow()
-    local online, zones = {}, {}
-    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
-        local full, _, _, _, _, zone, _, _, isOnline = GetGuildRosterInfo(i)
-        if full and isOnline then
-            local name = Ambiguate(full, "none")
-            online[name] = true
-            zones[name] = type(zone) == "string" and zone ~= "" and zone or nil
-        end
-    end
-    return online, zones
-end
-
 -- A row's crafters, online first, then the most recently seen.
 local function People(row, online)
     local heard = Heard() or {}
@@ -233,7 +219,7 @@ Crafters.RowName = RowName
 function Crafters.ForItem(item)
     if not Crafters.running or not item then return nil end
     local row = Index().byItem[item]
-    return row and People(row, OnlineNow()) or nil
+    return row and People(row, Compat.GuildOnline()) or nil
 end
 
 -- What guildmates make whose name has the text in it: rows of { row, name,
@@ -242,7 +228,7 @@ end
 function Crafters.Search(text, limit)
     text = strtrim(text or ""):lower()
     if text == "" then return {} end
-    local online, found = OnlineNow(), {}
+    local online, found = Compat.GuildOnline(), {}
     for _, row in ipairs(Index().list) do
         local name = RowName(row)
         if name and name:lower():find(text, 1, true) then
@@ -264,7 +250,7 @@ end
 -- profession being { line, name, skill, recipes, steps }. `steps`: a
 -- gathering profession, whose skill is shared in steps of 25.
 function Crafters.Sharing()
-    local online, zones = OnlineNow()
+    local online, zones = Compat.GuildOnline()
     local me, list = Compat.MyName(), {}
     for name, entry in pairs(Heard() or {}) do
         if name ~= me and type(entry) == "table" and type(entry.text) == "string" then
@@ -302,7 +288,7 @@ end
 -- gives them, each with that one person. Names the game hasn't loaded yet
 -- are left out until it has.
 function Crafters.Makes(who, line)
-    local online, found = OnlineNow(), {}
+    local online, found = Compat.GuildOnline(), {}
     for _, row in ipairs(Index().list) do
         if row.line == line and row.names[who] then
             local name = RowName(row)

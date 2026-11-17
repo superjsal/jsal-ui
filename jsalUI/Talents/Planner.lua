@@ -17,21 +17,6 @@ local COLS_H = 20                   -- the plan list's column headings
 local SOURCE_H = 22                 -- a suggested build's source line
 local ROW_H = 46                    -- one build in the builds list
 
--- A small section heading with a count, a note on the right, and a rule.
-local function Section(parent, width)
-    local s = CreateFrame("Frame", nil, parent)
-    s:SetSize(width, 20)
-    s.title = Style.Text(s, 11, "gold", nil, true)
-    s.title:SetPoint("LEFT")
-    s.count = Style.Text(s, 11, "muted", nil, true)
-    s.count:SetPoint("LEFT", s.title, "RIGHT", 8, 0)
-    s.note = Style.Text(s, 11, "muted")
-    s.note:SetPoint("RIGHT")
-    s.note:SetJustifyH("RIGHT")
-    Style.Rule(s, "BOTTOM", "line")
-    return s
-end
-
 local function Small(parent, label, kind, width)
     local b = Style.Button(parent, label, kind or "plain", width)
     b:SetHeight(24)
@@ -107,13 +92,13 @@ Window.Page("build", function(page)
     end
 
     -- The builds list: your own builds, then the class's suggested ones.
-    local listHead = Section(page, LIST_W)
+    local listHead = Style.Section(page, LIST_W)
     listHead:SetPoint("TOPLEFT", 0, -BODY_TOP)
     listHead.title:SetText("BUILDS")
     local ownEmpty = Style.Text(page, 11, "muted")
     ownEmpty:SetWidth(LIST_W - 12)
     ownEmpty:SetText("None yet. Start a new build, or copy a suggested one.")
-    local suggestHead = Section(page, LIST_W)
+    local suggestHead = Style.Section(page, LIST_W)
     suggestHead.title:SetText("SUGGESTED")
     local rows = {}
 
@@ -164,7 +149,7 @@ Window.Page("build", function(page)
     local view = CreateFrame("Frame", nil, page)
     view:SetPoint("TOPLEFT", right, -BODY_TOP)
     view:SetSize(rightW, height - BODY_TOP)
-    local viewHead = Section(view, rightW)
+    local viewHead = Style.Section(view, rightW)
     viewHead:SetPoint("TOPLEFT")
 
     -- Six buttons in one row; the widths add up to the column's width. A
@@ -421,7 +406,7 @@ Window.Page("build", function(page)
     local editor = CreateFrame("Frame", nil, page)
     editor:SetPoint("TOPLEFT", right, -BODY_TOP)
     editor:SetSize(rightW, height - BODY_TOP)
-    local editHead = Section(editor, rightW)
+    local editHead = Style.Section(editor, rightW)
     editHead:SetPoint("TOPLEFT")
     local undo = Small(editor, "Undo", "plain", 72)
     undo:SetPoint("TOPLEFT", 0, -30)
@@ -438,7 +423,7 @@ Window.Page("build", function(page)
     area:SetSize(rightW, height - MAIN_TOP - LEVELS)
     local columns, buttons, lines = {}, {}, {}
 
-    local levelHead = Section(page, width)
+    local levelHead = Style.Section(page, width)
     levelHead:SetPoint("TOPLEFT", 0, -(height - LEVELS + 6))
     levelHead.title:SetText("LEVEL BY LEVEL")
     levelHead.note:SetText("The order the points are taken in")

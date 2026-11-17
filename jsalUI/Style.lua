@@ -274,6 +274,42 @@ function Style.Hover(frame, pad)
     return glow
 end
 
+-- A text's width, or a guess where the game hasn't one to give.
+function Style.Wide(text, guess)
+    local w = text.GetStringWidth and text:GetStringWidth()
+    return (type(w) == "number" and w > 0) and w or guess
+end
+
+-- A small section heading: a title in gold, a count after it, a note at the
+-- right, and a rule under it.
+function Style.Section(parent, width)
+    local s = CreateFrame("Frame", nil, parent)
+    s:SetSize(width, 20)
+    s.title = Style.Text(s, 11, "gold", nil, true)
+    s.title:SetPoint("LEFT")
+    s.count = Style.Text(s, 11, "muted", nil, true)
+    s.count:SetPoint("LEFT", s.title, "RIGHT", 8, 0)
+    s.note = Style.Text(s, 11, "muted")
+    s.note:SetPoint("RIGHT")
+    s.note:SetJustifyH("RIGHT")
+    Style.Rule(s, "BOTTOM", "line")
+    return s
+end
+
+-- The game's tooltip for what a row shows (its `item`, or its `spell`), with
+-- the light under the pointer. `more`, when given, adds lines of its own.
+function Style.ItemTip(frame, more)
+    frame:EnableMouse(true)
+    frame:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
+        if more then more(self) end
+        GameTooltip:Show()
+    end)
+    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    Style.Hover(frame, 6)
+end
+
 -- Buttons. "primary" is gold with dark text, for the one main action on a
 -- page; "plain" is a well with a line around it. Under the pointer both
 -- light up a step.

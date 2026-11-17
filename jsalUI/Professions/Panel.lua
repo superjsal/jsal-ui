@@ -249,29 +249,20 @@ local function LayoutRow(r, detailed)
     end
 end
 
--- The game's tooltip for what a row makes; a road step adds everything its
--- crafts need in full (its line has room for only a little), with what's
+-- What a road step adds to the game's tooltip for what it makes: everything
+-- its crafts need in full (its line has room for only a little), with what's
 -- in your bags and bank.
-local function Tooltip(frame)
-    frame:EnableMouse(true)
-    frame:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
-        if self.needs and #self.needs > 0 then
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
-            for _, reagent in ipairs(self.needs) do
-                local need = reagent.count * (self.crafts or 1)
-                local have = Compat.ItemCount(reagent.item, true)
-                local enough = have >= need
-                GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
-                    ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
-            end
-        end
-        GameTooltip:Show()
-    end)
-    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame, 6)
+local function Needs(self)
+    if not (self.needs and #self.needs > 0) then return end
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(("For %d, you need:"):format(self.crafts or 1), 0.89, 0.69, 0.29)
+    for _, reagent in ipairs(self.needs) do
+        local need = reagent.count * (self.crafts or 1)
+        local have = Compat.ItemCount(reagent.item, true)
+        local enough = have >= need
+        GameTooltip:AddDoubleLine(("%d  %s"):format(need, Compat.ItemName(reagent.item) or "..."),
+            ("have %d"):format(have), 1, 1, 1, enough and 0.34 or 1, enough and 0.58 or 0.42, enough and 0.31 or 0.42)
+    end
 end
 
 -- A later step, on one line: the skill it covers, what to make and how
@@ -309,7 +300,7 @@ local function Step(i)
     s.rule:SetPoint("BOTTOMLEFT")
     s.rule:SetPoint("BOTTOMRIGHT")
     s.rule:SetHeight(Compat.OnePixel(s))
-    Tooltip(s)
+    Style.ItemTip(s, Needs)
     steps[i] = s
     return s
 end
@@ -359,7 +350,7 @@ local function Card()
     card.rule:SetPoint("TOPLEFT", 14, -60)
     card.rule:SetSize(WIDTH - PAD * 2 - 28, Compat.OnePixel(card))
     card.mats = {}
-    Tooltip(card)
+    Style.ItemTip(card, Needs)
     panel.card = card
     return card
 end
@@ -386,7 +377,7 @@ local function Mat(card, i)
     m.note:SetWidth(WIDTH - PAD * 2 - 28 - 26)
     m.note:SetJustifyH("LEFT")
     m.note:SetWordWrap(false)
-    Tooltip(m)
+    Style.ItemTip(m, Needs)
     card.mats[i] = m
     return m
 end
@@ -438,7 +429,7 @@ local function Item(i)
     r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
     r.name:SetJustifyH("LEFT")
     r.name:SetWordWrap(false)
-    Tooltip(r)
+    Style.ItemTip(r, Needs)
     items[i] = r
     return r
 end

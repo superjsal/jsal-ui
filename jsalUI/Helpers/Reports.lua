@@ -73,16 +73,6 @@ local function Pieces(whole)
     return list
 end
 
--- The guild by name: true for those online now.
-local function OnlineNow()
-    local online = {}
-    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
-        local full, _, _, _, _, _, _, _, isOnline = GetGuildRosterInfo(i)
-        if full and isOnline then online[Ambiguate(full, "none")] = true end
-    end
-    return online
-end
-
 -- A guildmate online now whose jsal.ui takes reports: their name and the
 -- name to whisper them by.
 -- Takers heard this session (their jsal.ui said hello), by name, with when.
@@ -95,7 +85,7 @@ local heard = {}
 
 local function Taker(preferred)
     local members = ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}
-    local online, me = OnlineNow(), Compat.MyName()
+    local online, me = Compat.GuildOnline(), Compat.MyName()
     local function Fits(name)
         local m = members[name]
         return m and m.takesReports and heard[name] and online[name] and name ~= me

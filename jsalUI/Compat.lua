@@ -118,6 +118,13 @@ function Compat.Money(copper)
     return GetCoinTextureString(copper)
 end
 
+-- How long ago in days, in words: "today", "yesterday", "5 days ago".
+function Compat.DaysAgo(days)
+    if days <= 0 then return "today" end
+    if days == 1 then return "yesterday" end
+    return days .. " days ago"
+end
+
 function Compat.SendChat(text, channel)
     if C_ChatInfo and C_ChatInfo.SendChatMessage then
         C_ChatInfo.SendChatMessage(text, channel)
@@ -133,6 +140,20 @@ end
 function Compat.MyName()
     local whole = GetUnitName and GetUnitName("player", true) or UnitName("player")
     return Ambiguate(whole, "none")
+end
+
+-- The guild by name: true for those online now, and where each of them is.
+function Compat.GuildOnline()
+    local online, zones = {}, {}
+    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
+        local full, _, _, _, _, zone, _, _, isOnline = GetGuildRosterInfo(i)
+        if full and isOnline then
+            local name = Ambiguate(full, "none")
+            online[name] = true
+            zones[name] = type(zone) == "string" and zone ~= "" and zone or nil
+        end
+    end
+    return online, zones
 end
 
 -- Whether the player leads the guild.

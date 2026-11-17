@@ -19,21 +19,6 @@ local HOW_TEXT = {
     fifty = "after fifty moves without a capture", repetition = "by repeating the position",
 }
 
--- A small section heading with a count, a note on the right, and a rule.
-local function Section(parent, width)
-    local s = CreateFrame("Frame", nil, parent)
-    s:SetSize(width, 20)
-    s.title = Style.Text(s, 11, "gold", nil, true)
-    s.title:SetPoint("LEFT")
-    s.count = Style.Text(s, 11, "muted", nil, true)
-    s.count:SetPoint("LEFT", s.title, "RIGHT", 8, 0)
-    s.note = Style.Text(s, 11, "muted")
-    s.note:SetPoint("RIGHT")
-    s.note:SetJustifyH("RIGHT")
-    Style.Rule(s, "BOTTOM", "line")
-    return s
-end
-
 local function Small(parent, label, kind, width, height)
     local b = Style.Button(parent, label, kind or "plain", width)
     b:SetHeight(height or 24)
@@ -68,7 +53,7 @@ Window.Page("chess", function(page)
     ---------------------------------------------------------------------------
     -- Left: the record, the games, the guildmates to challenge.
     ---------------------------------------------------------------------------
-    local recordHead = Section(page, LIST_W)
+    local recordHead = Style.Section(page, LIST_W)
     recordHead:SetPoint("TOPLEFT", 0, -BODY_TOP)
     recordHead.title:SetText("RECORD")
     local stats = {}
@@ -82,7 +67,7 @@ Window.Page("chess", function(page)
         stats[i] = n
     end
 
-    local gamesHead = Section(page, LIST_W)
+    local gamesHead = Style.Section(page, LIST_W)
     gamesHead:SetPoint("TOPLEFT", 0, -(BODY_TOP + 86))
     gamesHead.title:SetText("GAMES")
     local noGames = Style.Text(page, 11, "muted")
@@ -117,10 +102,10 @@ Window.Page("chess", function(page)
 
     -- Guildmates' games being watched, a few at most.
     local MAX_WATCH = 3
-    local watchHead = Section(page, LIST_W)
+    local watchHead = Style.Section(page, LIST_W)
     watchHead.title:SetText("WATCHING")
 
-    local mateHead = Section(page, LIST_W)
+    local mateHead = Style.Section(page, LIST_W)
     mateHead.title:SetText("CHALLENGE")
     mateHead.note:SetText("online")
     local noMates = Style.Text(page, 11, "muted")
@@ -159,7 +144,7 @@ Window.Page("chess", function(page)
     ---------------------------------------------------------------------------
     -- Right: the board and the game.
     ---------------------------------------------------------------------------
-    local head = Section(page, rightW)
+    local head = Style.Section(page, rightW)
     head:SetPoint("TOPLEFT", right, -BODY_TOP)
     local empty = Style.Text(page, 13, "muted")
     empty:SetPoint("TOPLEFT", right, -(BODY_TOP + 32))
@@ -239,7 +224,7 @@ Window.Page("chess", function(page)
         promoButtons[i] = b
     end
 
-    local movesHead = Section(page, rightW)
+    local movesHead = Style.Section(page, rightW)
     movesHead:SetPoint("TOPLEFT", right, -(below + 40))
     movesHead.title:SetText("MOVES")
     local movesText = Style.Text(page, 12, "text")

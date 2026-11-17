@@ -59,13 +59,6 @@ local function Money(c)
     return Compat.Money(c)
 end
 
-local function Ago(seconds)
-    local days = math.floor((seconds or 0) / DAY)
-    if days < 1 then return "today" end
-    if days == 1 then return "yesterday" end
-    return days .. " days ago"
-end
-
 local function ItemInfo(item)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local name, _, quality = get(item)
@@ -237,7 +230,7 @@ local function PaintProfitCells(r, row)
     -- What has no price is named in the tooltip: a material's name here ran
     -- across the other columns.
     if row.missing then Cell(r, 5, "needs a price", "muted")
-    elseif row.cost and row.sells then Cell(r, 5, Ago(row.age), row.old and "red" or "muted")
+    elseif row.cost and row.sells then Cell(r, 5, Compat.DaysAgo(math.floor((row.age or 0) / DAY)), row.old and "red" or "muted")
     else Cell(r, 5, "") end
 end
 

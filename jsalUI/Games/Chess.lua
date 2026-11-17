@@ -122,21 +122,13 @@ local function Roster()
     return roster
 end
 
-local function OnlineNow()
-    local online = {}
-    for name, on in pairs(Roster()) do
-        if on then online[name] = true end
-    end
-    return online
-end
-
 function Chess.Online(name)
-    return OnlineNow()[name] == true
+    return Compat.GuildOnline()[name] == true
 end
 
 -- Online guildmates with chess, sorted by name: { name, target }.
 function Chess.Players()
-    local list, me, online = {}, Compat.MyName(), OnlineNow()
+    local list, me, online = {}, Compat.MyName(), Compat.GuildOnline()
     local members = ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}
     for name, m in pairs(members) do
         if name ~= me and online[name] and (m.version == ns.version or not Older(m.version, FIRST_VERSION)) then
@@ -577,7 +569,7 @@ function Chess:OnEnable()
     end
     -- Catch up with every opponent online now, once the guild list is in.
     Compat.After(15, function()
-        local online = OnlineNow()
+        local online = Compat.GuildOnline()
         for _, game in pairs(Saved().games) do
             if online[game.opp] then CatchUp(game.opp) end
         end

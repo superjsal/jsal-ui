@@ -60,9 +60,7 @@ end
 -- "2 weeks ago", "4 months ago".
 local function Ago(t)
     local days = math.floor((Compat.ServerTime() - t) / 86400)
-    if days <= 0 then return "today" end
-    if days == 1 then return "yesterday" end
-    if days < 14 then return days .. " days ago" end
+    if days < 14 then return Compat.DaysAgo(days) end
     if days < 60 then return math.floor(days / 7) .. " weeks ago" end
     return math.floor(days / 30) .. " months ago"
 end

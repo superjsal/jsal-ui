@@ -42,20 +42,11 @@ function Switch.Heard(name, code, target)
     others[name] = { map = tonumber(map), layer = tonumber(layer), at = GetTime(), target = target or name }
 end
 
-local function OnlineNow()
-    local online = {}
-    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
-        local full, _, _, _, _, _, _, _, isOnline = GetGuildRosterInfo(i)
-        if full and isOnline then online[Ambiguate(full, "none")] = true end
-    end
-    return online
-end
-
 -- Guildmates online in your zone on another layer, and your own reading.
 function Switch.Choices()
     local c = Running() and ns.Layers.Current()
     if not c then return {}, nil end
-    local online, list, now = OnlineNow(), {}, GetTime()
+    local online, list, now = Compat.GuildOnline(), {}, GetTime()
     for name, o in pairs(others) do
         if now - o.at > STALE or not online[name] then
             others[name] = nil
