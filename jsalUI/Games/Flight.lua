@@ -95,6 +95,15 @@ end
 local bar, route, time, track, fill, knob, note, land
 local current
 
+-- Just after the game loads it can be a moment before it says the character is
+-- flying. For that long a flight saved before a /reload is still looked for, and
+-- once it's back on the bar a "not flying" doesn't take it down.
+local SETTLE = 10
+local loaded
+local function Settling()
+    return loaded ~= nil and current ~= nil and current.resumed == true and Compat.Now() - loaded < SETTLE
+end
+
 -- Today's games and chess, as the quick buttons' icons: a gold dot when
 -- one is waiting (today's puzzle not played, your move), a tooltip saying
 -- what. Parts that are switched off leave no gap.
@@ -259,7 +268,10 @@ local function Build()
         wait, games = wait - elapsed, games - elapsed
         if wait > 0 then return end
         wait = 0.2
-        if not Compat.OnTaxi() then return Flight.Land() end
+        if not Compat.OnTaxi() then
+            if Settling() then return end
+            return Flight.Land()
+        end
         Paint()
         if games <= 0 then
             games = 2
@@ -304,7 +316,9 @@ function Flight.Land()
     ns.char.flight = nil
     if bar then bar:Hide() end
     GameExit(false)
-    if flight and not flight.early then
+    -- One picked back up after a /reload doesn't count either: its landing may have been
+    -- noticed late.
+    if flight and not flight.early and not flight.resumed then
         LearnSpeed(flight, Compat.Now() - flight.start)
     end
 end
@@ -360,6 +374,24 @@ function Flight.Refresh()
     if bar and bar:IsShown() then PaintGames() end
 end
 
+-- A flight saved before a /reload: back on the bar as soon as the game says the
+-- character is flying, looked for twice a second while the game settles, and
+-- forgotten if it never does. A new flight started meanwhile takes its place.
+local function Resume(saved, tries)
+    -- The first look is as the part starts, before it's marked as running.
+    if current or ns.char.flight ~= saved or (tries > 1 and not Flight.running) then return end
+    if Compat.OnTaxi() then
+        current = saved
+        current.resumed = true
+        return Show()
+    end
+    if tries < SETTLE * 2 then
+        Compat.After(0.5, function() Resume(saved, tries + 1) end)
+    else
+        ns.char.flight = nil
+    end
+end
+
 local hooked = false
 function Flight:OnEnable()
     if not hooked then
@@ -390,7 +422,7 @@ function Flight:OnEnable()
             if not Flight.running then return end
             if event == "PLAYER_CONTROL_LOST" and pending then
                 Start(pending)
-            elseif event == "PLAYER_CONTROL_GAINED" and current and not Compat.OnTaxi() then
+            elseif event == "PLAYER_CONTROL_GAINED" and current and not Compat.OnTaxi() and not Settling() then
                 Flight.Land()
             end
         end))
@@ -399,10 +431,10 @@ function Flight:OnEnable()
     if ns.db.flightTiming ~= 2 then
         ns.db.flightSpeeds, ns.db.flightTiming = nil, 2
     end
+    loaded = Compat.Now()
     local saved = ns.char.flight
-    if type(saved) == "table" and Compat.OnTaxi() and (saved.start or 0) <= Compat.Now() then
-        current = saved
-        Show()
+    if type(saved) == "table" and (saved.start or 0) <= Compat.Now() then
+        Resume(saved, 1)
     else
         ns.char.flight = nil
     end
