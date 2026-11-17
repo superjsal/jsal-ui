@@ -1,12 +1,15 @@
 -- The Build Planner page: a class picker across the top and that class's
 -- saved builds on the left, with ready-made leveling builds under them to
--- follow or copy. On the right, a build shows as its plan, level
--- by level, with what's taken and what's next; Edit opens the three trees,
--- where clicking talents in the order you'd take them builds the plan.
+-- follow or copy. Beside them a build shows as its plan, level by level,
+-- with what's taken and what's next, and at the plan's right the three
+-- trees, small, with where its points go; Edit opens the three trees at
+-- full size, where clicking talents in the order you'd take them builds
+-- the plan.
 local _, ns = ...
 local Style, Window, Tree, Compat = ns.Style, ns.Window, ns.TalentTree, ns.Compat
 
-local LIST_W, GUTTER = 176, 18
+local LIST_W, GUTTER = 196, 22
+local TREES_W = 340                 -- the small trees beside the plan
 local ICON, LABEL = 32, 13          -- a talent's icon, and its rank under it
 local LEVELS = 80                   -- the editor's level-by-level section
 local CLASSES_TOP = 32
@@ -24,9 +27,10 @@ local function Small(parent, label, kind, width)
 end
 
 Window.Page("build", function(page)
-    local width, height = Window.contentWidth, Window.contentHeight
+    local width, height = Window.fullWidth, Window.contentHeight
     local right = LIST_W + GUTTER
     local rightW = width - right
+    local planW = rightW - TREES_W - GUTTER
     local treeW = (rightW - 24) / 3
     local classID = Tree.PlayerClass()
     local editing = false
@@ -75,8 +79,7 @@ Window.Page("build", function(page)
         local b = CreateFrame("Button", nil, page)
         b:SetSize(classW, 26)
         b:SetPoint("TOPLEFT", (i - 1) * (classW + 6), -CLASSES_TOP)
-        b.bg = Style.Fill(b, "well")
-        b.edges = Style.Border(b, "cardLine")
+        b.box = Style.Box(b, 10, "well", "cardLine")
         b.label = Style.Text(b, 12, "text", nil, true)
         b.label:SetPoint("CENTER")
         b.label:SetJustifyH("CENTER")
@@ -190,7 +193,7 @@ Window.Page("build", function(page)
     -- The plan's column headings: the level is said once here, where every
     -- row began "Level" or "Levels".
     local cols = CreateFrame("Frame", nil, view)
-    cols:SetSize(rightW - 8, COLS_H)
+    cols:SetSize(planW - 8, COLS_H)
     for _, label in ipairs({ { "LEVEL", 10 }, { "TALENT", 76 } }) do
         local t = Style.Text(cols, 10, "muted", nil, true)
         t:SetPoint("TOPLEFT", label[2], 0)
@@ -199,17 +202,17 @@ Window.Page("build", function(page)
     Style.Rule(cols, "BOTTOM", "lineStrong")
 
     -- The plan list scrolls with the mouse wheel; a thin bar shows where.
-    local scroll, list = Style.Scroller(view, rightW - 8, height - MAIN_TOP - COLS_H, nil, 7, STEP_H * 3)
+    local scroll, list = Style.Scroller(view, planW - 8, height - MAIN_TOP - COLS_H, nil, 7, STEP_H * 3)
     scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + COLS_H))
     local empty = Style.Text(list, 13, "muted")
     empty:SetPoint("TOPLEFT", 10, -10)
-    empty:SetWidth(rightW - 30)
+    empty:SetWidth(planW - 30)
 
     -- What the plan's list is made of besides its steps: the line the
     -- taken points fold into, and a heading where the build changes tree.
     local V = { heads = {}, HEAD_H = 30, FOLD_H = 30 }
     V.fold = CreateFrame("Button", nil, list)
-    V.fold:SetSize(rightW - 8, V.FOLD_H)
+    V.fold:SetSize(planW - 8, V.FOLD_H)
     V.fold.sign = Style.Text(V.fold, 14, "gold", nil, true)
     V.fold.sign:SetPoint("LEFT", 10, 0)
     V.fold.text = Style.Text(V.fold, 12, "muted")
@@ -219,7 +222,7 @@ Window.Page("build", function(page)
     function V.Head(i)
         if V.heads[i] then return V.heads[i] end
         local h = CreateFrame("Frame", nil, list)
-        h:SetSize(rightW - 8, V.HEAD_H)
+        h:SetSize(planW - 8, V.HEAD_H)
         Style.Rule(h, "BOTTOM", "lineStrong")
         h.title = Style.Text(h, 11, "gold", nil, true)
         h.title:SetPoint("BOTTOMLEFT", 10, 6)
@@ -233,7 +236,7 @@ Window.Page("build", function(page)
     local stepRows = {}
     local function StepRow()
         local row = CreateFrame("Frame", nil, list)
-        row:SetSize(rightW - 8, STEP_H)
+        row:SetSize(planW - 8, STEP_H)
         row.bg = Style.Fill(row, "well")
         row.levels = Style.Text(row, 12, "muted", nil, true)
         row.levels:SetPoint("LEFT", 10, 0)
@@ -259,6 +262,112 @@ Window.Page("build", function(page)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
         Style.Hover(row)
         return row
+    end
+
+    -- Beside the plan, where its points go: the three trees, small. A talent
+    -- is lit in a gold line once you've taken a point of it, dim while it's
+    -- planned and not yet begun, and an empty square where the build leaves
+    -- it out. Pointing at one names it and says how far along it is.
+    V.mini = { trees = {}, cells = {}, STEP = 28, TOP = 42 }
+    V.mini.frame = CreateFrame("Frame", nil, view)
+    V.mini.frame:SetSize(TREES_W, height - MAIN_TOP)
+    V.mini.head = Style.Section(V.mini.frame, TREES_W)
+    V.mini.head:SetPoint("TOPLEFT")
+    V.mini.head.title:SetText("WHERE THE POINTS GO")
+    V.mini.treeW = math.floor((TREES_W - 2 * 8) / 3)
+    -- What the three looks mean, under the trees.
+    V.mini.legend = CreateFrame("Frame", nil, V.mini.frame)
+    V.mini.legend:SetSize(TREES_W, 16)
+    do
+        local x = 0
+        for _, entry in ipairs({ { "gold", "taken" }, { "lineStrong", "planned" }, { "line", "not in this build" } }) do
+            local key = CreateFrame("Frame", nil, V.mini.legend)
+            key:SetSize(9, 9)
+            key:SetPoint("LEFT", x, 0)
+            Style.Fill(key, "titleBar")
+            Style.Border(key, entry[1])
+            local word = Style.Text(V.mini.legend, 11, "muted")
+            word:SetPoint("LEFT", key, "RIGHT", 6, 0)
+            word:SetText(entry[2])
+            x = x + 15 + Style.Wide(word, #entry[2] * 6) + 16
+        end
+    end
+    function V.MiniCell()
+        local c = CreateFrame("Frame", nil, V.mini.frame)
+        c:SetSize(24, 24)
+        Style.Fill(c, "titleBar")
+        c.edges = Style.Border(c, "line")
+        c.icon = c:CreateTexture(nil, "ARTWORK")
+        c.icon:SetPoint("TOPLEFT", 1, -1)
+        c.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        c:EnableMouse(true)
+        c:SetScript("OnEnter", function(self)
+            local node = data and data.nodes[self.nodeID]
+            if not node then return end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(node.name or "")
+            local planned = ranks[node.id] or 0
+            local text = planned > 0 and ("In this build: %d of %d"):format(planned, node.max) or "Not in this build"
+            if data.own and planned > 0 then text = text .. (" · taken %d"):format(math.min(node.learned or 0, planned)) end
+            GameTooltip:AddLine(text, 0.89, 0.69, 0.29)
+            GameTooltip:Show()
+        end)
+        c:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        return c
+    end
+    -- Paints the small trees, from `top` down the view.
+    function V.PaintMini(top)
+        local M = V.mini
+        M.frame:ClearAllPoints()
+        M.frame:SetPoint("TOPLEFT", planW + GUTTER, -top)
+        local used, deepest = 0, 0
+        for i, t in ipairs(data.trees) do
+            local col = M.trees[i]
+            if not col then
+                col = CreateFrame("Frame", nil, M.frame)
+                col.name = Style.Text(col, 12, "text", nil, true)
+                col.name:SetPoint("TOPLEFT")
+                col.name:SetWidth(M.treeW)
+                col.name:SetWordWrap(false)
+                col.name:SetJustifyH("LEFT")
+                col.sub = Style.Text(col, 11, "muted")
+                col.sub:SetPoint("TOPLEFT", 0, -18)
+                M.trees[i] = col
+            end
+            col:ClearAllPoints()
+            col:SetPoint("TOPLEFT", (i - 1) * (M.treeW + 8), -30)
+            col:SetSize(M.treeW, M.TOP + 7 * M.STEP)
+            col:Show()
+            col.name:SetText(t.name)
+            local have, planned = 0, 0
+            for _, id in ipairs(t.nodes) do
+                used = used + 1
+                local c = M.cells[used] or V.MiniCell()
+                M.cells[used] = c
+                local node = data.nodes[id]
+                c:SetParent(col)
+                c:ClearAllPoints()
+                c:SetPoint("TOPLEFT", node.col * M.STEP, -(M.TOP + node.row * M.STEP))
+                c.nodeID = id
+                local want = ranks[id] or 0
+                local got = data.own and math.min(node.learned or 0, want) or 0
+                have, planned = have + got, planned + want
+                deepest = math.max(deepest, node.row + 1)
+                c.icon:SetShown(want > 0)
+                if want > 0 then c.icon:SetTexture(node.icon or "Interface\\Icons\\INV_Misc_QuestionMark") end
+                c.icon:SetAlpha(got > 0 and 1 or 0.45)
+                Style.SetBorder(c.edges, got > 0 and "gold" or (want > 0 and "lineStrong" or "line"))
+                c.state = got > 0 and "taken" or (want > 0 and "planned" or "none")
+                c:Show()
+            end
+            col.sub:SetText(planned == 0 and "none" or (data.own and ("%d taken of %d"):format(have, planned) or ("%d points"):format(planned)))
+        end
+        for i = #data.trees + 1, #M.trees do M.trees[i]:Hide() end
+        for i = used + 1, #M.cells do M.cells[i]:Hide() end
+        M.head.note:SetText(data.own and "taken, and planned" or "planned")
+        M.legend:ClearAllPoints()
+        M.legend:SetPoint("TOPLEFT", 0, -(30 + M.TOP + math.max(1, deepest) * M.STEP + 8))
     end
 
     -- Which plan points the character has already learned, and the next one.
@@ -326,6 +435,7 @@ Window.Page("build", function(page)
         scroll:ClearAllPoints()
         scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift + COLS_H))
         scroll:SetHeight(height - MAIN_TOP - shift - COLS_H)
+        V.PaintMini(MAIN_TOP - BODY_TOP + shift)
 
         local steps = Tree.Steps(kept)
         empty:SetShown(#steps == 0)
@@ -641,9 +751,9 @@ Window.Page("build", function(page)
             nameHint:Hide()
         end
         for _, b in ipairs(classButtons) do
+            -- The class in hand: a dim gold fill in a gold line, as a chosen pill has.
             local on = b.classID == classID
-            b.bg:SetShown(on)
-            Style.SetBorder(b.edges, on and "gold" or "cardLine")
+            b.box:Paint(on and "needFill" or "well", on and "gold" or "cardLine")
         end
         if not data then return end
         kept, ranks, spent = Tree.Replay(data, build.order or {})
@@ -786,4 +896,4 @@ Window.Page("build", function(page)
     Tree.OnChange(function()
         if page:IsVisible() then Paint() end
     end)
-end)
+end, nil, true)
