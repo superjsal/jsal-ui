@@ -26,10 +26,11 @@ local LootLog = ns.NewModule("lootlog", {
     title = "Drop log",
     -- It keeps a record of what you loot, so it starts off.
     defaultOn = false,
-    note = "Counts how often the creatures you loot have the quest items you're after, so quest tags can use Forever's own drop chances where few players have been. Quest items only; it stays on your computer unless you share it with your guild. /jsal drops shows what it has.",
+    note = "Counts how often the creatures you loot have the quest items you're after, so quest tags can use Forever's own drop chances where few players have been. Quest items only; it stays on your computer apart from what its guild sharing sends. /jsal drops shows what it has.",
     options = {
-        -- Sending something of yours to other players, so it's a choice of its own, and off.
-        { key = "share", title = "Share drop counts with your guild", default = false,
+        -- Sending something of yours to other players, so it's a choice of its own: on to
+        -- start, as the guild's other parts are, once the Drop log itself is turned on.
+        { key = "share", title = "Share drop counts with your guild", default = true,
           note = "Tells guildmates who share theirs how many times each quest item has dropped for you, and adds their counts to yours, so everyone's quest tags learn faster. Only the item's name and two numbers are sent, over the game's hidden addon channel." },
     },
 })
