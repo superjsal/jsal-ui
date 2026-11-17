@@ -524,28 +524,6 @@ local function Meter(parent)
     return track
 end
 
--- A row of small squares: how many of a talent's ranks are taken.
-local function Pips(parent)
-    local p = CreateFrame("Frame", nil, parent)
-    p:SetSize(52, 8)
-    p.dots = {}
-    for i = 1, 5 do
-        local t = p:CreateTexture(nil, "ARTWORK")
-        t:SetSize(8, 8)
-        t:SetPoint("LEFT", (i - 1) * 11, 0)
-        p.dots[i] = t
-    end
-    function p:Set(taken, of)
-        of = math.max(1, math.min(5, of or 1))
-        for i, t in ipairs(self.dots) do
-            t:SetShown(i <= of)
-            t:SetColorTexture(Style.Color(i <= (taken or 0) and "gold" or "lineStrong"))
-        end
-        self:SetWidth(of * 11 - 3)
-    end
-    return p
-end
-
 -- One of the game's own icons in a thin line, its baked-in border trimmed.
 local function GameIcon(parent, size)
     local f = CreateFrame("Frame", nil, parent)
@@ -668,12 +646,22 @@ local function Hero(page, width)
     pal.picture:SetPoint("BOTTOM", pal.scene, "BOTTOM", 0, 6)
     pal.title = Style.Text(pal, 13, "gold", nil, true)
     pal.title:SetPoint("BOTTOMLEFT", 11, 11)
+    pal.title:SetWordWrap(false)
     pal.sub = Style.Text(pal, 12, "muted")
     pal.sub:SetPoint("BOTTOMRIGHT", -11, 11)
     pal.sub:SetJustifyH("RIGHT")
     pal.sub:SetWordWrap(false)
     pal:SetScript("OnClick", function() Window.Open("pet") end)
     Style.Hover(pal)
+    -- Both lines whole, for when the second has no room beside the first.
+    pal:HookScript("OnEnter", function(self)
+        if not self.said then return end
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(self.said)
+        if self.more and self.more ~= "" then GameTooltip:AddLine(self.more, 0.6, 0.59, 0.53, true) end
+        GameTooltip:Show()
+    end)
+    pal:HookScript("OnLeave", function() GameTooltip:Hide() end)
 
     -- This level: how far through it you are, the rested part in blue, and
     -- how long the rest takes at your pace.
@@ -723,7 +711,7 @@ local function Hero(page, width)
     soon.name = Style.Text(soon, 13, "text")
     soon.name:SetPoint("LEFT", soon.icon, "RIGHT", 8, 0)
     soon.name:SetWordWrap(false)
-    soon.pips = Pips(soon)
+    soon.pips = Style.Pips(soon)
     soon.pips:SetPoint("LEFT", soon.name, "RIGHT", 8, 0)
     soon.enough = Style.Text(soon, 12, "green", nil, true)
     soon.enough:SetPoint("RIGHT", 0, -1)
@@ -776,10 +764,17 @@ local function Hero(page, width)
         if size > 96 then size = size / 2 end
         pal.picture:SetSize(size, size)
         pal.picture:SetTexture(wants and wants.texture or portrait.texture, "CLAMP", "CLAMP", "NEAREST")
-        pal.title:SetText(wants and wants.title or (portrait.name or "Your pal"))
+        local said, more = wants and wants.title or (portrait.name or "Your pal"), wants and wants.sub or (portrait.form or "")
+        pal.said, pal.more = said, more
+        pal.title:SetWidth(0)
+        pal.title:SetText(said)
         pal.title:SetTextColor(Style.Color(wants and "gold" or "text"))
-        pal.sub:SetText(wants and wants.sub or (portrait.form or ""))
-        pal.sub:SetWidth(math.max(1, PAL_W - 22 - Style.Wide(pal.title, 100) - 10))
+        local titleW = math.min(Style.Wide(pal.title, #said * 7), PAL_W - 22)
+        pal.title:SetWidth(titleW)
+        -- The second line only where it fits whole beside the first: a few
+        -- letters of it say nothing. It's in the tooltip either way.
+        pal.sub:SetText(more)
+        pal.sub:SetShown(more ~= "" and Style.Wide(pal.sub, #more * 6) <= PAL_W - 22 - titleW - 10)
         return true
     end
 
@@ -798,7 +793,7 @@ local function Hero(page, width)
         if info.talent then
             soon.name:SetPoint("LEFT", soon.icon, "RIGHT", 8, 0)
             soon.name:SetText(info.talent.name)
-            soon.pips:Set(info.rank - 1, info.talent.max or info.rank)
+            soon.pips:Set(info.rank - 1, info.talent.max or info.rank, 1)
         else
             soon.name:SetPoint("LEFT", soon.head, "RIGHT", 12, 0)
             soon.name:SetText(first and first.label or "")
@@ -807,18 +802,30 @@ local function Hero(page, width)
         -- it the room; with no talent the first row's words say it already.
         local visit = info.talent and (info.visit or info.later) or nil
         for _, region in ipairs({ soon.enough, soon.cost, soon.spells, soon.tile }) do region:SetShown(visit ~= nil) end
+        -- The name is shown whole, as wide as its words. Where the visit's
+        -- words would leave it too little room they're cut to the level it's
+        -- at, or left out: the tooltip has them all.
+        soon.name:SetWidth(0)
+        local need = Style.Wide(soon.name, 40)
+        local before = Style.Wide(soon.head, 40) + 12 + (info.talent and (24 + 8 + 8 + soon.pips.wide + 14) or 0)
         local used = 0
         if visit then
-            soon.spells:SetText(Plural(visit.count, "spell") .. (info.visit and "" or (" at " .. visit.level)))
-            soon.cost:SetText(visit.cost > 0 and Compat.Money(visit.cost) or "")
+            local cost = visit.cost > 0 and Compat.Money(visit.cost) or ""
             local short = visit.cost - info.money
             local sure = info.visit ~= nil and visit.cost > 0
-            soon.enough:SetText(not sure and "" or (short > 0 and "short" or "enough"))
+            local enough = not sure and "" or (short > 0 and "short" or "enough")
+            soon.cost:SetText(cost)
+            soon.enough:SetText(enough)
             soon.enough:SetTextColor(Style.Color(short > 0 and "red" or "green"))
-            used = 24 + 8 + Style.Wide(soon.spells, 60) + 8 + Style.Wide(soon.cost, 50) + 8 + Style.Wide(soon.enough, 44) + 14
+            local function Takes(words)
+                soon.spells:SetText(words)
+                return 24 + 8 + (words ~= "" and Style.Wide(soon.spells, #words * 7) + 8 or 0)
+                    + (cost ~= "" and Style.Wide(soon.cost, 50) + 8 or 0) + (enough ~= "" and Style.Wide(soon.enough, 44) or 0)
+            end
+            used = Takes(Plural(visit.count, "spell") .. (info.visit and "" or (" at " .. visit.level)))
+            if need > room - before - used then used = Takes(info.visit and "" or ("at " .. visit.level)) end
         end
-        local before = Style.Wide(soon.head, 40) + 12 + (info.talent and (24 + 8 + 8 + 52) or 0)
-        soon.name:SetWidth(math.max(40, room - before - used))
+        soon.name:SetWidth(math.max(40, math.min(need, room - before - used)))
     end
 
     return function()
@@ -892,7 +899,7 @@ local function ReadyCards(page, width)
         c.talent:SetPoint("TOPLEFT", 66, -37)
         c.sub = Style.Text(c, 12, "muted")
         c.sub:SetWordWrap(false)
-        c.pips = Pips(c)
+        c.pips = Style.Pips(c)
         c.pips:SetPoint("LEFT", c.sub, "RIGHT", 8, 0)
         -- What a click does: quiet words, or for the page's one main action
         -- the gold button.
@@ -947,7 +954,7 @@ local function ReadyCards(page, width)
             if item.node then
                 c.talent:Set(item.node.icon)
                 c.sub:SetPoint("LEFT", c.talent, "RIGHT", 7, 0)
-                c.pips:Set(item.rank - 1, item.node.max or item.rank)
+                c.pips:Set(item.rank - 1, item.node.max or item.rank, 1)
                 c.sub:SetWidth(math.min(Style.Wide(c.sub, 100), cardW - 66 - 25 - PAD - 60))
             else
                 c.sub:SetPoint("TOPLEFT", 66, -38)
@@ -995,7 +1002,7 @@ local function BuildCard(parent, width)
     c.next = Style.Text(c, 13, "text")
     c.next:SetPoint("LEFT", c.nextHead, "RIGHT", 10, 0)
     c.next:SetWordWrap(false)
-    c.pips = Pips(c)
+    c.pips = Style.Pips(c)
     c.pips:SetPoint("RIGHT", c, "TOPRIGHT", -PAD, -106)
     -- The plan's next talents, the level each comes at under it; the first,
     -- the one named above, in a gold line.
@@ -1030,7 +1037,7 @@ local function BuildCard(parent, width)
         c.pips:SetShown(upcoming)
         c.next:SetText(upcoming and b.next.name or "")
         if upcoming then
-            c.pips:Set(b.rank - 1, b.next.max or b.rank)
+            c.pips:Set(b.rank - 1, b.next.max or b.rank, 1)
             c.next:SetWidth(inner - Style.Wide(c.nextHead, 34) - 10 - 60)
         end
         for i, q in ipairs(c.queue) do

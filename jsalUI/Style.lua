@@ -217,16 +217,28 @@ function Style.Box(frame, radius, fillKey, lineKey)
     return box
 end
 
--- The fill of a bar across the top of a round box: round at its top
--- corners, square below. `bottom` turns it over, for a strip along the
--- bottom of one.
-function Style.Cap(frame, radius, colorKey, bottom)
+-- The fill of a part that sits against a round box's edge, round only where
+-- the box's corners are. `where` says which of the part's corners those
+-- are: "TOP" (a bar across the box's top, when not given), "BOTTOM" (a strip
+-- along its bottom), or one corner alone, as "BOTTOMLEFT" for a column down
+-- its left side that stops short of the top. It's a round shape with a flat
+-- one over each half that must stay square.
+function Style.Cap(frame, radius, colorKey, where)
+    where = where or "TOP"
     local round = Style.Round(frame, radius, colorKey)
-    local flat = frame:CreateTexture(nil, "BACKGROUND")
-    flat:SetColorTexture(Style.Color(colorKey))
-    flat:SetPoint(bottom and "TOPLEFT" or "BOTTOMLEFT")
-    flat:SetPoint(bottom and "TOPRIGHT" or "BOTTOMRIGHT")
-    flat:SetPoint(bottom and "BOTTOM" or "TOP", frame, "CENTER")
+    local function Flat(first, second, side)
+        local t = frame:CreateTexture(nil, "BACKGROUND")
+        t:SetColorTexture(Style.Color(colorKey))
+        t:SetPoint(first)
+        t:SetPoint(second)
+        t:SetPoint(side, frame, "CENTER")
+    end
+    if where:find("TOP", 1, true) then Flat("BOTTOMLEFT", "BOTTOMRIGHT", "TOP") else Flat("TOPLEFT", "TOPRIGHT", "BOTTOM") end
+    if where:find("LEFT", 1, true) then
+        Flat("TOPRIGHT", "BOTTOMRIGHT", "LEFT")
+    elseif where:find("RIGHT", 1, true) then
+        Flat("TOPLEFT", "BOTTOMLEFT", "RIGHT")
+    end
     return round
 end
 
@@ -339,6 +351,40 @@ function Style.Hover(frame, pad)
     frame:HookScript("OnEnter", function() glow:Show() end)
     frame:HookScript("OnLeave", function() glow:Hide() end)
     return glow
+end
+
+-- A talent's ranks as a row of small squares, five at most: the ranks you
+-- already have are dim gold, the ones being taken are gold, the rest are
+-- dark. Set(had, of, taking) paints it; `wide` is the room it takes.
+function Style.Pips(parent)
+    local p = CreateFrame("Frame", nil, parent)
+    p:SetSize(52, 8)
+    p.wide = 52
+    p.dots = {}
+    for i = 1, 5 do
+        local t = p:CreateTexture(nil, "ARTWORK")
+        t:SetSize(8, 8)
+        t:SetPoint("LEFT", (i - 1) * 11, 0)
+        p.dots[i] = t
+    end
+    function p:Set(had, of, taking)
+        of = math.max(1, math.min(5, of or 1))
+        had, taking = had or 0, taking or 0
+        local r, g, b = Style.Color("gold")
+        for i, t in ipairs(self.dots) do
+            t:SetShown(i <= of)
+            if i <= had then
+                t:SetColorTexture(r, g, b, 0.45)
+            elseif i <= had + taking then
+                t:SetColorTexture(r, g, b, 1)
+            else
+                t:SetColorTexture(Style.Color("lineStrong"))
+            end
+        end
+        self.wide = of * 11 - 3
+        self:SetWidth(self.wide)
+    end
+    return p
 end
 
 -- A text's width, or a guess where the game hasn't one to give.
@@ -681,8 +727,8 @@ function Style.Panel(name, width, height, title)
     f:Hide()
     -- Kept on the frame, for a window that can do without them (the
     -- companion out of its window hides all three).
-    f.fill = Style.Fill(f, "window")
-    f.edges = Style.Border(f, "lineStrong")
+    local box = Style.Box(f, 6, "window", "lineStrong")
+    f.fill, f.edges = box.fill, { box.line }
     f.shadow = Style.Shadow(f)
     Style.Opening(f, -8)
     tinsert(UISpecialFrames, name)
@@ -691,7 +737,7 @@ function Style.Panel(name, width, height, title)
     bar:SetPoint("TOPLEFT")
     bar:SetPoint("TOPRIGHT")
     bar:SetHeight(32)
-    Style.Fill(bar, "titleBar")
+    Style.Cap(bar, 6, "titleBar")
     Style.Rule(bar, "BOTTOM", "line")
     bar:EnableMouse(true)
     bar:RegisterForDrag("LeftButton")

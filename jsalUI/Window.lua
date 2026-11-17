@@ -42,7 +42,9 @@ local PAGES = {
           return (ns.Crafters ~= nil and ns.Crafters.running == true) or (ns.Orders ~= nil and ns.Orders.running == true)
       end,
       -- In the size it was last left in: the full window, or the small one.
-      open = function() ns.GuildCrafts.Show() end },
+      -- Pressed in the menu while either is open, it closes.
+      open = function() ns.GuildCrafts.Show() end,
+      press = function() ns.GuildCrafts.Toggle() end },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess", when = function() return ns.Chess ~= nil end },
     -- Only in the menu once its part is switched on: `when` is asked as the
@@ -207,7 +209,7 @@ local function MenuButton(menu, page)
         Stroke(6, 1.5):SetPoint("TOPRIGHT")
         Stroke(1.5, 6):SetPoint("TOPRIGHT")
     end
-    b:SetScript("OnClick", function() Window.Open(page.key) end)
+    b:SetScript("OnClick", function() Window.Press(page.key) end)
     b:SetScript("OnEnter", function()
         b.label:SetTextColor(Style.Color("text"))
         b.bg:Show()
@@ -245,8 +247,7 @@ local function Build()
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:Hide()
-    Style.Fill(frame, "window")
-    Style.Border(frame, "lineStrong")
+    Style.Box(frame, 6, "window", "lineStrong")
     Style.Shadow(frame)
     Style.Opening(frame, -8)
     -- Escape closes it, like the game's own windows.
@@ -256,7 +257,7 @@ local function Build()
     bar:SetPoint("TOPLEFT")
     bar:SetPoint("TOPRIGHT")
     bar:SetHeight(TITLE_HEIGHT)
-    Style.Fill(bar, "titleBar")
+    Style.Cap(bar, 6, "titleBar")
     Style.Rule(bar, "BOTTOM", "line")
     bar:EnableMouse(true)
     bar:RegisterForDrag("LeftButton")
@@ -293,7 +294,7 @@ local function Build()
     menu:SetPoint("TOPLEFT", 0, -TITLE_HEIGHT)
     menu:SetPoint("BOTTOMLEFT")
     menu:SetWidth(MENU_WIDTH)
-    Style.Fill(menu, "titleBar")
+    Style.Cap(menu, 6, "titleBar", "BOTTOMLEFT")
     Style.Rule(menu, "RIGHT", "line")
     local y, below = 18, 0
     for _, page in ipairs(PAGES) do
@@ -463,6 +464,16 @@ function Window.Close(key)
     elseif frame and frame:IsShown() and current == key then
         frame:Hide()
     end
+end
+
+-- A press on a menu entry. A page in a window of its own closes when its
+-- entry is pressed while that window is open, so the entry opens and shuts
+-- it; any other entry opens its page.
+function Window.Press(key)
+    local page = byKey[key]
+    if page.press then return page.press() end
+    if page.own and Window.IsOpen(key) then return Window.Close(key) end
+    Window.Open(key)
 end
 
 -- Repaints the pages on screen after something they show has changed.

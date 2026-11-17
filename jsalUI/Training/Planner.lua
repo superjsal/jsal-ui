@@ -74,9 +74,13 @@ local function Section(parent, width, ruled)
     s:SetSize(width, 20)
     s.title = Style.Text(s, 12, "gold", nil, true)
     s.title:SetPoint("LEFT")
+    -- The note has the room right of the title and no more: one too long
+    -- for it is cut short, never drawn over the title.
     s.note = Style.Text(s, 11, "muted")
     s.note:SetPoint("RIGHT")
+    s.note:SetPoint("LEFT", s.title, "RIGHT", 10, 0)
     s.note:SetJustifyH("RIGHT")
+    s.note:SetWordWrap(false)
     if ruled then Style.Rule(s, "BOTTOM", "lineStrong") end
     return s
 end
@@ -292,7 +296,7 @@ Window.Page("training", function(page)
     local roadHead = Section(page, roadW)
     roadHead:SetPoint("TOPLEFT", CART_W + GAP, -top)
     roadHead.title:SetText("YOUR ROAD TO 60")
-    roadHead.note:SetText("gold frame: new to you  ·  right-click skips")
+    roadHead.note:SetText("gold: new to you  ·  right-click skips")
     Columns(page, roadW, { { "LEVEL", 2 }, { "WHAT YOU LEARN", NAME_X }, { "COST", -10 } }):SetPoint("TOPLEFT", CART_W + GAP, -(top + 24))
     -- The road has the height of the page. (It was a box of four visits to
     -- scroll, over a pet's list that needed scrolling too.)
@@ -560,7 +564,7 @@ Window.Page("training", function(page)
         head:ClearAllPoints()
         head:SetPoint("TOPLEFT", 0, -y)
         head.title:SetText("WEAPON SKILLS")
-        head.note:SetText("each weapon master teaches some")
+        head.note:SetText("a master teaches only some")
         y = y + 22
         local weapons = {}
         for _, w in ipairs(data.weapons) do weapons[#weapons + 1] = w end
