@@ -72,12 +72,35 @@ function PalRun.Result()
     return s.day, s.best
 end
 
--- What the guild is told: "day:steps", or nothing while the part is off or
--- today's course hasn't been run.
+-- A pal's name as the guild is told it and as the board shows it: at most
+-- 16 letters, and none of the marks a message is split on or the game reads
+-- as the start of a colour or a link. Nil when nothing is left of it.
+function PalRun.Clean(name)
+    if type(name) ~= "string" then return nil end
+    name = (name:gsub("[;:|%c]", ""))
+    name = (name:gsub("^%s+", ""):gsub("%s+$", ""))
+    local letters = {}
+    for letter in name:gmatch("[\1-\127\194-\244][\128-\191]*") do
+        if #letters == 16 then break end
+        letters[#letters + 1] = letter
+    end
+    name = table.concat(letters)
+    return name ~= "" and name or nil
+end
+
+-- Your pal's name, when you have one.
+function PalRun.PalName()
+    local Pet, s = ns.Pet, ns.db.pet
+    if Pet and Pet.running and type(s) == "table" and not s.unchosen then return PalRun.Clean(s.name) end
+    return nil
+end
+
+-- What the guild is told: "day:steps:your pal's name", or nothing while the
+-- part is off or today's course hasn't been run.
 function PalRun.Signature()
     local day, best = PalRun.Result()
     if not (PalRun.running and day) then return "" end
-    return ("%d:%d"):format(day, best)
+    return ("%d:%d:%s"):format(day, best, PalRun.PalName() or "")
 end
 
 function PalRun.Status()
@@ -120,13 +143,15 @@ function PalRun.Finished(mode, steps)
 end
 
 -- Today's times, fastest first: yours, and those of guildmates heard this
--- session.
+-- session. Each has whose it is, and their pal's name where they have one.
 function PalRun.Board()
     local today, me, list = Games.Today(), Compat.MyName(), {}
     local day, best = PalRun.Result()
-    if day then list[#list + 1] = { name = me, steps = best, mine = true } end
+    if day then list[#list + 1] = { name = me, pal = PalRun.PalName(), steps = best, mine = true } end
     for name, m in pairs(ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}) do
-        if name ~= me and m.runDay == today and m.runSteps then list[#list + 1] = { name = name, steps = m.runSteps } end
+        if name ~= me and m.runDay == today and m.runSteps then
+            list[#list + 1] = { name = name, pal = m.runPal, steps = m.runSteps }
+        end
     end
     table.sort(list, function(a, b)
         if a.steps ~= b.steps then return a.steps < b.steps end
@@ -207,9 +232,12 @@ local function PaintBoard()
         row:SetShown(entry ~= nil)
         if entry then
             local colour = RAID_CLASS_COLORS and RAID_CLASS_COLORS[class[entry.name] or (entry.mine and select(2, UnitClass("player"))) or ""]
+            -- The pal's name, in its owner's class colour; pointed at, the row says whose it is.
             row.rank:SetText(tostring(i))
-            row.name:SetText(entry.name)
-            if colour then row.name:SetTextColor(colour.r, colour.g, colour.b) else row.name:SetTextColor(Style.Color("text")) end
+            row.name:SetText(entry.pal or entry.name)
+            row.owner, row.pal = entry.name, entry.pal
+            if colour then row.r, row.g, row.b = colour.r, colour.g, colour.b else row.r, row.g, row.b = Style.Color("text") end
+            row.name:SetTextColor(row.r, row.g, row.b)
             row.time:SetText(Rules.Clock(entry.steps))
             row.dot:SetColorTexture(Style.Color((entry.name == me or online[entry.name]) and "green" or "lineStrong"))
             row.fill:SetShown(entry.mine == true)
@@ -575,6 +603,20 @@ local function Build()
         row.name:SetPoint("RIGHT", row.time, "LEFT", -8, 0)
         row.name:SetJustifyH("LEFT")
         row.name:SetWordWrap(false)
+        row:EnableMouse(true)
+        Style.Hover(row)
+        row:SetScript("OnEnter", function(self)
+            if not self.owner then return end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            if self.pal then
+                GameTooltip:SetText(self.pal)
+                GameTooltip:AddLine(self.owner .. "'s pal", self.r, self.g, self.b)
+            else
+                GameTooltip:SetText(self.owner, self.r, self.g, self.b)
+            end
+            GameTooltip:Show()
+        end)
+        row:SetScript("OnLeave", function() GameTooltip:Hide() end)
         ui.rows[i] = row
     end
     ui.empty = Style.Text(frame, 12, "muted")

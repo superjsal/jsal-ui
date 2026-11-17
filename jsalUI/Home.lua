@@ -8,7 +8,8 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "New: Pal run, a platformer for your pal, timed, with your guild's times beside it. Turn it on in Settings > Games",
+    "New: Guild Crafts, for who in the guild makes what, and orders between guildmates: ask for a craft, or take one on",
+    "New: Pal run, a platformer for your pal against the clock, with your guild's times. Turn it on in Settings > Games",
     "Restart the game once for this version: it adds new files",
 }
 
