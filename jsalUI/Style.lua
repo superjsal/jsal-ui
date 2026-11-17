@@ -250,6 +250,32 @@ function Style.Circle(frame, fillKey, lineKey)
     return disc
 end
 
+-- The mark of a card that's yours, next or current: its left edge in
+-- colour, three wide, following the card's round corners. It's a frame of
+-- its own above what's in the card (rows drawn over an edge cut it into
+-- pieces), that shows only its own width of a shape as large and as round
+-- as the card. Where the game can't keep what's in a frame to its bounds,
+-- or corners aren't round, it's a straight bar clear of the corners.
+function Style.Edge(card, radius, colorKey)
+    local edge = CreateFrame("Frame", nil, card)
+    edge:SetFrameLevel((card:GetFrameLevel() or 0) + 6)
+    edge:SetWidth(3)
+    if edge.SetClipsChildren and Style.Rounded() then
+        edge:SetPoint("TOPLEFT")
+        edge:SetPoint("BOTTOMLEFT")
+        edge:SetClipsChildren(true)
+        local whole = CreateFrame("Frame", nil, edge)
+        whole:SetPoint("TOPLEFT", card, "TOPLEFT")
+        whole:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT")
+        edge.shape = Style.Round(whole, radius, colorKey or "gold", "ARTWORK")
+    else
+        edge:SetPoint("TOPLEFT", 0, -radius)
+        edge:SetPoint("BOTTOMLEFT", 0, radius)
+        edge.shape = Style.Fill(edge, colorKey or "gold", "ARTWORK")
+    end
+    return edge
+end
+
 -- The fill of a part that sits against a round box's edge, round only where
 -- the box's corners are. `where` says which of the part's corners those
 -- are: "TOP" (a bar across the box's top, when not given), "BOTTOM" (a strip
@@ -346,7 +372,11 @@ end
 -- negative `from` starts it below), quick enough not to wait on. The first
 -- step sets the start, the second brings it home, so it always ends exactly
 -- where it was placed or dragged to.
-local OPEN_TIME = 0.14
+-- Closing is the same in reverse: Hide fades it as it sinks back the way it
+-- came, and it's hidden when that ends. Whatever hides it gets that: its
+-- close button, Escape, a menu entry. HideNow hides it at once, for when it
+-- can't wait (a fight starting). Shown again while it's closing, it stays.
+local OPEN_TIME, CLOSE_TIME = 0.14, 0.11
 
 function Style.Opening(frame, from)
     local group = frame.CreateAnimationGroup and frame:CreateAnimationGroup()
@@ -371,6 +401,42 @@ function Style.Opening(frame, from)
         group:Stop()
         group:Play()
     end)
+
+    local closing = frame:CreateAnimationGroup()
+    local sink = closing:CreateAnimation("Translation")
+    sink:SetDuration(CLOSE_TIME)
+    sink:SetOffset(0, from)
+    sink:SetSmoothing("IN")
+    local out = closing:CreateAnimation("Alpha")
+    out:SetDuration(CLOSE_TIME)
+    out:SetFromAlpha(1)
+    out:SetToAlpha(0)
+    local hide, show = frame.Hide, frame.Show
+    closing:SetScript("OnFinished", function()
+        frame.closing = nil
+        hide(frame)
+    end)
+    function frame:HideNow()
+        closing:Stop()
+        self.closing = nil
+        hide(self)
+    end
+    function frame:Hide()
+        if self.closing then return end
+        -- One that isn't on screen has nothing to fade.
+        if not (self:IsShown() and self:IsVisible()) then return hide(self) end
+        group:Stop()
+        closing:Play()
+        -- Where the fade didn't start, it's hidden at once.
+        if closing:IsPlaying() then self.closing = true else hide(self) end
+    end
+    function frame:Show()
+        if self.closing then
+            closing:Stop()
+            self.closing = nil
+        end
+        show(self)
+    end
     return group
 end
 

@@ -421,14 +421,7 @@ function Road.NowCard(parent, width)
     card:SetWidth(width)
     card.width = width
     Style.Box(card, 6, "well", "cardLine")
-    -- Its gold edge, on a frame of its own above the card's lines, which
-    -- would be drawn over it and cut it at each rule.
-    card.edge = CreateFrame("Frame", nil, card)
-    card.edge:SetFrameLevel((card:GetFrameLevel() or 0) + 6)
-    card.edge:SetPoint("TOPLEFT", 0, -6)
-    card.edge:SetPoint("BOTTOMLEFT", 0, 6)
-    card.edge:SetWidth(3)
-    Style.Fill(card.edge, "gold")
+    card.edge = Style.Edge(card, 6)
     card.icon = card:CreateTexture(nil, "ARTWORK")
     card.icon:SetSize(36, 36)
     card.icon:SetPoint("TOPLEFT", 14, -14)

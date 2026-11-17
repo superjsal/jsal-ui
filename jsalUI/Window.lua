@@ -44,7 +44,11 @@ local PAGES = {
       -- In the size it was last left in: the full window, or the small one.
       -- Pressed in the menu while either is open, it closes.
       open = function() ns.GuildCrafts.Show() end,
-      press = function() ns.GuildCrafts.Toggle() end },
+      press = function() ns.GuildCrafts.Toggle() end,
+      raise = function()
+          local small = ns.GuildCrafts.small
+          if small and small:IsShown() then small:Raise() end
+      end },
     { key = "games", label = "Games", icon = OWN .. "games", group = "PLAY" },
     { key = "chess", label = "Chess", icon = OWN .. "chess", when = function() return ns.Chess ~= nil end },
     -- Only in the menu once its part is switched on: `when` is asked as the
@@ -210,6 +214,7 @@ local function MenuButton(menu, page)
         Stroke(1.5, 6):SetPoint("TOPRIGHT")
     end
     b:SetScript("OnClick", function() Window.Press(page.key) end)
+    b:SetScript("OnMouseDown", function() Window.Hold(page.key) end)
     b:SetScript("OnEnter", function()
         b.label:SetTextColor(Style.Color("text"))
         b.bg:Show()
@@ -445,7 +450,8 @@ end
 local combat = CreateFrame("Frame")
 combat:RegisterEvent("PLAYER_REGEN_DISABLED")
 combat:SetScript("OnEvent", function()
-    if frame and frame:IsShown() then frame:Hide() end
+    -- At once, not faded: once the fight has begun it can't be hidden.
+    if frame and frame:IsShown() then (frame.HideNow or frame.Hide)(frame) end
 end)
 
 -- Whether a page is on screen: the dashboard's current page, or a page's
@@ -464,6 +470,16 @@ function Window.Close(key)
     elseif frame and frame:IsShown() and current == key then
         frame:Hide()
     end
+end
+
+-- The mouse going down on a menu entry. A click on the dashboard brings it
+-- to the front, over the window the entry is about to close, which was
+-- seen to drop behind the dashboard before it went. That window is put
+-- back on top, so it closes from where it stood.
+function Window.Hold(key)
+    local page = byKey[key]
+    if page.own and page.own.frame and page.own.frame:IsShown() then page.own.frame:Raise() end
+    if page.raise then page.raise() end
 end
 
 -- A press on a menu entry. A page in a window of its own closes when its

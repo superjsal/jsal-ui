@@ -515,15 +515,9 @@ Window.Page("dungeons", function(page)
         local b = CreateFrame("Frame", nil, bossList)
         b:SetSize(cardW, BOSS_H)
         Style.Box(b, 6, "well", "cardLine")
-        -- Gold down its left when something here is for you: on a frame of
-        -- its own above the lines of loot, whose rules and hover light
-        -- would be drawn over it and cut it into pieces.
-        b.edge = CreateFrame("Frame", nil, b)
-        b.edge:SetFrameLevel((b:GetFrameLevel() or 0) + 6)
-        b.edge:SetWidth(3)
-        b.edge:SetPoint("TOPLEFT", 0, -6)
-        b.edge:SetPoint("BOTTOMLEFT", 0, 6)
-        Style.Fill(b.edge, "gold")
+        -- Gold down its left, round with the card, when something here is
+        -- for you.
+        b.edge = Style.Edge(b, 6)
         b.head = CreateFrame("Frame", nil, b)
         b.head:SetPoint("TOPLEFT")
         b.head:SetPoint("TOPRIGHT")
