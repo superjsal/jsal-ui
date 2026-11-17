@@ -10,6 +10,10 @@ A country's cell holds its 16 tiles, 16 pixels each, four to a row. A tile is dr
 of the course meet, and which one is drawn says which of those four are ground: 8 for the square
 up and left of the meeting point, 4 up and right, 2 down and left, 1 down and right, added up. So
 tile 0 is open air and tile 15 is ground all round.
+
+And each country's scenery, data/pals/run/back_<land>.png (256 by 100), as
+jsalUI/Media/Pet/run_back_<land>.png: the same picture at the top of a 256 by 128 one, the size the
+game wants, with the rows under it left clear.
 """
 import json
 import sys
@@ -50,6 +54,14 @@ def main():
     sheet.alpha_composite(flag, ((at % 4) * 64 + (64 - flag.width) // 2, (at // 4) * 64 + 64 - flag.height))
     sheet.save(ROOT / "jsalUI" / "Media" / "Pet" / "run.png", optimize=True)
     print("flag = { %d, %d }" % flag.size)
+    for land in LANDS:
+        back = Image.open(SOURCE / ("back_" + land + ".png")).convert("RGBA")
+        assert back.size == (256, 100), (land, back.size)
+        whole = Image.new("RGBA", (256, 128), (0, 0, 0, 0))
+        whole.paste(back, (0, 0))
+        # Most come with a stray pale line as their last row: it's the row above again.
+        whole.paste(back.crop((0, 98, 256, 99)), (0, 99))
+        whole.save(ROOT / "jsalUI" / "Media" / "Pet" / ("run_back_" + land + ".png"), optimize=True)
     if len(sys.argv) > 1:
         look = Image.new("RGBA", sheet.size, (120, 170, 230, 255))
         look.alpha_composite(sheet)

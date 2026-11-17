@@ -21,6 +21,9 @@ local FIELD_W, FIELD_H = 880, 400
 local PAD, BOARD_W, ROW_H, ROWS_SHOWN = 16, 240, 30, 6
 local SCALE = 2                       -- the pal is drawn at twice its picture's size
 local FLAG_W, FLAG_H = 16, 35         -- the flag's size in run.png (tools/make_run_tiles.py prints it)
+-- A country's scenery (run_back_<land>.png): how wide and high its picture is, and how much of
+-- its width shows at once, four times over. The rest is room for it to slide.
+local BACK_W, BACK_H, BACK_SHOWN = 256, 100, 220
 
 -- Where each kind's feet are in the 64 pixels it stands in, counted down
 -- from the top, so each stands on the ground and not in or over it.
@@ -231,7 +234,7 @@ end
 local function Lay()
     local world = ui.world
     world:SetSize(course.cols * TILE, Rules.ROWS * TILE)
-    ui.backdrop:SetTexture(Art("paddock_" .. course.land), "CLAMP", "CLAMP", "NEAREST")
+    ui.backdrop:SetTexture(Art("run_back_" .. course.land), "CLAMP", "CLAMP", "NEAREST")
     local land = 0
     for i, name in ipairs(Rules.LANDS) do
         if name == course.land then land = i - 1 end
@@ -281,6 +284,11 @@ end
 local function Paint()
     local cam = math.floor(math.max(0, math.min(course.cols * TILE - FIELD_W, run.x * TILE - FIELD_W * 0.35)))
     ui.world:SetPoint("TOPLEFT", ui.field, "TOPLEFT", -cam, -(FIELD_H - Rules.ROWS * TILE))
+    -- The scenery slides from its left end to its right as the course goes by, a pixel of
+    -- the screen at a time.
+    local span = course.cols * TILE - FIELD_W
+    local slide = span > 0 and math.floor((BACK_W - BACK_SHOWN) * cam / span * 4 + 0.5) / 4 or 0
+    ui.backdrop:SetTexCoord(slide / BACK_W, (slide + BACK_SHOWN) / BACK_W, 0, BACK_H / 128)
 
     local sprite = ui.runner
     local sheet = ns.Pet.SHEETS[sprite]
@@ -475,10 +483,10 @@ local function Build()
     field:SetSize(FIELD_W, FIELD_H)
     field:SetPoint("TOPLEFT", PAD, -(32 + PAD))
     field:SetClipsChildren(true)
-    -- The paddock's scenery: its 220 by 100 picture, four times over.
+    -- The country's scenery, behind everything.
     ui.backdrop = field:CreateTexture(nil, "BACKGROUND")
     ui.backdrop:SetAllPoints()
-    ui.backdrop:SetTexCoord(0, 220 / 256, 0, 100 / 128)
+    ui.backdrop:SetTexCoord(0, BACK_SHOWN / BACK_W, 0, BACK_H / 128)
     local edge = CreateFrame("Frame", nil, frame)
     edge:SetAllPoints(field)
     edge:SetFrameLevel(field:GetFrameLevel() + 5)

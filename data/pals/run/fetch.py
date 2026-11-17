@@ -1,6 +1,8 @@
 """Downloads Pal run's ground from PixelLab into this folder: for each country a side-on tileset of
 16 tiles, 16 pixels each (create_sidescroller_tileset, 16 Nov 2026), as <land>.png, with <land>.json
-saying which corners of each tile are ground. And the finish flag, an object, as flag.png.
+saying which corners of each tile are ground. And the finish flag, an object, as flag.png. And for
+each country its scenery, 256 by 100, as back_<land>.png: a side view with a ravine across its
+bottom third, drawn with that country's paddock as its style (create_image_pro_flash).
 python -I fetch.py        (skips what's already here; says what isn't ready)"""
 import json
 import urllib.request
@@ -19,6 +21,17 @@ TILESETS = {
     "jungle": "34e0eb84-06e5-4daa-a83e-2ee82626faf5",
 }
 OBJECTS = {"flag": "6db0179e-25dc-4d10-8760-1b098ab1e9bf"}
+SCENERY = {
+    "meadow": "c1f751b3-14e1-4f99-b4b5-fb90f0fd8b16",
+    "snow": "bd047a8e-332d-4192-9496-dbcbb4888abd",
+    "desert": "ee392677-a54d-4304-b5a0-42dd4633f2c2",
+    "swamp": "d4a1e78f-be52-4b2b-b488-e1f46c7cbd95",
+    "coast": "34688672-df60-4a4b-bd26-5cb8db554578",
+    "darkwood": "0b1defdf-c7c5-4ac3-a40e-0e84a88fe0a6",
+    "savanna": "2082aa0a-2f69-4147-b22b-5ce1b36fc5a5",
+    "volcanic": "67ed0c1b-edf7-4663-ac2d-de9f161eea76",
+    "jungle": "c4876395-b491-43d0-a379-44630c236dcd",
+}
 
 
 def slim(data):
@@ -51,3 +64,5 @@ for name, tileset in TILESETS.items():
     print(name, get(base + "image", HERE / (name + ".png")), "|", get(base + "metadata", HERE / (name + ".json"), False))
 for name, obj in OBJECTS.items():
     print(name, get("https://api.pixellab.ai/mcp/objects/%s/download" % obj, HERE / (name + ".png")))
+for name, job in SCENERY.items():
+    print("back_" + name, get("https://api.pixellab.ai/mcp/images/%s/download" % job, HERE / ("back_" + name + ".png")))
