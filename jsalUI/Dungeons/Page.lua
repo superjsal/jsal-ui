@@ -14,11 +14,11 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, BOSS_H, ITEM_H, QUEST_H, CARD_GAP = 340, 520, 34, 50, 28, 30, 38, 48, 12
 -- The game's item class for recipes (patterns, plans, schematics).
 local RECIPE = 9
--- The tag after an item's name: its words, its fill and its words' colour.
+-- The tag after an item's name: its words and its tone.
 local TAGS = {
-    plan = { "on your gear plan", "gold", "onGold" },
-    better = { "better for you", "line", "green" },
-    prof = { "your profession", "line", "secondary" },
+    plan = { "on your gear plan", "gold" },
+    better = { "better for you", "green" },
+    prof = { "your profession" },
 }
 
 -- Wowhead's quest sides: 1 Alliance, 2 Horde, 3 both.
@@ -370,8 +370,7 @@ Window.Page("dungeons", function(page)
     for g in ipairs(GROUPS) do
         local h = CreateFrame("Button", nil, list)
         h:SetSize(rowW, HEAD_H)
-        Style.Fill(h, "well")
-        Style.Border(h, "cardLine")
+        Style.Box(h, 6, "well", "cardLine")
         h.sign = Style.Text(h, 14, "gold", nil, true)
         h.sign:SetPoint("LEFT", 10, 0)
         h.label = Style.Text(h, 12, "gold", nil, true)
@@ -427,16 +426,11 @@ Window.Page("dungeons", function(page)
     meta:SetJustifyH("LEFT")
     -- Two tabs: the bosses with their loot, and the dungeon's quests.
     local tab = "bosses"
-    local tabs = {}
-    for k, t in ipairs({ { "bosses", "Bosses and loot", 150 }, { "quests", "Quests", 120 } }) do
-        local b = Style.Button(right, t[2], "tab", t[3])
-        b:SetPoint("TOPLEFT", k == 1 and 0 or 156, -28)
-        b:SetScript("OnClick", function()
-            tab = t[1]
-            Paint()
-        end)
-        tabs[t[1]] = b
-    end
+    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" } }, function(key)
+        tab = key
+        Paint()
+    end)
+    tabs:SetPoint("TOPLEFT", 0, -27)
     local hint = Style.Text(right, 12, "muted")
     hint:SetPoint("TOPRIGHT", 0, -36)
     hint:SetJustifyH("RIGHT")
@@ -578,21 +572,6 @@ Window.Page("dungeons", function(page)
         Style.Hover(frame)
     end
 
-    -- A small label after a name: gold for what to do, plain for what it is.
-    local function Tag(parent, gold)
-        local t = CreateFrame("Frame", nil, parent)
-        t:SetHeight(15)
-        t.fill = Style.Fill(t, gold and "gold" or "line")
-        t.text = Style.Text(t, 10, gold and "onGold" or "text", nil, gold)
-        t.text:SetPoint("CENTER")
-        function t:Say(text)
-            self.text:SetText(text)
-            self.wide = Q.Wide(self.text, #text * 5.2) + 12
-            self:SetWidth(self.wide)
-        end
-        return t
-    end
-
     -- A quest that stands alone: its name, who gives it, the level.
     function Q.Line(i)
         if Q.lines[i] then return Q.lines[i] end
@@ -683,7 +662,7 @@ Window.Page("dungeons", function(page)
         c.edge:SetWidth(3)
         c.title = Style.Text(c, 13, "text", nil, true)
         c.title:SetPoint("TOPLEFT", 14, -9)
-        c.count = Tag(c)
+        c.count = Style.Tag(c, "", nil, true)
         c.count:SetPoint("LEFT", c.title, "RIGHT", 8, 0)
         c.level = Style.Text(c, 12, "muted")
         c.level:SetPoint("TOPRIGHT", -6, -10)
@@ -724,11 +703,9 @@ Window.Page("dungeons", function(page)
         st.mark = st:CreateTexture(nil, "ARTWORK")
         st.mark:SetSize(16, 16)
         st.mark:SetPoint("LEFT", st.name, "RIGHT", 6, 0)
-        st.start = Tag(st, true)
+        st.start = Style.Tag(st, "start here", true, true)
         st.start:SetPoint("LEFT", st.mark, "RIGHT", 4, 0)
-        st.start:Say("start here")
-        st.own = Tag(st)
-        st.own:Say("this dungeon's quest")
+        st.own = Style.Tag(st, "this dungeon's quest", nil, true)
         st.who = Style.Text(st, 12, "muted")
         st.who:SetPoint("RIGHT", -8, 0)
         st.who:SetJustifyH("LEFT")
@@ -762,11 +739,8 @@ Window.Page("dungeons", function(page)
         it.name:SetWordWrap(false)
         -- Why it's first on the list: on your gear plan, better than what
         -- you wear, or a recipe for a profession of yours.
-        it.tag = CreateFrame("Frame", nil, it)
+        it.tag = Style.Tag(it, "", nil, true)
         it.tag:SetPoint("LEFT", it.name, "RIGHT", 8, 0)
-        it.tag.fill = Style.Fill(it.tag, "line")
-        it.tag.text = Style.Text(it.tag, 10, "text")
-        it.tag.text:SetPoint("CENTER")
         it.slot = Style.Text(it, 12, "muted")
         it.slot:SetPoint("BOTTOMLEFT", it.icon, "BOTTOMRIGHT", 8, 0)
         it.slot:SetWidth(itemW - 40 - 90)
@@ -796,13 +770,9 @@ Window.Page("dungeons", function(page)
         it.tag:SetShown(kind ~= nil)
         if not kind then return 0 end
         local t = TAGS[kind]
-        it.tag.fill:SetColorTexture(Style.Color(t[2]))
-        it.tag.text:SetText(t[1])
-        it.tag.text:SetTextColor(Style.Color(t[3]))
-        local w = it.tag.text.GetStringWidth and it.tag.text:GetStringWidth()
-        w = ((type(w) == "number" and w > 0) and w or #t[1] * 5.4) + 12
-        it.tag:SetSize(w, 16)
-        return w + 8
+        it.tag:Tone(t[2])
+        it.tag:Say(t[1])
+        return it.tag.wide + 8
     end
 
     -- A boss's loot on its band: Wowhead's list with each item's drop
@@ -1427,9 +1397,8 @@ Window.Page("dungeons", function(page)
                 quests[#quests + 1] = q
             end
         end
-        tabs.quests:SetLabel(#quests > 0 and ("Quests (%d)"):format(#quests) or "Quests")
-        tabs.bosses:SetSelected(tab == "bosses")
-        tabs.quests:SetSelected(tab == "quests")
+        tabs:Set("quests", nil, #quests > 0 and #quests or nil)
+        tabs:Pick(tab)
         local by = 0
         if tab == "quests" then
             by = Q.Paint(quests, by)

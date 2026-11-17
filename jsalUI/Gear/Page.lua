@@ -491,8 +491,7 @@ Window.Page("gear", function(page)
         local r = CreateFrame("Frame", nil, card and optList or list)
         r:SetSize(w, card and OPT_H or ROW_H)
         if card then
-            Style.Fill(r, "well")
-            Style.Border(r, "cardLine")
+            Style.Box(r, 6, "well", "cardLine")
         else
             Style.Rule(r, "BOTTOM", "line")
         end

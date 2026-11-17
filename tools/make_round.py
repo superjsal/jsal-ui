@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 
 SIZE = 32
 # One for each radius Style.lua asks for: a shape's line, and the fill a pixel inside it.
-RADII = (4, 5, 6, 7, 9, 10, 11, 12, 13)
+RADII = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
 OVER = 8    # drawn this many times too large, then shrunk, for the smooth edge
 
 def tga(alpha):

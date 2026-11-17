@@ -99,18 +99,6 @@ local function Columns(parent, width, labels)
     return c
 end
 
--- A small label after a name: gold for "new", plain for what a thing is.
-local function Tag(parent, words, gold)
-    local t = CreateFrame("Frame", nil, parent)
-    Style.Fill(t, gold and "gold" or "line")
-    t.text = Style.Text(t, 10, gold and "onGold" or "text", nil, gold)
-    t.text:SetPoint("CENTER")
-    t.text:SetText(words)
-    t.wide = Style.Wide(t.text, #words * 5.2) + 12
-    t:SetSize(t.wide, 15)
-    return t
-end
-
 local function Tooltip(frame)
     frame:SetScript("OnEnter", function(self)
         if not self.spellID then return end
@@ -254,7 +242,7 @@ Window.Page("training", function(page)
         c.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         c.name = Style.Text(c, 13, "text", nil, true)
         c.name:SetWordWrap(false)
-        c.new = Tag(c, "new", true)
+        c.new = Style.Tag(c, "new", true, true)
         c.new:SetPoint("LEFT", c.name, "RIGHT", 8, 0)
         c.sub = Style.Text(c, 11, "muted")
         c.sub:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -3)
@@ -354,12 +342,12 @@ Window.Page("training", function(page)
         edge:SetWidth(3)
         ui.nextLevel = Style.Text(ui.nextCard, 15, "text", nil, true)
         ui.nextLevel:SetPoint("TOPLEFT", 14, -8)
-        Tag(ui.nextCard, "next visit"):SetPoint("TOPLEFT", NAME_X, -10)
+        Style.Tag(ui.nextCard, "next visit", nil, true):SetPoint("TOPLEFT", NAME_X, -10)
         ui.nextCost = Style.Text(ui.nextCard, 13, "text", nil, true)
         ui.nextCost:SetPoint("TOPRIGHT", -10, -9)
         ui.nextCost:SetJustifyH("RIGHT")
         -- What a hunter's pet can learn by then, under the visit's spells.
-        ui.nextPet = Tag(ui.nextCard, "your pet")
+        ui.nextPet = Style.Tag(ui.nextCard, "your pet", nil, true)
         ui.nextPetText = Style.Text(ui.nextCard, 12, "muted")
         ui.nextPetText:SetPoint("LEFT", ui.nextPet, "RIGHT", 8, 0)
         ui.nextPetText:SetWidth(roadW - 8 - NAME_X - 70)
@@ -382,7 +370,7 @@ Window.Page("training", function(page)
         r.name = Style.Text(r, 13, "text")
         r.name:SetPoint("LEFT", NAME_X, 0)
         r.name:SetWordWrap(false)
-        r.new = Tag(r, "new", true)
+        r.new = Style.Tag(r, "new", true, true)
         r.new:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
         r.rank = Style.Text(r, 12, "muted")
         r.rank:SetPoint("LEFT", r.name, "RIGHT", 8, 0)
@@ -407,7 +395,7 @@ Window.Page("training", function(page)
         s.cost = Style.Text(s, 12, "text")
         s.cost:SetPoint("RIGHT", s, "TOPRIGHT", -10, -(8 + GLYPH / 2))
         s.cost:SetJustifyH("RIGHT")
-        s.pet = Tag(s, "your pet")
+        s.pet = Style.Tag(s, "your pet", nil, true)
         return s
     end
 

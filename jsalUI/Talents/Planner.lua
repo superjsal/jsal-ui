@@ -678,8 +678,7 @@ Window.Page("build", function(page)
             if not chip then
                 chip = CreateFrame("Frame", nil, page)
                 chip:SetHeight(22)
-                Style.Fill(chip, "well")
-                chip.edges = Style.Border(chip, "cardLine")
+                chip.edges = { Style.Box(chip, 5, "well", "cardLine").line }
                 chip.level = Style.Text(chip, 11, "muted", nil, true)
                 chip.level:SetPoint("LEFT", 6, 0)
                 chip.text = Style.Text(chip, 11, "text")

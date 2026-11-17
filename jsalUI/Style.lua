@@ -173,7 +173,7 @@ end
 -- drawn square: everything works as before, with the corners it used to
 -- have.
 local ROUND = "Interface\\AddOns\\" .. addonName .. "\\Media\\Round\\r"
-local RADII = { [4] = true, [5] = true, [6] = true, [7] = true, [9] = true, [10] = true, [11] = true, [12] = true, [13] = true }
+local RADII = { [4] = true, [5] = true, [6] = true, [7] = true, [8] = true, [9] = true, [10] = true, [11] = true, [12] = true, [13] = true }
 
 function Style.Rounded()
     return Enum ~= nil and Enum.UITextureSliceMode ~= nil and not ns.needsRestart
@@ -434,46 +434,85 @@ end
 
 -- A page's tabs, as one long pill: a segment for each choice, the chosen one
 -- lit. `items` is a list of { key, label }; onPick(key) is called when one
--- is clicked. Pick(key) marks one as chosen without calling it.
-function Style.Tabs(parent, items, onPick)
+-- is clicked. Pick(key) marks one as chosen without calling it. Set(key,
+-- words, n, hot) changes a segment's words (nil keeps them) and the number
+-- in a small pill after them: nil for none, `hot` for a gold one, a number
+-- that waits on you. With `width` the segments share that much evenly, else
+-- each is as wide as what it says; `small` is the size for a narrow window.
+function Style.Tabs(parent, items, onPick, width, small)
     local bar = CreateFrame("Frame", nil, parent)
-    bar:SetHeight(30)
+    local high, pad, badgeHigh = small and 20 or 24, small and 10 or 16, small and 14 or 18
+    bar:SetHeight(high + 6)
     Style.Box(bar, 13, "titleBar", "line")
-    bar.buttons = {}
+    bar.buttons, bar.byKey = {}, {}
     local function Paint(b)
         local lit = b.selected or b.hover
         b.box.line:SetShown(b.selected == true)
         b.box.fill:SetShown(b.selected == true)
         b.label:SetTextColor(Style.Color(lit and "text" or "secondary"))
     end
-    local x = 3
     for i, item in ipairs(items) do
         local b = CreateFrame("Button", nil, bar)
-        b.key = item[1]
-        b.box = Style.Box(b, 12, "wellHover", "lineStrong")
-        b.label = Style.Text(b, 13, "secondary", nil, true)
-        b.label:SetPoint("CENTER")
-        b.label:SetJustifyH("CENTER")
+        b.key, b.words = item[1], item[2]
+        b.box = Style.Box(b, small and 10 or 12, "wellHover", "lineStrong")
+        b.label = Style.Text(b, small and 12 or 13, "secondary", nil, true)
         b.label:SetText(item[2])
-        local wide = Style.Wide(b.label, #item[2] * 8) + 32
-        b:SetSize(wide, 24)
-        b:SetPoint("LEFT", x, 0)
-        x = x + wide + 2
+        b.badge = CreateFrame("Frame", nil, b)
+        b.badge:SetHeight(badgeHigh)
+        b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 0)
+        b.badge.fill = Style.Round(b.badge, small and 7 or 9, "line")
+        b.count = Style.Text(b.badge, small and 10 or 11, "secondary", nil, true)
+        b.count:SetPoint("CENTER")
+        b.badge:Hide()
         b:SetScript("OnClick", function()
             bar:Pick(b.key)
             if onPick then onPick(b.key) end
         end)
         b:SetScript("OnEnter", function() b.hover = true; Paint(b) end)
         b:SetScript("OnLeave", function() b.hover = false; Paint(b) end)
-        bar.buttons[i] = b
+        bar.buttons[i], bar.byKey[b.key] = b, b
     end
-    bar:SetWidth(x + 1)
+    -- Each segment's words, and its number, in the middle of it.
+    function bar:Layout()
+        local x = 3
+        local each = width and math.floor((width - 6 - (#self.buttons - 1) * 2) / #self.buttons)
+        for _, b in ipairs(self.buttons) do
+            local inner = Style.Wide(b.label, #b.words * (small and 7 or 8))
+            if b.n then inner = inner + 6 + b.badgeWide end
+            local wide = each or (inner + pad * 2)
+            b:SetSize(wide, high)
+            b:ClearAllPoints()
+            b:SetPoint("LEFT", x, 0)
+            b.label:ClearAllPoints()
+            b.label:SetPoint("LEFT", math.floor((wide - inner) / 2), 0)
+            x = x + wide + 2
+        end
+        self:SetWidth(x + 1)
+    end
+    function bar:Set(key, words, n, hot)
+        local b = self.byKey[key]
+        if words then
+            b.words = words
+            b.label:SetText(words)
+        end
+        b.n = n
+        b.badge:SetShown(n ~= nil)
+        if n then
+            b.count:SetText(n)
+            b.count:SetTextColor(Style.Color(hot and "onGold" or "secondary"))
+            b.badge.fill:Paint(hot and "gold" or "line")
+            b.badgeWide = math.max(badgeHigh, Style.Wide(b.count, #tostring(n) * 7) + 10)
+            b.badge:SetWidth(b.badgeWide)
+        end
+        self:Layout()
+    end
     function bar:Pick(key)
         for _, b in ipairs(self.buttons) do
             b.selected = b.key == key
             Paint(b)
         end
     end
+    bar:Layout()
     bar:Pick(nil)
     return bar
 end
@@ -680,18 +719,30 @@ function Style.Card(parent, heading)
     return card
 end
 
--- A tag: a small pill after a name, as wide as its words. Gold with dark
--- words for what to do or what's best, a plain fill for what a thing is.
-function Style.Tag(parent, words, gold)
+-- A tag: a small pill after a name, as wide as its words (`wide`). Its
+-- tone: gold (or true) is gold with dark words, for what to do or what's
+-- best; "green" has green words, for what's good for you; none is a plain
+-- fill, for what a thing is. Say(text) changes its words, Tone(tone) its
+-- colours. `small` is the size for a row in a dense list.
+local TAG_TONES = { gold = { "gold", "onGold" }, green = { "line", "green" }, plain = { "line", "secondary" } }
+
+function Style.Tag(parent, words, tone, small)
     local t = CreateFrame("Frame", nil, parent)
-    t:SetHeight(20)
-    t.fill = Style.Round(t, 10, gold and "gold" or "line")
-    t.text = Style.Text(t, 11, gold and "onGold" or "secondary", nil, true)
+    t:SetHeight(small and 16 or 20)
+    t.fill = Style.Round(t, small and 8 or 10, "line")
+    t.text = Style.Text(t, small and 10 or 11, "secondary", nil, true)
     t.text:SetPoint("CENTER")
     function t:Say(text)
         self.text:SetText(text)
-        self:SetWidth(Style.Wide(self.text, #text * 6) + 18)
+        self.wide = Style.Wide(self.text, #text * (small and 5.2 or 6)) + (small and 14 or 18)
+        self:SetWidth(self.wide)
     end
+    function t:Tone(to)
+        local c = TAG_TONES[to == true and "gold" or to or "plain"]
+        self.fill:Paint(c[1])
+        self.text:SetTextColor(Style.Color(c[2]))
+    end
+    t:Tone(tone)
     t:Say(words or "")
     return t
 end

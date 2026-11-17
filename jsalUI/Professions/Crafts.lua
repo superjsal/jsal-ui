@@ -12,7 +12,7 @@
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local C = { tabs = {}, views = {}, ask = { have = true } }
+local C = { views = {}, ask = { have = true } }
 ns.GuildCrafts = C
 
 local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 82, 40, 26, 52, 76
@@ -217,11 +217,11 @@ end
 local function Pill(parent)
     local p = CreateFrame("Frame", nil, parent)
     p:SetHeight(20)
-    p.fill = Style.Fill(p, "goodFill")
+    p.fill = Style.Round(p, 10, "goodFill")
     p.text = Style.Text(p, 10, "green", nil, true)
     p.text:SetPoint("CENTER")
     function p:Set(label, kind)
-        self.fill:SetColorTexture(Style.Color(kind == "good" and "goodFill" or (kind == "need" and "needFill" or "line")))
+        self.fill:Paint(kind == "good" and "goodFill" or (kind == "need" and "needFill" or "line"))
         self.text:SetTextColor(Style.Color(kind == "good" and "green" or (kind == "need" and "gold" or "secondary")))
         self.text:SetText(label)
         self:SetWidth(TextWidth(self.text, #label * 7) + 16)
@@ -304,11 +304,11 @@ end
 local function CountBox(parent, width)
     local box = CreateFrame("Frame", nil, parent)
     box:SetSize(width, 52)
-    Style.Fill(box, "well")
-    Style.Border(box, "cardLine")
+    Style.Box(box, 6, "well", "cardLine")
+    -- The state's colour down the left, clear of the round corners.
     box.edge = box:CreateTexture(nil, "ARTWORK")
-    box.edge:SetPoint("TOPLEFT")
-    box.edge:SetPoint("BOTTOMLEFT")
+    box.edge:SetPoint("TOPLEFT", 0, -6)
+    box.edge:SetPoint("BOTTOMLEFT", 0, 6)
     box.edge:SetWidth(3)
     box.number = Style.Text(box, 26, "text", nil, true)
     box.number:SetPoint("LEFT", 20, 0)
@@ -379,21 +379,39 @@ end
 local function MakeHead(parent, width)
     local h = CreateFrame("Frame", nil, parent)
     h:SetSize(width, HEAD_ROW)
+    -- Behind a state's sign, name and number: a pill tinted with its colour.
+    h.pill = Style.Round(h, 10)
+    h.pill:ClearAllPoints()
+    h.pill:SetPoint("LEFT", 0, 0)
     h.mark = Mark(h, 10)
-    h.mark:SetPoint("LEFT", 0, 0)
+    h.mark:SetPoint("LEFT", 8, 0)
     h.text = Style.Text(h, 11, "text", nil, true)
-    h.text:SetPoint("LEFT", 18, 0)
+    h.text:SetPoint("LEFT", 26, 0)
     h.text:SetJustifyV("MIDDLE")
+    -- The same words as far as the number, to find where the pill ends.
+    h.twin = Style.Text(h, 11, "text", nil, true)
+    h.twin:Hide()
     return h
+end
+
+-- Puts a heading's state on: its sign, and the pill behind the sign, the
+-- title and the number. A heading with no state is its words alone.
+local function HeadState(h, state, title, n)
+    h.mark:SetShown(state ~= nil)
+    h.pill:SetShown(state ~= nil)
+    h.text:ClearAllPoints()
+    h.text:SetPoint("LEFT", state and 26 or 0, 0)
+    if not state then return end
+    h.mark:Set(state)
+    h.twin:SetText(title .. "   " .. n)
+    h.pill:SetSize(26 + TextWidth(h.twin, (#title + 3 + #tostring(n)) * 6.5) + 9, 20)
+    h.pill:Paint(STATE[state], 0.16)
 end
 
 local function Head(list, state, title, n, say)
     list.y = list.y + (list.y > 0 and 12 or 0)
     local h = Take(list, "head", MakeHead, HEAD_ROW)
-    h.mark:SetShown(state ~= nil)
-    if state then h.mark:Set(state) end
-    h.text:ClearAllPoints()
-    h.text:SetPoint("LEFT", state and 18 or 0, 0)
+    HeadState(h, state, title, n)
     h.text:SetText(Style.Tint(state and STATE[state] or "gold") .. title .. "|r   " .. Style.Tint("text") .. n .. "|r"
         .. (say and ("     " .. Style.Tint("muted") .. say .. "|r") or ""))
     return h
@@ -958,14 +976,20 @@ local function BuildCard(view, width)
     local card = CreateFrame("Frame", nil, view.body)
     card:SetSize(width, ASK_H)
     card:SetPoint("TOPLEFT", 0, -CARD_Y)
-    Style.Fill(card, "well")
-    Style.Border(card, "cardLine")
+    Style.Box(card, 6, "well", "cardLine")
     C.card = card
     card.strip = CreateFrame("Frame", nil, card)
     card.strip:SetPoint("BOTTOMLEFT", 1, 1)
     card.strip:SetPoint("BOTTOMRIGHT", -1, 1)
     card.strip:SetHeight(38)
-    Style.Fill(card.strip, "titleBar")
+    -- Round at the bottom, with the card; square at the top, where it meets
+    -- the card's own fill.
+    Style.Round(card.strip, 5, "titleBar")
+    local top = card.strip:CreateTexture(nil, "BACKGROUND")
+    top:SetColorTexture(Style.Color("titleBar"))
+    top:SetPoint("TOPLEFT")
+    top:SetPoint("TOPRIGHT")
+    top:SetHeight(19)
     Style.Rule(card.strip, "TOP", "cardLine")
 
     Label(card, "ASK THE GUILD FOR", 16, -12)
@@ -987,8 +1011,7 @@ local function BuildCard(view, width)
     card.on = CreateFrame("Button", nil, card)
     card.on:SetSize(230, 30)
     card.on:SetPoint("TOPLEFT", 370, -28)
-    Style.Fill(card.on, "well")
-    Style.Border(card.on, "lineStrong")
+    Style.Box(card.on, 5, "well", "lineStrong")
     card.on.text = Style.Text(card.on, 13, "text", nil, true)
     card.on.text:SetPoint("LEFT", 10, 0)
     card.on.hint = Style.Text(card.on, 11, "muted")
@@ -1069,8 +1092,7 @@ local function BuildCard(view, width)
     card.drop:SetWidth(340)
     card.drop:SetPoint("TOPLEFT", card.what.well, "BOTTOMLEFT", 0, -2)
     card.drop:SetFrameLevel((card:GetFrameLevel() or 1) + 20)
-    Style.Fill(card.drop, "titleBar")
-    Style.Border(card.drop, "lineStrong")
+    Style.Box(card.drop, 5, "titleBar", "lineStrong")
     card.drop.rows = {}
     for i = 1, 8 do
         local row = CreateFrame("Button", nil, card.drop)
@@ -1279,8 +1301,7 @@ end
 local function MakePerson(parent, width)
     local card = CreateFrame("Frame", nil, parent)
     card:SetSize(math.floor((width - 14) / 2), CARD_H)
-    Style.Fill(card, "well")
-    Style.Border(card, "cardLine")
+    Style.Box(card, 6, "well", "cardLine")
     card.dot = card:CreateTexture(nil, "ARTWORK")
     card.dot:SetSize(7, 7)
     card.dot:SetPoint("TOPLEFT", 14, -17)
@@ -1304,7 +1325,7 @@ local function ProfChip(card, k)
     if c then return c end
     c = CreateFrame("Button", nil, card)
     c:SetHeight(22)
-    Style.Fill(c, "line")
+    Style.Round(c, 11, "line")
     c.text = Style.Text(c, 11, "text")
     c.text:SetPoint("CENTER")
     Style.Hover(c)
@@ -1419,71 +1440,25 @@ end
 ---------------------------------------------------------------------------
 -- The window.
 ---------------------------------------------------------------------------
-local TABS = { { key = "foryou", label = "For you" }, { key = "yours", label = "Your orders" }, { key = "crafters", label = "Crafters" } }
+local TABS = { { "foryou", "For you" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
 local PAINT = { foryou = PaintForYou, yours = PaintYours, crafters = PaintCrafters }
 
-local function Tab(parent, spec)
-    local b = CreateFrame("Button", nil, parent)
-    b:SetHeight(34)
-    b.label = Style.Text(b, 14, "secondary", nil, true)
-    b.label:SetPoint("LEFT", 14, 0)
-    b.label:SetJustifyV("MIDDLE")
-    b.label:SetText(spec.label)
-    b.badge = CreateFrame("Frame", nil, b)
-    b.badge:SetHeight(18)
-    b.badge:SetPoint("LEFT", b.label, "RIGHT", 8, 0)
-    b.fill = Style.Fill(b.badge, "well")
-    b.edges = Style.Border(b.badge, "cardLine")
-    b.count = Style.Text(b.badge, 11, "muted", nil, true)
-    b.count:SetPoint("CENTER")
-    b.under = b:CreateTexture(nil, "ARTWORK")
-    b.under:SetColorTexture(Style.Color("gold"))
-    b.under:SetPoint("BOTTOMLEFT")
-    b.under:SetPoint("BOTTOMRIGHT")
-    b.under:SetHeight(2)
-    -- `hot`: a gold badge, for a number that waits on you.
-    function b:Set(selected, n, hot)
-        self.label:SetTextColor(Style.Color(selected and "text" or "secondary"))
-        self.under:SetShown(selected)
-        self.badge:SetShown(n ~= nil)
-        local w = TextWidth(self.label, #spec.label * 8) + 28
-        if n then
-            self.count:SetText(n)
-            self.count:SetTextColor(Style.Color(hot and "onGold" or "muted"))
-            self.fill:SetColorTexture(Style.Color(hot and "gold" or "well"))
-            Style.SetBorder(self.edges, hot and "gold" or "cardLine")
-            local bw = math.max(18, TextWidth(self.count, 8) + 10)
-            self.badge:SetWidth(bw)
-            w = w + 8 + bw
-        end
-        self:SetWidth(w)
-    end
-    b:SetScript("OnClick", function() C.Show(spec.key) end)
-    b:SetScript("OnEnter", function(self) self.label:SetTextColor(Style.Color("text")) end)
-    b:SetScript("OnLeave", function() C.PaintTabs() end)
-    return b
-end
-
-function C.PaintTabs()
-    local tab = CurrentTab()
+-- Marks the open tab on a bar of them, and puts their numbers on: what
+-- waits on you (in gold), your own orders that aren't done yet, and the
+-- guild's crafters. A number only when there's something to count.
+local function PaintBar(bar)
     local O = OrdersOn() and ns.Orders or nil
     local todo = O and O.Badge() or 0
     local mine = O and O.Mine() or nil
-    -- A number only when there's something to count.
     local function Some(n) return n and n > 0 and n or nil end
-    local counts = {
-        foryou = Some(O and todo),
-        yours = Some(mine and (#mine.waiting + #mine.making)),
-        crafters = Some(CraftersOn() and ns.Crafters.Count()),
-    }
-    local x = 0
-    for _, spec in ipairs(TABS) do
-        local b = C.tabs[spec.key]
-        b:Set(spec.key == tab, counts[spec.key], spec.key == "foryou" and todo > 0)
-        b:ClearAllPoints()
-        b:SetPoint("TOPLEFT", x, -66)
-        x = x + b:GetWidth() + 6
-    end
+    bar:Set("foryou", nil, Some(O and todo), todo > 0)
+    bar:Set("yours", nil, Some(mine and (#mine.waiting + #mine.making)))
+    bar:Set("crafters", nil, Some(CraftersOn() and ns.Crafters.Count()))
+    bar:Pick(CurrentTab())
+end
+
+function C.PaintTabs()
+    PaintBar(C.tabBar)
 end
 
 -- A name the game hadn't loaded leaves "..." on a row: look again in a
@@ -1582,11 +1557,8 @@ Window.Page("guildcrafts", function(page)
     C.right = Style.Text(page, 12, "muted")
     C.right:SetPoint("TOPRIGHT", page, "TOPLEFT", width, -6)
     C.right:SetJustifyH("RIGHT")
-    for _, spec in ipairs(TABS) do C.tabs[spec.key] = Tab(page, spec) end
-    local rule = CreateFrame("Frame", nil, page)
-    rule:SetSize(width, 1)
-    rule:SetPoint("TOPLEFT", 0, -99)
-    Style.Rule(rule, "BOTTOM", "lineStrong")
+    C.tabBar = Style.Tabs(page, TABS, function(key) C.Show(key) end)
+    C.tabBar:SetPoint("TOPLEFT", 0, -66)
     C.foot = Style.Text(page, 12, "muted")
     C.foot:SetPoint("BOTTOMLEFT", 0, 0)
     C.foot:SetWidth(width)
@@ -1619,8 +1591,7 @@ Window.Page("guildcrafts", function(page)
     crafters.searchWell = CreateFrame("Frame", nil, crafters)
     crafters.searchWell:SetPoint("TOPLEFT")
     crafters.searchWell:SetSize(width, 36)
-    Style.Fill(crafters.searchWell, "well")
-    Style.Border(crafters.searchWell, "lineStrong")
+    Style.Box(crafters.searchWell, 5, "well", "lineStrong")
     local search = CreateFrame("EditBox", nil, crafters.searchWell)
     search:SetAllPoints()
     search:SetTextInsets(12, 12, 0, 0)
@@ -1735,7 +1706,7 @@ local function MakeTail(parent, width)
     f.ask = CreateFrame("Button", nil, f)
     f.ask:SetPoint("TOPLEFT", 0, -34)
     f.ask:SetSize(width, 30)
-    f.ask.edges = Style.Border(f.ask, "cardLine")
+    f.ask.edges = { Style.Box(f.ask, 5, "well", "cardLine").line }
     f.ask.label = Style.Text(f.ask, 12, "gold", nil, true)
     f.ask.label:SetPoint("CENTER")
     f.ask.label:SetText("+  Ask the guild for something")
@@ -1758,10 +1729,7 @@ end
 local function SmallHead(list, state, title, n)
     list.y = list.y + (list.y > 0 and 8 or 0)
     local h = Take(list, "head", MakeHead, 22)
-    h.mark:SetShown(state ~= nil)
-    if state then h.mark:Set(state) end
-    h.text:ClearAllPoints()
-    h.text:SetPoint("LEFT", state and 16 or 0, 0)
+    HeadState(h, state, title, n)
     h.text:SetText(Style.Tint(state and STATE[state] or "gold") .. title .. "|r   " .. Style.Tint("text") .. n .. "|r")
 end
 
@@ -1925,27 +1893,12 @@ local function SmallCrafters(list)
 end
 
 local SMALL = { foryou = SmallForYou, yours = SmallYours, crafters = SmallCrafters }
-local SHORT = { foryou = "For you", yours = "Your orders", crafters = "Crafters" }
 
 function C.PaintSmall()
     local small = C.small
     if not small then return end
     local tab = CurrentTab()
-    -- The tabs, with their numbers.
-    local O = OrdersOn() and ns.Orders or nil
-    local todo = O and O.Badge() or 0
-    local mine = O and O.Mine() or nil
-    local function Some(n) return n and n > 0 and n or nil end
-    local counts = { foryou = Some(O and todo), yours = Some(mine and (#mine.waiting + #mine.making)),
-                     crafters = Some(CraftersOn() and ns.Crafters.Count()) }
-    local x = 0
-    for _, spec in ipairs(TABS) do
-        local b = small.tabs[spec.key]
-        b:Set(spec.key == tab, counts[spec.key], spec.key == "foryou" and todo > 0)
-        b:ClearAllPoints()
-        b:SetPoint("TOPLEFT", x, 0)
-        x = x + b:GetWidth() + 2
-    end
+    PaintBar(small.tabBar)
     local list = small.list
     Reset(list)
     local searching = tab == "crafters" and CraftersOn()
@@ -1958,7 +1911,7 @@ function C.PaintSmall()
         else
             Take(list, "note", MakeSmallNote, 54).text:SetText("Guild crafters is off. Turn it on in Settings, under Professions.")
         end
-    elseif O then
+    elseif OrdersOn() then
         SMALL[tab](list)
     else
         Take(list, "note", MakeSmallNote, 54).text:SetText("Guild orders are off. Turn them on in Settings, under Professions, to ask the guild for a craft here.")
@@ -1993,59 +1946,16 @@ local function BuildSmall()
     inner:SetPoint("TOPLEFT", 14, -42)
     inner:SetPoint("BOTTOMRIGHT", -14, 10)
     local width = SMALL_W - 28
-    f.tabs = {}
-    for _, spec in ipairs(TABS) do
-        local b = CreateFrame("Button", nil, inner)
-        b:SetHeight(28)
-        b.label = Style.Text(b, 12, "secondary", nil, true)
-        b.label:SetPoint("LEFT", 8, 0)
-        b.label:SetJustifyV("MIDDLE")
-        b.label:SetText(SHORT[spec.key])
-        b.badge = CreateFrame("Frame", nil, b)
-        b.badge:SetHeight(16)
-        b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 0)
-        b.fill = Style.Fill(b.badge, "well")
-        b.edges = Style.Border(b.badge, "cardLine")
-        b.count = Style.Text(b.badge, 10, "muted", nil, true)
-        b.count:SetPoint("CENTER")
-        b.under = b:CreateTexture(nil, "ARTWORK")
-        b.under:SetColorTexture(Style.Color("gold"))
-        b.under:SetPoint("BOTTOMLEFT")
-        b.under:SetPoint("BOTTOMRIGHT")
-        b.under:SetHeight(2)
-        local key = spec.key
-        function b:Set(selected, n, hot)
-            self.label:SetTextColor(Style.Color(selected and "text" or "secondary"))
-            self.under:SetShown(selected)
-            self.badge:SetShown(n ~= nil)
-            local w = TextWidth(self.label, #SHORT[key] * 7) + 16
-            if n then
-                self.count:SetText(n)
-                self.count:SetTextColor(Style.Color(hot and "onGold" or "muted"))
-                self.fill:SetColorTexture(Style.Color(hot and "gold" or "well"))
-                Style.SetBorder(self.edges, hot and "gold" or "cardLine")
-                local bw = math.max(16, TextWidth(self.count, 7) + 10)
-                self.badge:SetWidth(bw)
-                w = w + 6 + bw
-            end
-            self:SetWidth(w)
-        end
-        b:SetScript("OnClick", function()
-            View().tab = key
-            C.PaintSmall()
-        end)
-        f.tabs[key] = b
-    end
-    local rule = CreateFrame("Frame", nil, inner)
-    rule:SetSize(width, 1)
-    rule:SetPoint("TOPLEFT", 0, -27)
-    Style.Rule(rule, "BOTTOM", "lineStrong")
+    f.tabBar = Style.Tabs(inner, TABS, function(key)
+        View().tab = key
+        C.PaintSmall()
+    end, nil, true)
+    f.tabBar:SetPoint("TOPLEFT", 0, 0)
     -- The Crafters tab's search.
     f.searchWell = CreateFrame("Frame", nil, inner)
     f.searchWell:SetPoint("TOPLEFT", 0, -38)
     f.searchWell:SetSize(width, 30)
-    Style.Fill(f.searchWell, "well")
-    Style.Border(f.searchWell, "lineStrong")
+    Style.Box(f.searchWell, 5, "well", "lineStrong")
     local search = CreateFrame("EditBox", nil, f.searchWell)
     search:SetAllPoints()
     search:SetTextInsets(10, 10, 0, 0)

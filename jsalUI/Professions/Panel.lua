@@ -14,7 +14,7 @@ local Panel = ns.NewModule("professionpanel", {
 local WIDTH, PAD, ROW_H = 440, 14, 30
 -- A line of everything the road needs, and the row for training the next rank.
 local NEED_H, RANK_H = 22, Road.RANK_H
-local TAB_H = 24
+local TAB_H = 26
 local MAX_STEPS, MAX_ITEMS = 6, 8
 -- The profession window, newer and older.
 local TARGETS = {
@@ -102,18 +102,11 @@ local function Build()
 
     -- Two tabs, when there are recipes to learn: the panel shows one list
     -- at a time, so it stays shorter than the screen.
-    panel.tabs = {}
-    local tabW = (WIDTH - PAD * 2 - 6) / 2
-    for i, key in ipairs({ "road", "recipes" }) do
-        local b = Style.Button(panel, key == "road" and "Your road" or "Recipes to learn", "tab", tabW)
-        b:SetHeight(TAB_H)
-        b:SetPoint("TOPLEFT", PAD + (i - 1) * (tabW + 6), -(36 + 68))
-        b:SetScript("OnClick", function()
-            tab = key
-            xpcall(Paint, ns.Report)
-        end)
-        panel.tabs[key] = b
-    end
+    panel.tabs = Style.Tabs(panel, { { "road", "Your road" }, { "recipes", "Recipes to learn" } }, function(key)
+        tab = key
+        xpcall(Paint, ns.Report)
+    end, WIDTH - PAD * 2, true)
+    panel.tabs:SetPoint("TOPLEFT", PAD, -(36 + 68))
 
     panel.roadHead = Style.Text(panel, 12, "gold", nil, true)
     panel.roadNote = Style.Text(panel, 12, "muted")
@@ -644,11 +637,9 @@ function Paint()
     -- With recipes to learn there are two tabs; without, only the road.
     local view = (#missing > 0 and tab == "recipes") and "recipes" or "road"
     local y = 36 + 68
-    for key, b in pairs(panel.tabs) do
-        b:SetShown(#missing > 0)
-        b:SetSelected(key == view)
-    end
-    panel.tabs.recipes:SetLabel(("Recipes to learn  |cff9a9688%d|r"):format(groups and groups.count or #missing))
+    panel.tabs:SetShown(#missing > 0)
+    panel.tabs:Set("recipes", nil, groups and groups.count or #missing)
+    panel.tabs:Pick(view)
     if #missing > 0 then y = y + TAB_H + 12 end
 
     local shown, count, listed, later, mats, ranked = 0, 0, 0, false, 0, false
