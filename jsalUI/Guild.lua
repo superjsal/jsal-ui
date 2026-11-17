@@ -446,14 +446,29 @@ Window.Page("guild", function(page)
     local more = Style.Text(page, 11, "muted")
     more:SetPoint("TOPLEFT", rows[MAX_ROWS], "BOTTOMLEFT", 0, -8)
 
+    -- Each part of a paint, timed, so /jsal perf can say which is slow (John, 17 Nov 2026:
+    -- "this one hitches still noticeably"). A part is noted only when the paint was slow.
+    local spent = {}
+    local function Spent(part, since)
+        local now = debugprofilestop()
+        spent[part] = (spent[part] or 0) + now - since
+        return now
+    end
     page.Refresh = function()
+        local started = debugprofilestop()
+        spent = {}
         Guild.Hello()
+        local t = Spent("hello to the guild", started)
         local inGuild = IsInGuild()
         if Guild.running and inGuild then
-            Store(Status(), Compat.MyName())
+            local status = Status()
+            t = Spent("your own scores, put together", t)
+            Store(status, Compat.MyName())
+            t = Spent("your own scores, kept", t)
         end
         local word = Guild.Word()
         local list = Sorted(word and word.id)
+        t = Spent("who's on, from the roster", t)
         -- The title: how many of the guild run jsal.ui, and how many are on.
         local online = 0
         for _, e in ipairs(list) do if not e.away then online = online + 1 end end
@@ -539,6 +554,10 @@ Window.Page("guild", function(page)
             b.name:SetText(found[1] and found[1].name or "No one yet")
             b.name:SetTextColor(Style.Color(found[1] and "text" or "muted"))
             b.value:SetText(found[2] or "")
+        end
+        Spent("drawing", t)
+        if debugprofilestop() - started >= 10 then
+            for part, ms in pairs(spent) do ns.NoteTime("Guild, " .. part, ms) end
         end
     end
 end, nil, true)
