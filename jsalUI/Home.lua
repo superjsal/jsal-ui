@@ -1,6 +1,7 @@
--- The dashboard's first page, Today: what's ready for you right now (a
--- trainer visit, a talent point, today's games), where each of your plans
--- stands, and what's new in this version in one line at the bottom.
+-- The dashboard's first page, Home: who you are and how far through the
+-- level, what's ready for you right now (a trainer visit, a talent point),
+-- where each of your plans stands as a picture, the guild, today's games and
+-- the Journal, and what's new in this version in one line at the bottom.
 -- ns.Today works out what's waiting; the side menu's badges ask it too.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
@@ -303,8 +304,143 @@ function Today.Badge(key)
     return n and n > 0 and n or nil
 end
 
--- The Ready now list, most pressing first. Each: its icon, a title, a line
--- under it, an amount (or nil), and a button with what it does.
+---------------------------------------------------------------------------
+-- What the cards show. Each answer is nil when its part is off.
+---------------------------------------------------------------------------
+-- The plan's next talents, `most` of them at most: each with the rank it
+-- becomes and the level its point comes at.
+function Today.Queue(most)
+    local Tree = ns.TalentTree
+    local data = Tree and Tree.Read()
+    if not data then return {} end
+    local order = Tree.Replay(data, Tree.Active().order or {})
+    local _, _, index = Tree.Next(data, order)
+    local out, seen = {}, {}
+    if not index then return out end
+    for i, id in ipairs(order) do
+        seen[id] = (seen[id] or 0) + 1
+        local node = data.nodes[id]
+        if i >= index and #out < most and node then
+            out[#out + 1] = { node = node, rank = seen[id], level = Tree.Level(i) }
+        end
+    end
+    return out
+end
+
+-- What you wear, slot by slot in the Gear plan's order: its picture and
+-- quality, or that it's empty, and whether something you've starred goes there.
+function Today.Slots()
+    local G = ns.Gear
+    if not (G and G.running) then return nil end
+    local wanted = {}
+    for _, star in pairs(G.Starred()) do
+        if type(star) == "table" and star.t then wanted[star.t] = true end
+    end
+    local out = {}
+    for _, slot in ipairs(G.SLOTS) do
+        local starred = false
+        for _, kind in ipairs(slot.types or {}) do starred = starred or wanted[kind] == true end
+        for _, id in ipairs(slot.equip) do
+            local worn = GetInventoryItemLink("player", id) ~= nil
+            out[#out + 1] = {
+                empty = not worn, starred = starred,
+                texture = worn and GetInventoryItemTexture and GetInventoryItemTexture("player", id) or nil,
+                quality = worn and GetInventoryItemQuality and GetInventoryItemQuality("player", id) or nil,
+            }
+        end
+    end
+    return out
+end
+
+-- Guildmates online now, yourself aside, each with their class. Nil outside
+-- a guild.
+function Today.Guildmates()
+    if not (IsInGuild and IsInGuild()) then return nil end
+    local me, out = UnitName("player"), {}
+    for i = 1, (GetNumGuildMembers and GetNumGuildMembers() or 0) do
+        local full, _, _, _, _, _, _, _, online, _, class = GetGuildRosterInfo(i)
+        local name = full and Ambiguate(full, "none")
+        if name and online and name ~= me then out[#out + 1] = { name = name, class = class } end
+    end
+    return out
+end
+
+-- The guild's orders that touch you, counted by where they stand: waiting on
+-- you, waiting for a crafter, being made. Nil with none, or the part off.
+function Today.Orders()
+    local O = ns.Orders
+    if not (O and O.running) then return nil end
+    local mine, forMe = O.Mine(), O.ForMe()
+    local out = { you = #forMe.todo + #mine.sent, waiting = #mine.waiting + #forMe.waiting, making = #mine.making }
+    if out.you + out.waiting + out.making == 0 then return nil end
+    return out
+end
+
+-- Today's daily games that are switched on, each with where it stands in a
+-- word or two and the colour for it: gold to play, green done, red missed.
+function Today.GameTiles()
+    local out = {}
+    local word = ns.DailyWord
+    if word and word.running then
+        local day, score
+        if word.Result then day, score = word.Result() end
+        out[#out + 1] = { icon = "word", label = "Daily Word", game = word,
+            state = not day and "Play" or (score == "X" and "missed" or ("solved in " .. tostring(score))),
+            tone = not day and "gold" or (score == "X" and "red" or "green") }
+    end
+    local icons = ns.IconGuess
+    if icons and icons.running then
+        local day, score
+        if icons.Result then day, score = icons.Result() end
+        out[#out + 1] = { icon = "icons", label = "Icon Guess", game = icons,
+            state = day and (tostring(score) .. " right") or "Play", tone = day and "green" or "gold" }
+    end
+    local run = ns.PalRun
+    if run and run.running then
+        local day, best
+        if run.Result then day, best = run.Result() end
+        local clock = day and ns.PalRunRules and ns.PalRunRules.Clock and ns.PalRunRules.Clock(best)
+        local used = not day and run.DailyDone()
+        out[#out + 1] = { icon = "run", label = "Pal run", game = run,
+            state = clock or (day and "done") or (used and "no time") or "Play",
+            tone = day and "green" or (used and "muted" or "gold") }
+    end
+    return out
+end
+
+-- The time each of your last `most` levels took, oldest first, as the Journal
+-- kept it, and whether you died on it. Nil with the Journal off.
+function Today.Levels(most)
+    local J = ns.Journal
+    if not (J and J.running and J.Book) then return nil end
+    local levels = J.Book().levels
+    if type(levels) ~= "table" then return nil end
+    local level, out = UnitLevel("player") or 1, {}
+    for l = math.max(1, level - most + 1), level do
+        local row = levels[l]
+        out[#out + 1] = { level = l, seconds = row and row.seconds or 0, deaths = row and row.deaths or 0 }
+    end
+    return out
+end
+
+-- Your pace, in XP a second, as the Journal's Summary works it out: over the
+-- level you're on and the two before it, once that's ten minutes of play.
+function Today.Pace()
+    local J = ns.Journal
+    if not (J and J.running and J.Book) then return nil end
+    local levels, level = J.Book().levels, UnitLevel("player") or 1
+    if type(levels) ~= "table" then return nil end
+    local xp, seconds = 0, 0
+    for l = level, level - 2, -1 do
+        local row = levels[l]
+        if row then xp, seconds = xp + (row.xp or 0), seconds + (row.seconds or 0) end
+    end
+    return seconds >= 600 and xp > 0 and xp / seconds or nil
+end
+
+-- The Ready now cards, most pressing first. Each: its icon, a title, a line
+-- under it (with the talent it's about, when it is), an amount, and what a
+-- click does in a word or two. The daily games have a card of their own.
 local function Ready()
     local rows = {}
     local function Add(row) rows[#rows + 1] = row end
@@ -314,9 +450,9 @@ local function Ready()
         local points, node, rank = Today.Talents()
         if not points then return end
         Add({
-            icon = "build", title = Plural(points, "talent point") .. " to spend",
-            sub = node and ("Next in your plan: %s, rank %d of %d"):format(node.name, rank, node.max)
-                or "Your plan has no next talent yet",
+            icon = "build", title = Plural(points, "talent point"),
+            sub = node and node.name or "Your plan has no next talent yet", node = node, rank = rank,
+            tip = node and ("Next in your plan: %s, rank %d of %d"):format(node.name, rank, node.max) or nil,
             button = "Open plan", click = function() Window.Open("build") end,
         })
     end)
@@ -328,9 +464,8 @@ local function Ready()
         local nearest = classID and ns.Trainers and ns.Trainers.Nearest("class" .. classID)
         local place = nearest and ns.Trainers.Zone(nearest)
         Add({
-            icon = "training", title = "Trainer visit: " .. Plural(count, "spell"),
-            sub = nearest and ("Nearest trainer: %s%s"):format(nearest.name, place and (", " .. place) or "")
-                or "No class trainer found nearby",
+            icon = "training", title = "Trainer visit",
+            sub = Plural(count, "spell") .. " · " .. (nearest and (nearest.name .. (place and (", " .. place) or "")) or "no trainer found nearby"),
             value = cost > 0 and Compat.Money(cost) or nil,
             button = nearest and "Show on map" or "Open planner", primary = true,
             click = function()
@@ -342,15 +477,8 @@ local function Ready()
     Try(function()
         local waiting = Today.Chess()
         if not waiting then return end
-        Add({ icon = "chess", title = waiting, sub = "Moves wait for whoever's turn it is",
+        Add({ icon = "chess", title = waiting, sub = "Guild chess",
             button = "Open chess", click = function() Window.Open("chess") end })
-    end)
-
-    Try(function()
-        for _, entry in ipairs(Today.Games()) do
-            Add({ icon = entry.icon, title = ("%s #%d"):format(entry.label, ns.Games.Today()),
-                sub = entry.game.Status(), button = "Play", click = function() entry.game.Open() end })
-        end
     end)
 
     Try(function()
@@ -358,7 +486,7 @@ local function Ready()
         if state ~= "ready" and state ~= "update" then return end
         Add({
             icon = "install",
-            title = state == "update" and "A newer jsal.ui look is ready" or "The jsal.ui look is ready to install",
+            title = state == "update" and "A newer look is ready" or "The look is ready to install",
             sub = "One click and a reload",
             button = "Open Install", click = function() Window.Open("install") end,
         })
@@ -367,10 +495,13 @@ local function Ready()
 end
 
 ---------------------------------------------------------------------------
--- The page.
+-- The page's building blocks.
 ---------------------------------------------------------------------------
-local ROW_H, CARD_H, GAP, PAD = 56, 132, 12, 14
-local BUTTON_W, VALUE_W = 124, 90
+local GAP, PAD = 16, 16
+local HERO_H, READY_H, IDLE_H, PLAN_H, LOW_H = 148, 100, 44, 208, 140
+local WHO_W, PAL_W = 252, 242
+local MEDIA = "Interface\\AddOns\\jsalUI\\Media\\"
+local UNKNOWN = "Interface\\Icons\\INV_Misc_QuestionMark"
 
 local function Caps(parent, text, colorKey)
     local t = Style.Text(parent, 11, colorKey or "gold", nil, true)
@@ -393,191 +524,870 @@ local function Meter(parent)
     return track
 end
 
-Window.Page("home", function(page)
-    local width = Window.contentWidth
-    local half = math.floor((width - GAP) / 2)
+-- A row of small squares: how many of a talent's ranks are taken.
+local function Pips(parent)
+    local p = CreateFrame("Frame", nil, parent)
+    p:SetSize(52, 8)
+    p.dots = {}
+    for i = 1, 5 do
+        local t = p:CreateTexture(nil, "ARTWORK")
+        t:SetSize(8, 8)
+        t:SetPoint("LEFT", (i - 1) * 11, 0)
+        p.dots[i] = t
+    end
+    function p:Set(taken, of)
+        of = math.max(1, math.min(5, of or 1))
+        for i, t in ipairs(self.dots) do
+            t:SetShown(i <= of)
+            t:SetColorTexture(Style.Color(i <= (taken or 0) and "gold" or "lineStrong"))
+        end
+        self:SetWidth(of * 11 - 3)
+    end
+    return p
+end
 
-    local title = Style.Text(page, 21, "text", nil, true)
-    title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    title:SetText("Today")
-    local who = Style.Text(page, 13, "muted")
-    who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+-- One of the game's own icons in a thin line, its baked-in border trimmed.
+local function GameIcon(parent, size)
+    local f = CreateFrame("Frame", nil, parent)
+    f:SetSize(size, size)
+    f.edges = Style.Border(f, "lineStrong")
+    f.icon = f:CreateTexture(nil, "ARTWORK")
+    f.icon:SetPoint("TOPLEFT", 1, -1)
+    f.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    f.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    function f:Set(texture) self.icon:SetTexture(texture or UNKNOWN) end
+    return f
+end
 
-    -- The date, beside the title.
-    local today = Style.Text(page, 13, "muted")
-    today:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 12, 2)
+-- The small square before a count, in the shape its state has everywhere:
+-- full for what waits on you, an outline for what waits on someone else, half
+-- for what's under way.
+local function Sign(parent, colorKey, shape)
+    local f = CreateFrame("Frame", nil, parent)
+    f:SetSize(8, 8)
+    if shape ~= "full" then Style.Border(f, colorKey) end
+    if shape ~= "outline" then
+        local t = f:CreateTexture(nil, "ARTWORK")
+        t:SetColorTexture(Style.Color(colorKey))
+        t:SetPoint("TOPLEFT")
+        t:SetPoint("BOTTOMLEFT")
+        t:SetWidth(shape == "half" and 4 or 8)
+    end
+    return f
+end
 
-    -- Your pal, when it wants something: its picture, what it wants and
-    -- what you have for it, under your name; a click opens its pen. It was
-    -- a row of Ready now; it's said once, here.
-    local pal = CreateFrame("Button", nil, page)
-    pal:SetSize(half - GAP, 40)
-    pal:SetPoint("TOPLEFT", who, "BOTTOMLEFT", -4, -8)
-    pal.icon = pal:CreateTexture(nil, "ARTWORK")
-    pal.icon:SetSize(38, 38)
-    pal.icon:SetPoint("LEFT")
+-- Six hex digits as the three parts of a colour.
+local function Parts(hex)
+    return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
+end
+
+-- The code that starts words in a class's colour.
+local function ClassTint(classFile)
+    local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
+    if not c then return Style.Tint("text") end
+    local function Part(v) return math.floor((v or 1) * 255 + 0.5) end
+    return ("|cff%02x%02x%02x"):format(Part(c.r), Part(c.g), Part(c.b))
+end
+
+-- Seconds as "46m" or "1h 52m".
+local function Took(seconds)
+    local minutes = math.floor((seconds or 0) / 60 + 0.5)
+    if minutes < 60 then return minutes .. "m" end
+    return ("%dh %dm"):format(math.floor(minutes / 60), minutes % 60)
+end
+
+-- A card that opens a page: the page's tile and name at its top, a word at
+-- the right of them, and a line for when it has nothing to show.
+local function PageCard(parent, key, label, icon, width, height)
+    local c = CreateFrame("Button", nil, parent)
+    c:SetSize(width, height)
+    Style.Fill(c, "well")
+    c.edges = Style.Border(c, "cardLine")
+    local tile = c:CreateTexture(nil, "ARTWORK")
+    tile:SetTexture(OWN .. icon)
+    tile:SetSize(22, 22)
+    tile:SetPoint("TOPLEFT", PAD, -14)
+    c.label = Caps(c, label, "muted")
+    c.label:SetPoint("LEFT", tile, "RIGHT", 8, 0)
+    c.note = Style.Text(c, 12, "muted")
+    c.note:SetPoint("TOPRIGHT", -PAD, -17)
+    c.note:SetJustifyH("RIGHT")
+    c.empty = Style.Text(c, 12, "muted")
+    c.empty:SetPoint("TOPLEFT", PAD, -52)
+    c.empty:SetWidth(width - PAD * 2)
+    c:SetScript("OnClick", function() Window.Open(key) end)
+    c:SetScript("OnEnter", function(self) Style.SetBorder(self.edges, "gold") end)
+    c:SetScript("OnLeave", function(self) Style.SetBorder(self.edges, "cardLine") end)
+    Style.Hover(c)
+    return c
+end
+
+---------------------------------------------------------------------------
+-- The top card: who you are, this level and what the next one brings, and
+-- your pal in its pen. Returns the function that paints it.
+---------------------------------------------------------------------------
+local function Hero(page, width)
+    local hero = CreateFrame("Frame", nil, page)
+    hero:SetSize(width, HERO_H)
+    hero:SetPoint("TOPLEFT")
+    Style.Fill(hero, "well")
+    Style.Border(hero, "cardLine")
+
+    -- Who you are: your portrait in a line of your class's colour, your
+    -- name, level and class, your gold, and the day.
+    local face = CreateFrame("Frame", nil, hero)
+    face:SetSize(66, 66)
+    face:SetPoint("TOPLEFT", 20, -20)
+    Style.Fill(face, "titleBar")
+    face.edges = Style.Border(face, "lineStrong")
+    face.picture = face:CreateTexture(nil, "ARTWORK")
+    face.picture:SetPoint("TOPLEFT", 1, -1)
+    face.picture:SetPoint("BOTTOMRIGHT", -1, 1)
+    local name = Style.Text(hero, 23, "text", nil, true)
+    name:SetPoint("TOPLEFT", face, "TOPRIGHT", 14, 3)
+    name:SetWidth(WHO_W - 20 - 66 - 14 - 6)
+    name:SetWordWrap(false)
+    local who = Style.Text(hero, 13, "secondary")
+    who:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -2)
+    local money = Style.Text(hero, 13, "text", nil, true)
+    money:SetPoint("TOPLEFT", who, "BOTTOMLEFT", 0, -7)
+    local day = Style.Text(hero, 12, "muted")
+    day:SetPoint("BOTTOMLEFT", 20, 16)
+
+    -- Your pal, in the pen of the land you're in: what it wants, or its name
+    -- when it's content. A click opens its pen.
+    local pal = CreateFrame("Button", nil, hero)
+    pal:SetPoint("TOPRIGHT")
+    pal:SetPoint("BOTTOMRIGHT")
+    pal:SetWidth(PAL_W)
+    Style.Rule(pal, "LEFT", "line")
+    pal.scene = pal:CreateTexture(nil, "ARTWORK")
+    pal.scene:SetSize(220, 100)
+    pal.scene:SetPoint("TOPLEFT", 11, -10)
+    -- A scene's picture is 256 by 128 with the scene in its top left 220 by 100.
+    pal.scene:SetTexCoord(0, 220 / 256, 0, 100 / 128)
+    pal.picture = pal:CreateTexture(nil, "OVERLAY")
+    pal.picture:SetPoint("BOTTOM", pal.scene, "BOTTOM", 0, 6)
     pal.title = Style.Text(pal, 13, "gold", nil, true)
-    pal.title:SetPoint("TOPLEFT", pal.icon, "TOPRIGHT", 8, -3)
+    pal.title:SetPoint("BOTTOMLEFT", 11, 11)
     pal.sub = Style.Text(pal, 12, "muted")
-    pal.sub:SetPoint("TOPLEFT", pal.title, "BOTTOMLEFT", 0, -3)
+    pal.sub:SetPoint("BOTTOMRIGHT", -11, 11)
+    pal.sub:SetJustifyH("RIGHT")
+    pal.sub:SetWordWrap(false)
     pal:SetScript("OnClick", function() Window.Open("pet") end)
-    Style.Hover(pal, 4)
-    pal:Hide()
+    Style.Hover(pal)
 
-    -- What the next level brings, as a card at the right of the title: the
-    -- level, how far through this one you are, and a row for each thing.
-    -- Hidden when there's nothing to say or the part is off.
-    local cardW = math.min(380, half)
-    local rowW = cardW - PAD * 2 - 2
-    local nextCard = CreateFrame("Frame", nil, page)
-    nextCard:SetWidth(cardW)
-    nextCard:SetPoint("TOPRIGHT", title, "TOPLEFT", width, 4)
-    Style.Fill(nextCard, "well")
-    nextCard.edge = nextCard:CreateTexture(nil, "ARTWORK")
-    nextCard.edge:SetColorTexture(Style.Color("gold"))
-    nextCard.edge:SetPoint("TOPLEFT")
-    nextCard.edge:SetPoint("BOTTOMLEFT")
-    nextCard.edge:SetWidth(3)
-    nextCard.head = Caps(nextCard, "")
-    nextCard.head:SetPoint("TOPLEFT", PAD + 2, -11)
-    nextCard.xp = Style.Text(nextCard, 11, "muted")
-    nextCard.xp:SetPoint("TOPRIGHT", -PAD, -11)
-    nextCard.xp:SetJustifyH("RIGHT")
-    nextCard.track = CreateFrame("Frame", nil, nextCard)
-    nextCard.track:SetPoint("TOPLEFT", PAD + 2, -30)
-    nextCard.track:SetSize(rowW, 3)
-    Style.Fill(nextCard.track, "line")
-    nextCard.fill = nextCard.track:CreateTexture(nil, "ARTWORK")
-    nextCard.fill:SetPoint("TOPLEFT")
-    nextCard.fill:SetPoint("BOTTOMLEFT")
-    nextCard.fill:SetColorTexture(Style.Color("gold"))
-    nextCard.rows = {}
-    local function NextRow(i)
-        if nextCard.rows[i] then return nextCard.rows[i] end
-        local r = CreateFrame("Frame", nil, nextCard)
-        r:SetSize(rowW, 26)
-        r:SetPoint("TOPLEFT", PAD + 2, -(42 + (i - 1) * 28))
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(20, 20)
-        r.icon:SetPoint("LEFT")
-        r.detail = Style.Text(r, 12, "muted")
-        r.detail:SetPoint("RIGHT")
-        r.detail:SetJustifyH("RIGHT")
-        r.label = Style.Text(r, 13, "text")
-        r.label:SetPoint("LEFT", r.icon, "RIGHT", 10, 0)
-        r.label:SetPoint("RIGHT", r.detail, "LEFT", -8, 0)
-        r.label:SetJustifyH("LEFT")
-        r.label:SetWordWrap(false)
-        nextCard.rows[i] = r
-        return r
+    -- This level: how far through it you are, the rested part in blue, and
+    -- how long the rest takes at your pace.
+    local level = CreateFrame("Frame", nil, hero)
+    level:SetPoint("TOPLEFT", WHO_W, 0)
+    level:SetPoint("BOTTOMLEFT", WHO_W, 0)
+    Style.Rule(level, "LEFT", "line")
+    local now = CreateFrame("Frame", nil, level)
+    now:SetHeight(62)
+    now.head = Caps(now, "")
+    now.head:SetPoint("TOPLEFT")
+    now.pace = Style.Text(now, 12, "muted")
+    now.pace:SetPoint("TOPRIGHT")
+    now.pace:SetJustifyH("RIGHT")
+    now.track = CreateFrame("Frame", nil, now)
+    now.track:SetHeight(12)
+    now.track:SetPoint("TOPLEFT", 0, -26)
+    now.track:SetPoint("TOPRIGHT", 0, -26)
+    Style.Fill(now.track, "line")
+    now.fill = now.track:CreateTexture(nil, "ARTWORK")
+    now.fill:SetPoint("TOPLEFT")
+    now.fill:SetPoint("BOTTOMLEFT")
+    now.fill:SetColorTexture(Style.Color("gold"))
+    now.rest = now.track:CreateTexture(nil, "ARTWORK")
+    now.rest:SetPoint("TOPLEFT", now.fill, "TOPRIGHT")
+    now.rest:SetPoint("BOTTOMLEFT", now.fill, "BOTTOMRIGHT")
+    now.rest:SetColorTexture(Style.Color("blue"))
+    now.xp = Style.Text(now, 12, "text")
+    now.xp:SetPoint("TOPLEFT", 0, -45)
+    now.rested = Style.Text(now, 12, "muted")
+    now.rested:SetPoint("TOPRIGHT", 0, -45)
+    now.rested:SetText("rested")
+    now.restSign = Sign(now, "blue", "full")
+    now.restSign:SetPoint("RIGHT", now.rested, "LEFT", -6, 0)
+
+    -- What the next level brings, under a rule: the talent your plan takes
+    -- and its ranks, then the trainer visit and whether your gold covers it.
+    -- The whole of it is in its tooltip.
+    local soon = CreateFrame("Frame", nil, level)
+    soon:SetHeight(42)
+    soon:SetPoint("BOTTOMLEFT", 24, 0)
+    Style.Rule(soon, "TOP", "line")
+    soon.head = Caps(soon, "", "muted")
+    soon.head:SetPoint("LEFT", 0, -1)
+    soon.icon = GameIcon(soon, 24)
+    soon.icon:SetPoint("LEFT", soon.head, "RIGHT", 12, 0)
+    soon.name = Style.Text(soon, 13, "text")
+    soon.name:SetPoint("LEFT", soon.icon, "RIGHT", 8, 0)
+    soon.name:SetWordWrap(false)
+    soon.pips = Pips(soon)
+    soon.pips:SetPoint("LEFT", soon.name, "RIGHT", 8, 0)
+    soon.enough = Style.Text(soon, 12, "green", nil, true)
+    soon.enough:SetPoint("RIGHT", 0, -1)
+    soon.cost = Style.Text(soon, 13, "text", nil, true)
+    soon.cost:SetPoint("RIGHT", soon.enough, "LEFT", -8, 0)
+    soon.spells = Style.Text(soon, 13, "text")
+    soon.spells:SetPoint("RIGHT", soon.cost, "LEFT", -8, 0)
+    soon.tile = soon:CreateTexture(nil, "ARTWORK")
+    soon.tile:SetTexture(OWN .. "training")
+    soon.tile:SetSize(24, 24)
+    soon.tile:SetPoint("RIGHT", soon.spells, "LEFT", -8, 0)
+    soon:EnableMouse(true)
+    soon:SetScript("OnEnter", function(self)
+        if not self.rows then return end
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(self.title or "")
+        for _, row in ipairs(self.rows) do
+            GameTooltip:AddLine(row.label .. (row.detail and row.detail ~= "" and ("  |cff9a9688" .. row.detail .. "|r") or ""), 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end)
+    soon:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    local function PaintWho()
+        local _, classFile = UnitClass("player")
+        local colour = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
+        if colour then
+            for _, edge in ipairs(face.edges) do edge:SetColorTexture(colour.r, colour.g, colour.b) end
+        end
+        if SetPortraitTexture then SetPortraitTexture(face.picture, "player") end
+        name:SetText(UnitName("player") or "")
+        who:SetText(("Level %d %s"):format(UnitLevel("player") or 0, UnitClass("player") or ""))
+        money:SetText(Compat.Money(GetMoney and GetMoney() or 0))
+        day:SetText(DateText())
     end
 
-    -- Ready now: one box, a row for each thing waiting.
-    local readyHead = Caps(page, "READY NOW")
-    readyHead:SetPoint("TOPLEFT", who, "BOTTOMLEFT", 0, -24)
-    local headerTall = 46      -- the title and your name; more with the pal or the card
-    local readyCount = Style.Text(page, 11, "muted")
-    readyCount:SetPoint("LEFT", readyHead, "RIGHT", 8, 0)
-    local list = CreateFrame("Frame", nil, page)
-    list:SetPoint("TOPLEFT", readyHead, "BOTTOMLEFT", 0, -10)
-    list:SetWidth(width)
-    Style.Fill(list, "well")
-    Style.Border(list, "cardLine")
-    local nothing = Style.Text(list, 13, "muted")
+    -- Returns whether the pal's block shows.
+    local function PaintPal()
+        local Pet = ns.Pet
+        local portrait = Pet and Pet.Portrait and Pet.Portrait() or nil
+        local wants = Today.Pet()
+        local shown = portrait ~= nil or wants ~= nil
+        pal:SetShown(shown)
+        if not shown then return false end
+        local scene = Pet.Scene and Pet.Scene(Pet.where) or "meadow"
+        pal.scene:SetTexture(MEDIA .. "Pet\\" .. scene .. ".png", "CLAMP", "CLAMP", "NEAREST")
+        -- Its picture at its own size, so every pixel stays square; the two
+        -- largest at half theirs, to stand inside the scene.
+        local size = portrait and portrait.size or 64
+        if size > 96 then size = size / 2 end
+        pal.picture:SetSize(size, size)
+        pal.picture:SetTexture(wants and wants.texture or portrait.texture, "CLAMP", "CLAMP", "NEAREST")
+        pal.title:SetText(wants and wants.title or (portrait.name or "Your pal"))
+        pal.title:SetTextColor(Style.Color(wants and "gold" or "text"))
+        pal.sub:SetText(wants and wants.sub or (portrait.form or ""))
+        pal.sub:SetWidth(math.max(1, PAL_W - 22 - Style.Wide(pal.title, 100) - 10))
+        return true
+    end
+
+    local function PaintSoon(info, room)
+        soon:SetShown(info ~= nil)
+        if not info then return end
+        soon:SetWidth(room)
+        soon.title = ("At level %d"):format(info.level)
+        soon.rows = Today.NextLevelRows(info)
+        soon.head:SetText(("AT %d"):format(info.level))
+        local first = soon.rows[1]
+        soon.icon:Set(info.talent and info.talent.icon or nil)
+        soon.icon:SetShown(info.talent ~= nil)
+        soon.pips:SetShown(info.talent ~= nil)
+        soon.name:ClearAllPoints()
+        if info.talent then
+            soon.name:SetPoint("LEFT", soon.icon, "RIGHT", 8, 0)
+            soon.name:SetText(info.talent.name)
+            soon.pips:Set(info.rank - 1, info.talent.max or info.rank)
+        else
+            soon.name:SetPoint("LEFT", soon.head, "RIGHT", 12, 0)
+            soon.name:SetText(first and first.label or "")
+        end
+        -- The visit at the right, when there's a talent to its left to leave
+        -- it the room; with no talent the first row's words say it already.
+        local visit = info.talent and (info.visit or info.later) or nil
+        for _, region in ipairs({ soon.enough, soon.cost, soon.spells, soon.tile }) do region:SetShown(visit ~= nil) end
+        local used = 0
+        if visit then
+            soon.spells:SetText(Plural(visit.count, "spell") .. (info.visit and "" or (" at " .. visit.level)))
+            soon.cost:SetText(visit.cost > 0 and Compat.Money(visit.cost) or "")
+            local short = visit.cost - info.money
+            local sure = info.visit ~= nil and visit.cost > 0
+            soon.enough:SetText(not sure and "" or (short > 0 and "short" or "enough"))
+            soon.enough:SetTextColor(Style.Color(short > 0 and "red" or "green"))
+            used = 24 + 8 + Style.Wide(soon.spells, 60) + 8 + Style.Wide(soon.cost, 50) + 8 + Style.Wide(soon.enough, 44) + 14
+        end
+        local before = Style.Wide(soon.head, 40) + 12 + (info.talent and (24 + 8 + 8 + 52) or 0)
+        soon.name:SetWidth(math.max(40, room - before - used))
+    end
+
+    return function()
+        PaintWho()
+        local hasPal = PaintPal()
+        local room = width - WHO_W - (hasPal and PAL_W or 0) - 48
+        level:SetWidth(room + 48)
+        local ok, info = pcall(Today.NextLevel)
+        if not ok then
+            ns.Report(info)
+            info = nil
+        end
+        PaintSoon(info, room)
+        now:ClearAllPoints()
+        now:SetPoint("TOPLEFT", 24, info and -19 or -43)
+        now:SetWidth(room)
+        local mine = UnitLevel("player") or 0
+        now.head:SetText(("LEVEL %d"):format(mine))
+        local xp, most = UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0
+        local known = (most or 0) > 0
+        for _, region in ipairs({ now.track, now.xp, now.pace }) do region:SetShown(known) end
+        local rested = known and GetXPExhaustion and GetXPExhaustion() or 0
+        now.rested:SetShown(known and (rested or 0) > 0)
+        now.restSign:SetShown(known and (rested or 0) > 0)
+        if not known then return end
+        local part = math.max(0, math.min(1, (xp or 0) / most))
+        now.fill:SetWidth(math.max(1, room * part))
+        now.rest:SetWidth(math.max(0.001, room * math.min(1 - part, (rested or 0) / most)))
+        now.rest:SetShown((rested or 0) > 0 and part < 1)
+        now.xp:SetText(("%s |cff9a9688of %s XP|r"):format(Thousands(xp), Thousands(most)))
+        local rate = Today.Pace()
+        now.pace:SetText(rate and ("about %s to %d at your pace"):format(Took((most - xp) / rate), mine + 1) or "")
+    end
+end
+
+---------------------------------------------------------------------------
+-- Ready now: a card for each thing waiting, three across (four when there
+-- are four). Returns the box the cards are in, for what's under it to hang
+-- from, and the function that paints it.
+---------------------------------------------------------------------------
+local function ReadyCards(page, width)
+    local head = Caps(page, "READY NOW")
+    head:SetPoint("TOPLEFT", 0, -(HERO_H + 24))
+    local count = Style.Text(page, 11, "muted", nil, true)
+    count:SetPoint("LEFT", head, "RIGHT", 8, 0)
+    local box = CreateFrame("Frame", nil, page)
+    box:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -10)
+    box:SetWidth(width)
+    local idle = CreateFrame("Frame", nil, box)
+    idle:SetAllPoints()
+    Style.Fill(idle, "well")
+    Style.Border(idle, "cardLine")
+    local nothing = Style.Text(idle, 12, "muted")
     nothing:SetPoint("LEFT", PAD, 0)
     nothing:SetText("Nothing is waiting on you right now.")
 
-    local rows = {}
-    local function Row(i)
-        if rows[i] then return rows[i] end
-        local r = CreateFrame("Frame", nil, list)
-        r:SetSize(width, ROW_H)
-        r:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
-        if i > 1 then Style.Rule(r, "TOP", "line") end
-        r.icon = r:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(34, 34)
-        r.icon:SetPoint("LEFT", PAD, 0)
-        r.button = Style.Button(r, "", "plain", BUTTON_W)
-        r.button:SetHeight(30)
-        r.button:SetPoint("RIGHT", -PAD, 0)
-        r.value = Style.Text(r, 15, "gold", nil, true)
-        r.value:SetPoint("RIGHT", r.button, "LEFT", -14, 0)
-        r.value:SetJustifyH("RIGHT")
-        r.title = Style.Text(r, 14, "text", nil, true)
-        r.title:SetPoint("TOPLEFT", r.icon, "TOPRIGHT", 14, 0)
-        r.sub = Style.Text(r, 12, "muted")
-        r.sub:SetPoint("TOPLEFT", r.title, "BOTTOMLEFT", 0, -3)
-        for _, t in ipairs({ r.title, r.sub }) do
-            t:SetWidth(width - PAD * 2 - 34 - 14 - BUTTON_W - 14 - VALUE_W)
-            t:SetWordWrap(false)
-        end
-        rows[i] = r
-        return r
-    end
-
-    -- Your plans: four cards, each a way into its page.
-    local plansHead = Caps(page, "YOUR PLANS")
     local cards = {}
-    local function Card(key, label, column, line)
-        local c = CreateFrame("Button", nil, page)
-        c:SetSize(half, CARD_H)
-        c:SetPoint("TOPLEFT", plansHead, "BOTTOMLEFT", (column - 1) * (half + GAP), -10 - (line - 1) * (CARD_H + GAP))
+    local function Card(i)
+        if cards[i] then return cards[i] end
+        local c = CreateFrame("Button", nil, box)
         Style.Fill(c, "well")
         c.edges = Style.Border(c, "cardLine")
-        c.label = Caps(c, label, "muted")
-        c.label:SetPoint("TOPLEFT", PAD, -PAD)
-        c.open = Style.Text(c, 12, "gold")
-        c.open:SetPoint("TOPRIGHT", -PAD, -PAD)
-        c.open:SetText("Open")
+        c.icon = c:CreateTexture(nil, "ARTWORK")
+        c.icon:SetSize(40, 40)
+        c.icon:SetPoint("TOPLEFT", 14, -14)
         c.title = Style.Text(c, 15, "text", nil, true)
-        c.title:SetPoint("TOPLEFT", c.label, "BOTTOMLEFT", 0, -8)
+        c.title:SetPoint("TOPLEFT", 66, -13)
+        c.title:SetWordWrap(false)
+        c.value = Style.Text(c, 15, "gold", nil, true)
+        c.value:SetPoint("TOPRIGHT", -PAD, -13)
+        c.value:SetJustifyH("RIGHT")
+        c.talent = GameIcon(c, 18)
+        c.talent:SetPoint("TOPLEFT", 66, -37)
         c.sub = Style.Text(c, 12, "muted")
-        c.sub:SetPoint("TOPLEFT", c.title, "BOTTOMLEFT", 0, -4)
-        c.foot = Style.Text(c, 12, "text")
-        c.foot:SetPoint("BOTTOMLEFT", PAD, PAD)
-        for _, t in ipairs({ c.title, c.sub, c.foot }) do
-            t:SetWidth(half - PAD * 2)
-            t:SetWordWrap(false)
+        c.sub:SetWordWrap(false)
+        c.pips = Pips(c)
+        c.pips:SetPoint("LEFT", c.sub, "RIGHT", 8, 0)
+        -- What a click does: quiet words, or for the page's one main action
+        -- the gold button.
+        c.action = Style.Text(c, 12, "gold", nil, true)
+        c.action:SetPoint("BOTTOMRIGHT", -PAD, 15)
+        c.button = Style.Button(c, "", "primary", 110)
+        c.button:SetHeight(26)
+        c.button:SetPoint("BOTTOMRIGHT", -14, 13)
+        local function Click()
+            if not c.click then return end
+            xpcall(c.click, ns.Report)
+            Window.Refresh()
         end
-        c:SetScript("OnClick", function() Window.Open(key) end)
-        c:SetScript("OnEnter", function(self) Style.SetBorder(self.edges, "gold") end)
-        c:SetScript("OnLeave", function(self) Style.SetBorder(self.edges, "cardLine") end)
+        c:SetScript("OnClick", Click)
+        c.button:SetScript("OnClick", Click)
+        c:SetScript("OnEnter", function(self)
+            Style.SetBorder(self.edges, "gold")
+            if self.tip then
+                GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+                GameTooltip:SetText(self.tip, 1, 1, 1, 1, true)
+                GameTooltip:Show()
+            end
+        end)
+        c:SetScript("OnLeave", function(self)
+            Style.SetBorder(self.edges, "cardLine")
+            GameTooltip:Hide()
+        end)
         Style.Hover(c)
-        -- What a card says while its part is switched off or has nothing.
-        function c:Say(titleText, subText, footText)
-            self.title:SetText(titleText or "")
-            self.sub:SetText(subText or "")
-            self.foot:SetText(footText or "")
-        end
-        cards[key] = c
+        cards[i] = c
         return c
     end
-    local build = Card("build", "BUILD", 1, 1)
-    build.meter = Meter(build)
-    build.meter:SetPoint("BOTTOMLEFT", PAD, PAD + 5)
-    build.meter:SetWidth(half - PAD * 2 - 110)
-    build.count = Style.Text(build, 12, "text")
-    build.count:SetPoint("BOTTOMRIGHT", -PAD, PAD)
-    build.count:SetJustifyH("RIGHT")
-    local gear = Card("gear", "GEAR", 2, 1)
-    local profs = Card("professions", "PROFESSIONS", 1, 2)
-    profs.lines = {}
-    for i = 1, 3 do
-        local l = { name = Style.Text(profs, 13, "text", nil, true), meter = Meter(profs), count = Style.Text(profs, 12, "text") }
-        local y = -(PAD + 24 + (i - 1) * 24)
-        l.name:SetPoint("TOPLEFT", PAD, y)
-        l.name:SetWidth(120)
-        l.name:SetWordWrap(false)
-        l.count:SetPoint("TOPRIGHT", -PAD, y)
-        l.count:SetJustifyH("RIGHT")
-        l.meter:SetPoint("TOPLEFT", PAD + 128, y - 5)
-        l.meter:SetWidth(half - PAD * 2 - 128 - 76)
-        profs.lines[i] = l
-    end
-    local dungeons = Card("dungeons", "DUNGEONS", 2, 2)
 
-    -- What's new: one line at the bottom, the rest on hover, until it's
-    -- put away.
+    local function Paint()
+        local ready = Ready()
+        local across = math.max(3, math.min(4, #ready))
+        local cardW = math.floor((width - GAP * (across - 1)) / across)
+        for i = 1, math.min(#ready, across) do
+            local item, c = ready[i], Card(i)
+            c:SetSize(cardW, READY_H)
+            c:ClearAllPoints()
+            c:SetPoint("TOPLEFT", (i - 1) * (cardW + GAP), 0)
+            c.click, c.tip = item.click, item.tip
+            c.icon:SetTexture(OWN .. item.icon)
+            c.value:SetText(item.value or "")
+            c.title:SetText(item.title)
+            c.title:SetWidth(cardW - 66 - PAD - (item.value and (Style.Wide(c.value, 60) + 10) or 0))
+            -- The line under it starts with the talent's picture when it's about one.
+            c.talent:SetShown(item.node ~= nil)
+            c.pips:SetShown(item.node ~= nil)
+            c.sub:ClearAllPoints()
+            c.sub:SetText(item.sub or "")
+            if item.node then
+                c.talent:Set(item.node.icon)
+                c.sub:SetPoint("LEFT", c.talent, "RIGHT", 7, 0)
+                c.pips:Set(item.rank - 1, item.node.max or item.rank)
+                c.sub:SetWidth(math.min(Style.Wide(c.sub, 100), cardW - 66 - 25 - PAD - 60))
+            else
+                c.sub:SetPoint("TOPLEFT", 66, -38)
+                c.sub:SetWidth(cardW - 66 - PAD)
+            end
+            c.action:SetShown(not item.primary)
+            c.button:SetShown(item.primary == true)
+            if item.primary then
+                c.button:SetLabel(item.button)
+                c.button:SetWidth(Style.Wide(c.button.label, 90) + 28)
+            else
+                c.action:SetText(item.button)
+            end
+            c:Show()
+        end
+        for i = math.min(#ready, across) + 1, #cards do cards[i]:Hide() end
+        idle:SetShown(#ready == 0)
+        count:SetText(#ready > 0 and tostring(#ready) or "")
+        box:SetHeight(#ready == 0 and IDLE_H or READY_H)
+    end
+    return box, Paint
+end
+
+---------------------------------------------------------------------------
+-- Your plans, four across. Each builder returns its card and the function
+-- that paints it.
+---------------------------------------------------------------------------
+local function BuildCard(parent, width)
+    local c = PageCard(parent, "build", "BUILD", "build", width, PLAN_H)
+    local inner = width - PAD * 2
+    c.title = Style.Text(c, 15, "text", nil, true)
+    c.title:SetPoint("TOPLEFT", PAD, -46)
+    c.title:SetWidth(inner)
+    c.title:SetWordWrap(false)
+    c.count = Style.Text(c, 12, "text")
+    c.count:SetPoint("TOPRIGHT", -PAD, -72)
+    c.count:SetJustifyH("RIGHT")
+    c.meter = Meter(c)
+    c.meter:SetPoint("TOPLEFT", PAD, -77)
+    c.say = Style.Text(c, 12, "muted")
+    c.say:SetPoint("TOPLEFT", PAD, -98)
+    c.say:SetWidth(inner)
+    c.nextHead = Caps(c, "NEXT", "muted")
+    c.nextHead:SetPoint("TOPLEFT", PAD, -99)
+    c.next = Style.Text(c, 13, "text")
+    c.next:SetPoint("LEFT", c.nextHead, "RIGHT", 10, 0)
+    c.next:SetWordWrap(false)
+    c.pips = Pips(c)
+    c.pips:SetPoint("RIGHT", c, "TOPRIGHT", -PAD, -106)
+    -- The plan's next talents, the level each comes at under it; the first,
+    -- the one named above, in a gold line.
+    c.queue = {}
+    for i = 1, 5 do
+        local q = GameIcon(c, 34)
+        q:SetPoint("TOPLEFT", PAD + (i - 1) * 44, -126)
+        q.level = Style.Text(q, 11, i == 1 and "gold" or "muted", nil, i == 1)
+        q.level:SetPoint("TOP", q, "BOTTOM", 0, -3)
+        q.level:SetJustifyH("CENTER")
+        if i == 1 then Style.SetBorder(q.edges, "gold") end
+        c.queue[i] = q
+    end
+
+    return c, function()
+        local b = Today.Build()
+        local queue = b and b.next and Today.Queue(5) or {}
+        local planned = b ~= nil and b.planned > 0
+        c.empty:SetText(b and "" or "No talent trees for this class yet.")
+        c.title:SetText(b and (b.name or "Your build") or "")
+        c.meter:SetShown(planned)
+        c.count:SetText(planned and ("%d |cff9a9688of %d|r"):format(b.taken, b.planned) or "")
+        if planned then
+            local meterW = inner - Style.Wide(c.count, 50) - 10
+            c.meter:SetWidth(meterW)
+            c.meter:Set(b.taken / b.planned, meterW)
+        end
+        local upcoming = planned and b.next ~= nil
+        c.say:SetText(not b and "" or (not planned and "No points planned yet. Plan a build, or copy a ready-made one.")
+            or (not b.next and "Every planned point is taken.") or "")
+        c.nextHead:SetShown(upcoming)
+        c.pips:SetShown(upcoming)
+        c.next:SetText(upcoming and b.next.name or "")
+        if upcoming then
+            c.pips:Set(b.rank - 1, b.next.max or b.rank)
+            c.next:SetWidth(inner - Style.Wide(c.nextHead, 34) - 10 - 60)
+        end
+        for i, q in ipairs(c.queue) do
+            local step = queue[i]
+            q:SetShown(step ~= nil)
+            if step then
+                q:Set(step.node.icon)
+                q.level:SetText(tostring(step.level or ""))
+            end
+        end
+    end
+end
+
+local function GearCard(parent, width)
+    local c = PageCard(parent, "gear", "GEAR", "gear", width, PLAN_H)
+    c.slots = {}
+    local function Slot(i)
+        if c.slots[i] then return c.slots[i] end
+        local s = GameIcon(c, 30)
+        s:SetPoint("TOPLEFT", PAD + ((i - 1) % 6) * 36, -50 - math.floor((i - 1) / 6) * 36)
+        s.fill = Style.Fill(s, "titleBar")
+        -- A gold corner: something you've starred goes in this slot.
+        s.star = s:CreateTexture(nil, "OVERLAY")
+        s.star:SetSize(7, 7)
+        s.star:SetPoint("TOPRIGHT", -2, -2)
+        s.star:SetColorTexture(Style.Color("gold"))
+        c.slots[i] = s
+        return s
+    end
+    c.emptySign = Sign(c, "red", "outline")
+    c.emptySign:SetPoint("BOTTOMLEFT", PAD, 16)
+    c.emptyText = Style.Text(c, 12, "red")
+    c.emptyText:SetPoint("LEFT", c.emptySign, "RIGHT", 6, 0)
+    c.filled = Style.Text(c, 12, "muted")
+    c.filled:SetPoint("BOTTOMLEFT", PAD, 13)
+    c.filled:SetText("Every slot filled")
+    c.starText = Style.Text(c, 12, "gold")
+    c.starText:SetPoint("BOTTOMRIGHT", -PAD, 13)
+    c.starText:SetJustifyH("RIGHT")
+    c.starSign = Sign(c, "gold", "full")
+    c.starSign:SetPoint("RIGHT", c.starText, "LEFT", -6, 0)
+
+    return c, function()
+        local slots = Today.Slots()
+        local empty, starred = Today.Gear()
+        c.empty:SetText(slots and "" or "Turned off. Switch the Gear plan on in Settings.")
+        for i, slot in ipairs(slots or {}) do
+            local s = Slot(i)
+            s.icon:SetShown(not slot.empty)
+            if not slot.empty then s:Set(slot.texture) end
+            s.star:SetShown(slot.starred)
+            local r, g, b = Style.Color("red")
+            if not slot.empty then r, g, b = Parts(Style.Quality(slot.quality)) end
+            for _, edge in ipairs(s.edges) do edge:SetColorTexture(r, g, b, slot.empty and 1 or 0.6) end
+            s:Show()
+        end
+        for i = #(slots or {}) + 1, #c.slots do c.slots[i]:Hide() end
+        local some = slots ~= nil and (empty or 0) > 0
+        c.emptySign:SetShown(some)
+        c.emptyText:SetText(some and (empty .. " empty") or "")
+        c.filled:SetShown(slots ~= nil and not some)
+        local stars = slots ~= nil and (starred or 0) > 0
+        c.starSign:SetShown(stars)
+        c.starText:SetText(stars and (starred .. " starred to find") or "")
+    end
+end
+
+local function ProfessionsCard(parent, width)
+    local c = PageCard(parent, "professions", "PROFESSIONS", "professions", width, PLAN_H)
+    local barW = width - PAD * 2 - 28 - 10
+    c.lines = {}
+    for i = 1, 3 do
+        local l = { icon = GameIcon(c, 28), name = Style.Text(c, 13, "text", nil, true), count = Style.Text(c, 12, "text"), meter = Meter(c) }
+        local y = -51 - (i - 1) * 47
+        l.icon:SetPoint("TOPLEFT", PAD, y)
+        l.name:SetPoint("TOPLEFT", PAD + 38, y + 2)
+        l.name:SetWidth(barW - 64)
+        l.name:SetWordWrap(false)
+        l.count:SetPoint("TOPRIGHT", -PAD, y + 1)
+        l.count:SetJustifyH("RIGHT")
+        l.meter:SetPoint("TOPLEFT", PAD + 38, y - 22)
+        l.meter:SetWidth(barW)
+        -- At the top of its rank with the next one open to you: a gold tag
+        -- in place of the count.
+        l.train = CreateFrame("Frame", nil, c)
+        l.train:SetSize(42, 18)
+        l.train:SetPoint("TOPRIGHT", -PAD, y + 3)
+        Style.Fill(l.train, "gold")
+        l.train.text = Style.Text(l.train, 11, "onGold", nil, true)
+        l.train.text:SetPoint("CENTER")
+        l.train.text:SetText("train")
+        c.lines[i] = l
+    end
+
+    return c, function()
+        local P = ns.Professions
+        local mine = P and P.Mine() or {}
+        local level = UnitLevel("player") or 1
+        c.empty:SetText(#mine == 0 and "No professions yet. Learn one and its road to the next rank shows here." or "")
+        for i, l in ipairs(c.lines) do
+            local p = mine[i]
+            for _, region in ipairs({ l.icon, l.name, l.count, l.meter, l.train }) do region:SetShown(p ~= nil) end
+            if p then
+                l.icon:Set(p.icon)
+                l.name:SetText(p.name)
+                l.meter:Set(p.cap > 0 and p.skill / p.cap or 0, barW)
+                local rank = P.Rank and P.Rank(p.cap) or nil
+                local open = rank ~= nil and rank.next ~= nil and level >= (rank.level or 0)
+                    and p.skill >= (P.At and P.At(p.line, rank) or p.cap)
+                l.train:SetShown(open)
+                l.count:SetText(open and "" or ("%d |cff9a9688/ %d|r"):format(p.skill, p.cap))
+                l.train.text:SetText("train")
+                l.train:SetWidth(Style.Wide(l.train.text, 30) + 12)
+            end
+        end
+    end
+end
+
+local function DungeonsCard(parent, width)
+    local c = PageCard(parent, "dungeons", "DUNGEONS", "dungeons", width, PLAN_H)
+    local bandW = width - PAD * 2 - 66
+    c.rows = {}
+    for i = 1, 3 do
+        local r = { name = Style.Text(c, 13, "text", nil, true), range = Style.Text(c, 12, "muted"), band = CreateFrame("Frame", nil, c) }
+        local y = -44 - (i - 1) * 44
+        r.name:SetPoint("TOPLEFT", PAD, y)
+        r.name:SetWidth(width - PAD * 2)
+        r.name:SetWordWrap(false)
+        -- The six levels it's right for, how far into them you are, and a
+        -- gold mark where you stand.
+        r.band:SetSize(bandW, 6)
+        r.band:SetPoint("TOPLEFT", PAD, y - 26)
+        Style.Fill(r.band, "window")
+        r.past = r.band:CreateTexture(nil, "ARTWORK")
+        r.past:SetPoint("TOPLEFT")
+        r.past:SetPoint("BOTTOMLEFT")
+        r.past:SetColorTexture(Style.Color("lineStrong"))
+        r.mark = r.band:CreateTexture(nil, "OVERLAY")
+        r.mark:SetSize(3, 12)
+        r.mark:SetColorTexture(Style.Color("gold"))
+        r.range:SetPoint("RIGHT", c, "TOPRIGHT", -PAD, y - 29)
+        r.range:SetJustifyH("RIGHT")
+        c.rows[i] = r
+    end
+    c.foot = Style.Text(c, 12, "muted")
+    c.foot:SetPoint("BOTTOMLEFT", PAD, 12)
+    c.foot:SetWidth(width - PAD * 2)
+    c.foot:SetWordWrap(false)
+
+    return c, function()
+        local fits, coming = Today.Dungeons()
+        local level = UnitLevel("player") or 1
+        c.note:SetText(fits and #fits > 0 and ("for level %d"):format(level) or "")
+        c.empty:SetText(not fits and "Turned off. Switch the Dungeon guide on in Settings."
+            or (#fits == 0 and "Nothing for your level right now.") or "")
+        for i, r in ipairs(c.rows) do
+            local d = fits and fits[i]
+            for _, region in ipairs({ r.name, r.range, r.band }) do region:SetShown(d ~= nil) end
+            if d then
+                r.name:SetText(d.name)
+                r.range:SetText(("%d to %d"):format(d.level, d.level + 5))
+                local part = math.max(0, math.min(1, (level - d.level) / 5))
+                r.past:SetWidth(math.max(0.001, bandW * part))
+                r.mark:ClearAllPoints()
+                r.mark:SetPoint("LEFT", (bandW - 3) * part, 0)
+            end
+        end
+        local more = fits and #fits - #c.rows or 0
+        c.foot:SetText(not fits and "" or (more > 0 and ("and %d more for your level"):format(more))
+            or (coming and ("then %s at %d"):format(coming.name, coming.level)) or "")
+    end
+end
+
+---------------------------------------------------------------------------
+-- The row under the plans: the guild, today's games, and the Journal.
+---------------------------------------------------------------------------
+local ORDER_SIGNS = {
+    { key = "you", color = "gold", shape = "full", words = "%d for you" },
+    { key = "waiting", color = "amber", shape = "outline", words = "%d waiting" },
+    { key = "making", color = "sky", shape = "half", words = "%d being made" },
+}
+
+local function GuildCard(parent, width)
+    local c = PageCard(parent, "guild", "GUILD", "guild", width, LOW_H)
+    c.names = {}
+    local function Name(i)
+        if c.names[i] then return c.names[i] end
+        local n = { dot = c:CreateTexture(nil, "ARTWORK"), text = Style.Text(c, 13, "text") }
+        n.dot:SetSize(7, 7)
+        n.dot:SetColorTexture(Style.Color("green"))
+        n.text:SetPoint("LEFT", n.dot, "RIGHT", 5, 0)
+        c.names[i] = n
+        return n
+    end
+    c.more = Style.Text(c, 12, "muted")
+    -- The guild's orders that touch you, each count with its state's sign
+    -- and colour, under a rule.
+    c.orders = CreateFrame("Frame", nil, c)
+    c.orders:SetPoint("BOTTOMLEFT", PAD, 0)
+    c.orders:SetSize(width - PAD * 2, 38)
+    Style.Rule(c.orders, "TOP", "line")
+    local tile = c.orders:CreateTexture(nil, "ARTWORK")
+    tile:SetTexture(OWN .. "crafts")
+    tile:SetSize(18, 18)
+    tile:SetPoint("LEFT", 0, 0)
+    c.signs = {}
+    for i, sign in ipairs(ORDER_SIGNS) do
+        local s = { sign = Sign(c.orders, sign.color, sign.shape), text = Style.Text(c.orders, 12, sign.color) }
+        s.text:SetPoint("LEFT", s.sign, "RIGHT", 6, 0)
+        c.signs[i] = s
+    end
+
+    return c, function()
+        local mates = Today.Guildmates()
+        local orders = Today.Orders()
+        c.orders:SetShown(orders ~= nil)
+        local x = 28
+        for i, sign in ipairs(ORDER_SIGNS) do
+            local s, n = c.signs[i], orders and orders[sign.key] or 0
+            s.sign:SetShown(n > 0)
+            s.text:SetText(n > 0 and sign.words:format(n) or "")
+            if n > 0 then
+                s.sign:ClearAllPoints()
+                s.sign:SetPoint("LEFT", x, 0)
+                x = x + 14 + Style.Wide(s.text, 60) + 14
+            end
+        end
+        c.empty:SetText(not mates and "You're not in a guild." or "")
+        c.note:SetText(not mates and "" or (#mates == 0 and "nobody else online") or (Style.Tint("green") .. #mates .. " online|r"))
+        -- Their names, in their class's colours, on as many lines as there's
+        -- room for; then how many more there are.
+        local lines = orders and 2 or 3
+        local at, line, shown = PAD, 1, 0
+        for i, mate in ipairs(mates or {}) do
+            local n = Name(i)
+            n.text:SetText(ClassTint(mate.class) .. mate.name .. "|r")
+            local wide = 12 + Style.Wide(n.text, #mate.name * 7)
+            local function Room() return width - PAD - at - ((line == lines and i < #mates) and 84 or 0) end
+            if wide > Room() and line < lines then at, line = PAD, line + 1 end
+            if wide > Room() then break end
+            n.dot:ClearAllPoints()
+            n.dot:SetPoint("LEFT", c, "TOPLEFT", at, -(34 + line * 22))
+            n.dot:Show()
+            n.text:Show()
+            at, shown = at + wide + 14, i
+        end
+        for i = shown + 1, #c.names do
+            c.names[i].dot:Hide()
+            c.names[i].text:Hide()
+        end
+        local left = #(mates or {}) - shown
+        c.more:SetText(left > 0 and ("and %d more"):format(left) or "")
+        c.more:ClearAllPoints()
+        c.more:SetPoint("LEFT", c, "TOPLEFT", at, -(34 + line * 22))
+    end
+end
+
+local function GamesCard(parent, width)
+    local c = PageCard(parent, "games", "TODAY'S GAMES", "games", width, LOW_H)
+    local tileW = math.floor((width - PAD * 2 - 20) / 3)
+    c.tiles = {}
+    for i = 1, 3 do
+        local t = CreateFrame("Button", nil, c)
+        t:SetSize(tileW, 78)
+        t:SetPoint("TOPLEFT", PAD + (i - 1) * (tileW + 10), -48)
+        Style.Fill(t, "titleBar")
+        t.edges = Style.Border(t, "line")
+        t.icon = t:CreateTexture(nil, "ARTWORK")
+        t.icon:SetSize(28, 28)
+        t.icon:SetPoint("TOP", 0, -8)
+        t.name = Style.Text(t, 12, "text")
+        t.name:SetPoint("TOP", 0, -40)
+        t.name:SetJustifyH("CENTER")
+        t.state = Style.Text(t, 12, "gold", nil, true)
+        t.state:SetPoint("TOP", 0, -57)
+        t.state:SetJustifyH("CENTER")
+        t:SetScript("OnClick", function(self)
+            if self.game and self.game.Open then xpcall(self.game.Open, ns.Report) end
+        end)
+        t:SetScript("OnEnter", function(self) Style.SetBorder(self.edges, "gold") end)
+        t:SetScript("OnLeave", function(self) Style.SetBorder(self.edges, "line") end)
+        c.tiles[i] = t
+    end
+
+    return c, function()
+        local games = Today.GameTiles()
+        c.empty:SetText(#games == 0 and "Turned off. Switch the daily games on in Settings." or "")
+        c.note:SetText(#games > 0 and ns.Games and ns.Games.Today and ("#%d"):format(ns.Games.Today()) or "")
+        for i, t in ipairs(c.tiles) do
+            local game = games[i]
+            t:SetShown(game ~= nil)
+            if game then
+                t.game = game.game
+                t.icon:SetTexture(OWN .. game.icon)
+                t.name:SetText(game.label)
+                t.state:SetText(game.state)
+                t.state:SetTextColor(Style.Color(game.tone))
+            end
+        end
+    end
+end
+
+local function JournalCard(parent, width)
+    local c = PageCard(parent, "journal", "JOURNAL", "journal", width, LOW_H)
+    local MOST, BAR_W, BAR_GAP, CHART_H = 12, 18, 7, 52
+    -- A bar for each of your last levels, as tall as the time it took: this
+    -- one in gold, a red dot over one you died on.
+    c.bars = {}
+    for i = 1, MOST do
+        local b = { fill = c:CreateTexture(nil, "ARTWORK"), dot = c:CreateTexture(nil, "ARTWORK") }
+        b.fill:SetWidth(BAR_W)
+        b.fill:SetPoint("BOTTOMLEFT", PAD + (i - 1) * (BAR_W + BAR_GAP), 34)
+        b.dot:SetSize(4, 4)
+        b.dot:SetColorTexture(Style.Color("red"))
+        b.dot:SetPoint("BOTTOM", b.fill, "TOP", 0, 3)
+        c.bars[i] = b
+    end
+    c.span = Style.Text(c, 12, "muted")
+    c.span:SetPoint("BOTTOMLEFT", PAD, 11)
+    c.deaths = Style.Text(c, 12, "muted")
+    c.deaths:SetPoint("BOTTOMRIGHT", -PAD, 11)
+    c.deaths:SetJustifyH("RIGHT")
+    c.deathSign = Sign(c, "red", "full")
+    c.deathSign:SetPoint("RIGHT", c.deaths, "LEFT", -6, 0)
+
+    return c, function()
+        local rows = Today.Levels(MOST)
+        local top, died = 0, 0
+        for _, row in ipairs(rows or {}) do top, died = math.max(top, row.seconds), died + row.deaths end
+        local any = rows ~= nil and top > 0
+        c.empty:SetText(any and "" or (rows and "Nothing here yet. It fills in as you play." or "Turned off. Switch the Journal on in Settings."))
+        for i, b in ipairs(c.bars) do
+            local row = any and rows[i] or nil
+            b.fill:SetShown(row ~= nil)
+            b.dot:SetShown(row ~= nil and row.deaths > 0)
+            if row then
+                b.fill:SetHeight(math.max(2, CHART_H * row.seconds / top))
+                b.fill:SetColorTexture(Style.Color(i == #rows and "gold" or "lineStrong"))
+            end
+        end
+        local last = any and rows[#rows] or nil
+        c.note:SetText(last and (Style.Tint("text") .. Took(last.seconds) .. "|r on this level") or "")
+        c.span:SetText(any and (#rows > 1 and ("levels %d to %d"):format(rows[1].level, last.level) or ("level %d"):format(last.level)) or "")
+        c.deaths:SetText(any and died > 0 and Plural(died, "death") or "")
+        c.deathSign:SetShown(any and died > 0)
+    end
+end
+
+---------------------------------------------------------------------------
+-- What's new: one line at the bottom, the rest on hover, until it's put
+-- away.
+---------------------------------------------------------------------------
+local function News(page, width)
     local news = CreateFrame("Frame", nil, page)
     news:SetPoint("BOTTOMLEFT")
     news:SetSize(width, 40)
@@ -604,144 +1414,47 @@ Window.Page("home", function(page)
         ns.db.newsSeen = ns.version
         news:Hide()
     end):SetPoint("RIGHT", -2, 0)
+    return news
+end
 
-    local function PaintReady()
-        local ready = Ready()
-        for i, item in ipairs(ready) do
-            local r = Row(i)
-            -- One of jsal.ui's icons, or a picture of its own (the companion's).
-            r.icon:SetTexture(item.texture or (OWN .. item.icon))
-            r.title:SetText(item.title)
-            r.sub:SetText(item.sub or "")
-            r.value:SetText(item.value or "")
-            r.button:SetLabel(item.button)
-            r.button:SetKind(item.primary and "primary" or "plain")
-            r.button:SetScript("OnClick", function()
-                xpcall(item.click, ns.Report)
-                Window.Refresh()
-            end)
-            r:Show()
-        end
-        for i = #ready + 1, #rows do rows[i]:Hide() end
-        nothing:SetShown(#ready == 0)
-        readyCount:SetText(#ready > 0 and tostring(#ready) or "")
-        list:SetHeight(math.max(1, #ready) * ROW_H)
-        plansHead:ClearAllPoints()
-        plansHead:SetPoint("TOPLEFT", list, "BOTTOMLEFT", 0, -24)
+---------------------------------------------------------------------------
+-- The page: the top card, Ready now, your plans, the guild, games and
+-- Journal, and the what's-new line. It has the whole width of the dashboard.
+---------------------------------------------------------------------------
+Window.Page("home", function(page)
+    local width = Window.fullWidth
+    local paints = {}
+    paints[#paints + 1] = Hero(page, width)
+
+    local ready, paintReady = ReadyCards(page, width)
+
+    local plansHead = Caps(page, "YOUR PLANS")
+    plansHead:SetPoint("TOPLEFT", ready, "BOTTOMLEFT", 0, -24)
+    local plans = CreateFrame("Frame", nil, page)
+    plans:SetPoint("TOPLEFT", plansHead, "BOTTOMLEFT", 0, -10)
+    plans:SetSize(width, PLAN_H)
+    local planW = math.floor((width - GAP * 3) / 4)
+    for i, make in ipairs({ BuildCard, GearCard, ProfessionsCard, DungeonsCard }) do
+        local card, paint = make(plans, planW)
+        card:SetPoint("TOPLEFT", (i - 1) * (planW + GAP), 0)
+        paints[#paints + 1] = paint
     end
 
-    local function PaintBuild()
-        local b = Today.Build()
-        build.meter:SetShown(b ~= nil and b.planned > 0)
-        build.count:SetText("")
-        if not b then return build:Say("No talent trees for this class yet") end
-        if b.planned == 0 then
-            return build:Say(b.name or "Your build", "No points planned yet", "Plan a build, or copy a ready-made one")
-        end
-        build:Say(b.name or "Your build",
-            b.next and ("Next, at level %d: %s, rank %d"):format(b.level, b.next.name, b.rank) or "Every planned point is taken")
-        build.meter:Set(b.taken / b.planned, half - PAD * 2 - 110)
-        build.count:SetText(("%d |cff9a9688of %d points|r"):format(b.taken, b.planned))
+    local lower = CreateFrame("Frame", nil, page)
+    lower:SetPoint("TOPLEFT", plans, "BOTTOMLEFT", 0, -GAP)
+    lower:SetSize(width, LOW_H)
+    local lowW = math.floor((width - GAP * 2) / 3)
+    for i, make in ipairs({ GuildCard, GamesCard, JournalCard }) do
+        local card, paint = make(lower, lowW)
+        card:SetPoint("TOPLEFT", (i - 1) * (lowW + GAP), 0)
+        paints[#paints + 1] = paint
     end
 
-    local function PaintGear()
-        local empty, starred = Today.Gear()
-        if not empty then return gear:Say("Turned off", "Switch the Gear plan on in Settings") end
-        gear:Say(empty > 0 and (Plural(empty, "slot") .. " with nothing in " .. (empty == 1 and "it" or "them")) or "Every slot is filled",
-            "The best upgrade for each slot, for your spec",
-            starred > 0 and (Plural(starred, "starred item") .. " to find") or "Star the upgrades you want to chase")
-    end
-
-    local function PaintProfessions()
-        local mine = ns.Professions and ns.Professions.Mine() or {}
-        for i, l in ipairs(profs.lines) do
-            local p = mine[i]
-            l.name:SetShown(p ~= nil)
-            l.meter:SetShown(p ~= nil)
-            l.count:SetShown(p ~= nil)
-            if p then
-                l.name:SetText(p.name)
-                l.meter:Set(p.cap > 0 and p.skill / p.cap or 0, half - PAD * 2 - 128 - 76)
-                l.count:SetText(("%d |cff9a9688/ %d|r"):format(p.skill, p.cap))
-            end
-        end
-        if #mine == 0 then
-            profs:Say("No professions yet", "Learn one and its road to the next rank shows here")
-        else
-            profs:Say()
-        end
-    end
-
-    local function PaintDungeons()
-        local fits, coming = Today.Dungeons()
-        if not fits then return dungeons:Say("Turned off", "Switch the Dungeon guide on in Settings") end
-        local d = fits[1]
-        if d then
-            dungeons:Say(d.name, ("Right for your level · %s"):format(d.zone or "?"),
-                #fits > 1 and ("and %d more for your level"):format(#fits - 1) or "")
-        elseif coming then
-            dungeons:Say(coming.name, ("From level %d · %s"):format(coming.level, coming.zone or "?"), "Nothing for your level right now")
-        else
-            dungeons:Say("Every dungeon and raid", "Bosses, loot and quests")
-        end
-    end
-
-    -- The card: returns how tall it is, 0 when it's hidden.
-    local function PaintNext()
-        local info = Today.NextLevel()
-        nextCard:SetShown(info ~= nil)
-        if not info then return 0 end
-        nextCard.head:SetText(("AT LEVEL %d"):format(info.level))
-        local xp, most = UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0
-        local known = (most or 0) > 0
-        nextCard.xp:SetShown(known)
-        nextCard.track:SetShown(known)
-        if known then
-            nextCard.xp:SetText(("%s of %s XP"):format(Thousands(xp), Thousands(most)))
-            nextCard.fill:SetWidth(math.max(1, rowW * math.min(1, (xp or 0) / most)))
-        end
-        local lines = Today.NextLevelRows(info)
-        for i, line in ipairs(lines) do
-            local r = NextRow(i)
-            r.icon:SetTexture(line.icon or (OWN .. "build"))
-            r.label:SetText(line.label)
-            r.detail:SetText(line.detail or "")
-            r:Show()
-        end
-        for i = #lines + 1, #nextCard.rows do nextCard.rows[i]:Hide() end
-        local tall = 42 + #lines * 28 + 8
-        nextCard:SetHeight(tall)
-        return tall
-    end
-
-    -- The top of the page: the date, your pal's need, the card; and Ready
-    -- now starts under whichever of the two sides is taller.
-    local function PaintHeader()
-        today:SetText(DateText())
-        local wants = Today.Pet()
-        pal:SetShown(wants ~= nil)
-        if wants then
-            pal.icon:SetTexture(wants.texture)
-            pal.title:SetText(wants.title)
-            pal.sub:SetText(wants.sub)
-        end
-        local ok, card = pcall(PaintNext)
-        if not ok then
-            nextCard:Hide()
-            ns.Report(card)
-            card = 0
-        end
-        headerTall = math.max(46 + (wants and 50 or 0), card - 4)
-        readyHead:ClearAllPoints()
-        readyHead:SetPoint("TOPLEFT", title, "TOPLEFT", 0, -(headerTall + 24))
-    end
+    local news = News(page, width)
 
     page.Refresh = function()
-        who:SetText(("%s, level %d %s"):format(UnitName("player") or "", UnitLevel("player") or 0, UnitClass("player") or ""))
         news:SetShown(NewsWanted())
-        PaintReady()
-        for _, paint in ipairs({ PaintHeader, PaintBuild, PaintGear, PaintProfessions, PaintDungeons }) do
-            xpcall(paint, ns.Report)
-        end
+        paintReady()
+        for _, paint in ipairs(paints) do xpcall(paint, ns.Report) end
     end
-end)
+end, nil, true)

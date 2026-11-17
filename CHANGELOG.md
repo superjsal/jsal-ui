@@ -1,6 +1,12 @@
-# jsal.ui 0.3.54
+# jsal.ui 0.3.55
 
-Restart the game after updating (exit and start it again): this version adds a new file, and a /reload doesn't load it.
+- **A bigger dashboard.** The dashboard is wider and a little shorter than it was, with a larger menu. On a small screen it's drawn larger than before, not smaller. Home uses the whole width; the other pages keep their layout for now, in the middle of the window.
+- **Home shows more at a glance.** A card at the top has your character, your gold, how far through the level you are with the rested part in blue, and how long the rest takes at your pace; with Next level on Today switched on, it also has the talent and trainer visit your next level brings, and your pal stands in its pen there when Jsal's Pals is on. What's ready now is a card each. Your plans are pictures: the next talents in your build with the level each comes at, what you wear slot by slot with the empty ones outlined in red, your professions' bars with a gold "train" when the next rank is open to you, and the dungeons right for your level with where your level sits in each. Under them: who in the guild is online and the guild orders that touch you, today's games with how each went, and the time each of your last levels took. Every card opens its page.
+- **Home: the daily games have a card of their own.** They were a line each under Ready now; today's games are three tiles now, each saying Play until it's played and how it went after.
+
+## In 0.3.54
+
+Coming from 0.3.53 or earlier, restart the game after updating (exit and start it again): 0.3.54 added a new file, and a /reload doesn't load it.
 
 - **Guild orders: an order is done when whoever ordered it has it.** For an item, the crafter's button is Mark sent now, and the order is only done when the person who ordered it presses Mark received. Every order's track reads Asked, Being made, Sent, Received. In Guild Crafts, For you lists what you've sent under Sent until it's received; Your orders lists what was sent to you under Sent to you, with Mark received, and the menu counts it until you do. An enchant is still done in a trade, so its button is Mark done.
 - **Guild orders: a card at the mailbox.** At a mailbox, a card under the mail window lists the orders you accepted whose item is in your bags. Fill in letter writes the guildmate's name and the order into the letter on the Send Mail tab; drag the item in and send it. Mail the item to whoever ordered it, with or without the card, and the order is marked sent for you, and they're told in chat that it's in the mail (or when they next log in). Mark sent on the card is for an item you handed over in a trade. Nothing is attached or sent for you.

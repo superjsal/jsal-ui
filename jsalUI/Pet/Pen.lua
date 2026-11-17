@@ -60,15 +60,23 @@ local function FormName(s, form)
     return forms[form or s.grewFrom or s.form] or forms[1]
 end
 
--- Your pal as it is now, for a page that shows it beside you (the
--- Journal's Summary): its name, what its form is called and its picture.
--- Nil with the part off, or before an egg is chosen.
+-- How many pixels wide and tall a pal's picture is, where it isn't 80: a
+-- page that draws one at its own size keeps every pixel square.
+local PICTURE = {
+    boltusk = 64, briarboar = 64, capling = 64, gloamtail = 64, lanternshell = 64, scrapwing = 64,
+    stormcub = 64, thornhog = 64, wispkin = 64, auroracrown = 112, eclipselord = 128,
+}
+
+-- Your pal as it is now, for a page that shows it beside you (Home, the
+-- Journal's Summary): its name, what its form is called, its picture and
+-- the picture's size. Nil with the part off, or before an egg is chosen.
 function Pet.Portrait()
     if not Pet.running then return nil end
     local s = Pet.State()
     if s.unchosen then return nil end
     local sprites = Rules.Species(s).sprites
-    return { name = s.name, form = FormName(s), texture = Art(sprites[s.grewFrom or s.form] or sprites[1]) }
+    local sprite = sprites[s.grewFrom or s.form] or sprites[1]
+    return { name = s.name, form = FormName(s), texture = Art(sprite), size = PICTURE[sprite] or 80 }
 end
 
 -- Whether a look is one of the companion's own line.

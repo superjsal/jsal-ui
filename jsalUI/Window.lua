@@ -6,10 +6,15 @@ local Style, Compat = ns.Style, ns.Compat
 local Window = {}
 ns.Window = Window
 
-local WIDTH, HEIGHT = 1000, 920
-local TITLE_HEIGHT, MENU_WIDTH, ITEM_HEIGHT = 44, 210, 36
-local PAD_X, PAD_Y, MENU_PAD = 30, 26, 12
-Window.contentWidth = WIDTH - MENU_WIDTH - PAD_X * 2
+local WIDTH, HEIGHT = 1320, 880
+local TITLE_HEIGHT, MENU_WIDTH, ITEM_HEIGHT = 48, 232, 38
+local PAD_X, PAD_Y, MENU_PAD = 36, 28, 12
+local TILE = 26
+-- The room a page has. A page made for all of it (`wide`) is as wide as fullWidth; any
+-- other keeps to a column of contentWidth in the middle, the width a page is laid out
+-- in unless it says otherwise.
+Window.fullWidth = WIDTH - MENU_WIDTH - PAD_X * 2
+Window.contentWidth = 730
 Window.contentHeight = HEIGHT - TITLE_HEIGHT - PAD_Y * 2
 
 -- The side menu, in order, in its groups: what you plan (your build, training, gear and
@@ -60,11 +65,13 @@ for _, page in ipairs(PAGES) do byKey[page.key] = page end
 -- A part of jsal.ui claims its menu entry by giving it a builder. The builder
 -- runs once, the first time the page opens, and may set page.Refresh to run
 -- on every open.
-function Window.Page(key, build, own)
+function Window.Page(key, build, own, wide)
     byKey[key].build = build
     -- A page big enough to want room of its own (the gear plan, the dungeon
     -- guide) opens in a window of that size beside the dashboard instead.
     byKey[key].own = own
+    -- A page laid out for the whole width of the dashboard.
+    byKey[key].wide = wide and true or false
 end
 
 -- A page's top: a title that says where things stand (set as the page
@@ -155,7 +162,7 @@ local function MenuButton(menu, page)
     b.mark:SetPoint("BOTTOMLEFT")
     b.mark:SetWidth(2)
     local frameIcon = CreateFrame("Frame", nil, b)
-    frameIcon:SetSize(22, 22)
+    frameIcon:SetSize(TILE, TILE)
     frameIcon:SetPoint("LEFT", 10, 0)
     local icon = frameIcon:CreateTexture(nil, "ARTWORK")
     -- jsal.ui's own icons bring their tile and edge; a game icon gets a line
@@ -209,9 +216,10 @@ local function MenuButton(menu, page)
     page.button = b
 end
 
--- The hub keeps one size, 1000 by 920 at full scale, so its text stays the
+-- The hub keeps one size, 1320 by 880 at full scale, so its text stays the
 -- size it was drawn at. Only when the screen is too small to hold it does it
--- shrink, evenly, to fit with a little room around it.
+-- shrink, evenly, to fit with a little room around it. It's wider than it is
+-- tall because a screen is: a short screen shrinks it less.
 local function FitScale()
     local w, h = UIParent:GetWidth(), UIParent:GetHeight()
     return math.min(1, (w - 40) / WIDTH, (h - 40) / HEIGHT)
@@ -262,7 +270,7 @@ local function Build()
     -- open page's name after a thin divider.
     local mark = bar:CreateTexture(nil, "ARTWORK")
     mark:SetTexture("Interface\\AddOns\\jsalUI\\Media\\Logo")
-    mark:SetSize(24, 24)
+    mark:SetSize(TILE, TILE)
     mark:SetPoint("LEFT", 16, 0)
     local name = Style.Wordmark(bar, 20)
     name:SetPoint("LEFT", mark, "RIGHT", 10, 0)
@@ -334,7 +342,13 @@ end
 
 local function BuildPage(page)
     local f = CreateFrame("Frame", nil, content)
-    f:SetAllPoints()
+    if page.wide then
+        f:SetAllPoints()
+    else
+        f:SetPoint("TOP")
+        f:SetPoint("BOTTOM")
+        f:SetWidth(Window.contentWidth)
+    end
     -- The page's name is in the title bar. Pages place their first line
     -- 8px under this anchor, which sits just above the top, so that line
     -- starts at the very top.
