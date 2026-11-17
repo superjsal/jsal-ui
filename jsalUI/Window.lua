@@ -185,7 +185,7 @@ local function MenuButton(menu, page)
     -- A count sits at the entry's right edge; on an entry with the arrow of a window of its
     -- own, just left of the arrow, so the two never share a spot.
     b.badge:SetPoint("RIGHT", page.own and -26 or -4, 0)
-    Style.Fill(b.badge, "gold")
+    Style.Round(b.badge, 9, "gold")
     b.count = Style.Text(b.badge, 11, "onGold", nil, true)
     b.count:SetPoint("CENTER")
     b.count:SetJustifyH("CENTER")

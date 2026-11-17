@@ -601,8 +601,7 @@ end
 local function PageCard(parent, key, label, icon, width, height)
     local c = CreateFrame("Button", nil, parent)
     c:SetSize(width, height)
-    Style.Fill(c, "well")
-    c.edges = Style.Border(c, "cardLine")
+    c.edges = { Style.Box(c, 6, "well", "cardLine").line }
     local tile = c:CreateTexture(nil, "ARTWORK")
     tile:SetTexture(OWN .. icon)
     tile:SetSize(22, 22)
@@ -630,8 +629,7 @@ local function Hero(page, width)
     local hero = CreateFrame("Frame", nil, page)
     hero:SetSize(width, HERO_H)
     hero:SetPoint("TOPLEFT")
-    Style.Fill(hero, "well")
-    Style.Border(hero, "cardLine")
+    Style.Box(hero, 6, "well", "cardLine")
 
     -- Who you are: your portrait in a line of your class's colour, your
     -- name, level and class, your gold, and the day.
@@ -871,8 +869,7 @@ local function ReadyCards(page, width)
     box:SetWidth(width)
     local idle = CreateFrame("Frame", nil, box)
     idle:SetAllPoints()
-    Style.Fill(idle, "well")
-    Style.Border(idle, "cardLine")
+    Style.Box(idle, 6, "well", "cardLine")
     local nothing = Style.Text(idle, 12, "muted")
     nothing:SetPoint("LEFT", PAD, 0)
     nothing:SetText("Nothing is waiting on you right now.")
@@ -881,8 +878,7 @@ local function ReadyCards(page, width)
     local function Card(i)
         if cards[i] then return cards[i] end
         local c = CreateFrame("Button", nil, box)
-        Style.Fill(c, "well")
-        c.edges = Style.Border(c, "cardLine")
+        c.edges = { Style.Box(c, 6, "well", "cardLine").line }
         c.icon = c:CreateTexture(nil, "ARTWORK")
         c.icon:SetSize(40, 40)
         c.icon:SetPoint("TOPLEFT", 14, -14)
@@ -1119,13 +1115,8 @@ local function ProfessionsCard(parent, width)
         l.meter:SetWidth(barW)
         -- At the top of its rank with the next one open to you: a gold tag
         -- in place of the count.
-        l.train = CreateFrame("Frame", nil, c)
-        l.train:SetSize(42, 18)
-        l.train:SetPoint("TOPRIGHT", -PAD, y + 3)
-        Style.Fill(l.train, "gold")
-        l.train.text = Style.Text(l.train, 11, "onGold", nil, true)
-        l.train.text:SetPoint("CENTER")
-        l.train.text:SetText("train")
+        l.train = Style.Tag(c, "train", true)
+        l.train:SetPoint("TOPRIGHT", -PAD, y + 4)
         c.lines[i] = l
     end
 
@@ -1146,8 +1137,6 @@ local function ProfessionsCard(parent, width)
                     and p.skill >= (P.At and P.At(p.line, rank) or p.cap)
                 l.train:SetShown(open)
                 l.count:SetText(open and "" or ("%d |cff9a9688/ %d|r"):format(p.skill, p.cap))
-                l.train.text:SetText("train")
-                l.train:SetWidth(Style.Wide(l.train.text, 30) + 12)
             end
         end
     end
@@ -1300,8 +1289,7 @@ local function GamesCard(parent, width)
         local t = CreateFrame("Button", nil, c)
         t:SetSize(tileW, 78)
         t:SetPoint("TOPLEFT", PAD + (i - 1) * (tileW + 10), -48)
-        Style.Fill(t, "titleBar")
-        t.edges = Style.Border(t, "line")
+        t.edges = { Style.Box(t, 5, "titleBar", "line").line }
         t.icon = t:CreateTexture(nil, "ARTWORK")
         t.icon:SetSize(28, 28)
         t.icon:SetPoint("TOP", 0, -8)
@@ -1391,7 +1379,7 @@ local function News(page, width)
     local news = CreateFrame("Frame", nil, page)
     news:SetPoint("BOTTOMLEFT")
     news:SetSize(width, 40)
-    Style.Border(news, "cardLine")
+    Style.Box(news, 6, "window", "cardLine")
     news:EnableMouse(true)
     local newsHead = Caps(news, "NEW IN " .. ns.version)
     newsHead:SetPoint("LEFT", PAD, 0)

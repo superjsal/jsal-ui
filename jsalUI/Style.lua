@@ -1,5 +1,8 @@
 -- The look every jsal.ui window shares: the jsal.io dark colours, flat fills
--- and 1px lines, all things the game draws crisply at any scale.
+-- and 1px lines, which the game draws crisply at any scale, and softly
+-- rounded corners on what you press and what holds things: buttons, text
+-- boxes and cards a little, tags, counts, switches and a row of choices all
+-- the way round.
 local addonName, ns = ...
 local Compat = ns.Compat
 
@@ -159,8 +162,59 @@ end
 
 function Style.SetBorder(edges, colorKey)
     for _, t in ipairs(edges) do
-        t:SetColorTexture(Style.Color(colorKey))
+        if t.Paint then t:Paint(colorKey) else t:SetColorTexture(Style.Color(colorKey)) end
     end
+end
+
+-- Round corners. A white square with rounded corners (Media\Round, one for
+-- each radius) is stretched over a frame with its corners kept at their own
+-- size, and tinted. Where the game can't do that, or the pictures weren't
+-- there when it started (a new file needs a restart), the same shape is
+-- drawn square: everything works as before, with the corners it used to
+-- have.
+local ROUND = "Interface\\AddOns\\" .. addonName .. "\\Media\\Round\\r"
+local RADII = { [4] = true, [5] = true, [6] = true, [7] = true, [9] = true, [10] = true, [11] = true, [12] = true, [13] = true }
+
+function Style.Rounded()
+    return Enum ~= nil and Enum.UITextureSliceMode ~= nil and not ns.needsRestart
+end
+
+-- A filled shape with corners of `radius`, over the whole frame until it's
+-- placed otherwise. Paint(colorKey, alpha) colours it.
+function Style.Round(frame, radius, colorKey, layer, level)
+    local t = frame:CreateTexture(nil, layer or "BACKGROUND", nil, level or 0)
+    t:SetAllPoints()
+    if RADII[radius] and t.SetTextureSliceMargins and Style.Rounded() then
+        t.round = true
+        t:SetTexture(ROUND .. radius)
+        t:SetTextureSliceMargins(radius, radius, radius, radius)
+        t:SetTextureSliceMode(Enum.UITextureSliceMode.Stretched)
+    end
+    function t:Paint(key, alpha)
+        local r, g, b = Style.Color(key)
+        if self.round then self:SetVertexColor(r, g, b, alpha or 1) else self:SetColorTexture(r, g, b, alpha or 1) end
+    end
+    t:Paint(colorKey or "well")
+    return t
+end
+
+-- A box with round corners: a line a pixel wide round a fill, drawn as one
+-- shape a pixel inside another. Paint(fillKey, lineKey) colours them; nil
+-- leaves one as it is.
+function Style.Box(frame, radius, fillKey, lineKey)
+    local box = {
+        line = Style.Round(frame, radius, lineKey, "BACKGROUND", 0),
+        fill = Style.Round(frame, radius - 1, fillKey, "BACKGROUND", 1),
+    }
+    local px = Compat.OnePixel(frame)
+    box.fill:ClearAllPoints()
+    box.fill:SetPoint("TOPLEFT", px, -px)
+    box.fill:SetPoint("BOTTOMRIGHT", -px, px)
+    function box:Paint(fill, line)
+        if fill then self.fill:Paint(fill) end
+        if line then self.line:Paint(line) end
+    end
+    return box
 end
 
 -- A 1px rule along one side of a frame.
@@ -310,56 +364,46 @@ function Style.ItemTip(frame, more)
     Style.Hover(frame, 6)
 end
 
--- Buttons. "primary" is gold with dark text, for the one main action on a
--- page; "plain" is a well with a line around it. Under the pointer both
--- light up a step.
--- "tab" is one of a row of choices (a page's tabs, a filter, a spec): the
--- chosen one is lit with a gold line under it, set with SetSelected, so gold
--- fill stays the mark of the main action.
+-- Buttons, with softly rounded corners. "primary" is gold with dark text,
+-- for the one main action on a page; "plain" is a well with a line around
+-- it. Under the pointer both light up a step, and a plain one darkens while
+-- it's pressed.
+-- "tab" is one of a row of choices (a page's tabs, a filter, a spec), a pill:
+-- the chosen one, set with SetSelected, has gold words on a dim gold fill in
+-- a gold line, so a gold fill stays the mark of the main action.
 -- A tone overrides the kind for a game's answer buttons: "right" is gold,
 -- "wrong" is dimmed.
 local function PaintButton(b)
     local enabled = b:IsEnabled()
     local chosen = b.kind == "tab" and b.selected and not b.tone
-    b.under:SetShown(chosen and true or false)
+    local lit = enabled and (b.hover or b.down) and true or false
+    local fill, line, text
     if b.tone == "right" then
-        b.bg:SetColorTexture(Style.Color("gold"))
-        b.label:SetTextColor(Style.Color("onGold"))
-        Style.SetBorder(b.edges, "gold")
+        fill, line, text = "gold", "gold", "onGold"
     elseif b.tone == "wrong" then
-        b.bg:SetColorTexture(Style.Color("line"))
-        b.label:SetTextColor(Style.Color("muted"))
-        Style.SetBorder(b.edges, "line")
+        fill, line, text = "line", "line", "muted"
     elseif b.kind == "primary" and enabled then
-        b.bg:SetColorTexture(Style.Color(b.hover and "goldHover" or "gold"))
-        b.label:SetTextColor(Style.Color("onGold"))
-        Style.SetBorder(b.edges, b.hover and "goldHover" or "gold")
+        fill = (b.hover and not b.down) and "goldHover" or "gold"
+        line, text = fill, "onGold"
+    elseif chosen then
+        fill, line, text = "needFill", "gold", "gold"
     elseif b.kind == "tab" then
-        local lit = chosen or (enabled and b.hover)
-        b.bg:SetColorTexture(Style.Color(lit and "wellHover" or "well"))
-        b.label:SetTextColor(Style.Color(lit and "text" or "secondary"))
-        Style.SetBorder(b.edges, "lineStrong")
+        fill, line, text = lit and "wellHover" or "well", "lineStrong", lit and "text" or "secondary"
     else
-        b.bg:SetColorTexture(Style.Color((enabled and b.hover) and "wellHover" or "well"))
-        b.label:SetTextColor(Style.Color(enabled and "text" or "muted"))
-        Style.SetBorder(b.edges, (enabled and b.hover) and "gold" or "lineStrong")
+        fill = (b.down and enabled) and "titleBar" or (lit and "wellHover" or "well")
+        line, text = lit and "gold" or (enabled and "lineStrong" or "line"), enabled and "text" or "muted"
     end
+    b.box:Paint(fill, line)
+    b.label:SetTextColor(Style.Color(text))
 end
 
 function Style.Button(parent, label, kind, width)
     local b = CreateFrame("Button", nil, parent)
     b:SetSize(width or 140, 28)
     b.kind = kind or "plain"
-    b.bg = b:CreateTexture(nil, "BACKGROUND")
-    b.bg:SetAllPoints()
-    b.edges = Style.Border(b, "lineStrong")
-    -- The gold line under a chosen tab.
-    b.under = b:CreateTexture(nil, "ARTWORK")
-    b.under:SetColorTexture(Style.Color("gold"))
-    b.under:SetPoint("BOTTOMLEFT")
-    b.under:SetPoint("BOTTOMRIGHT")
-    b.under:SetHeight(2)
-    b.under:Hide()
+    b.box = Style.Box(b, b.kind == "tab" and 10 or 5, "well", "lineStrong")
+    -- Its fill and its line, for a page that shows or hides them itself.
+    b.bg, b.edges = b.box.fill, { b.box.line }
     b.label = Style.Text(b, 13, "text", nil, true)
     b.label:SetPoint("CENTER")
     b.label:SetJustifyH("CENTER")
@@ -367,6 +411,8 @@ function Style.Button(parent, label, kind, width)
     b:SetMotionScriptsWhileDisabled(true)
     b:SetScript("OnEnter", function() b.hover = true; PaintButton(b) end)
     b:SetScript("OnLeave", function() b.hover = false; PaintButton(b) end)
+    b:SetScript("OnMouseDown", function() b.down = true; PaintButton(b) end)
+    b:SetScript("OnMouseUp", function() b.down = false; PaintButton(b) end)
     b:SetScript("OnEnable", PaintButton)
     b:SetScript("OnDisable", PaintButton)
     function b:SetLabel(text) self.label:SetText(text) end
@@ -459,8 +505,7 @@ end
 function Style.Field(parent, width, numeric)
     local well = CreateFrame("Frame", nil, parent)
     well:SetSize(width, 26)
-    Style.Fill(well, "well")
-    Style.Border(well, "lineStrong")
+    Style.Box(well, 5, "well", "lineStrong")
     local e = CreateFrame("EditBox", nil, well)
     e:SetPoint("TOPLEFT", 8, 0)
     e:SetPoint("BOTTOMRIGHT", -8, 0)
@@ -578,38 +623,52 @@ function Style.Panel(name, width, height, title)
     return f
 end
 
--- A card: a well with a line around it and a small heading in its corner.
+-- A card: a well with a line around it, its corners a little round, and a
+-- small heading in its corner.
 function Style.Card(parent, heading)
     local card = CreateFrame("Frame", nil, parent)
-    Style.Fill(card, "well")
-    Style.Border(card, "cardLine")
+    card.box = Style.Box(card, 6, "well", "cardLine")
     card.heading = Style.Text(card, 11, "muted", nil, true)
     card.heading:SetPoint("TOPLEFT", 12, -10)
     card.heading:SetText(heading:upper())
     return card
 end
 
--- An on/off switch: gold when on.
+-- A tag: a small pill after a name, as wide as its words. Gold with dark
+-- words for what to do or what's best, a plain fill for what a thing is.
+function Style.Tag(parent, words, gold)
+    local t = CreateFrame("Frame", nil, parent)
+    t:SetHeight(20)
+    t.fill = Style.Round(t, 10, gold and "gold" or "line")
+    t.text = Style.Text(t, 11, gold and "onGold" or "secondary", nil, true)
+    t.text:SetPoint("CENTER")
+    function t:Say(text)
+        self.text:SetText(text)
+        self:SetWidth(Style.Wide(self.text, #text * 6) + 18)
+    end
+    t:Say(words or "")
+    return t
+end
+
+-- An on/off switch, a pill with a round knob: gold when on.
 function Style.Switch(parent, onChange)
     local s = CreateFrame("Button", nil, parent)
     s:SetSize(36, 20)
-    s.track = Style.Fill(s, "well")
-    s.edges = Style.Border(s, "lineStrong")
-    s.knob = s:CreateTexture(nil, "ARTWORK")
-    s.knob:SetSize(12, 12)
+    s.box = Style.Box(s, 10, "well", "lineStrong")
+    s.knob = Style.Round(s, 7, "muted", "ARTWORK")
+    s.knob:ClearAllPoints()
+    s.knob:SetSize(14, 14)
     function s:SetOn(on)
         self.on = on and true or false
         self.knob:ClearAllPoints()
         if self.on then
-            self.knob:SetPoint("RIGHT", -4, 0)
-            self.knob:SetColorTexture(Style.Color("onGold"))
-            self.track:SetColorTexture(Style.Color("gold"))
-            Style.SetBorder(self.edges, "gold")
+            self.knob:SetPoint("RIGHT", -3, 0)
+            self.knob:Paint("onGold")
+            self.box:Paint("gold", "gold")
         else
-            self.knob:SetPoint("LEFT", 4, 0)
-            self.knob:SetColorTexture(Style.Color("muted"))
-            self.track:SetColorTexture(Style.Color("well"))
-            Style.SetBorder(self.edges, "lineStrong")
+            self.knob:SetPoint("LEFT", 3, 0)
+            self.knob:Paint("muted")
+            self.box:Paint("well", "lineStrong")
         end
     end
     s:SetScript("OnClick", function(self)
