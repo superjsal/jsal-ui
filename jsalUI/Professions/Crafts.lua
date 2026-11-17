@@ -286,31 +286,26 @@ local function Track(parent)
     return t
 end
 
--- How things stand, at a glance: a number for a state, with its name and a
--- few words under it. Three of them sit over For you's list.
+-- How things stand, at a glance: a number for a state, and the state's
+-- name beside it. Three of them sit over For you's list.
+local BOX_H = 38
 local function CountBox(parent, width)
     local box = CreateFrame("Frame", nil, parent)
-    box:SetSize(width, 52)
+    box:SetSize(width, BOX_H)
     Style.Box(box, 6, "well", "cardLine")
     box.edge = Style.Edge(box, 6)
-    box.number = Style.Text(box, 26, "text", nil, true)
+    box.number = Style.Text(box, 19, "text", nil, true)
     box.number:SetPoint("LEFT", 20, 0)
     box.number:SetJustifyV("MIDDLE")
-    box.mark = Mark(box, 10)
-    box.mark:SetPoint("TOPLEFT", 62, -12)
     box.label = Style.Text(box, 11, "text", nil, true)
-    box.label:SetPoint("LEFT", box.mark, "RIGHT", 8, 0)
-    box.say = Style.Text(box, 11, "muted")
-    box.say:SetPoint("TOPLEFT", 62, -30)
-    function box:Set(state, n, label, say)
+    box.label:SetPoint("LEFT", 52, 0)
+    function box:Set(state, n, label)
         local r, g, b = Style.Color(STATE[state])
         self.edge:Paint(STATE[state])
         self.number:SetText(n)
         if n > 0 then self.number:SetTextColor(r, g, b) else self.number:SetTextColor(Style.Color("muted")) end
-        self.mark:Set(state)
         self.label:SetText(label)
         self.label:SetTextColor(r, g, b)
-        self.say:SetText(say)
     end
     return box
 end
@@ -666,9 +661,9 @@ local function PaintForYou()
     end
     C.sub:SetText("What guildmates asked for that you know how to make.")
     C.right:SetText(("%d open in the guild"):format(me.open))
-    view.boxes[1]:Set("todo", #me.todo, "TO DO", #me.todo > 0 and ("you accepted " .. Plural(#me.todo, "it", "these")) or "nothing accepted")
-    view.boxes[2]:Set("waiting", #me.waiting, "WAITING", #me.waiting > 0 and "you can accept " .. Plural(#me.waiting, "it", "these") or "nothing to accept")
-    view.boxes[3]:Set("done", #me.done, "DONE", #me.done > 0 and "made by you, lately" or "nothing lately")
+    view.boxes[1]:Set("todo", #me.todo, "TO DO")
+    view.boxes[2]:Set("waiting", #me.waiting, "WAITING")
+    view.boxes[3]:Set("done", #me.done, "DONE")
     Reset(list)
     local waiting = false
     if #me.todo > 0 then
@@ -1543,8 +1538,8 @@ Window.Page("guildcrafts", function(page)
     foryou.body:SetAllPoints()
     Boxes(foryou.body, width)
     foryou.boxes = foryou.body.boxes
-    foryou.list = List(foryou.body, width, bodyH - 66)
-    foryou.list.scroll:SetPoint("TOPLEFT", 0, -66)
+    foryou.list = List(foryou.body, width, bodyH - BOX_H - 14)
+    foryou.list.scroll:SetPoint("TOPLEFT", 0, -(BOX_H + 14))
 
     -- Your orders: the asking card, then the list. No counts here: the
     -- card has their place, and the headings count.
