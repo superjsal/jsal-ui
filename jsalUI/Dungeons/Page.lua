@@ -333,6 +333,18 @@ Window.Page("dungeons", function(page)
     local rightW = width
     local chosen, scrolled
     local Paint, opened
+    -- Each part of a paint, timed, so /jsal perf can say which is slow ("Page: Dungeons,
+    -- redraw" was 32 ms, with no word of why). A part is noted only when the paint was slow.
+    local spent = {}
+    local function Spent(part, since)
+        local now = debugprofilestop()
+        spent[part] = (spent[part] or 0) + now - since
+        return now
+    end
+    local function NoteParts(started)
+        if debugprofilestop() - started < 10 then return end
+        for part, ms in pairs(spent) do ns.NoteTime("Dungeons, " .. part, ms) end
+    end
 
     -----------------------------------------------------------------
     -- The picker: the chosen dungeon's name; a click opens the list
@@ -974,7 +986,9 @@ Window.Page("dungeons", function(page)
             entry.classes = not entry.starred and not entry.recipe and ForOthers(entry.id) == true
             entry.better, entry.gain, entry.loss = nil, nil, nil
             if not entry.cant and not entry.classes and not entry.recipe and ns.Gear and ns.Gear.Better then
+                local asked = debugprofilestop()
                 local is, gain = ns.Gear.Better(entry.id, equipLoc, classID, subclassID)
+                Spent("bosses: of which, the Gear plan's upgrade checks", asked)
                 if is ~= nil then sure = sure + 1 end
                 if is then
                     entry.better, entry.gain = true, gain
@@ -1518,9 +1532,12 @@ Window.Page("dungeons", function(page)
     end
 
     Paint = function()
+        local started = debugprofilestop()
+        spent = {}
         local level = UnitLevel("player") or 1
         local faction = UnitFactionGroup and UnitFactionGroup("player")
         local game = D.GameKills()
+        local t = Spent("boss kills from the game", started)
         local shown = {}
         for _, d in ipairs(ns.DungeonData or {}) do
             if not d.faction or d.faction == faction then shown[#shown + 1] = d end
@@ -1611,6 +1628,7 @@ Window.Page("dungeons", function(page)
             listScroll:SetVerticalScroll(math.max(0, math.min(listScroll:GetVerticalScrollRange(), chosenY - 2 * ROW_H)))
         end
 
+        t = Spent("the dungeon list", t)
         -- The chosen dungeon.
         local d = chosen
         if not d then return end
@@ -1646,8 +1664,10 @@ Window.Page("dungeons", function(page)
         tabs:Set("quests", nil, #quests > 0 and #quests or nil)
         tabs:Pick(tab)
         local by = 0
+        t = Spent("the dungeon's quests, found", t)
         if tab == "quests" then
             by = Q.Paint(quests, by)
+            Spent("the quests tab", t)
             if #quests == 0 then
                 none:ClearAllPoints()
                 none:SetPoint("TOPLEFT", 0, -8)
@@ -1658,6 +1678,7 @@ Window.Page("dungeons", function(page)
             bossList:SetHeight(math.max(1, by))
             Fit(by)
             B.Scroll(d, tab)
+            NoteParts(started)
             return
         end
         -- The bosses as cards, two across, in the game's order, under a
@@ -1665,7 +1686,9 @@ Window.Page("dungeons", function(page)
         hint:SetText("")
         local heights, forYou, sure = {}, 0, 0
         for k, b in ipairs(d.bosses) do
+            t = debugprofilestop()
             local card = BossRow(k)
+            t = Spent("bosses: cards made or found", t)
             card.boss = b[2]
             local n = D.KillCount(b[2], game, b[3])
             card.number:SetText(k)
@@ -1680,6 +1703,7 @@ Window.Page("dungeons", function(page)
             end
             Style.SetBorder(card.boxEdges, "wordGreen")
             local h, more, known, guildKills = PaintLoot(card, b[2], b[1])
+            Spent("bosses: loot, all of it", t)
             forYou, sure = forYou + more, sure + known
             -- Your kills, and the guild's: said here once, where it was on
             -- every item ("dropped 1× in 1 guild kill").
@@ -1721,6 +1745,7 @@ Window.Page("dungeons", function(page)
         bossList:SetHeight(by)
         Fit(by)
         B.Scroll(d, tab)
+        NoteParts(started)
     end
 
     page.Refresh = function() Paint() end
