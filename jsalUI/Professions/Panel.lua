@@ -1,7 +1,9 @@
 -- A panel beside the profession window: where you stand in the rank, the
--- one thing to make now with what it takes, the steps after it one line
--- each (and when to train the next rank), and everything the road needs
--- against what you have.
+-- one thing to make now with what it takes, and the steps after it as a
+-- road down the panel: a stop each, with a round sign at the skill it
+-- reaches, a gold stop where the next rank is trained, and the rank's cap at
+-- its end. Under it, a line of how much the road still needs (the list is in
+-- its tooltip) and the way to put it all on the shopping list.
 local _, ns = ...
 local Style, Compat, Professions, Road = ns.Style, ns.Compat, ns.Professions, ns.Road
 
@@ -10,12 +12,14 @@ local Panel = ns.NewModule("professionpanel", {
     note = "Beside the profession window: what to craft to reach the next rank.",
 })
 
--- Wide enough to hold the road's prices beside each step.
 local WIDTH, PAD, ROW_H = 440, 14, 30
--- A line of everything the road needs, and the row for training the next rank.
-local NEED_H, RANK_H = 22, Road.RANK_H
+-- The row for training the next rank when it can be trained now, a stop on
+-- the road, and the road's band behind the stops' signs.
+local RANK_H, STOP_H, SIGN, BAND_W = Road.RANK_H, Road.STOP_H, Road.SIGN, 22
 local TAB_H = 26
-local MAX_STEPS, MAX_ITEMS = 6, 8
+-- How many steps the road shows after the one in hand, and how many
+-- materials the line under it lists when pointed at.
+local MAX_STEPS, MAX_ITEMS = 6, 12
 -- The profession window, newer and older.
 local TARGETS = {
     function() return ProfessionsFrame end,
@@ -27,7 +31,7 @@ local Paint
 -- The tab showing: the road with what it needs, or the recipes to learn.
 local tab = "road"
 local hooked = {}
-local steps, items, unlearned = {}, {}, {}
+local steps, unlearned = {}, {}
 local showAllUnlearned = false
 local DETAIL_H = 42
 local SOURCE = { [1] = "Trainer", [2] = "Vendor pattern", [3] = "Drop", [4] = "Quest" }
@@ -111,22 +115,63 @@ local function Build()
     panel.roadNote = Style.Text(panel, 12, "muted")
     panel.roadNote:SetJustifyH("RIGHT")
     panel.thenHead = Style.Text(panel, 12, "gold", nil, true)
-    panel.thenHead:SetText("THEN")
-    panel.thenNote = Style.Text(panel, 12, "muted")
-    panel.thenNote:SetJustifyH("RIGHT")
     panel.note = Style.Text(panel, 12, "muted")
     panel.note:SetWidth(WIDTH - PAD * 2)
+    panel.note:SetJustifyH("LEFT")
+    -- The road itself: a band down the left, behind the stops' signs, with
+    -- a dashed middle; how many steps aren't shown; and the rank's cap,
+    -- ringed in gold, at its end.
+    panel.band = CreateFrame("Frame", nil, panel)
+    panel.band:SetWidth(BAND_W)
+    panel.band:SetFrameLevel((panel:GetFrameLevel() or 0) + 1)
+    Style.Box(panel.band, 11, "titleBar", "lineStrong")
+    panel.dashes = {}
+    panel.moreSteps = Style.Text(panel, 12, "muted")
+    panel.endSign = CreateFrame("Frame", nil, panel)
+    panel.endSign:SetSize(SIGN, SIGN)
+    panel.endSign:SetFrameLevel((panel:GetFrameLevel() or 0) + 3)
+    Style.Circle(panel.endSign, "well", "gold")
+    panel.endSign.level = Style.Text(panel.endSign, 12, "gold", nil, true)
+    panel.endSign.level:SetPoint("CENTER")
+    panel.endSign.level:SetJustifyH("CENTER")
+    panel.endText = Style.Text(panel, 12, "muted")
     panel.rule = panel:CreateTexture(nil, "BORDER")
     panel.rule:SetColorTexture(Style.Color("line"))
     panel.rule:SetSize(WIDTH - PAD * 2, Compat.OnePixel(panel))
-    panel.needHead = Style.Text(panel, 12, "gold", nil, true)
-    panel.needNote = Style.Text(panel, 12, "muted")
-    panel.needNote:SetJustifyH("RIGHT")
-    panel.needNote:SetText("have / need")
+    -- How much the road still needs, in a line; pointed at, the list of it.
+    panel.needLine = CreateFrame("Frame", nil, panel)
+    panel.needLine:SetSize(170, 20)
+    panel.needLine.text = Style.Text(panel.needLine, 12, "muted")
+    panel.needLine.text:SetPoint("LEFT")
+    panel.needLine:EnableMouse(true)
+    panel.needLine:SetScript("OnEnter", function(self)
+        if not (self.list and #self.list > 0) then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(self.title or "")
+        for i, entry in ipairs(self.list) do
+            if i > MAX_ITEMS then
+                GameTooltip:AddLine(("and %d more, in the shopping list"):format(#self.list - MAX_ITEMS), 0.6, 0.59, 0.53)
+                break
+            end
+            local enough = entry.have >= entry.need
+            GameTooltip:AddDoubleLine(Compat.ItemName(entry.item) or "...", ("%d / %d"):format(entry.have, entry.need),
+                1, 1, 1, enough and 0.38 or 0.94, enough and 0.7 or 0.48, enough and 0.35 or 0.4)
+        end
+        GameTooltip:Show()
+    end)
+    panel.needLine:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    -- The nearest trainer, and a quiet way to show them on the map.
     panel.where = Style.Text(panel, 12, "muted")
-    panel.where:SetWidth(WIDTH - PAD * 2)
-    panel.pin = Style.Button(panel, "Show trainer on map", "primary", WIDTH - PAD * 2)
-    panel.pin:SetHeight(28)
+    panel.where:SetWidth(WIDTH - PAD * 2 - 90)
+    panel.where:SetJustifyH("LEFT")
+    panel.where:SetWordWrap(false)
+    panel.pin = CreateFrame("Button", nil, panel)
+    panel.pin.text = Style.Text(panel.pin, 11, "muted")
+    panel.pin.text:SetPoint("RIGHT")
+    panel.pin.text:SetText("show on map")
+    panel.pin:SetSize(Style.Wide(panel.pin.text, 76), 18)
+    panel.pin:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("gold")) end)
+    panel.pin:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("muted")) end)
 
     -- Recipes not learned yet: a rule, a heading with the count, and a
     -- "Show all" line under the first few.
@@ -227,16 +272,20 @@ local function LayoutRow(r, detailed)
 end
 
 -- The road's parts, each made the first time it's needed (Road.lua): a later
--- step's line, the card for the step in hand, and the row for training the
--- next rank.
-local Needs, RecipeName, RecipeIcon = Road.Needs, Road.RecipeName, Road.RecipeIcon
+-- step's stop, the card for the step in hand, the row for a rank that can be
+-- trained now, and the stop where a later one is.
+local RecipeName, RecipeIcon = Road.RecipeName, Road.RecipeIcon
 local function Step(i)
-    if not steps[i] then steps[i] = Road.Step(panel, WIDTH - PAD * 2, true) end
+    if not steps[i] then
+        steps[i] = Road.Stop(panel, WIDTH - PAD * 2)
+        -- Over the road's band, which is the panel's child as they are.
+        steps[i]:SetFrameLevel((panel:GetFrameLevel() or 0) + 3)
+    end
     return steps[i]
 end
 
 local function Card()
-    if not panel.card then panel.card = Road.Card(panel, WIDTH - PAD * 2, true) end
+    if not panel.card then panel.card = Road.NowCard(panel, WIDTH - PAD * 2) end
     return panel.card
 end
 
@@ -245,23 +294,24 @@ local function RankRow()
     return panel.rankRow
 end
 
--- One line of everything the road needs: its name, and have / need.
-local function Item(i)
-    local r = items[i]
-    if r then return r end
-    r = CreateFrame("Frame", nil, panel)
-    r:SetSize(WIDTH - PAD * 2, NEED_H)
-    r.count = Style.Text(r, 12, "muted")
-    r.count:SetPoint("RIGHT")
-    r.count:SetJustifyH("RIGHT")
-    r.name = Style.Text(r, 12, "text")
-    r.name:SetPoint("LEFT")
-    r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
-    r.name:SetJustifyH("LEFT")
-    r.name:SetWordWrap(false)
-    Style.ItemTip(r, Needs)
-    items[i] = r
-    return r
+local function RankStop()
+    if not panel.rankStop then
+        panel.rankStop = Road.RankStop(panel, WIDTH - PAD * 2)
+        panel.rankStop:SetFrameLevel((panel:GetFrameLevel() or 0) + 3)
+    end
+    return panel.rankStop
+end
+
+-- A dash of the road's middle line.
+local function Dash(i)
+    local t = panel.dashes[i]
+    if not t then
+        t = panel.band:CreateTexture(nil, "ARTWORK")
+        t:SetColorTexture(Style.Color("lineStrong"))
+        t:SetSize(2, 10)
+        panel.dashes[i] = t
+    end
+    return t
 end
 
 local function Place(region, y, x)
@@ -641,8 +691,10 @@ function Paint()
     panel.tabs:Pick(view)
     if #missing > 0 then y = y + TAB_H + 12 end
 
-    local shown, count, listed, later, mats, ranked = 0, 0, 0, false, 0, false
+    local shown, listed, later, mats, ranked = 0, 0, false, 0, false
     HideGroups()
+    if panel.rankRow then panel.rankRow:Hide() end
+    if panel.rankStop then panel.rankStop:Hide() end
     if view == "road" then
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
@@ -668,60 +720,96 @@ function Paint()
         if first then
             local card = Card()
             local recipe = first.recipe
-            mats = Road.PaintCard(card, line, first, skill)
+            mats = Road.PaintNow(card, line, first, skill)
             Place(card, y)
             y = y + card:GetHeight() + 8
-            -- The step's crafts onto the shopping list.
+            -- The step's crafts onto the shopping list, from the card's foot.
             local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
-            if shop then
-                if not panel.addStep then
-                    panel.addStep = Style.Button(panel, "Add this step to my shopping list", "plain", WIDTH - PAD * 2)
-                    panel.addStep:SetHeight(26)
-                end
-                panel.addStep:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
-                Place(panel.addStep, y)
-                y = y + 34
-            elseif panel.addStep then
-                panel.addStep:Hide()
-            end
-        else
-            if panel.card then panel.card:Hide() end
-            if panel.addStep then panel.addStep:Hide() end
+            card.add:SetShown(shop and true or false)
+            card.add:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
+        elseif panel.card then
+            panel.card:Hide()
         end
 
-        -- The steps after it, one line each, with the next rank's training
-        -- where it falls among them.
+        -- The steps after it, a stop each down the road, with the next
+        -- rank's training where it falls among them.
         local more = #road > 1 or (rankAt ~= nil and skill < rankAt)
+        local from
         if more then
             y = y + 8
+            panel.thenHead:SetText(("YOUR ROAD TO %d"):format(cap))
             Place(panel.thenHead, y + 2)
-            panel.thenNote:SetText(crafts > 0 and ("to %d · about %d %s%s"):format(cap, crafts, unit, crafts == 1 and "" or "s") or "")
-            PlaceRight(panel.thenNote, y + 2)
-            y = y + 24
+            y = y + 26
+            from = y
         else
             panel.thenHead:Hide()
-            panel.thenNote:Hide()
+        end
+        local function RankAt(y)
+            local r = RankStop()
+            Road.PaintRankStop(r, line, rank, rankIndex, rankAt, skill)
+            Place(r, y)
+            ranked = true
+            return STOP_H
         end
         for i = 2, #road do
             if i - 1 > MAX_STEPS then break end
             local step = road[i]
-            if not ranked and rankAt and step.from >= rankAt then y = y + Rank(y) end
+            if not ranked and rankAt and step.from >= rankAt then y = y + RankAt(y) end
             shown = i - 1
             local s = Step(shown)
-            local tall = Road.PaintStep(s, step)
+            Road.PaintStop(s, step)
             Place(s, y)
-            y = y + tall
+            y = y + STOP_H
         end
         -- A road that ends before the next rank opens still says when it does.
-        if not ranked and rankAt and skill < rankAt and #road - 1 <= MAX_STEPS then y = y + Rank(y) end
+        if not ranked and rankAt and skill < rankAt and #road - 1 <= MAX_STEPS then y = y + RankAt(y) end
 
-        -- More steps than fit, or a road that stops short.
-        local note
-        if #road - 1 > MAX_STEPS then
-            note = ("Then %d more step%s."):format(#road - 1 - MAX_STEPS, #road - 1 - MAX_STEPS == 1 and "" or "s")
+        -- More steps than fit are counted; then the rank's cap, where the
+        -- road reaches it, with how many crafts that is.
+        local hidden = #road - 1 - MAX_STEPS
+        if hidden > 0 then
+            panel.moreSteps:SetText(("%d more step%s"):format(hidden, hidden == 1 and "" or "s"))
+            Place(panel.moreSteps, y + 10, PAD + SIGN + 12)
+            y = y + 34
+        else
+            panel.moreSteps:Hide()
         end
+        if more and not stuck and skill < cap then
+            panel.endSign.level:SetText(cap)
+            Place(panel.endSign, y + (STOP_H - SIGN) / 2)
+            panel.endText:SetText(crafts > 0 and ("about %d %s%s from here"):format(crafts, unit, crafts == 1 and "" or "s") or "")
+            panel.endText:ClearAllPoints()
+            panel.endText:SetPoint("LEFT", panel.endSign, "RIGHT", 12, 0)
+            panel.endText:Show()
+            y = y + STOP_H
+        else
+            panel.endSign:Hide()
+            panel.endText:Hide()
+        end
+        -- The road's band, behind the signs, from the first to the last.
+        if from and y > from then
+            local tall = y - from - 8
+            panel.band:ClearAllPoints()
+            panel.band:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD + (SIGN - BAND_W) / 2, -(from + 4))
+            panel.band:SetHeight(tall)
+            panel.band:Show()
+            local used = 0
+            for at = 12, tall - 22, 18 do
+                used = used + 1
+                local dash = Dash(used)
+                dash:ClearAllPoints()
+                dash:SetPoint("TOP", panel.band, "TOP", 0, -at)
+                dash:Show()
+            end
+            for i = used + 1, #panel.dashes do panel.dashes[i]:Hide() end
+        else
+            panel.band:Hide()
+        end
+
+        -- A road that stops short, or one that's done.
+        local note
         if stuck then
-            note = (note and (note .. " ") or "") .. ("Past %d, only patterns you'd have to find give skill."):format(stuck)
+            note = ("Past %d, only patterns you'd have to find give skill."):format(stuck)
         elseif skill >= cap and not rankAt then
             note = "That's as far as it goes."
         end
@@ -733,77 +821,60 @@ function Paint()
             panel.note:Hide()
         end
 
-        -- The whole road onto the shopping list at once.
-        local crafting = {}
-        for _, step in ipairs(road) do
-            if not step.recipe.vein then crafting[#crafting + 1] = step end
-        end
-        if ns.Shopping and ns.Shopping.running and #crafting > 1 then
-            if not panel.addRoad then
-                panel.addRoad = Style.Button(panel, "Add the whole road to my shopping list", "plain", WIDTH - PAD * 2)
-                panel.addRoad:SetHeight(26)
-            end
-            panel.addRoad:SetScript("OnClick", function()
-                for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
-            end)
-            Place(panel.addRoad, y + 4)
-            y = y + 34
-        elseif panel.addRoad then
-            panel.addRoad:Hide()
-        end
-
-        -- Everything the road needs, the biggest shortfall first.
-        local list = {}
+        -- What the whole road still needs, in a line (the list is in its
+        -- tooltip, the biggest shortfall first), and the way to put the
+        -- road on the shopping list.
+        local list, short = {}, 0
         for item, need in pairs(totals) do
-            list[#list + 1] = { item = item, need = need, have = Compat.ItemCount(item, true) }
+            local have = Compat.ItemCount(item, true)
+            list[#list + 1] = { item = item, need = need, have = have }
+            if have < need then short = short + 1 end
         end
         table.sort(list, function(a, b)
             local sa, sb = a.need - a.have, b.need - b.have
             if sa ~= sb then return sa > sb end
             return a.item < b.item
         end)
-        if #list > 0 then
+        local crafting = {}
+        for _, step in ipairs(road) do
+            if not step.recipe.vein then crafting[#crafting + 1] = step end
+        end
+        local shop = ns.Shopping and ns.Shopping.running and #crafting > 1
+        if #list > 0 or shop then
             y = y + 8
             Place(panel.rule, y)
-            y = y + 12
-            panel.needHead:SetText(("EVERYTHING TO %d"):format(cap))
-            Place(panel.needHead, y + 2)
-            PlaceRight(panel.needNote, y + 2)
-            y = y + 24
-            for i, entry in ipairs(list) do
-                if i > MAX_ITEMS then break end
-                count = i
-                local r = Item(i)
-                Place(r, y)
-                r.item, r.spell = entry.item, nil
-                r.name:SetText(Compat.ItemName(entry.item) or "...")
-                local color = entry.have >= entry.need and Style.hex.green or Style.hex.red
-                r.count:SetText(("|cff%s%d|r / %d"):format(color, entry.have, entry.need))
-                y = y + NEED_H
+            y = y + 10
+            panel.needLine.list, panel.needLine.title = list, ("Everything to %d"):format(cap)
+            panel.needLine.text:SetText(#list == 0 and "" or (short == 0 and "Everything's in hand"
+                or ("%d material%s still to get"):format(short, short == 1 and "" or "s")))
+            Place(panel.needLine, y + 4)
+            if shop then
+                if not panel.addRoad then
+                    panel.addRoad = Style.Button(panel, "Add the road to my shopping list", "plain", 232)
+                    panel.addRoad:SetHeight(26)
+                end
+                panel.addRoad:SetScript("OnClick", function()
+                    for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
+                end)
+                PlaceRight(panel.addRoad, y + 1)
+            elseif panel.addRoad then
+                panel.addRoad:Hide()
             end
-            if #list > MAX_ITEMS then
-                panel.needMore = panel.needMore or Style.Text(panel, 11, "muted")
-                panel.needMore:SetText(("and %d more, in the shopping list"):format(#list - MAX_ITEMS))
-                Place(panel.needMore, y + 2)
-                y = y + 18
-            elseif panel.needMore then
-                panel.needMore:Hide()
-            end
+            y = y + 30
         else
             panel.rule:Hide()
-            panel.needHead:Hide()
-            panel.needNote:Hide()
-            if panel.needMore then panel.needMore:Hide() end
+            panel.needLine:Hide()
+            if panel.addRoad then panel.addRoad:Hide() end
         end
         panel.unlearnedHead:Hide()
         panel.unlearnedCount:Hide()
         panel.showAll:Hide()
     else
-        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.thenNote, panel.note, panel.rule,
-                                  panel.needHead, panel.needNote }) do
+        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.note, panel.rule, panel.needLine,
+                                  panel.band, panel.moreSteps, panel.endSign, panel.endText }) do
             region:Hide()
         end
-        for _, key in ipairs({ "addRoad", "addStep", "card", "needMore" }) do
+        for _, key in ipairs({ "addRoad", "card" }) do
             if panel[key] then panel[key]:Hide() end
         end
 
@@ -878,8 +949,6 @@ function Paint()
     if panel.card then
         for i = mats + 1, #panel.card.mats do panel.card.mats[i]:Hide() end
     end
-    if panel.rankRow and not ranked then panel.rankRow:Hide() end
-    for i = count + 1, #items do items[i]:Hide() end
     for i = listed + 1, #unlearned do unlearned[i]:Hide() end
     panel.rule2:Hide()
     if not later then
@@ -896,10 +965,9 @@ function Paint()
         local place = ns.Trainers.Zone(trainer)
         panel.where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or ""))
         Place(panel.where, y)
-        y = y + 22
         panel.pin:SetScript("OnClick", function() ns.Trainers.Pin(trainer) end)
-        Place(panel.pin, y)
-        y = y + 28
+        PlaceRight(panel.pin, y - 2)
+        y = y + 20
     else
         panel.where:Hide()
         panel.pin:Hide()
