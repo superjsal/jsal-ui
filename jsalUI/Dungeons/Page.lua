@@ -675,7 +675,7 @@ Window.Page("dungeons", function(page)
         l.box = CreateFrame("Frame", nil, l)
         l.box:SetSize(12, 12)
         l.box:SetPoint("LEFT", 10, 0)
-        l.fill = Style.Round(l.box, 6, "wordGreen")
+        l.fill = Style.Circle(l.box, "wordGreen", "wordGreen").fill
         l.tick = l.box:CreateTexture(nil, "OVERLAY")
         l.tick:SetSize(14, 14)
         l.tick:SetPoint("CENTER", 1, 0)
@@ -752,9 +752,11 @@ Window.Page("dungeons", function(page)
         st.badge = CreateFrame("Frame", nil, st)
         st.badge:SetHeight(18)
         st.badge:SetPoint("CENTER", st, "LEFT", 26, 0)
-        -- Round, as a stop's sign on a road is; a pill when it holds a run
-        -- of numbers.
-        st.disc = Style.Box(st.badge, 9, "line", "lineStrong")
+        -- A circle, the picture a stop's sign on a road is drawn with. A
+        -- run of numbers ("2-8") is wider than it's tall, and a circle
+        -- pulled wide is an egg: that one is a box with round corners.
+        st.disc = Style.Circle(st.badge, "line", "lineStrong")
+        st.pill = Style.Box(st.badge, 9, "line", "lineStrong")
         st.number = Style.Text(st.badge, 10, "muted", nil, true)
         st.number:SetPoint("CENTER")
         st.tick = st.badge:CreateTexture(nil, "OVERLAY")
@@ -1315,8 +1317,12 @@ Window.Page("dungeons", function(page)
                 st.spot = Starts.Spot(step.first.id, QuestDone)
                 st.number:SetText(step.done and "" or step.number)
                 st.tick:SetShown(step.done == true)
-                st.badge:SetWidth(math.max(18, Q.Wide(st.number, #step.number * 5) + 10))
-                if step.done then st.disc:Paint("wordGreen", "wordGreen") elseif start then st.disc:Paint("gold", "gold") else st.disc:Paint("line", "lineStrong") end
+                local run = not step.done and step.number:find("–", 1, true) ~= nil
+                st.badge:SetWidth(run and (Q.Wide(st.number, #step.number * 5) + 10) or 18)
+                local shape, other = run and st.pill or st.disc, run and st.disc or st.pill
+                for _, part in ipairs({ shape.line, shape.fill }) do part:Show() end
+                for _, part in ipairs({ other.line, other.fill }) do part:Hide() end
+                if step.done then shape:Paint("wordGreen", "wordGreen") elseif start then shape:Paint("gold", "gold") else shape:Paint("line", "lineStrong") end
                 st.number:SetTextColor(Style.Color(start and "onGold" or "muted"))
                 st.name:SetText(step.name)
                 st.name:SetTextColor(Style.Color(start and "text" or "muted"))
