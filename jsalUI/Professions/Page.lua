@@ -1,29 +1,32 @@
 -- The Professions page: where you stand in the chosen profession on one
--- bar, your professions in a row under it, then three columns: the step to
--- do now with what it takes; the steps after it, with when the next rank is
--- learned; and everything the road needs, with the nearest trainer. The
--- recipes you know are the ones seen the last time its profession window
--- was open. It reads as the profession panel does.
+-- bar, your professions in a row under it, then two cards side by side: the
+-- step to do now with what it takes, and everything the road needs with the
+-- way to put it on the shopping list. Across the bottom, the road to the
+-- rank's cap, drawn as a road: you at its start, a stop for each step after
+-- the one in hand with a round sign at the skill it reaches, a gold stop
+-- where the next rank is learned, and the cap at its end. Six stops show at
+-- a time; the mouse wheel moves along the rest. The recipes you know are the
+-- ones seen the last time its profession window was open.
 local _, ns = ...
 local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window, ns.Professions, ns.Road
 
-local GAP, TILE_H, NEED_H, RANK_H = 24, 48, 24, Road.RANK_H
-local NOW_W, NEED_W = 330, 288      -- the first and last columns; the middle has the rest
+local GAP, TILE_H, NEED_H, RANK_H = 24, 48, 26, Road.RANK_H
+local CARD_W = 496                  -- each of the two cards
 local TILE_W, TILE_GAP = 242, 16    -- a profession's tile, at its widest
--- The page's road is the panel's without its prices; true would show them here too.
-local FULL = false
+local MAX_NEEDS = 8                 -- materials listed in the card, two across
+-- The road: a stop every PITCH, the first FIRST_X along, each STOP_W wide
+-- for what's under its sign; the band is the road itself, and you stand
+-- YOU_X along it.
+local PITCH, STOP_W, FIRST_X, YOU_X, BAND_H = 160, 152, 56, 30, 26
+local SIGN, ROAD_H = Road.SIGN, Road.ACROSS_H + 4
 
 Window.Page("professions", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local selected
-    -- Down the page: the bar, the row of professions, then the three columns.
+    -- Down the page: the bar, the row of professions, the two cards, the road.
     local BAR_Y, TILES_Y = 60, 94
     local bodyY = TILES_Y + TILE_H + 20
-    -- Across it: what to do now, then the steps after it, then all it takes.
-    local thenX = NOW_W + GAP
-    local thenW = width - NOW_W - NEED_W - GAP * 2
-    local rightX = width - NEED_W
-    local rightW = NEED_W
+    local rightX = width - CARD_W
 
     -- The top: the chosen profession, your skill in it, its rank, and one
     -- bar from the rank's first point to its cap with the next rank marked.
@@ -79,52 +82,36 @@ Window.Page("professions", function(page)
     none:SetPoint("TOPLEFT", 0, -TILES_Y)
     none:SetWidth(width)
 
-    -- First: the step in hand, as a card: what to make, how many (and how
-    -- many to be safe), and each thing it takes with what you have of it.
+    -- At the left: the step in hand, as a card: what to make, how many, and
+    -- each thing it takes with what you have of it.
     local message = Style.Text(page, 13, "muted")
-    message:SetWidth(NOW_W)
+    message:SetWidth(CARD_W)
     message:SetJustifyH("LEFT")
-    local nowHead = Style.Section(page, NOW_W)
-    local card = Road.Card(page, NOW_W, FULL)
+    local nowHead = Style.Section(page, CARD_W)
+    local card = Road.NowCard(page, CARD_W)
     -- The next rank, once you're at the skill for it, comes before the card.
-    local rankNow = Road.RankRow(page, NOW_W, true)
+    local rankNow = Road.RankRow(page, CARD_W, true)
 
-    -- In the middle: the steps after it, in a list that scrolls when the
-    -- road is long.
-    local scroll, list = Style.Scroller(page, thenW, height - bodyY, thenW - 8)
-    scroll:SetPoint("TOPLEFT", thenX, -bodyY)
-    local innerW = thenW - 8
-    local thenHead = Style.Section(list, innerW)
-    thenHead.title:SetText("THEN")
-    local note = Style.Text(list, 12, "muted")
-    note:SetWidth(innerW)
-    note:SetJustifyH("LEFT")
-
-    -- A later step, on one line; a line under it only when there's
-    -- something to do first (learn it, buy its pattern).
-    local steps, needs = {}, {}
-    local function Step(i)
-        if not steps[i] then steps[i] = Road.Step(list, innerW, FULL) end
-        return steps[i]
-    end
-
-    -- Learning the next rank, as a row of its own where the road reaches
-    -- its skill. A click pins the nearest trainer who teaches it.
-    local rankRow = Road.RankRow(list, innerW, true)
-
-    -- Last: everything the road needs, then the shopping list and the
-    -- nearest trainer.
-    local needHead = Style.Section(page, rightW)
+    -- At the right: everything the road needs, two across in a card, and
+    -- along its foot how much is still to get and the way to put the road
+    -- on the shopping list. The nearest trainer is under it.
+    local needHead = Style.Section(page, CARD_W)
     needHead.note:SetText("have / need")
+    local needBox = CreateFrame("Frame", nil, page)
+    needBox:SetWidth(CARD_W)
+    Style.Box(needBox, 6, "well", "cardLine")
+    local needs = {}
+    local cellW = (CARD_W - 2) / 2
     local function Need(i)
         if needs[i] then return needs[i] end
-        local r = CreateFrame("Frame", nil, page)
-        r:SetSize(rightW, NEED_H)
+        local r = CreateFrame("Frame", nil, needBox)
+        r:SetSize(cellW, NEED_H)
+        r:SetPoint("TOPLEFT", 1 + ((i - 1) % 2) * cellW, -(7 + math.floor((i - 1) / 2) * NEED_H))
         r.count = Style.Text(r, 12, "muted")
-        r.count:SetPoint("RIGHT")
+        r.count:SetPoint("RIGHT", -14, 0)
         r.count:SetJustifyH("RIGHT")
         r.name = Style.Text(r, 12, "text")
-        r.name:SetPoint("LEFT")
+        r.name:SetPoint("LEFT", 14, 0)
         r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
@@ -132,23 +119,178 @@ Window.Page("professions", function(page)
         needs[i] = r
         return r
     end
-    local needMore = Style.Text(page, 11, "muted")
-    local addRoad = Style.Button(page, "Add the whole road to my shopping list", "plain", rightW)
-    addRoad:SetHeight(28)
+    local needStrip = CreateFrame("Frame", nil, needBox)
+    needStrip:SetPoint("BOTTOMLEFT", 1, 1)
+    needStrip:SetPoint("BOTTOMRIGHT", -1, 1)
+    needStrip:SetHeight(34)
+    Style.Cap(needStrip, 5, "titleBar", "BOTTOM")
+    Style.Rule(needStrip, "TOP", "cardLine")
+    local needSum = Style.Text(needStrip, 12, "muted")
+    needSum:SetPoint("LEFT", 13, 0)
+    local addRoad = CreateFrame("Button", nil, needStrip)
+    addRoad.text = Style.Text(addRoad, 12, "gold", nil, true)
+    addRoad.text:SetPoint("RIGHT")
+    addRoad.text:SetText("Add the road to my shopping list")
+    addRoad:SetSize(Style.Wide(addRoad.text, 200), 22)
+    addRoad:SetPoint("RIGHT", -13, 0)
+    addRoad:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("goldHover")) end)
+    addRoad:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
     local where = Style.Text(page, 12, "muted")
-    where:SetWidth(rightW)
+    where:SetWidth(CARD_W - 90)
     where:SetJustifyH("LEFT")
     where:SetWordWrap(false)
-    local pin = Style.Button(page, "Show trainer on map", "primary", rightW)
-    pin:SetHeight(28)
-    -- How many lines of what's needed fit above the two buttons.
-    local maxNeeds = math.max(3, math.floor((height - bodyY - 30 - 120) / NEED_H))
+    local pin = CreateFrame("Button", nil, page)
+    pin.text = Style.Text(pin, 11, "muted")
+    pin.text:SetPoint("RIGHT")
+    pin.text:SetText("show on map")
+    pin:SetSize(Style.Wide(pin.text, 76), 18)
+    pin:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("gold")) end)
+    pin:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("muted")) end)
 
-    local function Place(region, y)
-        region:ClearAllPoints()
-        region:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -y)
-        region:Show()
+    -- Across the bottom: the road. A band with a dashed middle, you at its
+    -- start, and the stops along it; longer than the page, the wheel moves
+    -- along it and a thin bar under it shows where.
+    local roadHead = Style.Section(page, width)
+    local scroll = CreateFrame("ScrollFrame", nil, page)
+    scroll:SetSize(width, ROAD_H)
+    local lane = CreateFrame("Frame", nil, scroll)
+    lane:SetSize(width, ROAD_H)
+    scroll:SetScrollChild(lane)
+    local band = CreateFrame("Frame", nil, lane)
+    band:SetPoint("TOPLEFT", 0, -(SIGN - BAND_H) / 2)
+    band:SetSize(width, BAND_H)
+    Style.Box(band, 13, "titleBar", "lineStrong")
+    local done = CreateFrame("Frame", nil, band)
+    done:SetPoint("TOPLEFT", 1, -1)
+    done:SetSize(FIRST_X - 6, BAND_H - 2)
+    Style.Cap(done, 12, "needFill", "LEFT")
+    local you = done:CreateTexture(nil, "ARTWORK")
+    you:SetColorTexture(Style.Color("gold"))
+    you:SetSize(12, 12)
+    you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
+    you:SetRotation(math.rad(45))
+    local youText = Style.Text(lane, 10, "gold", nil, true)
+    youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
+    youText:SetJustifyH("CENTER")
+    local dashes = {}
+    local function Dash(i)
+        if not dashes[i] then
+            dashes[i] = band:CreateTexture(nil, "ARTWORK")
+            dashes[i]:SetColorTexture(Style.Color("lineStrong"))
+            dashes[i]:SetSize(12, 2)
+        end
+        return dashes[i]
     end
+    -- A stop for each step after the one in hand; the gold one where the
+    -- next rank is learned; and the rank's cap, ringed in gold, at the end.
+    local steps = {}
+    local function Step(i)
+        if not steps[i] then
+            steps[i] = Road.Stop(lane, STOP_W, true)
+            -- Over the road's band, which is the road's child as they are.
+            steps[i]:SetFrameLevel((lane:GetFrameLevel() or 0) + 3)
+        end
+        return steps[i]
+    end
+    local rankStop = Road.RankStop(lane, STOP_W, true)
+    rankStop:SetFrameLevel((lane:GetFrameLevel() or 0) + 3)
+    local endSign = CreateFrame("Frame", nil, lane)
+    endSign:SetSize(SIGN, SIGN)
+    endSign:SetFrameLevel((lane:GetFrameLevel() or 0) + 3)
+    Style.Circle(endSign, "well", "gold")
+    endSign.level = Style.Text(endSign, 12, "gold", nil, true)
+    endSign.level:SetPoint("CENTER")
+    endSign.level:SetJustifyH("CENTER")
+    local thumb = page:CreateTexture(nil, "OVERLAY")
+    thumb:SetColorTexture(Style.Color("thumb"))
+    thumb:SetHeight(3)
+    thumb:Hide()
+    local most = 0
+    local function PlaceRoad()
+        local at = math.max(0, math.min(most, scroll:GetHorizontalScroll() or 0))
+        scroll:SetHorizontalScroll(at)
+        thumb:SetShown(most > 0 and scroll:IsShown())
+        if most > 0 then
+            local size = math.max(40, width * width / (width + most))
+            thumb:SetWidth(size)
+            thumb:ClearAllPoints()
+            thumb:SetPoint("TOPLEFT", scroll, "BOTTOMLEFT", (width - size) * at / most, -2)
+        end
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        self:SetHorizontalScroll((self:GetHorizontalScroll() or 0) - delta * PITCH)
+        PlaceRoad()
+    end)
+    local legend = Style.Text(page, 11, "muted")
+    legend:SetPoint("BOTTOMLEFT", 0, 0)
+    legend:SetWidth(width)
+    legend:SetJustifyH("LEFT")
+    legend:SetWordWrap(false)
+
+    -- Lays the road out `y` down the page for the plan's steps: a stop for
+    -- each step after the one in hand, the next rank's training where it
+    -- falls among them (`o.rankAt`, unless `o.ranked` says it's already
+    -- shown above), and the cap at its end when the road gets there
+    -- (`o.capped`). `note` is said at the right of its heading.
+    local function LayRoad(y, plan, note, o)
+        roadHead.title:SetText(("YOUR ROAD TO %d"):format(o.cap))
+        roadHead.note:SetText(note)
+        roadHead:ClearAllPoints()
+        roadHead:SetPoint("TOPLEFT", 0, -y)
+        roadHead:Show()
+        scroll:ClearAllPoints()
+        scroll:SetPoint("TOPLEFT", 0, -(y + 30))
+        scroll:Show()
+        youText:SetText(("YOU, %d"):format(o.skill))
+        local placed, ranked = 0, o.ranked
+        local function Put(stop)
+            stop:ClearAllPoints()
+            stop:SetPoint("TOPLEFT", FIRST_X + placed * PITCH, 0)
+            stop:Show()
+            placed = placed + 1
+        end
+        local function Rank()
+            Road.PaintRankStop(rankStop, o.line, o.rank, o.rankIndex, o.rankAt, o.skill)
+            Put(rankStop)
+            ranked = true
+        end
+        for i = 2, #plan do
+            local step = plan[i]
+            if not ranked and o.rankAt and step.from >= o.rankAt then Rank() end
+            local s = Step(i - 1)
+            Road.PaintStop(s, step)
+            Put(s)
+        end
+        if not ranked and o.ahead then Rank() end
+        if o.capped then
+            endSign.level:SetText(o.cap)
+            endSign:ClearAllPoints()
+            endSign:SetPoint("TOP", lane, "TOPLEFT", FIRST_X + placed * PITCH + STOP_W / 2, 0)
+            endSign:Show()
+            placed = placed + 1
+        end
+        -- The road is as long as its stops; the dashes run its length.
+        local long = math.max(width, FIRST_X + math.max(0, placed - 1) * PITCH + STOP_W + 2)
+        lane:SetWidth(long)
+        band:SetWidth(long)
+        local used = 0
+        for x = FIRST_X + 8, long - 34, 22 do
+            used = used + 1
+            local dash = Dash(used)
+            dash:ClearAllPoints()
+            dash:SetPoint("LEFT", band, "LEFT", x, 0)
+            dash:Show()
+        end
+        for i = used + 1, #dashes do dashes[i]:Hide() end
+        most = long - width
+        scroll:UpdateScrollChildRect()
+        PlaceRoad()
+        legend:SetText("Point at a step for what it costs and where its pattern is sold."
+            .. (most > 0 and "  The mouse wheel moves along the road." or ""))
+        legend:Show()
+    end
+
     local function PlaceNow(region, y)
         region:ClearAllPoints()
         region:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -(bodyY + y))
@@ -185,7 +327,8 @@ Window.Page("professions", function(page)
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(needs) do r:Hide() end
         for _, m in ipairs(card.mats) do m:Hide() end
-        for _, region in ipairs({ nowHead, thenHead, note, card, rankRow, rankNow, message, needHead, needMore, addRoad, where, pin }) do
+        for _, region in ipairs({ nowHead, card, rankNow, message, needHead, needBox, where, pin, roadHead, scroll, rankStop, endSign,
+                                  thumb, legend }) do
             region:Hide()
         end
         if bar then
@@ -232,7 +375,6 @@ Window.Page("professions", function(page)
         for i = #mine + 1, #cards do cards[i]:Hide() end
 
         HideRoad(true)
-        scroll:SetShown(current ~= nil)
         if not current then
             title:SetText("Professions")
             sub:SetText("What to craft, and how many, to reach each profession's next rank")
@@ -288,8 +430,8 @@ Window.Page("professions", function(page)
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
 
-        -- The first column, down from its top: `at`.
-        local at, ranked = 0, false
+        -- The left card, down from its top: `at`.
+        local at = 0
         if not seen and not Professions.IsGathering(line) then
             message:SetText(("Open your %s window once so this uses the recipes you know."):format(current.name))
             PlaceNow(message, at)
@@ -298,10 +440,17 @@ Window.Page("professions", function(page)
 
         -- The step in hand.
         local first = road[1]
+        local last
+        if stuck then
+            last = ("Past %d, only patterns you'd have to find give skill."):format(stuck)
+        elseif skill >= cap and not rankAt then
+            last = "That's as far as it goes."
+        end
         nowHead.title:SetText(first and "DO THIS NOW" or (skill >= cap and "AT THE CAP" or "NOTHING TO MAKE YET"))
-        nowHead.note:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
+        nowHead.note:SetText(first and ("%d → %d"):format(first.from, first.to) or (last or ""))
         PlaceNow(nowHead, at)
         at = at + 28
+        local ranked = false
         if rankAt and skill >= rankAt then
             Road.PaintRank(rankNow, line, rank, rankIndex, rankAt, skill)
             PlaceNow(rankNow, at)
@@ -309,104 +458,79 @@ Window.Page("professions", function(page)
             ranked = true
         end
         if first then
-            Road.PaintCard(card, line, first, skill)
+            local recipe = first.recipe
+            Road.PaintNow(card, line, first, skill)
             PlaceNow(card, at)
+            at = at + card.tall
+            -- The step's crafts onto the shopping list, from the card's foot.
+            local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
+            card.add:SetShown(shop and true or false)
+            card.add:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
         end
 
-        -- The middle column, down its list: `y`.
-        local y = 0
-        local function Rank()
-            Road.PaintRank(rankRow, line, rank, rankIndex, rankAt, skill)
-            Place(rankRow, y)
-            y = y + RANK_H
-            ranked = true
-        end
-
-        -- The steps after it, with the next rank where it falls among them.
-        if #road > 1 or ahead then
-            thenHead.note:SetText(crafts > 0 and ("to %d · about %d %s%s"):format(cap, crafts, unit, crafts == 1 and "" or "s") or "")
-            Place(thenHead, y)
-            y = y + 28
-        end
-        for i = 2, #road do
-            local step = road[i]
-            if not ranked and rankAt and step.from >= rankAt then Rank() end
-            local s = Step(i - 1)
-            local tall = Road.PaintStep(s, step)
-            Place(s, y)
-            y = y + tall
-        end
-        if not ranked and ahead then Rank() end
-        local last
-        if stuck then
-            last = ("Past %d, only patterns you'd have to find give skill."):format(stuck)
-        elseif skill >= cap and not rankAt then
-            last = "That's as far as it goes."
-        end
-        if last then
-            note:SetText(last)
-            Place(note, y + 4)
-            y = y + note:GetStringHeight() + 10
-        end
-        list:SetHeight(math.max(1, y))
-        scroll:UpdateScrollChildRect()
-        scroll:Place()
-
-        -- Everything the road needs, the biggest shortfall first.
-        local all = {}
+        -- The right card: everything the road needs, the biggest shortfall
+        -- first, two across; how much is still to get; the shopping list.
+        local all, short = {}, 0
         for item, need in pairs(totals) do
-            all[#all + 1] = { item = item, need = need, have = Compat.ItemCount(item, true) }
+            local have = Compat.ItemCount(item, true)
+            all[#all + 1] = { item = item, need = need, have = have }
+            if have < need then short = short + 1 end
         end
         table.sort(all, function(a, b)
             local sa, sb = a.need - a.have, b.need - b.have
             if sa ~= sb then return sa > sb end
             return a.item < b.item
         end)
+        local crafting = {}
+        for _, step in ipairs(road) do
+            if not step.recipe.vein then crafting[#crafting + 1] = step end
+        end
         local ry = 0
         if #all > 0 then
             needHead.title:SetText(("EVERYTHING TO %d"):format(cap))
             PlaceRight(needHead, ry)
             ry = ry + 28
-            for i, entry in ipairs(all) do
-                if i > maxNeeds then break end
-                local r = Need(i)
-                PlaceRight(r, ry)
+            local shown = math.min(#all, MAX_NEEDS)
+            for i = 1, shown do
+                local entry, r = all[i], Need(i)
+                r:Show()
                 r.item = entry.item
                 r.name:SetText(Compat.ItemName(entry.item) or "...")
                 r.count:SetText(("|cff%s%d|r / %d"):format(entry.have >= entry.need and Style.hex.green or Style.hex.red, entry.have, entry.need))
-                ry = ry + NEED_H
             end
-            if #all > maxNeeds then
-                needMore:SetText(("and %d more, in the shopping list"):format(#all - maxNeeds))
-                PlaceRight(needMore, ry + 2)
-                ry = ry + 18
-            end
-            ry = ry + 12
-        end
-        -- The whole road onto the shopping list at once.
-        local crafting = {}
-        for _, step in ipairs(road) do
-            if not step.recipe.vein then crafting[#crafting + 1] = step end
-        end
-        if ns.Shopping and ns.Shopping.running and #crafting > 0 then
+            needSum:SetText((short == 0 and "Everything's in hand" or ("%d still to get"):format(short))
+                .. (#all > shown and (", %d more not listed"):format(#all - shown) or ""))
+            local shop = ns.Shopping and ns.Shopping.running and #crafting > 0
+            addRoad:SetShown(shop and true or false)
             addRoad:SetScript("OnClick", function()
                 for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
             end)
-            PlaceRight(addRoad, ry)
-            ry = ry + 36
+            local tall = 7 + math.ceil(shown / 2) * NEED_H + 7 + 34
+            needBox:SetHeight(tall)
+            PlaceRight(needBox, ry)
+            ry = ry + tall
         end
         -- The nearest trainer for your rank, or the next one once you're
-        -- ready for it.
+        -- ready for it, with a quiet way to show them on the map.
         local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
         local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
         if trainer then
             local place = ns.Trainers.Zone(trainer)
             where:SetText(("Nearest trainer: |cffece6d6%s|r%s"):format(trainer.name, place and (", " .. place) or ""))
-            PlaceRight(where, ry + 2)
-            ry = ry + 22
+            PlaceRight(where, ry + 10)
             pin:SetScript("OnClick", function() ns.Trainers.Pin(trainer) end)
-            PlaceRight(pin, ry)
+            pin:ClearAllPoints()
+            pin:SetPoint("TOPRIGHT", page, "TOPLEFT", width, -(bodyY + ry + 8))
+            pin:Show()
+            ry = ry + 28
         end
+
+        -- The road, under the taller of the two.
+        if #road <= 1 and not ahead then return end
+        LayRoad(bodyY + math.max(at, ry) + 22, road,
+            last or (crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""),
+            { line = line, rank = rank, rankIndex = rankIndex, rankAt = rankAt, skill = skill, cap = cap,
+              ranked = ranked, ahead = ahead, capped = not stuck and skill < cap })
     end
 
     page.Refresh = function() xpcall(Paint, ns.Report) end

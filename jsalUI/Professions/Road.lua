@@ -1,20 +1,16 @@
 -- The road to a profession's next rank, as it's drawn: the step in hand as a
--- card with what it takes, a later step on one line, and the row where the
--- next rank is learned. The Professions page draws its road with these. The
--- panel beside the profession window draws its as a road: the card with a
--- strip along its foot, a stop with a round sign for each later step, and a
--- gold stop where the next rank is learned (the parts at the end of this
--- file).
--- A part made `full` also shows what the step costs and what a point of
--- skill comes to (when Crafting profit has prices), and lists everything
--- the step needs in its tooltip.
+-- card with what it takes and a strip along its foot, a stop with a round
+-- sign for each later step, and a gold stop where the next rank is learned.
+-- The panel beside the profession window draws its road down itself with
+-- these; the Professions page draws its across the page. Also here: the row
+-- for a rank you can train now, and the label under the skill bar's mark.
 local _, ns = ...
 local Style, Compat, Professions = ns.Style, ns.Compat, ns.Professions
 
 local Road = {}
 ns.Road = Road
-Road.STEP_H, Road.NOTE_H, Road.MAT_H, Road.RANK_H = 30, 14, 36, 38
-local STEP_H, NOTE_H, MAT_H, RANK_H = Road.STEP_H, Road.NOTE_H, Road.MAT_H, Road.RANK_H
+Road.RANK_H = 38
+local RANK_H = Road.RANK_H
 
 -- A recipe's name: the item it makes, or the spell for an enchant.
 function Road.RecipeName(recipe)
@@ -39,23 +35,9 @@ function Road.Priced(recipe, crafts, points)
     return line, Compat.Money(per) .. " a point"
 end
 
--- A line of text that runs up to the price at its right, or to the edge
--- when there's none, and is cut short there, so a long one never runs
--- under the price.
-local function EndBefore(text, x, y, row, price, edge)
-    text:ClearAllPoints()
-    text:SetPoint("TOPLEFT", x, y)
-    if price then
-        text:SetPoint("RIGHT", price, "LEFT", -10, 0)
-    else
-        text:SetPoint("RIGHT", row, "RIGHT", edge, 0)
-    end
-end
-
 -- What a road step adds to the game's tooltip for what it makes: its note
--- in full when its line had room for only a few words, then everything its
--- crafts need (its line has room for only a little), with what's in your
--- bags and bank.
+-- (what there was no room to say on it), then everything its crafts need,
+-- with what's in your bags and bank.
 function Road.Needs(self)
     if self.note then
         GameTooltip:AddLine(" ")
@@ -91,231 +73,6 @@ function Road.PlaceMark(mark, track, x, width, from, cap, atCap)
     else
         mark:SetPoint("TOP", track, "BOTTOMLEFT", x, -5)
     end
-end
-
----------------------------------------------------------------------------
--- The step in hand, as a card: what to make, how many (and how many to be
--- safe), and each thing it takes with what you have of it.
----------------------------------------------------------------------------
-function Road.Card(parent, width, full)
-    local card = CreateFrame("Frame", nil, parent)
-    card:SetWidth(width)
-    card.width, card.full = width, full and true or false
-    Style.Fill(card, "well")
-    card.edge = card:CreateTexture(nil, "ARTWORK")
-    card.edge:SetColorTexture(Style.Color("gold"))
-    card.edge:SetPoint("TOPLEFT")
-    card.edge:SetPoint("BOTTOMLEFT")
-    card.edge:SetWidth(3)
-    card.icon = card:CreateTexture(nil, "ARTWORK")
-    card.icon:SetSize(36, 36)
-    card.icon:SetPoint("TOPLEFT", 14, -12)
-    card.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    card.count = Style.Text(card, 20, "gold", nil, true)
-    card.count:SetPoint("TOPRIGHT", -12, -10)
-    card.count:SetJustifyH("RIGHT")
-    card.safe = Style.Text(card, 11, "muted")
-    card.safe:SetPoint("TOPRIGHT", -12, -36)
-    card.safe:SetJustifyH("RIGHT")
-    card.name = Style.Text(card, 15, "text", nil, true)
-    card.name:SetPoint("TOPLEFT", 60, -11)
-    card.name:SetPoint("RIGHT", card.count, "LEFT", -8, 0)
-    card.name:SetJustifyH("LEFT")
-    card.name:SetWordWrap(false)
-    card.detail = Style.Text(card, 12, "muted")
-    card.detail:SetPoint("TOPLEFT", 60, -33)
-    card.detail:SetWidth(width - 60 - 12)
-    card.detail:SetJustifyH("LEFT")
-    card.detail:SetWordWrap(false)
-    card.price = Style.Text(card, 11, "secondary")
-    card.price:SetPoint("TOPLEFT", 60, -51)
-    card.price:SetJustifyH("LEFT")
-    card.price:SetWordWrap(false)
-    card.price:Hide()
-    card.perPoint = Style.Text(card, 11, "gold", nil, true)
-    card.perPoint:SetPoint("TOPRIGHT", -12, -51)
-    card.perPoint:SetJustifyH("RIGHT")
-    card.perPoint:Hide()
-    card.rule = card:CreateTexture(nil, "BORDER")
-    card.rule:SetColorTexture(Style.Color("line"))
-    card.rule:SetPoint("TOPLEFT", 14, -60)
-    card.rule:SetSize(width - 28, Compat.OnePixel(card))
-    card.mats = {}
-    Style.ItemTip(card, card.full and Road.Needs or nil)
-    return card
-end
-
--- One thing the card's step takes: its name, have / need, and a line saying
--- where the rest comes from.
-local function Mat(card, i)
-    local m = card.mats[i]
-    if m then return m end
-    m = CreateFrame("Frame", nil, card)
-    m:SetSize(card.width - 28, MAT_H)
-    m.icon = m:CreateTexture(nil, "ARTWORK")
-    m.icon:SetSize(18, 18)
-    m.icon:SetPoint("TOPLEFT", 0, -2)
-    m.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    m.count = Style.Text(m, 13, "muted")
-    m.count:SetPoint("TOPRIGHT", 0, -2)
-    m.count:SetJustifyH("RIGHT")
-    m.name = Style.Text(m, 13, "text")
-    m.name:SetPoint("TOPLEFT", 26, -2)
-    m.name:SetPoint("RIGHT", m.count, "LEFT", -8, 0)
-    m.name:SetJustifyH("LEFT")
-    m.name:SetWordWrap(false)
-    m.note = Style.Text(m, 11, "muted")
-    m.note:SetPoint("TOPLEFT", 26, -19)
-    m.note:SetWidth(card.width - 28 - 26)
-    m.note:SetJustifyH("LEFT")
-    m.note:SetWordWrap(false)
-    Style.ItemTip(m, card.full and Road.Needs or nil)
-    card.mats[i] = m
-    return m
-end
-
--- Fills the card for the road's first step and sets its height. Returns how
--- many materials it shows.
-function Road.PaintCard(card, line, first, skill)
-    local recipe = first.recipe
-    card.item, card.spell = recipe.item, recipe.spell
-    card.needs, card.crafts = not recipe.vein and recipe.reagents or nil, first.crafts
-    card.icon:SetTexture(Road.RecipeIcon(recipe))
-    card.name:SetText(Road.RecipeName(recipe))
-    card.count:SetText(("×%d"):format(first.crafts))
-    card.safe:SetText((first.safe or 0) > first.crafts and ("%d to be safe"):format(first.safe) or "")
-    if recipe.vein then
-        card.detail:SetText(("Mine them: a sure point each until %d"):format(recipe.yellow))
-    elseif first.buy then
-        card.detail:SetText(ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
-            or ("Buy the pattern from a vendor, from %d"):format(recipe.learn))
-    elseif first.learn then
-        card.detail:SetText(("Learn it at the trainer, from %d"):format(recipe.learn))
-    elseif not recipe.yellow then
-        card.detail:SetText("")
-    elseif skill < recipe.yellow then
-        card.detail:SetText(("a point every craft until %d"):format(recipe.yellow))
-    else
-        local odds = Professions.Chance and math.max(1, math.floor(Professions.Chance(recipe, skill) * 10 + 0.5)) or 10
-        card.detail:SetText(odds >= 10 and "a point from nearly every craft" or ("a point from about %d crafts in 10"):format(odds))
-    end
-    -- Priced, a line of what it costs and sells for, and a point's cost.
-    local priceLine, pointLine
-    if card.full then priceLine, pointLine = Road.Priced(recipe, first.crafts, first.to - first.from) end
-    card.price:SetText(priceLine or "")
-    card.price:SetShown(priceLine ~= nil)
-    card.perPoint:SetText(pointLine or "")
-    card.perPoint:SetShown(pointLine ~= nil)
-    EndBefore(card.price, 60, -51, card, pointLine and card.perPoint, -12)
-    local top = priceLine and 74 or 60
-    card.rule:ClearAllPoints()
-    card.rule:SetPoint("TOPLEFT", 14, -top)
-    local my, shown = top + 8, 0
-    for i, reagent in ipairs(recipe.reagents) do
-        shown = i
-        local m = Mat(card, i)
-        m:ClearAllPoints()
-        m:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -my)
-        m:Show()
-        m.item, m.spell = reagent.item, nil
-        local need = reagent.count * first.crafts
-        local have = Compat.ItemCount(reagent.item, true)
-        m.icon:SetTexture(Compat.ItemIcon(reagent.item))
-        m.name:SetText(Compat.ItemName(reagent.item) or "...")
-        m.count:SetText(("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need))
-        local price = Professions.IsVendor(reagent.item)
-        -- What's in your bank counts as yours, and is said to be there:
-        -- "you have enough" of four hides that are all in the bank reads
-        -- as four in your bags.
-        local carried = Compat.ItemCount(reagent.item, false) or 0
-        if have >= need and carried < need then
-            m.note:SetText(("%d to fetch from your bank"):format(need - carried))
-        elseif have >= need then
-            m.note:SetText("you have enough")
-        elseif price then
-            m.note:SetText(("vendor · %d more for %s"):format(need - have, Compat.Money((need - have) * price)))
-        elseif Professions.MadeBy and Professions.MadeBy(line, reagent.item) then
-            m.note:SetText(("%d short · you can make it"):format(need - have))
-        else
-            m.note:SetText(("%d short"):format(need - have))
-        end
-        my = my + MAT_H
-    end
-    for i = shown + 1, #card.mats do card.mats[i]:Hide() end
-    card.rule:SetShown(shown > 0)
-    card:SetHeight(shown > 0 and (my + 6) or top)
-    return shown
-end
-
----------------------------------------------------------------------------
--- A later step, on one line: the skill it covers, what to make and how
--- many; a line under it only when there's something to do first (learn it,
--- buy its pattern) or, on a full one, a price to show. Beside a price, what
--- to do first is said in a few words, and in full in the tooltip.
----------------------------------------------------------------------------
-function Road.Step(parent, width, full)
-    local s = CreateFrame("Frame", nil, parent)
-    s:SetSize(width, STEP_H)
-    s.full = full and true or false
-    s.levels = Style.Text(s, 12, "muted")
-    s.levels:SetPoint("TOPLEFT", 0, -6)
-    s.icon = s:CreateTexture(nil, "ARTWORK")
-    s.icon:SetSize(22, 22)
-    s.icon:SetPoint("TOPLEFT", 74, -2)
-    s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    s.count = Style.Text(s, 13, "text", nil, true)
-    s.count:SetPoint("TOPRIGHT", 0, -5)
-    s.count:SetJustifyH("RIGHT")
-    s.name = Style.Text(s, 13, "text")
-    s.name:SetPoint("TOPLEFT", 104, -5)
-    s.name:SetPoint("RIGHT", s.count, "LEFT", -8, 0)
-    s.name:SetJustifyH("LEFT")
-    s.name:SetWordWrap(false)
-    s.perPoint = Style.Text(s, 11, "muted")
-    s.perPoint:SetPoint("TOPRIGHT", 0, -23)
-    s.perPoint:SetJustifyH("RIGHT")
-    s.perPoint:Hide()
-    s.detail = Style.Text(s, 11, "gold")
-    s.detail:SetPoint("TOPLEFT", 104, -23)
-    s.detail:SetJustifyH("LEFT")
-    s.detail:SetWordWrap(false)
-    Style.Rule(s, "BOTTOM", "line")
-    Style.ItemTip(s, s.full and Road.Needs or nil)
-    return s
-end
-
--- Fills a step's line and sets its height, which it returns.
-function Road.PaintStep(s, step)
-    local recipe = step.recipe
-    s.item, s.spell = recipe.item, recipe.spell
-    s.needs, s.crafts = not recipe.vein and recipe.reagents or nil, step.crafts
-    s.levels:SetText(("%d → %d"):format(step.from, step.to))
-    s.icon:SetTexture(Road.RecipeIcon(recipe))
-    s.name:SetText(Road.RecipeName(recipe))
-    s.count:SetText(("×%d"):format(step.crafts))
-    local todo, short
-    if step.buy then
-        todo = ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
-        if todo then
-            short = ns.RecipeSourceText.BuyShort and ns.RecipeSourceText.BuyShort(recipe.spell)
-        else
-            todo, short = ("buy the pattern from a vendor, from %d"):format(recipe.learn), "pattern from a vendor"
-        end
-    elseif step.learn then
-        todo, short = ("learn it at the trainer, from %d"):format(recipe.learn), ("trainer, from %d"):format(recipe.learn)
-    end
-    local point
-    if s.full then point = select(2, Road.Priced(recipe, step.crafts, step.to - step.from)) end
-    local said = (point and short) or todo
-    s.note = said ~= todo and todo or nil
-    s.detail:SetText(said or "")
-    s.detail:SetShown(said ~= nil)
-    s.perPoint:SetText(point or "")
-    s.perPoint:SetShown(point ~= nil)
-    EndBefore(s.detail, 104, -23, s, point and s.perPoint, 0)
-    local tall = STEP_H + ((todo or point) and NOTE_H or 0)
-    s:SetHeight(tall)
-    return tall
 end
 
 ---------------------------------------------------------------------------
@@ -377,7 +134,8 @@ function Road.PaintRank(r, line, rank, rankIndex, rankAt, skill)
 end
 
 ---------------------------------------------------------------------------
--- The road drawn as a road, for the panel beside the profession window. The
+-- The road drawn as a road: down the panel beside the profession window,
+-- across the Professions page. The
 -- step in hand is a card: what to make, how many, a line for each thing it
 -- takes, and a strip along its foot. A later step is a stop: a round sign at
 -- the skill it reaches, then what to make and how many. Where the next rank
@@ -386,6 +144,9 @@ end
 -- pattern is sold) is in its tooltip.
 ---------------------------------------------------------------------------
 Road.STOP_H, Road.SIGN = 50, 38
+-- A stop on a road that runs across the page has what it teaches under its
+-- sign: this tall in all.
+Road.ACROSS_H = 150
 local NOW_TOP, NOW_MAT, NOW_STRIP = 64, 30, 34
 
 -- What a step asks of you before you can make it, and that in a word for a
@@ -551,36 +312,49 @@ function Road.PaintNow(card, line, first, skill)
     for i = shown + 1, #card.mats do card.mats[i]:Hide() end
     card.strip:SetShown(shown > 0)
     card.sum:SetText(("%d material%s, %s"):format(shown, shown == 1 and "" or "s", short == 0 and "all in hand" or (short .. " short")))
-    card:SetHeight(shown > 0 and (y + NOW_STRIP) or NOW_TOP)
+    card.tall = shown > 0 and (y + NOW_STRIP) or NOW_TOP
+    card:SetHeight(card.tall)
     return shown
 end
 
 -- A later step, a stop on the road: a round sign with the skill it reaches,
--- then what to make, a pill when there's something to do first, and how many.
-function Road.Stop(parent, width)
+-- then what to make, a pill when there's something to do first, and how
+-- many. Down a road they're on a line beside the sign; `across` one, under
+-- it: the picture, the name on up to two lines, then how many and the pill.
+function Road.Stop(parent, width, across)
     local s = CreateFrame("Frame", nil, parent)
-    s:SetSize(width, Road.STOP_H)
-    s.width = width
+    s:SetSize(width, across and Road.ACROSS_H or Road.STOP_H)
+    s.width, s.across = width, across and true or false
     s.sign = CreateFrame("Frame", nil, s)
     s.sign:SetSize(Road.SIGN, Road.SIGN)
-    s.sign:SetPoint("LEFT")
+    s.sign:SetPoint(across and "TOP" or "LEFT")
     s.disc = Style.Circle(s.sign, "well", "lineStrong")
     s.level = Style.Text(s.sign, 12, "text", nil, true)
     s.level:SetPoint("CENTER")
     s.level:SetJustifyH("CENTER")
     s.icon = s:CreateTexture(nil, "ARTWORK")
-    s.icon:SetSize(26, 26)
-    s.icon:SetPoint("LEFT", Road.SIGN + 12, 0)
     s.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     s.count = Style.Text(s, 13, "text", nil, true)
-    s.count:SetPoint("RIGHT")
-    s.count:SetJustifyH("RIGHT")
     s.name = Style.Text(s, 13, "text")
-    s.name:SetPoint("LEFT", Road.SIGN + 12 + 26 + 10, 0)
-    s.name:SetJustifyH("LEFT")
-    s.name:SetWordWrap(false)
     s.tag = Style.Tag(s, "", nil, true)
-    s.tag:SetPoint("LEFT", s.name, "RIGHT", 8, 0)
+    if across then
+        s.icon:SetSize(36, 36)
+        s.icon:SetPoint("TOP", 0, -(Road.SIGN + 12))
+        s.name:SetPoint("TOP", 0, -(Road.SIGN + 12 + 36 + 6))
+        s.name:SetSize(width - 12, 32)
+        s.name:SetJustifyH("CENTER")
+        s.name:SetJustifyV("TOP")
+        s.tag:SetPoint("LEFT", s.count, "RIGHT", 6, 0)
+    else
+        s.icon:SetSize(26, 26)
+        s.icon:SetPoint("LEFT", Road.SIGN + 12, 0)
+        s.count:SetPoint("RIGHT")
+        s.count:SetJustifyH("RIGHT")
+        s.name:SetPoint("LEFT", Road.SIGN + 12 + 26 + 10, 0)
+        s.name:SetJustifyH("LEFT")
+        s.name:SetWordWrap(false)
+        s.tag:SetPoint("LEFT", s.name, "RIGHT", 8, 0)
+    end
     Style.ItemTip(s, Road.Needs)
     return s
 end
@@ -595,7 +369,14 @@ function Road.PaintStop(s, step)
     local todo, word = Todo(step)
     s.tag:SetShown(word ~= nil)
     if word then s.tag:Say(word) end
-    Fit(s.name, Road.RecipeName(recipe), s.width - (Road.SIGN + 48) - 44 - (word and s.tag.wide + 8 or 0))
+    if s.across then
+        -- How many, and the pill after it, in the middle under the name.
+        s.name:SetText(Road.RecipeName(recipe))
+        s.count:ClearAllPoints()
+        s.count:SetPoint("TOP", s, "TOP", word and -(s.tag.wide + 6) / 2 or 0, -(Road.SIGN + 12 + 36 + 6 + 34))
+    else
+        Fit(s.name, Road.RecipeName(recipe), s.width - (Road.SIGN + 48) - 44 - (word and s.tag.wide + 8 or 0))
+    end
     -- In its tooltip: what to do first, in full, and what a point costs.
     local more = {}
     if todo then more[#more + 1] = todo .. "." end
@@ -607,27 +388,37 @@ end
 
 -- Learning the next rank, a gold stop where the road reaches its skill:
 -- what to do, who teaches it, and "show on map". A click pins the trainer.
-function Road.RankStop(parent, width)
+-- `across` a road, those are under the sign, a line each.
+function Road.RankStop(parent, width, across)
     local r = CreateFrame("Button", nil, parent)
-    r:SetSize(width, Road.STOP_H)
-    r.width = width
+    r:SetSize(width, across and Road.ACROSS_H or Road.STOP_H)
+    r.width, r.across = width, across and true or false
     r.sign = CreateFrame("Frame", nil, r)
     r.sign:SetSize(Road.SIGN, Road.SIGN)
-    r.sign:SetPoint("LEFT")
+    r.sign:SetPoint(across and "TOP" or "LEFT")
     Style.Circle(r.sign, "gold", "gold")
     r.level = Style.Text(r.sign, 12, "onGold", nil, true)
     r.level:SetPoint("CENTER")
     r.level:SetJustifyH("CENTER")
     r.link = Style.Text(r, 11, "muted")
-    r.link:SetPoint("RIGHT")
-    r.link:SetJustifyH("RIGHT")
     r.link:SetText("show on map")
     r.title = Style.Text(r, 13, "text", nil, true)
-    r.title:SetPoint("LEFT", Road.SIGN + 12, 0)
     r.sub = Style.Text(r, 12, "muted")
-    r.sub:SetPoint("LEFT", r.title, "RIGHT", 8, 0)
-    r.sub:SetJustifyH("LEFT")
     r.sub:SetWordWrap(false)
+    if across then
+        r.title:SetPoint("TOP", 0, -(Road.SIGN + 14))
+        r.title:SetJustifyH("CENTER")
+        r.sub:SetPoint("TOP", r.title, "BOTTOM", 0, -4)
+        r.sub:SetJustifyH("CENTER")
+        r.link:SetPoint("TOP", r.sub, "BOTTOM", 0, -6)
+        r.link:SetJustifyH("CENTER")
+    else
+        r.link:SetPoint("RIGHT")
+        r.link:SetJustifyH("RIGHT")
+        r.title:SetPoint("LEFT", Road.SIGN + 12, 0)
+        r.sub:SetPoint("LEFT", r.title, "RIGHT", 8, 0)
+        r.sub:SetJustifyH("LEFT")
+    end
     r:SetScript("OnClick", function(self)
         if self.trainer and ns.Trainers then ns.Trainers.Pin(self.trainer) end
     end)
@@ -653,5 +444,5 @@ function Road.PaintRankStop(r, line, rank, rankIndex, rankAt, skill)
     if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
     r.link:SetShown(trainer ~= nil)
     local words = table.concat(parts, " · ")
-    Fit(r.sub, words, r.width - (Road.SIGN + 12) - Style.Wide(r.title, 110) - 8 - (trainer and 84 or 0))
+    Fit(r.sub, words, r.across and (r.width - 8) or (r.width - (Road.SIGN + 12) - Style.Wide(r.title, 110) - 8 - (trainer and 84 or 0)))
 end

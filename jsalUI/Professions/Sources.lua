@@ -123,15 +123,6 @@ function Sources.BuyNote(spell)
     return note
 end
 
--- The same in a few words, for a line that shares its room with a price:
--- who sells the pattern to you. Nil with the switch off, or when no vendor
--- sells it to your side.
-function Sources.BuyShort(spell)
-    if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
-    local v = Sources.Vendors(spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
-    return v and ("pattern from " .. v.name) or nil
-end
-
 -- Everything known about a recipe's sources, for its tooltip.
 function Sources.Tooltip(tooltip, spell, faction)
     local data = Data()
