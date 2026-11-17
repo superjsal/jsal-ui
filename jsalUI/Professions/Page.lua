@@ -18,6 +18,7 @@ local MAX_NEEDS = 8                 -- materials listed in the card, two across
 -- for what's under its sign; the band is the road itself, and you stand
 -- YOU_X along it.
 local PITCH, STOP_W, FIRST_X, YOU_X, BAND_H = 160, 152, 56, 30, 26
+local ACROSS = 6                    -- stops that fit across the page at that pitch
 local SIGN, ROAD_H = Road.SIGN, Road.ACROSS_H + 4
 
 Window.Page("professions", function(page)
@@ -115,7 +116,7 @@ Window.Page("professions", function(page)
         r.name:SetPoint("RIGHT", r.count, "LEFT", -8, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
-        Style.ItemTip(r)
+        Style.ItemTip(r, nil, nil, 0)
         needs[i] = r
         return r
     end
@@ -245,9 +246,23 @@ Window.Page("professions", function(page)
         scroll:Show()
         youText:SetText(("YOU, %d"):format(o.skill))
         local placed, ranked = 0, o.ranked
+        -- The road's places: a stop for each step after the one in hand, the
+        -- next rank's while it's still ahead, and the cap's sign; but a rank
+        -- learned at the cap itself is the road's end, with no sign after it
+        -- saying the same number.
+        local ranks = (not ranked and o.ahead) and 1 or 0
+        local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap)) and 1 or 0
+        local places = math.max(1, #plan - 1 + ranks + ends)
+        -- Six or more stand a PITCH apart, and the wheel moves along them.
+        -- Fewer are spread evenly from you to the page's right edge, so a
+        -- short road still runs from here to there. Where place k's middle is:
+        local function Middle(k)
+            if places >= ACROSS then return FIRST_X + k * PITCH + STOP_W / 2 end
+            return YOU_X + (k + 1) * (width - STOP_W / 2 - YOU_X) / places
+        end
         local function Put(stop)
             stop:ClearAllPoints()
-            stop:SetPoint("TOPLEFT", FIRST_X + placed * PITCH, 0)
+            stop:SetPoint("TOPLEFT", Middle(placed) - STOP_W / 2, 0)
             stop:Show()
             placed = placed + 1
         end
@@ -264,15 +279,15 @@ Window.Page("professions", function(page)
             Put(s)
         end
         if not ranked and o.ahead then Rank() end
-        if o.capped then
+        if ends == 1 then
             endSign.level:SetText(o.cap)
             endSign:ClearAllPoints()
-            endSign:SetPoint("TOP", lane, "TOPLEFT", FIRST_X + placed * PITCH + STOP_W / 2, 0)
+            endSign:SetPoint("TOP", lane, "TOPLEFT", Middle(placed), 0)
             endSign:Show()
             placed = placed + 1
         end
         -- The road is as long as its stops; the dashes run its length.
-        local long = math.max(width, FIRST_X + math.max(0, placed - 1) * PITCH + STOP_W + 2)
+        local long = places >= ACROSS and math.max(width, FIRST_X + (places - 1) * PITCH + STOP_W + 2) or width
         lane:SetWidth(long)
         band:SetWidth(long)
         local used = 0

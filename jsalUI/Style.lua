@@ -530,8 +530,10 @@ end
 
 -- The game's tooltip for what a row shows (its `item`, or its `spell`), with
 -- the light under the pointer. `more`, when given, adds lines of its own;
--- `radius` is a round card's, for a light that follows its corners.
-function Style.ItemTip(frame, more, radius)
+-- `radius` is a round card's, for a light that follows its corners; `pad`
+-- is how far the light reaches past a row's sides, 6 unless given (none for
+-- a row inside a card, whose sides are the card's).
+function Style.ItemTip(frame, more, radius, pad)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -540,7 +542,7 @@ function Style.ItemTip(frame, more, radius)
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame, radius and 0 or 6, radius)
+    Style.Hover(frame, radius and 0 or (pad or 6), radius)
 end
 
 -- A page's small print (where its numbers come from, how far to trust

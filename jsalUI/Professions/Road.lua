@@ -323,7 +323,7 @@ local function NowMat(card, i)
     m.name:SetWordWrap(false)
     m.tag = Style.Tag(m, "", nil, true)
     m.tag:SetPoint("LEFT", m.name, "RIGHT", 8, 0)
-    Style.ItemTip(m, Road.Needs)
+    Style.ItemTip(m, Road.Needs, nil, 0)
     card.mats[i] = m
     return m
 end
@@ -500,10 +500,19 @@ function Road.RankStop(parent, width, across)
     r.sub = Style.Text(r, 12, "muted")
     r.sub:SetWordWrap(false)
     if across then
+        -- Under the sign, each as wide as the stop and on two lines at most:
+        -- a long one ("Learn Artisan from the quest Triage") ran past the
+        -- stop's sides and over what stood beside it.
         r.title:SetPoint("TOP", 0, -(Road.SIGN + 14))
+        r.title:SetWidth(width - 8)
         r.title:SetJustifyH("CENTER")
         r.sub:SetPoint("TOP", r.title, "BOTTOM", 0, -4)
+        r.sub:SetWidth(width - 8)
+        r.sub:SetWordWrap(true)
         r.sub:SetJustifyH("CENTER")
+        for _, text in ipairs({ r.title, r.sub }) do
+            if text.SetMaxLines then text:SetMaxLines(2) end
+        end
         r.link:SetPoint("TOP", r.sub, "BOTTOM", 0, -6)
         r.link:SetJustifyH("CENTER")
     else
@@ -538,5 +547,9 @@ function Road.PaintRankStop(r, line, rank, rankIndex, rankAt, skill)
     if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
     r.link:SetShown(trainer ~= nil)
     local words = table.concat(parts, " · ")
-    Fit(r.sub, words, r.across and (r.width - 8) or (r.width - (Road.SIGN + 12) - Style.Wide(r.title, 110) - 8 - (trainer and 84 or 0)))
+    if r.across then
+        r.sub:SetText(words)
+    else
+        Fit(r.sub, words, r.width - (Road.SIGN + 12) - Style.Wide(r.title, 110) - 8 - (trainer and 84 or 0))
+    end
 end
