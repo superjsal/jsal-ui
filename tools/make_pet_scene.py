@@ -6,7 +6,7 @@ The scene is pixel art at half the pen's size (the pen is 440 by 200, so 220
 by 100; a wider picture loses the columns over at each side), drawn at twice its size
 so its pixels match the creature's. The game wants sides that are powers of
 two, so it's written into the top left of a 256 by 128 picture,
-jsalUI/Media/Pet/<name>.png, and jsalUI/Pet/Pet.lua shows only that corner.
+jsalUI/Media/Pet/<name>.png, and jsalUI/Pet/Nest.lua shows only that corner.
 """
 import sys
 from pathlib import Path

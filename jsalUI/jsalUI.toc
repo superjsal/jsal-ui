@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.53-beta.1
+## Version: 0.3.53-beta.2
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -44,6 +44,14 @@ Games\ChessPage.lua
 Guild.lua
 Pet\PetRules.lua
 Pet\Pet.lua
+Pet\Pen.lua
+Pet\Care.lua
+Pet\Window.lua
+Pet\Supplies.lua
+Pet\Nest.lua
+Pet\Play.lua
+Pet\Events.lua
+Pet\Trials.lua
 
 # Talents: the trees, ready-made leveling builds, the plan rules, the Build
 # Planner page and the helper.
