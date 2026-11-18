@@ -331,17 +331,19 @@ end
 -- (Home 18 ms, Training 11 ms in his /jsal perf). The reading is kept until
 -- something it reads changes: a spell learned, a level, a pet, a trainer or
 -- Grimoire vendor saved, a spell skipped. Whoever uses it only reads it.
-local kept
+local kept, keptPet
 function Training.Read()
     if not kept then kept = ReadNow() end
     return kept
 end
 
-function Training.Forget() kept = nil end
+function Training.Forget() kept, keptPet = nil, nil end
 
 local forget = CreateFrame("Frame")
 for _, event in ipairs({ "SPELLS_CHANGED", "SKILL_LINES_CHANGED", "PLAYER_LEVEL_UP", "PLAYER_ENTERING_WORLD",
-    "TRAINER_UPDATE", "TRAINER_CLOSED", "UNIT_PET", "PET_BAR_UPDATE" }) do
+    "TRAINER_UPDATE", "TRAINER_CLOSED", "UNIT_PET", "PET_BAR_UPDATE",
+    -- And for the pet's abilities (Training.Pet): its level, its training points, a pet stabled or renamed.
+    "UNIT_LEVEL", "UNIT_PET_TRAINING_POINTS", "PET_STABLE_UPDATE", "LOCALPLAYER_PET_RENAMED" }) do
     forget:RegisterEvent(event)
 end
 forget:SetScript("OnEvent", Training.Forget)
@@ -388,7 +390,7 @@ local function NoteAll()
             if IsSpellKnown(entry[1], true) then ns.char.petKnown[entry[1]] = true end
         end
     end
-    kept = nil
+    kept, keptPet = nil, nil
 end
 
 watcher:SetScript("OnEvent", function(_, event, unit)
@@ -418,7 +420,17 @@ end)
 -- of the rank the pet knows do come back, but after.) Where the game doesn't
 -- say how many are free, a row stays "ready" and the planner gives its cost,
 -- not a promise.
+-- The menu's count, Home's card and the Training Planner each asked for this on every open,
+-- and each time it read the pet's spellbook and every ability of its family again (the menu's
+-- counts were 6 ms of each dashboard open for his hunter). It's kept as Training.Read is, until
+-- the pet, its level, its training points or what the game says it knows change.
+local PetNow
 function Training.Pet()
+    if keptPet == nil then keptPet = PetNow() or false end
+    return keptPet or nil
+end
+
+function PetNow()
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID]
     if not (source and source.families) then return nil end
@@ -506,7 +518,7 @@ end
 function Training.Skip(spellID, on)
     ns.char.trainingSkips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     ns.char.trainingSkips[spellID] = on or nil
-    kept = nil
+    kept, keptPet = nil, nil
 end
 
 -- Sorts the spells into what's ready now, coming soon, later and skipped,
