@@ -552,10 +552,12 @@ end
 -- The window: the step in hand, and a foot with the way back, where you
 -- are and the way on.
 ---------------------------------------------------------------------------
--- Seen: it won't open by itself again. With `openNext`, the dashboard opens
--- once after the reload that's about to happen.
+-- Seen: it won't open by itself again. `welcome` is what says so: a setup
+-- saved before there was a welcome has none, so its player is shown this
+-- once. With `openNext`, the dashboard opens once after the reload that's
+-- about to happen.
 local function Seen(openNext)
-    ns.db.setup = { done = ns.codeVersion, open = openNext or nil }
+    ns.db.setup = { done = ns.codeVersion, welcome = true, open = openNext or nil }
 end
 
 local function Show(i)
@@ -603,8 +605,8 @@ local function Build()
     frame = Style.Panel("jsalUISetup", WIDTH, HEIGHT, "Welcome")
     -- Closing it early counts as seen, so it doesn't open again by itself.
     frame:HookScript("OnHide", function()
-        if byFight then return end
-        ns.db.setup = ns.db.setup or { done = ns.codeVersion, skipped = true }
+        if byFight or (ns.db.setup and ns.db.setup.welcome) then return end
+        ns.db.setup = { done = ns.codeVersion, welcome = true, skipped = true }
     end)
     content = CreateFrame("Frame", nil, frame)
     content:SetPoint("TOPLEFT", PAD, -(BAR + TOP))
@@ -677,20 +679,21 @@ combat:SetScript("OnEvent", function()
     if ok then ns.Print("The welcome closed for the fight. /jsal setup opens it again.") end
 end)
 
--- The first time jsal.ui runs, the welcome opens a few seconds after login,
--- once out of combat. After the reload its last step asked for, the
--- dashboard opens instead, once.
+-- Until the welcome has been seen, it opens a few seconds after login, once
+-- out of combat: the first time jsal.ui runs, and once for a player whose
+-- saved setup is from before there was a welcome. After the reload its last
+-- step asked for, the dashboard opens instead, once.
 ns.OnLogin(function()
     local saved = ns.db.setup
-    if not saved then
+    -- What an earlier setup asked and saved is read by nothing now.
+    if saved then saved.play, saved.preset = nil, nil end
+    if not (saved and saved.welcome) then
         Compat.After(8, function()
-            if ns.db.setup or Compat.InCombat() then return end
+            if (ns.db.setup and ns.db.setup.welcome) or Compat.InCombat() then return end
             xpcall(Setup.Open, ns.Report)
         end)
         return
     end
-    -- What an earlier setup asked and saved is read by nothing now.
-    saved.play, saved.preset = nil, nil
     if saved.open then
         saved.open = nil
         Compat.After(2, function()
