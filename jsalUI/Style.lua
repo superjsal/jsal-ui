@@ -160,6 +160,26 @@ function Style.Border(frame, colorKey)
     return edges
 end
 
+-- The same 1px line round a frame, with the frame filled inside it, in two pictures where a
+-- fill and Style.Border are five: a square of the line's colour, and the fill a pixel inside it.
+-- Pages lay out slower the more pieces they have, and the Build Planner's small talent squares
+-- were six each (John, 17 Nov 2026, /jsal pieces: 597 on the page, 416 of them pictures). It
+-- looks the same wherever the inside is filled; a frame with nothing inside its line still
+-- needs Style.Border. Returns the line, as Style.Border's edges for Style.SetBorder, and the fill.
+function Style.Lined(frame, lineKey, fillKey)
+    local px = Compat.OnePixel(frame)
+    local line = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
+    line:SetAllPoints()
+    line:SetColorTexture(Style.Color(lineKey))
+    Compat.Crisp(line)
+    local fill = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
+    fill:SetPoint("TOPLEFT", px, -px)
+    fill:SetPoint("BOTTOMRIGHT", -px, px)
+    fill:SetColorTexture(Style.Color(fillKey))
+    Compat.Crisp(fill)
+    return { line }, fill
+end
+
 function Style.SetBorder(edges, colorKey)
     for _, t in ipairs(edges) do
         if t.Paint then t:Paint(colorKey) else t:SetColorTexture(Style.Color(colorKey)) end
