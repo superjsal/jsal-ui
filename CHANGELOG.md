@@ -1,6 +1,7 @@
 # jsal.ui 0.3.56
 
 - **Profession panel: a road with no dashes.** The road down the panel beside the profession window has no dashed line down its middle any more, like the roads on the Training Planner and the Professions page.
+- **Profession window: the skill-up numbers from the Filter menu.** The window's own Filter menu, over the recipe list, has a Skill-up numbers tick at its foot under "jsal.ui": untick it to hide the yellow, green and grey numbers on each recipe, tick it to bring them back. It's the same switch as Skill-up thresholds in Settings.
 
 ## In 0.3.55
 

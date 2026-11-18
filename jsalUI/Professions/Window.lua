@@ -1,5 +1,6 @@
 -- Additions to the game's profession window, each with its own switch: the
--- skill where each recipe turns yellow, green and grey; how many of each
+-- skill where each recipe turns yellow, green and grey (switched in the
+-- window's Filter menu too); how many of each
 -- reagent are in your bags and bank; a bar while you craft several; and a
 -- heads-up when you can train a profession's next rank. (The recipes you
 -- haven't learned and the favourites at a trainer are in the profession
@@ -12,7 +13,7 @@ local Window = ns.NewModule("profwindow", {
     note = "Small additions to the game's profession window and trainers.",
     options = {
         { key = "thresholds", title = "Skill-up thresholds", default = true,
-          note = "On each recipe: the skill where it turns yellow, green and grey." },
+          note = "On each recipe: the skill where it turns yellow, green and grey. The window's Filter menu switches them too." },
         { key = "bank", title = "Reagents in bags and bank", default = true,
           note = "Beside each reagent: how many are in your bags and in the bank." },
         { key = "unlearned", title = "Recipes not learned yet", default = true,
@@ -125,6 +126,48 @@ local function HookList()
         hooksecurefunc(box, "Update", function() box:ForEachFrame(function(frame) Guard(DecorateRow, frame) end) end)
     end
 end
+
+---------------------------------------------------------------------------
+-- The skill-up numbers' switch in the game's own Filter menu over the recipe
+-- list, so they're turned off or on where they're seen. It's the same switch
+-- as in Settings. Added to the game's menu rather than drawn, so whatever
+-- skins the window skins it too, and both versions of the window name their
+-- Filter menu the same.
+---------------------------------------------------------------------------
+-- The rows the list shows, filled again: the game sizes each name afresh,
+-- and DecorateRow adds the numbers or not.
+local function RedrawRows()
+    local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
+    local box = page and page.RecipeList and page.RecipeList.ScrollBox
+    if not box then return end
+    if box.Rebuild and ScrollBoxConstants and ScrollBoxConstants.RetainScrollPosition then
+        box:Rebuild(ScrollBoxConstants.RetainScrollPosition)
+    elseif box.ForEachFrame then
+        box:ForEachFrame(function(frame) Guard(DecorateRow, frame) end)
+    end
+end
+
+local function FlipNumbers()
+    ns.SetOption("profwindow", "thresholds", not ns.OptionOn("profwindow", "thresholds"))
+    RedrawRows()
+end
+
+local function AddToFilterMenu(root)
+    if not Window.running then return end
+    root:CreateDivider()
+    root:CreateTitle("jsal.ui")
+    root:CreateCheckbox("Skill-up numbers", function() return Window.On("thresholds") end,
+        function() Guard(FlipNumbers) end)
+end
+
+-- The game keeps a menu's additions for the session, so they're added once.
+local menuAdded
+local function HookFilterMenu()
+    if menuAdded or not (Menu and Menu.ModifyMenu) then return end
+    menuAdded = true
+    Menu.ModifyMenu("MENU_PROFESSIONS_FILTER", function(_, root) Guard(AddToFilterMenu, root) end)
+end
+Window.AddToFilterMenu = AddToFilterMenu
 
 ---------------------------------------------------------------------------
 -- Reagents in bags and bank: under each reagent of the picked recipe.
@@ -375,6 +418,7 @@ function Window:OnEnable()
         hooksecurefunc(C_TradeSkillUI, "CraftRecipe", function(recipeID, count) Guard(StartRun, recipeID, count) end)
     end
     HookWindow()
+    Guard(HookFilterMenu)
     Compat.After(10, function() Guard(CheckRanks) end)
 end
 
