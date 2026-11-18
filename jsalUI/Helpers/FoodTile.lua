@@ -312,7 +312,7 @@ end
 function FoodTile:OnEnable()
     if not holder then Build() end
     Place()
-    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
             key = "FoodTile", label = "jsal.ui food reminder",

@@ -288,7 +288,7 @@ function RangeCheck:OnEnable()
     if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, MELEE_ITEM) end
     if not box then Build() end
     Place()
-    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
             key = "RangeCheck", label = "jsal.ui range check",

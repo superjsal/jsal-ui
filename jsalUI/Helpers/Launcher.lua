@@ -545,11 +545,12 @@ Layout = function()
     local length = at - GAP + 4
     -- The bar takes its size first and is asked where it stands, and only then are the buttons
     -- pinned to it. The game settles a new size the next time a frame's place is asked for, and
-    -- whatever listens for the bar's size runs at that moment: another addon's unlock mode,
-    -- which puts the bar back in its place. When the first frame asked is a button, its place is
-    -- being worked out while the bar it hangs from is re-placed under it, and the game leaves
-    -- that one button with no place: shown, pinned, and not drawn. Asked first, the bar settles
-    -- with nothing hanging on the answer, and a button pinned afterwards finds it at rest.
+    -- whatever listens for the bar's size runs at that moment: an addon that takes charge of
+    -- where frames stand may put the bar back in its place. When the first frame asked is a
+    -- button, its place is being worked out while the bar it hangs from is re-placed under it,
+    -- and the game leaves that one button with no place: shown, pinned, and not drawn. Asked
+    -- first, the bar settles with nothing hanging on the answer, and a button pinned afterwards
+    -- finds it at rest.
     if vertical then bar:SetSize(SIZE + 8, length) else bar:SetSize(length, SIZE + 8) end
     bar:GetLeft()
     for i, b in ipairs(list) do
@@ -745,7 +746,7 @@ function Launcher:OnEnable()
     if not bar then Build() end
     Layout()
     bar:Show()
-    -- In EllesmereUI's Unlock Mode, with its grid and snapping, when it's on.
+    -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
             key = "QuickButtons", label = "jsal.ui quick buttons",

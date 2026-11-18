@@ -2,9 +2,14 @@
 -- or Move pieces in Settings): every piece shown and named, even one that's
 -- hidden just now, on a grid, snapping to the grid, the centre and each
 -- other, with exact X and Y for the one picked. It needs nothing else
--- installed. When EllesmereUI is on, the pieces are also in its Unlock Mode,
--- through its public call for other addons' elements, a moment after login
--- as its own parts do. Each piece still drags on its own with neither.
+-- installed, and each piece still drags on its own without it.
+--
+-- The pieces are in no other addon's unlock mode, on purpose. One that takes
+-- a piece in also takes charge of where it stands: it puts the piece back in
+-- its place whenever the piece changes size, a locked one too, and a frame
+-- re-placed while the game is working out where one of its children stands
+-- leaves that child with no place, shown and not drawn. A piece's spot is
+-- jsal.ui's alone to set: its own drag, and this Unlock Mode.
 local _, ns = ...
 local Compat, Style = ns.Compat, ns.Style
 
@@ -18,61 +23,7 @@ local pieces = {}
 -- for when it isn't in use.
 function Unlock.Add(piece)
     pieces[piece.key] = piece
-    if Unlock.registered then Unlock.Register() end
 end
-
-local function Element(piece)
-    local function Apply()
-        local frame = piece.frame()
-        local at = piece.load()
-        if frame and at and at[1] then
-            frame:ClearAllPoints()
-            frame:SetPoint(at[1], UIParent, at[2] or at[1], at[3] or 0, at[4] or 0)
-        end
-    end
-    local element = {
-        key = "jsalUI_" .. piece.key,
-        label = piece.label,
-        group = "jsal.ui",
-        order = 900,
-        noResize = true,
-        isHidden = function() return piece.hidden and piece.hidden() or not piece.frame() end,
-        getFrame = function() return piece.frame() end,
-        getSize = function()
-            local frame = piece.frame()
-            if frame then return frame:GetWidth(), frame:GetHeight() end
-            return 32, 32
-        end,
-        savePos = function(_, point, relative, x, y)
-            if not point then return end
-            piece.save(point, relative or point, x or 0, y or 0)
-            if not EllesmereUI._unlockActive then Apply() end
-        end,
-        loadPos = function()
-            local at = piece.load()
-            if not (at and at[1]) then return nil end
-            return { point = at[1], relPoint = at[2] or at[1], x = at[3] or 0, y = at[4] or 0 }
-        end,
-        clearPos = function() piece.save(nil) end,
-        applyPos = Apply,
-    }
-    local make = EllesmereUI.MakeUnlockElement
-    return make and make(element) or element
-end
-
-function Unlock.Register()
-    if not (EllesmereUI and EllesmereUI.RegisterUnlockElements) then return false end
-    local list = {}
-    for _, piece in pairs(pieces) do list[#list + 1] = Element(piece) end
-    if #list == 0 then return false end
-    local ok = pcall(EllesmereUI.RegisterUnlockElements, EllesmereUI, list)
-    Unlock.registered = ok
-    return ok
-end
-
-ns.OnLogin(function()
-    Compat.After(2, function() xpcall(Unlock.Register, ns.Report) end)
-end)
 
 ---------------------------------------------------------------------------
 -- jsal.ui's own Unlock Mode.
