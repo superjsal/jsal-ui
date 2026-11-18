@@ -337,17 +337,25 @@ Window.Page("training", function(page)
     done:SetPoint("TOPLEFT", 1, -1)
     done:SetSize(FIRST_X - 6, BAND_H - 2)
     Style.Cap(done, 12, "needFill", "LEFT")
-    local you = done:CreateTexture(nil, "ARTWORK")
+    -- The mark has a layer of its own over the gold, so it shows when there's no gold yet.
+    local markLayer = CreateFrame("Frame", nil, band)
+    markLayer:SetAllPoints()
+    markLayer:SetFrameLevel(done:GetFrameLevel() + 1)
+    local you = markLayer:CreateTexture(nil, "ARTWORK")
     you:SetColorTexture(Style.Color("gold"))
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
-    -- How far the gold reaches: from just past the mark at the road's start (no way along) to
-    -- the middle of the next visit's sign (there), by your XP across the levels from the one
+    -- How far the gold reaches: from the road's very start (no way along) to the edge of the
+    -- next visit's sign (there), by your XP across the levels from the one
     -- you're in to that visit. The road's start is you, at your level: counted from the visit
     -- before, level 39 at 23% looked most of the way to 40 (John, 17 Nov 2026: "looks like i'm
     -- closer to 40 than i actually am"). A level up starts it again from the new level.
-    local FILL_FROM, FILL_TO = YOU_X + 14, FIRST_X + STOP_W / 2
+    -- It started past the mark's resting place, so a little XP already showed a fair way: 23%
+    -- read like 40% (John, 17 Nov 2026: "reads more like 40% instead of 23.3%"). The gold's
+    -- length is its share of the whole stretch now; the rounded start needs 12 to be drawn, so
+    -- less shows the mark alone.
+    local FILL_TO, MIN_FILL = FIRST_X + STOP_W / 2 - SIGN / 2, 12
     function ui.Along(level, xp, most, nextStop)
         if not nextStop then return 0 end
         local from = level
@@ -358,11 +366,14 @@ Window.Page("training", function(page)
         local nextStop = ui.roadLevels and ui.roadLevels[1]
         local along = ui.Along(UnitLevel("player") or 1, UnitXP and UnitXP("player") or 0,
             UnitXPMax and UnitXPMax("player") or 0, nextStop)
-        local reach = FILL_FROM + along * (FILL_TO - FILL_FROM)
-        done:SetWidth(reach - 1)
+        -- All the way is just short of the sign, which would hide the mark. The gold stops at the
+        -- mark's middle (John: "lets have the gold stop at the middle of the diamond"); under 12,
+        -- too short for its rounded start, there's the mark alone, at the road's start.
+        local reach = along * (FILL_TO - 10)
+        done:SetShown(reach >= MIN_FILL)
+        done:SetWidth(math.max(MIN_FILL, reach - 1))
         you:ClearAllPoints()
-        -- The mark stops short of the sign, where the sign would hide it; the gold runs on under it.
-        you:SetPoint("CENTER", band, "LEFT", math.min(math.max(YOU_X, reach - 14), FILL_TO - SIGN / 2 - 10), 0)
+        you:SetPoint("CENTER", band, "LEFT", math.max(10, reach), 0)
     end
     ui.youText = Style.Text(road, 10, "gold", nil, true)
     ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
