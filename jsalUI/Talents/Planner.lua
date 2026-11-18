@@ -387,7 +387,8 @@ Window.Page("build", function(page)
         if node then
             local rank = 0
             for k = 1, nextAt do if kept[k] == nextID then rank = rank + 1 end end
-            nextCard.title:SetText(data.own and "YOUR NEXT POINT" or "THE BUILD'S FIRST POINT")
+            -- Yours only for the build you follow; one you're looking at says it's that build's.
+            nextCard.title:SetText(not data.own and "THE BUILD'S FIRST POINT" or (following and "YOUR NEXT POINT" or "THIS BUILD'S NEXT POINT"))
             nextCard.level:SetText(("level %d"):format(Tree.Level(nextAt)))
             nextCard.icon:SetTexture(node.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
             nextCard.name:SetText(node.name or "")

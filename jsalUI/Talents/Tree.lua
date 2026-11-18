@@ -554,13 +554,21 @@ function Tree.Delete(build)
     if ns.db.selectedBuild[build.class] == build.id then ns.db.selectedBuild[build.class] = nil end
 end
 
--- The build the talent helper follows, per character: the one you chose
--- with Follow this build, or else the one selected for your class.
+-- The build the talent helper follows, per character: the one you chose with Follow this
+-- build. With none chosen it was whichever build was selected, so looking at another build
+-- (a suggested one) made it the one followed, its title said "following" and the helper, Home
+-- and the talent window's glow went with it (John, 17 Nov 2026: "the suggested one seems to
+-- also be tracking it for some reason"). With none chosen, the one selected the first time it's
+-- asked is kept as followed, and looking at others leaves it.
 function Tree.Follow(build)
     ns.char.follow = build.id
 end
 
 function Tree.Active()
     local classID = Tree.PlayerClass()
-    return Find(classID, ns.char.follow) or Tree.Selected(classID)
+    local followed = Find(classID, ns.char.follow)
+    if followed then return followed end
+    local selected = Tree.Selected(classID)
+    if selected and selected.id and ns.char then ns.char.follow = selected.id end
+    return selected
 end
