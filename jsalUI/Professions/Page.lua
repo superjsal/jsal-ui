@@ -325,7 +325,7 @@ Window.Page("professions", function(page)
         scroll:ClearAllPoints()
         scroll:SetPoint("TOPLEFT", 0, -(y + 30))
         scroll:Show()
-        youText:SetText(("YOU, %d"):format(o.skill))
+        youText:SetText(tostring(o.skill))
         local ranked = o.ranked
         -- The road's places: a stop for each step after the one in hand, the
         -- next rank's while it's still ahead, and the cap's sign; but a rank

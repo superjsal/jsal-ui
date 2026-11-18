@@ -992,7 +992,7 @@ Window.Page("training", function(page)
         ui.roadHead.note:SetText(rest > 0 and ((restUnknown > 0 and "from " or "") .. Compat.Money(rest) .. " in all") or "")
         ui.band:SetShown(#levels > 0)
         ui.youText:SetShown(#levels > 0)
-        ui.youText:SetText(("YOU, %d"):format(level))
+        ui.youText:SetText(tostring(level))
         ui.roadEmpty:SetShown(#levels == 0)
         -- The road is as long as its visits; what's in view of it is drawn (ui.PaintRoad).
         local long = math.max(width, FIRST_X + math.max(0, #levels - 1) * PITCH + STOP_W + 2)
