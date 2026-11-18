@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.57-beta.1
+## Version: 0.3.58-beta.1
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -128,9 +128,13 @@ Gear\GearData.lua
 Gear\Gear.lua
 Gear\Weights.lua
 Gear\Stars.lua
+# The gear plan's goal for the last level: the best piece for each slot at 60, and where to go for it.
+Gear\Goal.lua
 # A star on the quest reward the gear plan scores best for you.
 Gear\RewardStar.lua
 Gear\Page.lua
+# The goal's view on the gear plan: an "At 60" tab beside "Near your level".
+Gear\GoalPage.lua
 
 # The dungeon guide: every dungeon and raid from the game's files, the bosses
 # you've killed and the loot each has dropped.

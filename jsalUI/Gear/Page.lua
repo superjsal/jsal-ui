@@ -147,12 +147,16 @@ Window.Page("gear", function(page)
     local listW = width - paneW - LIST_GAP
     local chosen = "chest"
     local Paint, Settle
+    -- What belongs to this view alone hangs on a frame of its own, so the goal for the last
+    -- level (Gear\GoalPage.lua) can take its place. The spec and its weights are for both.
+    page.near = CreateFrame("Frame", nil, page)
+    page.near:SetAllPoints(page)
 
     -- The top: how many slots can be better, who it's for, and the spec,
     -- which picks the stat weights.
-    local title = Style.Text(page, 20, "text", nil, true)
+    local title = Style.Text(page.near, 20, "text", nil, true)
     title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -6)
-    local who = Style.Text(page, 13, "muted")
+    local who = Style.Text(page.near, 13, "muted")
     who:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -3)
     local specButtons = {}
     for i = 3, 1, -1 do
@@ -359,7 +363,7 @@ Window.Page("gear", function(page)
     -- Over the slots, a name for each column: without them the green numbers
     -- beside a slot with nothing in it read as that slot's own stats. The
     -- slot's own name needs no heading.
-    local wearing = Style.Text(page, 10, "muted", nil, true)
+    local wearing = Style.Text(page.near, 10, "muted", nil, true)
     -- At the page's left edge, in line with the title over it and the slots' rows under it: over
     -- the slots' names it stood 44 in.
     wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 18))
@@ -369,14 +373,14 @@ Window.Page("gear", function(page)
     wearing:SetJustifyH("LEFT")
     wearing:SetWordWrap(false)
     wearing:SetText("CURRENTLY EQUIPPED")
-    local bestHead = Style.Text(page, 10, "muted", nil, true)
+    local bestHead = Style.Text(page.near, 10, "muted", nil, true)
     bestHead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", UP_X, -(top - 18))
     bestHead:SetText("BEST UPGRADE NEAR YOUR LEVEL")
-    local adds = Style.Text(page, 10, "muted", nil, true)
+    local adds = Style.Text(page.near, 10, "muted", nil, true)
     adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 10, -(top - 18))
     adds:SetJustifyH("RIGHT")
     adds:SetText("IT ADDS")
-    local slotRule = page:CreateTexture(nil, "BORDER")
+    local slotRule = page.near:CreateTexture(nil, "BORDER")
     slotRule:SetColorTexture(Style.Color("lineStrong"))
     slotRule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 3))
     slotRule:SetSize(SLOT_W, 1)
@@ -385,7 +389,7 @@ Window.Page("gear", function(page)
     local slotFrames = {}
     local function SlotButton(row, x, y)
         local slot = row.slot
-        local b = CreateFrame("Button", nil, page)
+        local b = CreateFrame("Button", nil, page.near)
         b:SetSize(SLOT_W, SLOT_H)
         b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", x, -y)
         local box = Style.Box(b, 5, "well", "gold")
@@ -446,7 +450,7 @@ Window.Page("gear", function(page)
     end
 
     -- Beside the slots: the chosen slot's plan.
-    local list = CreateFrame("Frame", nil, page)
+    local list = CreateFrame("Frame", nil, page.near)
     list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", paneW + LIST_GAP, -top)
     list:SetSize(listW, height - top - FOOT)
     Style.Rule(list, "LEFT", "line")
@@ -632,7 +636,7 @@ Window.Page("gear", function(page)
 
     -- The page's small print, read on a hover at its foot: where the items come from, and that
     -- the stat weights are estimates.
-    local about = Style.About(page, "Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30.\n"
+    local about = Style.About(page.near, "Items and sources are from Wowhead Forever and what you and your guild have seen; they're incomplete past level 30.\n"
         .. "Stat weights are estimates from WoWSims' Forever sims at level 60: a guide, not the last word. Change them under Weights.")
     about:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", width, 0)
 
@@ -676,6 +680,14 @@ Window.Page("gear", function(page)
             .. (G.CustomWeights(spec) and "  ·  |cffe3b04byour weights|r" or ""))
         weightsButton:SetSelected(panel:IsShown())
         PaintWeights()
+        -- The goal for the last level, when that part is on: its tabs stand at the page's top
+        -- left, with the title after them, and with "At 60" chosen its view is painted in
+        -- place of this one.
+        local inset, goal = 0, false
+        if page.Goal then inset, goal = page.Goal(spec) end
+        title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", inset, -6)
+        page.near:SetShown(not goal)
+        if goal then return end
 
         -- Timed apart from the drawing, so /jsal perf says which is slow.
         local started = debugprofilestop()
@@ -841,6 +853,7 @@ Window.Page("gear", function(page)
         end
     end
     page.Refresh = function() Paint() end
+    if G.GoalView then G.GoalView(page, width, height) end
 
     -- Items the game hadn't loaded arrive one by one, and gear changes: the
     -- page repaints once for a batch.

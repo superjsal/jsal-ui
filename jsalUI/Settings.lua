@@ -36,7 +36,7 @@ local GROUPS = {
         { "Crafting", { "professionpanel", "profwindow", "shopping", "crafters", "orders", "craftprofit" } },
     } },
     { key = "leveling", title = "Leveling", sections = {
-        { "Planning ahead", { "talents", "trainingpanel", "gear", "dungeons" } },
+        { "Planning ahead", { "talents", "trainingpanel", "gear", "geargoal", "dungeons" } },
         { "As you play", { "nextlevel", "levelup", "journal", "questtags", "guidetags", "lootlog", "tametip", "rewardstar" } },
     } },
     { key = "games", title = "Games", sections = {
@@ -59,6 +59,7 @@ local SHORT = {
     talents = "Names your next talent",
     trainingpanel = "What to train now and next",
     gear = "The best upgrade for each slot",
+    geargoal = "Your gear for 60, and where to get it",
     dungeons = "Bosses, loot and quests",
     nextlevel = "What your next level brings",
     levelup = "What's new on each level",
@@ -98,7 +99,7 @@ local ICON_PATH = "Interface\\AddOns\\jsalUI\\Media\\Icons\\"
 local ICON = {
     dailyword = "Parts\\dailyword", iconguess = "Menu\\help", chess = "Parts\\chess", flight = "Parts\\flight",
     guild = "Menu\\guild", pet = "Parts\\pet", palrun = "Parts\\palrun",
-    talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", dungeons = "Parts\\dungeons",
+    talents = "Menu\\talents", trainingpanel = "Menu\\spellbook", gear = "Menu\\legacy", geargoal = "Menu\\legacy", dungeons = "Parts\\dungeons",
     nextlevel = "Parts\\nextlevel", levelup = "Parts\\levelup", journal = "Parts\\journal", questtags = "Menu\\quests",
     guidetags = "Menu\\quests", lootlog = "Menu\\collections",
     tametip = "Parts\\tametip", rewardstar = "Menu\\quests",

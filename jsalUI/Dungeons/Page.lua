@@ -1542,6 +1542,8 @@ Window.Page("dungeons", function(page)
         for _, d in ipairs(ns.DungeonData or {}) do
             if not d.faction or d.faction == faction then shown[#shown + 1] = d end
         end
+        -- A dungeon asked for from elsewhere (the Gear plan's "Open guide") is the one shown.
+        if D.want then chosen, D.want = D.want, nil end
         if not chosen then
             for _, d in ipairs(shown) do
                 if Fits(d, level) then chosen = d break end
