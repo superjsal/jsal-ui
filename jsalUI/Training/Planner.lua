@@ -343,12 +343,14 @@ Window.Page("training", function(page)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
     -- How far the gold reaches: from just past the mark at the road's start (no way along) to
-    -- the middle of the next visit's sign (there), by how far you are from the visit before it
-    -- to that one, XP and all. Before the first visit the one before is counted two levels back.
+    -- the middle of the next visit's sign (there), by your XP across the levels from the one
+    -- you're in to that visit. The road's start is you, at your level: counted from the visit
+    -- before, level 39 at 23% looked most of the way to 40 (John, 17 Nov 2026: "looks like i'm
+    -- closer to 40 than i actually am"). A level up starts it again from the new level.
     local FILL_FROM, FILL_TO = YOU_X + 14, FIRST_X + STOP_W / 2
     function ui.Along(level, xp, most, nextStop)
         if not nextStop then return 0 end
-        local from = math.min(level, nextStop - 2)
+        local from = level
         local at = level + ((most or 0) > 0 and math.min(1, (xp or 0) / most) or 0)
         return math.max(0, math.min(1, (at - from) / math.max(1, nextStop - from)))
     end
