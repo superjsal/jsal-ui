@@ -16,7 +16,7 @@ local BODY_TOP = 74                 -- the builds list and the build's header
 local MAIN_TOP = 140                -- the plan list, or the editor's trees
 local STEP_H = 30                   -- one row of the plan list
 local COLS_H = 20                   -- the plan list's column headings
-local SHARE_W, SHARE_ROW = 260, 52     -- the card of where the points go, and a tree's row in it
+local NEXT_W = 340                    -- the card of your next point, beside the plan
 local SOURCE_H = 22                 -- a suggested build's source line
 local ROW_H = 46                    -- one build in the builds list
 
@@ -30,12 +30,12 @@ Window.Page("build", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local right = LIST_W + GUTTER
     local rightW = width - right
-    -- The plan, with a small card beside it of where its points go. The small trees there went
-    -- (John, 17 Nov 2026: "I dont think we need this at all"): 63 squares of the page's 447
-    -- pieces. Two columns of plan in their place read badly (a tree's points split between them),
-    -- so the plan is one column again and the card says where the points go in a dozen pieces
-    -- ("A, and then lets replace the squares with circles"). Edit still opens the trees.
-    local planW = rightW - SHARE_W - GUTTER
+    -- The plan, with a card beside it of your next point and what it gives you. The small trees
+    -- there went (John, 17 Nov 2026: "I dont think we need this at all"): 63 squares of the
+    -- page's 447 pieces. Then two columns of plan read badly, then a card of where the points went
+    -- gave way to this ("how about instead we emphasize the next point by showing what it gives
+    -- us"; he picked the card from two). Edit still opens the trees.
+    local planW = rightW - NEXT_W - GUTTER
     local treeW = (rightW - 24) / 3
     local classID = Tree.PlayerClass()
     local editing = false
@@ -205,32 +205,38 @@ Window.Page("build", function(page)
     end
     Style.Rule(cols, "BOTTOM", "lineStrong")
 
-    -- Where the points go: a row for each tree, its name, how many of its planned points are
-    -- taken (or planned, for another class's build), and a bar of the same.
-    local share = CreateFrame("Frame", nil, view)
-    share:SetSize(SHARE_W, 40 + 3 * SHARE_ROW)
-    Style.Box(share, 6, "well", "cardLine")
-    share.title = Style.Text(share, 11, "gold", nil, true)
-    share.title:SetPoint("TOPLEFT", 16, -14)
-    share.title:SetText("WHERE THE POINTS GO")
-    share.trees = {}
-    for i = 1, 3 do
-        local y, b = 40 + (i - 1) * SHARE_ROW, {}
-        b.name = Style.Text(share, 13, "text", nil, true)
-        b.name:SetPoint("TOPLEFT", 16, -y)
-        b.count = Style.Text(share, 13, "text", nil, true)
-        b.count:SetPoint("TOPRIGHT", -16, -y)
-        b.count:SetJustifyH("RIGHT")
-        b.track = share:CreateTexture(nil, "ARTWORK")
-        b.track:SetColorTexture(Style.Color("line"))
-        b.track:SetPoint("TOPLEFT", 16, -(y + 22))
-        b.track:SetSize(SHARE_W - 32, 4)
-        b.fill = share:CreateTexture(nil, "OVERLAY")
-        b.fill:SetColorTexture(Style.Color("gold"))
-        b.fill:SetPoint("TOPLEFT", b.track, "TOPLEFT")
-        b.fill:SetHeight(4)
-        share.trees[i] = b
-    end
+    -- Your next point: its picture in a gold line, its name, its tree and which rank, the level it
+    -- comes at, and what it does, in the game's own words. For another class's build, its first.
+    local nextCard = CreateFrame("Frame", nil, view)
+    nextCard:SetWidth(NEXT_W)
+    Style.Box(nextCard, 6, "well", "gold")
+    nextCard.title = Style.Text(nextCard, 11, "gold", nil, true)
+    nextCard.title:SetPoint("TOPLEFT", 16, -14)
+    nextCard.level = Style.Text(nextCard, 11, "muted")
+    nextCard.level:SetPoint("TOPRIGHT", -16, -14)
+    nextCard.level:SetJustifyH("RIGHT")
+    local iconFrame = CreateFrame("Frame", nil, nextCard)
+    iconFrame:SetSize(40, 40)
+    iconFrame:SetPoint("TOPLEFT", 16, -38)
+    Style.Lined(iconFrame, "gold")
+    nextCard.icon = iconFrame:CreateTexture(nil, "ARTWORK")
+    nextCard.icon:SetPoint("TOPLEFT", 1, -1)
+    nextCard.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    nextCard.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    nextCard.name = Style.Text(nextCard, 17, "text", nil, true)
+    nextCard.name:SetPoint("TOPLEFT", iconFrame, "TOPRIGHT", 12, 0)
+    nextCard.name:SetWidth(NEXT_W - 16 - 40 - 12 - 16)
+    nextCard.name:SetJustifyH("LEFT")
+    nextCard.name:SetWordWrap(false)
+    nextCard.sub = Style.Text(nextCard, 12, "muted")
+    nextCard.sub:SetPoint("TOPLEFT", nextCard.name, "BOTTOMLEFT", 0, -6)
+    nextCard.text = Style.Text(nextCard, 13, "secondary")
+    nextCard.text:SetPoint("TOPLEFT", 16, -94)
+    nextCard.text:SetWidth(NEXT_W - 32)
+    nextCard.text:SetJustifyH("LEFT")
+    nextCard.text:SetWordWrap(true)
+    -- What a spell does can come a moment after it's first asked for: asked once more then.
+    local askedAgain = {}
 
     -- The plan list scrolls with the mouse wheel; a thin bar shows where.
     local scroll, list = Style.Scroller(view, planW - 8, height - MAIN_TOP - COLS_H, nil, 7, STEP_H * 3)
@@ -359,8 +365,8 @@ Window.Page("build", function(page)
         source:SetText(builtin and ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source) or "")
         cols:ClearAllPoints()
         cols:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
-        share:ClearAllPoints()
-        share:SetPoint("TOPLEFT", planW + GUTTER, -(MAIN_TOP - BODY_TOP + shift))
+        nextCard:ClearAllPoints()
+        nextCard:SetPoint("TOPLEFT", planW + GUTTER, -(MAIN_TOP - BODY_TOP + shift))
         scroll:ClearAllPoints()
         scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift + COLS_H))
         scroll:SetHeight(height - MAIN_TOP - shift - COLS_H)
@@ -373,22 +379,31 @@ Window.Page("build", function(page)
         -- starts at what's next; a heading where the build moves to another
         -- tree; and a step you're partway through split, so the row that's
         -- next names the rank that is.
-        for i, b in ipairs(share.trees) do
-            local t = data.trees[i]
-            local have, planned = 0, 0
-            for _, id in ipairs(t and t.nodes or {}) do
-                local want = ranks[id] or 0
-                planned = planned + want
-                if data.own then have = have + math.min(data.nodes[id].learned or 0, want) end
+        -- The card: your next point, or a build's first for another class.
+        local nextAt = data.own and nextIndex or (#kept > 0 and 1 or nil)
+        local nextID = nextAt and kept[nextAt]
+        local node = nextID and data.nodes[nextID]
+        nextCard:SetShown(node ~= nil)
+        if node then
+            local rank = 0
+            for k = 1, nextAt do if kept[k] == nextID then rank = rank + 1 end end
+            nextCard.title:SetText(data.own and "YOUR NEXT POINT" or "THE BUILD'S FIRST POINT")
+            nextCard.level:SetText(("level %d"):format(Tree.Level(nextAt)))
+            nextCard.icon:SetTexture(node.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+            nextCard.name:SetText(node.name or "")
+            local tree = data.trees[node.tree]
+            nextCard.sub:SetText((tree and tree.name or "") .. "  ·  "
+                .. (node.max == 1 and "1 rank" or ("rank %d of %d"):format(rank, node.max)))
+            local describe = (C_Spell and C_Spell.GetSpellDescription) or GetSpellDescription
+            local says = node.spellID and describe and describe(node.spellID) or ""
+            if says == "" and node.spellID and not askedAgain[node.spellID] then
+                askedAgain[node.spellID] = true
+                if C_Spell and C_Spell.RequestLoadSpellData then C_Spell.RequestLoadSpellData(node.spellID) end
+                Compat.After(1, function() if view:IsVisible() then Paint() end end)
             end
-            for _, part in ipairs({ b.name, b.count, b.track }) do part:SetShown(t ~= nil) end
-            b.fill:SetShown(t ~= nil and planned > 0 and (have > 0 or not data.own))
-            if t then
-                b.name:SetText(t.name)
-                b.count:SetText(planned == 0 and "|cff9a9688none|r"
-                    or (data.own and ("%d  |cff9a9688/ %d|r"):format(have, planned) or ("%d  |cff9a9688points|r"):format(planned)))
-                b.fill:SetWidth(math.max(1, (SHARE_W - 32) * (planned == 0 and 0 or (data.own and have / planned or 1))))
-            end
+            nextCard.text:SetText(says)
+            local tall = Style.Wide and nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
+            nextCard:SetHeight(94 + (type(tall) == "number" and tall or 0) + 18)
         end
 
         local rows = Tree.PlanRows(steps, taken, function(id) return data.nodes[id].tree end, V.open)
