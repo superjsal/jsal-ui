@@ -1576,9 +1576,8 @@ Window.Page("guildcrafts", function(page)
     crafters.hint:SetPoint("LEFT", 12, 0)
     crafters.hint:SetText("Search what you need: a bag, a potion, bracers")
     -- Back to everyone who shares, at the end of the search row, the search a little shorter for
-    -- it while it shows. "Everyone who shares" sat over the list's top right, in the way of its
-    -- first row and its scrolling (John, 17 Nov 2026: "lets just make it a simple, Back. and place
-    -- it somewhere where it wont impede the scrolling"; he picked the search row from two).
+    -- it while it shows: over the list's top right it was in the way of the first row and the
+    -- scrolling.
     crafters.fullW = width
     crafters.back = Style.Button(crafters, "Back", "plain", BACK_W)
     crafters.back:SetHeight(36)

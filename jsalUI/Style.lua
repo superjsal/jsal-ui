@@ -162,8 +162,8 @@ end
 
 -- The same 1px line round a frame, with the frame filled inside it, in two pictures where a
 -- fill and Style.Border are five: a square of the line's colour, and the fill a pixel inside it.
--- Pages lay out slower the more pieces they have, and the Build Planner's small talent squares
--- were six each (John, 17 Nov 2026, /jsal pieces: 597 on the page, 416 of them pictures). It
+-- Pages lay out slower the more pieces they have, and a small talent square drawn as a fill and
+-- a border is six. It
 -- looks the same wherever the inside is filled; a frame with nothing inside its line still
 -- needs Style.Border. Without a `fillKey` it's the line's square alone, one picture, for a frame
 -- whose inside is always covered by something that can't be seen through (a game icon a pixel
@@ -611,7 +611,7 @@ function Style.Pips(parent)
     p.wide = 52
     p.dots = {}
     -- Round ticks where round shapes can be drawn, the circle's picture tinted; squares where
-    -- they can't (John, 17 Nov 2026: "lets replace the squares with circles").
+    -- they can't.
     local round = Style.Rounded()
     for i = 1, 5 do
         local t = p:CreateTexture(nil, "ARTWORK")

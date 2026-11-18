@@ -413,14 +413,12 @@ local function OpenOwn(page)
 end
 
 -- The second after a page opens, watched: its longest frame, against the game's usual frame
--- at the time. /jsal perf's own timers see only jsal.ui's code, and the Guild page hitched on
--- opening with every part of its code under 10 ms (John, 17 Nov 2026). This sees the whole
+-- at the time. /jsal perf's own timers see only jsal.ui's code, and a page can hitch on opening
+-- with every part of its code under 10 ms. This sees the whole
 -- frame: the game drawing the page, and anything that comes in just after (the guild's
 -- answers to a hello). Noted when the longest is 10 ms or more over the usual, with what of it
 -- was jsal.ui's own code in opening it (`spent`, filled by the opening: `code`, and of that
 -- `counts`, the menu's numbers, and `show`), so the rest is the game laying out and drawing.
--- Every dashboard open was 20 ms over, the Training Planner's 52, with each page's own paint
--- under 10 (John, 17 Nov 2026).
 local WATCH_FOR = 1
 local watcher = CreateFrame("Frame")
 local PARTS = { { "code", "of which jsal.ui's code" }, { "counts", "of which the menu's counts" },

@@ -446,8 +446,8 @@ Window.Page("guild", function(page)
     local more = Style.Text(page, 11, "muted")
     more:SetPoint("TOPLEFT", rows[MAX_ROWS], "BOTTOMLEFT", 0, -8)
 
-    -- Each part of a paint, timed, so /jsal perf can say which is slow (John, 17 Nov 2026:
-    -- "this one hitches still noticeably"). A part is noted only when the paint was slow.
+    -- Each part of a paint, timed, so /jsal perf can say which is slow. A part is noted only when
+    -- the paint was slow.
     local spent = {}
     local function Spent(part, since)
         local now = debugprofilestop()

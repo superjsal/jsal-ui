@@ -330,9 +330,7 @@ Window.Page("training", function(page)
     Style.Box(band, 13, "titleBar", "lineStrong")
     ui.band = band
     -- Where you are: the road's start in dim gold, filling toward your next visit's sign as you
-    -- level, with a gold mark riding at its end. It stood still, the same length at any XP
-    -- (John, 17 Nov 2026: "does this gold not grow? it looks like it should"; he picked the
-    -- mark riding at its end from two mockups). "YOU" stays under the road's start.
+    -- level, with a gold mark riding at its end.
     local done = CreateFrame("Frame", nil, band)
     done:SetPoint("TOPLEFT", 1, -1)
     done:SetSize(FIRST_X - 6, BAND_H - 2)
@@ -346,16 +344,11 @@ Window.Page("training", function(page)
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
-    -- The road is one you travel along, as the Professions page's (John, 17 Nov 2026, of that one:
-    -- "A1, a stop apart", then the Training road "the same"): the visit behind you is a sign of
-    -- its own at the road's start, and you move along toward the next as your XP fills, the gold
-    -- behind you and your level under you. It was a stop like the rest, with the spells you'd
-    -- learned there under it, and took one of the six places; it's the sign alone now, and the
-    -- visits ahead are only a little further along than with none behind you (John: "its fine
-    -- lets keep it and you can apply your tweak"). Between the two: your level and XP between their levels, clear of
-    -- both signs. With no visit behind you yet, the road starts at your level.
-    -- Earlier it started at you and counted from your level alone; before that from the visit
-    -- before, with the road's start meaning you, and 39 at 23% looked most of the way to 40.
+    -- The road is one you travel along, as the Professions page's: the visit behind you is a sign
+    -- of its own at the road's start, with no spells under it so it doesn't take one of the six
+    -- places, and you move along toward the next as your XP fills, the gold behind you and your
+    -- level under you. Between the two: your level and XP between their levels, clear of both
+    -- signs. With no visit behind you yet, the road starts at your level.
     local MIN_FILL, BEHIND_X, BEHIND_SHIFT = 12, 28, 24
     -- Where the visits ahead start: a little further along with a visit behind you.
     local function Shift() return ui.roadBehind and BEHIND_SHIFT or 0 end
@@ -642,9 +635,8 @@ Window.Page("training", function(page)
     -- what they cost. Pointing at one names the masters who teach it; a
     -- click pins the nearest. The ones you know are counted in the heading.
     -- Returns where they end.
-    -- The road's visits in view, with one more either side. Every visit to 60 was drawn, about
-    -- eleven at level 39 where six show: most of the page's 659 pieces (John, 17 Nov 2026,
-    -- /jsal pieces).
+    -- The road's visits in view, with one more either side, not every visit to 60: those were
+    -- most of the page's pieces.
     -- The wheel draws the next ones as they come into view; nothing is drawn again while the
     -- same visits are in view, unless `fresh` (the page painted).
     local roadDrawn
@@ -989,8 +981,7 @@ Window.Page("training", function(page)
         beside = false
         ui.fold:SetShown(#skipped > 0)
         if #skipped > 0 then
-            -- How many, and nothing after: the names ran on after it, cut off (John, 17 Nov 2026:
-            -- "i like the +6 skipped with nothing").
+            -- How many, and nothing after: names after it would run on and be cut off.
             ui.fold.sign:SetText(showSkipped and "-" or "+")
             ui.fold.text:SetText(("|cffc4bfb0%d skipped|r"):format(#skipped))
             ui.fold:ClearAllPoints()

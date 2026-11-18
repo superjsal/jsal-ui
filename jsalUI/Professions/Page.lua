@@ -13,9 +13,8 @@ local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window,
 local GAP, TILE_H, NEED_H, RANK_H = 24, 48, 26, Road.RANK_H
 local CARD_W = 496                  -- each of the two cards
 local TILE_W, TILE_GAP = 242, 16    -- a profession's tile, at its widest
--- Materials listed in the card, two across. Eight left a long road's last few "not listed"; with
--- the bar over the page gone there's room for all of a rank's (John, 17 Nov 2026: "i think we
--- prioritize getting the rest of the ingredients on everything to 225 to show").
+-- Materials listed in the card, two across: room for all of a rank's, so none of a long road's
+-- last few is left "not listed".
 local MAX_NEEDS = 16
 -- The road: a stop every PITCH, the first FIRST_X along, each STOP_W wide
 -- for what's under its sign; the band is the road itself, and you stand
@@ -27,9 +26,9 @@ local SIGN, ROAD_H = Road.SIGN, Road.ACROSS_H + 4
 Window.Page("professions", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local selected
-    -- Down the page: the row of professions, the two cards, the road. The bar from the rank's
-    -- first point to its cap went (John, 17 Nov 2026: "i also dont think we need the top bar"):
-    -- the skill is at the top right, and the road's gold and its rank stop say the rest.
+    -- Down the page: the row of professions, the two cards, the road. No bar from the rank's first
+    -- point to its cap: the skill is at the top right, and the road's gold and its rank stop say
+    -- the rest.
     local TILES_Y = 60
     local bodyY = TILES_Y + TILE_H + 20
     local rightX = width - CARD_W
@@ -161,8 +160,8 @@ Window.Page("professions", function(page)
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
-    -- The road is one you travel along (John, 17 Nov 2026, picked from mockups: "A1, a stop
-    -- apart"): it starts at the rank's first point, the step in hand is its first sign, the
+    -- The road is one you travel along, its signs a stop apart: it starts at the rank's first
+    -- point, the step in hand is its first sign, the
     -- steps you've done stay behind you dimmed, and you move along it, the gold behind you, as
     -- your skill rises. The road was planned afresh from your skill each time, you always at its
     -- start, so the steps you've passed are kept per profession: the one that was next, once
@@ -214,8 +213,7 @@ Window.Page("professions", function(page)
     -- The rank's first point, under the road's start.
     local floorText = Style.Text(lane, 10, "muted", nil, true)
     floorText:SetPoint("TOPLEFT", band, "BOTTOMLEFT", 2, -8)
-    -- No dashed middle: the Training Planner's road lost its dashes and then its line (John,
-    -- 17 Nov 2026: "same for the professions tab"). They were a piece every 22 pixels.
+    -- No dashed middle, as on the Training Planner's road: they were a piece every 22 pixels.
     local PaintRoadView
     -- A stop for each step after the one in hand; the gold one where the
     -- next rank is learned; and the rank's cap, ringed in gold, at the end.

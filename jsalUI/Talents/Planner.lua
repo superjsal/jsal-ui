@@ -30,11 +30,8 @@ Window.Page("build", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local right = LIST_W + GUTTER
     local rightW = width - right
-    -- The plan, with a card beside it of your next point and what it gives you. The small trees
-    -- there went (John, 17 Nov 2026: "I dont think we need this at all"): 63 squares of the
-    -- page's 447 pieces. Then two columns of plan read badly, then a card of where the points went
-    -- gave way to this ("how about instead we emphasize the next point by showing what it gives
-    -- us"; he picked the card from two). Edit still opens the trees.
+    -- The plan, with a card beside it of your next point and what it gives you. No small trees
+    -- beside it (they were a lot of the page's pieces); Edit opens the trees.
     local planW = rightW - NEXT_W - GUTTER
     local treeW = (rightW - 24) / 3
     local classID = Tree.PlayerClass()

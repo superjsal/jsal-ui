@@ -555,11 +555,9 @@ function Tree.Delete(build)
 end
 
 -- The build the talent helper follows, per character: the one you chose with Follow this
--- build. With none chosen it was whichever build was selected, so looking at another build
--- (a suggested one) made it the one followed, its title said "following" and the helper, Home
--- and the talent window's glow went with it (John, 17 Nov 2026: "the suggested one seems to
--- also be tracking it for some reason"). With none chosen, the one selected the first time it's
--- asked is kept as followed, and looking at others leaves it.
+-- build. With none chosen, the one selected the first time it's asked is kept as followed, so
+-- looking at another build (a suggested one) doesn't make it the one followed: its title, the
+-- helper, Home and the talent window's glow keep to the followed one.
 function Tree.Follow(build)
     ns.char.follow = build.id
 end
