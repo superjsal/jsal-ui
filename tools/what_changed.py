@@ -148,6 +148,7 @@ def main():
             except Exception as e:  # a download that fails is said, not hidden
                 found = [f"couldn't compare the new build's tables: {e}"]
         game += ["  " + f for f in found] or ["  (no new dungeons, bosses or trainer spells in its tables)"]
+        game.append(f"  Run tools/fetch_tables.py {latest}: the tables, then the four builds; then the tests")
         changed.append("game build")
     elif latest:
         game.append(f"Up to date with the newest Forever build, {latest}")
