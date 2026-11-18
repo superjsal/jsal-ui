@@ -922,10 +922,10 @@ Window.Page("training", function(page)
         beside = false
         ui.fold:SetShown(#skipped > 0)
         if #skipped > 0 then
-            local names = {}
-            for _, spell in ipairs(skipped) do names[#names + 1] = spell.name end
+            -- How many, and nothing after: the names ran on after it, cut off (John, 17 Nov 2026:
+            -- "i like the +6 skipped with nothing").
             ui.fold.sign:SetText(showSkipped and "-" or "+")
-            ui.fold.text:SetText(("|cffc4bfb0%d skipped|r  %s"):format(#skipped, table.concat(names, ", ")))
+            ui.fold.text:SetText(("|cffc4bfb0%d skipped|r"):format(#skipped))
             ui.fold:ClearAllPoints()
             ui.fold:SetPoint("TOPLEFT", 0, -at)
             at = at + FOLD_H
