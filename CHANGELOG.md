@@ -1,6 +1,10 @@
-# jsal.ui 0.3.55
+# jsal.ui 0.3.56
 
-Restart the game after updating (exit and start it again): this version adds new pictures, and a /reload doesn't load them. Until you do, everything is drawn with square corners.
+- **Profession panel: a road with no dashes.** The road down the panel beside the profession window has no dashed line down its middle any more, like the roads on the Training Planner and the Professions page.
+
+## In 0.3.55
+
+Coming from 0.3.54 or earlier, restart the game after updating (exit and start it again): 0.3.55 added new pictures, and a /reload doesn't load them. Until you do, everything is drawn with square corners.
 
 - **Rounder buttons, and pills.** Buttons, text boxes and cards have softly rounded corners, and a plain button darkens while it's pressed. The light under the pointer follows a card's corners. A page's tabs are one long pill with a part for each tab, the open one lit; a tab's count is a small pill after its name, gold in Guild Crafts when something waits on you. A row of filters is a row of pills, the chosen one in gold on a dim gold fill. Switches are pills with a round knob, and tags and the menu's counts are pills too. In Guild Crafts, a heading that names a state (To do, Waiting, Sent) wears it as a pill in the state's colour. jsal.ui's own windows have round corners as well, and close as smoothly as they open: a quick fade as they sink back. The colours are the same.
 - **Round corners on the game screen too.** The quick buttons, the menu bar and the bag button have softly rounded frames and tiles. So do the food and pet tiles, the waypoint, the craft timer, the talent note, the card at the mailbox, and the panels beside the game's windows: professions, training, the shopping list and favourites. The quest tags beside the quest tracker are round pills, and Arrange mode's panel and the name tab on each piece are round.

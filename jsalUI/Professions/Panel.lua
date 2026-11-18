@@ -119,13 +119,12 @@ local function Build()
     panel.note:SetWidth(WIDTH - PAD * 2)
     panel.note:SetJustifyH("LEFT")
     -- The road itself: a band down the left, behind the stops' signs, with
-    -- a dashed middle; how many steps aren't shown; and the rank's cap,
-    -- ringed in gold, at its end.
+    -- nothing down its middle, as on the other roads; how many steps aren't
+    -- shown; and the rank's cap, ringed in gold, at its end.
     panel.band = CreateFrame("Frame", nil, panel)
     panel.band:SetWidth(BAND_W)
     panel.band:SetFrameLevel((panel:GetFrameLevel() or 0) + 1)
     Style.Box(panel.band, 11, "titleBar", "lineStrong")
-    panel.dashes = {}
     panel.moreSteps = Style.Text(panel, 12, "muted")
     panel.endSign = CreateFrame("Frame", nil, panel)
     panel.endSign:SetSize(SIGN, SIGN)
@@ -300,18 +299,6 @@ local function RankStop()
         panel.rankStop:SetFrameLevel((panel:GetFrameLevel() or 0) + 3)
     end
     return panel.rankStop
-end
-
--- A dash of the road's middle line.
-local function Dash(i)
-    local t = panel.dashes[i]
-    if not t then
-        t = panel.band:CreateTexture(nil, "ARTWORK")
-        t:SetColorTexture(Style.Color("lineStrong"))
-        t:SetSize(2, 10)
-        panel.dashes[i] = t
-    end
-    return t
 end
 
 local function Place(region, y, x)
@@ -798,15 +785,6 @@ function Paint()
             panel.band:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD + (SIGN - BAND_W) / 2, -(from + 4))
             panel.band:SetHeight(tall)
             panel.band:Show()
-            local used = 0
-            for at = 12, tall - 22, 18 do
-                used = used + 1
-                local dash = Dash(used)
-                dash:ClearAllPoints()
-                dash:SetPoint("TOP", panel.band, "TOP", 0, -at)
-                dash:Show()
-            end
-            for i = used + 1, #panel.dashes do panel.dashes[i]:Hide() end
         else
             panel.band:Hide()
         end
