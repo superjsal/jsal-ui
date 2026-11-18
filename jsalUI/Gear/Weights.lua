@@ -10,6 +10,10 @@ local Gear = ns.Gear
 -- (crit on melee items, mana regeneration); changing one changes its twins.
 -- Forever's items have one crit and one hit, for spells and weapons alike, so
 -- spell crit and spell hit are Crit's and Hit's twins, not rows of their own.
+-- Every stat WoWSims Forever's Stat Weights tool weighs has a row, so all of
+-- its weights can be changed here: a caster's school apart from Spell Damage,
+-- spell penetration, haste, a tank's avoidance. Rows show only for the stats a
+-- spec weighs (or you add).
 Gear.WEIGHT_STATS = {
     { "ITEM_MOD_AGILITY_SHORT", "Agility", "Agility" },
     { "ITEM_MOD_STRENGTH_SHORT", "Strength", "Strength" },
@@ -18,14 +22,32 @@ Gear.WEIGHT_STATS = {
     { "ITEM_MOD_SPIRIT_SHORT", "Spirit", "Spirit" },
     { "ITEM_MOD_ATTACK_POWER_SHORT", "Attack Power", "Ap" },
     { "ITEM_MOD_RANGED_ATTACK_POWER_SHORT", "Ranged Attack Power", "Rap" },
+    { "ITEM_MOD_FERAL_ATTACK_POWER_SHORT", "Feral Attack Power", "FeralAp" },
     { "ITEM_MOD_CRIT_RATING_SHORT", "Crit (1%)", "CritRating" },
     { "ITEM_MOD_HIT_RATING_SHORT", "Hit (1%)", "HitRating" },
+    { "ITEM_MOD_HASTE_RATING_SHORT", "Haste (1%)", "HasteRating" },
+    { "ITEM_MOD_EXPERTISE_RATING_SHORT", "Expertise (1%)", "ExpertiseRating" },
+    { "ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT", "Armor Penetration", "ArmorPenetration" },
     { "ITEM_MOD_SPELL_POWER_SHORT", "Spell Power", "SpellPower" },
     { "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", "Spell Damage", "SpellDamage" },
+    { "ITEM_MOD_ARCANE_DAMAGE_DONE_SHORT", "Arcane Spell Damage", "ArcaneSpellDamage" },
+    { "ITEM_MOD_FIRE_DAMAGE_DONE_SHORT", "Fire Spell Damage", "FireSpellDamage" },
+    { "ITEM_MOD_FROST_DAMAGE_DONE_SHORT", "Frost Spell Damage", "FrostSpellDamage" },
+    { "ITEM_MOD_HOLY_DAMAGE_DONE_SHORT", "Holy Spell Damage", "HolySpellDamage" },
+    { "ITEM_MOD_NATURE_DAMAGE_DONE_SHORT", "Nature Spell Damage", "NatureSpellDamage" },
+    { "ITEM_MOD_SHADOW_DAMAGE_DONE_SHORT", "Shadow Spell Damage", "ShadowSpellDamage" },
+    { "ITEM_MOD_SPELL_PENETRATION_SHORT", "Spell Penetration", "SpellPenetration" },
     { "ITEM_MOD_SPELL_HEALING_DONE_SHORT", "Healing", "Healing" },
     { "ITEM_MOD_POWER_REGEN0_SHORT", "Mana every 5 sec", "Mp5" },
+    { "ITEM_MOD_MANA_SHORT", "Mana", "Mana" },
+    { "ITEM_MOD_HEALTH_SHORT", "Health", "Health" },
     { "ITEM_MOD_DEFENSE_SKILL_RATING_SHORT", "Defense", "DefenseRating" },
+    { "ITEM_MOD_DODGE_RATING_SHORT", "Dodge (1%)", "DodgeRating" },
+    { "ITEM_MOD_PARRY_RATING_SHORT", "Parry (1%)", "ParryRating" },
+    { "ITEM_MOD_BLOCK_RATING_SHORT", "Block (1%)", "BlockRating" },
+    { "ITEM_MOD_BLOCK_VALUE_SHORT", "Block Value", "BlockValue" },
     { "RESISTANCE0_NAME", "Armor", "Armor" },
+    { "ITEM_MOD_EXTRA_ARMOR_SHORT", "Bonus Armor", "BonusArmor" },
 }
 Gear.WEIGHT_DPS = {
     { "mh", "Main-hand weapon DPS", "MainHandDps" },

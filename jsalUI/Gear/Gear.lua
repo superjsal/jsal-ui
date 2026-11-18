@@ -202,7 +202,7 @@ Gear.Weights = Gear.BaseWeights
 -- is asked for; GET_ITEM_INFO_RECEIVED says when it's in.
 ---------------------------------------------------------------------------
 --
--- Forever gives crit, hit, dodge, parry and block as rating: an item of "1%
+-- Forever gives crit, hit, haste, expertise, dodge, parry and block as rating: an item of "1%
 -- crit" says ITEM_MOD_CRIT_RATING_SHORT = 14. The weights are per 1%, so those
 -- are turned into 1% here, by Forever's own rating for 1% at 60.
 local PER_PERCENT = {
@@ -211,6 +211,7 @@ local PER_PERCENT = {
     ITEM_MOD_HIT_RATING_SHORT = 10, ITEM_MOD_HIT_MELEE_RATING_SHORT = 10, ITEM_MOD_HIT_SPELL_RATING_SHORT = 10,
     ITEM_MOD_HIT_RANGED_RATING_SHORT = 10,
     ITEM_MOD_DODGE_RATING_SHORT = 12, ITEM_MOD_PARRY_RATING_SHORT = 15, ITEM_MOD_BLOCK_RATING_SHORT = 5,
+    ITEM_MOD_HASTE_RATING_SHORT = 10, ITEM_MOD_EXPERTISE_RATING_SHORT = 10,
 }
 Gear.PER_PERCENT = PER_PERCENT
 -- An item's stats by its ID, kept once the game has given them: they never
@@ -303,6 +304,11 @@ local SHORT = {
     ITEM_MOD_ARCANE_DAMAGE_DONE_SHORT = "Arcane Damage", ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = "Fire Damage",
     ITEM_MOD_FROST_DAMAGE_DONE_SHORT = "Frost Damage", ITEM_MOD_HOLY_DAMAGE_DONE_SHORT = "Holy Damage",
     ITEM_MOD_NATURE_DAMAGE_DONE_SHORT = "Nature Damage", ITEM_MOD_SHADOW_DAMAGE_DONE_SHORT = "Shadow Damage",
+    ITEM_MOD_SPELL_PENETRATION_SHORT = "Spell Pen", ITEM_MOD_HASTE_RATING_SHORT = "Haste",
+    ITEM_MOD_EXPERTISE_RATING_SHORT = "Expertise", ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT = "Armor Pen",
+    ITEM_MOD_MANA_SHORT = "Mana", ITEM_MOD_HEALTH_SHORT = "Health", ITEM_MOD_FERAL_ATTACK_POWER_SHORT = "Feral AP",
+    ITEM_MOD_DODGE_RATING_SHORT = "Dodge", ITEM_MOD_PARRY_RATING_SHORT = "Parry", ITEM_MOD_BLOCK_RATING_SHORT = "Block",
+    ITEM_MOD_BLOCK_VALUE_SHORT = "Block Value", ITEM_MOD_EXTRA_ARMOR_SHORT = "Bonus Armor",
 }
 -- The two changes that count most for your spec, gains (sign 1: "+14 AP,
 -- +6 Sta") or losses (sign -1: "-5 Agi, -5 Int").

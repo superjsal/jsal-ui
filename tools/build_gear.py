@@ -116,13 +116,20 @@ COMPUTED_KEYS = {
     "Block Value": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
     "Armor": ["RESISTANCE0_NAME"],
     "Bonus Armor": ["ITEM_MOD_EXTRA_ARMOR_SHORT"],
+    # Every stat WoWSims weighs is kept, so each can be changed in the game's Weights editor, even
+    # where few items have it (haste is on Forever's test items only, spell penetration on 23).
+    "Spell Piercing": ["ITEM_MOD_SPELL_PENETRATION_SHORT"],
+    "1% Haste": ["ITEM_MOD_HASTE_RATING_SHORT"],
+    "1% Expertise": ["ITEM_MOD_EXPERTISE_RATING_SHORT"],
+    "Armor Penetration": ["ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT"],
+    "Mana": ["ITEM_MOD_MANA_SHORT"],
     **{s + " Spell Damage": school(s) for s in SCHOOLS},
 }
 COMPUTED_DPS = {"Main Hand DPS": "mh", "Off Hand DPS": "oh", "Ranged DPS": "ranged"}
 
 # Forever's ratings for 1% (its sim/core/base_stats_auto_gen.go); defense is 1 rating a point.
 RATING_PER_PERCENT = {"StatHitRating": 10, "StatCritRating": 14, "StatDodgeRating": 12, "StatParryRating": 15,
-                      "StatBlockRating": 5, "StatDefenseRating": 1}
+                      "StatBlockRating": 5, "StatDefenseRating": 1, "StatHasteRating": 10, "StatExpertiseRating": 10}
 FOREVER_KEYS = {
     "StatStrength": ["ITEM_MOD_STRENGTH_SHORT"],
     "StatAgility": ["ITEM_MOD_AGILITY_SHORT"],
@@ -144,6 +151,12 @@ FOREVER_KEYS = {
     "StatParryRating": ["ITEM_MOD_PARRY_RATING_SHORT"],
     "StatBlockRating": ["ITEM_MOD_BLOCK_RATING_SHORT"],
     "StatBlockValue": ["ITEM_MOD_BLOCK_VALUE_SHORT"],
+    "StatHasteRating": ["ITEM_MOD_HASTE_RATING_SHORT"],
+    "StatExpertiseRating": ["ITEM_MOD_EXPERTISE_RATING_SHORT"],
+    "StatArmorPenetration": ["ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT"],
+    "StatSpellPiercing": ["ITEM_MOD_SPELL_PENETRATION_SHORT"],
+    "StatMP": ["ITEM_MOD_MANA_SHORT"],
+    "StatHealth": ["ITEM_MOD_HEALTH_SHORT"],
     **{"Stat" + s + "Damage": school(s) for s in SCHOOLS},
 }
 
