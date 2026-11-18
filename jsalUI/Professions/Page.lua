@@ -148,7 +148,7 @@ Window.Page("professions", function(page)
     pin:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("gold")) end)
     pin:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("muted")) end)
 
-    -- Across the bottom: the road. A band with a dashed middle, you at its
+    -- Across the bottom: the road. A band, you at its
     -- start, and the stops along it; longer than the page, the wheel moves
     -- along it and a thin bar under it shows where.
     local roadHead = Style.Section(page, width)
@@ -173,15 +173,9 @@ Window.Page("professions", function(page)
     local youText = Style.Text(lane, 10, "gold", nil, true)
     youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
     youText:SetJustifyH("CENTER")
-    local dashes = {}
-    local function Dash(i)
-        if not dashes[i] then
-            dashes[i] = band:CreateTexture(nil, "ARTWORK")
-            dashes[i]:SetColorTexture(Style.Color("lineStrong"))
-            dashes[i]:SetSize(12, 2)
-        end
-        return dashes[i]
-    end
+    -- No dashed middle: the Training Planner's road lost its dashes and then its line (John,
+    -- 17 Nov 2026: "same for the professions tab"). They were a piece every 22 pixels.
+    local PaintRoadView
     -- A stop for each step after the one in hand; the gold one where the
     -- next rank is learned; and the rank's cap, ringed in gold, at the end.
     local steps = {}
@@ -222,12 +216,55 @@ Window.Page("professions", function(page)
     scroll:SetScript("OnMouseWheel", function(self, delta)
         self:SetHorizontalScroll((self:GetHorizontalScroll() or 0) - delta * PITCH)
         PlaceRoad()
+        PaintRoadView()
     end)
     local legend = Style.Text(page, 11, "muted")
     legend:SetPoint("BOTTOMLEFT", 0, 0)
     legend:SetWidth(width)
     legend:SetJustifyH("LEFT")
     legend:SetWordWrap(false)
+
+    -- The road's places near what's in view, one either side: every step to the rank's cap was
+    -- painted, a stop with its recipe's picture each, where six show. The wheel paints the next
+    -- ones as they come into view; nothing is painted again while the same ones show, unless
+    -- `fresh` (the road was laid out). A short road, spread across the page, is all in view.
+    local road, roadDrawn
+    function PaintRoadView(fresh)
+        if not road then return end
+        local at = scroll:GetHorizontalScroll() or 0
+        local lo, hi = at - PITCH, at + width + PITCH
+        local key = road.spread and "all" or (math.floor(lo / PITCH) .. ":" .. math.floor(hi / PITCH))
+        if not fresh and key == roadDrawn then return end
+        roadDrawn = key
+        local o, used = road.o, 0
+        rankStop:Hide()
+        endSign:Hide()
+        for _, item in ipairs(road.items) do
+            local mid = road.Middle(item.k)
+            if road.spread or (mid >= lo and mid <= hi) then
+                local stop
+                if item.kind == "step" then
+                    used = used + 1
+                    stop = Step(used)
+                    Road.PaintStop(stop, item.step, o.trainer)
+                elseif item.kind == "rank" then
+                    Road.PaintRankStop(rankStop, o.line, o.rank, o.rankIndex, o.rankAt, o.skill)
+                    stop = rankStop
+                end
+                if stop then
+                    stop:ClearAllPoints()
+                    stop:SetPoint("TOPLEFT", mid - STOP_W / 2, 0)
+                    stop:Show()
+                else
+                    endSign.level:SetText(o.cap)
+                    endSign:ClearAllPoints()
+                    endSign:SetPoint("TOP", lane, "TOPLEFT", mid, 0)
+                    endSign:Show()
+                end
+            end
+        end
+        for i = used + 1, #steps do steps[i]:Hide() end
+    end
 
     -- Lays the road out `y` down the page for the plan's steps: a stop for
     -- each step after the one in hand, the next rank's training where it
@@ -245,7 +282,7 @@ Window.Page("professions", function(page)
         scroll:SetPoint("TOPLEFT", 0, -(y + 30))
         scroll:Show()
         youText:SetText(("YOU, %d"):format(o.skill))
-        local placed, ranked = 0, o.ranked
+        local ranked = o.ranked
         -- The road's places: a stop for each step after the one in hand, the
         -- next rank's while it's still ahead, and the cap's sign; but a rank
         -- learned at the cap itself is the road's end, with no sign after it
@@ -260,48 +297,30 @@ Window.Page("professions", function(page)
             if places >= ACROSS then return FIRST_X + k * PITCH + STOP_W / 2 end
             return YOU_X + (k + 1) * (width - STOP_W / 2 - YOU_X) / places
         end
-        local function Put(stop)
-            stop:ClearAllPoints()
-            stop:SetPoint("TOPLEFT", Middle(placed) - STOP_W / 2, 0)
-            stop:Show()
-            placed = placed + 1
-        end
-        local function Rank()
-            Road.PaintRankStop(rankStop, o.line, o.rank, o.rankIndex, o.rankAt, o.skill)
-            Put(rankStop)
-            ranked = true
-        end
+        -- The road's places in order: a stop for each step after the one in hand, the next
+        -- rank's where it falls among them, and the cap's sign. Only those near what's in view
+        -- are painted (PaintRoadView), as on the Training Planner's road.
+        local items = {}
+        local function Add(kind, step) items[#items + 1] = { kind = kind, step = step, k = #items } end
         for i = 2, #plan do
             local step = plan[i]
-            if not ranked and o.rankAt and step.from >= o.rankAt then Rank() end
-            local s = Step(i - 1)
-            Road.PaintStop(s, step, o.trainer)
-            Put(s)
+            if not ranked and o.rankAt and step.from >= o.rankAt then
+                Add("rank")
+                ranked = true
+            end
+            Add("step", step)
         end
-        if not ranked and o.ahead then Rank() end
-        if ends == 1 then
-            endSign.level:SetText(o.cap)
-            endSign:ClearAllPoints()
-            endSign:SetPoint("TOP", lane, "TOPLEFT", Middle(placed), 0)
-            endSign:Show()
-            placed = placed + 1
-        end
-        -- The road is as long as its stops; the dashes run its length.
+        if not ranked and o.ahead then Add("rank") end
+        if ends == 1 then Add("cap") end
+        road = { items = items, Middle = Middle, o = o, spread = places < ACROSS }
+        -- The road is as long as its stops.
         local long = places >= ACROSS and math.max(width, FIRST_X + (places - 1) * PITCH + STOP_W + 2) or width
         lane:SetWidth(long)
         band:SetWidth(long)
-        local used = 0
-        for x = FIRST_X + 8, long - 34, 22 do
-            used = used + 1
-            local dash = Dash(used)
-            dash:ClearAllPoints()
-            dash:SetPoint("LEFT", band, "LEFT", x, 0)
-            dash:Show()
-        end
-        for i = used + 1, #dashes do dashes[i]:Hide() end
         most = long - width
         scroll:UpdateScrollChildRect()
         PlaceRoad()
+        PaintRoadView(true)
         legend:SetText("Point at a step for what it costs and where its pattern is sold."
             .. (most > 0 and "  The mouse wheel moves along the road." or ""))
         legend:Show()
