@@ -347,14 +347,42 @@ Window.Page("training", function(page)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
     -- The road is one you travel along, as the Professions page's (John, 17 Nov 2026, of that one:
-    -- "A1, a stop apart", then the Training road "the same"): the visit behind you is its first
-    -- sign, dimmed, and you move along toward the next as your XP fills, the gold behind you and
-    -- your level under you. Between the two: your level and XP between their levels, clear of
+    -- "A1, a stop apart", then the Training road "the same"): the visit behind you is a sign of
+    -- its own at the road's start, and you move along toward the next as your XP fills, the gold
+    -- behind you and your level under you. It was a stop like the rest, with the spells you'd
+    -- learned there under it, and took one of the six places; it's the sign alone now, and the
+    -- visits ahead are only a little further along than with none behind you (John: "its fine
+    -- lets keep it and you can apply your tweak"). Between the two: your level and XP between their levels, clear of
     -- both signs. With no visit behind you yet, the road starts at your level.
     -- Earlier it started at you and counted from your level alone; before that from the visit
     -- before, with the road's start meaning you, and 39 at 23% looked most of the way to 40.
-    local MIN_FILL = 12
-    local function Middle(i) return FIRST_X + (i - 1) * PITCH + STOP_W / 2 end
+    local MIN_FILL, BEHIND_X, BEHIND_SHIFT = 12, 28, 24
+    -- Where the visits ahead start: a little further along with a visit behind you.
+    local function Shift() return ui.roadBehind and BEHIND_SHIFT or 0 end
+    local function Middle(i) return FIRST_X + Shift() + (i - 1) * PITCH + STOP_W / 2 end
+    -- The visit behind you: its sign, quieter, and "trained" under it.
+    local behindSign = CreateFrame("Frame", nil, road)
+    behindSign:SetSize(SIGN, SIGN)
+    behindSign:SetPoint("TOPLEFT", BEHIND_X - SIGN / 2, 0)
+    behindSign:SetFrameLevel((road:GetFrameLevel() or 0) + 3)
+    Style.Circle(behindSign, "well", "line")
+    behindSign.level = Style.Text(behindSign, 15, "muted", nil, true)
+    behindSign.level:SetPoint("CENTER")
+    behindSign.level:SetJustifyH("CENTER")
+    behindSign.cost = Style.Text(road, 11, "muted", nil, true)
+    behindSign.cost:SetPoint("TOP", behindSign, "BOTTOM", 0, -8)
+    behindSign.cost:SetText("trained")
+    behindSign:EnableMouse(true)
+    behindSign:SetScript("OnEnter", function(self)
+        if not ui.roadBehind then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText("Your last visit: level " .. ui.roadBehind)
+        GameTooltip:Show()
+    end)
+    behindSign:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    behindSign:Hide()
+    behindSign.cost:Hide()
+    ui.behindSign = behindSign
     function ui.Along(level, xp, most, back, nextStop)
         if not nextStop then return 0 end
         local from = back or level
@@ -365,15 +393,15 @@ Window.Page("training", function(page)
         local level = UnitLevel("player") or 1
         local behind, nextStop = ui.roadBehind, ui.roadNext
         local along = ui.Along(level, UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0, behind, nextStop)
-        local backX = behind and (Middle(1) + SIGN / 2 + 10) or 10
-        local aheadX = Middle(behind and 2 or 1) - SIGN / 2 - 10
+        local backX = behind and (BEHIND_X + SIGN / 2 + 8) or 10
+        local aheadX = Middle(1) - SIGN / 2 - 10
         local reach = backX + along * math.max(0, aheadX - backX)
         done:SetShown(reach >= MIN_FILL)
         done:SetWidth(math.max(MIN_FILL, reach - 1))
         you:ClearAllPoints()
         you:SetPoint("CENTER", band, "LEFT", math.max(10, reach), 0)
         ui.youText:ClearAllPoints()
-        ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", math.max(YOU_X, reach), -8)
+        ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", math.max(behind and backX or YOU_X, reach), -8)
     end
     ui.youText = Style.Text(road, 10, "gold", nil, true)
     ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
@@ -623,8 +651,8 @@ Window.Page("training", function(page)
     function ui.PaintRoad(fresh)
         local levels, ahead = ui.roadLevels or {}, ui.roadAhead or {}
         local at = ui.roadScroll:GetHorizontalScroll() or 0
-        local lo = math.max(1, math.floor((at - FIRST_X - STOP_W) / PITCH) + 1)
-        local hi = math.min(#levels, math.floor((at + width - FIRST_X) / PITCH) + 2)
+        local lo = math.max(1, math.floor((at - FIRST_X - Shift() - STOP_W) / PITCH) + 1)
+        local hi = math.min(#levels, math.floor((at + width - FIRST_X - Shift()) / PITCH) + 2)
         local key = lo .. ":" .. hi
         if not fresh and key == roadDrawn then return end
         roadDrawn = key
@@ -633,24 +661,20 @@ Window.Page("training", function(page)
             local stop = levels[i]
             local list = ahead[stop]
             local s = Take("stops", MakeStop)
-            local x = FIRST_X + (i - 1) * PITCH
+            local x = FIRST_X + Shift() + (i - 1) * PITCH
             s:ClearAllPoints()
             s:SetPoint("TOPLEFT", x, 0)
-            local behind = ui.roadBehind ~= nil and i == 1
-            local first, last = i == (ui.roadBehind and 2 or 1), stop >= 60
-            -- Behind you, the sign stays solid over the gold (faded, the gold showed through it);
-            -- its line, number and cost are quieter, and its spells dimmed.
-            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or (behind and "line" or "lineStrong"))
+            local first, last = i == 1, stop >= 60
+            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
             s.level:SetText(stop)
-            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or (behind and "muted" or "text"))))
-            s.cost:SetTextColor(Style.Color(behind and "muted" or "text"))
-            s.cost:SetText(behind and "trained" or StopCost(list, true))
+            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
+            s.cost:SetText(StopCost(list, true))
             local count = 0
             for _, spell in ipairs(list) do
                 if not spell.skipped then count = count + 1 end
             end
             local exact = StopCost(list)
-            s.sign.title = (first and "Your next visit: level " or (behind and "Your last visit: level " or "Level ")) .. stop
+            s.sign.title = (first and "Your next visit: level " or "Level ") .. stop
             s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
             Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
         end
@@ -881,17 +905,9 @@ Window.Page("training", function(page)
         end
         ui.roadNext = levels[1]
         ui.roadBehind = (behindStop and levels[1]) and behindStop or nil
-        if ui.roadBehind then
-            local list = {}
-            for _, spell in ipairs(data.spells) do
-                if spell.known and Stop(spell.level) == behindStop then
-                    list[#list + 1] = setmetatable({ dim = true, fixed = true, skipped = false, fresh = false }, { __index = spell })
-                end
-            end
-            ahead[behindStop] = list
-            table.insert(levels, 1, behindStop)
-            rows = math.max(rows, math.ceil(#list / ACROSS))
-        end
+        ui.behindSign:SetShown(ui.roadBehind ~= nil)
+        ui.behindSign.cost:SetShown(ui.roadBehind ~= nil)
+        ui.behindSign.level:SetText(ui.roadBehind or "")
         local roadH = math.min(shared - UP_MIN, SIGN + 8 + 16 + 8 + rows * (GLYPH + GLYPH_GAP) + 6)
         -- The spells to train now, in the roomiest layout the cards' room
         -- holds: counted as the rows of what's ready, the fold's line, and
@@ -1017,7 +1033,7 @@ Window.Page("training", function(page)
         ui.youText:SetText(tostring(level))
         ui.roadEmpty:SetShown(#levels == 0)
         -- The road is as long as its visits; what's in view of it is drawn (ui.PaintRoad).
-        local long = math.max(width, FIRST_X + math.max(0, #levels - 1) * PITCH + STOP_W + 2)
+        local long = math.max(width, FIRST_X + Shift() + math.max(0, #levels - 1) * PITCH + STOP_W + 2)
         ui.road:SetWidth(long)
         ui.band:SetWidth(long)
         ui.roadLevels, ui.roadAhead, ui.roadLong = levels, ahead, long
