@@ -1,7 +1,7 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
 -- your pal, the shopping list, Crafting profit, Guild Crafts, the planners, the gear plan,
 -- the dungeon guide) and the layer you're in, that can be dragged anywhere by
--- its grip, so nobody has to type /jsal. The three games share one button
+-- its grip, so nobody has to type /jsal. The games share one button
 -- that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
 -- played, your move in chess. Laid side by side, the time sits between its
@@ -104,7 +104,7 @@ local function Games()
     return list
 end
 
--- One button for the three games: its menu lists them, with what's waiting.
+-- One button for the games: its menu lists them, with what's waiting.
 local function GamesMenu(button)
     local items = {}
     for _, place in ipairs(Games()) do
@@ -113,9 +113,18 @@ local function GamesMenu(button)
     ns.Launcher.ShowMenu(button or UIParent, items)
 end
 
+-- The games by name, in a line: Pal run among them while its part is on.
+local function GameNames()
+    local names = { "Daily Word", "Icon Guess" }
+    if ns.PalRun and ns.PalRun.running then names[#names + 1] = "Pal run" end
+    if ns.Chess then names[#names + 1] = "chess" end
+    local last = table.remove(names)
+    return table.concat(names, ", ") .. " and " .. last
+end
+
 local function GamesTooltip(tip)
     tip:SetText("Games")
-    tip:AddLine(ns.Chess and "Daily Word, Icon Guess and chess" or "Daily Word and Icon Guess", 1, 1, 1)
+    tip:AddLine(GameNames(), 1, 1, 1)
     for _, place in ipairs(Games()) do
         local waiting = Waiting(place)
         if waiting then tip:AddLine(waiting, 0.89, 0.69, 0.29) end
@@ -147,6 +156,12 @@ PLACES = {
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
+    -- Pal run, while its part is on: today's course waits until it has a
+    -- time or its runs are used up.
+    { key = "run", inGames = true, label = "Pal run", icon = OWN .. "run",
+      ready = function() return ns.PalRun and ns.PalRun.running end,
+      open = Game(function() return jsalUIPalRun end, function() ns.PalRun.Open() end),
+      waiting = function() return not ns.PalRun.DailyDone() and "Today's course is waiting" or nil end },
     { key = "chess", inGames = true, label = "Chess", icon = OWN .. "chess",
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
