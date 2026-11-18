@@ -331,6 +331,77 @@ Professions.OWNED = 0.95
 Professions.GREEN = 0.5
 -- The least chance of a point a recipe may have and still be on the road.
 Professions.LEAST = 0.1
+-- A step shorter than this many points is folded into the step before or after it, where that
+-- recipe still gives a point as surely as a yellow one over those skills and costs at most
+-- DETOUR times as much there: a pattern bought for four points, three of one thing between two
+-- runs of another, are trips and switches a road to the cap is better without.
+Professions.SHORT = 5
+Professions.DETOUR = 1.5
+
+-- What a recipe costs over the skills from `from` to `to`, or nil where it can't give a point
+-- as surely as a green one there, isn't open to you yet or has a wait.
+local function Over(line, recipe, from, to, open, known)
+    if recipe.vein or Professions.Wait(recipe) then return nil end
+    local mine = known(recipe.spell)
+    local total = 0
+    for s = from, to - 1 do
+        local chance = Chance(recipe, s)
+        if chance < Professions.GREEN or not open(recipe, mine, s) then return nil end
+        total = total + Weight(line, recipe) / chance
+    end
+    return total
+end
+
+-- Folds the road's short steps into a neighbour, then joins the steps that are one recipe again.
+-- A step isn't folded across `breakAt`, where the road stops to say the next rank is due.
+local function FoldShort(line, steps, open, known, breakAt)
+    local i = 1
+    while i <= #steps do
+        local step = steps[i]
+        local before, after = steps[i - 1], steps[i + 1]
+        local into
+        if step.to - step.from < Professions.SHORT and not step.recipe.vein and (before or after) then
+            local own = 0
+            for s = step.from, step.to - 1 do
+                own = own + Weight(line, step.recipe) / math.max(Professions.LEAST, Chance(step.recipe, s))
+            end
+            local best
+            if own then
+                for _, side in ipairs({ before or false, after or false }) do
+                    local crosses = side and ((side == before and step.from == breakAt) or (side == after and step.to == breakAt))
+                    local cost = side and not crosses and Over(line, side.recipe, step.from, step.to, open, known)
+                    if cost and cost <= own * Professions.DETOUR and (not best or cost < best) then
+                        best, into = cost, side
+                    end
+                end
+            end
+        end
+        if into then
+            local recipe = into.recipe
+            for s = step.from, step.to - 1 do
+                local chance = Chance(recipe, s)
+                into.exact = into.exact + 1 / chance
+                into.spread = into.spread + (1 - chance) / (chance * chance)
+            end
+            into.from, into.to = math.min(into.from, step.from), math.max(into.to, step.to)
+            table.remove(steps, i)
+            i = math.max(1, i - 1)
+        else
+            i = i + 1
+        end
+    end
+    -- Two runs of one recipe that now meet are one step.
+    i = 2
+    while i <= #steps do
+        local a, b = steps[i - 1], steps[i]
+        if a.recipe == b.recipe and a.to == b.from and b.from ~= breakAt then
+            a.to, a.exact, a.spread = b.to, a.exact + b.exact, a.spread + b.spread
+            table.remove(steps, i)
+        else
+            i = i + 1
+        end
+    end
+end
 
 -- How long before a recipe can be made again, in seconds, or nil: the
 -- transmutes, Mooncloth. The road takes one only when nothing else gives a
@@ -532,6 +603,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
         s = s + 1
     end
+    FoldShort(line, steps, Open, known, breakAt)
     for _, step in ipairs(steps) do
         step.crafts = math.ceil(step.exact - 0.01)
         -- Enough for nine tries in ten: the average and 1.28 spreads more.
