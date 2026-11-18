@@ -15,11 +15,13 @@ local DAY = 86400
 -- The auction house's cut of a sale at a faction's own auction house, as a
 -- sale's "Auction successful" mail shows it on Forever.
 ItemPrices.CUT = 0.05
--- A price older than this is shown as old.
-ItemPrices.OLD = 7 * DAY
--- And one older than this is let go: it says nothing about today's auction
--- house, and every item ever seen in a search would otherwise be kept for good.
-ItemPrices.FORGET = 30 * DAY
+-- A price older than this is shown as old, and one older than FORGET is let
+-- go. Both are short: on a young realm prices move from one day to the
+-- next, and a price from last week says little about today's auction house.
+-- Letting go also keeps the saved file from holding every item ever seen in
+-- a search. These two numbers are the ones to turn as the economy settles.
+ItemPrices.OLD = 3 * DAY
+ItemPrices.FORGET = 7 * DAY
 
 -- Lets go of the remembered prices past FORGET, on every realm, and of
 -- anything there that isn't a price. Gives how many went.
