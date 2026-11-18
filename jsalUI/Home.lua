@@ -9,9 +9,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "Guild orders: Mark sent, then Mark received. An order is done when whoever ordered it has it",
-    "New: at a mailbox, a card lists the guild orders you've made, and mailing one marks it sent",
-    "Restart the game once for this version: it adds a new file",
+    "A bigger dashboard and a new Home, with rounder buttons and pills everywhere",
+    "Training and Professions are roads you travel along; the Build Planner shows your next point",
+    "Restart the game once for this version: it adds new pictures",
 }
 
 local function NewsWanted()
