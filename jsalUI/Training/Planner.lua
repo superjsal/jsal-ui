@@ -214,7 +214,7 @@ Window.Page("training", function(page)
     ui.priceNote:SetWordWrap(false)
 
     -- The rows and marks this page has made and reuses, by kind.
-    local made = { cards = {}, stops = {}, glyphs = {}, tiles = {}, subs = {}, dashes = {} }
+    local made = { cards = {}, stops = {}, glyphs = {}, tiles = {}, subs = {} }
     -- A spell to train now: its icon, name and rank, its price, and Skip. A
     -- right-click skips it too, which is the only way where the rows are two
     -- across and have no room for the word.
@@ -308,7 +308,7 @@ Window.Page("training", function(page)
     ui.weaponSum = Style.Text(ui.weaponBox, 12, "muted")
 
     ---------------------------------------------------------------------------
-    -- Across the bottom: the road to 60. A road with a dashed middle, you at
+    -- Across the bottom: the road to 60. A road with a line along its middle, you at
     -- its start, and a round sign for each trainer visit with what it
     -- teaches under it. With more visits than fit across, the mouse wheel
     -- moves along it.
@@ -414,13 +414,13 @@ Window.Page("training", function(page)
         return best
     end
 
-    -- A dash of the road's middle line.
-    local function MakeDash()
-        local t = band:CreateTexture(nil, "ARTWORK")
-        t:SetColorTexture(Style.Color("lineStrong"))
-        t:SetSize(12, 2)
-        return t
-    end
+    -- The road's middle line: one line under the signs, the colour and weight its dashes had.
+    -- It was a dash every 22 pixels, around eighty pieces; John: "i am not attached to the
+    -- dotted lines, one singular line is also okay" (17 Nov 2026), and picked it from two.
+    local middle = band:CreateTexture(nil, "ARTWORK")
+    middle:SetColorTexture(Style.Color("lineStrong"))
+    middle:SetHeight(2)
+    middle:SetPoint("LEFT", band, "LEFT", FIRST_X + 8, 0)
 
     -- A visit: a round sign on the road with its level, and its cost under
     -- it. What it teaches is laid out under that by Glyphs. Pointing at the
@@ -585,9 +585,9 @@ Window.Page("training", function(page)
     -- what they cost. Pointing at one names the masters who teach it; a
     -- click pins the nearest. The ones you know are counted in the heading.
     -- Returns where they end.
-    -- The road's visits in view, with one more either side, and its dashes under them. Every
-    -- visit to 60 was drawn, about eleven at level 39 where six show, and a dash every 22
-    -- pixels the whole way: most of the page's 659 pieces (John, 17 Nov 2026, /jsal pieces).
+    -- The road's visits in view, with one more either side. Every visit to 60 was drawn, about
+    -- eleven at level 39 where six show: most of the page's 659 pieces (John, 17 Nov 2026,
+    -- /jsal pieces).
     -- The wheel draws the next ones as they come into view; nothing is drawn again while the
     -- same visits are in view, unless `fresh` (the page painted).
     local roadDrawn
@@ -599,7 +599,7 @@ Window.Page("training", function(page)
         local key = lo .. ":" .. hi
         if not fresh and key == roadDrawn then return end
         roadDrawn = key
-        used.stops, used.glyphs, used.dashes = 0, 0, 0
+        used.stops, used.glyphs = 0, 0
         for i = lo, hi do
             local stop = levels[i]
             local list = ahead[stop]
@@ -621,18 +621,7 @@ Window.Page("training", function(page)
             s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
             Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
         end
-        -- The dashes keep their places along the whole road (every 22 pixels from its start),
-        -- so they don't jump as it moves; only those near what's in view are drawn.
-        if #levels > 0 then
-            local start, stopAt = FIRST_X + 8, (ui.roadLong or width) - 34
-            local from = start + math.max(0, math.floor((at - PITCH - start) / 22)) * 22
-            for x = from, math.min(stopAt, at + width + PITCH), 22 do
-                local dash = Take("dashes", MakeDash)
-                dash:ClearAllPoints()
-                dash:SetPoint("LEFT", ui.band, "LEFT", x, 0)
-            end
-        end
-        for _, pool in ipairs({ "stops", "glyphs", "dashes" }) do
+        for _, pool in ipairs({ "stops", "glyphs" }) do
             local list = made[pool]
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
         end
@@ -981,6 +970,7 @@ Window.Page("training", function(page)
         ui.road:SetWidth(long)
         ui.band:SetWidth(long)
         ui.roadLevels, ui.roadAhead, ui.roadLong = levels, ahead, long
+        middle:SetWidth(math.max(1, long - 22 - (FIRST_X + 8)))
         ui.roadMost = long - width
         ui.roadScroll:UpdateScrollChildRect()
         ui.PlaceRoad()
@@ -994,7 +984,7 @@ Window.Page("training", function(page)
         ui.petList:SetHeight(math.max(1, down))
         ui.sideScroll:UpdateScrollChildRect()
         ui.sideScroll:Place()
-        for _, pool in ipairs({ "stops", "glyphs", "tiles", "subs", "dashes" }) do
+        for _, pool in ipairs({ "stops", "glyphs", "tiles", "subs" }) do
             local list = made[pool]
             for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
         end
