@@ -1,0 +1,20 @@
+{
+ "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/paladin/retribution, game 1.60.1.70959, site built 2026-11-18 from commit ab0f00e). Its Unsealed Wrath build (talents 050250002-501-05233011201301351, rotation, buffs, consumables) on its own Default gear set (ui/specs/paladin/retribution/gear_sets/default.gear.siml, imported as SIML), 25,000 iterations, reference stat Attack Power. DPS EP as the tool shows it; '1%' rows are per 1%. Its 1% Spell Hit Holy (3.43) and Main Hand Weapon Skill (18.05) aren't item stats and aren't kept. Used in place of the preset's UnsealedWrathEpWeights, whose Haste (22.87 per rating, 228.7 per 1%) and Hit (68.3 per 1%) were far from what the tool measures for that same build. Run in the app's browser on 18 Nov 2026 (US Central).",
+ "spec": "paladin_retribution",
+ "reference": "Attack Power",
+ "ep": {
+  "Strength": 2.4,
+  "Agility": 1.64,
+  "Intellect": 1.38,
+  "Spell Damage": 1.85,
+  "Spell Piercing": 0.32,
+  "Attack Power": 1.0,
+  "1% Hit": 5.5,
+  "1% Crit": 32.08,
+  "1% Haste": 28.72,
+  "Armor Penetration": 0.22,
+  "1% Expertise": 46.87,
+  "MP5": 0.0,
+  "Main Hand DPS": 14.23
+ }
+}

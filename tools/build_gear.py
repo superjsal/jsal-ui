@@ -73,7 +73,9 @@ PLATE_TANK = ("warrior_protection", "PreBiSEpWeights")
 HEALER = ("priest_healer", "HolySingleTargetEpWeights")
 FOREVER = {
     "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
-    "PALADIN": [HEALER, PLATE_TANK, ("paladin_retribution", "UnsealedWrathEpWeights")],
+    # Retribution: WoWSims' own Stat Weights tool on its Unsealed Wrath build, not that preset's weights,
+    # whose haste and hit were far from what the tool measures (computed/paladin_retribution.json says how).
+    "PALADIN": [HEALER, PLATE_TANK, ("computed", "paladin_retribution")],
     # WoWSims Forever ships hunter weights since 15 Nov 2026 (its Weave, Turret and Melee sets); its BM,
     # MM and SV builds all use the Turret gear, so all three trees take Turret.
     "HUNTER": [("hunter_dps", "TurretEpWeights"), ("hunter_dps", "TurretEpWeights"), ("hunter_dps", "TurretEpWeights")],
