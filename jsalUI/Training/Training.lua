@@ -366,12 +366,12 @@ local function ReadNow()
     return data
 end
 
--- Reading every spell is the costly part of opening the dashboard: Home's
--- cards, the menu's counts and the Training Planner each asked for it, so
--- one click on the dashboard read the whole spellbook two or three times
--- (Home 18 ms, Training 11 ms in his /jsal perf). The reading is kept until
--- something it reads changes: a spell learned, a level, a pet, a trainer or
--- Grimoire vendor saved, a spell skipped. Whoever uses it only reads it.
+-- Reading every spell is the costly part of opening the dashboard, and
+-- Home's cards, the menu's counts and the Training Planner each ask for it:
+-- unkept, one click on the dashboard reads the whole spellbook two or three
+-- times. So the reading is kept until something it reads changes: a spell
+-- learned, a level, a pet, a trainer or Grimoire vendor saved, a spell
+-- skipped. Whoever uses it only reads it.
 local kept, keptPet
 function Training.Read()
     if not kept then kept = ReadNow() end
@@ -451,20 +451,19 @@ end)
 -- or all ranks known. Nil for other classes, or before a pet has been seen.
 --
 -- A rank takes training points, and a row the pet hasn't the points for is
--- "points", not "ready": the planner said "Teach now" for four resistances
--- at 10 TP each to a pet without them. The free points were never read: the
--- code asked GetPetTrainingPoints, which Forever doesn't have (his /run
--- print(GetPetTrainingPoints()): "attempt to call a nil value"). The game's
+-- "points", not "ready": without that, the planner says "Teach now" for
+-- ranks the pet can't afford. Forever has no GetPetTrainingPoints global
+-- (calling it is an error); the game's
 -- own window asks C_PetInfo.GetPetTrainingPoints for the total and the used,
 -- and lets you train a rank only when the free ones cover the cost it lists,
 -- so that's the rule here: the listed cost against what's free. (The points
 -- of the rank the pet knows do come back, but after.) Where the game doesn't
 -- say how many are free, a row stays "ready" and the planner gives its cost,
 -- not a promise.
--- The menu's count, Home's card and the Training Planner each asked for this on every open,
--- and each time it read the pet's spellbook and every ability of its family again (the menu's
--- counts were 6 ms of each dashboard open for his hunter). It's kept as Training.Read is, until
--- the pet, its level, its training points or what the game says it knows change.
+-- The menu's count, Home's card and the Training Planner each ask for this on every open, and
+-- working it out reads the pet's spellbook and every ability of its family. So it's kept as
+-- Training.Read is, until the pet, its level, its training points or what the game says it
+-- knows change.
 local PetNow
 function Training.Pet()
     if keptPet == nil then keptPet = PetNow() or false end

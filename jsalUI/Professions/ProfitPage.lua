@@ -253,7 +253,7 @@ end
 ---------------------------------------------------------------------------
 -- The rows for the switch: the recipes your characters know, or every recipe
 -- of their professions. Every recipe is several hundred, and working them out
--- was 35 ms of each open in his /jsal perf, so they're kept: while you type in
+-- on each open is slow enough to feel, so they're kept: while you type in
 -- the search box, and otherwise until a recipe is learned, a price is seen or
 -- you're at the auction house (ns.CraftProfit.Holds), or an hour has gone by,
 -- as the SEEN column counts in days. Sorting and the list keep each paint.

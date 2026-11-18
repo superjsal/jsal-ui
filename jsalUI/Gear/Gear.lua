@@ -725,11 +725,11 @@ end
 -- over his gloves; before that, any gain, which called a hunter's Strength legs "better" with
 -- nothing to say by how little.
 --
--- A dungeon's list asks this of every piece, so a slot's plan is kept. It was kept for the one
--- paint, and working the plans out again was 11 of each boss list's 14 ms in his /jsal perf.
--- Now it's kept until something it's worked out from changes (Gear.PlansChanged: your gear,
--- bags, level, talents, skills, quests, spec, weights or stars), for ten minutes at most. A
--- plan still waiting on items the game hasn't sent is worked out again on the next paint.
+-- A dungeon's list asks this of every piece, and working a slot's plan out is most of what a
+-- boss list takes to paint, so the plan is kept until something it's worked out from changes
+-- (Gear.PlansChanged: your gear, bags, level, talents, skills, quests, spec, weights or stars),
+-- for ten minutes at most. A plan still waiting on items the game hasn't sent is worked out
+-- again on the next paint.
 Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
@@ -1067,11 +1067,11 @@ local function Button()
 end
 Gear.CharacterButton = Button
 
--- The Gear plan's first open after logging in or a level up filled the lists it keeps (the
--- items near your level, and their stats) all in that one frame: 62 ms in his /jsal perf, the
--- items 25 and their stats 27. They're filled ahead now, a slot every few frames, starting a
--- while after you log in or level, and waiting out a fight. Each slot's plan is kept as its
--- Gear.SlotPlan, which the dungeon guide asks for. The page fills anything still missing.
+-- The lists the Gear plan keeps (the items near your level, and their stats) are too slow to
+-- fill in the one frame of its first open after logging in or a level up. So they're filled
+-- ahead, a slot every few frames, starting a while after you log in or level, and waiting out
+-- a fight. Each slot's plan is kept as its Gear.SlotPlan, which the dungeon guide asks for.
+-- The page fills anything still missing.
 local WARM_AFTER, WARM_STEP = 8, 0.25
 local warmRun = 0
 function Gear.Warm(after)
