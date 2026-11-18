@@ -13,7 +13,10 @@ local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window,
 local GAP, TILE_H, NEED_H, RANK_H = 24, 48, 26, Road.RANK_H
 local CARD_W = 496                  -- each of the two cards
 local TILE_W, TILE_GAP = 242, 16    -- a profession's tile, at its widest
-local MAX_NEEDS = 8                 -- materials listed in the card, two across
+-- Materials listed in the card, two across. Eight left a long road's last few "not listed"; with
+-- the bar over the page gone there's room for all of a rank's (John, 17 Nov 2026: "i think we
+-- prioritize getting the rest of the ingredients on everything to 225 to show").
+local MAX_NEEDS = 16
 -- The road: a stop every PITCH, the first FIRST_X along, each STOP_W wide
 -- for what's under its sign; the band is the road itself, and you stand
 -- YOU_X along it.
