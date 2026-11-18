@@ -524,11 +524,13 @@ local function Meter(parent)
     return track
 end
 
--- One of the game's own icons in a thin line, its baked-in border trimmed.
-local function GameIcon(parent, size)
+-- One of the game's own icons in a thin line, its baked-in border trimmed. The line is a square
+-- behind the icon (Style.Lined), one picture where it was four: the icon covers the rest, and
+-- with `fillKey` (a gear slot, which can be empty) the inside is filled for when it doesn't.
+local function GameIcon(parent, size, fillKey)
     local f = CreateFrame("Frame", nil, parent)
     f:SetSize(size, size)
-    f.edges = Style.Border(f, "lineStrong")
+    f.edges = Style.Lined(f, "lineStrong", fillKey)
     f.icon = f:CreateTexture(nil, "ARTWORK")
     f.icon:SetPoint("TOPLEFT", 1, -1)
     f.icon:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -614,8 +616,7 @@ local function Hero(page, width)
     local face = CreateFrame("Frame", nil, hero)
     face:SetSize(66, 66)
     face:SetPoint("TOPLEFT", 20, -20)
-    Style.Fill(face, "titleBar")
-    face.edges = Style.Border(face, "lineStrong")
+    face.edges = Style.Lined(face, "lineStrong", "titleBar")
     face.picture = face:CreateTexture(nil, "ARTWORK")
     face.picture:SetPoint("TOPLEFT", 1, -1)
     face.picture:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -1056,9 +1057,8 @@ local function GearCard(parent, width)
     c.slots = {}
     local function Slot(i)
         if c.slots[i] then return c.slots[i] end
-        local s = GameIcon(c, 30)
+        local s = GameIcon(c, 30, "titleBar")
         s:SetPoint("TOPLEFT", PAD + ((i - 1) % 6) * 36, -50 - math.floor((i - 1) / 6) * 36)
-        s.fill = Style.Fill(s, "titleBar")
         -- A gold corner: something you've starred goes in this slot.
         s.star = s:CreateTexture(nil, "OVERLAY")
         s.star:SetSize(7, 7)

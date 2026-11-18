@@ -165,13 +165,16 @@ end
 -- Pages lay out slower the more pieces they have, and the Build Planner's small talent squares
 -- were six each (John, 17 Nov 2026, /jsal pieces: 597 on the page, 416 of them pictures). It
 -- looks the same wherever the inside is filled; a frame with nothing inside its line still
--- needs Style.Border. Returns the line, as Style.Border's edges for Style.SetBorder, and the fill.
+-- needs Style.Border. Without a `fillKey` it's the line's square alone, one picture, for a frame
+-- whose inside is always covered by something that can't be seen through (a game icon a pixel
+-- in). Returns the line, as Style.Border's edges for Style.SetBorder, and the fill.
 function Style.Lined(frame, lineKey, fillKey)
     local px = Compat.OnePixel(frame)
     local line = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
     line:SetAllPoints()
     line:SetColorTexture(Style.Color(lineKey))
     Compat.Crisp(line)
+    if not fillKey then return { line }, nil end
     local fill = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
     fill:SetPoint("TOPLEFT", px, -px)
     fill:SetPoint("BOTTOMRIGHT", -px, px)
