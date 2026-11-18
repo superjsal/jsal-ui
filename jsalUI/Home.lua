@@ -9,9 +9,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- What's new in this version, in two or three short lines, written with
 -- each release. The line shows once per version, until it's put away.
 local NEWS = {
-    "A bigger dashboard and a new Home, with rounder buttons and pills everywhere",
-    "Training and Professions are roads you travel along; the Build Planner shows your next point",
-    "Restart the game once for this version: it adds new pictures",
+    "Profession roads take the cheapest way up, with no short detours",
+    "Skipping a spell's rank skips the ranks after it",
+    "Gear plan: every stat WoWSims weighs, and new Retribution weights",
 }
 
 local function NewsWanted()
