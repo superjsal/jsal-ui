@@ -85,15 +85,92 @@ function Comms.Send(kind, payload, channel, target)
     end
 end
 
-local listener = CreateFrame("Frame")
-listener:RegisterEvent("CHAT_MSG_ADDON")
-listener:SetScript("OnEvent", function(_, _, prefix, text, channel, sender)
-    prefix, text, channel, sender = Compat.Plains(prefix, text, channel, sender)
-    if prefix ~= PREFIX or type(text) ~= "string" or not sender then return end
-    local kind, payload = text:match("^(%u+)|(.*)$")
-    local fn = kind and handlers[kind]
+---------------------------------------------------------------------------
+-- Who is heard. Everything that listens here is between guildmates. A
+-- message on the guild's own channel can only come from one; a whisper, or
+-- any other channel, can come from anyone who knows the words, so its sender
+-- has to be on the guild's roster. The roster's names are read once, and
+-- again after the game says it changed. Just after logging in the roster may
+-- not be in yet, and that's when the answers to your hello arrive: those are
+-- held until it is, then heard or dropped like any other.
+---------------------------------------------------------------------------
+local HOLD_FOR, HOLD_MOST = 30, 200
+local names, stale = nil, true
+local waiting, asked = {}, -60
+
+-- Whether a name is on your guild's roster: true or false, or nil while
+-- you're in a guild whose roster the game hasn't given yet.
+function Comms.Guildmate(name)
+    if not (IsInGuild and IsInGuild()) then return false end
+    if stale or not names then
+        names = nil
+        local count = GetNumGuildMembers and GetNumGuildMembers() or 0
+        if count > 0 then
+            names = {}
+            for i = 1, count do
+                local full = GetGuildRosterInfo(i)
+                if full then names[Ambiguate(full, "none")] = true end
+            end
+            stale = false
+        end
+    end
+    if not names then return nil end
+    return names[name] == true
+end
+
+local function Hear(kind, payload, channel, sender)
+    local fn = handlers[kind]
     if not fn then return end
     xpcall(function() fn(payload, Ambiguate(sender, "none"), channel, sender) end, ns.Report)
+end
+
+-- Asks the game for the roster, at most every ten seconds.
+local function AskRoster()
+    local now = GetTime()
+    if now - asked < 10 then return end
+    asked = now
+    local ask = C_GuildInfo and C_GuildInfo.GuildRoster
+    if ask then pcall(ask) end
+end
+
+-- The roster changed: its names are read again at the next ask, and what
+-- was held for it is heard now, if it's in and the sender is on it.
+local function RosterChanged()
+    stale = true
+    if #waiting == 0 or Comms.Guildmate("") == nil then return end
+    local held, now = waiting, GetTime()
+    waiting = {}
+    for _, m in ipairs(held) do
+        if now - m.at <= HOLD_FOR and Comms.Guildmate(Ambiguate(m.sender, "none")) then
+            Hear(m.kind, m.payload, m.channel, m.sender)
+        end
+    end
+end
+
+local listener = CreateFrame("Frame")
+listener:RegisterEvent("CHAT_MSG_ADDON")
+listener:RegisterEvent("GUILD_ROSTER_UPDATE")
+listener:SetScript("OnEvent", function(_, event, prefix, text, channel, sender)
+    prefix, text, channel, sender = Compat.Plains(prefix, text, channel, sender)
+    if event == "GUILD_ROSTER_UPDATE" then
+        xpcall(RosterChanged, ns.Report)
+        return
+    end
+    if prefix ~= PREFIX or type(text) ~= "string" or not sender then return end
+    local kind, payload = text:match("^(%u+)|(.*)$")
+    if not (kind and handlers[kind]) then return end
+    if channel ~= "GUILD" then
+        local known = Comms.Guildmate(Ambiguate(sender, "none"))
+        if known == nil then
+            if #waiting < HOLD_MOST then
+                waiting[#waiting + 1] = { kind = kind, payload = payload, channel = channel, sender = sender, at = GetTime() }
+            end
+            AskRoster()
+            return
+        end
+        if not known then return end
+    end
+    Hear(kind, payload, channel, sender)
 end)
 
 ns.OnLoad(function()
