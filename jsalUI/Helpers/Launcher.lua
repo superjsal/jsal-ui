@@ -519,20 +519,36 @@ Layout = function()
     if clock then clock:SetShown(withClock) end
     local half = math.ceil(#list / 2)
     grip:SetShown(not s.locked)
+    -- Where each goes, worked out before anything is moved.
     local at = 4 + (s.locked and 0 or GRIP)
-    for i, b in ipairs(list) do
-        b:ClearAllPoints()
-        if vertical then b:SetPoint("TOPLEFT", 4, -at) else b:SetPoint("TOPLEFT", at, -4) end
+    local spots, clockAt = {}, nil
+    for i = 1, #list do
+        spots[i] = at
         at = at + SIZE + GAP
         if withClock and i == half then
-            clock:ClearAllPoints()
-            clock:SetPoint("TOPLEFT", at, -4)
+            clockAt = at
             at = at + clock:GetWidth() + GAP
         end
     end
     if #list == 0 then at = at + SIZE + GAP end
     local length = at - GAP + 4
+    -- The bar takes its size first and is asked where it stands, and only then are the buttons
+    -- pinned to it. The game settles a new size the next time a frame's place is asked for, and
+    -- whatever listens for the bar's size runs at that moment: another addon's unlock mode,
+    -- which puts the bar back in its place. When the first frame asked is a button, its place is
+    -- being worked out while the bar it hangs from is re-placed under it, and the game leaves
+    -- that one button with no place: shown, pinned, and not drawn. Asked first, the bar settles
+    -- with nothing hanging on the answer, and a button pinned afterwards finds it at rest.
     if vertical then bar:SetSize(SIZE + 8, length) else bar:SetSize(length, SIZE + 8) end
+    bar:GetLeft()
+    for i, b in ipairs(list) do
+        b:ClearAllPoints()
+        if vertical then b:SetPoint("TOPLEFT", 4, -spots[i]) else b:SetPoint("TOPLEFT", spots[i], -4) end
+    end
+    if clockAt then
+        clock:ClearAllPoints()
+        clock:SetPoint("TOPLEFT", clockAt, -4)
+    end
     grip:ClearAllPoints()
     if vertical then
         grip:SetPoint("TOPLEFT", 4, -4)
