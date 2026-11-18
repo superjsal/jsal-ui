@@ -16,6 +16,7 @@ local BODY_TOP = 74                 -- the builds list and the build's header
 local MAIN_TOP = 140                -- the plan list, or the editor's trees
 local STEP_H = 30                   -- one row of the plan list
 local COLS_H = 20                   -- the plan list's column headings
+local POINTS_H, COL_GAP = 30, 24       -- the line of where the points go; between the plan's two columns
 local SOURCE_H = 22                 -- a suggested build's source line
 local ROW_H = 46                    -- one build in the builds list
 
@@ -33,6 +34,7 @@ Window.Page("build", function(page)
     -- went (John, 17 Nov 2026: "I dont think we need this at all"). They were 63 squares of
     -- the page's 447 pieces; Edit still opens the trees at full size.
     local planW = rightW
+    local colW = math.floor((planW - 8 - COL_GAP) / 2)
     local treeW = (rightW - 24) / 3
     local classID = Tree.PlayerClass()
     local editing = false
@@ -195,10 +197,40 @@ Window.Page("build", function(page)
     -- row began "Level" or "Levels".
     local cols = CreateFrame("Frame", nil, view)
     cols:SetSize(planW - 8, COLS_H)
-    for _, label in ipairs({ { "LEVEL", 10 }, { "TALENT", 76 } }) do
-        local t = Style.Text(cols, 10, "muted", nil, true)
-        t:SetPoint("TOPLEFT", label[2], 0)
-        t:SetText(label[1])
+    -- The plan is two columns now, with the room the small trees left (John, 17 Nov 2026: "1 and
+    -- 2"): a build's twenty-odd rows show at once. Each column has its headings.
+    for side = 0, 1 do
+        for _, label in ipairs({ { "LEVEL", 10 }, { "TALENT", 76 } }) do
+            local t = Style.Text(cols, 10, "muted", nil, true)
+            t:SetPoint("TOPLEFT", label[2] + side * (colW + COL_GAP), 0)
+            t:SetText(label[1])
+        end
+    end
+
+    -- Where the points go, a line for the three trees in place of the small trees: each tree's
+    -- name, how many of its planned points are taken (or planned, for another class), and a thin
+    -- bar of the same. A dozen pieces where the trees were nearly two hundred.
+    local points = CreateFrame("Frame", nil, view)
+    points:SetSize(planW - 8, POINTS_H)
+    points.trees = {}
+    local blockW = math.floor((planW - 8 - 2 * COL_GAP) / 3)
+    for i = 1, 3 do
+        local b = {}
+        local x = (i - 1) * (blockW + COL_GAP)
+        b.text = Style.Text(points, 12, "text")
+        b.text:SetPoint("TOPLEFT", x, 0)
+        b.text:SetWidth(blockW)
+        b.text:SetJustifyH("LEFT")
+        b.text:SetWordWrap(false)
+        b.track = points:CreateTexture(nil, "ARTWORK")
+        b.track:SetColorTexture(Style.Color("line"))
+        b.track:SetPoint("TOPLEFT", x, -19)
+        b.track:SetSize(blockW, 3)
+        b.fill = points:CreateTexture(nil, "OVERLAY")
+        b.fill:SetColorTexture(Style.Color("gold"))
+        b.fill:SetPoint("TOPLEFT", b.track, "TOPLEFT")
+        b.fill:SetHeight(3)
+        points.trees[i] = b
     end
     Style.Rule(cols, "BOTTOM", "lineStrong")
 
@@ -213,7 +245,7 @@ Window.Page("build", function(page)
     -- taken points fold into, and a heading where the build changes tree.
     local V = { heads = {}, HEAD_H = 30, FOLD_H = 30 }
     V.fold = CreateFrame("Button", nil, list)
-    V.fold:SetSize(planW - 8, V.FOLD_H)
+    V.fold:SetSize(colW, V.FOLD_H)
     V.fold.sign = Style.Text(V.fold, 14, "gold", nil, true)
     V.fold.sign:SetPoint("LEFT", 10, 0)
     V.fold.text = Style.Text(V.fold, 12, "muted")
@@ -223,7 +255,7 @@ Window.Page("build", function(page)
     function V.Head(i)
         if V.heads[i] then return V.heads[i] end
         local h = CreateFrame("Frame", nil, list)
-        h:SetSize(planW - 8, V.HEAD_H)
+        h:SetSize(colW, V.HEAD_H)
         Style.Rule(h, "BOTTOM", "lineStrong")
         h.title = Style.Text(h, 11, "gold", nil, true)
         h.title:SetPoint("BOTTOMLEFT", 10, 6)
@@ -237,7 +269,7 @@ Window.Page("build", function(page)
     local stepRows = {}
     local function StepRow()
         local row = CreateFrame("Frame", nil, list)
-        row:SetSize(planW - 8, STEP_H)
+        row:SetSize(colW, STEP_H)
         row.bg = Style.Fill(row, "well")
         row.levels = Style.Text(row, 12, "muted", nil, true)
         row.levels:SetPoint("LEFT", 10, 0)
@@ -328,6 +360,9 @@ Window.Page("build", function(page)
         source:SetShown(builtin)
         source:SetText(builtin and ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source) or "")
         cols:ClearAllPoints()
+        points:ClearAllPoints()
+        points:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
+        shift = shift + POINTS_H
         cols:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
         scroll:ClearAllPoints()
         scroll:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift + COLS_H))
@@ -341,13 +376,46 @@ Window.Page("build", function(page)
         -- starts at what's next; a heading where the build moves to another
         -- tree; and a step you're partway through split, so the row that's
         -- next names the rank that is.
+        for i, b in ipairs(points.trees) do
+            local t = data.trees[i]
+            local have, planned = 0, 0
+            for _, id in ipairs(t and t.nodes or {}) do
+                local want = ranks[id] or 0
+                planned = planned + want
+                if data.own then have = have + math.min(data.nodes[id].learned or 0, want) end
+            end
+            b.text:SetShown(t ~= nil)
+            b.track:SetShown(t ~= nil)
+            b.fill:SetShown(t ~= nil and planned > 0 and (have > 0 or not data.own))
+            if t then
+                local count = planned == 0 and "none"
+                    or (data.own and ("%d taken of %d"):format(have, planned) or ("%d points"):format(planned))
+                b.text:SetText(("%s  |cff9a9688%s|r"):format(t.name, count))
+                local share = planned == 0 and 0 or (data.own and have / planned or 1)
+                b.fill:SetWidth(math.max(1, blockW * share))
+            end
+        end
+
         local rows = Tree.PlanRows(steps, taken, function(id) return data.nodes[id].tree end, V.open)
+        -- Two columns: down the first to about half of the whole, then the second from its top. A
+        -- tree's heading never ends a column: it goes over with its first row.
+        local whole = 0
+        for _, step in ipairs(rows) do
+            whole = whole + (step.fold and V.FOLD_H or (step.head and V.HEAD_H or STEP_H))
+        end
+        local half, x, tallest = math.ceil(whole / 2), 0, 0
         local y, used, heads = 0, 0, 0
+        local function Room(need)
+            if x == 0 and y > 0 and y + need > half then
+                tallest, x, y = y, colW + COL_GAP, 0
+            end
+        end
         V.fold:Hide()
         for _, step in ipairs(rows) do
             if step.fold then
+                Room(V.FOLD_H)
                 V.fold:ClearAllPoints()
-                V.fold:SetPoint("TOPLEFT", 0, -y)
+                V.fold:SetPoint("TOPLEFT", x, -y)
                 V.fold.sign:SetText(step.open and "–" or "+")
                 V.fold.text:SetText(("%d point%s taken, level%s %s"):format(step.points, step.points == 1 and "" or "s",
                     step.points == 1 and "" or "s",
@@ -361,8 +429,9 @@ Window.Page("build", function(page)
             elseif step.head then
                 heads = heads + 1
                 local h = V.Head(heads)
+                Room(V.HEAD_H + STEP_H)
                 h:ClearAllPoints()
-                h:SetPoint("TOPLEFT", 0, -y)
+                h:SetPoint("TOPLEFT", x, -y)
                 h.title:SetText((data.trees[step.head] and data.trees[step.head].name or "Talents"):upper())
                 h.note:SetText(("%d point%s  ·  levels %d–%d"):format(step.points, step.points == 1 and "" or "s",
                     Tree.Level(step.first), Tree.Level(step.last)))
@@ -372,8 +441,9 @@ Window.Page("build", function(page)
                 used = used + 1
                 local row = stepRows[used] or StepRow()
                 stepRows[used] = row
+                Room(STEP_H)
                 row:ClearAllPoints()
-                row:SetPoint("TOPLEFT", 0, -y)
+                row:SetPoint("TOPLEFT", x, -y)
                 local node = data.nodes[step.id]
                 row.id = step.id
                 local a, b = Tree.Level(step.first), Tree.Level(step.last)
@@ -401,7 +471,7 @@ Window.Page("build", function(page)
         end
         for i = used + 1, #stepRows do stepRows[i]:Hide() end
         for i = heads + 1, #V.heads do V.heads[i]:Hide() end
-        list:SetHeight(math.max(1, y))
+        list:SetHeight(math.max(1, y, tallest))
         scroll:UpdateScrollChildRect()
         scroll:Place()
     end
