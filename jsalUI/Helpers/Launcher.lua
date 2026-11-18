@@ -384,22 +384,33 @@ local function PaintClock()
     if not (clock and clock:IsShown()) then return end
     local text, half = Launcher.Time()
     if clock.time:GetText() == text and clock.half:GetText() == half then return end
-    -- Room for the widest time with this many digits, so the bar keeps its
-    -- width from one minute to the next (digits differ in width, and a bar
-    -- that resizes every minute is laid out again every minute). The time
-    -- sits in the middle of its room.
+    -- Room for the widest time there is, at every hour: four of the widest
+    -- digit, and the wider of AM and PM. Digits differ in width and the hour
+    -- has one or two, so a time given only the room it needs makes the bar a
+    -- different width from one minute or hour to the next, and a bar that
+    -- changes width is laid out again each time. With this room the bar keeps
+    -- its width whatever the time; only the game's 12 or 24 hour setting
+    -- changes it. The time, with its AM or PM, sits in the middle of its room.
     local digit, most = "0", 0
     for d = 0, 9 do
         clock.time:SetText(tostring(d))
         local w = clock.time:GetStringWidth()
         if w > most then digit, most = tostring(d), w end
     end
-    clock.time:SetText((text:gsub("%d", digit)))
+    clock.time:SetText(digit .. digit .. ":" .. digit .. digit)
     local room = clock.time:GetStringWidth()
+    local halfRoom = 0
+    if half ~= "" then
+        for _, word in ipairs({ "AM", "PM" }) do
+            clock.half:SetText(word)
+            halfRoom = math.max(halfRoom, clock.half:GetStringWidth())
+        end
+    end
     clock.time:SetText(text)
     clock.half:SetText(half)
-    clock.time:SetPoint("LEFT", 10 + math.max(0, room - clock.time:GetStringWidth()) / 2, 0)
-    local width = room + (half ~= "" and clock.half:GetStringWidth() + 3 or 0) + 20
+    local width = room + (half ~= "" and halfRoom + 3 or 0) + 20
+    local used = clock.time:GetStringWidth() + (half ~= "" and clock.half:GetStringWidth() + 3 or 0)
+    clock.time:SetPoint("LEFT", math.max(10, (width - used) / 2), 0)
     if math.abs(clock:GetWidth() - width) > 0.5 then
         clock:SetWidth(width)
         Layout()
