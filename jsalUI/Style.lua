@@ -610,11 +610,21 @@ function Style.Pips(parent)
     p:SetSize(52, 8)
     p.wide = 52
     p.dots = {}
+    -- Round ticks where round shapes can be drawn, the circle's picture tinted; squares where
+    -- they can't (John, 17 Nov 2026: "lets replace the squares with circles").
+    local round = Style.Rounded()
     for i = 1, 5 do
         local t = p:CreateTexture(nil, "ARTWORK")
         t:SetSize(8, 8)
         t:SetPoint("LEFT", (i - 1) * 11, 0)
+        if round and t.SetTextureSliceMargins then
+            t:SetTexture(CIRCLE)
+            t.round = true
+        end
         p.dots[i] = t
+    end
+    local function Tint(t, r, g, b, a)
+        if t.round then t:SetVertexColor(r, g, b, a or 1) else t:SetColorTexture(r, g, b, a or 1) end
     end
     function p:Set(had, of, taking)
         of = math.max(1, math.min(5, of or 1))
@@ -623,11 +633,11 @@ function Style.Pips(parent)
         for i, t in ipairs(self.dots) do
             t:SetShown(i <= of)
             if i <= had then
-                t:SetColorTexture(r, g, b, 0.45)
+                Tint(t, r, g, b, 0.45)
             elseif i <= had + taking then
-                t:SetColorTexture(r, g, b, 1)
+                Tint(t, r, g, b, 1)
             else
-                t:SetColorTexture(Style.Color("lineStrong"))
+                Tint(t, Style.Color("lineStrong"))
             end
         end
         self.wide = of * 11 - 3
