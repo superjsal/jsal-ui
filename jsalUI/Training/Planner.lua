@@ -984,11 +984,11 @@ Window.Page("training", function(page)
         unit = Compat.Plain(unit)
         if event == "UNIT_LEVEL" and unit ~= "pet" then return end
         if event == "UNIT_PET" and unit and unit ~= "player" then return end
-        if queued or not page:IsVisible() then return end
+        if queued or not ns.Window.Showing(page) then return end
         queued = true
         Compat.After(0.3, function()
             queued = false
-            if page:IsVisible() then xpcall(Paint, ns.Report) end
+            if ns.Window.Showing(page) then xpcall(Paint, ns.Report) end
         end)
     end)
 end, nil, true)

@@ -96,6 +96,7 @@ function Window.Header(page, width)
 end
 
 local frame, content, current, crumb
+local Up, Park, Unpark
 
 -- Addons can't reload the game themselves on Forever, but the game's own
 -- secure button can run the /reload command when the player clicks it.
@@ -232,6 +233,17 @@ local function FitScale()
     return math.min(1, (w - 40) / WIDTH, (h - 40) / HEIGHT)
 end
 
+-- Where the dashboard stands: where it was dragged to, or the middle.
+function Window.Place()
+    frame:ClearAllPoints()
+    local saved = ns.db.window.point
+    if saved then
+        frame:SetPoint(saved[1], UIParent, saved[2], saved[3], saved[4])
+    else
+        frame:SetPoint("CENTER")
+    end
+end
+
 local function Build()
     frame = CreateFrame("Frame", "jsalUIWindow", UIParent)
     frame.jsalRoomy = true
@@ -240,12 +252,7 @@ local function Build()
     frame:SetSize(WIDTH, HEIGHT)
     -- A size saved by the old corner handle no longer applies.
     ns.db.window.scale = nil
-    local saved = ns.db.window.point
-    if saved then
-        frame:SetPoint(saved[1], UIParent, saved[2], saved[3], saved[4])
-    else
-        frame:SetPoint("CENTER")
-    end
+    Window.Place()
     frame:SetFrameStrata("HIGH")
     frame:SetToplevel(true)
     frame:SetClampedToScreen(true)
@@ -255,6 +262,7 @@ local function Build()
     Style.Box(frame, 6, "window", "lineStrong")
     Style.Shadow(frame)
     Style.Opening(frame, -8)
+    frame.Park = Park
     -- Escape closes it, like the game's own windows.
     tinsert(UISpecialFrames, "jsalUIWindow")
 
@@ -412,6 +420,42 @@ local function OpenOwn(page)
     own.frame:Raise()
 end
 
+-- The dashboard closes into a park rather than hiding: still shown, off the screen, so it
+-- keeps its layout. Shown again, the game laid out the whole window, its text and every
+-- corner of every card (Home's opening was 20 ms over a frame of 3, the Training Planner's
+-- 26, nearly all of it that; John, 17 Nov 2026). Opening it again brings it back where it
+-- stood. Parked, it isn't open: Escape passes it by, it doesn't repaint for what changes
+-- (Window.Showing), no text box in it keeps the keyboard, and the mouse can't reach it. In a
+-- fight it's hidden instead, as before: a window holding a secure button can't be moved then.
+local PARK_NAME = "jsalUIWindow"
+function Up() return frame ~= nil and frame:IsShown() and not frame.parked end
+local function Escapes(on)
+    for i = #UISpecialFrames, 1, -1 do
+        if UISpecialFrames[i] == PARK_NAME then table.remove(UISpecialFrames, i) end
+    end
+    if on then tinsert(UISpecialFrames, PARK_NAME) end
+end
+function Park(f)
+    if Compat.InCombat() then return f:HideNow() end
+    local focus = GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
+    if focus and Window.Contains(focus) then focus:ClearFocus() end
+    local owner = GameTooltip and GameTooltip:IsShown() and GameTooltip:GetOwner()
+    if owner and Window.Contains(owner) then GameTooltip:Hide() end
+    f.parked = true
+    f:SetClampedToScreen(false)
+    f:ClearAllPoints()
+    f:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", -200, -200)
+    Escapes(false)
+end
+function Unpark()
+    frame.parked = nil
+    frame:SetClampedToScreen(true)
+    Window.Place()
+    Escapes(true)
+    frame:Raise()
+    frame:PlayOpening()
+end
+
 -- The second after a page opens, watched: its longest frame, against the game's usual frame
 -- at the time. /jsal perf's own timers see only jsal.ui's code, and the Guild page hitched on
 -- opening with every part of its code under 10 ms (John, 17 Nov 2026). This sees the whole
@@ -475,13 +519,13 @@ function Window.Open(key, direct)
     spent.counts = debugprofilestop() - t
     Refresh(page)
     t = debugprofilestop()
-    frame:Show()
+    if frame.parked then Unpark() else frame:Show() end
     spent.show = debugprofilestop() - t
     spent.code = debugprofilestop() - started
 end
 
 function Window.Toggle()
-    if frame and frame:IsShown() then
+    if Up() then
         frame:Hide()
     else
         Window.Open(current or "home")
@@ -489,20 +533,51 @@ function Window.Toggle()
 end
 
 -- The fight's first moment is the last chance to close a window holding a
--- secure button, so the dashboard closes here.
+-- secure button, so the dashboard closes here. Parked, it's off the screen already, and stays.
 local combat = CreateFrame("Frame")
 combat:RegisterEvent("PLAYER_REGEN_DISABLED")
 combat:SetScript("OnEvent", function()
     -- At once, not faded: once the fight has begun it can't be hidden.
-    if frame and frame:IsShown() then (frame.HideNow or frame.Hide)(frame) end
+    if Up() then (frame.HideNow or frame.Hide)(frame) end
 end)
+
+-- The dashboard is made ready a few seconds after logging in, parked: built, with Home painted
+-- and laid out, so even the first opening only brings it in. Not in a fight, and not when it's
+-- been opened already.
+local PREPARE_AFTER = 5
+function Window.Prepare()
+    if frame or Compat.InCombat() or not (ns.db and ns.db.window) then return end
+    Build()
+    local page = byKey.home
+    if not page.frame then BuildPage(page) end
+    for _, other in ipairs(PAGES) do
+        if other.frame and not other.own then other.frame:SetShown(other == page) end
+    end
+    current = page.key
+    crumb:SetText(page.label)
+    PaintMenu()
+    PaintBadges()
+    Refresh(page)
+    Park(frame)
+    frame:Show()
+end
+if ns.OnLogin then
+    ns.OnLogin(function() Compat.After(PREPARE_AFTER, function() xpcall(Window.Prepare, ns.Report) end) end)
+end
 
 -- Whether a page is on screen: the dashboard's current page, or a page's
 -- own window.
 function Window.IsOpen(key)
     local page = byKey[key]
     if page and page.own then return page.own.frame ~= nil and page.own.frame:IsShown() end
-    return frame ~= nil and frame:IsShown() and current == key
+    return Up() and current == key
+end
+
+-- Whether a page should paint itself for what's just changed: it's on screen. A page on the
+-- parked dashboard is shown, and visible to the game, but not on screen.
+function Window.Showing(region)
+    if not (region and region:IsVisible()) then return false end
+    return not (frame and frame.parked and Window.Contains(region))
 end
 
 -- Closes a page: its own window, or the dashboard it's showing in.
@@ -510,7 +585,7 @@ function Window.Close(key)
     local page = byKey[key]
     if page and page.own then
         if page.own.frame then page.own.frame:Hide() end
-    elseif frame and frame:IsShown() and current == key then
+    elseif Up() and current == key then
         frame:Hide()
     end
 end
@@ -537,7 +612,7 @@ end
 
 -- Repaints the pages on screen after something they show has changed.
 function Window.Refresh()
-    if frame and frame:IsShown() and current then
+    if Up() and current then
         PaintBadges()
         Refresh(byKey[current])
     end

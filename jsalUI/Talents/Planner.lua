@@ -894,6 +894,6 @@ Window.Page("build", function(page)
 
     page.Refresh = Paint
     Tree.OnChange(function()
-        if page:IsVisible() then Paint() end
+        if ns.Window.Showing(page) then Paint() end
     end)
 end, nil, true)
