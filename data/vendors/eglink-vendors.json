@@ -1,6 +1,6 @@
 {
 "about": "Every vendor players opened on WoW Forever, from EG Link output: World of Warcraft: Forever (https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games (https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); merged across live builds and reduced to name, spots, repairs and what each sells, with prices, by tools/refresh_eglink.py.",
-"revision": "0f202e892f1a15c8192c232351824eccb99efd8a",
+"revision": "06b4cc7b814c1cb16ff56b746181c2c62944fbc9",
 "vendors": {
 "10369": {
 "builds": [
@@ -290,12 +290,17 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-16",
 "name": "Vharr",
 "positions": [
 {
-"mapX": 0.3232,
-"mapY": 0.2796,
+"mapX": 0.3235,
+"mapY": 0.2805,
+"uiMap": 1434
+},
+{
+"mapX": 0.3229,
+"mapY": 0.2795,
 "uiMap": 1434
 }
 ],
@@ -954,6 +959,135 @@
 "6": 2250
 },
 "name": "Brown Leather Satchel",
+"stack": 1
+}
+}
+},
+"11874": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Masat T'andr",
+"positions": [
+{
+"mapX": 0.2643,
+"mapY": 0.3164,
+"uiMap": 1435
+}
+],
+"repairs": false,
+"sells": {
+"10290": {
+"costs": {
+"5": 2500
+},
+"name": "Pink Dye",
+"stack": 1
+},
+"14341": {
+"costs": {
+"5": 5000
+},
+"name": "Rune Thread",
+"stack": 1
+},
+"2320": {
+"costs": {
+"5": 10
+},
+"name": "Coarse Thread",
+"stack": 1
+},
+"2321": {
+"costs": {
+"5": 100
+},
+"name": "Fine Thread",
+"stack": 1
+},
+"2325": {
+"costs": {
+"5": 1000
+},
+"name": "Black Dye",
+"stack": 1
+},
+"2604": {
+"costs": {
+"5": 50
+},
+"name": "Red Dye",
+"stack": 1
+},
+"2605": {
+"costs": {
+"5": 100
+},
+"name": "Green Dye",
+"stack": 1
+},
+"4289": {
+"costs": {
+"5": 50
+},
+"name": "Salt",
+"stack": 1
+},
+"4291": {
+"costs": {
+"5": 500
+},
+"name": "Silken Thread",
+"stack": 1
+},
+"4340": {
+"costs": {
+"5": 350
+},
+"name": "Gray Dye",
+"stack": 1
+},
+"4341": {
+"costs": {
+"5": 500
+},
+"name": "Yellow Dye",
+"stack": 1
+},
+"4342": {
+"costs": {
+"5": 2500
+},
+"name": "Purple Dye",
+"stack": 1
+},
+"6260": {
+"costs": {
+"5": 50
+},
+"name": "Blue Dye",
+"stack": 1
+},
+"6261": {
+"costs": {
+"5": 1000
+},
+"name": "Orange Dye",
+"stack": 1
+},
+"7005": {
+"costs": {
+"5": 10
+},
+"name": "Skinning Knife",
+"stack": 1
+},
+"8343": {
+"costs": {
+"5": 2000
+},
+"name": "Heavy Silken Thread",
 "stack": 1
 }
 }
@@ -1752,7 +1886,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Godric Rothgar",
 "positions": [
 {
@@ -2549,12 +2683,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "Edna Mullby",
 "positions": [
 {
-"mapX": 0.6468,
-"mapY": 0.7161,
+"mapX": 0.6474,
+"mapY": 0.7163,
 "uiMap": 1453
 }
 ],
@@ -3338,7 +3472,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "Carla Granger",
 "positions": [
 {
@@ -3494,6 +3628,149 @@
 "5": 853
 },
 "name": "Heavy Weave Shoes",
+"stack": 1
+}
+}
+},
+"1295": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Lara Moore",
+"positions": [
+{
+"mapX": 0.6223,
+"mapY": 0.677,
+"uiMap": 1453
+}
+],
+"repairs": true,
+"sells": {
+"1839": {
+"costs": {
+"5": 184
+},
+"name": "Rough Leather Belt",
+"stack": 1
+},
+"1840": {
+"costs": {
+"5": 185
+},
+"name": "Rough Leather Bracers",
+"stack": 1
+},
+"1843": {
+"costs": {
+"5": 725
+},
+"name": "Tanned Leather Belt",
+"stack": 1
+},
+"1844": {
+"costs": {
+"5": 728
+},
+"name": "Tanned Leather Bracers",
+"stack": 1
+},
+"1849": {
+"costs": {
+"5": 1388
+},
+"name": "Cured Leather Belt",
+"stack": 1
+},
+"1850": {
+"costs": {
+"5": 1393
+},
+"name": "Cured Leather Bracers",
+"stack": 1
+},
+"236": {
+"costs": {
+"5": 2795
+},
+"name": "Cured Leather Armor",
+"stack": 1
+},
+"237": {
+"costs": {
+"5": 2805
+},
+"name": "Cured Leather Pants",
+"stack": 1
+},
+"238": {
+"costs": {
+"5": 2112
+},
+"name": "Cured Leather Boots",
+"stack": 1
+},
+"239": {
+"costs": {
+"5": 1413
+},
+"name": "Cured Leather Gloves",
+"stack": 1
+},
+"796": {
+"costs": {
+"5": 264
+},
+"name": "Rough Leather Boots",
+"stack": 1
+},
+"797": {
+"costs": {
+"5": 176
+},
+"name": "Rough Leather Gloves",
+"stack": 1
+},
+"798": {
+"costs": {
+"5": 354
+},
+"name": "Rough Leather Pants",
+"stack": 1
+},
+"799": {
+"costs": {
+"5": 355
+},
+"name": "Rough Leather Vest",
+"stack": 1
+},
+"843": {
+"costs": {
+"5": 1077
+},
+"name": "Tanned Leather Boots",
+"stack": 1
+},
+"844": {
+"costs": {
+"5": 720
+},
+"name": "Tanned Leather Gloves",
+"stack": 1
+},
+"845": {
+"costs": {
+"5": 1447
+},
+"name": "Tanned Leather Pants",
+"stack": 1
+},
+"846": {
+"costs": {
+"5": 1452
+},
+"name": "Tanned Leather Jerkin",
 "stack": 1
 }
 }
@@ -3738,17 +4015,77 @@
 }
 }
 },
+"1310": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Evan Larson",
+"positions": [
+{
+"mapX": 0.5259,
+"mapY": 0.8367,
+"uiMap": 1453
+}
+],
+"repairs": true,
+"sells": {
+"3889": {
+"costs": {
+"5": 7922
+},
+"name": "Russet Hat",
+"stack": 1
+},
+"3890": {
+"costs": {
+"5": 10201
+},
+"name": "Studded Hat",
+"stack": 1
+},
+"3891": {
+"costs": {
+"5": 12284
+},
+"name": "Augmented Chain Helm",
+"stack": 1
+},
+"3892": {
+"costs": {
+"5": 21940
+},
+"name": "Embroidered Hat",
+"stack": 1
+},
+"3893": {
+"costs": {
+"5": 27523
+},
+"name": "Reinforced Leather Cap",
+"stack": 1
+},
+"3894": {
+"costs": {
+"5": 29986
+},
+"name": "Brigandine Helm",
+"stack": 1
+}
+}
+},
 "1318": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-15",
 "name": "Jessara Cordell",
 "positions": [
 {
-"mapX": 0.5305,
-"mapY": 0.7412,
+"mapX": 0.5294,
+"mapY": 0.7408,
 "uiMap": 1453
 }
 ],
@@ -4690,6 +5027,177 @@
 }
 }
 },
+"1407": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Sranda",
+"positions": [
+{
+"mapX": 0.0293,
+"mapY": 0.4739,
+"uiMap": 1418
+}
+],
+"repairs": true,
+"sells": {
+"2429": {
+"costs": {
+"6": 9125
+},
+"name": "Russet Vest",
+"stack": 1
+},
+"2431": {
+"costs": {
+"6": 9194
+},
+"name": "Russet Pants",
+"stack": 1
+},
+"2432": {
+"costs": {
+"6": 6921
+},
+"name": "Russet Boots",
+"stack": 1
+},
+"2434": {
+"costs": {
+"6": 4649
+},
+"name": "Russet Gloves",
+"stack": 1
+},
+"2463": {
+"costs": {
+"6": 12326
+},
+"name": "Studded Doublet",
+"stack": 1
+},
+"2464": {
+"costs": {
+"6": 6184
+},
+"name": "Studded Belt",
+"stack": 1
+},
+"2465": {
+"costs": {
+"6": 11230
+},
+"name": "Studded Pants",
+"stack": 1
+},
+"2467": {
+"costs": {
+"6": 8487
+},
+"name": "Studded Boots",
+"stack": 1
+},
+"2468": {
+"costs": {
+"6": 5679
+},
+"name": "Studded Bracers",
+"stack": 1
+},
+"2469": {
+"costs": {
+"6": 5701
+},
+"name": "Studded Gloves",
+"stack": 1
+},
+"2528": {
+"costs": {
+"6": 46653
+},
+"name": "Falchion",
+"stack": 1
+},
+"2529": {
+"costs": {
+"6": 58528
+},
+"name": "Zweihander",
+"stack": 1
+},
+"2530": {
+"costs": {
+"6": 46998
+},
+"name": "Francisca",
+"stack": 1
+},
+"2531": {
+"costs": {
+"6": 50553
+},
+"name": "Great Axe",
+"stack": 1
+},
+"2532": {
+"costs": {
+"6": 47348
+},
+"name": "Morning Star",
+"stack": 1
+},
+"2533": {
+"costs": {
+"6": 54997
+},
+"name": "War Maul",
+"stack": 1
+},
+"2534": {
+"costs": {
+"6": 40888
+},
+"name": "Rondel",
+"stack": 1
+},
+"2535": {
+"costs": {
+"6": 55401
+},
+"name": "War Staff",
+"stack": 1
+},
+"3593": {
+"costs": {
+"6": 4930
+},
+"name": "Russet Belt",
+"stack": 1
+},
+"3594": {
+"costs": {
+"6": 4948
+},
+"name": "Russet Bracers",
+"stack": 1
+},
+"3889": {
+"costs": {
+"6": 7130
+},
+"name": "Russet Hat",
+"stack": 1
+},
+"3890": {
+"costs": {
+"6": 9181
+},
+"name": "Studded Hat",
+"stack": 1
+}
+}
+},
 "14731": {
 "builds": [
 "1.60.1.70938"
@@ -4855,16 +5363,538 @@
 }
 }
 },
+"14754": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Kelm Hargunth",
+"positions": [
+{
+"mapX": 0.4668,
+"mapY": 0.0842,
+"uiMap": 1413
+}
+],
+"repairs": true,
+"sells": {
+"17348": {
+"costs": {
+"4": 1000
+},
+"name": "Major Healing Draught",
+"stack": 1
+},
+"17349": {
+"costs": {
+"4": 500
+},
+"name": "Superior Healing Draught",
+"stack": 1
+},
+"17351": {
+"costs": {
+"4": 1000
+},
+"name": "Major Mana Draught",
+"stack": 1
+},
+"17352": {
+"costs": {
+"4": 500
+},
+"name": "Superior Mana Draught",
+"stack": 1
+},
+"19060": {
+"costs": {
+"4": 2000
+},
+"name": "Warsong Gulch Enriched Ration",
+"stack": 5
+},
+"19061": {
+"costs": {
+"4": 1500
+},
+"name": "Warsong Gulch Iron Ration",
+"stack": 5
+},
+"19062": {
+"costs": {
+"4": 1000
+},
+"name": "Warsong Gulch Field Ration",
+"stack": 5
+},
+"19066": {
+"costs": {
+"4": 2000
+},
+"name": "Warsong Gulch Runecloth Bandage",
+"stack": 5
+},
+"19067": {
+"costs": {
+"4": 1500
+},
+"name": "Warsong Gulch Mageweave Bandage",
+"stack": 5
+},
+"19068": {
+"costs": {
+"4": 1000
+},
+"name": "Warsong Gulch Silk Bandage",
+"stack": 5
+},
+"19510": {
+"costs": {
+"4": 75000
+},
+"name": "Legionnaire's Band",
+"stack": 1
+},
+"19511": {
+"costs": {
+"4": 60000
+},
+"name": "Legionnaire's Band",
+"stack": 1
+},
+"19512": {
+"costs": {
+"4": 45000
+},
+"name": "Legionnaire's Band",
+"stack": 1
+},
+"19513": {
+"costs": {
+"4": 20000
+},
+"name": "Legionnaire's Band",
+"stack": 1
+},
+"19518": {
+"costs": {
+"4": 75000
+},
+"name": "Advisor's Ring",
+"stack": 1
+},
+"19519": {
+"costs": {
+"4": 60000
+},
+"name": "Advisor's Ring",
+"stack": 1
+},
+"19520": {
+"costs": {
+"4": 45000
+},
+"name": "Advisor's Ring",
+"stack": 1
+},
+"19521": {
+"costs": {
+"4": 20000
+},
+"name": "Advisor's Ring",
+"stack": 1
+},
+"19526": {
+"costs": {
+"4": 90580
+},
+"name": "Battle Healer's Cloak",
+"stack": 1
+},
+"19527": {
+"costs": {
+"4": 48159
+},
+"name": "Battle Healer's Cloak",
+"stack": 1
+},
+"19528": {
+"costs": {
+"4": 23904
+},
+"name": "Battle Healer's Cloak",
+"stack": 1
+},
+"19529": {
+"costs": {
+"4": 10613
+},
+"name": "Battle Healer's Cloak",
+"stack": 1
+},
+"19534": {
+"costs": {
+"4": 75000
+},
+"name": "Scout's Medallion",
+"stack": 1
+},
+"19535": {
+"costs": {
+"4": 60000
+},
+"name": "Scout's Medallion",
+"stack": 1
+},
+"19536": {
+"costs": {
+"4": 45000
+},
+"name": "Scout's Medallion",
+"stack": 1
+},
+"19537": {
+"costs": {
+"4": 20000
+},
+"name": "Scout's Medallion",
+"stack": 1
+},
+"19542": {
+"costs": {
+"4": 297673
+},
+"name": "Scout's Blade",
+"stack": 1
+},
+"19543": {
+"costs": {
+"4": 174910
+},
+"name": "Scout's Blade",
+"stack": 1
+},
+"19544": {
+"costs": {
+"4": 86791
+},
+"name": "Scout's Blade",
+"stack": 1
+},
+"19545": {
+"costs": {
+"4": 34845
+},
+"name": "Scout's Blade",
+"stack": 1
+},
+"19550": {
+"costs": {
+"4": 274611
+},
+"name": "Legionnaire's Sword",
+"stack": 1
+},
+"19551": {
+"costs": {
+"4": 160783
+},
+"name": "Legionnaire's Sword",
+"stack": 1
+},
+"19552": {
+"costs": {
+"4": 79498
+},
+"name": "Legionnaire's Sword",
+"stack": 1
+},
+"19553": {
+"costs": {
+"4": 34217
+},
+"name": "Legionnaire's Sword",
+"stack": 1
+},
+"19558": {
+"costs": {
+"4": 220059
+},
+"name": "Outrider's Bow",
+"stack": 1
+},
+"19559": {
+"costs": {
+"4": 120587
+},
+"name": "Outrider's Bow",
+"stack": 1
+},
+"19560": {
+"costs": {
+"4": 59624
+},
+"name": "Outrider's Bow",
+"stack": 1
+},
+"19561": {
+"costs": {
+"4": 25663
+},
+"name": "Outrider's Bow",
+"stack": 1
+},
+"19566": {
+"costs": {
+"4": 350857
+},
+"name": "Advisor's Gnarled Staff",
+"stack": 1
+},
+"19567": {
+"costs": {
+"4": 200979
+},
+"name": "Advisor's Gnarled Staff",
+"stack": 1
+},
+"19568": {
+"costs": {
+"4": 99373
+},
+"name": "Advisor's Gnarled Staff",
+"stack": 1
+},
+"19569": {
+"costs": {
+"4": 42771
+},
+"name": "Advisor's Gnarled Staff",
+"stack": 1
+},
+"19578": {
+"costs": {
+"4": 88497
+},
+"name": "Berserker Bracers",
+"stack": 1
+},
+"19580": {
+"costs": {
+"4": 48175
+},
+"name": "Berserker Bracers",
+"stack": 1
+},
+"19581": {
+"costs": {
+"4": 24727
+},
+"name": "Berserker Bracers",
+"stack": 1
+},
+"19582": {
+"costs": {
+"4": 121103
+},
+"name": "Windtalker's Wristguards",
+"stack": 1
+},
+"19583": {
+"costs": {
+"4": 72262
+},
+"name": "Windtalker's Wristguards",
+"stack": 1
+},
+"19584": {
+"costs": {
+"4": 37090
+},
+"name": "Windtalker's Wristguards",
+"stack": 1
+},
+"19587": {
+"costs": {
+"4": 100919
+},
+"name": "Forest Stalker's Bracers",
+"stack": 1
+},
+"19589": {
+"costs": {
+"4": 60218
+},
+"name": "Forest Stalker's Bracers",
+"stack": 1
+},
+"19590": {
+"costs": {
+"4": 30909
+},
+"name": "Forest Stalker's Bracers",
+"stack": 1
+},
+"19595": {
+"costs": {
+"4": 87549
+},
+"name": "Dryad's Wrist Bindings",
+"stack": 1
+},
+"19596": {
+"costs": {
+"4": 52427
+},
+"name": "Dryad's Wrist Bindings",
+"stack": 1
+},
+"19597": {
+"costs": {
+"4": 27006
+},
+"name": "Dryad's Wrist Bindings",
+"stack": 1
+},
+"20425": {
+"costs": {
+"4": 15211
+},
+"name": "Advisor's Gnarled Staff",
+"stack": 1
+},
+"20426": {
+"costs": {
+"4": 20000
+},
+"name": "Advisor's Ring",
+"stack": 1
+},
+"20427": {
+"costs": {
+"4": 3650
+},
+"name": "Battle Healer's Cloak",
+"stack": 1
+},
+"20429": {
+"costs": {
+"4": 20000
+},
+"name": "Legionnaire's Band",
+"stack": 1
+},
+"20430": {
+"costs": {
+"4": 12169
+},
+"name": "Legionnaire's Sword",
+"stack": 1
+},
+"20437": {
+"costs": {
+"4": 9126
+},
+"name": "Outrider's Bow",
+"stack": 1
+},
+"20441": {
+"costs": {
+"4": 12169
+},
+"name": "Scout's Blade",
+"stack": 1
+},
+"20442": {
+"costs": {
+"4": 20000
+},
+"name": "Scout's Medallion",
+"stack": 1
+},
+"21565": {
+"costs": {
+"4": 40000
+},
+"name": "Rune of Perfection",
+"stack": 1
+},
+"21566": {
+"costs": {
+"4": 20000
+},
+"name": "Rune of Perfection",
+"stack": 1
+},
+"21567": {
+"costs": {
+"4": 40000
+},
+"name": "Rune of Duty",
+"stack": 1
+},
+"21568": {
+"costs": {
+"4": 20000
+},
+"name": "Rune of Duty",
+"stack": 1
+},
+"22651": {
+"costs": {
+"4": 165737
+},
+"name": "Outrider's Plate Legguards",
+"stack": 1
+},
+"22673": {
+"costs": {
+"4": 250460
+},
+"name": "Outrider's Chain Leggings",
+"stack": 1
+},
+"22676": {
+"costs": {
+"4": 253253
+},
+"name": "Outrider's Mail Leggings",
+"stack": 1
+},
+"22740": {
+"costs": {
+"4": 219678
+},
+"name": "Outrider's Leather Pants",
+"stack": 1
+},
+"22741": {
+"costs": {
+"4": 220461
+},
+"name": "Outrider's Lizardhide Pants",
+"stack": 1
+},
+"22747": {
+"costs": {
+"4": 167633
+},
+"name": "Outrider's Silk Leggings",
+"stack": 1
+}
+}
+},
 "14828": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Gelvas Grimegate",
 "positions": [
 {
-"mapX": 0.4152,
-"mapY": 0.69,
+"mapX": 0.4157,
+"mapY": 0.6892,
 "uiMap": 1429
 }
 ],
@@ -5193,7 +6223,7 @@
 "1.60.1.70862",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Rutherford Twing",
 "positions": [
 {
@@ -5708,7 +6738,7 @@
 "1.60.1.70790",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Brother Danil",
 "positions": [
 {
@@ -5802,7 +6832,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-16",
 "name": "Terry Palin",
 "positions": [
 {
@@ -5844,7 +6874,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "William MacGregor",
 "positions": [
 {
@@ -5853,8 +6883,8 @@
 "uiMap": 1436
 },
 {
-"mapX": 0.5774,
-"mapY": 0.5389,
+"mapX": 0.5778,
+"mapY": 0.5394,
 "uiMap": 1436
 }
 ],
@@ -6061,7 +7091,7 @@
 "1.60.1.70790",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Dermot Johns",
 "positions": [
 {
@@ -6163,12 +7193,12 @@
 "1.60.1.70790",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Andrew Krighton",
 "positions": [
 {
-"mapX": 0.4182,
-"mapY": 0.6572,
+"mapX": 0.4168,
+"mapY": 0.6577,
 "uiMap": 1429
 }
 ],
@@ -6341,14 +7371,15 @@
 "1.60.1.70425",
 "1.60.1.70450",
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-15",
 "name": "Joshua Kien",
 "positions": [
 {
-"mapX": 0.3228,
-"mapY": 0.6553,
+"mapX": 0.323,
+"mapY": 0.6552,
 "uiMap": 1420
 }
 ],
@@ -6437,14 +7468,15 @@
 "builds": [
 "1.60.1.70334",
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-15",
 "name": "Blacksmith Rand",
 "positions": [
 {
-"mapX": 0.3234,
-"mapY": 0.663,
+"mapX": 0.3237,
+"mapY": 0.6635,
 "uiMap": 1420
 }
 ],
@@ -6511,14 +7543,15 @@
 "2117": {
 "builds": [
 "1.60.1.70334",
-"1.60.1.70425"
+"1.60.1.70425",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-10-16",
+"lastSeen": "2026-11-15",
 "name": "Harold Raims",
 "positions": [
 {
-"mapX": 0.3235,
-"mapY": 0.6636,
+"mapX": 0.3239,
+"mapY": 0.6639,
 "uiMap": 1420
 }
 ],
@@ -6744,14 +7777,15 @@
 "builds": [
 "1.60.1.70374",
 "1.60.1.70450",
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-15",
 "name": "Mrs. Winters",
 "positions": [
 {
-"mapX": 0.6114,
-"mapY": 0.5273,
+"mapX": 0.6115,
+"mapY": 0.5267,
 "uiMap": 1420
 }
 ],
@@ -7162,6 +8196,30 @@
 "repairs": true,
 "sells": {}
 },
+"217412": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Amaryllis Webb",
+"positions": [
+{
+"mapX": 0.252,
+"mapY": 0.5416,
+"uiMap": 1435
+}
+],
+"repairs": false,
+"sells": {
+"213565": {
+"costs": {
+"5": 5000
+},
+"name": "Entomology Starter Kit",
+"stack": 1
+}
+}
+},
 "225": {
 "builds": [
 "1.60.1.70938"
@@ -7173,10 +8231,24 @@
 "mapX": 0.7367,
 "mapY": 0.4982,
 "uiMap": 1431
+},
+{
+"mapX": 0.7369,
+"mapY": 0.4876,
+"uiMap": 1431
 }
 ],
 "repairs": true,
 "sells": {
+"12249": {
+"costs": {
+"6": 27176
+},
+"limited": true,
+"name": "Merciless Axe",
+"stack": 1,
+"stockMax": 1
+},
 "2024": {
 "costs": {
 "6": 5471
@@ -7291,13 +8363,109 @@
 }
 }
 },
-"227": {
+"226": {
 "builds": [
 "1.60.1.70938"
 ],
 "lastSeen": "2026-11-15",
+"name": "Morg Gnarltree",
+"positions": [
+{
+"mapX": 0.7371,
+"mapY": 0.4852,
+"uiMap": 1431
+}
+],
+"repairs": true,
+"sells": {
+"17192": {
+"costs": {
+"6": 3960
+},
+"name": "Reinforced Targe",
+"stack": 1
+},
+"2148": {
+"costs": {
+"6": 2617
+},
+"name": "Polished Scale Belt",
+"stack": 1
+},
+"2149": {
+"costs": {
+"6": 3958
+},
+"name": "Polished Scale Boots",
+"stack": 1
+},
+"2150": {
+"costs": {
+"6": 2637
+},
+"name": "Polished Scale Bracers",
+"stack": 1
+},
+"2151": {
+"costs": {
+"6": 2647
+},
+"name": "Polished Scale Gloves",
+"stack": 1
+},
+"2152": {
+"costs": {
+"6": 5316
+},
+"name": "Polished Scale Leggings",
+"stack": 1
+},
+"2153": {
+"costs": {
+"6": 5335
+},
+"name": "Polished Scale Vest",
+"stack": 1
+},
+"2446": {
+"costs": {
+"6": 5564
+},
+"name": "Kite Shield",
+"stack": 1
+},
+"4799": {
+"costs": {
+"6": 2738
+},
+"limited": true,
+"name": "Antiquated Cloak",
+"stack": 1,
+"stockMax": 1
+},
+"4816": {
+"costs": {
+"6": 6767
+},
+"limited": true,
+"name": "Legionnaire's Leggings",
+"stack": 1,
+"stockMax": 1
+}
+}
+},
+"227": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-17",
 "name": "Mabel Solaj",
 "positions": [
+{
+"mapX": 0.7382,
+"mapY": 0.4522,
+"uiMap": 1431
+},
 {
 "mapX": 0.7416,
 "mapY": 0.4488,
@@ -8095,19 +9263,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70840",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-16",
 "name": "Mallen Swain",
 "positions": [
 {
-"mapX": 0.6207,
-"mapY": 0.2116,
-"uiMap": 1424
-},
-{
-"mapX": 0.6199,
-"mapY": 0.2086,
+"mapX": 0.6209,
+"mapY": 0.2094,
 "uiMap": 1424
 }
 ],
@@ -9056,7 +10220,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Kelsey Fargo",
 "positions": [
 {
@@ -12232,14 +13396,15 @@
 },
 "251364": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-17",
 "name": "Destin Thriceforged",
 "positions": [
 {
-"mapX": 0.4339,
-"mapY": 0.235,
+"mapX": 0.4341,
+"mapY": 0.2362,
 "uiMap": 2521
 }
 ],
@@ -12299,6 +13464,107 @@
 "5": 72
 },
 "name": "Large Club",
+"stack": 1
+}
+}
+},
+"251365": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-17",
+"name": "Jolee Brightmeadows",
+"positions": [
+{
+"mapX": 0.4344,
+"mapY": 0.2367,
+"uiMap": 2521
+}
+],
+"repairs": true,
+"sells": {
+"2117": {
+"costs": {
+"5": 36
+},
+"name": "Thin Cloth Shoes",
+"stack": 1
+},
+"2119": {
+"costs": {
+"5": 24
+},
+"name": "Thin Cloth Gloves",
+"stack": 1
+},
+"2120": {
+"costs": {
+"5": 50
+},
+"name": "Thin Cloth Pants",
+"stack": 1
+},
+"2121": {
+"costs": {
+"5": 50
+},
+"name": "Thin Cloth Armor",
+"stack": 1
+},
+"2122": {
+"costs": {
+"5": 32
+},
+"name": "Cracked Leather Belt",
+"stack": 1
+},
+"2123": {
+"costs": {
+"5": 48
+},
+"name": "Cracked Leather Boots",
+"stack": 1
+},
+"2124": {
+"costs": {
+"5": 32
+},
+"name": "Cracked Leather Bracers",
+"stack": 1
+},
+"2125": {
+"costs": {
+"5": 32
+},
+"name": "Cracked Leather Gloves",
+"stack": 1
+},
+"2126": {
+"costs": {
+"5": 59
+},
+"name": "Cracked Leather Pants",
+"stack": 1
+},
+"2127": {
+"costs": {
+"5": 60
+},
+"name": "Cracked Leather Vest",
+"stack": 1
+},
+"3599": {
+"costs": {
+"5": 24
+},
+"name": "Thin Cloth Belt",
+"stack": 1
+},
+"3600": {
+"costs": {
+"5": 24
+},
+"name": "Thin Cloth Bracers",
 "stack": 1
 }
 }
@@ -12507,14 +13773,20 @@
 },
 "251965": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-17",
 "name": "Fevrath Skyhammer",
 "positions": [
 {
-"mapX": 0.4332,
-"mapY": 0.2345,
+"mapX": 0.4337,
+"mapY": 0.2352,
+"uiMap": 2521
+},
+{
+"mapX": 0.4329,
+"mapY": 0.2344,
 "uiMap": 2521
 }
 ],
@@ -12604,19 +13876,15 @@
 },
 "251993": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-15",
 "name": "Indari Sunseam",
 "positions": [
 {
-"mapX": 0.4463,
-"mapY": 0.4456,
-"uiMap": 2521
-},
-{
-"mapX": 0.4473,
-"mapY": 0.4449,
+"mapX": 0.4469,
+"mapY": 0.4458,
 "uiMap": 2521
 }
 ],
@@ -13597,6 +14865,521 @@
 }
 }
 },
+"255895": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Grizzek",
+"positions": [
+{
+"mapX": 0.7663,
+"mapY": 0.5312,
+"uiMap": 2548
+}
+],
+"repairs": false,
+"sells": {
+"11284": {
+"costs": {
+"4": 1000
+},
+"name": "Accurate Slugs",
+"stack": 200
+},
+"11285": {
+"costs": {
+"4": 1000
+},
+"name": "Jagged Arrow",
+"stack": 200
+},
+"11291": {
+"costs": {
+"4": 4500
+},
+"name": "Star Wood",
+"stack": 1
+},
+"1179": {
+"costs": {
+"4": 125
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"4": 500
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"15326": {
+"costs": {
+"4": 24811
+},
+"name": "Gleaming Throwing Axe",
+"stack": 1
+},
+"15327": {
+"costs": {
+"4": 24811
+},
+"name": "Wicked Throwing Dagger",
+"stack": 1
+},
+"159": {
+"costs": {
+"4": 25
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"4": 2000
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"16767": {
+"costs": {
+"4": 3000
+},
+"name": "Recipe: Undermine Clam Chowder",
+"stack": 1
+},
+"1708": {
+"costs": {
+"4": 1000
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2515": {
+"costs": {
+"4": 50
+},
+"name": "Sharp Arrow",
+"stack": 200
+},
+"2519": {
+"costs": {
+"4": 50
+},
+"name": "Heavy Shot",
+"stack": 200
+},
+"3030": {
+"costs": {
+"4": 300
+},
+"name": "Razor Arrow",
+"stack": 200
+},
+"3033": {
+"costs": {
+"4": 300
+},
+"name": "Solid Shot",
+"stack": 200
+},
+"3107": {
+"costs": {
+"4": 1830
+},
+"name": "Keen Throwing Knife",
+"stack": 1
+},
+"3108": {
+"costs": {
+"4": 7593
+},
+"name": "Heavy Throwing Dagger",
+"stack": 1
+},
+"3135": {
+"costs": {
+"4": 1830
+},
+"name": "Sharp Throwing Axe",
+"stack": 1
+},
+"3137": {
+"costs": {
+"4": 7593
+},
+"name": "Deadly Throwing Axe",
+"stack": 1
+},
+"4470": {
+"costs": {
+"4": 38
+},
+"name": "Simple Wood",
+"stack": 1
+},
+"4471": {
+"costs": {
+"4": 135
+},
+"name": "Flint and Tinder",
+"stack": 1
+},
+"4497": {
+"costs": {
+"4": 20000
+},
+"name": "Heavy Brown Bag",
+"stack": 1
+},
+"4498": {
+"costs": {
+"4": 2500
+},
+"name": "Brown Leather Satchel",
+"stack": 1
+}
+}
+},
+"255897": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Friz Frazzlespark",
+"positions": [
+{
+"mapX": 0.7711,
+"mapY": 0.5295,
+"uiMap": 2548
+},
+{
+"mapX": 0.7705,
+"mapY": 0.528,
+"uiMap": 2548
+}
+],
+"repairs": false,
+"sells": {
+"11284": {
+"costs": {
+"4": 1000
+},
+"name": "Accurate Slugs",
+"stack": 200
+},
+"11285": {
+"costs": {
+"4": 1000
+},
+"name": "Jagged Arrow",
+"stack": 200
+},
+"11291": {
+"costs": {
+"4": 4500
+},
+"name": "Star Wood",
+"stack": 1
+},
+"1205": {
+"costs": {
+"4": 500
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"15326": {
+"costs": {
+"4": 24811
+},
+"name": "Gleaming Throwing Axe",
+"stack": 1
+},
+"15327": {
+"costs": {
+"4": 24811
+},
+"name": "Wicked Throwing Dagger",
+"stack": 1
+},
+"159": {
+"costs": {
+"4": 25
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"4": 2000
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"4": 1000
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2515": {
+"costs": {
+"4": 50
+},
+"name": "Sharp Arrow",
+"stack": 200
+},
+"2519": {
+"costs": {
+"4": 50
+},
+"name": "Heavy Shot",
+"stack": 200
+},
+"2520": {
+"costs": {
+"4": 24628
+},
+"name": "Broadsword",
+"stack": 1
+},
+"2521": {
+"costs": {
+"4": 30896
+},
+"name": "Flamberge",
+"stack": 1
+},
+"2522": {
+"costs": {
+"4": 22548
+},
+"name": "Crescent Axe",
+"stack": 1
+},
+"2523": {
+"costs": {
+"4": 28285
+},
+"name": "Bullova",
+"stack": 1
+},
+"2524": {
+"costs": {
+"4": 19192
+},
+"name": "Truncheon",
+"stack": 1
+},
+"2525": {
+"costs": {
+"4": 26489
+},
+"name": "War Hammer",
+"stack": 1
+},
+"2526": {
+"costs": {
+"4": 19336
+},
+"name": "Main Gauche",
+"stack": 1
+},
+"2527": {
+"costs": {
+"4": 29356
+},
+"name": "Battle Staff",
+"stack": 1
+},
+"276199": {
+"costs": {
+"4": 100000
+},
+"name": "Haughty Fellow's Monocle",
+"stack": 1
+},
+"276200": {
+"costs": {
+"4": 27547
+},
+"name": "Crawler's Clackers",
+"stack": 1
+},
+"276201": {
+"costs": {
+"4": 47136
+},
+"name": "Misplaced Pantaloons",
+"stack": 1
+},
+"276202": {
+"costs": {
+"4": 31544
+},
+"name": "Disengagement Ring",
+"stack": 1
+},
+"276203": {
+"costs": {
+"4": 118729
+},
+"name": "Primitive Fishing Pole",
+"stack": 1
+},
+"276204": {
+"costs": {
+"4": 61019
+},
+"name": "Thrash's Trash",
+"stack": 1
+},
+"2928": {
+"costs": {
+"4": 20
+},
+"name": "Dust of Decay",
+"stack": 1
+},
+"2930": {
+"costs": {
+"4": 50
+},
+"name": "Essence of Pain",
+"stack": 1
+},
+"3030": {
+"costs": {
+"4": 300
+},
+"name": "Razor Arrow",
+"stack": 200
+},
+"3033": {
+"costs": {
+"4": 300
+},
+"name": "Solid Shot",
+"stack": 200
+},
+"3107": {
+"costs": {
+"4": 1830
+},
+"name": "Keen Throwing Knife",
+"stack": 1
+},
+"3108": {
+"costs": {
+"4": 7593
+},
+"name": "Heavy Throwing Dagger",
+"stack": 1
+},
+"3135": {
+"costs": {
+"4": 1830
+},
+"name": "Sharp Throwing Axe",
+"stack": 1
+},
+"3137": {
+"costs": {
+"4": 7593
+},
+"name": "Deadly Throwing Axe",
+"stack": 1
+},
+"3371": {
+"costs": {
+"4": 20
+},
+"name": "Empty Vial",
+"stack": 5
+},
+"3372": {
+"costs": {
+"4": 200
+},
+"name": "Leaded Vial",
+"stack": 5
+},
+"4470": {
+"costs": {
+"4": 38
+},
+"name": "Simple Wood",
+"stack": 1
+},
+"4471": {
+"costs": {
+"4": 135
+},
+"name": "Flint and Tinder",
+"stack": 1
+},
+"4497": {
+"costs": {
+"4": 20000
+},
+"name": "Heavy Brown Bag",
+"stack": 1
+},
+"4498": {
+"costs": {
+"4": 2500
+},
+"name": "Brown Leather Satchel",
+"stack": 1
+},
+"5060": {
+"costs": {
+"4": 1500
+},
+"name": "Thieves' Tools",
+"stack": 1
+},
+"5140": {
+"costs": {
+"4": 25
+},
+"name": "Flash Powder",
+"stack": 1
+},
+"5173": {
+"costs": {
+"4": 100
+},
+"name": "Deathweed",
+"stack": 1
+},
+"8923": {
+"costs": {
+"4": 200
+},
+"name": "Essence of Agony",
+"stack": 1
+},
+"8924": {
+"costs": {
+"4": 100
+},
+"name": "Dust of Deterioration",
+"stack": 1
+},
+"8925": {
+"costs": {
+"4": 2500
+},
+"name": "Crystal Vial",
+"stack": 5
+}
+}
+},
 "255940": {
 "builds": [
 "1.60.1.70790"
@@ -13996,6 +15779,353 @@
 },
 "name": "Heavy Silken Thread",
 "stack": 1
+}
+}
+},
+"256657": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-17",
+"name": "Kreza Darkthorn",
+"positions": [
+{
+"mapX": 0.5987,
+"mapY": 0.4605,
+"uiMap": 2548
+}
+],
+"repairs": true,
+"sells": {
+"17189": {
+"costs": {
+"6": 10839
+},
+"name": "Metal Buckler",
+"stack": 1
+},
+"2417": {
+"costs": {
+"6": 14106
+},
+"name": "Augmented Chain Vest",
+"stack": 1
+},
+"2418": {
+"costs": {
+"6": 14158
+},
+"name": "Augmented Chain Leggings",
+"stack": 1
+},
+"2419": {
+"costs": {
+"6": 7105
+},
+"name": "Augmented Chain Belt",
+"stack": 1
+},
+"2420": {
+"costs": {
+"6": 10744
+},
+"name": "Augmented Chain Boots",
+"stack": 1
+},
+"2421": {
+"costs": {
+"6": 7157
+},
+"name": "Augmented Chain Bracers",
+"stack": 1
+},
+"2422": {
+"costs": {
+"6": 7183
+},
+"name": "Augmented Chain Gloves",
+"stack": 1
+},
+"2429": {
+"costs": {
+"6": 9125
+},
+"name": "Russet Vest",
+"stack": 1
+},
+"2431": {
+"costs": {
+"6": 9194
+},
+"name": "Russet Pants",
+"stack": 1
+},
+"2432": {
+"costs": {
+"6": 6921
+},
+"name": "Russet Boots",
+"stack": 1
+},
+"2434": {
+"costs": {
+"6": 4649
+},
+"name": "Russet Gloves",
+"stack": 1
+},
+"2448": {
+"costs": {
+"6": 14543
+},
+"name": "Heavy Pavise",
+"stack": 1
+},
+"2463": {
+"costs": {
+"6": 12326
+},
+"name": "Studded Doublet",
+"stack": 1
+},
+"2464": {
+"costs": {
+"6": 6184
+},
+"name": "Studded Belt",
+"stack": 1
+},
+"2465": {
+"costs": {
+"6": 11230
+},
+"name": "Studded Pants",
+"stack": 1
+},
+"2467": {
+"costs": {
+"6": 8487
+},
+"name": "Studded Boots",
+"stack": 1
+},
+"2468": {
+"costs": {
+"6": 5679
+},
+"name": "Studded Bracers",
+"stack": 1
+},
+"2469": {
+"costs": {
+"6": 5701
+},
+"name": "Studded Gloves",
+"stack": 1
+},
+"2520": {
+"costs": {
+"6": 22166
+},
+"name": "Broadsword",
+"stack": 1
+},
+"2521": {
+"costs": {
+"6": 27807
+},
+"name": "Flamberge",
+"stack": 1
+},
+"2522": {
+"costs": {
+"6": 20294
+},
+"name": "Crescent Axe",
+"stack": 1
+},
+"2523": {
+"costs": {
+"6": 25457
+},
+"name": "Bullova",
+"stack": 1
+},
+"2524": {
+"costs": {
+"6": 17273
+},
+"name": "Truncheon",
+"stack": 1
+},
+"2525": {
+"costs": {
+"6": 23841
+},
+"name": "War Hammer",
+"stack": 1
+},
+"2526": {
+"costs": {
+"6": 17403
+},
+"name": "Main Gauche",
+"stack": 1
+},
+"2527": {
+"costs": {
+"6": 26421
+},
+"name": "Battle Staff",
+"stack": 1
+},
+"3593": {
+"costs": {
+"6": 4930
+},
+"name": "Russet Belt",
+"stack": 1
+},
+"3594": {
+"costs": {
+"6": 4948
+},
+"name": "Russet Bracers",
+"stack": 1
+},
+"3889": {
+"costs": {
+"6": 7130
+},
+"name": "Russet Hat",
+"stack": 1
+},
+"3890": {
+"costs": {
+"6": 9181
+},
+"name": "Studded Hat",
+"stack": 1
+},
+"3891": {
+"costs": {
+"6": 11056
+},
+"name": "Augmented Chain Helm",
+"stack": 1
+}
+}
+},
+"256675": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Innkeeper Toka",
+"positions": [
+{
+"mapX": 0.5803,
+"mapY": 0.451,
+"uiMap": 2548
+}
+],
+"repairs": false,
+"sells": {
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"4603": {
+"costs": {
+"6": 72
+},
+"limited": true,
+"name": "Raw Spotted Yellowtail",
+"stack": 1,
+"stockMax": 5
+},
+"6289": {
+"costs": {
+"6": 18
+},
+"limited": true,
+"name": "Raw Longjaw Mud Snapper",
+"stack": 1,
+"stockMax": 5
+},
+"6303": {
+"costs": {
+"6": 18
+},
+"limited": true,
+"name": "Raw Slitherskin Mackerel",
+"stack": 1,
+"stockMax": 5
+},
+"6308": {
+"costs": {
+"6": 36
+},
+"limited": true,
+"name": "Raw Bristle Whisker Catfish",
+"stack": 1,
+"stockMax": 5
+},
+"6362": {
+"costs": {
+"6": 72
+},
+"limited": true,
+"name": "Raw Rockscale Cod",
+"stack": 1,
+"stockMax": 5
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8959": {
+"costs": {
+"6": 2880
+},
+"limited": true,
+"name": "Raw Spinefin Halibut",
+"stack": 1,
+"stockMax": 5
 }
 }
 },
@@ -14640,7 +16770,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Daniel Stitchsong",
 "positions": [
 {
@@ -15938,15 +18068,47 @@
 },
 "258415": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Angela Ward",
 "positions": [
 {
-"mapX": 0.701,
-"mapY": 0.3014,
+"mapX": 0.7023,
+"mapY": 0.299,
 "uiMap": 1458
+}
+],
+"repairs": false,
+"sells": {
+"253665": {
+"costs": {
+"5": 150
+},
+"name": "Pattern: Linen Reagent Bag",
+"stack": 1
+},
+"253668": {
+"costs": {
+"5": 250
+},
+"name": "Pattern: Woolen Reagent Bag",
+"stack": 1
+}
+}
+},
+"258463": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Darah",
+"positions": [
+{
+"mapX": 0.6355,
+"mapY": 0.5033,
+"uiMap": 1454
 }
 ],
 "repairs": false,
@@ -15994,6 +18156,201 @@
 "5": 250
 },
 "name": "Pattern: Woolen Reagent Bag",
+"stack": 1
+}
+}
+},
+"258568": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Antonio Bolero",
+"positions": [
+{
+"mapX": 0.5348,
+"mapY": 0.8199,
+"uiMap": 1453
+}
+],
+"repairs": false,
+"sells": {
+"253665": {
+"costs": {
+"5": 150
+},
+"name": "Pattern: Linen Reagent Bag",
+"stack": 1
+},
+"253668": {
+"costs": {
+"5": 250
+},
+"name": "Pattern: Woolen Reagent Bag",
+"stack": 1
+}
+}
+},
+"260343": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Maka",
+"positions": [
+{
+"mapX": 0.5821,
+"mapY": 0.459,
+"uiMap": 2548
+}
+],
+"repairs": false,
+"sells": {
+"11284": {
+"costs": {
+"6": 900
+},
+"name": "Accurate Slugs",
+"stack": 200
+},
+"11285": {
+"costs": {
+"6": 900
+},
+"name": "Jagged Arrow",
+"stack": 200
+},
+"11291": {
+"costs": {
+"6": 4050
+},
+"name": "Star Wood",
+"stack": 1
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"15326": {
+"costs": {
+"6": 22330
+},
+"name": "Gleaming Throwing Axe",
+"stack": 1
+},
+"15327": {
+"costs": {
+"6": 22330
+},
+"name": "Wicked Throwing Dagger",
+"stack": 1
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2515": {
+"costs": {
+"6": 45
+},
+"name": "Sharp Arrow",
+"stack": 200
+},
+"2519": {
+"costs": {
+"6": 45
+},
+"name": "Heavy Shot",
+"stack": 200
+},
+"3030": {
+"costs": {
+"6": 270
+},
+"name": "Razor Arrow",
+"stack": 200
+},
+"3033": {
+"costs": {
+"6": 270
+},
+"name": "Solid Shot",
+"stack": 200
+},
+"3107": {
+"costs": {
+"6": 1647
+},
+"name": "Keen Throwing Knife",
+"stack": 1
+},
+"3108": {
+"costs": {
+"6": 6834
+},
+"name": "Heavy Throwing Dagger",
+"stack": 1
+},
+"3135": {
+"costs": {
+"6": 1647
+},
+"name": "Sharp Throwing Axe",
+"stack": 1
+},
+"3137": {
+"costs": {
+"6": 6834
+},
+"name": "Deadly Throwing Axe",
+"stack": 1
+},
+"4470": {
+"costs": {
+"6": 35
+},
+"name": "Simple Wood",
+"stack": 1
+},
+"4471": {
+"costs": {
+"6": 122
+},
+"name": "Flint and Tinder",
+"stack": 1
+},
+"4497": {
+"costs": {
+"6": 18000
+},
+"name": "Heavy Brown Bag",
+"stack": 1
+},
+"4498": {
+"costs": {
+"6": 2250
+},
+"name": "Brown Leather Satchel",
 "stack": 1
 }
 }
@@ -16281,6 +18638,114 @@
 },
 "name": "Solid Shot",
 "stack": 200
+}
+}
+},
+"261313": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-17",
+"name": "Naluk",
+"positions": [
+{
+"mapX": 0.5798,
+"mapY": 0.4583,
+"uiMap": 2548
+}
+],
+"repairs": false,
+"sells": {
+"117": {
+"costs": {
+"6": 23
+},
+"name": "Tough Jerky",
+"stack": 5
+},
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"2287": {
+"costs": {
+"6": 113
+},
+"name": "Haunch of Meat",
+"stack": 5
+},
+"3770": {
+"costs": {
+"6": 450
+},
+"name": "Mutton Chop",
+"stack": 5
+},
+"3771": {
+"costs": {
+"6": 900
+},
+"name": "Wild Hog Shank",
+"stack": 5
+},
+"4599": {
+"costs": {
+"6": 1800
+},
+"name": "Cured Ham Steak",
+"stack": 5
+},
+"5483": {
+"costs": {
+"6": 126
+},
+"name": "Recipe: Scorpid Surprise",
+"stack": 1
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8952": {
+"costs": {
+"6": 3600
+},
+"name": "Roasted Quail",
+"stack": 5
 }
 }
 },
@@ -17231,6 +19696,44 @@
 }
 }
 },
+"267331": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Vartha Rockmane",
+"positions": [
+{
+"mapX": 0.4433,
+"mapY": 0.7828,
+"uiMap": 1412
+}
+],
+"repairs": false,
+"sells": {
+"277115": {
+"costs": {
+"5": 25
+},
+"name": "Apprentice's Mining Pack",
+"stack": 1
+},
+"2901": {
+"costs": {
+"5": 10
+},
+"name": "Mining Pick",
+"stack": 1
+},
+"5956": {
+"costs": {
+"5": 18
+},
+"name": "Blacksmith Hammer",
+"stack": 1
+}
+}
+},
 "267333": {
 "builds": [
 "1.60.1.70790"
@@ -17379,14 +19882,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-16",
 "name": "Mayhoa Skyhoof",
 "positions": [
 {
-"mapX": 0.6579,
-"mapY": 0.3992,
+"mapX": 0.7003,
+"mapY": 0.3594,
 "uiMap": 1454
 }
 ],
@@ -17488,12 +19992,12 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Barkeep Hann",
 "positions": [
 {
-"mapX": 0.7386,
-"mapY": 0.4405,
+"mapX": 0.739,
+"mapY": 0.4422,
 "uiMap": 1431
 }
 ],
@@ -18340,14 +20844,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-11",
+"lastSeen": "2026-11-17",
 "name": "Innkeeper Farley",
 "positions": [
 {
-"mapX": 0.4379,
-"mapY": 0.659,
+"mapX": 0.4376,
+"mapY": 0.6594,
 "uiMap": 1429
 }
 ],
@@ -19922,6 +22427,333 @@
 },
 "name": "Solid Shot",
 "stack": 200
+}
+}
+},
+"3072": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Kawnie Softbreeze",
+"positions": [
+{
+"mapX": 0.4474,
+"mapY": 0.7703,
+"uiMap": 1412
+}
+],
+"repairs": false,
+"sells": {
+"159": {
+"costs": {
+"5": 25
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"2512": {
+"costs": {
+"5": 10
+},
+"name": "Rough Arrow",
+"stack": 200
+},
+"2516": {
+"costs": {
+"5": 10
+},
+"name": "Light Shot",
+"stack": 200
+},
+"277113": {
+"costs": {
+"5": 25
+},
+"name": "Apprentice's Herb Pouch",
+"stack": 1
+},
+"277114": {
+"costs": {
+"5": 25
+},
+"name": "Apprentice's Skinning Satchel",
+"stack": 1
+},
+"277115": {
+"costs": {
+"5": 25
+},
+"name": "Apprentice's Mining Pack",
+"stack": 1
+},
+"2901": {
+"costs": {
+"5": 10
+},
+"name": "Mining Pick",
+"stack": 1
+},
+"2947": {
+"costs": {
+"5": 42
+},
+"name": "Small Throwing Knife",
+"stack": 1
+},
+"3111": {
+"costs": {
+"5": 42
+},
+"name": "Crude Throwing Axe",
+"stack": 1
+},
+"4540": {
+"costs": {
+"5": 25
+},
+"name": "Tough Hunk of Bread",
+"stack": 5
+},
+"7005": {
+"costs": {
+"5": 10
+},
+"name": "Skinning Knife",
+"stack": 1
+}
+}
+},
+"3074": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Varia Hardhide",
+"positions": [
+{
+"mapX": 0.4393,
+"mapY": 0.7769,
+"uiMap": 1412
+}
+],
+"repairs": true,
+"sells": {
+"1835": {
+"costs": {
+"5": 31
+},
+"name": "Dirty Leather Belt",
+"stack": 1
+},
+"1836": {
+"costs": {
+"5": 31
+},
+"name": "Dirty Leather Bracers",
+"stack": 1
+},
+"209": {
+"costs": {
+"5": 60
+},
+"name": "Dirty Leather Pants",
+"stack": 1
+},
+"210": {
+"costs": {
+"5": 45
+},
+"name": "Dirty Leather Boots",
+"stack": 1
+},
+"714": {
+"costs": {
+"5": 32
+},
+"name": "Dirty Leather Gloves",
+"stack": 1
+},
+"85": {
+"costs": {
+"5": 62
+},
+"name": "Dirty Leather Vest",
+"stack": 1
+}
+}
+},
+"3075": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Bronk Steelrage",
+"positions": [
+{
+"mapX": 0.4398,
+"mapY": 0.7779,
+"uiMap": 1412
+}
+],
+"repairs": true,
+"sells": {
+"1200": {
+"costs": {
+"5": 82
+},
+"name": "Large Wooden Shield",
+"stack": 1
+},
+"17183": {
+"costs": {
+"5": 34
+},
+"name": "Dented Buckler",
+"stack": 1
+},
+"2386": {
+"costs": {
+"5": 77
+},
+"name": "Rusted Chain Vest",
+"stack": 1
+},
+"2387": {
+"costs": {
+"5": 38
+},
+"name": "Rusted Chain Belt",
+"stack": 1
+},
+"2388": {
+"costs": {
+"5": 77
+},
+"name": "Rusted Chain Leggings",
+"stack": 1
+},
+"2389": {
+"costs": {
+"5": 59
+},
+"name": "Rusted Chain Boots",
+"stack": 1
+},
+"2390": {
+"costs": {
+"5": 38
+},
+"name": "Rusted Chain Bracers",
+"stack": 1
+},
+"2391": {
+"costs": {
+"5": 38
+},
+"name": "Rusted Chain Gloves",
+"stack": 1
+}
+}
+},
+"3076": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Moorat Longstride",
+"positions": [
+{
+"mapX": 0.4532,
+"mapY": 0.6136,
+"uiMap": 1412
+}
+],
+"repairs": false,
+"sells": {
+"159": {
+"costs": {
+"5": 25
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"2512": {
+"costs": {
+"5": 10
+},
+"name": "Rough Arrow",
+"stack": 200
+},
+"2516": {
+"costs": {
+"5": 10
+},
+"name": "Light Shot",
+"stack": 200
+},
+"2946": {
+"costs": {
+"5": 299
+},
+"name": "Balanced Throwing Dagger",
+"stack": 1
+},
+"2947": {
+"costs": {
+"5": 42
+},
+"name": "Small Throwing Knife",
+"stack": 1
+},
+"3111": {
+"costs": {
+"5": 42
+},
+"name": "Crude Throwing Axe",
+"stack": 1
+},
+"3131": {
+"costs": {
+"5": 299
+},
+"name": "Weighted Throwing Axe",
+"stack": 1
+},
+"4470": {
+"costs": {
+"5": 38
+},
+"name": "Simple Wood",
+"stack": 1
+},
+"4471": {
+"costs": {
+"5": 135
+},
+"name": "Flint and Tinder",
+"stack": 1
+},
+"4496": {
+"costs": {
+"5": 500
+},
+"name": "Small Brown Pouch",
+"stack": 1
+},
+"4498": {
+"costs": {
+"5": 2500
+},
+"name": "Brown Leather Satchel",
+"stack": 1
+},
+"5042": {
+"costs": {
+"5": 50
+},
+"name": "Red Ribboned Wrapping Paper",
+"stack": 1
 }
 }
 },
@@ -22621,12 +25453,17 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "Kaja",
 "positions": [
 {
-"mapX": 0.5217,
-"mapY": 0.6251,
+"mapX": 0.5226,
+"mapY": 0.628,
+"uiMap": 1454
+},
+{
+"mapX": 0.521,
+"mapY": 0.6232,
 "uiMap": 1454
 }
 ],
@@ -23608,14 +26445,15 @@
 "3364": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-16",
 "name": "Borya",
 "positions": [
 {
-"mapX": 0.6291,
-"mapY": 0.5123,
+"mapX": 0.6312,
+"mapY": 0.5118,
 "uiMap": 1454
 }
 ],
@@ -23829,12 +26667,17 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-16",
 "name": "Tamar",
 "positions": [
 {
 "mapX": 0.6284,
 "mapY": 0.4546,
+"uiMap": 1454
+},
+{
+"mapX": 0.6317,
+"mapY": 0.4525,
 "uiMap": 1454
 }
 ],
@@ -24309,14 +27152,15 @@
 "3368": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Borstan",
 "positions": [
 {
-"mapX": 0.5746,
-"mapY": 0.5363,
+"mapX": 0.5726,
+"mapY": 0.5359,
 "uiMap": 1454
 }
 ],
@@ -24378,12 +27222,12 @@
 "1.60.1.70862",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Xen'to",
 "positions": [
 {
-"mapX": 0.5761,
-"mapY": 0.5313,
+"mapX": 0.5749,
+"mapY": 0.532,
 "uiMap": 1454
 }
 ],
@@ -24484,6 +27328,205 @@
 },
 "name": "Shiny Red Apple",
 "stack": 5
+}
+}
+},
+"3409": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Zendo'jian",
+"positions": [
+{
+"mapX": 0.8124,
+"mapY": 0.1904,
+"uiMap": 1454
+}
+],
+"repairs": true,
+"sells": {
+"11362": {
+"costs": {
+"5": 1000
+},
+"name": "Medium Quiver",
+"stack": 1
+},
+"1196": {
+"costs": {
+"5": 2214
+},
+"name": "Tabar",
+"stack": 1
+},
+"15326": {
+"costs": {
+"5": 24811
+},
+"name": "Gleaming Throwing Axe",
+"stack": 1
+},
+"15327": {
+"costs": {
+"5": 24811
+},
+"name": "Wicked Throwing Dagger",
+"stack": 1
+},
+"2025": {
+"costs": {
+"5": 5304
+},
+"name": "Bearded Axe",
+"stack": 1
+},
+"2029": {
+"costs": {
+"5": 4419
+},
+"name": "Cleaver",
+"stack": 1
+},
+"2030": {
+"costs": {
+"5": 5544
+},
+"name": "Gnarled Staff",
+"stack": 1
+},
+"2495": {
+"costs": {
+"5": 504
+},
+"name": "Walking Stick",
+"stack": 1
+},
+"2507": {
+"costs": {
+"5": 1751
+},
+"name": "Laminated Recurve Bow",
+"stack": 1
+},
+"2512": {
+"costs": {
+"5": 10
+},
+"name": "Rough Arrow",
+"stack": 200
+},
+"2515": {
+"costs": {
+"5": 50
+},
+"name": "Sharp Arrow",
+"stack": 200
+},
+"2946": {
+"costs": {
+"5": 299
+},
+"name": "Balanced Throwing Dagger",
+"stack": 1
+},
+"2947": {
+"costs": {
+"5": 42
+},
+"name": "Small Throwing Knife",
+"stack": 1
+},
+"3026": {
+"costs": {
+"5": 3812
+},
+"name": "Reinforced Bow",
+"stack": 1
+},
+"3107": {
+"costs": {
+"5": 1830
+},
+"name": "Keen Throwing Knife",
+"stack": 1
+},
+"3108": {
+"costs": {
+"5": 7593
+},
+"name": "Heavy Throwing Dagger",
+"stack": 1
+},
+"3111": {
+"costs": {
+"5": 42
+},
+"name": "Crude Throwing Axe",
+"stack": 1
+},
+"3131": {
+"costs": {
+"5": 299
+},
+"name": "Weighted Throwing Axe",
+"stack": 1
+},
+"3135": {
+"costs": {
+"5": 1830
+},
+"name": "Sharp Throwing Axe",
+"stack": 1
+},
+"3137": {
+"costs": {
+"5": 7593
+},
+"name": "Deadly Throwing Axe",
+"stack": 1
+},
+"5439": {
+"costs": {
+"5": 100
+},
+"name": "Small Quiver",
+"stack": 1
+},
+"853": {
+"costs": {
+"5": 2409
+},
+"name": "Hatchet",
+"stack": 1
+},
+"854": {
+"costs": {
+"5": 3022
+},
+"name": "Quarter Staff",
+"stack": 1
+},
+"926": {
+"costs": {
+"5": 9784
+},
+"name": "Battle Axe",
+"stack": 1
+},
+"927": {
+"costs": {
+"5": 6953
+},
+"name": "Double Axe",
+"stack": 1
+},
+"928": {
+"costs": {
+"5": 9860
+},
+"name": "Long Staff",
+"stack": 1
 }
 }
 },
@@ -24591,14 +27634,15 @@
 "3413": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-15",
 "name": "Sovik",
 "positions": [
 {
-"mapX": 0.7575,
-"mapY": 0.253,
+"mapX": 0.7561,
+"mapY": 0.2525,
 "uiMap": 1454
 }
 ],
@@ -24659,6 +27703,24 @@
 },
 "name": "Strong Flux",
 "stack": 1
+},
+"4357": {
+"costs": {
+"5": 16
+},
+"limited": true,
+"name": "Rough Blasting Powder",
+"stack": 1,
+"stockMax": 3
+},
+"4361": {
+"costs": {
+"5": 480
+},
+"limited": true,
+"name": "Copper Tube",
+"stack": 1,
+"stockMax": 2
 },
 "4363": {
 "costs": {
@@ -26715,14 +29777,15 @@
 "1.60.1.70334",
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-16",
 "name": "Zixil",
 "positions": [
 {
-"mapX": 0.5556,
-"mapY": 0.3482,
+"mapX": 0.5577,
+"mapY": 0.2496,
 "uiMap": 1424
 }
 ],
@@ -29143,14 +32206,15 @@
 },
 "3935": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-17",
 "name": "Toddrick",
 "positions": [
 {
-"mapX": 0.4428,
-"mapY": 0.66,
+"mapX": 0.442,
+"mapY": 0.6598,
 "uiMap": 1429
 }
 ],
@@ -29158,44 +32222,207 @@
 "sells": {
 "117": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Tough Jerky",
 "stack": 5
 },
 "2287": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Haunch of Meat",
 "stack": 5
 },
 "3770": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Mutton Chop",
 "stack": 5
 },
 "3771": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Wild Hog Shank",
 "stack": 5
 },
 "4599": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Cured Ham Steak",
 "stack": 5
 },
 "8952": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Roasted Quail",
+"stack": 5
+}
+}
+},
+"3961": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Maliynn",
+"positions": [
+{
+"mapX": 0.366,
+"mapY": 0.4991,
+"uiMap": 1440
+}
+],
+"repairs": false,
+"sells": {
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"16166": {
+"costs": {
+"6": 23
+},
+"name": "Bean Soup",
+"stack": 5
+},
+"16167": {
+"costs": {
+"6": 113
+},
+"name": "Versicolor Treat",
+"stack": 5
+},
+"16168": {
+"costs": {
+"6": 1800
+},
+"name": "Heaven Peach",
+"stack": 5
+},
+"16169": {
+"costs": {
+"6": 900
+},
+"name": "Wild Ricecake",
+"stack": 5
+},
+"16170": {
+"costs": {
+"6": 450
+},
+"name": "Steamed Mandu",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"21030": {
+"costs": {
+"6": 1800
+},
+"name": "Darnassus Kimchi Pie",
+"stack": 5
+},
+"21031": {
+"costs": {
+"6": 3600
+},
+"name": "Cabbage Kimchi",
+"stack": 5
+},
+"21033": {
+"costs": {
+"6": 3600
+},
+"name": "Radish Kimchi",
+"stack": 5
+},
+"4536": {
+"costs": {
+"6": 23
+},
+"name": "Shiny Red Apple",
+"stack": 5
+},
+"4537": {
+"costs": {
+"6": 113
+},
+"name": "Tel'Abim Banana",
+"stack": 5
+},
+"4538": {
+"costs": {
+"6": 450
+},
+"name": "Snapvine Watermelon",
+"stack": 5
+},
+"4539": {
+"costs": {
+"6": 900
+},
+"name": "Goldenbark Apple",
+"stack": 5
+},
+"4602": {
+"costs": {
+"6": 1800
+},
+"name": "Moon Harvest Pumpkin",
+"stack": 5
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8953": {
+"costs": {
+"6": 3600
+},
+"name": "Deep Fried Plantains",
 "stack": 5
 }
 }
@@ -30567,12 +33794,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Ronald Burch",
 "positions": [
 {
-"mapX": 0.6262,
-"mapY": 0.4342,
+"mapX": 0.6225,
+"mapY": 0.4373,
 "uiMap": 1458
 }
 ],
@@ -31200,6 +34427,425 @@
 "6": 454
 },
 "name": "Walking Stick",
+"stack": 1
+}
+}
+},
+"4557": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Louis Warren",
+"positions": [
+{
+"mapX": 0.6138,
+"mapY": 0.4115,
+"uiMap": 1458
+}
+],
+"repairs": true,
+"sells": {
+"1196": {
+"costs": {
+"6": 1993
+},
+"name": "Tabar",
+"stack": 1
+},
+"1197": {
+"costs": {
+"6": 2400
+},
+"name": "Giant Mace",
+"stack": 1
+},
+"1198": {
+"costs": {
+"6": 2409
+},
+"name": "Claymore",
+"stack": 1
+},
+"2024": {
+"costs": {
+"6": 5471
+},
+"name": "Espadon",
+"stack": 1
+},
+"2025": {
+"costs": {
+"6": 4774
+},
+"name": "Bearded Axe",
+"stack": 1
+},
+"2026": {
+"costs": {
+"6": 5658
+},
+"name": "Rock Hammer",
+"stack": 1
+},
+"2027": {
+"costs": {
+"6": 3434
+},
+"name": "Scimitar",
+"stack": 1
+},
+"2028": {
+"costs": {
+"6": 4559
+},
+"name": "Hammer",
+"stack": 1
+},
+"2029": {
+"costs": {
+"6": 3978
+},
+"name": "Cleaver",
+"stack": 1
+},
+"2030": {
+"costs": {
+"6": 4990
+},
+"name": "Gnarled Staff",
+"stack": 1
+},
+"2207": {
+"costs": {
+"6": 2151
+},
+"name": "Jambiya",
+"stack": 1
+},
+"2208": {
+"costs": {
+"6": 3285
+},
+"name": "Poniard",
+"stack": 1
+},
+"851": {
+"costs": {
+"6": 1821
+},
+"name": "Cutlass",
+"stack": 1
+},
+"852": {
+"costs": {
+"6": 1566
+},
+"name": "Mace",
+"stack": 1
+},
+"853": {
+"costs": {
+"6": 2169
+},
+"name": "Hatchet",
+"stack": 1
+},
+"854": {
+"costs": {
+"6": 2720
+},
+"name": "Quarter Staff",
+"stack": 1
+}
+}
+},
+"4558": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Lauren Newcomb",
+"positions": [
+{
+"mapX": 0.6417,
+"mapY": 0.3772,
+"uiMap": 1458
+}
+],
+"repairs": true,
+"sells": {
+"16059": {
+"costs": {
+"6": 360
+},
+"name": "Common Brown Shirt",
+"stack": 1
+},
+"16060": {
+"costs": {
+"6": 360
+},
+"name": "Common White Shirt",
+"stack": 1
+},
+"1835": {
+"costs": {
+"6": 28
+},
+"name": "Dirty Leather Belt",
+"stack": 1
+},
+"1836": {
+"costs": {
+"6": 28
+},
+"name": "Dirty Leather Bracers",
+"stack": 1
+},
+"1843": {
+"costs": {
+"6": 653
+},
+"name": "Tanned Leather Belt",
+"stack": 1
+},
+"1844": {
+"costs": {
+"6": 656
+},
+"name": "Tanned Leather Bracers",
+"stack": 1
+},
+"193": {
+"costs": {
+"6": 44
+},
+"name": "Tattered Cloth Vest",
+"stack": 1
+},
+"194": {
+"costs": {
+"6": 45
+},
+"name": "Tattered Cloth Pants",
+"stack": 1
+},
+"195": {
+"costs": {
+"6": 33
+},
+"name": "Tattered Cloth Boots",
+"stack": 1
+},
+"209": {
+"costs": {
+"6": 54
+},
+"name": "Dirty Leather Pants",
+"stack": 1
+},
+"210": {
+"costs": {
+"6": 41
+},
+"name": "Dirty Leather Boots",
+"stack": 1
+},
+"2364": {
+"costs": {
+"6": 267
+},
+"name": "Woven Vest",
+"stack": 1
+},
+"2366": {
+"costs": {
+"6": 269
+},
+"name": "Woven Pants",
+"stack": 1
+},
+"2367": {
+"costs": {
+"6": 201
+},
+"name": "Woven Boots",
+"stack": 1
+},
+"2369": {
+"costs": {
+"6": 135
+},
+"name": "Woven Gloves",
+"stack": 1
+},
+"2370": {
+"costs": {
+"6": 340
+},
+"name": "Battered Leather Harness",
+"stack": 1
+},
+"2371": {
+"costs": {
+"6": 171
+},
+"name": "Battered Leather Belt",
+"stack": 1
+},
+"2372": {
+"costs": {
+"6": 309
+},
+"name": "Battered Leather Pants",
+"stack": 1
+},
+"2373": {
+"costs": {
+"6": 234
+},
+"name": "Battered Leather Boots",
+"stack": 1
+},
+"2374": {
+"costs": {
+"6": 156
+},
+"name": "Battered Leather Bracers",
+"stack": 1
+},
+"2375": {
+"costs": {
+"6": 156
+},
+"name": "Battered Leather Gloves",
+"stack": 1
+},
+"3428": {
+"costs": {
+"6": 360
+},
+"name": "Common Gray Shirt",
+"stack": 1
+},
+"3589": {
+"costs": {
+"6": 519
+},
+"name": "Heavy Weave Belt",
+"stack": 1
+},
+"3590": {
+"costs": {
+"6": 521
+},
+"name": "Heavy Weave Bracers",
+"stack": 1
+},
+"3595": {
+"costs": {
+"6": 21
+},
+"name": "Tattered Cloth Belt",
+"stack": 1
+},
+"3596": {
+"costs": {
+"6": 21
+},
+"name": "Tattered Cloth Bracers",
+"stack": 1
+},
+"3606": {
+"costs": {
+"6": 133
+},
+"name": "Woven Belt",
+"stack": 1
+},
+"3607": {
+"costs": {
+"6": 134
+},
+"name": "Woven Bracers",
+"stack": 1
+},
+"711": {
+"costs": {
+"6": 23
+},
+"name": "Tattered Cloth Gloves",
+"stack": 1
+},
+"714": {
+"costs": {
+"6": 29
+},
+"name": "Dirty Leather Gloves",
+"stack": 1
+},
+"837": {
+"costs": {
+"6": 1012
+},
+"name": "Heavy Weave Armor",
+"stack": 1
+},
+"838": {
+"costs": {
+"6": 1016
+},
+"name": "Heavy Weave Pants",
+"stack": 1
+},
+"839": {
+"costs": {
+"6": 510
+},
+"name": "Heavy Weave Gloves",
+"stack": 1
+},
+"840": {
+"costs": {
+"6": 768
+},
+"name": "Heavy Weave Shoes",
+"stack": 1
+},
+"843": {
+"costs": {
+"6": 970
+},
+"name": "Tanned Leather Boots",
+"stack": 1
+},
+"844": {
+"costs": {
+"6": 648
+},
+"name": "Tanned Leather Gloves",
+"stack": 1
+},
+"845": {
+"costs": {
+"6": 1303
+},
+"name": "Tanned Leather Pants",
+"stack": 1
+},
+"846": {
+"costs": {
+"6": 1307
+},
+"name": "Tanned Leather Jerkin",
+"stack": 1
+},
+"85": {
+"costs": {
+"6": 56
+},
+"name": "Dirty Leather Vest",
 "stack": 1
 }
 }
@@ -32089,14 +35735,15 @@
 "builds": [
 "1.60.1.70450",
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Millie Gregorian",
 "positions": [
 {
-"mapX": 0.7016,
-"mapY": 0.2999,
+"mapX": 0.7026,
+"mapY": 0.3006,
 "uiMap": 1458
 }
 ],
@@ -32464,14 +36111,15 @@
 "builds": [
 "1.60.1.70425",
 "1.60.1.70450",
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-15",
 "name": "Joseph Moore",
 "positions": [
 {
-"mapX": 0.7056,
-"mapY": 0.5869,
+"mapX": 0.7041,
+"mapY": 0.5896,
 "uiMap": 1458
 }
 ],
@@ -32866,14 +36514,15 @@
 },
 "4615": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-16",
 "name": "Katrina Alliestar",
 "positions": [
 {
-"mapX": 0.5467,
-"mapY": 0.4966,
+"mapX": 0.5486,
+"mapY": 0.4954,
 "uiMap": 1458
 }
 ],
@@ -32881,28 +36530,32 @@
 "sells": {
 "22250": {
 "costs": {
-"4": 1000
+"4": 1000,
+"6": 900
 },
 "name": "Herb Pouch",
 "stack": 1
 },
 "3371": {
 "costs": {
-"4": 20
+"4": 20,
+"6": 18
 },
 "name": "Empty Vial",
 "stack": 5
 },
 "3372": {
 "costs": {
-"4": 200
+"4": 200,
+"6": 180
 },
 "name": "Leaded Vial",
 "stack": 5
 },
 "8925": {
 "costs": {
-"4": 2500
+"4": 2500,
+"6": 2250
 },
 "name": "Crystal Vial",
 "stack": 5
@@ -34158,7 +37811,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Quartermaster Lewis",
 "positions": [
 {
@@ -34598,7 +38251,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-16",
 "name": "Kaita Deepforge",
 "positions": [
 {
@@ -34709,12 +38362,12 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-16",
 "name": "Billibub Cogspinner",
 "positions": [
 {
-"mapX": 0.6232,
-"mapY": 0.3023,
+"mapX": 0.6236,
+"mapY": 0.3024,
 "uiMap": 1453
 }
 ],
@@ -34762,7 +38415,7 @@
 "limited": true,
 "name": "Rough Blasting Powder",
 "stack": 1,
-"stockMax": 2
+"stockMax": 4
 },
 "4361": {
 "costs": {
@@ -34771,7 +38424,7 @@
 "limited": true,
 "name": "Copper Tube",
 "stack": 1,
-"stockMax": 2
+"stockMax": 1
 },
 "4364": {
 "costs": {
@@ -34797,6 +38450,15 @@
 },
 "limited": true,
 "name": "Bronze Framework",
+"stack": 1,
+"stockMax": 1
+},
+"4389": {
+"costs": {
+"5": 3000
+},
+"limited": true,
+"name": "Gyrochronatom",
 "stack": 1,
 "stockMax": 1
 },
@@ -34838,12 +38500,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-17",
 "name": "Jillian Tanner",
 "positions": [
 {
-"mapX": 0.7173,
-"mapY": 0.6269,
+"mapX": 0.7168,
+"mapY": 0.6278,
 "uiMap": 1453
 }
 ],
@@ -34851,126 +38513,144 @@
 "sells": {
 "10290": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "name": "Pink Dye",
 "stack": 1
 },
 "14341": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "name": "Rune Thread",
 "stack": 1
 },
 "2320": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Coarse Thread",
 "stack": 1
 },
 "2321": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Fine Thread",
 "stack": 1
 },
 "2325": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Black Dye",
 "stack": 1
 },
 "252783": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Pattern: Mystic Medium Armor Kit",
 "stack": 1
 },
 "252784": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Pattern: Forceful Medium Armor Kit",
 "stack": 1
 },
 "2604": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Red Dye",
 "stack": 1
 },
 "2605": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Green Dye",
 "stack": 1
 },
 "4289": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Salt",
 "stack": 1
 },
 "4291": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Silken Thread",
 "stack": 1
 },
 "4340": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "name": "Gray Dye",
 "stack": 1
 },
 "4341": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Yellow Dye",
 "stack": 1
 },
 "4342": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "name": "Purple Dye",
 "stack": 1
 },
 "6260": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Blue Dye",
 "stack": 1
 },
 "6261": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Orange Dye",
 "stack": 1
 },
 "7005": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Skinning Knife",
 "stack": 1
 },
 "8343": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Heavy Silken Thread",
 "stack": 1
@@ -35321,14 +39001,15 @@
 "1.60.1.70374",
 "1.60.1.70425",
 "1.60.1.70450",
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-15",
 "name": "Innkeeper Renee",
 "positions": [
 {
 "mapX": 0.6174,
-"mapY": 0.5214,
+"mapY": 0.521,
 "uiMap": 1420
 }
 ],
@@ -35908,14 +39589,15 @@
 },
 "5812": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-16",
 "name": "Tumi",
 "positions": [
 {
-"mapX": 0.8245,
-"mapY": 0.2349,
+"mapX": 0.825,
+"mapY": 0.235,
 "uiMap": 1454
 }
 ],
@@ -35923,357 +39605,408 @@
 "sells": {
 "17189": {
 "costs": {
-"5": 12043
+"5": 12043,
+"6": 10839
 },
 "name": "Metal Buckler",
 "stack": 1
 },
 "17190": {
 "costs": {
-"5": 34609
+"5": 34609,
+"6": 31149
 },
 "name": "Ornate Buckler",
 "stack": 1
 },
 "17192": {
 "costs": {
-"5": 4399
+"5": 4399,
+"6": 3960
 },
 "name": "Reinforced Targe",
 "stack": 1
 },
 "1845": {
 "costs": {
-"5": 877
+"5": 877,
+"6": 790
 },
 "name": "Chainmail Belt",
 "stack": 1
 },
 "1846": {
 "costs": {
-"5": 880
+"5": 880,
+"6": 792
 },
 "name": "Chainmail Bracers",
 "stack": 1
 },
 "1852": {
 "costs": {
-"5": 1684
+"5": 1684,
+"6": 1516
 },
 "name": "Scalemail Bracers",
 "stack": 1
 },
 "1853": {
 "costs": {
-"5": 1690
+"5": 1690,
+"6": 1521
 },
 "name": "Scalemail Belt",
 "stack": 1
 },
 "2148": {
 "costs": {
-"5": 2907
+"5": 2907,
+"6": 2617
 },
 "name": "Polished Scale Belt",
 "stack": 1
 },
 "2149": {
 "costs": {
-"5": 4397
+"5": 4397,
+"6": 3958
 },
 "name": "Polished Scale Boots",
 "stack": 1
 },
 "2150": {
 "costs": {
-"5": 2930
+"5": 2930,
+"6": 2637
 },
 "name": "Polished Scale Bracers",
 "stack": 1
 },
 "2151": {
 "costs": {
-"5": 2941
+"5": 2941,
+"6": 2647
 },
 "name": "Polished Scale Gloves",
 "stack": 1
 },
 "2152": {
 "costs": {
-"5": 5906
+"5": 5906,
+"6": 5316
 },
 "name": "Polished Scale Leggings",
 "stack": 1
 },
 "2153": {
 "costs": {
-"5": 5927
+"5": 5927,
+"6": 5335
 },
 "name": "Polished Scale Vest",
 "stack": 1
 },
 "2392": {
 "costs": {
-"5": 413
+"5": 413,
+"6": 372
 },
 "name": "Light Mail Armor",
 "stack": 1
 },
 "2393": {
 "costs": {
-"5": 206
+"5": 206,
+"6": 186
 },
 "name": "Light Mail Belt",
 "stack": 1
 },
 "2394": {
 "costs": {
-"5": 416
+"5": 416,
+"6": 375
 },
 "name": "Light Mail Leggings",
 "stack": 1
 },
 "2395": {
 "costs": {
-"5": 322
+"5": 322,
+"6": 290
 },
 "name": "Light Mail Boots",
 "stack": 1
 },
 "2396": {
 "costs": {
-"5": 215
+"5": 215,
+"6": 194
 },
 "name": "Light Mail Bracers",
 "stack": 1
 },
 "2397": {
 "costs": {
-"5": 215
+"5": 215,
+"6": 194
 },
 "name": "Light Mail Gloves",
 "stack": 1
 },
 "2417": {
 "costs": {
-"5": 15673
+"5": 15673,
+"6": 14106
 },
 "name": "Augmented Chain Vest",
 "stack": 1
 },
 "2418": {
 "costs": {
-"5": 15731
+"5": 15731,
+"6": 14158
 },
 "name": "Augmented Chain Leggings",
 "stack": 1
 },
 "2419": {
 "costs": {
-"5": 7894
+"5": 7894,
+"6": 7105
 },
 "name": "Augmented Chain Belt",
 "stack": 1
 },
 "2420": {
 "costs": {
-"5": 11937
+"5": 11937,
+"6": 10744
 },
 "name": "Augmented Chain Boots",
 "stack": 1
 },
 "2421": {
 "costs": {
-"5": 7952
+"5": 7952,
+"6": 7157
 },
 "name": "Augmented Chain Bracers",
 "stack": 1
 },
 "2422": {
 "costs": {
-"5": 7981
+"5": 7981,
+"6": 7183
 },
 "name": "Augmented Chain Gloves",
 "stack": 1
 },
 "2423": {
 "costs": {
-"5": 42770
+"5": 42770,
+"6": 38493
 },
 "name": "Brigandine Vest",
 "stack": 1
 },
 "2424": {
 "costs": {
-"5": 21461
+"5": 21461,
+"6": 19315
 },
 "name": "Brigandine Belt",
 "stack": 1
 },
 "2425": {
 "costs": {
-"5": 43077
+"5": 43077,
+"6": 38770
 },
 "name": "Brigandine Leggings",
 "stack": 1
 },
 "2426": {
 "costs": {
-"5": 32568
+"5": 32568,
+"6": 29312
 },
 "name": "Brigandine Boots",
 "stack": 1
 },
 "2427": {
 "costs": {
-"5": 20146
+"5": 20146,
+"6": 18132
 },
 "name": "Brigandine Bracers",
 "stack": 1
 },
 "2428": {
 "costs": {
-"5": 20222
+"5": 20222,
+"6": 18200
 },
 "name": "Brigandine Gloves",
 "stack": 1
 },
 "2446": {
 "costs": {
-"5": 6182
+"5": 6182,
+"6": 5564
 },
 "name": "Kite Shield",
 "stack": 1
 },
 "2448": {
 "costs": {
-"5": 16158
+"5": 16158,
+"6": 14543
 },
 "name": "Heavy Pavise",
 "stack": 1
 },
 "2451": {
 "costs": {
-"5": 43629
+"5": 43629,
+"6": 39267
 },
 "name": "Crested Heater Shield",
 "stack": 1
 },
 "285": {
 "costs": {
-"5": 3555
+"5": 3555,
+"6": 3200
 },
 "name": "Scalemail Vest",
 "stack": 1
 },
 "286": {
 "costs": {
-"5": 3229
+"5": 3229,
+"6": 2907
 },
 "name": "Scalemail Pants",
 "stack": 1
 },
 "287": {
 "costs": {
-"5": 2441
+"5": 2441,
+"6": 2197
 },
 "name": "Scalemail Boots",
 "stack": 1
 },
 "3891": {
 "costs": {
-"5": 12284
+"5": 12284,
+"6": 11056
 },
 "name": "Augmented Chain Helm",
 "stack": 1
 },
 "3894": {
 "costs": {
-"5": 29986
+"5": 29986,
+"6": 26988
 },
 "name": "Brigandine Helm",
 "stack": 1
 },
 "718": {
 "costs": {
-"5": 1614
+"5": 1614,
+"6": 1453
 },
 "name": "Scalemail Gloves",
 "stack": 1
 },
 "8088": {
 "costs": {
-"5": 13335
+"5": 13335,
+"6": 12002
 },
 "name": "Platemail Belt",
 "stack": 1
 },
 "8089": {
 "costs": {
-"5": 20081
+"5": 20081,
+"6": 18073
 },
 "name": "Platemail Boots",
 "stack": 1
 },
 "8090": {
 "costs": {
-"5": 13439
+"5": 13439,
+"6": 12096
 },
 "name": "Platemail Bracers",
 "stack": 1
 },
 "8091": {
 "costs": {
-"5": 13489
+"5": 13489,
+"6": 12141
 },
 "name": "Platemail Gloves",
 "stack": 1
 },
 "8092": {
 "costs": {
-"5": 20312
+"5": 20312,
+"6": 18281
 },
 "name": "Platemail Helm",
 "stack": 1
 },
 "8093": {
 "costs": {
-"5": 27186
+"5": 27186,
+"6": 24468
 },
 "name": "Platemail Leggings",
 "stack": 1
 },
 "8094": {
 "costs": {
-"5": 27290
+"5": 27290,
+"6": 24561
 },
 "name": "Platemail Armor",
 "stack": 1
 },
 "847": {
 "costs": {
-"5": 1749
+"5": 1749,
+"6": 1575
 },
 "name": "Chainmail Armor",
 "stack": 1
 },
 "848": {
 "costs": {
-"5": 1755
+"5": 1755,
+"6": 1580
 },
 "name": "Chainmail Pants",
 "stack": 1
 },
 "849": {
 "costs": {
-"5": 1326
+"5": 1326,
+"6": 1194
 },
 "name": "Chainmail Boots",
 "stack": 1
 },
 "850": {
 "costs": {
-"5": 883
+"5": 883,
+"6": 795
 },
 "name": "Chainmail Gloves",
 "stack": 1
@@ -38122,14 +41855,15 @@
 },
 "5940": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-15",
 "name": "Harn Longcast",
 "positions": [
 {
-"mapX": 0.467,
-"mapY": 0.5922,
+"mapX": 0.4675,
+"mapY": 0.5913,
 "uiMap": 1412
 }
 ],
@@ -38703,19 +42437,15 @@
 },
 "6028": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-16",
 "name": "Burkrum",
 "positions": [
 {
-"mapX": 0.7353,
-"mapY": 0.6042,
-"uiMap": 1440
-},
-{
-"mapX": 0.7358,
-"mapY": 0.6032,
+"mapX": 0.7352,
+"mapY": 0.6038,
 "uiMap": 1440
 }
 ],
@@ -39340,12 +43070,155 @@
 }
 }
 },
+"6574": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Jun'ha",
+"positions": [
+{
+"mapX": 0.7275,
+"mapY": 0.3654,
+"uiMap": 1417
+}
+],
+"repairs": false,
+"sells": {
+"10290": {
+"costs": {
+"5": 2500
+},
+"name": "Pink Dye",
+"stack": 1
+},
+"14341": {
+"costs": {
+"5": 5000
+},
+"name": "Rune Thread",
+"stack": 1
+},
+"2320": {
+"costs": {
+"5": 10
+},
+"name": "Coarse Thread",
+"stack": 1
+},
+"2321": {
+"costs": {
+"5": 100
+},
+"name": "Fine Thread",
+"stack": 1
+},
+"2324": {
+"costs": {
+"5": 25
+},
+"name": "Bleach",
+"stack": 1
+},
+"2325": {
+"costs": {
+"5": 1000
+},
+"name": "Black Dye",
+"stack": 1
+},
+"253665": {
+"costs": {
+"5": 150
+},
+"name": "Pattern: Linen Reagent Bag",
+"stack": 1
+},
+"253668": {
+"costs": {
+"5": 250
+},
+"name": "Pattern: Woolen Reagent Bag",
+"stack": 1
+},
+"2604": {
+"costs": {
+"5": 50
+},
+"name": "Red Dye",
+"stack": 1
+},
+"2605": {
+"costs": {
+"5": 100
+},
+"name": "Green Dye",
+"stack": 1
+},
+"4291": {
+"costs": {
+"5": 500
+},
+"name": "Silken Thread",
+"stack": 1
+},
+"4340": {
+"costs": {
+"5": 350
+},
+"name": "Gray Dye",
+"stack": 1
+},
+"4341": {
+"costs": {
+"5": 500
+},
+"name": "Yellow Dye",
+"stack": 1
+},
+"4342": {
+"costs": {
+"5": 2500
+},
+"name": "Purple Dye",
+"stack": 1
+},
+"6260": {
+"costs": {
+"5": 50
+},
+"name": "Blue Dye",
+"stack": 1
+},
+"6261": {
+"costs": {
+"5": 1000
+},
+"name": "Orange Dye",
+"stack": 1
+},
+"7089": {
+"costs": {
+"5": 1500
+},
+"name": "Pattern: Azure Silk Cloak",
+"stack": 1
+},
+"8343": {
+"costs": {
+"5": 2000
+},
+"name": "Heavy Silken Thread",
+"stack": 1
+}
+}
+},
 "66": {
 "builds": [
 "1.60.1.70790",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-17",
 "name": "Tharynn Bouden",
 "positions": [
 {
@@ -39363,147 +43236,168 @@
 "sells": {
 "2320": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Coarse Thread",
 "stack": 1
 },
 "2324": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Bleach",
 "stack": 1
 },
 "2604": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Red Dye",
 "stack": 1
 },
 "2678": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Mild Spices",
 "stack": 5
 },
 "277113": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Herb Pouch",
 "stack": 1
 },
 "277114": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Skinning Satchel",
 "stack": 1
 },
 "277115": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Apprentice's Mining Pack",
 "stack": 1
 },
 "2880": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "name": "Weak Flux",
 "stack": 1
 },
 "2901": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Mining Pick",
 "stack": 1
 },
 "3371": {
 "costs": {
-"5": 20
+"5": 20,
+"6": 18
 },
 "name": "Empty Vial",
 "stack": 5
 },
 "4289": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Salt",
 "stack": 1
 },
 "4536": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Shiny Red Apple",
 "stack": 5
 },
 "5956": {
 "costs": {
-"5": 18
+"5": 18,
+"6": 17
 },
 "name": "Blacksmith Hammer",
 "stack": 1
 },
 "6217": {
 "costs": {
-"5": 124
+"5": 124,
+"6": 112
 },
 "name": "Copper Rod",
 "stack": 1
 },
 "6256": {
 "costs": {
-"5": 23
+"5": 23,
+"6": 21
 },
 "name": "Fishing Pole",
 "stack": 1
 },
 "6260": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Blue Dye",
 "stack": 1
 },
 "6270": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "name": "Pattern: Blue Linen Vest",
 "stack": 1
 },
 "6325": {
 "costs": {
-"5": 40
+"5": 40,
+"6": 36
 },
 "name": "Recipe: Brilliant Smallfish",
 "stack": 1
 },
 "6328": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "name": "Recipe: Longjaw Mud Snapper",
 "stack": 1
 },
 "6529": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "name": "Shiny Bauble",
 "stack": 1
 },
 "7005": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "name": "Skinning Knife",
 "stack": 1
@@ -39771,13 +43665,14 @@
 },
 "6737": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-16",
 "name": "Innkeeper Shaussiy",
 "positions": [
 {
-"mapX": 0.37,
+"mapX": 0.3698,
 "mapY": 0.4411,
 "uiMap": 1439
 }
@@ -39786,84 +43681,96 @@
 "sells": {
 "1179": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Ice Cold Milk",
 "stack": 5
 },
 "1205": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Melon Juice",
 "stack": 5
 },
 "159": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Refreshing Spring Water",
 "stack": 5
 },
 "1645": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Moonberry Juice",
 "stack": 5
 },
 "1708": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Sweet Nectar",
 "stack": 5
 },
 "4540": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Tough Hunk of Bread",
 "stack": 5
 },
 "4541": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Freshly Baked Bread",
 "stack": 5
 },
 "4542": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Moist Cornbread",
 "stack": 5
 },
 "4544": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Mulgore Spice Bread",
 "stack": 5
 },
 "4601": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Soft Banana Bread",
 "stack": 5
 },
 "8766": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Morning Glory Dew",
 "stack": 5
 },
 "8950": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Homemade Cherry Pie",
 "stack": 5
@@ -39995,12 +43902,12 @@
 "1.60.1.70840",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-17",
 "name": "Innkeeper Allison",
 "positions": [
 {
-"mapX": 0.6051,
-"mapY": 0.752,
+"mapX": 0.6041,
+"mapY": 0.7522,
 "uiMap": 1453
 }
 ],
@@ -40008,84 +43915,96 @@
 "sells": {
 "1179": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Ice Cold Milk",
 "stack": 5
 },
 "1205": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Melon Juice",
 "stack": 5
 },
 "159": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Refreshing Spring Water",
 "stack": 5
 },
 "1645": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Moonberry Juice",
 "stack": 5
 },
 "1708": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Sweet Nectar",
 "stack": 5
 },
 "4540": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Tough Hunk of Bread",
 "stack": 5
 },
 "4541": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Freshly Baked Bread",
 "stack": 5
 },
 "4542": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Moist Cornbread",
 "stack": 5
 },
 "4544": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Mulgore Spice Bread",
 "stack": 5
 },
 "4601": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Soft Banana Bread",
 "stack": 5
 },
 "8766": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Morning Glory Dew",
 "stack": 5
 },
 "8950": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Homemade Cherry Pie",
 "stack": 5
@@ -40195,14 +44114,15 @@
 },
 "6746": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-15",
 "name": "Innkeeper Pala",
 "positions": [
 {
-"mapX": 0.4593,
-"mapY": 0.6433,
+"mapX": 0.4582,
+"mapY": 0.6423,
 "uiMap": 1456
 }
 ],
@@ -40399,12 +44319,12 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "Innkeeper Trelayne",
 "positions": [
 {
-"mapX": 0.7393,
-"mapY": 0.4443,
+"mapX": 0.7394,
+"mapY": 0.4447,
 "uiMap": 1431
 }
 ],
@@ -40730,14 +44650,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-15",
 "name": "Innkeeper Gryshka",
 "positions": [
 {
-"mapX": 0.5414,
-"mapY": 0.6866,
+"mapX": 0.5405,
+"mapY": 0.6863,
 "uiMap": 1454
 }
 ],
@@ -40847,7 +44768,7 @@
 "1.60.1.70862",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Kurran Steele",
 "positions": [
 {
@@ -41493,14 +45414,15 @@
 },
 "7854": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-16",
 "name": "Jangdor Swiftstrider",
 "positions": [
 {
-"mapX": 0.7449,
-"mapY": 0.4298,
+"mapX": 0.7451,
+"mapY": 0.4296,
 "uiMap": 1444
 }
 ],
@@ -41768,7 +45690,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-15",
 "name": "Lindsay Ashlock",
 "positions": [
 {
@@ -41919,14 +45841,15 @@
 },
 "8143": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-08",
+"lastSeen": "2026-11-16",
 "name": "Loorana",
 "positions": [
 {
 "mapX": 0.7547,
-"mapY": 0.4382,
+"mapY": 0.4378,
 "uiMap": 1444
 }
 ],
@@ -41934,84 +45857,96 @@
 "sells": {
 "1179": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Ice Cold Milk",
 "stack": 5
 },
 "1205": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Melon Juice",
 "stack": 5
 },
 "159": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Refreshing Spring Water",
 "stack": 5
 },
 "1645": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Moonberry Juice",
 "stack": 5
 },
 "1708": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Sweet Nectar",
 "stack": 5
 },
 "4540": {
 "costs": {
-"5": 25
+"5": 25,
+"6": 23
 },
 "name": "Tough Hunk of Bread",
 "stack": 5
 },
 "4541": {
 "costs": {
-"5": 125
+"5": 125,
+"6": 113
 },
 "name": "Freshly Baked Bread",
 "stack": 5
 },
 "4542": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "name": "Moist Cornbread",
 "stack": 5
 },
 "4544": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "name": "Mulgore Spice Bread",
 "stack": 5
 },
 "4601": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "name": "Soft Banana Bread",
 "stack": 5
 },
 "8766": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Morning Glory Dew",
 "stack": 5
 },
 "8950": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "name": "Homemade Cherry Pie",
 "stack": 5
@@ -43758,12 +47693,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Innkeeper Heather",
 "positions": [
 {
-"mapX": 0.529,
-"mapY": 0.5369,
+"mapX": 0.5284,
+"mapY": 0.537,
 "uiMap": 1436
 }
 ],
@@ -44153,14 +48088,15 @@
 },
 "9501": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-16",
 "name": "Innkeeper Adegwa",
 "positions": [
 {
-"mapX": 0.7382,
-"mapY": 0.3263,
+"mapX": 0.7383,
+"mapY": 0.3264,
 "uiMap": 1417
 }
 ],
@@ -44561,6 +48497,170 @@
 "6": 3600
 },
 "name": "Roasted Quail",
+"stack": 5
+}
+}
+},
+"983": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Thultazor",
+"positions": [
+{
+"mapX": 0.4596,
+"mapY": 0.5297,
+"uiMap": 1435
+}
+],
+"repairs": false,
+"sells": {
+"16583": {
+"costs": {
+"6": 9000
+},
+"name": "Demonic Figurine",
+"stack": 1
+},
+"17020": {
+"costs": {
+"6": 900
+},
+"name": "Arcane Powder",
+"stack": 1
+},
+"17021": {
+"costs": {
+"6": 630
+},
+"name": "Wild Berries",
+"stack": 1
+},
+"17026": {
+"costs": {
+"6": 900
+},
+"name": "Wild Thornroot",
+"stack": 1
+},
+"17028": {
+"costs": {
+"6": 630
+},
+"name": "Holy Candle",
+"stack": 1
+},
+"17029": {
+"costs": {
+"6": 900
+},
+"name": "Sacred Candle",
+"stack": 1
+},
+"17030": {
+"costs": {
+"6": 1800
+},
+"name": "Ankh",
+"stack": 1
+},
+"17031": {
+"costs": {
+"6": 900
+},
+"name": "Rune of Teleportation",
+"stack": 1
+},
+"17032": {
+"costs": {
+"6": 1800
+},
+"name": "Rune of Portals",
+"stack": 1
+},
+"17033": {
+"costs": {
+"6": 1800
+},
+"name": "Symbol of Divinity",
+"stack": 1
+},
+"17034": {
+"costs": {
+"6": 180
+},
+"name": "Maple Seed",
+"stack": 1
+},
+"17035": {
+"costs": {
+"6": 360
+},
+"name": "Stranglethorn Seed",
+"stack": 1
+},
+"17036": {
+"costs": {
+"6": 720
+},
+"name": "Ashwood Seed",
+"stack": 1
+},
+"17037": {
+"costs": {
+"6": 1260
+},
+"name": "Hornbeam Seed",
+"stack": 1
+},
+"17038": {
+"costs": {
+"6": 1800
+},
+"name": "Ironwood Seed",
+"stack": 1
+},
+"18256": {
+"costs": {
+"6": 27000
+},
+"name": "Imbued Vial",
+"stack": 5
+},
+"21177": {
+"costs": {
+"6": 2700
+},
+"name": "Symbol of Kings",
+"stack": 20
+},
+"3371": {
+"costs": {
+"6": 18
+},
+"name": "Empty Vial",
+"stack": 5
+},
+"3372": {
+"costs": {
+"6": 180
+},
+"name": "Leaded Vial",
+"stack": 5
+},
+"5565": {
+"costs": {
+"6": 4500
+},
+"name": "Infernal Stone",
+"stack": 1
+},
+"8925": {
+"costs": {
+"6": 2250
+},
+"name": "Crystal Vial",
 "stack": 5
 }
 }

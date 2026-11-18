@@ -40,7 +40,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from maps import forever_spot  # noqa: E402
 
-BUILD = "1.60.1.70938"
+BUILD = "1.60.1.70959"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "dungeons"
 OUT = ROOT / "jsalUI" / "Dungeons" / "DungeonData.lua"

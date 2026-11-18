@@ -12,6 +12,7 @@
 "1008": "Mosshide Mongrel",
 "10181": "Lady Sylvanas Windrunner",
 "1023": "Mottled Razormaw",
+"10323": "Murkdeep",
 "1034": "Dragonmaw Raider",
 "1037": "Dragonmaw Battlemaster",
 "1040": "Fen Creeper",
@@ -21,9 +22,13 @@
 "1054": "Dark Iron Demolitionist",
 "10556": "Lazy Peon",
 "1057": "Dragonmaw Bonewarder",
+"10605": "Scarlet Medic",
 "10668": "Beaten Corpse",
+"10717": "Temporal Parasite",
 "1084": "Young Sawtooth Crocolisk",
 "1085": "Elder Stranglethorn Tiger",
+"10902": "Andorhal Tower One",
+"10905": "Andorhal Tower Four",
 "1110": "Skeletal Raider",
 "1115": "Rockjaw Skullthumper",
 "1117": "Rockjaw Bonesnapper",
@@ -35,7 +40,12 @@
 "1144": "Mosh'Ogg Witch Doctor",
 "11518": "Jergosh the Invoker",
 "11519": "Bazzalan",
+"11559": "Outcast Necromancer",
 "11561": "Undead Ravager",
+"1157": "Cursed Sailor",
+"1158": "Cursed Marine",
+"1161": "Stonesplinter Trogg",
+"1162": "Stonesplinter Scout",
 "11627": "Tamed Kodo",
 "1163": "Stonesplinter Skullthumper",
 "1164": "Stonesplinter Bonesnapper",
@@ -63,6 +73,7 @@
 "12297": "Cured Gazelle",
 "1236": "Kobold Digger",
 "12423": "Guard Roberts",
+"12427": "Mountaineer Dolf",
 "12428": "Deathguard Kel",
 "12430": "Grunt Kor'ja",
 "12580": "Reginald Windsor",
@@ -100,6 +111,9 @@
 "1755": "Marzon the Silent Blade",
 "1769": "Moonrage Whitescalp",
 "17804": "Squire Rowe",
+"1791": "Slavering Ghoul",
+"1817": "Diseased Wolf",
+"1831": "Scarlet Hunter",
 "185335": "Summoned Incubus",
 "1888": "Dalaran Watcher",
 "1889": "Dalaran Wizard",
@@ -122,6 +136,7 @@
 "212": "Splinter Fist Warrior",
 "212753": "Tortured Soul",
 "213": "Starving Dire Wolf",
+"2152": "Gnarlpine Ambusher",
 "2164": "Rabid Thistle Bear",
 "2167": "Blackwood Pathfinder",
 "2181": "Stormscale Myrmidon",
@@ -141,6 +156,7 @@
 "2287": "Crushridge Warmonger",
 "2304": "Captain Ironhill",
 "2305": "Foreman Bonds",
+"2318": "Argus Shadow Mage",
 "232": "Farmer Ray",
 "2324": "Blackwood Windtalker",
 "2335": "Magistrate Burnside",
@@ -208,10 +224,13 @@
 "253524": "Bristleback Nomad",
 "253525": "Bristleback Thornweaver",
 "253526": "Bristleback Skullcrusher",
+"254283": "Outcast Scout",
+"254284": "Outcast Marauder",
 "254560": "Twilight Shadowmancer",
 "254596": "Al'Aketh Healer",
 "2546": "Fleet Master Firallon",
 "254626": "Al'Aketh Assassin",
+"254797": "Lost One",
 "2548": "Captain Keelhaul",
 "2550": "Captain Stillwater",
 "2554": "Witherbark Axe Thrower",
@@ -275,6 +294,8 @@
 "259434": "Tarnished Drudge",
 "2595": "Daggerspine Raider",
 "2596": "Daggerspine Sorceress",
+"259620": "Lumina Windsinger",
+"259897": "Old Fire-Eye",
 "260042": "Captain Dreadrise",
 "260146": "Sully McCleary",
 "260353": "Saltseer Coroner",
@@ -312,19 +333,24 @@
 "268622": "Encroaching Soldier",
 "268623": "Outraged Pillager",
 "268679": "Brazier of Eternal Flame",
+"268831": "Plains Prowler",
 "2691": "Highvale Outrunner",
 "269175": "Carnivorous Weed",
 "2692": "Highvale Scout",
 "2693": "Highvale Marksman",
 "2694": "Highvale Ranger",
 "270201": "Al'Aketh Brawler",
+"270419": "Credit",
+"270421": "Credit",
 "270573": "Credit",
+"270574": "Credit",
 "270575": "Credit",
 "270667": "Farholde Priest",
 "271346": "Dragonmaw Infiltrator",
 "271348": "Dragonmaw Soulbinder",
 "271351": "Dragonmaw Reclaimer",
 "271961": "Webbed Forsaken",
+"272096": "Befouled Webwood",
 "272450": "Ol' Sandy",
 "275044": "Dragonmaw Warder",
 "275045": "Dragonmaw Saboteur",
@@ -378,6 +404,7 @@
 "3393": "Captain Fairmount",
 "3454": "Cannoneer Smythe",
 "3455": "Cannoneer Whessan",
+"3605": "Nadyia Maneweaver",
 "3636": "Deviate Ravager",
 "3743": "Foulweald Warrior",
 "3746": "Foulweald Den Watcher",
@@ -457,9 +484,13 @@
 "505": "Greater Tarantula",
 "5056": "Deviate Dreadfang",
 "517": "Murloc Oracle",
+"5229": "Gordunni Ogre",
+"5232": "Gordunni Brute",
 "5234": "Gordunni Mauler",
 "5236": "Gordunni Shaman",
+"5237": "Gordunni Ogre Mage",
 "5240": "Gordunni Warlock",
+"5258": "Woodpaw Alpha",
 "531": "Skeletal Fiend",
 "533": "Nightbane Shadow Weaver",
 "5362": "Northspring Harpy",
@@ -469,6 +500,8 @@
 "539": "Pygmy Venom Web Spider",
 "5472": "Dunemaul Enforcer",
 "5474": "Dunemaul Brute",
+"5485": "Thistleshrub Rootshaper",
+"5490": "Gnarled Thistleshrub",
 "5601": "Khan Jehn",
 "5615": "Wastewander Rogue",
 "5616": "Wastewander Thief",
@@ -483,6 +516,7 @@
 "5761": "Deviate Shambler",
 "5771": "Jugkar Grim'rod",
 "5839": "Dark Iron Geologist",
+"5844": "Dark Iron Slaver",
 "5854": "Heavy War Golem",
 "5858": "Searing Lava Spider",
 "589": "Defias Pillager",
@@ -513,14 +547,24 @@
 "7047": "Black Broodling",
 "709": "Mosh'Ogg Warmonger",
 "710": "Mosh'Ogg Spellcrafter",
+"7107": "Jadefire Trickster",
 "7153": "Deadwood Warrior",
+"7154": "Deadwood Gardener",
+"7155": "Deadwood Pathfinder",
+"7157": "Deadwood Avenger",
+"7158": "Deadwood Shaman",
 "7307": "Venture Co. Lookout",
 "7308": "Venture Co. Patroller",
 "7310": "Mutated Venture Co. Drone",
 "735": "Murloc Streamrunner",
 "7358": "Amnennar the Coldbringer",
 "736": "Panther",
+"7445": "Elder Shardtooth",
 "7450": "Ragged Owlbeast",
+"747": "Marsh Murloc",
+"750": "Marsh Inkspewer",
+"751": "Marsh Flesheater",
+"752": "Marsh Oracle",
 "7583": "Sprinkle",
 "767": "Swamp Jaguar",
 "7725": "Grimtotem Raider",
@@ -543,6 +587,7 @@
 "822": "Young Forest Bear",
 "8518": "Rynthariel the Keymaster",
 "858": "Sorrow Spinner",
+"8612": "Screecher Spirit",
 "892": "Splinter Fist Taskmaster",
 "8957": "Angerclaw Grizzly",
 "8961": "Felpaw Ravager",
@@ -555,6 +600,7 @@
 "939": "Kurzen Elite",
 "941": "Kurzen Headshrinker",
 "95": "Defias Smuggler",
+"9518": "Rakaiah",
 "978": "Kurzen Subchief"
 },
 "quests": {
@@ -4598,6 +4644,24 @@
 1.0
 ]
 },
+"1288": {
+"items": [
+6075
+],
+"level": 38,
+"next": 1289,
+"obj": [
+[
+"i",
+6075,
+1
+]
+],
+"xp": [
+1,
+1.0
+]
+},
 "129": {
 "items": [
 5534
@@ -4613,6 +4677,13 @@
 ],
 "xp": [
 3,
+1.0
+]
+},
+"1290": {
+"level": 1,
+"xp": [
+0,
 1.0
 ]
 },
@@ -9628,7 +9699,7 @@
 ]
 ],
 "xp": [
-1,
+0,
 1.0
 ]
 },
@@ -18589,6 +18660,23 @@
 ],
 "xp": [
 5,
+1.0
+]
+},
+"3384": {
+"items": [
+10478
+],
+"level": 55,
+"obj": [
+[
+"i",
+10478,
+1
+]
+],
+"xp": [
+1,
 1.0
 ]
 },
@@ -30396,6 +30484,13 @@
 1.0
 ]
 },
+"5209": {
+"level": 49,
+"xp": [
+0,
+1.0
+]
+},
 "521": {
 "items": [
 3554
@@ -32612,6 +32707,23 @@
 "level": 60,
 "xp": [
 7,
+1.0
+]
+},
+"5507": {
+"items": [
+12844
+],
+"level": 60,
+"obj": [
+[
+"i",
+12844,
+10
+]
+],
+"xp": [
+5,
 1.0
 ]
 },
@@ -35464,6 +35576,23 @@
 1.0
 ]
 },
+"5942": {
+"items": [
+15328
+],
+"level": 60,
+"obj": [
+[
+"i",
+15328,
+1
+]
+],
+"xp": [
+7,
+1.0
+]
+},
 "5943": {
 "level": 38,
 "xp": [
@@ -36936,6 +37065,23 @@
 ],
 "xp": [
 5,
+1.0
+]
+},
+"618": {
+"items": [
+3935
+],
+"level": 50,
+"obj": [
+[
+"i",
+3935,
+1
+]
+],
+"xp": [
+7,
 1.0
 ]
 },
@@ -41564,6 +41710,14 @@
 1.75
 ]
 },
+"7222": {
+"level": 60,
+"next": 7142,
+"xp": [
+1,
+1.0
+]
+},
 "7223": {
 "items": [
 17422
@@ -44222,6 +44376,23 @@
 ],
 "xp": [
 5,
+1.0
+]
+},
+"7738": {
+"items": [
+18972
+],
+"level": 48,
+"obj": [
+[
+"i",
+18972,
+1
+]
+],
+"xp": [
+1,
 1.0
 ]
 },
@@ -47748,6 +47919,24 @@
 1.0
 ]
 },
+"80324": {
+"items": [
+217350
+],
+"level": 40,
+"obj": [
+[
+"i",
+217350,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+8,
+1.0
+]
+},
 "80325": {
 "items": [
 217351
@@ -48240,6 +48429,23 @@
 1.0
 ]
 },
+"8076": {
+"items": [
+19720
+],
+"level": 60,
+"obj": [
+[
+"i",
+19720,
+1
+]
+],
+"xp": [
+5,
+1.0
+]
+},
 "8078": {
 "items": [
 19719
@@ -48367,6 +48573,13 @@
 ],
 "xp": [
 5,
+1.0
+]
+},
+"8114": {
+"level": 60,
+"xp": [
+7,
 1.0
 ]
 },
@@ -50000,6 +50213,23 @@
 1.0
 ]
 },
+"81866": {
+"items": [
+219515
+],
+"level": 52,
+"obj": [
+[
+"i",
+219515,
+10
+]
+],
+"xp": [
+5,
+1.0
+]
+},
 "81867": {
 "items": [
 219517
@@ -51027,6 +51257,41 @@
 ],
 "xp": [
 1,
+1.0
+]
+},
+"82665": {
+"items": [
+217281,
+3855,
+7941,
+7945
+],
+"level": 40,
+"obj": [
+[
+"i",
+217281,
+4
+],
+[
+"i",
+3855,
+4
+],
+[
+"i",
+7941,
+2
+],
+[
+"i",
+7945,
+2
+]
+],
+"xp": [
+5,
 1.0
 ]
 },
@@ -53320,6 +53585,31 @@
 2.0
 ]
 },
+"84164": {
+"items": [
+16680,
+16676
+],
+"level": 60,
+"next": 8929,
+"obj": [
+[
+"i",
+16680,
+1
+],
+[
+"i",
+16676,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+7,
+2.0
+]
+},
 "84165": {
 "items": [
 16685,
@@ -53657,6 +53947,37 @@
 1.95
 ]
 },
+"84188": {
+"items": [
+16675,
+16678,
+16679
+],
+"level": 60,
+"next": 8960,
+"obj": [
+[
+"i",
+16675,
+1
+],
+[
+"i",
+16678,
+1
+],
+[
+"i",
+16679,
+1
+]
+],
+"race": 12261800583900083122,
+"xp": [
+7,
+1.0
+]
+},
 "8419": {
 "items": [
 14256
@@ -53706,6 +54027,37 @@
 1.0
 ]
 },
+"84193": {
+"items": [
+16704,
+16699,
+16701
+],
+"level": 60,
+"next": 8960,
+"obj": [
+[
+"i",
+16704,
+1
+],
+[
+"i",
+16699,
+1
+],
+[
+"i",
+16701,
+1
+]
+],
+"race": 12261800583900083122,
+"xp": [
+7,
+1.0
+]
+},
 "842": {
 "items": [
 4995
@@ -53738,6 +54090,30 @@
 ],
 "xp": [
 4,
+1.0
+]
+},
+"84208": {
+"items": [
+16667,
+16666
+],
+"level": 60,
+"obj": [
+[
+"i",
+16667,
+1
+],
+[
+"i",
+16666,
+1
+]
+],
+"race": 12261800583900083122,
+"xp": [
+2,
 1.0
 ]
 },
@@ -59188,6 +59564,24 @@
 2.0
 ]
 },
+"8949": {
+"items": [
+21982
+],
+"level": 60,
+"next": 8950,
+"obj": [
+[
+"i",
+21982,
+25
+]
+],
+"xp": [
+5,
+2.0
+]
+},
 "895": {
 "items": [
 5084
@@ -59474,6 +59868,14 @@
 1
 ]
 ],
+"xp": [
+1,
+1.0
+]
+},
+"8998": {
+"level": 60,
+"race": 12261800583900083122,
 "xp": [
 1,
 1.0
@@ -65245,6 +65647,42 @@
 1.0
 ]
 },
+"9325": {
+"items": [
+23180
+],
+"level": 60,
+"obj": [
+[
+"i",
+23180,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+4,
+1.0
+]
+},
+"9326": {
+"items": [
+23181
+],
+"level": 60,
+"obj": [
+[
+"i",
+23181,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+4,
+1.0
+]
+},
 "93269": {
 "items": [
 257809
@@ -66551,6 +66989,23 @@
 "level": 60,
 "xp": [
 5,
+1.0
+]
+},
+"93862": {
+"items": [
+262917
+],
+"level": 60,
+"obj": [
+[
+"i",
+262917,
+1
+]
+],
+"xp": [
+0,
 1.0
 ]
 },
@@ -76471,6 +76926,22 @@
 1.0
 ]
 },
+"96028": {
+"level": 40,
+"next": 96026,
+"obj": [
+[
+"k",
+268831,
+10
+]
+],
+"race": 12261800583900083122,
+"xp": [
+5,
+1.0
+]
+},
 "96031": {
 "level": 6,
 "race": 6130900294268439629,
@@ -85570,6 +86041,6 @@
 ]
 }
 },
-"revision": "0f202e892f1a15c8192c232351824eccb99efd8a",
+"revision": "06b4cc7b814c1cb16ff56b746181c2c62944fbc9",
 "source": "EG Link output: World of Warcraft: Forever (Efficient Games, CC BY 4.0)"
 }

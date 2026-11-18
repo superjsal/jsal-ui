@@ -385,7 +385,7 @@ ns.TrainerData = {
     -- what the class in front of it can still learn, so a list here may yet grow.
     weapons = {
         { npc = 11869, name = "Ansekhwa", tag = "Weapon Master", map = 1456, x = 0.4102, y = 0.6219, a = false, h = true, teaches = { 198, 199, 227, 266 } },
-        { npc = 11870, name = "Archibald", tag = "Weapon Master", map = 1458, x = 0.5726, y = 0.3274, a = false, h = true, teaches = { 201, 1180 } },
+        { npc = 11870, name = "Archibald", tag = "Weapon Master", map = 1458, x = 0.5743, y = 0.3248, a = false, h = true, teaches = { 200, 201, 202, 1180 } },
         { npc = 11865, name = "Buliwyf Stonehand", tag = "Weapon Master", map = 1455, x = 0.6143, y = 0.892, a = true, h = false, teaches = { 196, 197, 198, 199, 266, 15590 } },
         { npc = 278680, name = "Gabbi Goodwhistle", tag = "Weapon Master", map = 1411, x = 0.428, y = 0.6815, a = false, h = true, teaches = { 201, 227, 1180 } },
         { npc = 2704, name = "Hanashi", tag = "Weapon Master", map = 1454, x = 0.8142, y = 0.1931, a = false, h = true, teaches = { 196, 197, 227, 264, 2567 } },

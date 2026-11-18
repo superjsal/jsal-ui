@@ -1,6 +1,6 @@
 {
 "about": "Every trainer players opened on WoW Forever, from EG Link output: World of Warcraft: Forever (https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games (https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); merged across live builds and reduced to name, spots, services, levels and costs by tools/refresh_eglink.py.",
-"revision": "0f202e892f1a15c8192c232351824eccb99efd8a",
+"revision": "06b4cc7b814c1cb16ff56b746181c2c62944fbc9",
 "trainers": {
 "11025": {
 "builds": [
@@ -139,12 +139,12 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-16",
 "name": "Sprite Jumpsprocket",
 "positions": [
 {
-"mapX": 0.6198,
-"mapY": 0.309,
+"mapX": 0.62,
+"mapY": 0.3093,
 "uiMap": 1453
 }
 ],
@@ -391,16 +391,262 @@
 "tradeskill": true,
 "trainerType": 2
 },
+"1103": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Eldrin",
+"positions": [
+{
+"mapX": 0.7927,
+"mapY": 0.6898,
+"uiMap": 1429
+}
+],
+"services": {
+"12045": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Linen Boots",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"12046": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Simple Kilt",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"1257368": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Arcanist's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1257369": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Ardent's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1263425": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Faction Banner",
+"rankText": "Tier 1",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"2385": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Vest",
+"skill": "Tailoring",
+"skillRank": 10
+},
+"2386": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Linen Boots",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2392": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Red Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2393": {
+"costs": {
+"5": 25
+},
+"level": 0,
+"name": "White Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 1
+},
+"2394": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Blue Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2395": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Barbaric Linen Vest",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2396": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2397": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Reinforced Linen Cape",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"2402": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Woolen Cape",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"2964": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Bolt of Woolen Cloth",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"3755": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Linen Bag",
+"skill": "Tailoring",
+"skillRank": 5
+},
+"3840": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Heavy Linen Gloves",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"3841": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Bracers",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"3842": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Handstitched Linen Britches",
+"skill": "Tailoring",
+"skillRank": 45
+},
+"3908": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Apprentice Tailoring",
+"profession": true,
+"skillRank": 0,
+"step": true
+},
+"3914": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Pants",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"7623": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"7624": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "White Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8465": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Dress",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8776": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Linen Belt",
+"skill": "Tailoring",
+"skillRank": 15
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "11048": {
 "builds": [
-"1.60.1.70450"
+"1.60.1.70450",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-10-17",
+"lastSeen": "2026-11-16",
 "name": "Victor Ward",
 "positions": [
 {
-"mapX": 0.704,
-"mapY": 0.2939,
+"mapX": 0.7013,
+"mapY": 0.3024,
 "uiMap": 1458
 }
 ],
@@ -638,14 +884,15 @@
 },
 "11049": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Rhiannon Davis",
 "positions": [
 {
-"mapX": 0.7012,
-"mapY": 0.3018,
+"mapX": 0.7013,
+"mapY": 0.3024,
 "uiMap": 1458
 }
 ],
@@ -1240,14 +1487,15 @@
 "builds": [
 "1.60.1.70425",
 "1.60.1.70450",
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-16",
 "name": "Malcomb Wynn",
 "positions": [
 {
-"mapX": 0.6222,
-"mapY": 0.6021,
+"mapX": 0.6209,
+"mapY": 0.6057,
 "uiMap": 1458
 }
 ],
@@ -1361,14 +1609,15 @@
 "11068": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-08",
+"lastSeen": "2026-11-15",
 "name": "Betty Quin",
 "positions": [
 {
-"mapX": 0.5303,
-"mapY": 0.739,
+"mapX": 0.5304,
+"mapY": 0.7389,
 "uiMap": 1453
 }
 ],
@@ -2449,12 +2698,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-17",
 "name": "Randal Worth",
 "positions": [
 {
-"mapX": 0.72,
-"mapY": 0.6269,
+"mapX": 0.7219,
+"mapY": 0.6273,
 "uiMap": 1453
 }
 ],
@@ -2881,14 +3130,15 @@
 "11870": {
 "builds": [
 "1.60.1.70425",
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-15",
 "name": "Archibald",
 "positions": [
 {
-"mapX": 0.5726,
-"mapY": 0.3274,
+"mapX": 0.5743,
+"mapY": 0.3248,
 "uiMap": 1458
 }
 ],
@@ -2902,6 +3152,14 @@
 "name": "Daggers",
 "skillRank": 0
 },
+"200": {
+"costs": {
+"5": 10000
+},
+"level": 20,
+"name": "Polearms",
+"skillRank": 0
+},
 "201": {
 "costs": {
 "5": 1000,
@@ -2909,6 +3167,14 @@
 },
 "level": 0,
 "name": "One-Handed Swords",
+"skillRank": 0
+},
+"202": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Two-Handed Swords",
 "skillRank": 0
 }
 },
@@ -4586,12 +4852,12 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-16",
 "name": "Maris Granger",
 "positions": [
 {
-"mapX": 0.7207,
-"mapY": 0.6231,
+"mapX": 0.7217,
+"mapY": 0.6239,
 "uiMap": 1453
 }
 ],
@@ -4604,7 +4870,8 @@
 "level": 0,
 "name": "Artisan Skinning",
 "skill": "Skinning",
-"skillRank": 200
+"skillRank": 200,
+"step": true
 },
 "1229517": {
 "costs": {
@@ -4655,14 +4922,15 @@
 "1300": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-15",
 "name": "Lawrence Schneider",
 "positions": [
 {
-"mapX": 0.5358,
-"mapY": 0.8161,
+"mapX": 0.5353,
+"mapY": 0.8157,
 "uiMap": 1453
 }
 ],
@@ -4900,21 +5168,23 @@
 },
 "13417": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-10",
+"lastSeen": "2026-11-16",
 "name": "Sagorne Creststrider",
 "positions": [
 {
-"mapX": 0.3854,
-"mapY": 0.3635,
+"mapX": 0.385,
+"mapY": 0.3631,
 "uiMap": 1454
 }
 ],
 "services": {
 "10391": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Lightning Bolt",
@@ -4923,7 +5193,8 @@
 },
 "10392": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 44,
 "name": "Lightning Bolt",
@@ -4932,7 +5203,8 @@
 },
 "10395": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Healing Wave",
@@ -4941,7 +5213,8 @@
 },
 "10396": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Healing Wave",
@@ -4950,7 +5223,8 @@
 },
 "10399": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Rockbiter Weapon",
@@ -4959,7 +5233,8 @@
 },
 "10406": {
 "costs": {
-"5": 8000
+"5": 8000,
+"6": 7200
 },
 "level": 34,
 "name": "Stoneskin Totem",
@@ -4968,7 +5243,8 @@
 },
 "10407": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 44,
 "name": "Stoneskin Totem",
@@ -4977,7 +5253,8 @@
 },
 "10408": {
 "costs": {
-"5": 27000
+"5": 27000,
+"6": 24300
 },
 "level": 54,
 "name": "Stoneskin Totem",
@@ -4986,7 +5263,8 @@
 },
 "10412": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Earth Shock",
@@ -4995,7 +5273,8 @@
 },
 "10413": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Earth Shock",
@@ -5004,7 +5283,8 @@
 },
 "10414": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Earth Shock",
@@ -5013,7 +5293,8 @@
 },
 "10427": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Stoneclaw Totem",
@@ -5022,7 +5303,8 @@
 },
 "10428": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Stoneclaw Totem",
@@ -5031,7 +5313,8 @@
 },
 "10431": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Lightning Shield",
@@ -5040,7 +5323,8 @@
 },
 "10432": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Lightning Shield",
@@ -5049,7 +5333,8 @@
 },
 "10437": {
 "costs": {
-"5": 25000
+"5": 25000,
+"6": 22500
 },
 "level": 50,
 "name": "Searing Totem",
@@ -5058,7 +5343,8 @@
 },
 "10438": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Searing Totem",
@@ -5067,7 +5353,8 @@
 },
 "10442": {
 "costs": {
-"5": 26000
+"5": 26000,
+"6": 23400
 },
 "level": 52,
 "name": "Strength of Earth Totem",
@@ -5076,7 +5363,8 @@
 },
 "10447": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Flame Shock",
@@ -5085,7 +5373,8 @@
 },
 "10448": {
 "costs": {
-"5": 26000
+"5": 26000,
+"6": 23400
 },
 "level": 52,
 "name": "Flame Shock",
@@ -5094,7 +5383,8 @@
 },
 "10456": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Frostbrand Weapon",
@@ -5103,7 +5393,8 @@
 },
 "10462": {
 "costs": {
-"5": 25000
+"5": 25000,
+"6": 22500
 },
 "level": 50,
 "name": "Healing Stream Totem",
@@ -5112,7 +5403,8 @@
 },
 "10463": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Healing Stream Totem",
@@ -5121,7 +5413,8 @@
 },
 "10466": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 44,
 "name": "Lesser Healing Wave",
@@ -5130,7 +5423,8 @@
 },
 "10467": {
 "costs": {
-"5": 26000
+"5": 26000,
+"6": 23400
 },
 "level": 52,
 "name": "Lesser Healing Wave",
@@ -5139,7 +5433,8 @@
 },
 "10468": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Lesser Healing Wave",
@@ -5148,7 +5443,8 @@
 },
 "10472": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Frost Shock",
@@ -5157,7 +5453,8 @@
 },
 "10473": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Frost Shock",
@@ -5166,7 +5463,8 @@
 },
 "10478": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Frost Resistance Totem",
@@ -5175,7 +5473,8 @@
 },
 "10479": {
 "costs": {
-"5": 27000
+"5": 27000,
+"6": 24300
 },
 "level": 54,
 "name": "Frost Resistance Totem",
@@ -5184,7 +5483,8 @@
 },
 "10486": {
 "costs": {
-"5": 25000
+"5": 25000,
+"6": 22500
 },
 "level": 50,
 "name": "Windfury Weapon",
@@ -5193,7 +5493,8 @@
 },
 "10495": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Mana Spring Totem",
@@ -5202,7 +5503,8 @@
 },
 "10496": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Mana Spring Totem",
@@ -5211,7 +5513,8 @@
 },
 "10497": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Mana Spring Totem",
@@ -5220,7 +5523,8 @@
 },
 "10526": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Flametongue Totem",
@@ -5229,7 +5533,8 @@
 },
 "10537": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
 "level": 42,
 "name": "Fire Resistance Totem",
@@ -5238,7 +5543,8 @@
 },
 "10538": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Fire Resistance Totem",
@@ -5247,7 +5553,8 @@
 },
 "10585": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Magma Totem",
@@ -5256,7 +5563,8 @@
 },
 "10586": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Magma Totem",
@@ -5265,7 +5573,8 @@
 },
 "10587": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Magma Totem",
@@ -5274,7 +5583,8 @@
 },
 "10595": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Nature Resistance Totem",
@@ -5283,7 +5593,8 @@
 },
 "10600": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 44,
 "name": "Nature Resistance Totem",
@@ -5292,7 +5603,8 @@
 },
 "10601": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Nature Resistance Totem",
@@ -5301,7 +5613,8 @@
 },
 "10605": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Chain Lightning",
@@ -5310,7 +5623,8 @@
 },
 "10613": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
 "level": 42,
 "name": "Windfury Totem",
@@ -5319,7 +5633,8 @@
 },
 "10614": {
 "costs": {
-"5": 26000
+"5": 26000,
+"6": 23400
 },
 "level": 52,
 "name": "Windfury Totem",
@@ -5328,7 +5643,8 @@
 },
 "10622": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Chain Heal",
@@ -5337,7 +5653,8 @@
 },
 "10623": {
 "costs": {
-"5": 27000
+"5": 27000,
+"6": 24300
 },
 "level": 54,
 "name": "Chain Heal",
@@ -5346,7 +5663,8 @@
 },
 "10627": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Grace of Air Totem",
@@ -5355,16 +5673,26 @@
 },
 "1064": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Chain Heal",
 "rankText": "Rank 1",
 "skillRank": 0
 },
+"1238640": {
+"costs": {
+"6": 2070
+},
+"level": 0,
+"name": "Ghost Wolf",
+"skillRank": 0
+},
 "1239242": {
 "costs": {
-"5": 25000
+"5": 25000,
+"6": 22500
 },
 "level": 50,
 "name": "Riptide",
@@ -5373,7 +5701,8 @@
 },
 "1239243": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Riptide",
@@ -5382,7 +5711,8 @@
 },
 "131": {
 "costs": {
-"5": 3300
+"5": 3300,
+"6": 2970
 },
 "level": 0,
 "name": "Water Breathing",
@@ -5390,7 +5720,8 @@
 },
 "1325256": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Mana Tide Totem",
@@ -5399,7 +5730,8 @@
 },
 "15107": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Windwall Totem",
@@ -5408,7 +5740,8 @@
 },
 "15111": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Windwall Totem",
@@ -5417,7 +5750,8 @@
 },
 "15112": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Windwall Totem",
@@ -5426,7 +5760,8 @@
 },
 "15207": {
 "costs": {
-"5": 25000
+"5": 25000,
+"6": 22500
 },
 "level": 50,
 "name": "Lightning Bolt",
@@ -5435,7 +5770,8 @@
 },
 "15208": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Lightning Bolt",
@@ -5444,7 +5780,8 @@
 },
 "16314": {
 "costs": {
-"5": 8000
+"5": 8000,
+"6": 7200
 },
 "level": 34,
 "name": "Rockbiter Weapon",
@@ -5453,7 +5790,8 @@
 },
 "16315": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 44,
 "name": "Rockbiter Weapon",
@@ -5462,7 +5800,8 @@
 },
 "16316": {
 "costs": {
-"5": 27000
+"5": 27000,
+"6": 24300
 },
 "level": 54,
 "name": "Rockbiter Weapon",
@@ -5471,7 +5810,8 @@
 },
 "16339": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Flametongue Weapon",
@@ -5480,7 +5820,8 @@
 },
 "16341": {
 "costs": {
-"5": 20000
+"5": 20000,
+"6": 18000
 },
 "level": 46,
 "name": "Flametongue Weapon",
@@ -5489,7 +5830,8 @@
 },
 "16342": {
 "costs": {
-"5": 28000
+"5": 28000,
+"6": 25200
 },
 "level": 56,
 "name": "Flametongue Weapon",
@@ -5498,7 +5840,8 @@
 },
 "16355": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Frostbrand Weapon",
@@ -5507,7 +5850,8 @@
 },
 "16356": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Frostbrand Weapon",
@@ -5516,7 +5860,8 @@
 },
 "16362": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Windfury Weapon",
@@ -5525,7 +5870,8 @@
 },
 "16387": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 58,
 "name": "Flametongue Totem",
@@ -5534,7 +5880,8 @@
 },
 "17354": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Mana Tide Totem",
@@ -5543,7 +5890,8 @@
 },
 "17359": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Mana Tide Totem",
@@ -5552,7 +5900,8 @@
 },
 "2008": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Ancestral Spirit",
@@ -5561,7 +5910,8 @@
 },
 "20608": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Reincarnation",
@@ -5570,7 +5920,8 @@
 },
 "20609": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 24,
 "name": "Ancestral Spirit",
@@ -5579,7 +5930,8 @@
 },
 "20610": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Ancestral Spirit",
@@ -5588,7 +5940,8 @@
 },
 "20776": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Ancestral Spirit",
@@ -5597,7 +5950,8 @@
 },
 "20777": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 60,
 "name": "Ancestral Spirit",
@@ -5606,7 +5960,8 @@
 },
 "2484": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Earthbind Totem",
@@ -5622,7 +5977,8 @@
 },
 "2860": {
 "costs": {
-"5": 21000
+"5": 21000,
+"6": 18900
 },
 "level": 48,
 "name": "Chain Lightning",
@@ -5631,7 +5987,8 @@
 },
 "2870": {
 "costs": {
-"5": 3300
+"5": 3300,
+"6": 2970
 },
 "level": 0,
 "name": "Cure Disease",
@@ -5639,7 +5996,8 @@
 },
 "324": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Lightning Shield",
@@ -5648,7 +6006,8 @@
 },
 "325": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Lightning Shield",
@@ -5657,7 +6016,8 @@
 },
 "332": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Healing Wave",
@@ -5666,7 +6026,8 @@
 },
 "36936": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Totemic Recall",
@@ -5674,7 +6035,8 @@
 },
 "370": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Purge",
@@ -5683,7 +6045,8 @@
 },
 "408341": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Fire Nova",
@@ -5692,7 +6055,8 @@
 },
 "408342": {
 "costs": {
-"5": 3300
+"5": 3300,
+"6": 2970
 },
 "level": 0,
 "name": "Fire Nova",
@@ -5701,7 +6065,8 @@
 },
 "408343": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Fire Nova",
@@ -5710,7 +6075,8 @@
 },
 "408344": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
 "level": 42,
 "name": "Fire Nova",
@@ -5719,7 +6085,8 @@
 },
 "408345": {
 "costs": {
-"5": 26000
+"5": 26000,
+"6": 23400
 },
 "level": 52,
 "name": "Fire Nova",
@@ -5728,7 +6095,8 @@
 },
 "421": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Chain Lightning",
@@ -5737,7 +6105,8 @@
 },
 "437009": {
 "costs": {
-"5": 3300
+"5": 3300,
+"6": 2970
 },
 "level": 0,
 "name": "Totemic Call",
@@ -5745,7 +6114,8 @@
 },
 "526": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Cure Poison",
@@ -5753,7 +6123,8 @@
 },
 "529": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Lightning Bolt",
@@ -5762,7 +6133,8 @@
 },
 "546": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Water Walking",
@@ -5770,7 +6142,8 @@
 },
 "547": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Healing Wave",
@@ -5779,7 +6152,8 @@
 },
 "548": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Lightning Bolt",
@@ -5788,7 +6162,8 @@
 },
 "556": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Astral Recall",
@@ -5796,7 +6171,8 @@
 },
 "5675": {
 "costs": {
-"5": 4300
+"5": 4300,
+"6": 3870
 },
 "level": 0,
 "name": "Mana Spring Totem",
@@ -5805,7 +6181,8 @@
 },
 "5730": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Stoneclaw Totem",
@@ -5814,7 +6191,8 @@
 },
 "6041": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Lightning Bolt",
@@ -5823,7 +6201,8 @@
 },
 "6196": {
 "costs": {
-"5": 4300
+"5": 4300,
+"6": 3870
 },
 "level": 0,
 "name": "Far Sight",
@@ -5831,7 +6210,8 @@
 },
 "6363": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Searing Totem",
@@ -5840,7 +6220,8 @@
 },
 "6364": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Searing Totem",
@@ -5849,7 +6230,8 @@
 },
 "6365": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Searing Totem",
@@ -5858,7 +6240,8 @@
 },
 "6375": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Healing Stream Totem",
@@ -5867,7 +6250,8 @@
 },
 "6377": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Healing Stream Totem",
@@ -5876,7 +6260,8 @@
 },
 "6390": {
 "costs": {
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Stoneclaw Totem",
@@ -5885,7 +6270,8 @@
 },
 "6391": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Stoneclaw Totem",
@@ -5894,7 +6280,8 @@
 },
 "6392": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Stoneclaw Totem",
@@ -5903,7 +6290,8 @@
 },
 "6495": {
 "costs": {
-"5": 8000
+"5": 8000,
+"6": 7200
 },
 "level": 34,
 "name": "Sentry Totem",
@@ -5911,7 +6299,8 @@
 },
 "66842": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Call of the Elements",
@@ -5919,7 +6308,8 @@
 },
 "66843": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Call of the Ancestors",
@@ -5927,7 +6317,8 @@
 },
 "66844": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Call of the Spirits",
@@ -5935,7 +6326,8 @@
 },
 "8004": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Lesser Healing Wave",
@@ -5944,7 +6336,8 @@
 },
 "8005": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Healing Wave",
@@ -5953,7 +6346,8 @@
 },
 "8008": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Lesser Healing Wave",
@@ -5962,7 +6356,8 @@
 },
 "8010": {
 "costs": {
-"5": 9000
+"5": 9000,
+"6": 8100
 },
 "level": 36,
 "name": "Lesser Healing Wave",
@@ -5971,7 +6366,8 @@
 },
 "8012": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Purge",
@@ -5980,7 +6376,8 @@
 },
 "8017": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 0,
 "name": "Rockbiter Weapon",
@@ -5989,7 +6386,8 @@
 },
 "8018": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Rockbiter Weapon",
@@ -5998,7 +6396,8 @@
 },
 "8019": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Rockbiter Weapon",
@@ -6007,7 +6406,8 @@
 },
 "8024": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Flametongue Weapon",
@@ -6016,7 +6416,8 @@
 },
 "8027": {
 "costs": {
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Flametongue Weapon",
@@ -6025,7 +6426,8 @@
 },
 "8030": {
 "costs": {
-"5": 4300
+"5": 4300,
+"6": 3870
 },
 "level": 0,
 "name": "Flametongue Weapon",
@@ -6034,7 +6436,8 @@
 },
 "8033": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Frostbrand Weapon",
@@ -6043,7 +6446,8 @@
 },
 "8038": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 28,
 "name": "Frostbrand Weapon",
@@ -6052,7 +6456,8 @@
 },
 "8042": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Earth Shock",
@@ -6061,7 +6466,8 @@
 },
 "8044": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Earth Shock",
@@ -6070,7 +6476,8 @@
 },
 "8045": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Earth Shock",
@@ -6079,7 +6486,8 @@
 },
 "8046": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Earth Shock",
@@ -6088,7 +6496,8 @@
 },
 "8050": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Flame Shock",
@@ -6097,7 +6506,8 @@
 },
 "8052": {
 "costs": {
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Flame Shock",
@@ -6106,7 +6516,8 @@
 },
 "8053": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Flame Shock",
@@ -6115,7 +6526,8 @@
 },
 "8056": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Frost Shock",
@@ -6124,7 +6536,8 @@
 },
 "8058": {
 "costs": {
-"5": 8000
+"5": 8000,
+"6": 7200
 },
 "level": 34,
 "name": "Frost Shock",
@@ -6133,7 +6546,8 @@
 },
 "8075": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Strength of Earth Totem",
@@ -6142,7 +6556,8 @@
 },
 "8134": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Lightning Shield",
@@ -6151,7 +6566,8 @@
 },
 "8143": {
 "costs": {
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Tremor Totem",
@@ -6159,7 +6575,8 @@
 },
 "8154": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Stoneskin Totem",
@@ -6168,7 +6585,8 @@
 },
 "8155": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Stoneskin Totem",
@@ -6177,7 +6595,8 @@
 },
 "8160": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Strength of Earth Totem",
@@ -6186,7 +6605,8 @@
 },
 "8161": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Strength of Earth Totem",
@@ -6195,7 +6615,8 @@
 },
 "8166": {
 "costs": {
-"5": 3300
+"5": 3300,
+"6": 2970
 },
 "level": 0,
 "name": "Poison Cleansing Totem",
@@ -6203,7 +6624,8 @@
 },
 "8170": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Disease Cleansing Totem",
@@ -6211,7 +6633,8 @@
 },
 "8177": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Grounding Totem",
@@ -6219,7 +6642,8 @@
 },
 "8181": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Frost Resistance Totem",
@@ -6228,7 +6652,8 @@
 },
 "8184": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Fire Resistance Totem",
@@ -6237,7 +6662,8 @@
 },
 "8190": {
 "costs": {
-"5": 4300
+"5": 4300,
+"6": 3870
 },
 "level": 0,
 "name": "Magma Totem",
@@ -6246,7 +6672,8 @@
 },
 "8227": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Flametongue Totem",
@@ -6255,7 +6682,8 @@
 },
 "8232": {
 "costs": {
-"5": 5700
+"5": 5700,
+"6": 5130
 },
 "level": 30,
 "name": "Windfury Weapon",
@@ -6264,7 +6692,8 @@
 },
 "8235": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Windfury Weapon",
@@ -6273,7 +6702,8 @@
 },
 "8249": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 38,
 "name": "Flametongue Totem",
@@ -6282,7 +6712,8 @@
 },
 "8512": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Windfury Totem",
@@ -6291,7 +6722,8 @@
 },
 "8737": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Mail",
@@ -6299,7 +6731,8 @@
 },
 "8835": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
 "level": 42,
 "name": "Grace of Air Totem",
@@ -6308,7 +6741,8 @@
 },
 "905": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Lightning Shield",
@@ -6317,7 +6751,8 @@
 },
 "913": {
 "costs": {
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Healing Wave",
@@ -6326,7 +6761,8 @@
 },
 "915": {
 "costs": {
-"5": 2300
+"5": 2300,
+"6": 2070
 },
 "level": 0,
 "name": "Lightning Bolt",
@@ -6335,7 +6771,8 @@
 },
 "930": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 40,
 "name": "Chain Lightning",
@@ -6344,7 +6781,8 @@
 },
 "939": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Healing Wave",
@@ -6353,7 +6791,8 @@
 },
 "943": {
 "costs": {
-"5": 4300
+"5": 4300,
+"6": 3870
 },
 "level": 26,
 "name": "Lightning Bolt",
@@ -6362,7 +6801,8 @@
 },
 "945": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Lightning Shield",
@@ -6371,7 +6811,8 @@
 },
 "959": {
 "costs": {
-"5": 7000
+"5": 7000,
+"6": 6300
 },
 "level": 32,
 "name": "Healing Wave",
@@ -7470,21 +7911,23 @@
 },
 "1430": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-17",
 "name": "Tomas",
 "positions": [
 {
-"mapX": 0.443,
-"mapY": 0.6601,
+"mapX": 0.4427,
+"mapY": 0.6603,
 "uiMap": 1429
 }
 ],
 "services": {
 "1229737": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Basic Campfire Kit",
@@ -7494,7 +7937,8 @@
 },
 "21175": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "level": 0,
 "name": "Spider Sausage",
@@ -7503,7 +7947,8 @@
 },
 "2539": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Spiced Wolf Meat",
@@ -7512,7 +7957,8 @@
 },
 "2541": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Coyote Steak",
@@ -7521,7 +7967,8 @@
 },
 "2544": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Crab Cake",
@@ -7530,7 +7977,8 @@
 },
 "2546": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Dry Pork Ribs",
@@ -7539,25 +7987,28 @@
 },
 "2550": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Apprentice Cook",
-"skillRank": 0,
-"step": true
+"skillRank": 0
 },
 "3102": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Journeyman Cook",
 "skill": "Cooking",
-"skillRank": 50
+"skillRank": 50,
+"step": true
 },
 "6499": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Boiled Clams",
@@ -7566,7 +8017,8 @@
 },
 "6500": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Goblin Deviled Clams",
@@ -7753,14 +8205,15 @@
 },
 "198": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-15",
 "name": "Khelden Bremen",
 "positions": [
 {
 "mapX": 0.4961,
-"mapY": 0.3944,
+"mapY": 0.3947,
 "uiMap": 1429
 }
 ],
@@ -11266,19 +11719,15 @@
 },
 "244808": {
 "builds": [
-"1.60.1.70334"
+"1.60.1.70334",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-10-10",
+"lastSeen": "2026-11-15",
 "name": "Aramis Hammerhand",
 "positions": [
 {
-"mapX": 0.3102,
-"mapY": 0.6633,
-"uiMap": 1420
-},
-{
-"mapX": 0.3115,
-"mapY": 0.6631,
+"mapX": 0.3107,
+"mapY": 0.6637,
 "uiMap": 1420
 }
 ],
@@ -11349,6 +11798,1336 @@
 "tradeskill": false,
 "trainerType": 0
 },
+"246152": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Shari Stilwell",
+"positions": [
+{
+"mapX": 0.6029,
+"mapY": 0.5268,
+"uiMap": 1420
+}
+],
+"services": {
+"1020": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Divine Shield",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1022": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Blessing of Protection",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1026": {
+"costs": {
+"5": 3400
+},
+"level": 22,
+"name": "Holy Light",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10278": {
+"costs": {
+"5": 13000
+},
+"level": 38,
+"name": "Blessing of Protection",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10290": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Devotion Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"10291": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Devotion Aura",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10292": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Devotion Aura",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10293": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Devotion Aura",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10298": {
+"costs": {
+"5": 6100
+},
+"level": 26,
+"name": "Retribution Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"10299": {
+"costs": {
+"5": 12000
+},
+"level": 36,
+"name": "Retribution Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10300": {
+"costs": {
+"5": 21000
+},
+"level": 46,
+"name": "Retribution Aura",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10301": {
+"costs": {
+"5": 26000
+},
+"level": 56,
+"name": "Retribution Aura",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10308": {
+"costs": {
+"5": 25000
+},
+"level": 54,
+"name": "Hammer of Justice",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10310": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Lay on Hands",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10312": {
+"costs": {
+"5": 17000
+},
+"level": 44,
+"name": "Exorcism",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10313": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Exorcism",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10314": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Exorcism",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10318": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Holy Wrath",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1032": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Devotion Aura",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10322": {
+"costs": {
+"5": 4800
+},
+"level": 24,
+"name": "Redemption",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"10324": {
+"costs": {
+"5": 12000
+},
+"level": 36,
+"name": "Redemption",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10326": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Turn Undead",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10328": {
+"costs": {
+"5": 21000
+},
+"level": 46,
+"name": "Holy Light",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10329": {
+"costs": {
+"5": 25000
+},
+"level": 54,
+"name": "Holy Light",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"10332": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Holy Strike",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10333": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Holy Strike",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"1042": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Holy Light",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"1044": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Blessing of Freedom",
+"skillRank": 0
+},
+"1152": {
+"costs": {
+"5": 100
+},
+"level": 8,
+"name": "Purify",
+"skillRank": 0
+},
+"1239570": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Holy Shield",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1311590": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Light's Vigil",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1311595": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Light's Vigil",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1311649": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Seal of Fury",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1311656": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Seal of Fury",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1866": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Holy Strike",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19740": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Blessing of Might",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19742": {
+"costs": {
+"5": 1400
+},
+"level": 14,
+"name": "Blessing of Wisdom",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19746": {
+"costs": {
+"5": 3400
+},
+"level": 22,
+"name": "Concentration Aura",
+"skillRank": 0
+},
+"19750": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Flash of Light",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19752": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Divine Intervention",
+"skillRank": 0
+},
+"19834": {
+"costs": {
+"5": 800
+},
+"level": 12,
+"name": "Blessing of Might",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19835": {
+"costs": {
+"5": 3400
+},
+"level": 22,
+"name": "Blessing of Might",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19836": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Blessing of Might",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"19837": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Blessing of Might",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"19838": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Blessing of Might",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"19850": {
+"costs": {
+"5": 4800
+},
+"level": 24,
+"name": "Blessing of Wisdom",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19852": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Blessing of Wisdom",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19853": {
+"costs": {
+"5": 17000
+},
+"level": 44,
+"name": "Blessing of Wisdom",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"19854": {
+"costs": {
+"5": 25000
+},
+"level": 54,
+"name": "Blessing of Wisdom",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"19876": {
+"costs": {
+"5": 8000
+},
+"level": 28,
+"name": "Shadow Resistance Aura",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19888": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Frost Resistance Aura",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19891": {
+"costs": {
+"5": 12000
+},
+"level": 36,
+"name": "Fire Resistance Aura",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19895": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Shadow Resistance Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19896": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Shadow Resistance Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19897": {
+"costs": {
+"5": 17000
+},
+"level": 44,
+"name": "Frost Resistance Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19898": {
+"costs": {
+"5": 26000
+},
+"level": 56,
+"name": "Frost Resistance Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19899": {
+"costs": {
+"5": 22000
+},
+"level": 48,
+"name": "Fire Resistance Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19900": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Fire Resistance Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19939": {
+"costs": {
+"5": 6100
+},
+"level": 26,
+"name": "Flash of Light",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"19940": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Flash of Light",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"19941": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Flash of Light",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"19942": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Flash of Light",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"19943": {
+"costs": {
+"5": 27000
+},
+"level": 58,
+"name": "Flash of Light",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"20116": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Consecration",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20162": {
+"costs": {
+"5": 800
+},
+"level": 12,
+"name": "Seal of the Crusader",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20163": {
+"costs": {
+"5": 6100
+},
+"level": 26,
+"name": "Seal of Fury",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20164": {
+"costs": {
+"5": 3400
+},
+"level": 22,
+"name": "Seal of Justice",
+"skillRank": 0
+},
+"20165": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Seal of Light",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"20166": {
+"costs": {
+"5": 13000
+},
+"level": 38,
+"name": "Seal of Wisdom",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"20217": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Blessing of Kings",
+"skillRank": 0
+},
+"20271": {
+"costs": {
+"5": 100
+},
+"level": 4,
+"name": "Judgement",
+"skillRank": 0
+},
+"20287": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Seal of Righteousness",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20288": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Seal of Righteousness",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20289": {
+"costs": {
+"5": 6100
+},
+"level": 26,
+"name": "Seal of Righteousness",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20290": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Seal of Righteousness",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20291": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Seal of Righteousness",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"20292": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Seal of Righteousness",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"20293": {
+"costs": {
+"5": 27000
+},
+"level": 58,
+"name": "Seal of Righteousness",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"20305": {
+"costs": {
+"5": 3400
+},
+"level": 22,
+"name": "Seal of the Crusader",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20306": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Seal of the Crusader",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20307": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Seal of the Crusader",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20308": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Seal of the Crusader",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"20347": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Seal of Light",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20348": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Seal of Light",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20349": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Seal of Light",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20356": {
+"costs": {
+"5": 22000
+},
+"level": 48,
+"name": "Seal of Wisdom",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20357": {
+"costs": {
+"5": 27000
+},
+"level": 58,
+"name": "Seal of Wisdom",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20419": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Seal of Fury",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20421": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Seal of Fury",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20422": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Seal of Fury",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"20423": {
+"costs": {
+"5": 27000
+},
+"level": 58,
+"name": "Seal of Fury",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"20473": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Holy Shock",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20729": {
+"costs": {
+"5": 25000
+},
+"level": 54,
+"name": "Blessing of Sacrifice",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20772": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Redemption",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20773": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Redemption",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20915": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Seal of Command",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20918": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Seal of Command",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20919": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Seal of Command",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20920": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Seal of Command",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20922": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Consecration",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20923": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Consecration",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20924": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Consecration",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20927": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Holy Shield",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20928": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Holy Shield",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20929": {
+"costs": {
+"5": 22000
+},
+"level": 48,
+"name": "Holy Shock",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20930": {
+"costs": {
+"5": 26000
+},
+"level": 56,
+"name": "Holy Shock",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"21082": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Seal of the Crusader",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"24239": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Hammer of Wrath",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"24274": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Hammer of Wrath",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"24275": {
+"costs": {
+"5": 17000
+},
+"level": 44,
+"name": "Hammer of Wrath",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2495": {
+"costs": {
+"5": 12000
+},
+"level": 36,
+"name": "Holy Strike",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"25780": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Righteous Fury",
+"skillRank": 0
+},
+"25782": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Greater Blessing of Might",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"25894": {
+"costs": {
+"5": 25000
+},
+"level": 54,
+"name": "Greater Blessing of Wisdom",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"25898": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Greater Blessing of Kings",
+"skillRank": 0
+},
+"25916": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Greater Blessing of Might",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"25918": {
+"costs": {
+"5": 29000
+},
+"level": 60,
+"name": "Greater Blessing of Wisdom",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"26573": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Consecration",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2800": {
+"costs": {
+"5": 9000
+},
+"level": 30,
+"name": "Lay on Hands",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2812": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Holy Wrath",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2878": {
+"costs": {
+"5": 4800
+},
+"level": 24,
+"name": "Turn Undead",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3127": {
+"costs": {
+"5": 100
+},
+"level": 8,
+"name": "Parry",
+"rankText": "Passive",
+"skillRank": 0
+},
+"3472": {
+"costs": {
+"5": 13000
+},
+"level": 38,
+"name": "Holy Light",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"465": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Devotion Aura",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"498": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Divine Protection",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"4987": {
+"costs": {
+"5": 16000
+},
+"level": 42,
+"name": "Cleanse",
+"skillRank": 0
+},
+"5569": {
+"costs": {
+"5": 17000
+},
+"level": 44,
+"name": "Holy Strike",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"5573": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Divine Protection",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5588": {
+"costs": {
+"5": 4800
+},
+"level": 24,
+"name": "Hammer of Justice",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5589": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Hammer of Justice",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"5599": {
+"costs": {
+"5": 4800
+},
+"level": 24,
+"name": "Blessing of Protection",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5614": {
+"costs": {
+"5": 8000
+},
+"level": 28,
+"name": "Exorcism",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5615": {
+"costs": {
+"5": 12000
+},
+"level": 36,
+"name": "Exorcism",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"5627": {
+"costs": {
+"5": 13000
+},
+"level": 38,
+"name": "Turn Undead",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"633": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Lay on Hands",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"639": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Holy Light",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"642": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Divine Shield",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"643": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Devotion Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"647": {
+"costs": {
+"5": 1400
+},
+"level": 14,
+"name": "Holy Light",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"678": {
+"costs": {
+"5": 800
+},
+"level": 12,
+"name": "Holy Strike",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"679": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Holy Strike",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"680": {
+"costs": {
+"5": 8000
+},
+"level": 28,
+"name": "Holy Strike",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"6940": {
+"costs": {
+"5": 21000
+},
+"level": 46,
+"name": "Blessing of Sacrifice",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"7294": {
+"costs": {
+"5": 1500
+},
+"level": 16,
+"name": "Retribution Aura",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"750": {
+"costs": {
+"5": 15000
+},
+"level": 40,
+"name": "Plate Mail",
+"skillRank": 0
+},
+"853": {
+"costs": {
+"5": 100
+},
+"level": 8,
+"name": "Hammer of Justice",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"879": {
+"costs": {
+"5": 3100
+},
+"level": 20,
+"name": "Exorcism",
+"rankText": "Rank 1",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
+},
 "247223": {
 "builds": [
 "1.60.1.70790"
@@ -11381,7 +13160,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Kelsey Fargo",
 "positions": [
 {
@@ -11437,12 +13216,12 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-15",
 "name": "Tordrin Sternblade",
 "positions": [
 {
-"mapX": 0.5122,
-"mapY": 0.4091,
+"mapX": 0.512,
+"mapY": 0.4092,
 "uiMap": 1429
 }
 ],
@@ -11530,14 +13309,15 @@
 },
 "251373": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-17",
 "name": "Xyton Silverwind",
 "positions": [
 {
 "mapX": 0.4173,
-"mapY": 0.2338,
+"mapY": 0.2337,
 "uiMap": 2521
 }
 ],
@@ -11645,6 +13425,67 @@
 "tradeskill": false,
 "trainerType": 0
 },
+"251376": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-17",
+"name": "Tai'ree Farsight",
+"positions": [
+{
+"mapX": 0.4251,
+"mapY": 0.2377,
+"uiMap": 2521
+}
+],
+"services": {
+"1130": {
+"costs": {
+"5": 100
+},
+"level": 6,
+"name": "Hunter's Mark",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13163": {
+"costs": {
+"5": 100
+},
+"level": 4,
+"name": "Aspect of the Monkey",
+"skillRank": 0
+},
+"1494": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Track Beasts",
+"skillRank": 0
+},
+"1978": {
+"costs": {
+"5": 100
+},
+"level": 4,
+"name": "Serpent Sting",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3044": {
+"costs": {
+"5": 100
+},
+"level": 6,
+"name": "Arcane Shot",
+"rankText": "Rank 1",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
+},
 "251507": {
 "builds": [
 "1.60.1.70888",
@@ -11674,7 +13515,7 @@
 "5": 100,
 "6": 90
 },
-"level": 0,
+"level": 6,
 "name": "Hunter's Mark",
 "rankText": "Rank 1",
 "skillRank": 0
@@ -12759,7 +14600,7 @@
 "5": 100,
 "6": 90
 },
-"level": 0,
+"level": 6,
 "name": "Arcane Shot",
 "rankText": "Rank 1",
 "skillRank": 0
@@ -16500,6 +18341,120 @@
 "tradeskill": false,
 "trainerType": 0
 },
+"256655": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Gorg",
+"positions": [
+{
+"mapX": 0.5865,
+"mapY": 0.4471,
+"uiMap": 2548
+},
+{
+"mapX": 0.5856,
+"mapY": 0.4456,
+"uiMap": 2548
+}
+],
+"services": {
+"1229737": {
+"costs": {
+"6": 90
+},
+"level": 0,
+"name": "Basic Campfire Kit",
+"rankText": "Tier 1",
+"skill": "Cooking",
+"skillRank": 20
+},
+"21175": {
+"costs": {
+"6": 3600
+},
+"level": 0,
+"name": "Spider Sausage",
+"skill": "Cooking",
+"skillRank": 200
+},
+"2539": {
+"costs": {
+"6": 45
+},
+"level": 0,
+"name": "Spiced Wolf Meat",
+"skill": "Cooking",
+"skillRank": 10
+},
+"2541": {
+"costs": {
+"6": 90
+},
+"level": 0,
+"name": "Coyote Steak",
+"skill": "Cooking",
+"skillRank": 50
+},
+"2544": {
+"costs": {
+"6": 180
+},
+"level": 0,
+"name": "Crab Cake",
+"skill": "Cooking",
+"skillRank": 75
+},
+"2546": {
+"costs": {
+"6": 135
+},
+"level": 0,
+"name": "Dry Pork Ribs",
+"skill": "Cooking",
+"skillRank": 80
+},
+"2550": {
+"costs": {
+"6": 90
+},
+"level": 0,
+"name": "Apprentice Cook",
+"skillRank": 0
+},
+"3102": {
+"costs": {
+"6": 450
+},
+"level": 0,
+"name": "Journeyman Cook",
+"skill": "Cooking",
+"skillRank": 50,
+"step": true
+},
+"6499": {
+"costs": {
+"6": 90
+},
+"level": 0,
+"name": "Boiled Clams",
+"skill": "Cooking",
+"skillRank": 50
+},
+"6500": {
+"costs": {
+"6": 270
+},
+"level": 0,
+"name": "Goblin Deviled Clams",
+"skill": "Cooking",
+"skillRank": 125
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "257008": {
 "builds": [
 "1.60.1.70790"
@@ -16548,14 +18503,15 @@
 },
 "257018": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Naleeia Tattermend",
 "positions": [
 {
-"mapX": 0.431,
-"mapY": 0.4633,
+"mapX": 0.4314,
+"mapY": 0.4634,
 "uiMap": 2521
 }
 ],
@@ -16621,8 +18577,7 @@
 },
 "level": 0,
 "name": "Apprentice First Aid",
-"skillRank": 0,
-"step": true
+"skillRank": 0
 },
 "3274": {
 "costs": {
@@ -16631,7 +18586,8 @@
 "level": 0,
 "name": "Journeyman First Aid",
 "skill": "First Aid",
-"skillRank": 50
+"skillRank": 50,
+"step": true
 },
 "3276": {
 "costs": {
@@ -19392,6 +21348,34 @@
 "tradeskill": true,
 "trainerType": 2
 },
+"267331": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Vartha Rockmane",
+"positions": [
+{
+"mapX": 0.4433,
+"mapY": 0.7828,
+"uiMap": 1412
+}
+],
+"services": {
+"2575": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Apprentice Mining",
+"profession": true,
+"skillRank": 0,
+"step": true
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "267333": {
 "builds": [
 "1.60.1.70790"
@@ -19704,14 +21688,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70840",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Snang",
 "positions": [
 {
-"mapX": 0.6283,
-"mapY": 0.4956,
+"mapX": 0.6265,
+"mapY": 0.4951,
 "uiMap": 1454
 }
 ],
@@ -19972,17 +21957,146 @@
 "tradeskill": true,
 "trainerType": 2
 },
+"2857": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Thund",
+"positions": [
+{
+"mapX": 0.7578,
+"mapY": 0.2462,
+"uiMap": 1454
+}
+],
+"services": {
+"1230656": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Reagent Bot",
+"rankText": "Tier 1",
+"skill": "Engineering",
+"skillRank": 20
+},
+"3922": {
+"costs": {
+"5": 115
+},
+"level": 0,
+"name": "Handful of Copper Bolts",
+"skill": "Engineering",
+"skillRank": 30
+},
+"3923": {
+"costs": {
+"5": 130
+},
+"level": 0,
+"name": "Rough Copper Bomb",
+"skill": "Engineering",
+"skillRank": 30
+},
+"3924": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Copper Tube",
+"skill": "Engineering",
+"skillRank": 50
+},
+"3925": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Rough Boomstick",
+"skill": "Engineering",
+"skillRank": 50
+},
+"3926": {
+"costs": {
+"5": 225
+},
+"level": 0,
+"name": "Copper Modulator",
+"skill": "Engineering",
+"skillRank": 65
+},
+"3929": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Coarse Blasting Powder",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3930": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Crafted Heavy Shot",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3931": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Coarse Dynamite",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3977": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Crude Scope",
+"skill": "Engineering",
+"skillRank": 60
+},
+"4036": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Apprentice Engineer",
+"profession": true,
+"skillRank": 0,
+"step": true
+},
+"7430": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Arclight Spanner",
+"skill": "Engineering",
+"skillRank": 50
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "2879": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-17",
 "name": "Karrina Mekenda",
 "positions": [
 {
-"mapX": 0.6743,
-"mapY": 0.3692,
+"mapX": 0.675,
+"mapY": 0.3683,
 "uiMap": 1453
 }
 ],
@@ -30496,6 +32610,1184 @@
 "tradeskill": false,
 "trainerType": 0
 },
+"3061": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Lanka Farshot",
+"positions": [
+{
+"mapX": 0.4394,
+"mapY": 0.765,
+"uiMap": 1412
+}
+],
+"services": {
+"1130": {
+"costs": {
+"5": 100
+},
+"level": 6,
+"name": "Hunter's Mark",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13163": {
+"costs": {
+"5": 100
+},
+"level": 4,
+"name": "Aspect of the Monkey",
+"skillRank": 0
+},
+"1494": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Track Beasts",
+"skillRank": 0
+},
+"1978": {
+"costs": {
+"5": 100
+},
+"level": 4,
+"name": "Serpent Sting",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3044": {
+"costs": {
+"5": 100
+},
+"level": 6,
+"name": "Arcane Shot",
+"rankText": "Rank 1",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
+},
+"3065": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Yaw Sharpmane",
+"positions": [
+{
+"mapX": 0.4687,
+"mapY": 0.5972,
+"uiMap": 1412
+},
+{
+"mapX": 0.4687,
+"mapY": 0.596,
+"uiMap": 1412
+}
+],
+"services": {
+"1002": {
+"costs": {
+"5": 1200
+},
+"level": 14,
+"name": "Eyes of the Beast",
+"skillRank": 0
+},
+"1130": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Hunter's Mark",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1242634": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Counterattack",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1293525": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Summon Hawk",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1293526": {
+"costs": {
+"5": 29000
+},
+"level": 48,
+"name": "Summon Hawk",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1293527": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Summon Hawk",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1299348": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Trueshot Aura",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1299445": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Aspect of the Beast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1299446": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Aspect of the Beast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1299447": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Aspect of the Beast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1310785": {
+"costs": {
+"5": 29000
+},
+"level": 48,
+"name": "Sniper Shot",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1310786": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Sniper Shot",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13159": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Aspect of the Pack",
+"skillRank": 0
+},
+"13161": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Aspect of the Beast",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13163": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Aspect of the Monkey",
+"skillRank": 0
+},
+"13165": {
+"costs": {
+"5": 400
+},
+"level": 10,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13542": {
+"costs": {
+"5": 23000
+},
+"level": 44,
+"name": "Mend Pet",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"13543": {
+"costs": {
+"5": 36000
+},
+"level": 52,
+"name": "Mend Pet",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"13544": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Mend Pet",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"13549": {
+"costs": {
+"5": 400
+},
+"level": 10,
+"name": "Serpent Sting",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"13550": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Serpent Sting",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13551": {
+"costs": {
+"5": 7400
+},
+"level": 26,
+"name": "Serpent Sting",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"13552": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Serpent Sting",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"13553": {
+"costs": {
+"5": 22000
+},
+"level": 42,
+"name": "Serpent Sting",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"13554": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Serpent Sting",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"13555": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Serpent Sting",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"136": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Mend Pet",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13795": {
+"costs": {
+"5": 1500
+},
+"level": 16,
+"name": "Immolation Trap",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"13809": {
+"costs": {
+"5": 7500
+},
+"level": 28,
+"name": "Frost Trap",
+"skillRank": 0
+},
+"13813": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Explosive Trap",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"14260": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Raptor Strike",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14261": {
+"costs": {
+"5": 1500
+},
+"level": 16,
+"name": "Raptor Strike",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14262": {
+"costs": {
+"5": 7200
+},
+"level": 24,
+"name": "Raptor Strike",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14263": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Raptor Strike",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"14264": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Raptor Strike",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"14265": {
+"costs": {
+"5": 29000
+},
+"level": 48,
+"name": "Raptor Strike",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"14266": {
+"costs": {
+"5": 38000
+},
+"level": 56,
+"name": "Raptor Strike",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"14267": {
+"costs": {
+"5": 15000
+},
+"level": 38,
+"name": "Wing Clip",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14268": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Wing Clip",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14269": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Mongoose Bite",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14270": {
+"costs": {
+"5": 23000
+},
+"level": 44,
+"name": "Mongoose Bite",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14271": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Mongoose Bite",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14272": {
+"costs": {
+"5": 11000
+},
+"level": 34,
+"name": "Disengage",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14273": {
+"costs": {
+"5": 29000
+},
+"level": 48,
+"name": "Disengage",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14274": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Distracting Shot",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14279": {
+"costs": {
+"5": 28000
+},
+"level": 46,
+"name": "Viper Sting",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14280": {
+"costs": {
+"5": 38000
+},
+"level": 56,
+"name": "Viper Sting",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14281": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Arcane Shot",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14282": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Arcane Shot",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14283": {
+"costs": {
+"5": 7500
+},
+"level": 28,
+"name": "Arcane Shot",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14284": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Arcane Shot",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"14285": {
+"costs": {
+"5": 23000
+},
+"level": 44,
+"name": "Arcane Shot",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"14286": {
+"costs": {
+"5": 36000
+},
+"level": 52,
+"name": "Arcane Shot",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"14287": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Arcane Shot",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"14294": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Volley",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14295": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Volley",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14302": {
+"costs": {
+"5": 7400
+},
+"level": 26,
+"name": "Immolation Trap",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14303": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Immolation Trap",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14304": {
+"costs": {
+"5": 28000
+},
+"level": 46,
+"name": "Immolation Trap",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14305": {
+"costs": {
+"5": 38000
+},
+"level": 56,
+"name": "Immolation Trap",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"14310": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Freezing Trap",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14311": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Freezing Trap",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14316": {
+"costs": {
+"5": 23000
+},
+"level": 44,
+"name": "Explosive Trap",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14317": {
+"costs": {
+"5": 37000
+},
+"level": 54,
+"name": "Explosive Trap",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14318": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14319": {
+"costs": {
+"5": 7500
+},
+"level": 28,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14320": {
+"costs": {
+"5": 15000
+},
+"level": 38,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14321": {
+"costs": {
+"5": 29000
+},
+"level": 48,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"14322": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Aspect of the Hawk",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"14323": {
+"costs": {
+"5": 7000
+},
+"level": 22,
+"name": "Hunter's Mark",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14324": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Hunter's Mark",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"14325": {
+"costs": {
+"5": 39000
+},
+"level": 58,
+"name": "Hunter's Mark",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"14326": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Scare Beast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"14327": {
+"costs": {
+"5": 28000
+},
+"level": 46,
+"name": "Scare Beast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1462": {
+"costs": {
+"5": 7200
+},
+"level": 24,
+"name": "Beast Lore",
+"skillRank": 0
+},
+"1494": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Track Beasts",
+"skillRank": 0
+},
+"1495": {
+"costs": {
+"5": 1500
+},
+"level": 16,
+"name": "Mongoose Bite",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1499": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Freezing Trap",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1510": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Volley",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1513": {
+"costs": {
+"5": 1200
+},
+"level": 14,
+"name": "Scare Beast",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1543": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Flare",
+"skillRank": 0
+},
+"15629": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Distracting Shot",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"15630": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Distracting Shot",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"15631": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Distracting Shot",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"15632": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Distracting Shot",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"19434": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Aimed Shot",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19506": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Trueshot Aura",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1978": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Serpent Sting",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"19878": {
+"costs": {
+"5": 10000
+},
+"level": 32,
+"name": "Track Demons",
+"skillRank": 0
+},
+"19879": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Track Dragonkin",
+"skillRank": 0
+},
+"19880": {
+"costs": {
+"5": 7400
+},
+"level": 26,
+"name": "Track Elementals",
+"skillRank": 0
+},
+"19882": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Track Giants",
+"skillRank": 0
+},
+"19883": {
+"costs": {
+"5": 400
+},
+"level": 10,
+"name": "Track Humanoids",
+"skillRank": 0
+},
+"19884": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Track Undead",
+"skillRank": 0
+},
+"19885": {
+"costs": {
+"5": 7200
+},
+"level": 24,
+"name": "Track Hidden",
+"skillRank": 0
+},
+"20043": {
+"costs": {
+"5": 28000
+},
+"level": 46,
+"name": "Aspect of the Wild",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"20190": {
+"costs": {
+"5": 38000
+},
+"level": 56,
+"name": "Aspect of the Wild",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20736": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Distracting Shot",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"20900": {
+"costs": {
+"5": 7500
+},
+"level": 28,
+"name": "Aimed Shot",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"20901": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Aimed Shot",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20902": {
+"costs": {
+"5": 23000
+},
+"level": 44,
+"name": "Aimed Shot",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20903": {
+"costs": {
+"5": 36000
+},
+"level": 52,
+"name": "Aimed Shot",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20904": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Aimed Shot",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"20905": {
+"costs": {
+"5": 30000
+},
+"level": 50,
+"name": "Trueshot Aura",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"20906": {
+"costs": {
+"5": 42000
+},
+"level": 60,
+"name": "Trueshot Aura",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"20909": {
+"costs": {
+"5": 22000
+},
+"level": 42,
+"name": "Counterattack",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"20910": {
+"costs": {
+"5": 37000
+},
+"level": 54,
+"name": "Counterattack",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"2643": {
+"costs": {
+"5": 1600
+},
+"level": 18,
+"name": "Multi-Shot",
+"skillRank": 0
+},
+"2974": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Wing Clip",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3034": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Viper Sting",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3043": {
+"costs": {
+"5": 7000
+},
+"level": 22,
+"name": "Scorpid Sting",
+"skillRank": 0
+},
+"3044": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Arcane Shot",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3045": {
+"costs": {
+"5": 7400
+},
+"level": 26,
+"name": "Rapid Fire",
+"skillRank": 0
+},
+"3111": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Mend Pet",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"3127": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Parry",
+"rankText": "Passive",
+"skillRank": 0
+},
+"3661": {
+"costs": {
+"5": 7500
+},
+"level": 28,
+"name": "Mend Pet",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"3662": {
+"costs": {
+"5": 13000
+},
+"level": 36,
+"name": "Mend Pet",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"5116": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Concussive Shot",
+"skillRank": 0
+},
+"5118": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Aspect of the Cheetah",
+"skillRank": 0
+},
+"5384": {
+"costs": {
+"5": 7600
+},
+"level": 30,
+"name": "Feign Death",
+"skillRank": 0
+},
+"6197": {
+"costs": {
+"5": 1200
+},
+"level": 14,
+"name": "Eagle Eye",
+"skillRank": 0
+},
+"674": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Dual Wield",
+"rankText": "Passive",
+"skillRank": 0
+},
+"781": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Disengage",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"8737": {
+"costs": {
+"5": 16000
+},
+"level": 40,
+"name": "Mail",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
+},
 "3087": {
 "builds": [
 "1.60.1.70888"
@@ -35294,6 +38586,1464 @@
 },
 "tradeskill": true,
 "trainerType": 2
+},
+"328": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Zaldimar Wefhellt",
+"positions": [
+{
+"mapX": 0.4324,
+"mapY": 0.6625,
+"uiMap": 1429
+}
+],
+"services": {
+"10": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Blizzard",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"10053": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Conjure Mana Citrine",
+"skillRank": 0
+},
+"10054": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Conjure Mana Ruby",
+"skillRank": 0
+},
+"1008": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Amplify Magic",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"10138": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Conjure Water",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10139": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Conjure Water",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10144": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Conjure Food",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10145": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Conjure Food",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10148": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Fireball",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"10149": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Fireball",
+"rankText": "Rank 9",
+"skillRank": 0
+},
+"10150": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Fireball",
+"rankText": "Rank 10",
+"skillRank": 0
+},
+"10151": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Fireball",
+"rankText": "Rank 11",
+"skillRank": 0
+},
+"10156": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Arcane Intellect",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10157": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Arcane Intellect",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10159": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Cone of Cold",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10160": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Cone of Cold",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10161": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Cone of Cold",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10169": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Amplify Magic",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10170": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Amplify Magic",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10173": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Dampen Magic",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10174": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Dampen Magic",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10177": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Frost Ward",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10179": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Frostbolt",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"10180": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Frostbolt",
+"rankText": "Rank 9",
+"skillRank": 0
+},
+"10181": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Frostbolt",
+"rankText": "Rank 10",
+"skillRank": 0
+},
+"10185": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Blizzard",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10186": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Blizzard",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10187": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Blizzard",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10191": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Mana Shield",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10192": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Mana Shield",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10193": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Mana Shield",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10197": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Fire Blast",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10199": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Fire Blast",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10201": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Arcane Explosion",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10202": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Arcane Explosion",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10205": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Scorch",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10206": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Scorch",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10207": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Scorch",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10211": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Arcane Missiles",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10212": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Arcane Missiles",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10215": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Flamestrike",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10216": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Flamestrike",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10219": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Ice Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10220": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Ice Armor",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10223": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Fire Ward",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10225": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Fire Ward",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10230": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Frost Nova",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"116": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Frostbolt",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"118": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Polymorph",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"120": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Cone of Cold",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"12051": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Evocation",
+"skillRank": 0
+},
+"122": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Frost Nova",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1237312": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Frostfire Bolt",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1237313": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Frostfire Bolt",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1239696": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Arcane Blast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1239697": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Arcane Blast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1239699": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Arcane Blast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1239700": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Arcane Blast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"1240044": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Ice Lance",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1240045": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Ice Lance",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1240046": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Ice Lance",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"1240047": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Ice Lance",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"12505": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Pyroblast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"12522": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Pyroblast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"12523": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Pyroblast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"12524": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Pyroblast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"12525": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Pyroblast",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"12526": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Pyroblast",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"12824": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Polymorph",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"12825": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Polymorph",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"12826": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Polymorph",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1296017": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Comprehend Scroll",
+"rankText": "Comprehension",
+"skillRank": 0
+},
+"130": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Slow Fall",
+"skillRank": 0
+},
+"13018": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Blast Wave",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"13019": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Blast Wave",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13020": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Blast Wave",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"13021": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Blast Wave",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"13031": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Ice Barrier",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"13032": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Ice Barrier",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13033": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Ice Barrier",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1326080": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Arcane Wrath",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1326081": {
+"costs": {
+"5": 22000
+},
+"level": 48,
+"name": "Arcane Wrath",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1326082": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Arcane Wrath",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"143": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Fireball",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1449": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Arcane Explosion",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"145": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Fireball",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1459": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Arcane Intellect",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1460": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Arcane Intellect",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1461": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Arcane Intellect",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1463": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Mana Shield",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"18809": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Pyroblast",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"1953": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Blink",
+"skillRank": 0
+},
+"205": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Frostbolt",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2120": {
+"costs": {
+"5": 1700
+},
+"level": 16,
+"name": "Flamestrike",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2121": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Flamestrike",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2136": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Fire Blast",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2137": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Fire Blast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2138": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Fire Blast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"2139": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Counterspell",
+"skillRank": 0
+},
+"22782": {
+"costs": {
+"5": 21000
+},
+"level": 46,
+"name": "Mage Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"22783": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Mage Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"2948": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Scorch",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3140": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Fireball",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"3552": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Conjure Mana Jade",
+"skillRank": 0
+},
+"400640": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Ice Lance",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"401502": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Frostfire Bolt",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"475": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Remove Lesser Curse",
+"skillRank": 0
+},
+"5143": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Arcane Missiles",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5144": {
+"costs": {
+"5": 1700
+},
+"level": 16,
+"name": "Arcane Missiles",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5145": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Arcane Missiles",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"543": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Fire Ward",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5504": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Conjure Water",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5505": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Conjure Water",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5506": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Conjure Water",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"587": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Conjure Food",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"597": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Conjure Food",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"604": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Dampen Magic",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"6117": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Mage Armor",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"6127": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Conjure Water",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"6129": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Conjure Food",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"6131": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Frost Nova",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"6141": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Blizzard",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"6143": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Frost Ward",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"7300": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Frost Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"7301": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Frost Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"7302": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Ice Armor",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"7320": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Ice Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"7322": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Frostbolt",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"759": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Conjure Mana Agate",
+"skillRank": 0
+},
+"837": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Frostbolt",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8400": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Fireball",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8401": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fireball",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"8402": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Fireball",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"8406": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Frostbolt",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8407": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Frostbolt",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"8408": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Frostbolt",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"8412": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fire Blast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8413": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Fire Blast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8416": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Arcane Missiles",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8417": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Arcane Missiles",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8422": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Flamestrike",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8423": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Flamestrike",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8427": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Blizzard",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8437": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Arcane Explosion",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8438": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Arcane Explosion",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8439": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Arcane Explosion",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8444": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Scorch",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8445": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Scorch",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8446": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Scorch",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8450": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Dampen Magic",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8451": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Dampen Magic",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8455": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Amplify Magic",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8457": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fire Ward",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8458": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Fire Ward",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8461": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Frost Ward",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8462": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Frost Ward",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8492": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Cone of Cold",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8494": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Mana Shield",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8495": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Mana Shield",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"865": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Frost Nova",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"990": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Conjure Food",
+"rankText": "Rank 3",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
 },
 "3324": {
 "builds": [
@@ -41260,14 +46010,15 @@
 },
 "3345": {
 "builds": [
-"1.60.1.70840"
+"1.60.1.70840",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-16",
 "name": "Godan",
 "positions": [
 {
-"mapX": 0.5375,
-"mapY": 0.3833,
+"mapX": 0.5379,
+"mapY": 0.384,
 "uiMap": 1454
 }
 ],
@@ -42655,7 +47406,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-16",
 "name": "Sorek",
 "positions": [
 {
@@ -42667,7 +47418,8 @@
 "services": {
 "100": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Charge",
@@ -42675,7 +47427,8 @@
 },
 "11549": {
 "costs": {
-"5": 13000
+"5": 13000,
+"6": 11700
 },
 "level": 0,
 "name": "Battle Shout",
@@ -42684,7 +47437,8 @@
 },
 "11550": {
 "costs": {
-"5": 30000
+"5": 30000,
+"6": 27000
 },
 "level": 42,
 "name": "Battle Shout",
@@ -42693,7 +47447,8 @@
 },
 "11551": {
 "costs": {
-"5": 39000
+"5": 39000,
+"6": 35100
 },
 "level": 52,
 "name": "Battle Shout",
@@ -42702,7 +47457,8 @@
 },
 "11554": {
 "costs": {
-"5": 14000
+"5": 14000,
+"6": 12600
 },
 "level": 34,
 "name": "Demoralizing Shout",
@@ -42711,7 +47467,8 @@
 },
 "11555": {
 "costs": {
-"5": 31000
+"5": 31000,
+"6": 27900
 },
 "level": 44,
 "name": "Demoralizing Shout",
@@ -42720,7 +47477,8 @@
 },
 "11556": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Demoralizing Shout",
@@ -42729,16 +47487,18 @@
 },
 "11564": {
 "costs": {
-"5": 13000
+"5": 13000,
+"6": 11700
 },
-"level": 32,
+"level": 0,
 "name": "Heroic Strike",
 "rankText": "Rank 5",
 "skillRank": 0
 },
 "11565": {
 "costs": {
-"5": 23000
+"5": 23000,
+"6": 20700
 },
 "level": 40,
 "name": "Heroic Strike",
@@ -42747,7 +47507,8 @@
 },
 "11566": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Heroic Strike",
@@ -42756,7 +47517,8 @@
 },
 "11567": {
 "costs": {
-"5": 42000
+"5": 42000,
+"6": 37800
 },
 "level": 56,
 "name": "Heroic Strike",
@@ -42765,7 +47527,8 @@
 },
 "11572": {
 "costs": {
-"5": 23000
+"5": 23000,
+"6": 20700
 },
 "level": 40,
 "name": "Rend",
@@ -42774,7 +47537,8 @@
 },
 "11573": {
 "costs": {
-"5": 36000
+"5": 36000,
+"6": 32400
 },
 "level": 50,
 "name": "Rend",
@@ -42783,7 +47547,8 @@
 },
 "11574": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Rend",
@@ -42792,7 +47557,8 @@
 },
 "11578": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 46,
 "name": "Charge",
@@ -42801,7 +47567,8 @@
 },
 "11580": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Thunder Clap",
@@ -42810,7 +47577,8 @@
 },
 "11581": {
 "costs": {
-"5": 48000
+"5": 48000,
+"6": 43200
 },
 "level": 58,
 "name": "Thunder Clap",
@@ -42819,7 +47587,8 @@
 },
 "11584": {
 "costs": {
-"5": 31000
+"5": 31000,
+"6": 27900
 },
 "level": 44,
 "name": "Overpower",
@@ -42828,7 +47597,8 @@
 },
 "11585": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Overpower",
@@ -42837,7 +47607,8 @@
 },
 "11596": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 46,
 "name": "Sunder Armor",
@@ -42846,7 +47617,8 @@
 },
 "11597": {
 "costs": {
-"5": 48000
+"5": 48000,
+"6": 43200
 },
 "level": 58,
 "name": "Sunder Armor",
@@ -42855,7 +47627,8 @@
 },
 "1160": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Demoralizing Shout",
@@ -42864,7 +47637,8 @@
 },
 "11600": {
 "costs": {
-"5": 31000
+"5": 31000,
+"6": 27900
 },
 "level": 44,
 "name": "Revenge",
@@ -42873,7 +47647,8 @@
 },
 "11601": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Revenge",
@@ -42882,7 +47657,8 @@
 },
 "11604": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 46,
 "name": "Slam",
@@ -42891,7 +47667,8 @@
 },
 "11605": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Slam",
@@ -42900,7 +47677,8 @@
 },
 "11608": {
 "costs": {
-"5": 23000
+"5": 23000,
+"6": 20700
 },
 "level": 40,
 "name": "Cleave",
@@ -42909,7 +47687,8 @@
 },
 "11609": {
 "costs": {
-"5": 36000
+"5": 36000,
+"6": 32400
 },
 "level": 50,
 "name": "Cleave",
@@ -42918,7 +47697,8 @@
 },
 "1161": {
 "costs": {
-"5": 7600
+"5": 7600,
+"6": 6840
 },
 "level": 0,
 "name": "Challenging Shout",
@@ -42926,7 +47706,8 @@
 },
 "1240193": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Slam",
@@ -42934,7 +47715,8 @@
 },
 "1310185": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Tactical Mastery",
@@ -42942,7 +47724,8 @@
 },
 "1310197": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 0,
 "name": "Slam",
@@ -42951,7 +47734,8 @@
 },
 "1608": {
 "costs": {
-"5": 6400
+"5": 6400,
+"6": 5760
 },
 "level": 0,
 "name": "Heroic Strike",
@@ -42960,7 +47744,8 @@
 },
 "1671": {
 "costs": {
-"5": 13000
+"5": 13000,
+"6": 11700
 },
 "level": 32,
 "name": "Shield Bash",
@@ -42969,7 +47754,8 @@
 },
 "1672": {
 "costs": {
-"5": 39000
+"5": 39000,
+"6": 35100
 },
 "level": 52,
 "name": "Shield Bash",
@@ -42978,15 +47764,17 @@
 },
 "1680": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
-"level": 36,
+"level": 0,
 "name": "Whirlwind",
 "skillRank": 0
 },
 "1715": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Hamstring",
@@ -42995,7 +47783,8 @@
 },
 "1719": {
 "costs": {
-"5": 36000
+"5": 36000,
+"6": 32400
 },
 "level": 50,
 "name": "Recklessness",
@@ -43003,7 +47792,8 @@
 },
 "18499": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 0,
 "name": "Berserker Rage",
@@ -43011,7 +47801,8 @@
 },
 "20230": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Retaliation",
@@ -43019,7 +47810,8 @@
 },
 "20559": {
 "costs": {
-"5": 32000
+"5": 32000,
+"6": 28800
 },
 "level": 46,
 "name": "Mocking Blow",
@@ -43028,7 +47820,8 @@
 },
 "20560": {
 "costs": {
-"5": 42000
+"5": 42000,
+"6": 37800
 },
 "level": 56,
 "name": "Mocking Blow",
@@ -43037,7 +47830,8 @@
 },
 "20569": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Cleave",
@@ -43046,7 +47840,8 @@
 },
 "20616": {
 "costs": {
-"5": 30000
+"5": 30000,
+"6": 27000
 },
 "level": 42,
 "name": "Intercept",
@@ -43055,7 +47850,8 @@
 },
 "20617": {
 "costs": {
-"5": 39000
+"5": 39000,
+"6": 35100
 },
 "level": 52,
 "name": "Intercept",
@@ -43064,7 +47860,8 @@
 },
 "20658": {
 "costs": {
-"5": 13000
+"5": 13000,
+"6": 11700
 },
 "level": 0,
 "name": "Execute",
@@ -43073,7 +47870,8 @@
 },
 "20660": {
 "costs": {
-"5": 23000
+"5": 23000,
+"6": 20700
 },
 "level": 40,
 "name": "Execute",
@@ -43082,7 +47880,8 @@
 },
 "20661": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Execute",
@@ -43091,7 +47890,8 @@
 },
 "20662": {
 "costs": {
-"5": 42000
+"5": 42000,
+"6": 37800
 },
 "level": 56,
 "name": "Execute",
@@ -43100,7 +47900,8 @@
 },
 "21551": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Mortal Strike",
@@ -43109,7 +47910,8 @@
 },
 "21552": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Mortal Strike",
@@ -43118,7 +47920,8 @@
 },
 "21553": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Mortal Strike",
@@ -43127,7 +47930,8 @@
 },
 "23892": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Bloodthirst",
@@ -43136,7 +47940,8 @@
 },
 "23893": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Bloodthirst",
@@ -43145,7 +47950,8 @@
 },
 "23894": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Bloodthirst",
@@ -43154,7 +47960,8 @@
 },
 "23923": {
 "costs": {
-"5": 33000
+"5": 33000,
+"6": 29700
 },
 "level": 48,
 "name": "Shield Slam",
@@ -43163,7 +47970,8 @@
 },
 "23924": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Shield Slam",
@@ -43172,7 +47980,8 @@
 },
 "23925": {
 "costs": {
-"5": 49000
+"5": 49000,
+"6": 44100
 },
 "level": 60,
 "name": "Shield Slam",
@@ -43181,7 +47990,8 @@
 },
 "2565": {
 "costs": {
-"5": 1500
+"5": 1500,
+"6": 1350
 },
 "level": 0,
 "name": "Shield Block",
@@ -43189,7 +47999,8 @@
 },
 "2687": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Bloodrage",
@@ -43197,7 +48008,8 @@
 },
 "284": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Heroic Strike",
@@ -43205,7 +48017,8 @@
 },
 "285": {
 "costs": {
-"5": 1500
+"5": 1500,
+"6": 1350
 },
 "level": 0,
 "name": "Heroic Strike",
@@ -43213,7 +48026,8 @@
 },
 "3127": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 6,
 "name": "Parry",
@@ -43222,7 +48036,8 @@
 },
 "402927": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Victory Rush",
@@ -43230,7 +48045,8 @@
 },
 "5242": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Battle Shout",
@@ -43238,7 +48054,8 @@
 },
 "5246": {
 "costs": {
-"5": 5500
+"5": 5500,
+"6": 4950
 },
 "level": 0,
 "name": "Intimidating Shout",
@@ -43246,7 +48063,8 @@
 },
 "5308": {
 "costs": {
-"5": 6400
+"5": 6400,
+"6": 5760
 },
 "level": 0,
 "name": "Execute",
@@ -43254,7 +48072,8 @@
 },
 "6178": {
 "costs": {
-"5": 7600
+"5": 7600,
+"6": 6840
 },
 "level": 0,
 "name": "Charge",
@@ -43263,7 +48082,8 @@
 },
 "6190": {
 "costs": {
-"5": 6400
+"5": 6400,
+"6": 5760
 },
 "level": 24,
 "name": "Demoralizing Shout",
@@ -43272,7 +48092,8 @@
 },
 "6192": {
 "costs": {
-"5": 5500
+"5": 5500,
+"6": 4950
 },
 "level": 0,
 "name": "Battle Shout",
@@ -43280,7 +48101,8 @@
 },
 "6343": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Thunder Clap",
@@ -43288,7 +48110,8 @@
 },
 "6546": {
 "costs": {
-"5": 700
+"5": 700,
+"6": 630
 },
 "level": 0,
 "name": "Rend",
@@ -43297,7 +48120,8 @@
 },
 "6547": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Rend",
@@ -43306,7 +48130,8 @@
 },
 "6548": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 0,
 "name": "Rend",
@@ -43315,7 +48140,8 @@
 },
 "6552": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 38,
 "name": "Pummel",
@@ -43324,7 +48150,8 @@
 },
 "6554": {
 "costs": {
-"5": 48000
+"5": 48000,
+"6": 43200
 },
 "level": 58,
 "name": "Pummel",
@@ -43333,7 +48160,8 @@
 },
 "6572": {
 "costs": {
-"5": 1100
+"5": 1100,
+"6": 990
 },
 "level": 0,
 "name": "Revenge",
@@ -43342,7 +48170,8 @@
 },
 "6574": {
 "costs": {
-"5": 6400
+"5": 6400,
+"6": 5760
 },
 "level": 24,
 "name": "Revenge",
@@ -43351,7 +48180,8 @@
 },
 "6673": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 0,
 "name": "Battle Shout",
@@ -43359,7 +48189,8 @@
 },
 "674": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 20,
 "name": "Dual Wield",
@@ -43368,7 +48199,8 @@
 },
 "676": {
 "costs": {
-"5": 3200
+"5": 3200,
+"6": 2880
 },
 "level": 0,
 "name": "Disarm",
@@ -43376,7 +48208,8 @@
 },
 "694": {
 "costs": {
-"5": 1500
+"5": 1500,
+"6": 1350
 },
 "level": 0,
 "name": "Mocking Blow",
@@ -43385,7 +48218,8 @@
 },
 "72": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Shield Bash",
@@ -43394,7 +48228,8 @@
 },
 "7369": {
 "costs": {
-"5": 12000
+"5": 12000,
+"6": 10800
 },
 "level": 0,
 "name": "Cleave",
@@ -43403,16 +48238,18 @@
 },
 "7372": {
 "costs": {
-"5": 13000
+"5": 13000,
+"6": 11700
 },
-"level": 32,
+"level": 0,
 "name": "Hamstring",
 "rankText": "Rank 2",
 "skillRank": 0
 },
 "7373": {
 "costs": {
-"5": 40000
+"5": 40000,
+"6": 36000
 },
 "level": 54,
 "name": "Hamstring",
@@ -43421,7 +48258,8 @@
 },
 "7379": {
 "costs": {
-"5": 14000
+"5": 14000,
+"6": 12600
 },
 "level": 34,
 "name": "Revenge",
@@ -43430,7 +48268,8 @@
 },
 "7384": {
 "costs": {
-"5": 900
+"5": 900,
+"6": 810
 },
 "level": 0,
 "name": "Overpower",
@@ -43439,7 +48278,8 @@
 },
 "7400": {
 "costs": {
-"5": 7600
+"5": 7600,
+"6": 6840
 },
 "level": 26,
 "name": "Mocking Blow",
@@ -43448,7 +48288,8 @@
 },
 "7402": {
 "costs": {
-"5": 18000
+"5": 18000,
+"6": 16200
 },
 "level": 36,
 "name": "Mocking Blow",
@@ -43457,7 +48298,8 @@
 },
 "7405": {
 "costs": {
-"5": 5500
+"5": 5500,
+"6": 4950
 },
 "level": 0,
 "name": "Sunder Armor",
@@ -43465,7 +48307,8 @@
 },
 "750": {
 "costs": {
-"5": 23000
+"5": 23000,
+"6": 20700
 },
 "level": 40,
 "name": "Plate Mail",
@@ -43473,7 +48316,8 @@
 },
 "772": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Rend",
@@ -43482,7 +48326,8 @@
 },
 "7887": {
 "costs": {
-"5": 11000
+"5": 11000,
+"6": 9900
 },
 "level": 0,
 "name": "Overpower",
@@ -43491,7 +48336,8 @@
 },
 "8198": {
 "costs": {
-"5": 3200
+"5": 3200,
+"6": 2880
 },
 "level": 0,
 "name": "Thunder Clap",
@@ -43500,7 +48346,8 @@
 },
 "8204": {
 "costs": {
-"5": 11000
+"5": 11000,
+"6": 9900
 },
 "level": 28,
 "name": "Thunder Clap",
@@ -43509,7 +48356,8 @@
 },
 "8205": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 38,
 "name": "Thunder Clap",
@@ -43518,7 +48366,8 @@
 },
 "8380": {
 "costs": {
-"5": 14000
+"5": 14000,
+"6": 12600
 },
 "level": 0,
 "name": "Sunder Armor",
@@ -43527,7 +48376,8 @@
 },
 "845": {
 "costs": {
-"5": 3400
+"5": 3400,
+"6": 3060
 },
 "level": 0,
 "name": "Cleave",
@@ -43536,7 +48386,8 @@
 },
 "871": {
 "costs": {
-"5": 11000
+"5": 11000,
+"6": 9900
 },
 "level": 0,
 "name": "Shield Wall",
@@ -43544,7 +48395,8 @@
 },
 "8820": {
 "costs": {
-"5": 19000
+"5": 19000,
+"6": 17100
 },
 "level": 38,
 "name": "Slam",
@@ -43560,19 +48412,20 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-16",
 "name": "Saru Steelfury",
 "positions": [
 {
-"mapX": 0.8221,
-"mapY": 0.2293,
+"mapX": 0.8223,
+"mapY": 0.23,
 "uiMap": 1454
 }
 ],
 "services": {
 "1230171": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Sharpening Wheel",
@@ -43582,7 +48435,8 @@
 },
 "1252229": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Gemmed Copper Boots",
@@ -43591,7 +48445,8 @@
 },
 "1252230": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Strange Copper Boots",
@@ -43600,7 +48455,8 @@
 },
 "1252231": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Glowing Copper Boots",
@@ -43609,7 +48465,8 @@
 },
 "1252305": {
 "costs": {
-"5": 4250
+"5": 4250,
+"6": 3825
 },
 "level": 0,
 "name": "Officer's Belt",
@@ -43618,7 +48475,8 @@
 },
 "1252306": {
 "costs": {
-"5": 4250
+"5": 4250,
+"6": 3825
 },
 "level": 0,
 "name": "Sentinel's Belt",
@@ -43627,7 +48485,8 @@
 },
 "1252307": {
 "costs": {
-"5": 4250
+"5": 4250,
+"6": 3825
 },
 "level": 0,
 "name": "Warder's Belt",
@@ -43636,7 +48495,8 @@
 },
 "1252308": {
 "costs": {
-"5": 4250
+"5": 4250,
+"6": 3825
 },
 "level": 0,
 "name": "Prefect's Belt",
@@ -43645,7 +48505,8 @@
 },
 "1252309": {
 "costs": {
-"5": 4250
+"5": 4250,
+"6": 3825
 },
 "level": 0,
 "name": "Justicar's Belt",
@@ -43654,7 +48515,8 @@
 },
 "14379": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Golden Rod",
@@ -43663,7 +48525,8 @@
 },
 "14380": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Truesilver Rod",
@@ -43672,7 +48535,8 @@
 },
 "15972": {
 "costs": {
-"5": 7500
+"5": 7500,
+"6": 6750
 },
 "level": 0,
 "name": "Glinting Steel Dagger",
@@ -43681,7 +48545,8 @@
 },
 "19666": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Silver Skeleton Key",
@@ -43690,7 +48555,8 @@
 },
 "19667": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Golden Skeleton Key",
@@ -43699,7 +48565,8 @@
 },
 "19668": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Truesilver Skeleton Key",
@@ -43708,7 +48575,8 @@
 },
 "2018": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 1,
 "name": "Apprentice Blacksmith",
@@ -43717,7 +48585,8 @@
 },
 "2661": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Copper Chain Belt",
@@ -43726,7 +48595,8 @@
 },
 "2662": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Copper Chain Pants",
@@ -43735,7 +48605,8 @@
 },
 "2664": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Runed Copper Bracers",
@@ -43744,7 +48615,8 @@
 },
 "2665": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Coarse Sharpening Stone",
@@ -43753,7 +48625,8 @@
 },
 "2666": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Runed Copper Belt",
@@ -43762,7 +48635,8 @@
 },
 "2668": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Rough Bronze Leggings",
@@ -43771,7 +48645,8 @@
 },
 "2670": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Rough Bronze Cuirass",
@@ -43780,7 +48655,8 @@
 },
 "2672": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Patterned Bronze Bracers",
@@ -43789,7 +48665,8 @@
 },
 "2674": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Sharpening Stone",
@@ -43798,7 +48675,8 @@
 },
 "2675": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Shining Silver Breastplate",
@@ -43807,7 +48685,8 @@
 },
 "2737": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Copper Mace",
@@ -43816,7 +48695,8 @@
 },
 "2738": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Copper Axe",
@@ -43825,7 +48705,8 @@
 },
 "2739": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Copper Shortsword",
@@ -43834,7 +48715,8 @@
 },
 "2740": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Bronze Mace",
@@ -43843,7 +48725,8 @@
 },
 "2741": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Bronze Axe",
@@ -43852,7 +48735,8 @@
 },
 "2742": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Bronze Shortsword",
@@ -43861,7 +48745,8 @@
 },
 "3100": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 10,
 "name": "Journeyman Blacksmith",
@@ -43870,7 +48755,8 @@
 },
 "3116": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Coarse Weightstone",
@@ -43879,7 +48765,8 @@
 },
 "3117": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Weightstone",
@@ -43888,7 +48775,8 @@
 },
 "3292": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Copper Broadsword",
@@ -43897,7 +48785,8 @@
 },
 "3293": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Copper Battle Axe",
@@ -43906,7 +48795,8 @@
 },
 "3294": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Thick War Axe",
@@ -43915,7 +48805,8 @@
 },
 "3296": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Bronze Mace",
@@ -43924,7 +48815,8 @@
 },
 "3319": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Copper Chain Boots",
@@ -43933,7 +48825,8 @@
 },
 "3320": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Rough Grinding Stone",
@@ -43942,7 +48835,8 @@
 },
 "3323": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Runed Copper Gauntlets",
@@ -43951,7 +48845,8 @@
 },
 "3324": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Runed Copper Pants",
@@ -43960,7 +48855,8 @@
 },
 "3326": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Coarse Grinding Stone",
@@ -43969,7 +48865,8 @@
 },
 "3328": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Rough Bronze Shoulders",
@@ -43978,7 +48875,8 @@
 },
 "3331": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Silvered Bronze Boots",
@@ -43987,7 +48885,8 @@
 },
 "3333": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Silvered Bronze Gauntlets",
@@ -43996,7 +48895,8 @@
 },
 "3337": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Grinding Stone",
@@ -44005,7 +48905,8 @@
 },
 "3491": {
 "costs": {
-"5": 600
+"5": 600,
+"6": 540
 },
 "level": 0,
 "name": "Big Bronze Knife",
@@ -44014,7 +48915,8 @@
 },
 "3501": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Green Iron Bracers",
@@ -44023,7 +48925,8 @@
 },
 "3502": {
 "costs": {
-"5": 1250
+"5": 1250,
+"6": 1125
 },
 "level": 0,
 "name": "Green Iron Helm",
@@ -44032,7 +48935,8 @@
 },
 "3506": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Green Iron Leggings",
@@ -44041,7 +48945,8 @@
 },
 "3508": {
 "costs": {
-"5": 7500
+"5": 7500,
+"6": 6750
 },
 "level": 0,
 "name": "Green Iron Hauberk",
@@ -44050,7 +48955,8 @@
 },
 "3538": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 20,
 "name": "Expert Blacksmith",
@@ -44060,7 +48966,8 @@
 },
 "6517": {
 "costs": {
-"5": 800
+"5": 800,
+"6": 720
 },
 "level": 0,
 "name": "Pearl-handled Dagger",
@@ -44069,7 +48976,8 @@
 },
 "7223": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Golden Scale Bracers",
@@ -44078,7 +48986,8 @@
 },
 "7408": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Heavy Copper Maul",
@@ -44087,7 +48996,8 @@
 },
 "7817": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Rough Bronze Boots",
@@ -44096,7 +49006,8 @@
 },
 "7818": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Silver Rod",
@@ -44105,7 +49016,8 @@
 },
 "8768": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Iron Buckle",
@@ -44114,7 +49026,8 @@
 },
 "8880": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Copper Dagger",
@@ -44123,7 +49036,8 @@
 },
 "9916": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Steel Breastplate",
@@ -44132,7 +49046,8 @@
 },
 "9918": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Solid Sharpening Stone",
@@ -44141,7 +49056,8 @@
 },
 "9920": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Solid Grinding Stone",
@@ -44150,7 +49066,8 @@
 },
 "9921": {
 "costs": {
-"5": 2500
+"5": 2500,
+"6": 2250
 },
 "level": 0,
 "name": "Solid Weightstone",
@@ -44159,7 +49076,8 @@
 },
 "9926": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Heavy Mithril Shoulder",
@@ -44168,7 +49086,8 @@
 },
 "9928": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Heavy Mithril Gauntlet",
@@ -44177,7 +49096,8 @@
 },
 "9931": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Mithril Plate Pants",
@@ -44186,7 +49106,8 @@
 },
 "9935": {
 "costs": {
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Steel Plate Helm",
@@ -44195,7 +49116,8 @@
 },
 "9983": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Copper Claymore",
@@ -44204,7 +49126,8 @@
 },
 "9985": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Bronze Warhammer",
@@ -44213,7 +49136,8 @@
 },
 "9986": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Bronze Greatsword",
@@ -44222,7 +49146,8 @@
 },
 "9987": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Bronze Battle Axe",
@@ -44231,7 +49156,8 @@
 },
 "9993": {
 "costs": {
-"5": 10000
+"5": 10000,
+"6": 9000
 },
 "level": 0,
 "name": "Heavy Mithril Axe",
@@ -44244,14 +49170,15 @@
 },
 "3357": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-15",
 "name": "Makaru",
 "positions": [
 {
-"mapX": 0.7311,
-"mapY": 0.2642,
+"mapX": 0.7302,
+"mapY": 0.2618,
 "uiMap": 1454
 }
 ],
@@ -44281,8 +49208,7 @@
 "level": 0,
 "name": "Artisan Mining",
 "skill": "Mining",
-"skillRank": 200,
-"step": true
+"skillRank": 200
 },
 "1230161": {
 "costs": {
@@ -44337,7 +49263,8 @@
 "level": 0,
 "name": "Journeyman Mining",
 "skill": "Mining",
-"skillRank": 50
+"skillRank": 50,
+"step": true
 },
 "2658": {
 "costs": {
@@ -44408,21 +49335,23 @@
 },
 "3363": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Magar",
 "positions": [
 {
-"mapX": 0.6332,
-"mapY": 0.5,
+"mapX": 0.634,
+"mapY": 0.4998,
 "uiMap": 1454
 }
 ],
 "services": {
 "12045": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Simple Linen Boots",
@@ -44431,7 +49360,8 @@
 },
 "12046": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Simple Kilt",
@@ -44440,7 +49370,8 @@
 },
 "1229504": {
 "costs": {
-"4": 100
+"4": 100,
+"5": 100
 },
 "level": 0,
 "name": "Faction Banner",
@@ -44450,7 +49381,8 @@
 },
 "1257368": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 0,
 "name": "Novice Arcanist's Sash",
@@ -44459,7 +49391,8 @@
 },
 "1257369": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 0,
 "name": "Novice Ardent's Sash",
@@ -44468,7 +49401,8 @@
 },
 "1257426": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Gilded Slippers",
@@ -44477,7 +49411,8 @@
 },
 "1257427": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Frothing Slippers",
@@ -44486,7 +49421,8 @@
 },
 "1257428": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Fiery Slippers",
@@ -44495,7 +49431,8 @@
 },
 "1257429": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Black Slippers",
@@ -44504,7 +49441,8 @@
 },
 "1257430": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Golden Slippers",
@@ -44513,7 +49451,8 @@
 },
 "1257431": {
 "costs": {
-"4": 1450
+"4": 1450,
+"5": 1450
 },
 "level": 0,
 "name": "Radiant Slippers",
@@ -44522,7 +49461,8 @@
 },
 "2385": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Brown Linen Vest",
@@ -44531,7 +49471,8 @@
 },
 "2386": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Linen Boots",
@@ -44540,7 +49481,8 @@
 },
 "2392": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Red Linen Shirt",
@@ -44549,7 +49491,8 @@
 },
 "2393": {
 "costs": {
-"4": 25
+"4": 25,
+"5": 25
 },
 "level": 0,
 "name": "White Linen Shirt",
@@ -44558,7 +49501,8 @@
 },
 "2394": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Blue Linen Shirt",
@@ -44567,7 +49511,8 @@
 },
 "2395": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Barbaric Linen Vest",
@@ -44576,7 +49521,8 @@
 },
 "2396": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Green Linen Shirt",
@@ -44585,7 +49531,8 @@
 },
 "2397": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Reinforced Linen Cape",
@@ -44594,7 +49541,8 @@
 },
 "2399": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Green Woolen Vest",
@@ -44603,7 +49551,8 @@
 },
 "2401": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Woolen Boots",
@@ -44612,7 +49561,8 @@
 },
 "2402": {
 "costs": {
-"4": 250
+"4": 250,
+"5": 250
 },
 "level": 0,
 "name": "Woolen Cape",
@@ -44621,7 +49571,8 @@
 },
 "2406": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Gray Woolen Shirt",
@@ -44630,7 +49581,8 @@
 },
 "2964": {
 "costs": {
-"4": 100
+"4": 100,
+"5": 100
 },
 "level": 0,
 "name": "Bolt of Woolen Cloth",
@@ -44639,7 +49591,8 @@
 },
 "3755": {
 "costs": {
-"4": 100
+"4": 100,
+"5": 100
 },
 "level": 0,
 "name": "Linen Bag",
@@ -44648,7 +49601,8 @@
 },
 "3757": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Woolen Bag",
@@ -44657,7 +49611,8 @@
 },
 "3813": {
 "costs": {
-"4": 800
+"4": 800,
+"5": 800
 },
 "level": 0,
 "name": "Small Silk Pack",
@@ -44666,7 +49621,8 @@
 },
 "3839": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 0,
 "name": "Bolt of Silk Cloth",
@@ -44675,7 +49631,8 @@
 },
 "3840": {
 "costs": {
-"4": 100
+"4": 100,
+"5": 100
 },
 "level": 0,
 "name": "Heavy Linen Gloves",
@@ -44684,7 +49641,8 @@
 },
 "3841": {
 "costs": {
-"4": 200
+"4": 200,
+"5": 200
 },
 "level": 0,
 "name": "Green Linen Bracers",
@@ -44693,7 +49651,8 @@
 },
 "3842": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Handstitched Linen Britches",
@@ -44702,7 +49661,8 @@
 },
 "3843": {
 "costs": {
-"4": 400
+"4": 400,
+"5": 400
 },
 "level": 0,
 "name": "Heavy Woolen Gloves",
@@ -44711,7 +49671,8 @@
 },
 "3845": {
 "costs": {
-"4": 300
+"4": 300,
+"5": 300
 },
 "level": 0,
 "name": "Soft-soled Linen Boots",
@@ -44720,16 +49681,18 @@
 },
 "3848": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 0,
-"name": "Double-Stitched Woolen Shoulders",
+"name": "Double-stitched Woolen Shoulders",
 "skill": "Tailoring",
 "skillRank": 85
 },
 "3850": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 0,
 "name": "Heavy Woolen Pants",
@@ -44738,7 +49701,8 @@
 },
 "3852": {
 "costs": {
-"4": 750
+"4": 750,
+"5": 750
 },
 "level": 0,
 "name": "Gloves of Meditation",
@@ -44747,7 +49711,8 @@
 },
 "3855": {
 "costs": {
-"4": 750
+"4": 750,
+"5": 750
 },
 "level": 0,
 "name": "Spidersilk Boots",
@@ -44756,7 +49721,8 @@
 },
 "3859": {
 "costs": {
-"4": 750
+"4": 750,
+"5": 750
 },
 "level": 0,
 "name": "Azure Silk Vest",
@@ -44765,7 +49731,8 @@
 },
 "3866": {
 "costs": {
-"4": 250
+"4": 250,
+"5": 250
 },
 "level": 0,
 "name": "Stylish Red Shirt",
@@ -44774,7 +49741,8 @@
 },
 "3908": {
 "costs": {
-"4": 10
+"4": 10,
+"5": 10
 },
 "level": 1,
 "name": "Apprentice Tailoring",
@@ -44783,7 +49751,8 @@
 },
 "3909": {
 "costs": {
-"4": 500
+"4": 500,
+"5": 500
 },
 "level": 10,
 "name": "Journeyman Tailoring",
@@ -44793,7 +49762,8 @@
 },
 "3914": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Brown Linen Pants",
@@ -44802,7 +49772,8 @@
 },
 "6521": {
 "costs": {
-"4": 400
+"4": 400,
+"5": 400
 },
 "level": 0,
 "name": "Pearl-clasped Cloak",
@@ -44811,7 +49782,8 @@
 },
 "6690": {
 "costs": {
-"4": 1000
+"4": 1000,
+"5": 1000
 },
 "level": 0,
 "name": "Lesser Wizard's Robe",
@@ -44820,7 +49792,8 @@
 },
 "7623": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Brown Linen Robe",
@@ -44829,7 +49802,8 @@
 },
 "7624": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "White Linen Robe",
@@ -44838,7 +49812,8 @@
 },
 "8465": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Simple Dress",
@@ -44847,7 +49822,8 @@
 },
 "8467": {
 "costs": {
-"4": 250
+"4": 250,
+"5": 250
 },
 "level": 0,
 "name": "White Woolen Dress",
@@ -44856,7 +49832,8 @@
 },
 "8758": {
 "costs": {
-"4": 600
+"4": 600,
+"5": 600
 },
 "level": 0,
 "name": "Azure Silk Pants",
@@ -44865,7 +49842,8 @@
 },
 "8760": {
 "costs": {
-"4": 600
+"4": 600,
+"5": 600
 },
 "level": 0,
 "name": "Azure Silk Hood",
@@ -44874,7 +49852,8 @@
 },
 "8776": {
 "costs": {
-"4": 50
+"4": 50,
+"5": 50
 },
 "level": 0,
 "name": "Linen Belt",
@@ -45554,14 +50533,15 @@
 "3399": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-16",
 "name": "Zamja",
 "positions": [
 {
-"mapX": 0.5749,
-"mapY": 0.5372,
+"mapX": 0.5746,
+"mapY": 0.5377,
 "uiMap": 1454
 }
 ],
@@ -47396,14 +52376,15 @@
 "3412": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-15",
 "name": "Nogg",
 "positions": [
 {
-"mapX": 0.7575,
-"mapY": 0.253,
+"mapX": 0.7583,
+"mapY": 0.2527,
 "uiMap": 1454
 }
 ],
@@ -52114,11 +57095,11 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-16",
 "name": "Aayndia Floralwind",
 "positions": [
 {
-"mapX": 0.3593,
+"mapX": 0.3595,
 "mapY": 0.5207,
 "uiMap": 1440
 }
@@ -52126,7 +57107,8 @@
 "services": {
 "1229432": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Camp Tent",
@@ -52136,7 +57118,8 @@
 },
 "1255075": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Mender's Leather Belt",
@@ -52145,7 +57128,8 @@
 },
 "1255076": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skycaller's Leather Belt",
@@ -52154,7 +57138,8 @@
 },
 "1255077": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skirmisher's Leather Belt",
@@ -52163,7 +57148,8 @@
 },
 "1255078": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Warden's Leather Belt",
@@ -52172,7 +57158,8 @@
 },
 "1255079": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Stalker's Leather Belt",
@@ -52181,7 +57168,8 @@
 },
 "1255080": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skulker's Leather Belt",
@@ -52190,7 +57178,8 @@
 },
 "1255081": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Prowler's Leather Belt",
@@ -52199,7 +57188,8 @@
 },
 "1255143": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Moonglow Boots",
@@ -52208,7 +57198,8 @@
 },
 "1255144": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Murloc Scale Shoes",
@@ -52217,7 +57208,8 @@
 },
 "1255145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Dark Leather Boots",
@@ -52226,7 +57218,8 @@
 },
 "1255146": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Black Whelp Slippers",
@@ -52235,7 +57228,8 @@
 },
 "20648": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Medium Leather",
@@ -52244,7 +57238,8 @@
 },
 "20649": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Leather",
@@ -52253,7 +57248,8 @@
 },
 "2108": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 1,
 "name": "Apprentice Leatherworking",
@@ -52262,7 +57258,8 @@
 },
 "2153": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Handstitched Leather Pants",
@@ -52271,7 +57268,8 @@
 },
 "2159": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Fine Leather Cloak",
@@ -52280,7 +57278,8 @@
 },
 "2160": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Vest",
@@ -52289,7 +57288,8 @@
 },
 "2161": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Boots",
@@ -52298,7 +57298,8 @@
 },
 "2162": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Cloak",
@@ -52307,7 +57308,8 @@
 },
 "2165": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Medium Armor Kit",
@@ -52316,7 +57318,8 @@
 },
 "2166": {
 "costs": {
-"5": 450
+"5": 450,
+"6": 405
 },
 "level": 0,
 "name": "Toughened Leather Armor",
@@ -52325,7 +57328,8 @@
 },
 "2167": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Gray Leather Boots",
@@ -52334,7 +57338,8 @@
 },
 "2168": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Dark Leather Cloak",
@@ -52343,7 +57348,8 @@
 },
 "3104": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 10,
 "name": "Journeyman Leatherworking",
@@ -52353,7 +57359,8 @@
 },
 "3753": {
 "costs": {
-"5": 75
+"5": 75,
+"6": 67
 },
 "level": 0,
 "name": "Handstitched Leather Belt",
@@ -52362,7 +57369,8 @@
 },
 "3756": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Embossed Leather Gloves",
@@ -52371,7 +57379,8 @@
 },
 "3759": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Embossed Leather Pants",
@@ -52380,7 +57389,8 @@
 },
 "3760": {
 "costs": {
-"5": 600
+"5": 600,
+"6": 540
 },
 "level": 0,
 "name": "Hillman's Cloak",
@@ -52389,7 +57399,8 @@
 },
 "3761": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Fine Leather Tunic",
@@ -52398,7 +57409,8 @@
 },
 "3763": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Fine Leather Belt",
@@ -52407,7 +57419,8 @@
 },
 "3764": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Leather Gloves",
@@ -52416,7 +57429,8 @@
 },
 "3766": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Belt",
@@ -52425,7 +57439,8 @@
 },
 "3768": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Shoulders",
@@ -52434,7 +57449,8 @@
 },
 "3770": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Toughened Leather Gloves",
@@ -52443,7 +57459,8 @@
 },
 "3780": {
 "costs": {
-"5": 750
+"5": 750,
+"6": 675
 },
 "level": 0,
 "name": "Heavy Armor Kit",
@@ -52452,7 +57469,8 @@
 },
 "3816": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Cured Light Hide",
@@ -52461,7 +57479,8 @@
 },
 "3817": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Cured Medium Hide",
@@ -52470,7 +57489,8 @@
 },
 "3818": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Cured Heavy Hide",
@@ -52479,7 +57499,8 @@
 },
 "7135": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Pants",
@@ -52488,7 +57509,8 @@
 },
 "9060": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Light Leather Quiver",
@@ -52497,7 +57519,8 @@
 },
 "9062": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Small Leather Ammo Pouch",
@@ -52506,7 +57529,8 @@
 },
 "9065": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Light Leather Bracers",
@@ -52515,7 +57539,8 @@
 },
 "9068": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Light Leather Pants",
@@ -52524,7 +57549,8 @@
 },
 "9074": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Nimble Leather Gloves",
@@ -52533,7 +57559,8 @@
 },
 "9145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Fletcher's Gloves",
@@ -52542,7 +57569,8 @@
 },
 "9193": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Quiver",
@@ -52551,7 +57579,8 @@
 },
 "9194": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Leather Ammo Pouch",
@@ -55657,16 +60686,840 @@
 "tradeskill": true,
 "trainerType": 2
 },
+"4576": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Josef Gregorian",
+"positions": [
+{
+"mapX": 0.7041,
+"mapY": 0.305,
+"uiMap": 1458
+}
+],
+"services": {
+"12045": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Linen Boots",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"12046": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Simple Kilt",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"12048": {
+"costs": {
+"5": 4000
+},
+"level": 0,
+"name": "Black Mageweave Vest",
+"skill": "Tailoring",
+"skillRank": 170
+},
+"12049": {
+"costs": {
+"5": 4000
+},
+"level": 0,
+"name": "Black Mageweave Leggings",
+"skill": "Tailoring",
+"skillRank": 170
+},
+"12050": {
+"costs": {
+"5": 4000
+},
+"level": 0,
+"name": "Black Mageweave Robe",
+"skill": "Tailoring",
+"skillRank": 175
+},
+"12053": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Black Mageweave Gloves",
+"skill": "Tailoring",
+"skillRank": 180
+},
+"12061": {
+"costs": {
+"5": 2500
+},
+"level": 0,
+"name": "Orange Mageweave Shirt",
+"skill": "Tailoring",
+"skillRank": 180
+},
+"12065": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Mageweave Bag",
+"skill": "Tailoring",
+"skillRank": 190
+},
+"12067": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Dreamweave Gloves",
+"skill": "Tailoring",
+"skillRank": 190
+},
+"12069": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Cindercloth Robe",
+"skill": "Tailoring",
+"skillRank": 190
+},
+"12070": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Dreamweave Vest",
+"skill": "Tailoring",
+"skillRank": 190
+},
+"1229504": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Faction Banner",
+"rankText": "Tier 1",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"1257368": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Arcanist's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1257369": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Ardent's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1257426": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Gilded Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257427": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Frothing Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257428": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Fiery Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257429": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Black Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257430": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Golden Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257431": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Radiant Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"2385": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Vest",
+"skill": "Tailoring",
+"skillRank": 10
+},
+"2386": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Linen Boots",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2392": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Red Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2393": {
+"costs": {
+"5": 25
+},
+"level": 0,
+"name": "White Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 1
+},
+"2394": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Blue Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2395": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Barbaric Linen Vest",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2396": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2397": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Reinforced Linen Cape",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"2399": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Green Woolen Vest",
+"skill": "Tailoring",
+"skillRank": 60
+},
+"2401": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Woolen Boots",
+"skill": "Tailoring",
+"skillRank": 70
+},
+"2402": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Woolen Cape",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"2406": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Gray Woolen Shirt",
+"skill": "Tailoring",
+"skillRank": 80
+},
+"2964": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Bolt of Woolen Cloth",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"3755": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Linen Bag",
+"skill": "Tailoring",
+"skillRank": 5
+},
+"3757": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Woolen Bag",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"3813": {
+"costs": {
+"5": 800
+},
+"level": 0,
+"name": "Small Silk Pack",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"3839": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Bolt of Silk Cloth",
+"skill": "Tailoring",
+"skillRank": 100
+},
+"3840": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Heavy Linen Gloves",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"3841": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Bracers",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"3842": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Handstitched Linen Britches",
+"skill": "Tailoring",
+"skillRank": 45
+},
+"3843": {
+"costs": {
+"5": 400
+},
+"level": 0,
+"name": "Heavy Woolen Gloves",
+"skill": "Tailoring",
+"skillRank": 60
+},
+"3845": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Soft-soled Linen Boots",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"3848": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Double-Stitched Woolen Shoulders",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3850": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Heavy Woolen Pants",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3852": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Gloves of Meditation",
+"skill": "Tailoring",
+"skillRank": 105
+},
+"3855": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Spidersilk Boots",
+"skill": "Tailoring",
+"skillRank": 100
+},
+"3859": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Azure Silk Vest",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"3861": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Long Silken Cloak",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"3865": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Bolt of Mageweave",
+"skill": "Tailoring",
+"skillRank": 140
+},
+"3866": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Stylish Red Shirt",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3871": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Formal White Shirt",
+"skill": "Tailoring",
+"skillRank": 135
+},
+"3908": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Apprentice Tailoring",
+"profession": true,
+"skillRank": 0
+},
+"3909": {
+"costs": {
+"5": 500
+},
+"level": 10,
+"name": "Journeyman Tailoring",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"3910": {
+"costs": {
+"5": 5000
+},
+"level": 20,
+"name": "Expert Tailoring",
+"skill": "Tailoring",
+"skillRank": 125,
+"step": true
+},
+"3914": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Pants",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"6521": {
+"costs": {
+"5": 400
+},
+"level": 0,
+"name": "Pearl-clasped Cloak",
+"skill": "Tailoring",
+"skillRank": 70
+},
+"6690": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Lesser Wizard's Robe",
+"skill": "Tailoring",
+"skillRank": 110
+},
+"7623": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"7624": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "White Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8465": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Dress",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8467": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "White Woolen Dress",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"8483": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "White Swashbuckler's Shirt",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"8489": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Red Swashbuckler's Shirt",
+"skill": "Tailoring",
+"skillRank": 140
+},
+"8758": {
+"costs": {
+"5": 600
+},
+"level": 0,
+"name": "Azure Silk Pants",
+"skill": "Tailoring",
+"skillRank": 115
+},
+"8760": {
+"costs": {
+"5": 600
+},
+"level": 0,
+"name": "Azure Silk Hood",
+"skill": "Tailoring",
+"skillRank": 120
+},
+"8762": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Silk Headband",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"8764": {
+"costs": {
+"5": 900
+},
+"level": 0,
+"name": "Earthen Vest",
+"skill": "Tailoring",
+"skillRank": 135
+},
+"8766": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Azure Silk Belt",
+"skill": "Tailoring",
+"skillRank": 140
+},
+"8770": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Robe of Power",
+"skill": "Tailoring",
+"skillRank": 155
+},
+"8772": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Crimson Silk Belt",
+"skill": "Tailoring",
+"skillRank": 140
+},
+"8774": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Green Silken Shoulders",
+"skill": "Tailoring",
+"skillRank": 145
+},
+"8776": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Linen Belt",
+"skill": "Tailoring",
+"skillRank": 15
+},
+"8791": {
+"costs": {
+"5": 2500
+},
+"level": 0,
+"name": "Crimson Silk Vest",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"8799": {
+"costs": {
+"5": 3000
+},
+"level": 0,
+"name": "Crimson Silk Pantaloons",
+"skill": "Tailoring",
+"skillRank": 160
+},
+"8804": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Crimson Silk Gloves",
+"skill": "Tailoring",
+"skillRank": 175
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
+"4586": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Graham Van Talen",
+"positions": [
+{
+"mapX": 0.7524,
+"mapY": 0.7288,
+"uiMap": 1458
+}
+],
+"services": {
+"1230656": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Reagent Bot",
+"rankText": "Tier 1",
+"skill": "Engineering",
+"skillRank": 20
+},
+"3922": {
+"costs": {
+"5": 115
+},
+"level": 0,
+"name": "Handful of Copper Bolts",
+"skill": "Engineering",
+"skillRank": 30
+},
+"3923": {
+"costs": {
+"5": 130
+},
+"level": 0,
+"name": "Rough Copper Bomb",
+"skill": "Engineering",
+"skillRank": 30
+},
+"3924": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Copper Tube",
+"skill": "Engineering",
+"skillRank": 50
+},
+"3925": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Rough Boomstick",
+"skill": "Engineering",
+"skillRank": 50
+},
+"3926": {
+"costs": {
+"5": 225
+},
+"level": 0,
+"name": "Copper Modulator",
+"skill": "Engineering",
+"skillRank": 65
+},
+"3929": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Coarse Blasting Powder",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3930": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Crafted Heavy Shot",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3931": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Coarse Dynamite",
+"skill": "Engineering",
+"skillRank": 75
+},
+"3977": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Crude Scope",
+"skill": "Engineering",
+"skillRank": 60
+},
+"4036": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Apprentice Engineer",
+"profession": true,
+"skillRank": 0,
+"step": true
+},
+"7430": {
+"costs": {
+"5": 150
+},
+"level": 0,
+"name": "Arclight Spanner",
+"skill": "Engineering",
+"skillRank": 50
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "4591": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-06",
+"lastSeen": "2026-11-16",
 "name": "Mary Edras",
 "positions": [
 {
-"mapX": 0.7335,
-"mapY": 0.5577,
+"mapX": 0.7343,
+"mapY": 0.5571,
 "uiMap": 1458
 }
 ],
@@ -55674,7 +61527,8 @@
 "1230117": {
 "costs": {
 "4": 100,
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "First Aid Kit",
@@ -55685,7 +61539,8 @@
 "1244431": {
 "costs": {
 "4": 100,
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Minor Healing Potion",
@@ -55695,7 +61550,8 @@
 "1244432": {
 "costs": {
 "4": 150,
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Lesser Healing Potion",
@@ -55705,7 +61561,8 @@
 "1244433": {
 "costs": {
 "4": 800,
-"5": 800
+"5": 800,
+"6": 720
 },
 "level": 0,
 "name": "Healing Potion",
@@ -55715,7 +61572,8 @@
 "1259342": {
 "costs": {
 "4": 250,
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Simple Poultice",
@@ -55725,7 +61583,8 @@
 "1259347": {
 "costs": {
 "4": 1200,
-"5": 1200
+"5": 1200,
+"6": 1080
 },
 "level": 0,
 "name": "Woolen Tourniquet",
@@ -55735,7 +61594,8 @@
 "3273": {
 "costs": {
 "4": 100,
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Apprentice First Aid",
@@ -55744,7 +61604,8 @@
 "3274": {
 "costs": {
 "4": 500,
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Journeyman First Aid",
@@ -55755,7 +61616,8 @@
 "3276": {
 "costs": {
 "4": 100,
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Heavy Linen Bandage",
@@ -55765,7 +61627,8 @@
 "3277": {
 "costs": {
 "4": 250,
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Wool Bandage",
@@ -55775,7 +61638,8 @@
 "3278": {
 "costs": {
 "4": 1000,
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Wool Bandage",
@@ -55785,7 +61649,8 @@
 "7928": {
 "costs": {
 "4": 5000,
-"5": 5000
+"5": 5000,
+"6": 4500
 },
 "level": 0,
 "name": "Silk Bandage",
@@ -55795,7 +61660,8 @@
 "7934": {
 "costs": {
 "4": 250,
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Anti-Venom",
@@ -57196,23 +63062,335 @@
 "tradeskill": true,
 "trainerType": 2
 },
+"4616": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Lavinia Crowe",
+"positions": [
+{
+"mapX": 0.6213,
+"mapY": 0.6176,
+"uiMap": 1458
+}
+],
+"services": {
+"1230643": {
+"costs": {
+"5": 100,
+"6": 90
+},
+"level": 0,
+"name": "Enchanted Lute",
+"rankText": "Tier 1",
+"skill": "Enchanting",
+"skillRank": 20
+},
+"13378": {
+"costs": {
+"5": 600,
+"6": 540
+},
+"level": 0,
+"name": "Enchant Shield - Minor Stamina",
+"skill": "Enchanting",
+"skillRank": 105
+},
+"13421": {
+"costs": {
+"5": 800,
+"6": 720
+},
+"level": 0,
+"name": "Enchant Cloak - Lesser Protection",
+"skill": "Enchanting",
+"skillRank": 115
+},
+"13485": {
+"costs": {
+"5": 1500,
+"6": 1350
+},
+"level": 0,
+"name": "Enchant Shield - Lesser Spirit",
+"skill": "Enchanting",
+"skillRank": 130
+},
+"13501": {
+"costs": {
+"5": 1500,
+"6": 1350
+},
+"level": 0,
+"name": "Enchant Bracer - Lesser Stamina",
+"skill": "Enchanting",
+"skillRank": 130
+},
+"13503": {
+"costs": {
+"5": 2000,
+"6": 1800
+},
+"level": 0,
+"name": "Enchant Weapon - Lesser Striking",
+"skill": "Enchanting",
+"skillRank": 140
+},
+"13529": {
+"costs": {
+"5": 2400,
+"6": 2160
+},
+"level": 0,
+"name": "Enchant 2H Weapon - Lesser Impact",
+"skill": "Enchanting",
+"skillRank": 145
+},
+"13538": {
+"costs": {
+"5": 2500,
+"6": 2250
+},
+"level": 0,
+"name": "Enchant Chest - Lesser Absorption",
+"skill": "Enchanting",
+"skillRank": 140
+},
+"13607": {
+"costs": {
+"5": 2400,
+"6": 2160
+},
+"level": 0,
+"name": "Enchant Chest - Intellect",
+"skill": "Enchanting",
+"skillRank": 145
+},
+"13622": {
+"costs": {
+"5": 2500,
+"6": 2250
+},
+"level": 0,
+"name": "Enchant Bracer - Lesser Intellect",
+"skill": "Enchanting",
+"skillRank": 150
+},
+"13626": {
+"costs": {
+"5": 2500,
+"6": 2250
+},
+"level": 0,
+"name": "Enchant Chest - Minor Stats",
+"skill": "Enchanting",
+"skillRank": 150
+},
+"13628": {
+"costs": {
+"5": 2500,
+"6": 2250
+},
+"level": 0,
+"name": "Runed Golden Rod",
+"skill": "Enchanting",
+"skillRank": 150
+},
+"14293": {
+"costs": {
+"5": 50,
+"6": 45
+},
+"level": 0,
+"name": "Lesser Magic Wand",
+"skill": "Enchanting",
+"skillRank": 10
+},
+"14807": {
+"costs": {
+"5": 200,
+"6": 180
+},
+"level": 0,
+"name": "Greater Magic Wand",
+"skill": "Enchanting",
+"skillRank": 70
+},
+"7411": {
+"costs": {
+"5": 10,
+"6": 9
+},
+"level": 1,
+"name": "Apprentice Enchanting",
+"profession": true,
+"skillRank": 0
+},
+"7412": {
+"costs": {
+"5": 500,
+"6": 450
+},
+"level": 10,
+"name": "Journeyman Enchanting",
+"skill": "Enchanting",
+"skillRank": 50,
+"step": true
+},
+"7420": {
+"costs": {
+"5": 50,
+"6": 45
+},
+"level": 0,
+"name": "Enchant Chest - Inferior Stamina",
+"skill": "Enchanting",
+"skillRank": 15
+},
+"7426": {
+"costs": {
+"5": 100,
+"6": 90
+},
+"level": 0,
+"name": "Enchant Chest - Minor Absorption",
+"skill": "Enchanting",
+"skillRank": 40
+},
+"7454": {
+"costs": {
+"5": 100,
+"6": 90
+},
+"level": 0,
+"name": "Enchant Cloak - Minor Resistance",
+"skill": "Enchanting",
+"skillRank": 45
+},
+"7457": {
+"costs": {
+"5": 250,
+"6": 225
+},
+"level": 0,
+"name": "Enchant Bracer - Minor Stamina",
+"skill": "Enchanting",
+"skillRank": 50
+},
+"7745": {
+"costs": {
+"5": 500,
+"6": 450
+},
+"level": 0,
+"name": "Enchant 2H Weapon - Minor Impact",
+"skill": "Enchanting",
+"skillRank": 100
+},
+"7748": {
+"costs": {
+"5": 250,
+"6": 225
+},
+"level": 0,
+"name": "Enchant Chest - Lesser Stamina",
+"skill": "Enchanting",
+"skillRank": 60
+},
+"7771": {
+"costs": {
+"5": 200,
+"6": 180
+},
+"level": 0,
+"name": "Enchant Cloak - Minor Protection",
+"skill": "Enchanting",
+"skillRank": 70
+},
+"7779": {
+"costs": {
+"5": 400,
+"6": 360
+},
+"level": 0,
+"name": "Enchant Bracer - Minor Agility",
+"skill": "Enchanting",
+"skillRank": 80
+},
+"7788": {
+"costs": {
+"5": 500,
+"6": 450
+},
+"level": 0,
+"name": "Enchant Weapon - Minor Striking",
+"skill": "Enchanting",
+"skillRank": 90
+},
+"7795": {
+"costs": {
+"5": 1000,
+"6": 900
+},
+"level": 0,
+"name": "Runed Silver Rod",
+"skill": "Enchanting",
+"skillRank": 100
+},
+"7857": {
+"costs": {
+"5": 1000,
+"6": 900
+},
+"level": 0,
+"name": "Enchant Chest - Stamina",
+"skill": "Enchanting",
+"skillRank": 120
+},
+"7861": {
+"costs": {
+"5": 1250,
+"6": 1125
+},
+"level": 0,
+"name": "Enchant Cloak - Lesser Fire Resistance",
+"skill": "Enchanting",
+"skillRank": 125
+},
+"7863": {
+"costs": {
+"5": 1400,
+"6": 1260
+},
+"level": 0,
+"name": "Enchant Boots - Minor Stamina",
+"skill": "Enchanting",
+"skillRank": 125
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "5482": {
 "builds": [
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-11-12",
+"lastSeen": "2026-11-17",
 "name": "Stephen Ryback",
 "positions": [
 {
-"mapX": 0.7815,
-"mapY": 0.5328,
+"mapX": 0.7814,
+"mapY": 0.5325,
 "uiMap": 1453
 }
 ],
 "services": {
 "1229737": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Basic Campfire Kit",
@@ -57222,7 +63400,8 @@
 },
 "21175": {
 "costs": {
-"5": 4000
+"5": 4000,
+"6": 3600
 },
 "level": 0,
 "name": "Spider Sausage",
@@ -57231,7 +63410,8 @@
 },
 "2539": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Spiced Wolf Meat",
@@ -57240,7 +63420,8 @@
 },
 "2541": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Coyote Steak",
@@ -57249,7 +63430,8 @@
 },
 "2544": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Crab Cake",
@@ -57258,7 +63440,8 @@
 },
 "2546": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Dry Pork Ribs",
@@ -57267,7 +63450,8 @@
 },
 "2550": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Apprentice Cook",
@@ -57275,7 +63459,8 @@
 },
 "3102": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Journeyman Cook",
@@ -57285,7 +63470,8 @@
 },
 "6499": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Boiled Clams",
@@ -57294,7 +63480,8 @@
 },
 "6500": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Goblin Deviled Clams",
@@ -58970,13 +65157,1635 @@
 "tradeskill": false,
 "trainerType": 0
 },
+"5498": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-15",
+"name": "Elsharin",
+"positions": [
+{
+"mapX": 0.4826,
+"mapY": 0.8725,
+"uiMap": 1453
+}
+],
+"services": {
+"10": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Blizzard",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"10053": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Conjure Mana Citrine",
+"skillRank": 0
+},
+"10054": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Conjure Mana Ruby",
+"skillRank": 0
+},
+"1008": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Amplify Magic",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"10138": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Conjure Water",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10139": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Conjure Water",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10144": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Conjure Food",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10145": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Conjure Food",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10148": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Fireball",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"10149": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Fireball",
+"rankText": "Rank 9",
+"skillRank": 0
+},
+"10150": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Fireball",
+"rankText": "Rank 10",
+"skillRank": 0
+},
+"10151": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Fireball",
+"rankText": "Rank 11",
+"skillRank": 0
+},
+"10156": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Arcane Intellect",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10157": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Arcane Intellect",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10159": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Cone of Cold",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10160": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Cone of Cold",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10161": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Cone of Cold",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10169": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Amplify Magic",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10170": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Amplify Magic",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10173": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Dampen Magic",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10174": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Dampen Magic",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10177": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Frost Ward",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10179": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Frostbolt",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"10180": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Frostbolt",
+"rankText": "Rank 9",
+"skillRank": 0
+},
+"10181": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Frostbolt",
+"rankText": "Rank 10",
+"skillRank": 0
+},
+"10185": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Blizzard",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10186": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Blizzard",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10187": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Blizzard",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10191": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Mana Shield",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10192": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Mana Shield",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10193": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Mana Shield",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10197": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Fire Blast",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10199": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Fire Blast",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10201": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Arcane Explosion",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10202": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Arcane Explosion",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10205": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Scorch",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10206": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Scorch",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10207": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Scorch",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10211": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Arcane Missiles",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10212": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Arcane Missiles",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"10215": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Flamestrike",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10216": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Flamestrike",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"10219": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Ice Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"10220": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Ice Armor",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10223": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Fire Ward",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"10225": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Fire Ward",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"10230": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Frost Nova",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"116": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Frostbolt",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"118": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Polymorph",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"120": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Cone of Cold",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"12051": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Evocation",
+"skillRank": 0
+},
+"122": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Frost Nova",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1237312": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Frostfire Bolt",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1237313": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Frostfire Bolt",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1239696": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Arcane Blast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1239697": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Arcane Blast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1239699": {
+"costs": {
+"5": 23000
+},
+"level": 50,
+"name": "Arcane Blast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1239700": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Arcane Blast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"1240044": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Ice Lance",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1240045": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Ice Lance",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1240046": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Ice Lance",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"1240047": {
+"costs": {
+"5": 28000
+},
+"level": 56,
+"name": "Ice Lance",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"12505": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Pyroblast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"12522": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Pyroblast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"12523": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Pyroblast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"12524": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Pyroblast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"12525": {
+"costs": {
+"5": 21000
+},
+"level": 48,
+"name": "Pyroblast",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"12526": {
+"costs": {
+"5": 26000
+},
+"level": 54,
+"name": "Pyroblast",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"12824": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Polymorph",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"12825": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Polymorph",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"12826": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Polymorph",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1296017": {
+"costs": {
+"5": 100
+},
+"level": 6,
+"name": "Comprehend Scroll",
+"rankText": "Comprehension",
+"skillRank": 0
+},
+"130": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Slow Fall",
+"skillRank": 0
+},
+"13018": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Blast Wave",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"13019": {
+"costs": {
+"5": 15000
+},
+"level": 44,
+"name": "Blast Wave",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13020": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Blast Wave",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"13021": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Blast Wave",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"13031": {
+"costs": {
+"5": 20000
+},
+"level": 46,
+"name": "Ice Barrier",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"13032": {
+"costs": {
+"5": 24000
+},
+"level": 52,
+"name": "Ice Barrier",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"13033": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Ice Barrier",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"1326080": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Arcane Wrath",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1326081": {
+"costs": {
+"5": 22000
+},
+"level": 48,
+"name": "Arcane Wrath",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1326082": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Arcane Wrath",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"143": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Fireball",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1449": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Arcane Explosion",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"145": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Fireball",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1459": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Arcane Intellect",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"1460": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Arcane Intellect",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"1461": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Arcane Intellect",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"1463": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Mana Shield",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"18809": {
+"costs": {
+"5": 30000
+},
+"level": 60,
+"name": "Pyroblast",
+"rankText": "Rank 8",
+"skillRank": 0
+},
+"1953": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Blink",
+"skillRank": 0
+},
+"205": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Frostbolt",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2120": {
+"costs": {
+"5": 1700
+},
+"level": 16,
+"name": "Flamestrike",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2121": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Flamestrike",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2136": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Fire Blast",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"2137": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Fire Blast",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"2138": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Fire Blast",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"2139": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Counterspell",
+"skillRank": 0
+},
+"22782": {
+"costs": {
+"5": 21000
+},
+"level": 46,
+"name": "Mage Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"22783": {
+"costs": {
+"5": 29000
+},
+"level": 58,
+"name": "Mage Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"2948": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Scorch",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"3140": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Fireball",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"3552": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Conjure Mana Jade",
+"skillRank": 0
+},
+"400640": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Ice Lance",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"401502": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Frostfire Bolt",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"475": {
+"costs": {
+"5": 1800
+},
+"level": 18,
+"name": "Remove Lesser Curse",
+"skillRank": 0
+},
+"5143": {
+"costs": {
+"5": 200
+},
+"level": 8,
+"name": "Arcane Missiles",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5144": {
+"costs": {
+"5": 1700
+},
+"level": 16,
+"name": "Arcane Missiles",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5145": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Arcane Missiles",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"543": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Fire Ward",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5504": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Conjure Water",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"5505": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Conjure Water",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"5506": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Conjure Water",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"587": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Conjure Food",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"597": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Conjure Food",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"604": {
+"costs": {
+"5": 600
+},
+"level": 12,
+"name": "Dampen Magic",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"6117": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Mage Armor",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"6127": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Conjure Water",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"6129": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Conjure Food",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"6131": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Frost Nova",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"6141": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Blizzard",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"6143": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Frost Ward",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"7300": {
+"costs": {
+"5": 300
+},
+"level": 10,
+"name": "Frost Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"7301": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Frost Armor",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"7302": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Ice Armor",
+"rankText": "Rank 1",
+"skillRank": 0
+},
+"7320": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Ice Armor",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"7322": {
+"costs": {
+"5": 2100
+},
+"level": 20,
+"name": "Frostbolt",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"759": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Conjure Mana Agate",
+"skillRank": 0
+},
+"837": {
+"costs": {
+"5": 900
+},
+"level": 14,
+"name": "Frostbolt",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8400": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Fireball",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8401": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fireball",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"8402": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Fireball",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"8406": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Frostbolt",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8407": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Frostbolt",
+"rankText": "Rank 6",
+"skillRank": 0
+},
+"8408": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Frostbolt",
+"rankText": "Rank 7",
+"skillRank": 0
+},
+"8412": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fire Blast",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8413": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Fire Blast",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8416": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Arcane Missiles",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8417": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Arcane Missiles",
+"rankText": "Rank 5",
+"skillRank": 0
+},
+"8422": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Flamestrike",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8423": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Flamestrike",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8427": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Blizzard",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8437": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Arcane Explosion",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8438": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Arcane Explosion",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8439": {
+"costs": {
+"5": 12000
+},
+"level": 38,
+"name": "Arcane Explosion",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8444": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Scorch",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8445": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Scorch",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8446": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Scorch",
+"rankText": "Rank 4",
+"skillRank": 0
+},
+"8450": {
+"costs": {
+"5": 4300
+},
+"level": 24,
+"name": "Dampen Magic",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8451": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Dampen Magic",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8455": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Amplify Magic",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8457": {
+"costs": {
+"5": 6200
+},
+"level": 30,
+"name": "Fire Ward",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8458": {
+"costs": {
+"5": 13000
+},
+"level": 40,
+"name": "Fire Ward",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8461": {
+"costs": {
+"5": 8000
+},
+"level": 32,
+"name": "Frost Ward",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8462": {
+"costs": {
+"5": 14000
+},
+"level": 42,
+"name": "Frost Ward",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"8492": {
+"costs": {
+"5": 9000
+},
+"level": 34,
+"name": "Cone of Cold",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8494": {
+"costs": {
+"5": 5500
+},
+"level": 28,
+"name": "Mana Shield",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"8495": {
+"costs": {
+"5": 11000
+},
+"level": 36,
+"name": "Mana Shield",
+"rankText": "Rank 3",
+"skillRank": 0
+},
+"865": {
+"costs": {
+"5": 4800
+},
+"level": 26,
+"name": "Frost Nova",
+"rankText": "Rank 2",
+"skillRank": 0
+},
+"990": {
+"costs": {
+"5": 3300
+},
+"level": 22,
+"name": "Conjure Food",
+"rankText": "Rank 3",
+"skillRank": 0
+}
+},
+"tradeskill": false,
+"trainerType": 0
+},
+"5513": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Gelman Stonehand",
+"positions": [
+{
+"mapX": 0.5903,
+"mapY": 0.3778,
+"uiMap": 1453
+}
+],
+"services": {
+"10097": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Mithril Bar",
+"skill": "Mining",
+"skillRank": 175
+},
+"10098": {
+"costs": {
+"5": 10000
+},
+"level": 0,
+"name": "Truesilver Bar",
+"skill": "Mining",
+"skillRank": 230
+},
+"10248": {
+"costs": {
+"5": 50000
+},
+"level": 0,
+"name": "Artisan Mining",
+"skill": "Mining",
+"skillRank": 200
+},
+"1230161": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Lodestone",
+"rankText": "Tier 1",
+"skill": "Mining",
+"skillRank": 20
+},
+"1249637": {
+"costs": {
+"5": 50000
+},
+"level": 0,
+"name": "Azerothium Bar",
+"skill": "Mining",
+"skillRank": 275
+},
+"1306126": {
+"costs": {
+"5": 50000
+},
+"level": 0,
+"name": "Heavy Thorium Bar",
+"skill": "Mining",
+"skillRank": 300
+},
+"16153": {
+"costs": {
+"5": 20000
+},
+"level": 0,
+"name": "Thorium Bar",
+"skill": "Mining",
+"skillRank": 250
+},
+"2575": {
+"costs": {
+"5": 10
+},
+"level": 0,
+"name": "Apprentice Mining",
+"profession": true,
+"skillRank": 0
+},
+"2576": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Journeyman Mining",
+"skill": "Mining",
+"skillRank": 50,
+"step": true
+},
+"2658": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Silver Bar",
+"skill": "Mining",
+"skillRank": 75
+},
+"2659": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Bronze Bar",
+"skill": "Mining",
+"skillRank": 65
+},
+"3304": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Tin Bar",
+"skill": "Mining",
+"skillRank": 65
+},
+"3307": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Iron Bar",
+"skill": "Mining",
+"skillRank": 125
+},
+"3308": {
+"costs": {
+"5": 2500
+},
+"level": 0,
+"name": "Gold Bar",
+"skill": "Mining",
+"skillRank": 155
+},
+"3564": {
+"costs": {
+"5": 5000
+},
+"level": 0,
+"name": "Expert Mining",
+"skill": "Mining",
+"skillRank": 125
+},
+"3569": {
+"costs": {
+"5": 2500
+},
+"level": 0,
+"name": "Steel Bar",
+"skill": "Mining",
+"skillRank": 165
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
 "5515": {
 "builds": [
 "1.60.1.70790",
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-15",
+"lastSeen": "2026-11-17",
 "name": "Einris Brightspear",
 "positions": [
 {
@@ -61324,7 +69133,7 @@
 "builds": [
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-16",
 "name": "Lilliam Sparkspindle",
 "positions": [
 {
@@ -61657,7 +69466,7 @@
 "1.60.1.70888",
 "1.60.1.70938"
 ],
-"lastSeen": "2026-11-14",
+"lastSeen": "2026-11-17",
 "name": "Simon Tanner",
 "positions": [
 {
@@ -61669,7 +69478,8 @@
 "services": {
 "1229432": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Camp Tent",
@@ -61679,7 +69489,8 @@
 },
 "1255075": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Mender's Leather Belt",
@@ -61688,7 +69499,8 @@
 },
 "1255076": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skycaller's Leather Belt",
@@ -61697,7 +69509,8 @@
 },
 "1255077": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skirmisher's Leather Belt",
@@ -61706,7 +69519,8 @@
 },
 "1255078": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Warden's Leather Belt",
@@ -61715,7 +69529,8 @@
 },
 "1255079": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Stalker's Leather Belt",
@@ -61724,7 +69539,8 @@
 },
 "1255080": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skulker's Leather Belt",
@@ -61733,7 +69549,8 @@
 },
 "1255081": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Prowler's Leather Belt",
@@ -61742,7 +69559,8 @@
 },
 "1255143": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Moonglow Boots",
@@ -61751,7 +69569,8 @@
 },
 "1255144": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Murloc Scale Shoes",
@@ -61760,7 +69579,8 @@
 },
 "1255145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Dark Leather Boots",
@@ -61769,7 +69589,8 @@
 },
 "1255146": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Black Whelp Slippers",
@@ -61778,7 +69599,8 @@
 },
 "20648": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Medium Leather",
@@ -61787,7 +69609,8 @@
 },
 "20649": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Leather",
@@ -61796,7 +69619,8 @@
 },
 "2108": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 1,
 "name": "Apprentice Leatherworking",
@@ -61805,7 +69629,8 @@
 },
 "2153": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Handstitched Leather Pants",
@@ -61814,7 +69639,8 @@
 },
 "2159": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Fine Leather Cloak",
@@ -61823,7 +69649,8 @@
 },
 "2160": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Vest",
@@ -61832,7 +69659,8 @@
 },
 "2161": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Boots",
@@ -61841,7 +69669,8 @@
 },
 "2162": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Cloak",
@@ -61850,7 +69679,8 @@
 },
 "2165": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Medium Armor Kit",
@@ -61859,7 +69689,8 @@
 },
 "2166": {
 "costs": {
-"5": 450
+"5": 450,
+"6": 405
 },
 "level": 0,
 "name": "Toughened Leather Armor",
@@ -61868,7 +69699,8 @@
 },
 "2167": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Gray Leather Boots",
@@ -61877,7 +69709,8 @@
 },
 "2168": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Dark Leather Cloak",
@@ -61886,7 +69719,8 @@
 },
 "3104": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 10,
 "name": "Journeyman Leatherworking",
@@ -61896,7 +69730,8 @@
 },
 "3753": {
 "costs": {
-"5": 75
+"5": 75,
+"6": 67
 },
 "level": 0,
 "name": "Handstitched Leather Belt",
@@ -61905,7 +69740,8 @@
 },
 "3756": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Embossed Leather Gloves",
@@ -61914,7 +69750,8 @@
 },
 "3759": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Embossed Leather Pants",
@@ -61923,7 +69760,8 @@
 },
 "3760": {
 "costs": {
-"5": 600
+"5": 600,
+"6": 540
 },
 "level": 0,
 "name": "Hillman's Cloak",
@@ -61932,7 +69770,8 @@
 },
 "3761": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Fine Leather Tunic",
@@ -61941,7 +69780,8 @@
 },
 "3763": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Fine Leather Belt",
@@ -61950,7 +69790,8 @@
 },
 "3764": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Leather Gloves",
@@ -61959,7 +69800,8 @@
 },
 "3766": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Belt",
@@ -61968,7 +69810,8 @@
 },
 "3768": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Shoulders",
@@ -61977,7 +69820,8 @@
 },
 "3770": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Toughened Leather Gloves",
@@ -61986,7 +69830,8 @@
 },
 "3780": {
 "costs": {
-"5": 750
+"5": 750,
+"6": 675
 },
 "level": 0,
 "name": "Heavy Armor Kit",
@@ -61995,7 +69840,8 @@
 },
 "3816": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Cured Light Hide",
@@ -62004,7 +69850,8 @@
 },
 "3817": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Cured Medium Hide",
@@ -62013,7 +69860,8 @@
 },
 "3818": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Cured Heavy Hide",
@@ -62022,7 +69870,8 @@
 },
 "7135": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Pants",
@@ -62031,7 +69880,8 @@
 },
 "9060": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Light Leather Quiver",
@@ -62040,7 +69890,8 @@
 },
 "9062": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Small Leather Ammo Pouch",
@@ -62049,7 +69900,8 @@
 },
 "9065": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Light Leather Bracers",
@@ -62058,7 +69910,8 @@
 },
 "9068": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Light Leather Pants",
@@ -62067,7 +69920,8 @@
 },
 "9074": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Nimble Leather Gloves",
@@ -62076,7 +69930,8 @@
 },
 "9145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Fletcher's Gloves",
@@ -62085,7 +69940,8 @@
 },
 "9193": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Quiver",
@@ -62094,12 +69950,492 @@
 },
 "9194": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Leather Ammo Pouch",
 "skill": "Leatherworking",
 "skillRank": 125
+}
+},
+"tradeskill": true,
+"trainerType": 2
+},
+"5567": {
+"builds": [
+"1.60.1.70938"
+],
+"lastSeen": "2026-11-16",
+"name": "Sellandus",
+"positions": [
+{
+"mapX": 0.5235,
+"mapY": 0.8335,
+"uiMap": 1453
+}
+],
+"services": {
+"12045": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Linen Boots",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"12046": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Simple Kilt",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"1257368": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Arcanist's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1257369": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Novice Ardent's Sash",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"1257426": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Gilded Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257427": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Frothing Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257428": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Fiery Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257429": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Black Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257430": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Golden Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1257431": {
+"costs": {
+"5": 1450
+},
+"level": 0,
+"name": "Radiant Slippers",
+"skill": "Tailoring",
+"skillRank": 150
+},
+"1263425": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Faction Banner",
+"rankText": "Tier 1",
+"skill": "Tailoring",
+"skillRank": 20
+},
+"2385": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Vest",
+"skill": "Tailoring",
+"skillRank": 10
+},
+"2386": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Linen Boots",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2392": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Red Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2393": {
+"costs": {
+"5": 25
+},
+"level": 0,
+"name": "White Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 1
+},
+"2394": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Blue Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"2395": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Barbaric Linen Vest",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2396": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Shirt",
+"skill": "Tailoring",
+"skillRank": 40
+},
+"2397": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Reinforced Linen Cape",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"2399": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Green Woolen Vest",
+"skill": "Tailoring",
+"skillRank": 60
+},
+"2401": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Woolen Boots",
+"skill": "Tailoring",
+"skillRank": 70
+},
+"2402": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Woolen Cape",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"2406": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Gray Woolen Shirt",
+"skill": "Tailoring",
+"skillRank": 80
+},
+"2964": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Bolt of Woolen Cloth",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"3755": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Linen Bag",
+"skill": "Tailoring",
+"skillRank": 5
+},
+"3757": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Woolen Bag",
+"skill": "Tailoring",
+"skillRank": 50
+},
+"3813": {
+"costs": {
+"5": 800
+},
+"level": 0,
+"name": "Small Silk Pack",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"3839": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Bolt of Silk Cloth",
+"skill": "Tailoring",
+"skillRank": 100
+},
+"3840": {
+"costs": {
+"5": 100
+},
+"level": 0,
+"name": "Heavy Linen Gloves",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"3841": {
+"costs": {
+"5": 200
+},
+"level": 0,
+"name": "Green Linen Bracers",
+"skill": "Tailoring",
+"skillRank": 35
+},
+"3842": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Handstitched Linen Britches",
+"skill": "Tailoring",
+"skillRank": 45
+},
+"3843": {
+"costs": {
+"5": 400
+},
+"level": 0,
+"name": "Heavy Woolen Gloves",
+"skill": "Tailoring",
+"skillRank": 60
+},
+"3845": {
+"costs": {
+"5": 300
+},
+"level": 0,
+"name": "Soft-soled Linen Boots",
+"skill": "Tailoring",
+"skillRank": 55
+},
+"3848": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Double-Stitched Woolen Shoulders",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3850": {
+"costs": {
+"5": 500
+},
+"level": 0,
+"name": "Heavy Woolen Pants",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3852": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Gloves of Meditation",
+"skill": "Tailoring",
+"skillRank": 105
+},
+"3855": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Spidersilk Boots",
+"skill": "Tailoring",
+"skillRank": 100
+},
+"3859": {
+"costs": {
+"5": 750
+},
+"level": 0,
+"name": "Azure Silk Vest",
+"skill": "Tailoring",
+"skillRank": 125
+},
+"3866": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "Stylish Red Shirt",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"3908": {
+"costs": {
+"5": 10
+},
+"level": 1,
+"name": "Apprentice Tailoring",
+"profession": true,
+"skillRank": 0
+},
+"3909": {
+"costs": {
+"5": 500
+},
+"level": 10,
+"name": "Journeyman Tailoring",
+"skill": "Tailoring",
+"skillRank": 50,
+"step": true
+},
+"3914": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Pants",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"6521": {
+"costs": {
+"5": 400
+},
+"level": 0,
+"name": "Pearl-clasped Cloak",
+"skill": "Tailoring",
+"skillRank": 70
+},
+"6690": {
+"costs": {
+"5": 1000
+},
+"level": 0,
+"name": "Lesser Wizard's Robe",
+"skill": "Tailoring",
+"skillRank": 110
+},
+"7623": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Brown Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"7624": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "White Linen Robe",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8465": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Simple Dress",
+"skill": "Tailoring",
+"skillRank": 25
+},
+"8467": {
+"costs": {
+"5": 250
+},
+"level": 0,
+"name": "White Woolen Dress",
+"skill": "Tailoring",
+"skillRank": 85
+},
+"8758": {
+"costs": {
+"5": 600
+},
+"level": 0,
+"name": "Azure Silk Pants",
+"skill": "Tailoring",
+"skillRank": 115
+},
+"8760": {
+"costs": {
+"5": 600
+},
+"level": 0,
+"name": "Azure Silk Hood",
+"skill": "Tailoring",
+"skillRank": 120
+},
+"8776": {
+"costs": {
+"5": 50
+},
+"level": 0,
+"name": "Linen Belt",
+"skill": "Tailoring",
+"skillRank": 15
 }
 },
 "tradeskill": true,
@@ -62217,14 +70553,15 @@
 },
 "5759": {
 "builds": [
-"1.60.1.70450"
+"1.60.1.70450",
+"1.60.1.70938"
 ],
-"lastSeen": "2026-10-17",
+"lastSeen": "2026-11-15",
 "name": "Nurse Neela",
 "positions": [
 {
-"mapX": 0.6178,
-"mapY": 0.5276,
+"mapX": 0.6181,
+"mapY": 0.5278,
 "uiMap": 1420
 }
 ],

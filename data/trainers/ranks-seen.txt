@@ -1,17 +1,19 @@
 # npc|name|highest profession rank seen for sale (1 Apprentice to 4 Artisan)|its name
 # From data/trainers/eglink-trainers.json (Efficient Games, CC BY 4.0), by tools/build_trainers.py.
 223|Dan Golthas|1|Apprentice Leatherworking
-1292|Maris Granger|3|Expert Skinning
+1103|Eldrin|1|Apprentice Tailoring
+1292|Maris Granger|4|Artisan Skinning
 1300|Lawrence Schneider|1|Apprentice Tailoring
 1355|Cook Ghilm|2|Journeyman Cook
 1383|Snarl|2|Journeyman Blacksmith
 1385|Brawn|2|Journeyman Leatherworking
-1430|Tomas|1|Apprentice Cook
+1430|Tomas|2|Journeyman Cook
 1632|Adele Fielder|1|Apprentice Leatherworking
 2329|Michelle Belle|1|Apprentice First Aid
 2798|Pand Stonebinder|2|Journeyman First Aid
 2834|Myizz Luckycatch|2|Journeyman Fishing
 2855|Snang|1|Apprentice Tailoring
+2857|Thund|1|Apprentice Engineer
 2998|Karn Stonehoof|2|Journeyman Blacksmith
 3001|Brek Stonehoof|4|Artisan Mining
 3007|Una|3|Expert Leatherworking
@@ -25,7 +27,7 @@
 3191|Cook Torka|1|Apprentice Cook
 3345|Godan|2|Journeyman Enchanting
 3355|Saru Steelfury|3|Expert Blacksmith
-3357|Makaru|4|Artisan Mining
+3357|Makaru|2|Journeyman Mining
 3363|Magar|2|Journeyman Tailoring
 3365|Karolek|2|Journeyman Leatherworking
 3373|Arnok|2|Journeyman First Aid
@@ -39,13 +41,18 @@
 3967|Aayndia Floralwind|2|Journeyman Leatherworking
 4552|Eunice Burch|2|Journeyman Cook
 4573|Armand Cromwell|1|Apprentice Fishing
+4576|Josef Gregorian|3|Expert Tailoring
+4586|Graham Van Talen|1|Apprentice Engineer
 4591|Mary Edras|2|Journeyman First Aid
 4598|Brom Killian|4|Artisan Mining
 4605|Basil Frye|1|Apprentice Blacksmith
 4614|Martha Alliestar|1|Apprentice Herbalism
+4616|Lavinia Crowe|2|Journeyman Enchanting
 5482|Stephen Ryback|2|Journeyman Cook
+5513|Gelman Stonehand|2|Journeyman Mining
 5518|Lilliam Sparkspindle|2|Journeyman Engineer
 5564|Simon Tanner|2|Journeyman Leatherworking
+5567|Sellandus|2|Journeyman Tailoring
 5695|Vance Undergloom|1|Apprentice Enchanting
 5759|Nurse Neela|1|Apprentice First Aid
 5784|Waldor|1|Apprentice Leatherworking
@@ -79,8 +86,9 @@
 247227|Riley Peltskinner|1|Apprentice Skinning
 251905|Zerril Softbreeze|1|Apprentice Cook
 251993|Indari Sunseam|1|Apprentice Leatherworking
+256655|Gorg|2|Journeyman Cook
 257008|Baelann Swiftcurrent|1|Apprentice Fishing
-257018|Naleeia Tattermend|1|Apprentice First Aid
+257018|Naleeia Tattermend|2|Journeyman First Aid
 257019|Nyassa Swiftdraught|1|Apprentice Alchemist
 257021|Halassa Fernbreeze|1|Apprentice Herbalism
 257024|Mendalass Tattermend|3|Expert Skinning
@@ -91,4 +99,5 @@
 267325|Walter Mason|1|Apprentice Mining
 267327|Kagil|1|Apprentice Skinning
 267329|Zor'la|1|Apprentice Herbalism
+267331|Vartha Rockmane|1|Apprentice Mining
 267333|Terunne Bearshaper|1|Apprentice Skinning
