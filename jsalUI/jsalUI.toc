@@ -153,5 +153,5 @@ Quests\GuideTags.lua
 Home.lua
 Settings.lua
 
-# The guided setup, the first time jsal.ui runs and from Settings.
+# The welcome, the first time jsal.ui runs and from Settings.
 Onboarding.lua

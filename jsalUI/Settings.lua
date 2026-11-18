@@ -117,6 +117,13 @@ local function Short(module)
     return note:match("^(.-)%. ") or note
 end
 
+-- For another window that lists parts (the welcome's extras): a part's
+-- picture, and its short line.
+ns.Settings = {
+    Icon = function(key) return ICON[key] and (ICON_PATH .. ICON[key]) or nil end,
+    Short = Short,
+}
+
 local function Grouped()
     local placed, groups = {}, {}
     for i, group in ipairs(GROUPS) do
@@ -354,7 +361,7 @@ Window.Page("settings", function(page)
     local Paint
 
     ---------------------------------------------------------------------
-    -- The top: the page's name, how many parts are on, the guided setup and
+    -- The top: the page's name, how many parts are on, the welcome and
     -- Unlock Mode again, and a box to find a part in.
     ---------------------------------------------------------------------
     local title = Style.Text(page, 23, "text", nil, true)
@@ -378,9 +385,9 @@ Window.Page("settings", function(page)
     find:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
     page:HookScript("OnHide", function() find:ClearFocus() end)
 
-    -- The guided setup, again, for anyone who skipped it or wants to start over.
+    -- The welcome, again, for anyone who skipped it or wants another look.
     if ns.Setup then
-        local again = Style.Button(page, "Set up again", "plain", 120)
+        local again = Style.Button(page, "See the welcome", "plain", 132)
         again:SetPoint("RIGHT", find.well, "LEFT", -8, 0)
         again:SetScript("OnClick", function()
             ns.Window.Toggle()
