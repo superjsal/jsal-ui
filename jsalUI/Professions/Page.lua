@@ -24,13 +24,14 @@ local SIGN, ROAD_H = Road.SIGN, Road.ACROSS_H + 4
 Window.Page("professions", function(page)
     local width, height = Window.fullWidth, Window.contentHeight
     local selected
-    -- Down the page: the bar, the row of professions, the two cards, the road.
-    local BAR_Y, TILES_Y = 60, 94
+    -- Down the page: the row of professions, the two cards, the road. The bar from the rank's
+    -- first point to its cap went (John, 17 Nov 2026: "i also dont think we need the top bar"):
+    -- the skill is at the top right, and the road's gold and its rank stop say the rest.
+    local TILES_Y = 60
     local bodyY = TILES_Y + TILE_H + 20
     local rightX = width - CARD_W
 
-    -- The top: the chosen profession, your skill in it, its rank, and one
-    -- bar from the rank's first point to its cap with the next rank marked.
+    -- The top: the chosen profession, your skill in it, and its rank.
     local title = Style.Text(page, 23, "text", nil, true)
     title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
     local points = Style.Text(page, 23, "text", nil, true)
@@ -40,23 +41,6 @@ Window.Page("professions", function(page)
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     sub:SetWidth(width - 80)
     sub:SetWordWrap(false)
-    local track = CreateFrame("Frame", nil, page)
-    track:SetSize(width, 6)
-    track:SetPoint("TOPLEFT", 0, -BAR_Y)
-    Style.Fill(track, "line")
-    local fill = track:CreateTexture(nil, "ARTWORK")
-    fill:SetPoint("TOPLEFT")
-    fill:SetPoint("BOTTOMLEFT")
-    fill:SetColorTexture(Style.Color("gold"))
-    local marker = track:CreateTexture(nil, "OVERLAY")
-    marker:SetColorTexture(Style.Color("muted"))
-    marker:SetSize(Compat.OnePixel(page), 12)
-    local from = Style.Text(page, 11, "muted")
-    from:SetPoint("TOPLEFT", track, "BOTTOMLEFT", 0, -5)
-    local capText = Style.Text(page, 11, "muted")
-    capText:SetPoint("TOPRIGHT", track, "BOTTOMRIGHT", 0, -5)
-    capText:SetJustifyH("RIGHT")
-    local markText = Style.Text(page, 11, "muted")
 
     -- Your professions, in a row: a click chooses one.
     local cards = {}
@@ -165,11 +149,36 @@ Window.Page("professions", function(page)
     done:SetPoint("TOPLEFT", 1, -1)
     done:SetSize(FIRST_X - 6, BAND_H - 2)
     Style.Cap(done, 12, "needFill", "LEFT")
-    local you = done:CreateTexture(nil, "ARTWORK")
+    -- The mark has a layer of its own over the gold, so it shows when there's no gold yet.
+    local markLayer = CreateFrame("Frame", nil, band)
+    markLayer:SetAllPoints()
+    markLayer:SetFrameLevel((done:GetFrameLevel() or 0) + 1)
+    local you = markLayer:CreateTexture(nil, "ARTWORK")
     you:SetColorTexture(Style.Color("gold"))
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
+    -- The gold fills toward the road's first sign as you gain skill, and stops at the mark's
+    -- middle, as on the Training Planner's road (John, 17 Nov 2026: "i'm not sure why that
+    -- wouldn't work though?"). The road is planned afresh from your skill each time, so the skill
+    -- it set out from is kept per profession: the skill you had when that sign became the next
+    -- one. A new first sign (a step done, a plan changed) starts it again from there.
+    local MIN_FILL = 12
+    local function PaintGold(line, skill, sign, signAt)
+        local kept = type(ns.char.profRoadFrom) == "table" and ns.char.profRoadFrom or {}
+        ns.char.profRoadFrom = kept
+        local from = kept[line]
+        if not (type(from) == "table" and from.sign == sign and from.skill <= skill and skill < sign) then
+            from = { sign = sign, skill = skill }
+            kept[line] = from
+        end
+        local along = sign and math.max(0, math.min(1, (skill - from.skill) / math.max(1, sign - from.skill))) or 0
+        local reach = along * math.max(0, signAt - SIGN / 2 - 10)
+        done:SetShown(reach >= MIN_FILL)
+        done:SetWidth(math.max(MIN_FILL, reach - 1))
+        you:ClearAllPoints()
+        you:SetPoint("CENTER", band, "LEFT", math.max(10, reach), 0)
+    end
     local youText = Style.Text(lane, 10, "gold", nil, true)
     youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
     youText:SetJustifyH("CENTER")
@@ -313,6 +322,9 @@ Window.Page("professions", function(page)
         if not ranked and o.ahead then Add("rank") end
         if ends == 1 then Add("cap") end
         road = { items = items, Middle = Middle, o = o, spread = places < ACROSS }
+        local first = items[1]
+        local sign = first and ((first.kind == "step" and first.step.to) or (first.kind == "rank" and o.rankAt) or o.cap)
+        PaintGold(o.line, o.skill, sign, Middle(0))
         -- The road is as long as its stops.
         local long = places >= ACROSS and math.max(width, FIRST_X + (places - 1) * PITCH + STOP_W + 2) or width
         lane:SetWidth(long)
@@ -367,7 +379,7 @@ Window.Page("professions", function(page)
             region:Hide()
         end
         if bar then
-            for _, region in ipairs({ track, from, capText, markText, points }) do region:Hide() end
+            points:Hide()
         end
     end
 
@@ -423,29 +435,11 @@ Window.Page("professions", function(page)
         local rankAt = Professions.At(line, rank)
         local rankIndex = 1
         for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
-        local floor = rankIndex > 1 and Professions.RANKS[rankIndex - 1].cap or 0
         title:SetText(current.name)
         points:SetText(skill)
         points:Show()
         sub:SetText(rank.name)
-        local span = math.max(1, cap - floor)
-        for _, region in ipairs({ track, from, capText }) do region:Show() end
-        fill:SetWidth(math.max(1, width * math.max(0, math.min(1, (skill - floor) / span))))
-        from:SetText(floor)
-        capText:SetText(cap)
-        local what
-        if rankAt and Professions.RankFrom then what = Professions.RankFrom(line, rank.next) end
-        local doing = what or (rank.next and ("train " .. rank.next)) or ""
         local ahead = rankAt ~= nil and skill < rankAt
-        marker:SetShown(ahead)
-        markText:SetShown(ahead)
-        if ahead then
-            local x = width * (rankAt - floor) / span
-            marker:ClearAllPoints()
-            marker:SetPoint("CENTER", track, "LEFT", x, 0)
-            markText:SetText(("%d · %s"):format(rankAt, doing))
-            Road.PlaceMark(markText, track, x, width, from, capText, rankAt >= cap)
-        end
 
         -- What you know: as last seen in its window, else every trainer
         -- recipe up to your skill.

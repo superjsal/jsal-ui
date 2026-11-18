@@ -340,7 +340,7 @@ Window.Page("training", function(page)
     -- The mark has a layer of its own over the gold, so it shows when there's no gold yet.
     local markLayer = CreateFrame("Frame", nil, band)
     markLayer:SetAllPoints()
-    markLayer:SetFrameLevel(done:GetFrameLevel() + 1)
+    markLayer:SetFrameLevel((done:GetFrameLevel() or 0) + 1)
     local you = markLayer:CreateTexture(nil, "ARTWORK")
     you:SetColorTexture(Style.Color("gold"))
     you:SetSize(12, 12)
