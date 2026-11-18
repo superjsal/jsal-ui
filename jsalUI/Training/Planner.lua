@@ -308,7 +308,7 @@ Window.Page("training", function(page)
     ui.weaponSum = Style.Text(ui.weaponBox, 12, "muted")
 
     ---------------------------------------------------------------------------
-    -- Across the bottom: the road to 60. A road with a line along its middle, you at
+    -- Across the bottom: the road to 60. A road, you at
     -- its start, and a round sign for each trainer visit with what it
     -- teaches under it. With more visits than fit across, the mouse wheel
     -- moves along it.
@@ -414,13 +414,6 @@ Window.Page("training", function(page)
         return best
     end
 
-    -- The road's middle line: one line under the signs, the colour and weight its dashes had.
-    -- It was a dash every 22 pixels, around eighty pieces; John: "i am not attached to the
-    -- dotted lines, one singular line is also okay" (17 Nov 2026), and picked it from two.
-    local middle = band:CreateTexture(nil, "ARTWORK")
-    middle:SetColorTexture(Style.Color("lineStrong"))
-    middle:SetHeight(2)
-    middle:SetPoint("LEFT", band, "LEFT", FIRST_X + 8, 0)
 
     -- A visit: a round sign on the road with its level, and its cost under
     -- it. What it teaches is laid out under that by Glyphs. Pointing at the
@@ -970,7 +963,6 @@ Window.Page("training", function(page)
         ui.road:SetWidth(long)
         ui.band:SetWidth(long)
         ui.roadLevels, ui.roadAhead, ui.roadLong = levels, ahead, long
-        middle:SetWidth(math.max(1, long - 22 - (FIRST_X + 8)))
         ui.roadMost = long - width
         ui.roadScroll:UpdateScrollChildRect()
         ui.PlaceRoad()
