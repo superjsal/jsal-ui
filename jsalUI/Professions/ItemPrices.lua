@@ -17,9 +17,40 @@ local DAY = 86400
 ItemPrices.CUT = 0.05
 -- A price older than this is shown as old.
 ItemPrices.OLD = 7 * DAY
+-- And one older than this is let go: it says nothing about today's auction
+-- house, and every item ever seen in a search would otherwise be kept for good.
+ItemPrices.FORGET = 30 * DAY
 
--- Prices remembered from your own searches, for this realm.
+-- Lets go of the remembered prices past FORGET, on every realm, and of
+-- anything there that isn't a price. Gives how many went.
+function ItemPrices.Sweep()
+    local all = type(ns.db.ahPrices) == "table" and ns.db.ahPrices or {}
+    local now, gone = Compat.ServerTime(), 0
+    for realm, prices in pairs(all) do
+        if type(prices) ~= "table" then
+            all[realm] = nil
+        else
+            for item, seen in pairs(prices) do
+                if type(seen) ~= "table" or type(seen.price) ~= "number"
+                    or now - (tonumber(seen.seen) or 0) > ItemPrices.FORGET then
+                    prices[item] = nil
+                    gone = gone + 1
+                end
+            end
+            if next(prices) == nil then all[realm] = nil end
+        end
+    end
+    return gone
+end
+
+-- Prices remembered from your own searches, for this realm. The first ask
+-- since the game loaded sweeps out the ones too old to keep.
+local swept = false
 local function Remembered()
+    if not swept then
+        swept = true
+        ItemPrices.Sweep()
+    end
     local realm = GetRealmName and GetRealmName() or "?"
     ns.db.ahPrices = type(ns.db.ahPrices) == "table" and ns.db.ahPrices or {}
     ns.db.ahPrices[realm] = type(ns.db.ahPrices[realm]) == "table" and ns.db.ahPrices[realm] or {}
