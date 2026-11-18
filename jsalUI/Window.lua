@@ -97,17 +97,9 @@ end
 
 local frame, content, current, crumb
 
--- Addons can't reload the game themselves on Forever, but the game's own
--- secure button can run the /reload command when the player clicks it.
--- Because it's secure, the dashboard never opens or closes during combat:
--- it closes as a fight starts and waits until it ends to open.
--- Each one needs a name of its own. A gold one is a page's main action
--- (Settings, once a change is waiting for a reload).
-function Window.ReloadButton(parent, name, text, width, gold)
-    local b = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
-    b:SetAttribute("type", "macro")
-    b:SetAttribute("macrotext", "/reload")
-    b:RegisterForClicks("AnyUp", "AnyDown")
+-- A title bar's button: a small well with its word, lit under the pointer.
+-- A gold one is a page's main action.
+local function Dress(b, text, width, gold)
     b:SetSize(width, 26)
     local rest, lit = gold and "gold" or "well", gold and "goldHover" or "wellHover"
     local fill = Style.Fill(b, rest)
@@ -124,6 +116,20 @@ function Window.ReloadButton(parent, name, text, width, gold)
         Style.SetBorder(edges, gold and "gold" or "lineStrong")
     end)
     return b
+end
+
+-- Addons can't reload the game themselves on Forever, but the game's own
+-- secure button can run the /reload command when the player clicks it.
+-- Because it's secure, the dashboard never opens or closes during combat:
+-- it closes as a fight starts and waits until it ends to open.
+-- Each one needs a name of its own. A gold one is a page's main action
+-- (Settings, once a change is waiting for a reload).
+function Window.ReloadButton(parent, name, text, width, gold)
+    local b = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
+    b:SetAttribute("type", "macro")
+    b:SetAttribute("macrotext", "/reload")
+    b:RegisterForClicks("AnyUp", "AnyDown")
+    return Dress(b, text, width, gold)
 end
 
 local function SavePosition()
@@ -291,7 +297,18 @@ local function Build()
     crumb:SetJustifyV("MIDDLE")
     local close = Style.CloseButton(bar, TITLE_HEIGHT, function() frame:Hide() end)
     close:SetPoint("TOPRIGHT")
-    Window.ReloadButton(bar, "jsalUIReloadButton", "Reload", 72):SetPoint("RIGHT", close, "LEFT", -6, 0)
+    local reload = Window.ReloadButton(bar, "jsalUIReloadButton", "Reload", 72)
+    reload:SetPoint("RIGHT", close, "LEFT", -6, 0)
+    -- Unlock, left of it: the dashboard steps aside and Unlock Mode opens, to move jsal.ui's
+    -- pieces about the screen (/jsal unlock).
+    if ns.Unlock and ns.Unlock.Open then
+        local unlock = Dress(CreateFrame("Button", nil, bar), "Unlock", 72)
+        unlock:SetPoint("RIGHT", reload, "LEFT", -6, 0)
+        unlock:SetScript("OnClick", function()
+            frame:Hide()
+            ns.Unlock.Open()
+        end)
+    end
 
     -- The menu: entries in their groups from the top; the bottom entries
     -- stack up from the version line, the last one lowest.
