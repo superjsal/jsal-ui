@@ -346,34 +346,34 @@ Window.Page("training", function(page)
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
-    -- How far the gold reaches: from the road's very start (no way along) to the edge of the
-    -- next visit's sign (there), by your XP across the levels from the one
-    -- you're in to that visit. The road's start is you, at your level: counted from the visit
-    -- before, level 39 at 23% looked most of the way to 40 (John, 17 Nov 2026: "looks like i'm
-    -- closer to 40 than i actually am"). A level up starts it again from the new level.
-    -- It started past the mark's resting place, so a little XP already showed a fair way: 23%
-    -- read like 40% (John, 17 Nov 2026: "reads more like 40% instead of 23.3%"). The gold's
-    -- length is its share of the whole stretch now; the rounded start needs 12 to be drawn, so
-    -- less shows the mark alone.
-    local FILL_TO, MIN_FILL = FIRST_X + STOP_W / 2 - SIGN / 2, 12
-    function ui.Along(level, xp, most, nextStop)
+    -- The road is one you travel along, as the Professions page's (John, 17 Nov 2026, of that one:
+    -- "A1, a stop apart", then the Training road "the same"): the visit behind you is its first
+    -- sign, dimmed, and you move along toward the next as your XP fills, the gold behind you and
+    -- your level under you. Between the two: your level and XP between their levels, clear of
+    -- both signs. With no visit behind you yet, the road starts at your level.
+    -- Earlier it started at you and counted from your level alone; before that from the visit
+    -- before, with the road's start meaning you, and 39 at 23% looked most of the way to 40.
+    local MIN_FILL = 12
+    local function Middle(i) return FIRST_X + (i - 1) * PITCH + STOP_W / 2 end
+    function ui.Along(level, xp, most, back, nextStop)
         if not nextStop then return 0 end
-        local from = level
+        local from = back or level
         local at = level + ((most or 0) > 0 and math.min(1, (xp or 0) / most) or 0)
         return math.max(0, math.min(1, (at - from) / math.max(1, nextStop - from)))
     end
     function ui.PaintYou()
-        local nextStop = ui.roadLevels and ui.roadLevels[1]
-        local along = ui.Along(UnitLevel("player") or 1, UnitXP and UnitXP("player") or 0,
-            UnitXPMax and UnitXPMax("player") or 0, nextStop)
-        -- All the way is just short of the sign, which would hide the mark. The gold stops at the
-        -- mark's middle (John: "lets have the gold stop at the middle of the diamond"); under 12,
-        -- too short for its rounded start, there's the mark alone, at the road's start.
-        local reach = along * (FILL_TO - 10)
+        local level = UnitLevel("player") or 1
+        local behind, nextStop = ui.roadBehind, ui.roadNext
+        local along = ui.Along(level, UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0, behind, nextStop)
+        local backX = behind and (Middle(1) + SIGN / 2 + 10) or 10
+        local aheadX = Middle(behind and 2 or 1) - SIGN / 2 - 10
+        local reach = backX + along * math.max(0, aheadX - backX)
         done:SetShown(reach >= MIN_FILL)
         done:SetWidth(math.max(MIN_FILL, reach - 1))
         you:ClearAllPoints()
         you:SetPoint("CENTER", band, "LEFT", math.max(10, reach), 0)
+        ui.youText:ClearAllPoints()
+        ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", math.max(YOU_X, reach), -8)
     end
     ui.youText = Style.Text(road, 10, "gold", nil, true)
     ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
@@ -636,17 +636,19 @@ Window.Page("training", function(page)
             local x = FIRST_X + (i - 1) * PITCH
             s:ClearAllPoints()
             s:SetPoint("TOPLEFT", x, 0)
-            local first, last = i == 1, stop >= 60
+            local behind = ui.roadBehind ~= nil and i == 1
+            local first, last = i == (ui.roadBehind and 2 or 1), stop >= 60
+            s:SetAlpha(behind and 0.45 or 1)
             s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
             s.level:SetText(stop)
             s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
-            s.cost:SetText(StopCost(list, true))
+            s.cost:SetText(behind and "trained" or StopCost(list, true))
             local count = 0
             for _, spell in ipairs(list) do
                 if not spell.skipped then count = count + 1 end
             end
             local exact = StopCost(list)
-            s.sign.title = (first and "Your next visit: level " or "Level ") .. stop
+            s.sign.title = (first and "Your next visit: level " or (behind and "Your last visit: level " or "Level ")) .. stop
             s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
             Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
         end
@@ -870,6 +872,24 @@ Window.Page("training", function(page)
             rows = math.max(rows, math.ceil(#list / ACROSS))
         end
         table.sort(levels)
+        local behindStop
+        for _, spell in ipairs(data.spells) do
+            local stop = spell.known and Stop(spell.level)
+            if stop and stop <= level and (not behindStop or stop > behindStop) then behindStop = stop end
+        end
+        ui.roadNext = levels[1]
+        ui.roadBehind = (behindStop and levels[1]) and behindStop or nil
+        if ui.roadBehind then
+            local list = {}
+            for _, spell in ipairs(data.spells) do
+                if spell.known and Stop(spell.level) == behindStop then
+                    list[#list + 1] = setmetatable({ dim = true, fixed = true, skipped = false, fresh = false }, { __index = spell })
+                end
+            end
+            ahead[behindStop] = list
+            table.insert(levels, 1, behindStop)
+            rows = math.max(rows, math.ceil(#list / ACROSS))
+        end
         local roadH = math.min(shared - UP_MIN, SIGN + 8 + 16 + 8 + rows * (GLYPH + GLYPH_GAP) + 6)
         -- The spells to train now, in the roomiest layout the cards' room
         -- holds: counted as the rows of what's ready, the fold's line, and
