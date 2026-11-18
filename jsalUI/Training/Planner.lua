@@ -363,6 +363,7 @@ Window.Page("training", function(page)
     ui.roadScroll:SetScript("OnMouseWheel", function(self, delta)
         self:SetHorizontalScroll((self:GetHorizontalScroll() or 0) - delta * PITCH)
         ui.PlaceRoad()
+        ui.PaintRoad()
     end)
     ui.legend = Style.Text(page, 11, "muted")
     ui.legend:SetPoint("BOTTOMLEFT", 0, 0)
@@ -511,6 +512,8 @@ Window.Page("training", function(page)
             g.frame:SetColorTexture(Style.Color(e.fresh and "gold" or "lineStrong"))
             local numbered = not e.fresh and e.rank > 1
             g.back:SetShown(numbered)
+            -- Shown only with a number in it: an empty label was still a piece to lay out.
+            g.rank:SetShown(numbered)
             g.rank:SetText(numbered and e.rank or "")
             if numbered then g.back:SetSize(e.rank > 9 and 16 or 11, 12) end
             if x > 0 and x + kind.size > maxW then
@@ -582,6 +585,59 @@ Window.Page("training", function(page)
     -- what they cost. Pointing at one names the masters who teach it; a
     -- click pins the nearest. The ones you know are counted in the heading.
     -- Returns where they end.
+    -- The road's visits in view, with one more either side, and its dashes under them. Every
+    -- visit to 60 was drawn, about eleven at level 39 where six show, and a dash every 22
+    -- pixels the whole way: most of the page's 659 pieces (John, 17 Nov 2026, /jsal pieces).
+    -- The wheel draws the next ones as they come into view; nothing is drawn again while the
+    -- same visits are in view, unless `fresh` (the page painted).
+    local roadDrawn
+    function ui.PaintRoad(fresh)
+        local levels, ahead = ui.roadLevels or {}, ui.roadAhead or {}
+        local at = ui.roadScroll:GetHorizontalScroll() or 0
+        local lo = math.max(1, math.floor((at - FIRST_X - STOP_W) / PITCH) + 1)
+        local hi = math.min(#levels, math.floor((at + width - FIRST_X) / PITCH) + 2)
+        local key = lo .. ":" .. hi
+        if not fresh and key == roadDrawn then return end
+        roadDrawn = key
+        used.stops, used.glyphs, used.dashes = 0, 0, 0
+        for i = lo, hi do
+            local stop = levels[i]
+            local list = ahead[stop]
+            local s = Take("stops", MakeStop)
+            local x = FIRST_X + (i - 1) * PITCH
+            s:ClearAllPoints()
+            s:SetPoint("TOPLEFT", x, 0)
+            local first, last = i == 1, stop >= 60
+            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
+            s.level:SetText(stop)
+            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
+            s.cost:SetText(StopCost(list, true))
+            local count = 0
+            for _, spell in ipairs(list) do
+                if not spell.skipped then count = count + 1 end
+            end
+            local exact = StopCost(list)
+            s.sign.title = (first and "Your next visit: level " or "Level ") .. stop
+            s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
+            Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
+        end
+        -- The dashes keep their places along the whole road (every 22 pixels from its start),
+        -- so they don't jump as it moves; only those near what's in view are drawn.
+        if #levels > 0 then
+            local start, stopAt = FIRST_X + 8, (ui.roadLong or width) - 34
+            local from = start + math.max(0, math.floor((at - PITCH - start) / 22)) * 22
+            for x = from, math.min(stopAt, at + width + PITCH), 22 do
+                local dash = Take("dashes", MakeDash)
+                dash:ClearAllPoints()
+                dash:SetPoint("LEFT", ui.band, "LEFT", x, 0)
+            end
+        end
+        for _, pool in ipairs({ "stops", "glyphs", "dashes" }) do
+            local list = made[pool]
+            for i = (used[pool] or 0) + 1, #list do list[i]:Hide() end
+        end
+    end
+
     function ui.PaintWeapons(data, y)
         local list, known, n, sum, same, missing = {}, 0, 0, 0, nil, false
         local weapons = {}
@@ -920,38 +976,15 @@ Window.Page("training", function(page)
         ui.youText:SetShown(#levels > 0)
         ui.youText:SetText(("YOU, %d"):format(level))
         ui.roadEmpty:SetShown(#levels == 0)
-        for i, stop in ipairs(levels) do
-            local list = ahead[stop]
-            local s = Take("stops", MakeStop)
-            local x = FIRST_X + (i - 1) * PITCH
-            s:ClearAllPoints()
-            s:SetPoint("TOPLEFT", x, 0)
-            local first, last = i == 1, stop >= 60
-            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
-            s.level:SetText(stop)
-            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
-            s.cost:SetText(StopCost(list, true))
-            local count = 0
-            for _, spell in ipairs(list) do
-                if not spell.skipped then count = count + 1 end
-            end
-            local exact = StopCost(list)
-            s.sign.title = (first and "Your next visit: level " or "Level ") .. stop
-            s.sign.line = ("%d spell%s"):format(count, count == 1 and "" or "s") .. (exact ~= "" and (" for " .. exact) or "")
-            Glyphs(list, x + (STOP_W - GLYPHS_W) / 2, SIGN + 8 + 16 + 8, GLYPHS_W, "glyphs")
-        end
-        -- The road is as long as its visits; the dashes run its length.
+        -- The road is as long as its visits; what's in view of it is drawn (ui.PaintRoad).
         local long = math.max(width, FIRST_X + math.max(0, #levels - 1) * PITCH + STOP_W + 2)
         ui.road:SetWidth(long)
         ui.band:SetWidth(long)
-        for x = FIRST_X + 8, long - 34, 22 do
-            local dash = Take("dashes", MakeDash)
-            dash:ClearAllPoints()
-            dash:SetPoint("LEFT", ui.band, "LEFT", x, 0)
-        end
+        ui.roadLevels, ui.roadAhead, ui.roadLong = levels, ahead, long
         ui.roadMost = long - width
         ui.roadScroll:UpdateScrollChildRect()
         ui.PlaceRoad()
+        ui.PaintRoad(true)
         ui.legend:SetText("A gold frame is a spell new to you; the number is its rank. Point at one for what it does, right-click to skip it."
             .. (ui.roadMost > 0 and "  The mouse wheel moves along the road." or ""))
 
