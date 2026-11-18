@@ -145,9 +145,9 @@ Professions.MadeBy = MadeBy
 --
 -- With Crafting profit's "Price the road" on, a material is worth what it costs you to buy (a
 -- vendor's price, else the auction price from ItemPrices) where that's known, and the data's
--- worth only where it isn't; and a craft whose item has an auction price counts what it sells
--- back for, after the cut. Set for one road at a time by Plan, with its own memory of what it
--- has looked up.
+-- worth only where it isn't. What a craft would sell for doesn't count: the road is the cheapest
+-- way to the cap in what you buy, not a bet on selling forty pieces of armour. Set for one road
+-- at a time by Plan, with its own memory of what it has looked up.
 --
 -- Real prices are weighed only against real prices. A material nobody has a price for was
 -- weighed by the data's rough worth, far below an auction price, so the road took a recipe for
@@ -295,9 +295,9 @@ end
 
 -- A craft's cost: its materials, plus a little for the craft itself, so a
 -- recipe that only sometimes gives a point isn't picked just for being cheap.
--- Priced, a craft that sells back for about what goes in, or more, counts as
--- nearly free (never below 1: the road's other rules, half again for a
--- pattern to buy and staying with the recipe in hand, are made for costs).
+-- What it sells for isn't taken off: a road that counted on selling what it
+-- made went through 41 pieces of Turtle Scale armour where Thick Leather and
+-- Silken Thread take you to the same skill for far less.
 -- A vein is no craft: its ore is only its icon.
 local function Weight(line, recipe)
     if priced then
@@ -310,8 +310,6 @@ local function Weight(line, recipe)
         w = w + reagent.count * ItemWeight(line, reagent.item)
     end
     if priced then
-        local sale = recipe.item and not recipe.vein and ns.ItemPrices.Auction(recipe.item)
-        if sale then w = math.max(1, w - sale * math.max(1, recipe.makes or 1) * (1 - ns.ItemPrices.CUT)) end
         seen[recipe] = w
     else
         recipe.weight = w

@@ -29,8 +29,8 @@ local function Costs(recipe, crafts, points)
     if recipe.vein or not (Professions.Priced and Professions.Priced()) then return false end
     local cost, sells, missing = ns.CraftProfit.CraftPrice(recipe)
     if not cost then return true, nil, nil, nil, missing end
-    local net = cost - (sells and math.floor(sells * (1 - ns.ItemPrices.CUT)) or 0)
-    return true, cost, sells, math.floor(net * crafts / math.max(1, points) + 0.5)
+    -- A point costs what its crafts' materials do: what they'd sell for isn't taken off.
+    return true, cost, sells, math.floor(cost * crafts / math.max(1, points) + 0.5)
 end
 
 -- What a road's part adds to the game's tooltip for what it makes. Its
@@ -227,9 +227,8 @@ local function Facts(step, trainer)
     return facts
 end
 
--- What a point of skill comes to, as a fact: green when the step earns.
+-- What a point of skill comes to, as a fact.
 local function PointFact(per)
-    if per < 0 then return { "A point", "earns " .. Compat.Money(-per), rtone = "green" } end
     return { "A point", Compat.Money(per) }
 end
 
@@ -344,7 +343,7 @@ function Road.PaintNow(card, line, first, skill, trainer)
     -- gives one. The others are in the tooltip.
     local todo = Todo(first)
     local priced, cost, sells, per, missing = Costs(recipe, first.crafts, first.to - first.from)
-    local pointLine = per and (per < 0 and ("earns " .. Compat.Money(-per) .. " a point") or (Compat.Money(per) .. " a point")) or nil
+    local pointLine = per and (Compat.Money(per) .. " a point") or nil
     local sure = Sure(recipe, skill)
     local said = todo or pointLine or sure or ""
     card.detail:SetText(said)

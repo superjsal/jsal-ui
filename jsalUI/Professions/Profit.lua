@@ -17,7 +17,7 @@ local CraftProfit = ns.NewModule("craftprofit", {
     defaultOn = false,
     options = {
         { key = "road", title = "Price the road to the next rank", default = true,
-          note = "The profession panel's road picks the cheapest way to each point by these prices, less what each craft sells back for, instead of a rough worth of its materials." },
+          note = "The profession panel's road picks the cheapest way to each point by what its materials cost at these prices, instead of a rough worth of them." },
     },
 })
 ns.CraftProfit = CraftProfit
