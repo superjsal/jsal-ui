@@ -416,13 +416,19 @@ end
 -- at the time. /jsal perf's own timers see only jsal.ui's code, and the Guild page hitched on
 -- opening with every part of its code under 10 ms (John, 17 Nov 2026). This sees the whole
 -- frame: the game drawing the page, and anything that comes in just after (the guild's
--- answers to a hello). Noted when the longest is 10 ms or more over the usual.
+-- answers to a hello). Noted when the longest is 10 ms or more over the usual, with what of it
+-- was jsal.ui's own code in opening it (`spent`, filled by the opening: `code`, and of that
+-- `counts`, the menu's numbers, and `show`), so the rest is the game laying out and drawing.
+-- Every dashboard open was 20 ms over, the Training Planner's 52, with each page's own paint
+-- under 10 (John, 17 Nov 2026).
 local WATCH_FOR = 1
 local watcher = CreateFrame("Frame")
+local PARTS = { { "code", "of which jsal.ui's code" }, { "counts", "of which the menu's counts" },
+    { "show", "of which showing it" } }
 function Window.Watch(label)
     local fps = GetFramerate and GetFramerate() or 0
-    if not (fps > 0) then return end
-    local usual, longest, gone = 1000 / fps, 0, 0
+    if not (fps > 0) then return nil end
+    local usual, longest, gone, spent = 1000 / fps, 0, 0, {}
     watcher:SetScript("OnUpdate", function(self, elapsed)
         elapsed = elapsed or 0
         longest, gone = math.max(longest, elapsed * 1000), gone + elapsed
@@ -430,8 +436,12 @@ function Window.Watch(label)
         self:SetScript("OnUpdate", nil)
         if longest - usual >= 10 then
             ns.NoteTime("Opening " .. label .. ": its longest frame, over the usual", longest - usual)
+            for _, part in ipairs(PARTS) do
+                if spent[part[1]] then ns.NoteTime("Opening " .. label .. ": " .. part[2], spent[part[1]]) end
+            end
         end
     end)
+    return spent
 end
 
 -- `direct` opens a page's own window even when the entry has an `open` of its own (Guild
@@ -442,8 +452,13 @@ function Window.Open(key, direct)
     -- A page that isn't in the menu just now (/jsal install with no look to
     -- install) opens the dashboard's home instead.
     if page.when and not page.when() then page = byKey.home end
-    Window.Watch(page.label)
-    if page.own and page.build then return OpenOwn(page) end
+    local spent = Window.Watch(page.label) or {}
+    local started = debugprofilestop()
+    if page.own and page.build then
+        OpenOwn(page)
+        spent.code = debugprofilestop() - started
+        return
+    end
     if Compat.InCombat() then
         return ns.Print("The dashboard opens once combat ends.")
     end
@@ -455,9 +470,14 @@ function Window.Open(key, direct)
     current = page.key
     crumb:SetText(page.label)
     PaintMenu()
+    local t = debugprofilestop()
     PaintBadges()
+    spent.counts = debugprofilestop() - t
     Refresh(page)
+    t = debugprofilestop()
     frame:Show()
+    spent.show = debugprofilestop() - t
+    spent.code = debugprofilestop() - started
 end
 
 function Window.Toggle()
