@@ -12,6 +12,9 @@ ns.Training = Training
 
 Training.SOON = 2   -- levels ahead that count as "coming soon"
 
+-- A class spell's rank held back by a lower rank you skipped: its spell ID to the skipped one's.
+local held = {}
+
 -- A spell's rank as the game words it ("Rank 5"), nil for none. The rank
 -- that ships with the spell list comes first: the game's rank text is empty
 -- until it has loaded that spell, and a spell read as having no rank looked
@@ -128,8 +131,9 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                     -- Visits are kept for the whole account, so whether it's
                     -- learned is read from this character's own record later.
                     if pet then
-                        prices.pet[pet] = { cost = row.cost, level = row.level, spell = row.spell,
-                                            key = (row.name or "") .. "|" .. (row.rank or "") }
+                        local was = prices.pet[pet]
+                        prices.pet[pet] = { cost = Highest(was and was.cost, row.cost), level = row.level,
+                                            spell = row.spell, key = (row.name or "") .. "|" .. (row.rank or "") }
                     end
                 end
             end
@@ -198,8 +202,15 @@ local function ReadNow()
     -- A hunter's pet abilities, as a pet trainer lists them: the pet's spell
     -- to the Beast Training spell, and by name and rank.
     local petToBeast, beastByName = {}, {}
+    -- And each Beast Training spell's level and rank, from the spell list. A trainer's row can't
+    -- be trusted for the level: it lists a rank you've learned at level 0, and visits are kept
+    -- for the whole account, so one hunter's learned rank read as ready at any level on another.
+    local beastLevel, beastRank = {}, {}
     for _, list in pairs(source.families or {}) do
-        for _, entry in ipairs(list) do petToBeast[entry[1]] = entry[2] end
+        for _, entry in ipairs(list) do
+            petToBeast[entry[1]] = entry[2]
+            beastLevel[entry[2]], beastRank[entry[2]] = entry[3], entry[4]
+        end
     end
     for _, entry in ipairs(source.beast or {}) do
         local name = Compat.SpellInfo(entry[1])
@@ -274,6 +285,33 @@ local function ReadNow()
             }
         end
     end
+    -- A trainer sells a rank only to someone who knows the rank before it (Distracting Shot Rank 2
+    -- stays unavailable at level 20 without Rank 1), so a skipped rank holds back the ranks after
+    -- it: they're skipped with it, held by it, and back when it is.
+    held = {}
+    local byName = {}
+    for _, spell in ipairs(data.spells) do
+        if spell.rank then
+            byName[spell.name] = byName[spell.name] or {}
+            table.insert(byName[spell.name], spell)
+        end
+    end
+    for _, ranks in pairs(byName) do
+        table.sort(ranks, function(a, b)
+            if a.level ~= b.level then return a.level < b.level end
+            return (tonumber(a.rank:match("%d+")) or 0) < (tonumber(b.rank:match("%d+")) or 0)
+        end)
+        local holder
+        for _, spell in ipairs(ranks) do
+            if not spell.known then
+                if holder then
+                    spell.skipped, spell.heldBy, held[spell.id] = true, holder.id, holder.id
+                elseif spell.skipped then
+                    holder = spell
+                end
+            end
+        end
+    end
     for _, id in ipairs(source.weapons) do
         local name, icon = Compat.SpellInfo(id)
         if name then
@@ -289,10 +327,13 @@ local function ReadNow()
     for id, taught in pairs(prices.pet) do
         local name, icon = Compat.SpellInfo(id)
         if name then
+            local rank = Rank(id, beastRank[id])
+            local level = beastLevel[id] or (tonumber(taught.level) or 0) > 0 and taught.level or 1
             data.spells[#data.spells + 1] = {
-                id = id, level = taught.level or 1, name = name, icon = icon, rank = Rank(id),
+                id = id, level = level, name = name, icon = icon, rank = rank,
                 cost = taught.cost,
-                known = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or (taught.key and trained[taught.key]) or false,
+                known = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or (taught.key and trained[taught.key])
+                    or trained[name .. "|" .. (rank or "")] or false,
                 skipped = skips[id] == true, source = "pet", group = "Pet trainer",
             }
         end
@@ -528,6 +569,12 @@ end
 function Training.Skip(spellID, on)
     ns.char.trainingSkips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     ns.char.trainingSkips[spellID] = on or nil
+    -- A rank held back by a lower one comes back only with it.
+    local holder = not on and held[spellID]
+    while holder do
+        ns.char.trainingSkips[holder] = nil
+        holder = held[holder]
+    end
     kept, keptPet = nil, nil
 end
 
