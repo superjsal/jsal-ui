@@ -1349,6 +1349,7 @@ local function Person(list, p, roster, column)
     card.whisper:SetScript("OnClick", function() ns.Crafters.Whisper(p) end)
 end
 
+local BACK_W = 84   -- the crafters' Back, at the end of the search row
 local function PaintCrafters()
     local view = C.views.crafters
     local list = view.list
@@ -1356,6 +1357,7 @@ local function PaintCrafters()
     local on = CraftersOn()
     view.searchWell:SetShown(on)
     view.back:Hide()
+    view.searchWell:SetWidth(view.fullW)
     Reset(list)
     C.right:SetText("")
     if not on then
@@ -1386,6 +1388,7 @@ local function PaintCrafters()
             found = Crafters.Makes(C.pick.name, C.pick.line)
             Head(list, nil, ("%s'S %s"):format(C.pick.name:upper(), C.pick.label:upper()), #found)
             view.back:Show()
+            view.searchWell:SetWidth(view.fullW - BACK_W - 10)
             if #found == 0 then Note(list, "Nothing to list yet: the game is still loading their names.") end
         else
             found = Crafters.Search(text, 60)
@@ -1572,10 +1575,14 @@ Window.Page("guildcrafts", function(page)
     crafters.hint = Style.Text(crafters.searchWell, 13, "muted")
     crafters.hint:SetPoint("LEFT", 12, 0)
     crafters.hint:SetText("Search what you need: a bag, a potion, bracers")
-    crafters.back = Style.Button(crafters, "Everyone who shares", "plain", 170)
-    crafters.back:SetHeight(24)
-    crafters.back:SetPoint("TOPRIGHT", crafters, "TOPLEFT", width - 10, -48)
-    crafters.back:SetFrameLevel((crafters:GetFrameLevel() or 1) + 10)
+    -- Back to everyone who shares, at the end of the search row, the search a little shorter for
+    -- it while it shows. "Everyone who shares" sat over the list's top right, in the way of its
+    -- first row and its scrolling (John, 17 Nov 2026: "lets just make it a simple, Back. and place
+    -- it somewhere where it wont impede the scrolling"; he picked the search row from two).
+    crafters.fullW = width
+    crafters.back = Style.Button(crafters, "Back", "plain", BACK_W)
+    crafters.back:SetHeight(36)
+    crafters.back:SetPoint("TOPRIGHT", crafters, "TOPLEFT", width, 0)
     crafters.back:SetScript("OnClick", function()
         C.pick = nil
         C.Paint()
