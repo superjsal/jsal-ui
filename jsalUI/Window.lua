@@ -566,3 +566,42 @@ function Window.Contains(region)
     end
     return false
 end
+
+-- /jsal pieces: how many pieces each page puts on screen, for working out which is heaviest.
+-- Opening the dashboard costs a frame of 11 to 26 ms past jsal.ui's own code, the game laying
+-- out the window; that grows with its pieces. Counted when asked, not as you play: each page
+-- built since the last reload, as it was last drawn, and the dashboard's own frame (the title
+-- bar and menu). A piece counts when it's shown in its page: frames, pictures and lines of text.
+local function Count(f, into, skip)
+    into.frames = into.frames + 1
+    for _, r in ipairs({ f:GetRegions() }) do
+        if r:IsShown() then
+            if r:GetObjectType() == "FontString" then into.texts = into.texts + 1 else into.pictures = into.pictures + 1 end
+        end
+    end
+    for _, child in ipairs({ f:GetChildren() }) do
+        if child ~= skip and child:IsShown() then Count(child, into) end
+    end
+    return into
+end
+
+local function Counted(label, f, skip)
+    local c = Count(f, { label = label, frames = 0, pictures = 0, texts = 0 }, skip)
+    c.all = c.frames + c.pictures + c.texts
+    return c
+end
+
+if ns.Command then ns.Command("pieces", function()
+    local rows = {}
+    if frame then rows[#rows + 1] = Counted("The dashboard's title bar and menu", frame, content) end
+    for _, page in ipairs(PAGES) do
+        local f = page.own and page.own.frame or page.frame
+        if f then rows[#rows + 1] = Counted(page.label, f) end
+    end
+    if #rows == 0 then return ns.Print("Open the dashboard and its pages first, then /jsal pieces again.") end
+    table.sort(rows, function(a, b) return a.all > b.all end)
+    ns.Print("Pieces each page shows, as last drawn, the most first (frames, pictures, texts):")
+    for _, c in ipairs(rows) do
+        print(("  %s: %d   (%d, %d, %d)"):format(c.label, c.all, c.frames, c.pictures, c.texts))
+    end
+end) end
