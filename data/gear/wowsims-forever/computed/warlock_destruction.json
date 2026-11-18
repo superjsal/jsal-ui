@@ -1,18 +1,18 @@
 {
-  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/warlock/dps, game 1.60.1.70938). Its Destro preset (talents 18/0/33, rotation, buffs) on its own pre-raid gear set (preraid.gear.json, imported as SIML by item ID), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central).",
-  "spec": "warlock_destruction",
-  "reference": "Spell Damage",
-  "ep": {
-    "Stamina": 0.0,
-    "Intellect": 0.29,
-    "Spell Damage": 1.0,
-    "Fire Spell Damage": 0.64,
-    "Shadow Spell Damage": 0.36,
-    "Spell Piercing": 1.23,
-    "Spirit": 0.13,
-    "1% Hit": 10.93,
-    "1% Crit": 8.84,
-    "1% Haste": 7.21,
-    "MP5": 0.28
-  }
+ "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/warlock/dps, game 1.60.1.70938, site built 2026-11-17 from commit ad6b13a), since its warlock sim ships no weights. Its Destro preset (talents 18/0/33, rotation, buffs) on that build's own gear set (ui/specs/warlock/dps/gear_sets/destro.gear.json, as the preset loads it), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in the app's browser on 17 Nov 2026 (US Central). Before it (14 Nov, on preraid.gear.json): Stamina 0.0, Intellect 0.29, Spell Damage 1.0, Fire Spell Damage 0.64, Shadow Spell Damage 0.36, Spell Piercing 1.23, Spirit 0.13, 1% Hit 10.93, 1% Crit 8.84, 1% Haste 7.21, MP5 0.28.",
+ "spec": "warlock_destruction",
+ "reference": "Spell Damage",
+ "ep": {
+  "Stamina": 0.0,
+  "Intellect": 0.26,
+  "Spell Damage": 1.0,
+  "Fire Spell Damage": 0.67,
+  "Shadow Spell Damage": 0.32,
+  "Spell Piercing": 0.49,
+  "Spirit": 0.15,
+  "1% Hit": 10.28,
+  "1% Crit": 8.57,
+  "1% Haste": 6.9,
+  "MP5": 0.27
+ }
 }

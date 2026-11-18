@@ -1,18 +1,18 @@
 {
- "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/mage/dps, game 1.60.1.70938, site built 2026-11-16 from commit e4ef929), since its mage sim ships no weights. Its Fire preset (talents, rotation, buffs) on its own Preraid gear set (ui/specs/mage/dps/gear_sets/preraid.gear.json, which replaced P1 Arcane for every mage build; imported as SIML by item ID), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in the app's browser on 15 Nov 2026 (US Central); John: \"Yes, re-run them\". Before it, on P1 Arcane (14 Nov): Intellect 0.29, Spell Damage 1.0, Arcane Spell Damage 0.12, Fire Spell Damage 0.88, Frost Spell Damage 0.0, Spell Piercing 2.17, Spirit 0.0, 1% Hit 16.76, 1% Crit 10.87, 1% Haste 10.98, Mana 0.0, MP5 0.0.",
+ "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/mage/dps, game 1.60.1.70938, site built 2026-11-17 from commit ad6b13a), since its mage sim ships no weights. Its Fire preset (talents, rotation, buffs) on its own Preraid gear set (ui/specs/mage/dps/gear_sets/preraid.gear.json, which every mage build uses), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. The tool's new per-school spell hit rows were left out. Run in the app's browser on 17 Nov 2026 (US Central). Before it (15 Nov, from e4ef929): Intellect 0.3, Spell Damage 1.0, Arcane Spell Damage 0.12, Fire Spell Damage 0.88, Frost Spell Damage 0.0, Spell Piercing 1.96, Spirit 0.0, 1% Hit 15.86, 1% Crit 10.43, 1% Haste 10.48, Mana 0.0, MP5 0.0.",
  "spec": "mage_fire",
  "reference": "Spell Damage",
  "ep": {
-  "Intellect": 0.3,
+  "Intellect": 0.27,
   "Spell Damage": 1.0,
   "Arcane Spell Damage": 0.12,
   "Fire Spell Damage": 0.88,
   "Frost Spell Damage": 0.0,
-  "Spell Piercing": 1.96,
+  "Spell Piercing": 2.26,
   "Spirit": 0.0,
-  "1% Hit": 15.86,
-  "1% Crit": 10.43,
-  "1% Haste": 10.48,
+  "1% Hit": 16.21,
+  "1% Crit": 10.18,
+  "1% Haste": 11.17,
   "Mana": 0.0,
   "MP5": 0.0
  }

@@ -1,18 +1,18 @@
 {
-  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/warlock/dps, game 1.60.1.70938). Its Aff (Wrack) preset (talents 35/11/5, rotation, buffs) on its own pre-raid gear set (preraid.gear.json, imported as SIML by item ID), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in John's Chrome on 14 Nov 2026 (US Central).",
-  "spec": "warlock_affliction",
-  "reference": "Spell Damage",
-  "ep": {
-    "Stamina": 0.0,
-    "Intellect": 0.23,
-    "Spell Damage": 1.0,
-    "Fire Spell Damage": 0.0,
-    "Shadow Spell Damage": 0.98,
-    "Spell Piercing": 0.88,
-    "Spirit": 0.02,
-    "1% Hit": 5.26,
-    "1% Crit": 8.23,
-    "1% Haste": 3.40,
-    "MP5": 0.16
-  }
+ "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/warlock/dps, game 1.60.1.70938, site built 2026-11-17 from commit ad6b13a), since its warlock sim ships no weights. Its Aff (Wrack) preset (talents 35/11/5, rotation, buffs) on that build's own gear set (ui/specs/warlock/dps/gear_sets/aff_wrack.gear.json, as the preset loads it), 12,500 iterations, reference stat Spell Damage. DPS EP as the tool shows it; '1%' rows are per 1%. Run in the app's browser on 17 Nov 2026 (US Central). Before it (14 Nov, on preraid.gear.json): Stamina 0.0, Intellect 0.23, Spell Damage 1.0, Fire Spell Damage 0.0, Shadow Spell Damage 0.98, Spell Piercing 0.88, Spirit 0.02, 1% Hit 5.26, 1% Crit 8.23, 1% Haste 3.4, MP5 0.16.",
+ "spec": "warlock_affliction",
+ "reference": "Spell Damage",
+ "ep": {
+  "Stamina": 0.0,
+  "Intellect": 0.29,
+  "Spell Damage": 1.0,
+  "Fire Spell Damage": 0.0,
+  "Shadow Spell Damage": 0.98,
+  "Spell Piercing": 0.27,
+  "Spirit": 0.04,
+  "1% Hit": 6.29,
+  "1% Crit": 9.46,
+  "1% Haste": 4.06,
+  "MP5": 0.21
+ }
 }
