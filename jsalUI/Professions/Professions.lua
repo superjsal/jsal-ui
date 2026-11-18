@@ -354,24 +354,30 @@ end
 
 -- Folds the road's short steps into a neighbour, then joins the steps that are one recipe again.
 -- A step isn't folded across `breakAt`, where the road stops to say the next rank is due.
-local function FoldShort(line, steps, open, known, breakAt)
+-- With `pricing`, a short step and a neighbour are weighed by real prices only when both
+-- recipes have them for every material, and by the rough worth otherwise: like against like,
+-- as on the road itself.
+local function FoldShort(line, steps, open, known, breakAt, pricing)
     local i = 1
     while i <= #steps do
         local step = steps[i]
         local before, after = steps[i - 1], steps[i + 1]
         local into
         if step.to - step.from < Professions.SHORT and not step.recipe.vein and (before or after) then
-            local own = 0
-            for s = step.from, step.to - 1 do
-                own = own + Weight(line, step.recipe) / math.max(Professions.LEAST, Chance(step.recipe, s))
-            end
             local best
-            if own then
-                for _, side in ipairs({ before or false, after or false }) do
-                    local crosses = side and ((side == before and step.from == breakAt) or (side == after and step.to == breakAt))
-                    local cost = side and not crosses and Over(line, side.recipe, step.from, step.to, open, known)
-                    if cost and cost <= own * Professions.DETOUR and (not best or cost < best) then
-                        best, into = cost, side
+            for _, side in ipairs({ before or false, after or false }) do
+                local crosses = side and ((side == before and step.from == breakAt) or (side == after and step.to == breakAt))
+                if side and not crosses then
+                    priced = pricing and AllPriced(line, step.recipe) and AllPriced(line, side.recipe) or false
+                    local own = 0
+                    for s = step.from, step.to - 1 do
+                        own = own + Weight(line, step.recipe) / math.max(Professions.LEAST, Chance(step.recipe, s))
+                    end
+                    local cost = Over(line, side.recipe, step.from, step.to, open, known)
+                    -- The side that costs least against the step's own cost, weighed the same way.
+                    local share = cost and cost / own
+                    if share and share <= Professions.DETOUR and (not best or share < best) then
+                        best, into = share, side
                     end
                 end
             end
@@ -603,7 +609,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
         s = s + 1
     end
-    FoldShort(line, steps, Open, known, breakAt)
+    FoldShort(line, steps, Open, known, breakAt, pricing)
     for _, step in ipairs(steps) do
         step.crafts = math.ceil(step.exact - 0.01)
         -- Enough for nine tries in ten: the average and 1.28 spreads more.
