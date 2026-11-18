@@ -329,7 +329,10 @@ Window.Page("training", function(page)
     band:SetSize(width, BAND_H)
     Style.Box(band, 13, "titleBar", "lineStrong")
     ui.band = band
-    -- Where you are: the road's start, in dim gold, with a gold mark on it.
+    -- Where you are: the road's start in dim gold, filling toward your next visit's sign as you
+    -- level, with a gold mark riding at its end. It stood still, the same length at any XP
+    -- (John, 17 Nov 2026: "does this gold not grow? it looks like it should"; he picked the
+    -- mark riding at its end from two mockups). "YOU" stays under the road's start.
     local done = CreateFrame("Frame", nil, band)
     done:SetPoint("TOPLEFT", 1, -1)
     done:SetSize(FIRST_X - 6, BAND_H - 2)
@@ -339,6 +342,26 @@ Window.Page("training", function(page)
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
+    -- How far the gold reaches: from just past the mark at the road's start (no way along) to
+    -- the middle of the next visit's sign (there), by how far you are from the visit before it
+    -- to that one, XP and all. Before the first visit the one before is counted two levels back.
+    local FILL_FROM, FILL_TO = YOU_X + 14, FIRST_X + STOP_W / 2
+    function ui.Along(level, xp, most, nextStop)
+        if not nextStop then return 0 end
+        local from = math.min(level, nextStop - 2)
+        local at = level + ((most or 0) > 0 and math.min(1, (xp or 0) / most) or 0)
+        return math.max(0, math.min(1, (at - from) / math.max(1, nextStop - from)))
+    end
+    function ui.PaintYou()
+        local nextStop = ui.roadLevels and ui.roadLevels[1]
+        local along = ui.Along(UnitLevel("player") or 1, UnitXP and UnitXP("player") or 0,
+            UnitXPMax and UnitXPMax("player") or 0, nextStop)
+        local reach = FILL_FROM + along * (FILL_TO - FILL_FROM)
+        done:SetWidth(reach - 1)
+        you:ClearAllPoints()
+        -- The mark stops short of the sign, where the sign would hide it; the gold runs on under it.
+        you:SetPoint("CENTER", band, "LEFT", math.min(math.max(YOU_X, reach - 14), FILL_TO - SIGN / 2 - 10), 0)
+    end
     ui.youText = Style.Text(road, 10, "gold", nil, true)
     ui.youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
     ui.youText:SetJustifyH("CENTER")
@@ -963,6 +986,7 @@ Window.Page("training", function(page)
         ui.road:SetWidth(long)
         ui.band:SetWidth(long)
         ui.roadLevels, ui.roadAhead, ui.roadLong = levels, ahead, long
+        ui.PaintYou()
         ui.roadMost = long - width
         ui.roadScroll:UpdateScrollChildRect()
         ui.PlaceRoad()
@@ -995,8 +1019,14 @@ Window.Page("training", function(page)
     -- A burst of news is one repaint: each spell bought at a trainer brings several of these,
     -- and each asked for a repaint of its own. And a pet's news counts only when it's yours.
     local queued = false
+    events:RegisterEvent("PLAYER_XP_UPDATE")
     events:SetScript("OnEvent", function(_, event, unit)
         unit = Compat.Plain(unit)
+        -- XP moves the road's gold, and nothing else on the page.
+        if event == "PLAYER_XP_UPDATE" then
+            if page:IsVisible() then xpcall(ui.PaintYou, ns.Report) end
+            return
+        end
         if event == "UNIT_LEVEL" and unit ~= "pet" then return end
         if event == "UNIT_PET" and unit and unit ~= "player" then return end
         if queued or not page:IsVisible() then return end
