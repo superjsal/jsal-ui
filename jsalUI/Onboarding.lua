@@ -218,7 +218,7 @@ local BUILD = {}
 local MENU = {
     { "Plan", { { "build", "Build", "your talents" }, { "training", "Training", "what to learn" },
                 { "gear", "Gear", "upgrades for you", "gear" }, { "dungeons", "Dungeons", "bosses and loot", "dungeons" } } },
-    { "Craft", { { "professions", "Professions", "the cheapest road" }, { "crafts", "Guild Crafts", "who makes what", "crafters" },
+    { "Craft", { { "professions", "Professions", "cheapest road" }, { "crafts", "Guild Crafts", "guild orders", "crafters" },
                  { "shop", "Shopping list", "what to buy", "shopping" }, { "profit", "Crafting profit", "what sells", "craftprofit" } } },
     { "Play", { { "journal", "Journal", "your story so far", "journal" }, { "games", "Games", "a puzzle a day" },
                 { "guild", "Guild", "who's on today", "guild" }, { "pals", "Jsal's Pals", "a pal of your own", "pet" } } },
@@ -264,7 +264,7 @@ BUILD.welcome = function(page)
             local words = Style.Text(line, 12, "muted")
             words:SetPoint("RIGHT")
             words:SetJustifyH("RIGHT")
-            said[#said + 1] = { text = words, row = row }
+            said[#said + 1] = { text = words, name = name, row = row, room = cardW - 32 - 36 }
         end
     end
 
@@ -294,8 +294,14 @@ BUILD.welcome = function(page)
     Picture(quick, MEDIA .. "Logo", 18):SetPoint("CENTER")
     Say(quick, "the j on your quick buttons")
 
+    -- A place's words stand clear of its name, or aren't shown: where a
+    -- screen's letters are wide enough that the two would meet, the name
+    -- stays, whole.
     page.Refresh = function()
-        for _, s in ipairs(said) do s.text:SetText(PlaceWords(s.row)) end
+        for _, s in ipairs(said) do
+            s.text:SetText(PlaceWords(s.row))
+            s.text:SetShown(s.name:GetStringWidth() + 12 + s.text:GetStringWidth() <= s.room)
+        end
     end
 end
 
