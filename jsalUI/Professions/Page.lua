@@ -161,22 +161,48 @@ Window.Page("professions", function(page)
     you:SetSize(12, 12)
     you:SetPoint("CENTER", band, "LEFT", YOU_X, 0)
     you:SetRotation(math.rad(45))
-    -- The gold fills toward the road's first sign as you gain skill, and stops at the mark's
-    -- middle, as on the Training Planner's road (John, 17 Nov 2026: "i'm not sure why that
-    -- wouldn't work though?"). The road is planned afresh from your skill each time, so the skill
-    -- it set out from is kept per profession: the skill you had when that sign became the next
-    -- one. A new first sign (a step done, a plan changed) starts it again from there.
-    local MIN_FILL = 12
-    local function PaintGold(line, skill, sign, signAt)
-        local kept = type(ns.char.profRoadFrom) == "table" and ns.char.profRoadFrom or {}
-        ns.char.profRoadFrom = kept
-        local from = kept[line]
-        if not (type(from) == "table" and from.sign == sign and from.skill <= skill and skill < sign) then
-            from = { sign = sign, skill = skill }
-            kept[line] = from
+    -- The road is one you travel along (John, 17 Nov 2026, picked from mockups: "A1, a stop
+    -- apart"): it starts at the rank's first point, the step in hand is its first sign, the
+    -- steps you've done stay behind you dimmed, and you move along it, the gold behind you, as
+    -- your skill rises. The road was planned afresh from your skill each time, you always at its
+    -- start, so the steps you've passed are kept per profession: the one that was next, once
+    -- your skill reaches its end. A new rank starts the list again.
+    local MIN_FILL, PASSED_MOST = 12, 40
+    local function Passed(line, floor, skill, first)
+        local all = type(ns.char.profRoad) == "table" and ns.char.profRoad or {}
+        ns.char.profRoad = all
+        local r = all[line]
+        if type(r) ~= "table" or r.floor ~= floor or type(r.passed) ~= "table" then
+            r = { floor = floor, passed = {} }
+            all[line] = r
         end
-        local along = sign and math.max(0, math.min(1, (skill - from.skill) / math.max(1, sign - from.skill))) or 0
-        local reach = along * math.max(0, signAt - SIGN / 2 - 10)
+        local was = r.next
+        if type(was) == "table" and type(was.to) == "number" and was.to <= skill then
+            local last = r.passed[#r.passed]
+            if not last or last.to < was.to then r.passed[#r.passed + 1] = was end
+        end
+        -- None ahead of you: a plan changed, or the skill went back.
+        while #r.passed > 0 and (r.passed[#r.passed].to or 0) > skill do table.remove(r.passed) end
+        while #r.passed > PASSED_MOST do table.remove(r.passed, 1) end
+        local spell = first and first.recipe and first.recipe.spell
+        if spell then
+            -- The same step as before keeps where it started and its most crafts.
+            local same = type(was) == "table" and was.spell == spell and was.to == first.to
+            r.next = { spell = spell, to = first.to, from = same and math.min(was.from, first.from) or first.from,
+                       crafts = same and math.max(was.crafts or 0, first.crafts) or first.crafts }
+        else
+            r.next = nil
+        end
+        return r.passed, r.next
+    end
+    -- A passed step's recipe, by its spell.
+    local function RecipeOf(line, spell)
+        for _, recipe in ipairs(Professions.Recipes(line) or {}) do
+            if recipe.spell == spell then return recipe end
+        end
+    end
+    -- The gold to `reach` along the band, the mark at its end.
+    local function PaintYou(reach)
         done:SetShown(reach >= MIN_FILL)
         done:SetWidth(math.max(MIN_FILL, reach - 1))
         you:ClearAllPoints()
@@ -185,6 +211,9 @@ Window.Page("professions", function(page)
     local youText = Style.Text(lane, 10, "gold", nil, true)
     youText:SetPoint("TOP", band, "BOTTOMLEFT", YOU_X, -8)
     youText:SetJustifyH("CENTER")
+    -- The rank's first point, under the road's start.
+    local floorText = Style.Text(lane, 10, "muted", nil, true)
+    floorText:SetPoint("TOPLEFT", band, "BOTTOMLEFT", 2, -8)
     -- No dashed middle: the Training Planner's road lost its dashes and then its line (John,
     -- 17 Nov 2026: "same for the professions tab"). They were a piece every 22 pixels.
     local PaintRoadView
@@ -255,10 +284,13 @@ Window.Page("professions", function(page)
             local mid = road.Middle(item.k)
             if road.spread or (mid >= lo and mid <= hi) then
                 local stop
-                if item.kind == "step" then
+                if item.kind == "step" or item.kind == "passed" then
                     used = used + 1
                     stop = Step(used)
                     Road.PaintStop(stop, item.step, o.trainer)
+                    local behind = item.kind == "passed"
+                    stop:SetAlpha(behind and 0.45 or 1)
+                    if behind then stop.tag:Hide() end
                 elseif item.kind == "rank" then
                     Road.PaintRankStop(rankStop, o.line, o.rank, o.rankIndex, o.rankAt, o.skill)
                     stop = rankStop
@@ -301,7 +333,13 @@ Window.Page("professions", function(page)
         -- saying the same number.
         local ranks = (not ranked and o.ahead) and 1 or 0
         local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap)) and 1 or 0
-        local places = math.max(1, #plan - 1 + ranks + ends)
+        local passed = {}
+        local kept, nextKept = Passed(o.line, o.floor, o.skill, plan[1])
+        for _, kept in ipairs(kept) do
+            local recipe = RecipeOf(o.line, kept.spell)
+            if recipe then passed[#passed + 1] = { from = kept.from, to = kept.to, crafts = kept.crafts, recipe = recipe } end
+        end
+        local places = math.max(1, #passed + #plan + ranks + ends)
         -- Six or more stand a PITCH apart, and the wheel moves along them.
         -- Fewer are spread evenly from you to the page's right edge, so a
         -- short road still runs from here to there. Where place k's middle is:
@@ -314,7 +352,8 @@ Window.Page("professions", function(page)
         -- are painted (PaintRoadView), as on the Training Planner's road.
         local items = {}
         local function Add(kind, step) items[#items + 1] = { kind = kind, step = step, k = #items } end
-        for i = 2, #plan do
+        for _, step in ipairs(passed) do Add("passed", step) end
+        for i = 1, #plan do
             local step = plan[i]
             if not ranked and o.rankAt and step.from >= o.rankAt then
                 Add("rank")
@@ -324,16 +363,35 @@ Window.Page("professions", function(page)
         end
         if not ranked and o.ahead then Add("rank") end
         if ends == 1 then Add("cap") end
-        road = { items = items, Middle = Middle, o = o, spread = places < ACROSS }
-        local first = items[1]
-        local sign = first and ((first.kind == "step" and first.step.to) or (first.kind == "rank" and o.rankAt) or o.cap)
-        PaintGold(o.line, o.skill, sign, Middle(0))
+        road = { items = items, Middle = Middle, o = o, spread = places < ACROSS, view = road and road.view }
+        -- You: between the sign behind you (or the road's start, the rank's first point) and
+        -- the next, by your skill between their numbers; clear of both signs.
+        local P = #passed
+        local nextItem = items[P + 1]
+        local nextAt = nextItem and ((nextItem.kind == "step" and nextItem.step.to) or (nextItem.kind == "rank" and o.rankAt) or o.cap)
+        -- The road's start: the rank's first point, or lower where your skill is (a rank can be
+        -- learned before its first point), from where the step in hand began.
+        local backAt = P > 0 and passed[P].to or math.min(o.floor, nextKept and nextKept.from or o.skill, o.skill)
+        local backX = P > 0 and (Middle(P - 1) + SIGN / 2 + 10) or 10
+        local aheadX = nextItem and (Middle(P) - SIGN / 2 - 10) or backX
+        local along = nextAt and math.max(0, math.min(1, (o.skill - backAt) / math.max(1, nextAt - backAt))) or 1
+        local youX = backX + along * math.max(0, aheadX - backX)
+        PaintYou(youX)
+        youText:ClearAllPoints()
+        youText:SetPoint("TOP", band, "BOTTOMLEFT", math.max(YOU_X, youX), -8)
+        floorText:SetText(backAt)
+        floorText:SetShown(P == 0 and youX > 60)
         -- The road is as long as its stops.
         local long = places >= ACROSS and math.max(width, FIRST_X + (places - 1) * PITCH + STOP_W + 2) or width
         lane:SetWidth(long)
         band:SetWidth(long)
         most = long - width
         scroll:UpdateScrollChildRect()
+        local view = o.line .. ":" .. P
+        if view ~= road.view then
+            scroll:SetHorizontalScroll(math.max(0, backX - FIRST_X))
+            road.view = view
+        end
         PlaceRoad()
         PaintRoadView(true)
         legend:SetText("Point at a step for what it costs and where its pattern is sold."
@@ -438,6 +496,7 @@ Window.Page("professions", function(page)
         local rankAt = Professions.At(line, rank)
         local rankIndex = 1
         for i, r in ipairs(Professions.RANKS) do if r == rank then rankIndex = i end end
+        local floor = rankIndex > 1 and Professions.RANKS[rankIndex - 1].cap or 0
         title:SetText(current.name)
         points:SetText(skill)
         points:Show()
@@ -564,7 +623,7 @@ Window.Page("professions", function(page)
         if #road <= 1 and not ahead then return end
         LayRoad(bodyY + math.max(at, ry) + 22, road,
             last or (crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""),
-            { line = line, rank = rank, rankIndex = rankIndex, rankAt = rankAt, skill = skill, cap = cap,
+            { line = line, rank = rank, rankIndex = rankIndex, rankAt = rankAt, skill = skill, cap = cap, floor = floor,
               ranked = ranked, ahead = ahead, capped = not stuck and skill < cap, trainer = trainer })
     end
 
