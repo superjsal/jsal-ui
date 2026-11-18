@@ -288,8 +288,12 @@ Window.Page("professions", function(page)
                     used = used + 1
                     stop = Step(used)
                     Road.PaintStop(stop, item.step, o.trainer)
+                    -- Behind you, the sign stays solid over the gold (faded, the gold showed through
+                    -- it); its line and number are quieter, its picture and words faded.
                     local behind = item.kind == "passed"
-                    stop:SetAlpha(behind and 0.45 or 1)
+                    stop.disc:Paint("well", behind and "line" or "lineStrong")
+                    stop.level:SetTextColor(Style.Color(behind and "muted" or "text"))
+                    for _, part in ipairs({ stop.icon, stop.name, stop.count }) do part:SetAlpha(behind and 0.45 or 1) end
                     if behind then stop.tag:Hide() end
                 elseif item.kind == "rank" then
                     Road.PaintRankStop(rankStop, o.line, o.rank, o.rankIndex, o.rankAt, o.skill)

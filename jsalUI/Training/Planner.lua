@@ -638,10 +638,12 @@ Window.Page("training", function(page)
             s:SetPoint("TOPLEFT", x, 0)
             local behind = ui.roadBehind ~= nil and i == 1
             local first, last = i == (ui.roadBehind and 2 or 1), stop >= 60
-            s:SetAlpha(behind and 0.45 or 1)
-            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or "lineStrong")
+            -- Behind you, the sign stays solid over the gold (faded, the gold showed through it);
+            -- its line, number and cost are quieter, and its spells dimmed.
+            s.disc:Paint(first and "gold" or "well", (first or last) and "gold" or (behind and "line" or "lineStrong"))
             s.level:SetText(stop)
-            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or "text")))
+            s.level:SetTextColor(Style.Color(first and "onGold" or (last and "gold" or (behind and "muted" or "text"))))
+            s.cost:SetTextColor(Style.Color(behind and "muted" or "text"))
             s.cost:SetText(behind and "trained" or StopCost(list, true))
             local count = 0
             for _, spell in ipairs(list) do
