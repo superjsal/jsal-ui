@@ -446,6 +446,16 @@ function PetNow()
         local total, used = Compat.Plains(C_PetInfo.GetPetTrainingPoints())
         free = tonumber(total) and math.max(0, total - (tonumber(used) or 0)) or nil
     end
+    -- The game says how many are free only while the pet is out. With it away, the last count
+    -- seen with it out stands, for the same pet: with nothing to go on, abilities it couldn't
+    -- afford were ready and joined the visit, while on a flight say. It can only gain points while
+    -- out.
+    if here and free then
+        ns.char.petFree = { family = pet.family, name = pet.name, free = free }
+    elseif not here then
+        local seen = type(ns.char.petFree) == "table" and ns.char.petFree or nil
+        if seen and seen.family == pet.family and seen.name == pet.name then free = tonumber(seen.free) end
+    end
 
     -- Each ability's ranks, lowest first.
     local abilities, order = {}, {}
