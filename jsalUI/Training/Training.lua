@@ -71,7 +71,9 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
         for _, row in ipairs(ns.TrainerPrices.RowsOf(trainer)) do
             local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
             if id then
-                prices.weapons[id] = row.cost
+                -- The highest seen, as for a class spell: a weapon master visited at a better
+                -- standing charges less, and that isn't the price for every character.
+                prices.weapons[id] = Highest(prices.weapons[id], row.cost)
                 if trainer.npc and trainer.npc ~= "?" then
                     prices.weaponAt[id] = prices.weaponAt[id] or {}
                     prices.weaponAt[id][trainer.npc] = trainer.zone or ""
