@@ -519,25 +519,17 @@ function Style.Opening(frame, from)
     out:SetFromAlpha(1)
     out:SetToAlpha(0)
     local hide, show = frame.Hide, frame.Show
-    -- A window with a Park of its own (the dashboard) is parked when it has faded, not hidden:
-    -- kept shown off the screen, so the next opening needn't lay it all out again. Parked, a
-    -- Hide does nothing, and PlayOpening brings it in as a Show would.
     closing:SetScript("OnFinished", function()
         frame.closing = nil
-        local park = rawget(frame, "Park")
-        if park then park(frame) else hide(frame) end
+        hide(frame)
     end)
-    function frame:PlayOpening()
-        group:Stop()
-        group:Play()
-    end
     function frame:HideNow()
         closing:Stop()
         self.closing = nil
         hide(self)
     end
     function frame:Hide()
-        if self.closing or self.parked then return end
+        if self.closing then return end
         -- One that isn't on screen has nothing to fade.
         if not (self:IsShown() and self:IsVisible()) then return hide(self) end
         group:Stop()

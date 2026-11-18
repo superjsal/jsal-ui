@@ -559,11 +559,11 @@ Window.Page("professions", function(page)
     end
     local queued = false
     events:SetScript("OnEvent", function()
-        if not ns.Window.Showing(page) or queued then return end
+        if not page:IsVisible() or queued then return end
         queued = true
         Compat.After(0.3, function()
             queued = false
-            if ns.Window.Showing(page) then xpcall(Paint, ns.Report) end
+            if page:IsVisible() then xpcall(Paint, ns.Report) end
         end)
     end)
 end, nil, true)
