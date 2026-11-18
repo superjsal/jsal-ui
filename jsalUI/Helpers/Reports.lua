@@ -3,7 +3,7 @@
 -- report goes through the guild's hidden addon channel to whoever takes
 -- reports. It waits on the sender's side until he's online, and leaves only
 -- once his copy says it has it. Outside his guild, the page offers the
--- report to copy and email instead.
+-- report to copy and post on jsal.ui's Discord, or email, instead.
 local _, ns = ...
 local Style, Compat, Comms, Window = ns.Style, ns.Compat, ns.Comms, ns.Window
 
@@ -13,6 +13,10 @@ ns.Reports = Reports
 local MAX_TEXT, CHUNK, MAX_PARTS = 400, 180, 8
 local RESEND = 120   -- seconds before a report not yet confirmed is sent again
 local EMAIL = "dev@jsal.io"
+-- jsal.ui's Discord: where a problem is reported from outside the guild, and where ideas and
+-- questions go. An invite that doesn't expire.
+local DISCORD = "https://discord.gg/BfUKeCjNeZ"
+Reports.DISCORD = DISCORD
 
 -- Saved for the account: reports waiting to go, reports received (only on
 -- the taker's side), and whether this account takes them.
@@ -275,6 +279,53 @@ ns.Command("reports off", function()
     ns.Print("This account no longer takes problem reports.")
 end)
 
+-- /jsal discord: the invite, in a box to copy it from. The game can't open a web page, so the
+-- link is shown selected, as the Build Planner's share window shows its link: Ctrl+C takes it.
+local invite
+function Reports.Discord()
+    if not invite then
+        local WIDTH = 440
+        invite = Style.Panel("jsalUIDiscord", WIDTH, 150, "jsal.ui on Discord")
+        invite:SetFrameStrata("DIALOG")
+        local note = Style.Text(invite, 12, "muted")
+        note:SetPoint("TOPLEFT", 16, -44)
+        note:SetWidth(WIDTH - 32)
+        note:SetJustifyH("LEFT")
+        note:SetText("Bugs, ideas and questions. Press Ctrl+C to copy the link, then paste it into your browser.")
+        local well = CreateFrame("Frame", nil, invite)
+        well:SetPoint("TOPLEFT", 16, -80)
+        well:SetSize(WIDTH - 32, 28)
+        Style.Box(well, 5, "well", "lineStrong")
+        local link = CreateFrame("EditBox", nil, well)
+        link:SetPoint("TOPLEFT", 8, 0)
+        link:SetPoint("BOTTOMRIGHT", -8, 0)
+        link:SetAutoFocus(false)
+        link:SetFont(Style.font, 13, "")
+        link:SetTextColor(Style.Color("text"))
+        link:SetScript("OnEscapePressed", function() invite:Hide() end)
+        link:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+        -- The box is for copying from: anything typed over the link puts the link back.
+        link:SetScript("OnTextChanged", function(self, typed)
+            if typed then
+                self:SetText(DISCORD)
+                self:HighlightText()
+            end
+        end)
+        well:EnableMouse(true)
+        well:SetScript("OnMouseDown", function() link:SetFocus() end)
+        local close = Style.Button(invite, "Close", "plain", 90)
+        close:SetPoint("BOTTOMRIGHT", -16, 14)
+        close:SetScript("OnClick", function() invite:Hide() end)
+        invite.link = link
+    end
+    invite.link:SetText(DISCORD)
+    invite:Show()
+    invite.link:SetFocus()
+    invite.link:HighlightText()
+    return invite
+end
+ns.Command("discord", function() Reports.Discord() end)
+
 -- Waiting reports go once the guild list is in and a taker answers hello.
 ns.OnLogin(function()
     Compat.After(20, function() xpcall(Reports.Flush, ns.Report) end)
@@ -344,14 +395,19 @@ Window.Page("report", function(page)
     end
     local addedText = rows[5].value
 
-    -- Outside John's guild: the report to copy and email.
+    -- Outside John's guild: the report to copy and post on the Discord, or email.
     local other = Style.Text(page, 13, "muted")
     other:SetPoint("TOPLEFT", added, "BOTTOMLEFT", 0, -18)
     other:SetWidth(SIDE_W)
     other:SetJustifyH("LEFT")
-    other:SetText("Not in John's guild? Press Copy, then Ctrl+C, and email it to " .. EMAIL .. ".")
+    other:SetText("Not in John's guild? Press Copy, then Ctrl+C, and post it in bug-reports on jsal.ui's Discord, or email it to "
+        .. EMAIL .. ".")
     local copy = Style.Button(page, "Copy", "plain", 110)
     copy:SetPoint("TOPLEFT", other, "BOTTOMLEFT", 0, -10)
+    -- And the way there: the invite, to copy.
+    local discord = Style.Button(page, "Discord link", "plain", 120)
+    discord:SetPoint("LEFT", copy, "RIGHT", 8, 0)
+    discord:SetScript("OnClick", function() Reports.Discord() end)
 
     local message
     local function Paint()
@@ -410,7 +466,7 @@ Window.Page("report", function(page)
         box:SetText(Reports.CopyText(text))
         box:SetFocus()
         box:HighlightText()
-        message = "Selected: press Ctrl+C, then paste it into an email to " .. EMAIL .. "."
+        message = "Selected: press Ctrl+C, then paste it into a post in bug-reports on Discord, or an email to " .. EMAIL .. "."
         Paint()
     end)
     page.Refresh = Paint

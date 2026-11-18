@@ -320,7 +320,7 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug.")
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug, /jsal discord.")
             :format(commands.chess and "/jsal chess, " or ""))
     end
 end
