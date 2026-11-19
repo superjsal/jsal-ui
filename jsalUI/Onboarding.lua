@@ -652,7 +652,7 @@ BUILD.play = function(page)
     local cards = Grid(page, {
         { "journal", "Journal", "Your levels, deaths, loot and time on each level, written as you play." },
         { "games", "Games", "Daily Word, Icon Guess and Pal run: one of each a day, the same for everyone." },
-        { "guild", "Guild games", "Your guild's results beside yours on Games, and a Guild Word your guild master sets." },
+        { "guild", "Guild games", "Your guild's results beside yours on Games, and a Guild Word your officers set." },
         { "pals", "Jsal's Pals", "Hatch an egg, name what comes out and look after it. Your questing pays for its keep." },
     })
     page.Refresh = function()

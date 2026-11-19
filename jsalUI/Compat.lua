@@ -156,20 +156,28 @@ function Compat.GuildOnline()
     return online, zones
 end
 
--- Whether the player leads the guild.
-function Compat.IsGuildMaster()
-    return IsInGuild() and IsGuildLeader and IsGuildLeader() and true or false
+-- An officer, here, is the guild master or anyone of the rank just under
+-- theirs (rank 1 on the roster): those can set the Guild Word.
+local OFFICER_RANK = 1
+
+-- Whether the player is the guild master or an officer.
+function Compat.IsGuildOfficer()
+    if not IsInGuild() then return false end
+    if IsGuildLeader and IsGuildLeader() then return true end
+    local _, _, rankIndex = GetGuildInfo("player")
+    return type(rankIndex) == "number" and rankIndex <= OFFICER_RANK
 end
 
--- Whether a guildmate (by name, as messages give it) leads the guild, from
--- the roster: true, false, or nil when the roster hasn't loaded yet.
-function Compat.IsGuildMasterName(name)
+-- Whether a guildmate (by name, as messages give it) is the guild master or
+-- an officer, from the roster: true, false, or nil when the roster hasn't
+-- loaded yet.
+function Compat.IsGuildOfficerName(name)
     local count = GetNumGuildMembers and GetNumGuildMembers() or 0
     if count == 0 then return nil end
     for i = 1, count do
         local full, _, rankIndex = GetGuildRosterInfo(i)
-        if full and rankIndex == 0 then
-            return Ambiguate(full, "none") == name
+        if full and Ambiguate(full, "none") == name then
+            return type(rankIndex) == "number" and rankIndex <= OFFICER_RANK
         end
     end
     return false

@@ -40,7 +40,7 @@ end
 
 -- The Guild Word as one of the games (John, 18 Nov 2026: the Guild page folded into this one,
 -- "debating if we even need this page"). It answers what a card asks of a game, from the
--- word the guild master set and what guildmates have told the guild.
+-- word the guild master or an officer set and what guildmates have told the guild.
 local GuildWord = { running = false }
 local function GuildWordGame()
     local guild = ns.Guild
@@ -89,13 +89,13 @@ function GuildWord.Numbers()
 end
 function GuildWord.Record()
     if not GuildWord.running then return "" end
-    return "When the guild master sets a word, it shows here for everyone."
+    return "When the guild master or an officer sets a word, it shows here for everyone."
 end
 function GuildWord.Open()
     if GuildWord.word then ns.DailyWord.OpenGuild(GuildWord.word) end
 end
 
--- The guild master's Set word: a small window with a box, as Report a problem's Discord
+-- Set word, for the guild master and officers: a small window with a box, as Report a problem's Discord
 -- link opens one ("A is better", 18 Nov 2026): the card stays the shape of the others.
 local setter
 function Games.SetWord()
@@ -543,8 +543,8 @@ Window.Page("games", function(page)
             c.play:SetEnabled(on)
             if c.practice then c.practice:SetEnabled(on) end
             if c.set then
-                -- Only the guild master can set the word; with none set yet, it's their one thing to do.
-                local master = game.running and Compat.IsGuildMaster() and true or false
+                -- Only the guild master and officers can set the word; with none set yet, it's their one thing to do.
+                local master = game.running and Compat.IsGuildOfficer() and true or false
                 c.set:SetShown(master)
                 c.set:SetKind((master and not game.word) and "primary" or "plain")
                 local playing = game.word ~= nil or not master

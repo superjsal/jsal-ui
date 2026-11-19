@@ -1,5 +1,5 @@
 -- Guild games: who in the guild runs jsal.ui, today's game scores, and the Guild Word, a word
--- the guild master sets for the whole guild to play. It hears only guildmates who have jsal.ui,
+-- the guild master or an officer sets for the whole guild to play. It hears only guildmates who have jsal.ui,
 -- through addon messages, and keeps guildmates' scores for this session only. What it hears is
 -- shown on the Games page; the Guild page it had was folded into that one (18 Nov 2026).
 local _, ns = ...
@@ -236,10 +236,10 @@ function Guild.WordResult()
     Guild.Announce()
 end
 
--- The guild master sets a new Guild Word. Returns false and why, or true.
+-- The guild master or an officer sets a new Guild Word. Returns false and why, or true.
 function Guild.SetWord(word)
     word = strtrim(word or ""):lower()
-    if not Compat.IsGuildMaster() then return false, "Only the guild master can set the Guild Word." end
+    if not Compat.IsGuildOfficer() then return false, "Only the guild master and officers can set it." end
     if not (word:match("^%a+$") and #word >= 5 and #word <= 8) then return false, "Five to eight letters, please." end
     if not ns.DailyWord.IsWord(word) then return false, "That one isn't in the word list." end
     local id = Compat.ServerTime()
@@ -252,10 +252,11 @@ local function HeardWord(payload, name)
     local id, code, setter = strsplit(";", payload or "")
     id = tonumber(id)
     if not (id and code and code:match("^%l+$") and #code >= 5 and #code <= 8) then return end
-    -- Only the guild master's word counts. A word passed on by a guildmate
-    -- names who set it, so the check is on the setter, by the roster.
+    -- Only a word from the guild master or an officer counts. A word passed
+    -- on by a guildmate names who set it, so the check is on the setter, by
+    -- the roster.
     local setBy = setter ~= "" and setter or name
-    if Compat.IsGuildMasterName(setBy) == false then return end
+    if Compat.IsGuildOfficerName(setBy) == false then return end
     if SaveWord(id, code, setter ~= "" and setter or name) then
         if setter ~= Compat.MyName() then
             ns.Print(("New Guild Word from %s. /jsal games to play it."):format(setter ~= "" and setter or name))
