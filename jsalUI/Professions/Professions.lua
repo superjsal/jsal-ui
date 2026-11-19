@@ -195,9 +195,17 @@ local function AllPriced(line, recipe)
     return known
 end
 
+-- What an item is worth from the data alone, by profession: it never changes, so it's worked out
+-- once. Unpriced, it was worked out again for every material of every recipe at every point of the
+-- road, two makings deep: a third of Leatherworking's road, which took 24 ms to plan and hitched
+-- the Professions page on every switch (John, 19 Nov 2026: "some lag switching ... between
+-- professions"). Priced, the road's own `seen` keeps it, as prices can change between roads.
+local plainWorth = {}
 local function ItemWeight(line, item, depth)
     local key = (depth or 0) == 0 and priced and seen and item
     if key and seen[key] then return seen[key] end
+    local plain = (depth or 0) == 0 and not priced and plainWorth[line]
+    if plain and plain[item] then return plain[item] end
     local rough = Data.vendor[item] or (Data.value and Data.value[item]) or 100
     local recipe = (depth or 0) < 2 and MadeBy(line, item)
     local made
@@ -218,6 +226,10 @@ local function ItemWeight(line, item, depth)
         own = made and math.min(rough, made) or rough
     end
     if key then seen[key] = own end
+    if (depth or 0) == 0 and not priced then
+        plainWorth[line] = plainWorth[line] or {}
+        plainWorth[line][item] = own
+    end
     return own
 end
 
@@ -492,7 +504,17 @@ end
 function Professions.Plan(line, skill, target, known, breakAt)
     local pricing = Priced()
     priced, seen, whole = pricing, pricing and {} or nil, {}
-    local recipes = line == MINING and Veins() or Professions.Recipes(line) or {}
+    -- Only the recipes that could be a step of this road: one still short of a few points a craft at
+    -- the skill it starts from (a recipe only gets less likely to give a point as you go), and one
+    -- you know or could learn before the cap. At 158 most of Leatherworking's are neither, and
+    -- every point of the road looked at them all (John, 19 Nov 2026: "some lag switching ...
+    -- between professions"). The road it finds is the same.
+    local recipes = {}
+    for _, recipe in ipairs(line == MINING and Veins() or Professions.Recipes(line) or {}) do
+        if Chance(recipe, skill) >= Professions.LEAST and (recipe.vein or recipe.learn < target or known(recipe.spell)) then
+            recipes[#recipes + 1] = recipe
+        end
+    end
     local steps, totals = {}, {}
     -- What's in your bags and bank counts as nearly free until the road has
     -- used it up, so a pile of leather or cloth you already have gets spent
