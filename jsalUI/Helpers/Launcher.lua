@@ -828,6 +828,27 @@ end
 
 -- /jsal bar: what the game says about the bar and the j, into chat and the
 -- settings file, then the repair. For when a button has gone missing.
+-- Where a small piece the player hasn't placed starts: just above the bar,
+-- `dx` to the right of its middle and `rise` higher, or under the bar where
+-- there's no room above it. The bar is the one piece whose place is known on
+-- any screen and beside any other addon, so the pieces that would otherwise
+-- start at a fixed spot (the food reminder, pet feeding, the range check)
+-- start by it. Returned as the piece's edge and a point on UIParent, worked
+-- out from where the bar stands: nothing is hung on the bar. Nil while the
+-- bar isn't there or hasn't a place yet.
+local ROOM = 56
+function Launcher.Beside(dx, rise)
+    if not (bar and bar:IsShown()) then return nil end
+    local left, top, bottom, width = bar:GetLeft(), bar:GetTop(), bar:GetBottom(), bar:GetWidth()
+    if not (left and top and bottom and width) then return nil end
+    local scale = bar:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    local x = (left + width / 2) * scale + (dx or 0)
+    if UIParent:GetHeight() - top * scale >= ROOM then
+        return "BOTTOM", x, top * scale + 8 + (rise or 0)
+    end
+    return "TOP", x, bottom * scale - 8 - (rise or 0)
+end
+
 ns.Command("bar", function()
     if not bar then return ns.Print("The quick buttons are switched off.") end
     for _, line in ipairs(Launcher.Check("asked")) do ns.Print(line) end

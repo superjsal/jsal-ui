@@ -251,6 +251,14 @@ local function Place()
     local food = ns.db and ns.db.foodTileAt
     if type(food) == "table" and food[1] then
         holder:SetPoint(food[1], UIParent, food[2], food[3] + SIZE + 8, food[4])
+        return
+    end
+    -- Neither placed by the player: above the quick buttons, beside the
+    -- food reminder; with no quick buttons, under the middle of the screen.
+    local edge, x, y
+    if ns.Launcher and ns.Launcher.Beside then edge, x, y = ns.Launcher.Beside(1) end
+    if edge then
+        holder:SetPoint(edge, UIParent, "BOTTOMLEFT", x, y)
     else
         holder:SetPoint("CENTER", UIParent, "CENTER", SIZE + 8, -170)
     end
@@ -338,6 +346,10 @@ function PetFeed:OnEnable()
     if class ~= "HUNTER" then return end
     if not holder then Build() end
     Place()
+    -- The quick buttons may not have their place yet as the game loads: look again a moment later.
+    Compat.After(1, ns.Safe(PetFeed, function()
+        if not Compat.InCombat() then Place() end
+    end))
     if ns.Unlock then
         ns.Unlock.Add({
             key = "PetFeed", label = "jsal.ui pet feeding",

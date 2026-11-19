@@ -148,10 +148,19 @@ local SIZE, MIN, MAX = 26, 8, 400
 local function Place()
     box:ClearAllPoints()
     local at = ns.db and ns.db.rangeCheckAt
+    local edge, x, y
     if type(at) == "table" and at[1] then
         box:SetPoint(at[1], UIParent, at[2], at[3], at[4])
     else
-        box:SetPoint("CENTER", UIParent, "CENTER", 0, -250)
+        -- Not placed by the player: above the quick buttons, after the two
+        -- tiles there and level with their middles; with no quick buttons,
+        -- under the middle of the screen.
+        if ns.Launcher and ns.Launcher.Beside then edge, x, y = ns.Launcher.Beside(48, 5) end
+        if edge then
+            box:SetPoint(edge, UIParent, "BOTTOMLEFT", x, y)
+        else
+            box:SetPoint("CENTER", UIParent, "CENTER", 0, -250)
+        end
     end
     local size = ns.db and ns.db.rangeCheckSize
     if type(size) == "table" and tonumber(size[1]) and tonumber(size[2]) then
@@ -286,6 +295,10 @@ function RangeCheck:OnEnable()
     if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, MELEE_ITEM) end
     if not box then Build() end
     Place()
+    -- The quick buttons may not have their place yet as the game loads: look again a moment later.
+    Compat.After(1, ns.Safe(RangeCheck, function()
+        if not Compat.InCombat() then Place() end
+    end))
     -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
