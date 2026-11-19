@@ -240,10 +240,11 @@ def main():
         # name: Forever's Enchant Bracer - Agility for +9 (Nexus Crystals, yellow at 320) and the
         # one for +5 (Vision Dust), whose formula needs 190. The +9 one, which Wowhead's lists
         # leave out, took that formula: learned at 190, from a vendor (John, 18 Nov 2026: "seems
-        # wrong"). Where a name is shared, its pattern is only the one Wowhead lists; one Wowhead
-        # leaves out that a pattern of its name was found for stays in, at the skill it turns
-        # yellow, its source not known. One with no pattern of its name stays out, as before (the
-        # second copies of raid crafts, such as the ice and Ahn'Qiraj sets).
+        # wrong"). Where a name is shared, the copy Wowhead's lists leave out is left out here
+        # too: every such copy looked at says "This spell is not in game" on Wowhead Forever (the
+        # +9 enchant, Golden Scale Boots, Black Grasp of the Destroyer, Icebane Breastplate,
+        # Sylvan Crown, Lesser Arcane Elixir; John: "Check wowhead forever as well"), as were the
+        # raid sets' copies (ice, Ahn'Qiraj) that had no pattern of their name and stayed out.
         by_name = {}
         for r in abilities:
             if r["SkillLine"] == str(line_id) and reagents.get(int(r["Spell"])):
@@ -262,8 +263,7 @@ def main():
             pattern = patterns.get(name)
             shared = len(by_name.get(name, ())) > 1
             if shared and spell not in known:
-                skill = yellow if pattern else 0
-                pattern = None
+                continue
             if skill <= 0:
                 # Not on Wowhead: a pattern's required skill, else where it turns yellow.
                 skill = pattern[2] if pattern else 0
