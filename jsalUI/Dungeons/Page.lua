@@ -1775,6 +1775,7 @@ Window.Page("dungeons", function(page)
         hint:SetText("")
         local heights, forYou, sure = {}, 0, 0
         missed = 0
+        if ns.Gear then ns.Gear.madeMs = 0 end
         for k, b in ipairs(d.bosses) do
             t = debugprofilestop()
             local card = BossRow(k)
@@ -1837,6 +1838,9 @@ Window.Page("dungeons", function(page)
         Fit(by)
         B.Scroll(d, tab)
         wait.drawn, wait.lacking = d, missed
+        if ns.Gear and (ns.Gear.madeMs or 0) > 0 then
+            spent["bosses: of which, gear plans made anew"] = ns.Gear.madeMs
+        end
         -- Come from the map: the boss clicked there is brought to the top.
         local to = B.jump and bossRows[B.jump]
         B.jump = nil

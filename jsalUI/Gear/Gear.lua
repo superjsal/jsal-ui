@@ -757,29 +757,40 @@ function Gear.SlotPlan(slot)
     local plan = kept[slot.key]
     if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now then plan = nil end
     if not plan then
+        -- How long plans made anew took, for whoever asks (the dungeon guide's paint, which
+        -- sets it to nothing first): /jsal perf can then say a slow paint was this.
+        local started = debugprofilestop()
         plan = Gear.Plan(slot)
         plan.madeAt = now
         kept[slot.key] = plan
+        Gear.madeMs = (Gear.madeMs or 0) + debugprofilestop() - started
     end
     return plan
 end
 
 -- What all you wear scores for a spec's weights: each slot's piece, each ring and trinket, its
--- weapon damage for where it goes. Kept for the one paint, as a slot's plan is.
+-- weapon damage for where it goes. Kept as the slots' plans are: until something they're worked
+-- out from changes, ten minutes at most. (It was kept for the one paint, and reading nineteen
+-- pieces' stats again was part of every boss list's paint.) One made while a piece you wear
+-- hadn't loaded is short of that piece, and is kept for the one moment only.
 function Gear.WornTotal(weights)
     if not weights then return 0 end
     local now = GetTime and GetTime()
     local kept = Gear.wornTotal
-    if kept and now and kept.at == now and kept.weights == weights then return kept.total end
-    local total = 0
+    if kept and now and kept.at and kept.weights == weights
+        and (kept.at == now or (not kept.short and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP)) then
+        return kept.total
+    end
+    local total, short = 0, false
     for _, slot in ipairs(Gear.SLOTS) do
         for _, equip in ipairs(slot.equip) do
             local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
             local stats = link and Stats(link)
             if stats then total = total + (Gear.Score(stats, weights, slot.dps) or 0) end
+            if link and not stats then short = true end
         end
     end
-    Gear.wornTotal = { at = now, weights = weights, total = total }
+    Gear.wornTotal = { at = now, stamp = Gear.planStamp, weights = weights, total = total, short = short }
     return total
 end
 
