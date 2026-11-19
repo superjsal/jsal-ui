@@ -515,123 +515,181 @@ function Professions.Plan(line, skill, target, known, breakAt)
             recipes[#recipes + 1] = recipe
         end
     end
-    local steps, totals = {}, {}
+    local totals = {}
     -- What's in your bags and bank counts as nearly free until the road has
     -- used it up, so a pile of leather or cloth you already have gets spent
-    -- before anything is made or bought.
-    local stock = setmetatable({}, { __index = function(t, item)
-        local n = Compat.ItemCount(item, true) or 0
-        rawset(t, item, n)
-        return n
-    end })
-    local function Cost(recipe)
-        local w = Weight(line, recipe)
-        for _, reagent in ipairs(recipe.reagents) do
-            local owned = math.min(stock[reagent.item], reagent.count)
-            if owned > 0 and not Data.vendor[reagent.item] then
-                w = w - owned * ItemWeight(line, reagent.item) * Professions.OWNED
-            end
-        end
-        -- Never below 1. Priced, a craft that sells for what goes in costs next to nothing
-        -- before what you own comes off, and a cost below nothing made the recipe with the
-        -- smaller chance of a point look the better one.
-        return math.max(1, w)
+    -- before anything is made or bought. Not counting, it's all bought.
+    local function Stock(counting)
+        return setmetatable({}, { __index = function(t, item)
+            local n = counting and Compat.ItemCount(item, true) or 0
+            rawset(t, item, n)
+            return n
+        end })
     end
     -- A recipe the road may take at a skill: one you know, or one a trainer teaches or a
     -- vendor sells for coin, once your skill reaches it.
     local function Open(recipe, mine, at)
         return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= at)
     end
-    local s = skill
-    local staying
-    while s < target do
-        local best, bestCost
-        local fair, fairCost
-        local slow, slowCost
-        local stayCost, stayFair, staySlow
-        -- Real prices decide this step if any recipe it could take has them all.
-        if pricing then
-            priced = false
+    -- The road a point at a time from `stock`: its steps, the skill it reached, and whether
+    -- anything you have made a recipe cheaper.
+    local function Walk(stock)
+        local used = false
+        local function Cost(recipe)
+            local w = Weight(line, recipe)
+            for _, reagent in ipairs(recipe.reagents) do
+                local owned = math.min(stock[reagent.item], reagent.count)
+                if owned > 0 and not Data.vendor[reagent.item] then
+                    used = true
+                    w = w - owned * ItemWeight(line, reagent.item) * Professions.OWNED
+                end
+            end
+            -- Never below 1. Priced, a craft that sells for what goes in costs next to nothing
+            -- before what you own comes off, and a cost below nothing made the recipe with the
+            -- smaller chance of a point look the better one.
+            return math.max(1, w)
+        end
+        local steps = {}
+        local s = skill
+        local staying
+        while s < target do
+            local best, bestCost
+            local fair, fairCost
+            local slow, slowCost
+            local stayCost, stayFair, staySlow
+            -- Real prices decide this step if any recipe it could take has them all.
+            if pricing then
+                priced = false
+                for _, recipe in ipairs(recipes) do
+                    if Open(recipe, recipe.vein or known(recipe.spell), s) and Chance(recipe, s) >= Professions.LEAST
+                        and AllPriced(line, recipe) then
+                        priced = true
+                        break
+                    end
+                end
+            end
             for _, recipe in ipairs(recipes) do
-                if Open(recipe, recipe.vein or known(recipe.spell), s) and Chance(recipe, s) >= Professions.LEAST
-                    and AllPriced(line, recipe) then
-                    priced = true
-                    break
-                end
-            end
-        end
-        for _, recipe in ipairs(recipes) do
-            local mine = recipe.vein or known(recipe.spell)
-            -- A recipe you know counts whatever skill the data says it's
-            -- learned at (some are taught earlier than that); one from a
-            -- trainer counts once your skill reaches it.
-            if Open(recipe, mine, s) then
-                local chance = Chance(recipe, s)
-                -- The last few points before a recipe goes grey take ten
-                -- crafts or more each: that's no way forward, so the road
-                -- stops there and says so.
-                if chance >= Professions.LEAST and (not priced or AllPriced(line, recipe)) then
-                    local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
-                    if not mine and recipe.how == 2 then
-                        -- Priced, a pattern to buy adds its price, shared by the
-                        -- points it can give before it turns green; else it
-                        -- counts half again as costly.
-                        local pattern = priced and PatternPrice(recipe.spell)
-                        if pattern then
-                            cost = cost + pattern / math.max(1, math.floor((recipe.yellow + recipe.grey) / 2) - s)
-                        else
-                            cost = cost * 1.5
+                local mine = recipe.vein or known(recipe.spell)
+                -- A recipe you know counts whatever skill the data says it's
+                -- learned at (some are taught earlier than that); one from a
+                -- trainer counts once your skill reaches it.
+                if Open(recipe, mine, s) then
+                    local chance = Chance(recipe, s)
+                    -- The last few points before a recipe goes grey take ten
+                    -- crafts or more each: that's no way forward, so the road
+                    -- stops there and says so.
+                    if chance >= Professions.LEAST and (not priced or AllPriced(line, recipe)) then
+                        local cost = Cost(recipe) / chance + (mine and 0 or 0.01)
+                        if not mine and recipe.how == 2 then
+                            -- Priced, a pattern to buy adds its price, shared by the
+                            -- points it can give before it turns green; else it
+                            -- counts half again as costly.
+                            local pattern = priced and PatternPrice(recipe.spell)
+                            if pattern then
+                                cost = cost + pattern / math.max(1, math.floor((recipe.yellow + recipe.grey) / 2) - s)
+                            else
+                                cost = cost * 1.5
+                            end
                         end
+                        local wait = Professions.Wait(recipe)
+                        if wait then
+                            if not slow or cost < slowCost then slow, slowCost = recipe, cost end
+                        else
+                            if not best or cost < bestCost then best, bestCost = recipe, cost end
+                            if chance >= Professions.GREEN and (not fair or cost < fairCost) then fair, fairCost = recipe, cost end
+                        end
+                        if recipe == staying then stayCost, stayFair, staySlow = cost, chance >= Professions.GREEN, wait end
                     end
-                    local wait = Professions.Wait(recipe)
-                    if wait then
-                        if not slow or cost < slowCost then slow, slowCost = recipe, cost end
-                    else
-                        if not best or cost < bestCost then best, bestCost = recipe, cost end
-                        if chance >= Professions.GREEN and (not fair or cost < fairCost) then fair, fairCost = recipe, cost end
-                    end
-                    if recipe == staying then stayCost, stayFair, staySlow = cost, chance >= Professions.GREEN, wait end
                 end
             end
+            -- One with a wait only when nothing else gives a point, and the one in
+            -- hand isn't kept for being in hand if it has a wait.
+            if best then
+                if staySlow then stayCost = nil end
+            else
+                best, bestCost = slow, slowCost
+            end
+            if not best then break end
+            -- Yellow and orange before green: a green one only as a last resort,
+            -- and the one in hand isn't kept once it has gone green.
+            if fair then
+                best, bestCost = fair, fairCost
+                if not stayFair then stayCost = nil end
+            end
+            -- The recipe already being made is kept while it costs little more
+            -- than the best, so the road is a few long steps, not one craft of
+            -- this between two runs of that.
+            if stayCost and stayCost <= bestCost * Professions.STAY then best = staying end
+            staying = best
+            local chance = Chance(best, s)
+            local crafts = 1 / chance
+            -- How far the count can stray: each point takes one craft in
+            -- `chance`, so the spread of a point is (1 - chance) / chance^2.
+            local spread = (1 - chance) / (chance * chance)
+            for _, reagent in ipairs(best.reagents) do
+                stock[reagent.item] = math.max(0, stock[reagent.item] - reagent.count * crafts)
+            end
+            local last = steps[#steps]
+            if last and last.recipe == best and s ~= breakAt then
+                last.to, last.exact, last.spread = s + 1, last.exact + crafts, last.spread + spread
+            else
+                local learn = not best.vein and not known(best.spell)
+                steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, spread = spread,
+                                      learn = learn, buy = learn and best.how == 2 }
+            end
+            s = s + 1
         end
-        -- One with a wait only when nothing else gives a point, and the one in
-        -- hand isn't kept for being in hand if it has a wait.
-        if best then
-            if staySlow then stayCost = nil end
-        else
-            best, bestCost = slow, slowCost
-        end
-        if not best then break end
-        -- Yellow and orange before green: a green one only as a last resort,
-        -- and the one in hand isn't kept once it has gone green.
-        if fair then
-            best, bestCost = fair, fairCost
-            if not stayFair then stayCost = nil end
-        end
-        -- The recipe already being made is kept while it costs little more
-        -- than the best, so the road is a few long steps, not one craft of
-        -- this between two runs of that.
-        if stayCost and stayCost <= bestCost * Professions.STAY then best = staying end
-        staying = best
-        local chance = Chance(best, s)
-        local crafts = 1 / chance
-        -- How far the count can stray: each point takes one craft in
-        -- `chance`, so the spread of a point is (1 - chance) / chance^2.
-        local spread = (1 - chance) / (chance * chance)
-        for _, reagent in ipairs(best.reagents) do
-            stock[reagent.item] = math.max(0, stock[reagent.item] - reagent.count * crafts)
-        end
-        local last = steps[#steps]
-        if last and last.recipe == best and s ~= breakAt then
-            last.to, last.exact, last.spread = s + 1, last.exact + crafts, last.spread + spread
-        else
-            local learn = not best.vein and not known(best.spell)
-            steps[#steps + 1] = { from = s, to = s + 1, recipe = best, exact = crafts, spread = spread,
-                                  learn = learn, buy = learn and best.how == 2 }
-        end
-        s = s + 1
+        FoldShort(line, steps, Open, known, breakAt, pricing)
+        return steps, s, used
     end
-    FoldShort(line, steps, Open, known, breakAt, pricing)
+    -- What a road comes to, counting what you have once, in the order the road uses it: the
+    -- same measure for either road. A pattern to buy adds its price, or half again.
+    local function Spend(steps, mode)
+        priced = mode
+        local left, total = Stock(true), 0
+        for _, step in ipairs(steps) do
+            local recipe = step.recipe
+            total = total + 100 * step.exact
+            for _, reagent in ipairs(recipe.reagents) do
+                local need = reagent.count * step.exact
+                local owned = Data.vendor[reagent.item] and 0 or math.min(left[reagent.item], need)
+                left[reagent.item] = left[reagent.item] - owned
+                total = total + (need - owned * Professions.OWNED) * ItemWeight(line, reagent.item)
+            end
+            if step.buy then
+                total = total + (mode and PatternPrice(recipe.spell) or 0.5 * Weight(line, recipe) * step.exact)
+            end
+        end
+        return total
+    end
+    -- Spending what you have as soon as a recipe can use it isn't always where it saves most:
+    -- at 158 Leatherworking took 34 Thick Leather you had for Thick Armor Kit at 175, while
+    -- Guardian Gloves still gave a point a craft, went back to the Gloves, then bought Thick
+    -- Leather for the same Kits at 194 (John, 19 Nov 2026: "see why its like that"). So where
+    -- what you have changed the road and it goes back to a recipe it left, the road is found
+    -- again as if you had nothing, and the one that comes to less, counting what you have either
+    -- way, is kept. Only then: finding it twice every time took twice as long.
+    local steps, s, used = Walk(Stock(true))
+    local back = false
+    if used then
+        local left = {}
+        for i, step in ipairs(steps) do
+            if left[step.recipe] then back = true break end
+            if steps[i + 1] and steps[i + 1].recipe ~= step.recipe then left[step.recipe] = true end
+        end
+    end
+    if back then
+        local plain, plainAt = Walk(Stock(false))
+        if plainAt >= s then
+            local mode = pricing
+            for _, list in ipairs({ steps, plain }) do
+                for _, step in ipairs(list) do
+                    if mode and not AllPriced(line, step.recipe) then mode = false end
+                end
+            end
+            if Spend(plain, mode) < Spend(steps, mode) then steps, s = plain, plainAt end
+        end
+    end
     for _, step in ipairs(steps) do
         step.crafts = math.ceil(step.exact - 0.01)
         -- Enough for nine tries in ten: the average and 1.28 spreads more.
