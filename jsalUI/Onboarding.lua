@@ -798,7 +798,8 @@ end
 -- Step six, Look: what jsal.ui puts on the screen, drawn and numbered,
 -- with a switch for each piece of it, and where to ask.
 ---------------------------------------------------------------------------
-local BAR_TILES = { "games", "shop", "crafts", "build", "training", "gear", "dungeons" }
+local BAR_TILES = { "pals", "shop", "profit", "crafts", "build", "training", "gear", "dungeons" }
+local DOT_TILE = 5   -- Guild Crafts, counting the j as the first
 local SIDE_W = 318
 -- The pieces, and what each is in a few words short enough for the column.
 local LOOK = {
@@ -809,8 +810,8 @@ local LOOK = {
     { "vendor", "Repairs, and sells grey items" },
 }
 
--- The quick buttons as a picture: the grip, the j, a button a place and the
--- layer's number, with a gold dot on the games.
+-- The quick buttons as a picture, as the bar starts: the grip, the j, a
+-- button a place and the layer's number, with a gold dot on Guild Crafts.
 local function BarPicture(parent)
     local size, gap = 32, 4
     local count = #BAR_TILES + 2
@@ -836,9 +837,9 @@ local function BarPicture(parent)
         end
         bar.tiles[i] = tile
     end
-    local dot = CreateFrame("Frame", nil, bar.tiles[2])
+    local dot = CreateFrame("Frame", nil, bar.tiles[DOT_TILE])
     dot:SetSize(8, 8)
-    dot:SetPoint("CENTER", bar.tiles[2], "TOPRIGHT", -1, -1)
+    dot:SetPoint("CENTER", bar.tiles[DOT_TILE], "TOPRIGHT", -1, -1)
     Style.Circle(dot, "gold", "window")
     return bar
 end
@@ -853,7 +854,7 @@ BUILD.screen = function(page)
     local bar = BarPicture(screen)
     bar:SetPoint("BOTTOM", 0, 34)
     Sign(screen, 1):SetPoint("BOTTOM", bar, "TOPLEFT", 10, 6)
-    Sign(screen, 2):SetPoint("BOTTOM", bar.tiles[2], "TOP", 0, 10)
+    Sign(screen, 2):SetPoint("BOTTOM", bar.tiles[DOT_TILE], "TOP", 0, 10)
     local mini = CreateFrame("Frame", nil, screen)
     mini:SetSize(34, 34)
     mini:SetPoint("TOPRIGHT", -26, -22)
@@ -864,7 +865,7 @@ BUILD.screen = function(page)
     -- What each number is: its name, and a line on what to do with it.
     for i, legend in ipairs({
         { "The quick buttons", "Drag the bar by its grip. Right-click the grip to choose its buttons." },
-        { "A gold dot", "Something's waiting there, like today's puzzle." },
+        { "A gold dot", "Something's waiting there, like an order from a guildmate." },
         { "The minimap button", "Opens the dashboard too. Right-click it for every page." },
     }) do
         local y = -(COLUMN_Y + 176 + 16 + (i - 1) * 42)

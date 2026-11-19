@@ -136,7 +136,9 @@ end
 PLACES = {
     { key = "dashboard", label = "Dashboard", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Logo",
       open = function() ns.Window.Toggle() end },
-    { key = "games", label = "Games", icon = OWN .. "games", barOnly = true,
+    -- Games starts off the bar (`off`): today's games are on Home and the flight bar, and the
+    -- bar's room goes to the places a player goes back to all day.
+    { key = "games", label = "Games", icon = OWN .. "games", barOnly = true, off = true,
       ready = function() return #Games() > 0 end,
       open = GamesMenu,
       waiting = function()
@@ -166,10 +168,8 @@ PLACES = {
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
-    -- Jsal's Pals and Crafting profit: a button each, while its part is on. They came after
-    -- the bar, so each starts switched off (`off`): an update puts nothing on a bar that
-    -- wasn't there.
-    { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals", off = true,
+    -- Jsal's Pals and Crafting profit: a button each, while its part is on.
+    { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals",
       ready = function() return ns.Pet and ns.Pet.running end,
       -- The pen's own Open closes it when it's open.
       open = function() ns.Pet.Open() end,
@@ -177,7 +177,7 @@ PLACES = {
     { key = "shop", label = "Shopping list", icon = OWN .. "shop",
       ready = function() return ns.Shopping and ns.Shopping.running end,
       open = function() ns.Shopping.Toggle() end },
-    { key = "profit", label = "Crafting profit", icon = OWN .. "profit", off = true,
+    { key = "profit", label = "Crafting profit", icon = OWN .. "profit",
       ready = function() return ns.CraftProfit and ns.CraftProfit.running end,
       open = Page("craftprofit"),
       note = "A button for the Crafting profit window: a click opens it, another closes it. Needs Crafting profit on." },
@@ -220,7 +220,7 @@ for _, place in ipairs(PLACES) do
             note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
     end
 end
-Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = false,
+Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = true,
     note = "The time in the middle of the bar, when it's laid out side by side. Hover it for local and realm time; click it for the game's clock." }
 
 local function Hidden(key) return not ns.OptionOn("launcher", key) end
