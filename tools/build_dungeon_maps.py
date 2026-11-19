@@ -23,6 +23,11 @@ FileDataID only. data/dungeons/minimaps/<build>.csv lists them (MapID, Column, R
 https://wago.tools/api/files?search=world/minimaps/<directory>/&version=<build>. MINIMAPS below is by hand:
 the part of each to show. Such a map has no boss placed on it.
 
+A boss's picture, for its tooltip, is the journal's too: JournalEncounterCreature (JournalEncounterID,
+CreatureDisplayInfoID, OrderIndex, Name_lang; from the same place) gives each journal boss's models, the
+first being the boss. Only the rows whose model Forever's own CreatureDisplayInfo has are kept there: a boss
+remodelled since has none.
+
 python tools/build_dungeon_maps.py           writes the file
 python tools/build_dungeon_maps.py --report  says what matched and what didn't
 """
@@ -90,10 +95,18 @@ def journal(build):
         x, y = float(r["Map_0"]), float(r["Map_1"])
         if not (0 < x < 1 and 0 < y < 1):
             continue
-        bosses.setdefault(m, []).append({"enc": int(r["DungeonEncounterID"] or 0), "name": r["Name_lang"],
+        bosses.setdefault(m, []).append({"enc": int(r["DungeonEncounterID"] or 0), "name": r["Name_lang"], "jid": r["ID"],
                                          "ui": int(r["UiMapID"]), "x": x, "y": y, "instance": instance})
     return {m: {"floors": sorted(f), "names": {i: names[str(i)]["Name_lang"] for i in f}, "bosses": bosses.get(m, [])}
             for m, f in floors.items()}
+
+
+def faces(build):
+    """By journal encounter: the model of its first creature, where Forever has it."""
+    out = {}
+    for r in sorted(rows(build, "JournalEncounterCreature"), key=lambda r: int(r["OrderIndex"]), reverse=True):
+        out[r["JournalEncounterID"]] = int(r["CreatureDisplayInfoID"])
+    return out
 
 
 def dungeons():
@@ -128,6 +141,7 @@ def plain(name):
 
 def build():
     books = [(b, journal(b)) for b in BUILDS]
+    models = {b: faces(b) for b in BUILDS}
     out, report = [], []
     for d in dungeons():
         if d["map"] in MINIMAPS:
@@ -167,7 +181,7 @@ def build():
                 missing.append("%s (floor %d of %d)" % (name, floor, count))
                 continue
             floor_names[floor] = True
-            placed[enc] = (floor, b["x"], b["y"], name, build_name, b["name"], b["instance"])
+            placed[enc] = (floor, b["x"], b["y"], name, build_name, b["name"], b["instance"], models[build_name].get(b["jid"]))
         report.append("%s: %d of %d placed%s" % (d["name"], len(placed), len(d["bosses"]),
                                                  missing and ("; not: " + ", ".join(missing)) or ""))
         if len(placed) * 2 >= len(d["bosses"]):
@@ -187,7 +201,8 @@ local _, ns = ...
 -- that have the same dungeons and pictures, as parts of the picture's width and height.
 -- By dungeon: `folder`, each floor of the folder's pictures (true: one of this dungeon's, with
 -- a boss on it; false: another wing's, or one with no boss placed), and each boss by the game's
--- encounter ID as { floor, across, down }. A boss not here has no place known. A dungeon with
+-- encounter ID as { floor, across, down, and its model where one is known, for its picture in
+-- its tooltip }. A boss not here has no place known. A dungeon with
 -- fewer than half its bosses placed is left out.
 -- A dungeon of Forever's own has no such picture. Its map is a cut of its minimap, which the
 -- game's files hold in tiles an addon can show by file number only: `mini`, each tile as
@@ -213,7 +228,8 @@ def write(out):
         for enc, name, _ in d["bosses"]:
             if enc in placed:
                 f, x, y = placed[enc][:3]
-                lines.append("            [%d] = { %d, %.3f, %.3f },    -- %s\n" % (enc, f, x, y, name))
+                face = placed[enc][7]
+                lines.append("            [%d] = { %d, %.3f, %.3f%s },    -- %s\n" % (enc, f, x, y, face and (", %d" % face) or "", name))
         lines.append("        } },\n")
     lines.append("}\n")
     path = os.path.join(ROOT, "jsalUI", "Dungeons", "DungeonMaps.lua")

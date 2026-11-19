@@ -1,0 +1,195 @@
+JournalEncounterID,CreatureDisplayInfoID,OrderIndex,Name_lang
+93,1305,0,"""Captain"" Cookie"
+177,8390,0,Gri'lek
+369,8761,0,High Interrogator Gerstahn
+370,5781,0,Lord Roccor
+371,9212,0,Houndmaster Grebmar
+373,8762,0,Pyromancer Loregrain
+374,1204,0,Lord Incendius
+375,9089,0,Warder Stilgiss
+376,8704,0,Fineous Darkvire
+377,12162,0,Bael'Gar
+378,8756,0,General Angerforge
+379,8759,0,Golem Lord Argelmach
+380,8658,0,Hurley Blackbreath
+381,8177,0,Phalanx
+383,8652,0,Plugger Spazzring
+384,8329,0,Ambassador Flamelash
+386,12162,0,Magmus
+387,8807,0,Emperor Dagran Thaurissan
+388,11565,0,Highlord Omokk
+389,9732,0,Shadow Hunter Vosh'gajin
+392,11583,0,Urok Doomhowl
+393,9738,0,Quartermaster Zigris
+394,9567,0,Halycon
+395,9564,0,Gizrul the Slavener
+396,8711,0,Overlord Wyrmthalak
+402,11335,0,Zevrim Thornhoof
+403,5489,0,Hydrospawn
+405,14416,0,Alzzin the Wildshaper
+406,14383,0,Tendris Warpwood
+407,11270,0,Illyanna Ravenoak
+408,14384,0,Magister Kalendris
+409,14173,0,Immol'thar
+410,11256,0,Prince Tortheldrin
+411,11561,0,Guard Mol'dar
+412,11545,0,Stomper Kreeg
+413,11561,0,Guard Fengus
+414,11561,0,Guard Slip'kik
+415,11564,0,Captain Kromcrush
+416,11537,0,Cho'Rush the Observer
+417,11583,0,King Gordok
+419,6533,0,Grubbis
+423,11172,0,Noxxion
+424,12389,0,Razorlash
+425,7125,0,Tinkerer Gizlock
+427,12334,0,Lord Vyletongue
+428,12350,0,Celebras the Cursed
+429,12293,0,Landslide
+430,13589,0,Rotgrip
+431,12292,0,Princess Theradras
+443,10482,0,Hearthsinger Forresten
+445,571,0,Timmy the Cruel
+450,10771,0,The Unforgiven
+451,10698,0,Baroness Anastari
+452,9793,0,Nerub'enkan
+453,10546,0,Maleki the Pallid
+454,10433,0,Magistrate Barthilas
+455,12818,0,Ramstein the Gorger
+457,8053,0,Avatar of Hakkar
+458,6708,0,Jammal'an the Prophet
+459,7553,0,Dreamscythe
+463,7806,0,Shade of Eranikus
+465,1204,0,Lord Overheat
+467,5945,0,Revelosh
+468,5708,1,"Eric ""The Swift"""
+468,5709,2,Olaf
+468,5710,0,Baelog
+469,6089,0,Ironaya
+470,10798,0,Ancient Stone Keeper
+471,6059,0,Galgann Firehammer
+472,11165,0,Grimlok
+473,5988,0,Archaedas
+474,4313,0,Lady Anacondra
+475,4213,0,Lord Cobrahn
+476,4214,0,Lord Pythas
+477,5126,0,Kresh
+478,4203,0,Skum
+479,4215,0,Lord Serpentis
+480,4256,0,Verdan the Everliving
+481,4088,0,Mutanus the Devourer
+482,6685,0,Hydromancer Velratha
+483,7271,0,Gahz'rilla
+484,7353,0,Antu'sul
+485,6696,0,Theka the Martyr
+486,6434,0,Witch Doctor Zum'rah
+487,6690,0,Nekrum Gutchewer
+385,8687,0,Doom'rel
+489,6439,0,Chief Ukorz Sandscalp
+536,14173,0,Yor
+560,14416,0,Thorngrin the Tender
+561,13109,0,Laj
+573,11268,0,Hydromancer Thespia
+590,5240,0,King Dred
+630,10193,0,Lavanthor
+372,9329,0,High Justice Grimstone
+487,6441,1,Shadowpriest Sezz'ziz
+674,2043,0,High Inquisitor Whitemane
+459,9584,3,Hazzas
+459,6375,1,Weaver
+459,7975,2,Morphaz
+748,5285,0,Obsidian Sentinel
+899,4756,1,Death Speaker Jargba
+899,4645,2,Aggem Thorncurse
+895,1964,3,Razorfen Beast Tracker
+895,6109,1,Razorfen Bladeguard
+895,1342,2,Razorfen Huntmaster
+1146,4644,0,Death Speaker Blackthorn
+1519,13031,0,Lucifron
+1520,10193,0,Magmadar
+1521,13030,0,Gehennas
+1522,12110,0,Garr
+1523,13032,0,Shazzrah
+1524,12129,0,Baron Geddon
+1525,12030,1,Flamewaker Priest
+1525,13030,0,Sulfuron Harbinger
+1526,11986,0,Golemagg the Incinerator
+1527,12029,0,Majordomo Executus
+1527,13029,1,Flamewaker Healer
+1527,12002,2,Flamewaker Elite
+1528,11121,0,Ragnaros
+1529,10115,0,Razorgore the Untamed
+1530,13992,0,Vaelastrasz the Corrupt
+1531,14308,0,Broodlord Lashlayer
+1532,6377,0,Firemaw
+1533,6377,0,Ebonroc
+1534,6377,0,Flamegor
+1535,14367,0,Chromaggus
+1536,11380,0,Nefarian
+1537,15742,0,Kurinnaxx
+1538,15376,0,General Rajaxx
+1539,15392,0,Moam
+1540,15654,0,Buru the Gorger
+1541,15431,0,Ayamiss the Hunter
+1542,15432,0,Ossirian the Unscarred
+1543,15345,0,The Prophet Skeram
+1544,15583,0,Battleguard Sartura
+1544,15465,1,Sartura's Royal Guard
+1545,15743,0,Fankriss the Unyielding
+1546,15739,0,Princess Huhuran
+1547,15657,2,Princess Yauj
+1547,15658,1,Vem
+1547,15656,0,Lord Kri
+1548,15686,0,Viscidus
+1549,15778,0,Emperor Vek'lor
+1549,15761,1,Emperor Vek'nilash
+1550,15509,0,Ouro
+1551,15556,0,C'Thun
+1552,15938,2,Hyakiss the Lurker
+1560,11343,0,Terestian Illhoof
+1561,15363,0,Netherspite
+1564,12472,1,Kiggler the Crazed
+1564,11585,2,Blindeye the Seer
+1566,9865,1,Hellfire Channeler
+1581,20939,0,Archimonde
+1601,15931,0,Anub'Rekhan
+1602,15940,0,Grand Widow Faerlina
+1603,15928,0,Maexxna
+1604,16590,0,Noth the Plaguebringer
+1605,16309,0,Heigan the Unclean
+1606,16110,0,Loatheb
+1607,16539,1,Death Knight Understudy
+1607,16582,0,Instructor Razuvious
+1608,16279,0,Gothik the Harvester
+1609,16153,2,Lady Blaumeux
+1609,10729,0,Baron Rivendare
+1609,16154,3,Sir Zeliek
+1609,16155,1,Thane Korth'azz
+1610,16174,0,Patchwerk
+1611,16035,0,Grobbulus
+1612,16064,0,Gluth
+1613,16137,0,Thaddius
+1615,15945,0,Kel'Thuzad
+1651,8570,0,Onyxia
+1751,1204,2,Fiery Enchantment
+1856,5306,2,Razorjaw Gladiator
+1856,5286,1,Razorjaw Wavemender
+2025,9018,1,Felguard
+2334,7006,0,High Tinker Mekkatorque
+2334,3886,2,Explosive Sheep
+2357,4905,1,Scrapbone Scavenger
+2395,15963,1,Carrion Worm
+2472,2711,1,Rotfang Hyena
+2613,14403,0,Rhahk'Zor
+2620,1305,0,"""Captain"" Cookie"
+2626,1269,0,Sneed's Shredder
+2628,7124,0,Gilnid
+2629,2026,0,Mr. Smite
+2630,7113,0,Captain Greenskin
+2631,2029,0,Edwin VanCleef
+2632,1305,0,Cookie
+2633,10669,0,Postmaster Malown
+2626,7125,1,Sneed
+489,6687,1,Ruuzlu
+1468,1204,1,Living Ember
+2782,864,1,Angry Treant

@@ -18,6 +18,8 @@ local MAP_MAX, LIST_W, GAP, TOP, ROW_H, SIGN = 620, 320, 24, 30, 44, 26
 local FLOORS = 7
 -- A row needs this much height for its two lines; under it, a row is one line.
 local TWO_LINES = 34
+-- A boss's picture in its tooltip is this many of the tooltip's lines high.
+local FACE_LINES = 5
 
 function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
@@ -251,6 +253,26 @@ function Map.Build(parent, width, onBoss)
     -- it has for you and the quests that need it (`pane.tip`, the page's to say), and that a
     -- click opens its loot. The list's rows have none: a tooltip following the pointer down a
     -- list is a lot of movement, and a row says most of it already.
+    -- The boss's picture is its own model, drawn by the game where its model is known (the
+    -- fourth of its place), over empty lines left for it under its name. The model is the
+    -- map's own frame, not the tooltip's, so no other tooltip ever has it; it's made the first
+    -- time a boss with one is pointed at, and drawn only while the pointer is on a sign.
+    local function Face(display, first)
+        local m = pane.face
+        if not m then
+            m = CreateFrame("PlayerModel", nil, pane)
+            m:SetFrameStrata("TOOLTIP")
+            pane.face = m
+        end
+        local top, foot = _G["GameTooltipTextLeft" .. first], _G["GameTooltipTextLeft" .. (first + FACE_LINES - 1)]
+        local size = top and foot and top.GetTop and top:GetTop() and foot:GetBottom() and (top:GetTop() - foot:GetBottom()) or 64
+        m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 2)
+        m:SetSize(size, size)
+        m:ClearAllPoints()
+        if top then m:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else m:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
+        m:SetDisplayInfo(display)
+        m:Show()
+    end
     local function Tip(sign)
         local d, k = pane.dungeon, sign.k
         local boss = d and k and d.bosses[k]
@@ -261,12 +283,18 @@ function Map.Build(parent, width, onBoss)
         local where = pane.manyFloors and place and Map.Floor(ns.DungeonMaps[d.id], place[1]) or ""
         if pane.killed and pane.killed(k) then where = where ~= "" and (where .. " · killed") or "Killed" end
         if where ~= "" then GameTooltip:AddLine(where, 0.6, 0.59, 0.53) end
+        local face, first = place and place[4], nil
+        if face then
+            first = GameTooltip:NumLines() + 1
+            for _ = 1, FACE_LINES do GameTooltip:AddLine(" ") end
+        end
         if pane.tip then pane.tip(GameTooltip, k) end
         if onBoss then
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine("Click for its loot", 0.6, 0.59, 0.53)
         end
         GameTooltip:Show()
+        if face then Face(face, first) elseif pane.face then pane.face:Hide() end
     end
     local function Clickable(frame, tips)
         frame:EnableMouse(true)
@@ -277,6 +305,7 @@ function Map.Build(parent, width, onBoss)
         frame:SetScript("OnLeave", function()
             Hot(nil)
             if tips and GameTooltip then GameTooltip:Hide() end
+            if tips and pane.face then pane.face:Hide() end
         end)
         frame:SetScript("OnMouseUp", function(self) if onBoss and self.k then onBoss(self.k) end end)
     end

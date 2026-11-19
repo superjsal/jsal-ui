@@ -10,7 +10,8 @@ local _, ns = ...
 -- that have the same dungeons and pictures, as parts of the picture's width and height.
 -- By dungeon: `folder`, each floor of the folder's pictures (true: one of this dungeon's, with
 -- a boss on it; false: another wing's, or one with no boss placed), and each boss by the game's
--- encounter ID as { floor, across, down }. A boss not here has no place known. A dungeon with
+-- encounter ID as { floor, across, down, and its model where one is known, for its picture in
+-- its tooltip }. A boss not here has no place known. A dungeon with
 -- fewer than half its bosses placed is left out.
 -- A dungeon of Forever's own has no such picture. Its map is a cut of its minimap, which the
 -- game's files hold in tiles an addon can show by file number only: `mini`, each tile as
@@ -40,45 +41,45 @@ ns.DungeonMaps = {
         } },
     [5] = { folder = "TheDeadmines", floors = { true, true },
         bosses = {
-            [2741] = { 1, 0.365, 0.612 },    -- Rhahk'Zor
-            [2742] = { 1, 0.502, 0.868 },    -- Sneed
-            [2743] = { 2, 0.125, 0.759 },    -- Gilnid
-            [2744] = { 2, 0.608, 0.375 },    -- Captain Greenskin
-            [2745] = { 2, 0.552, 0.254 },    -- Mr. Smite
-            [2746] = { 2, 0.676, 0.402 },    -- Cookie
-            [2747] = { 2, 0.608, 0.449 },    -- Edwin VanCleef
+            [2741] = { 1, 0.365, 0.612, 14403 },    -- Rhahk'Zor
+            [2742] = { 1, 0.502, 0.868, 1269 },    -- Sneed
+            [2743] = { 2, 0.125, 0.759, 7124 },    -- Gilnid
+            [2744] = { 2, 0.608, 0.375, 7113 },    -- Captain Greenskin
+            [2745] = { 2, 0.552, 0.254, 2026 },    -- Mr. Smite
+            [2746] = { 2, 0.676, 0.402, 1305 },    -- Cookie
+            [2747] = { 2, 0.608, 0.449, 2029 },    -- Edwin VanCleef
         } },
     [1] = { folder = "WailingCaverns", floors = { true },
         bosses = {
-            [585] = { 1, 0.306, 0.430 },    -- Lady Anacondra
-            [586] = { 1, 0.167, 0.568 },    -- Lord Cobrahn
-            [587] = { 1, 0.385, 0.361 },    -- Kresh
-            [588] = { 1, 0.191, 0.395 },    -- Lord Pythas
-            [589] = { 1, 0.623, 0.744 },    -- Skum
-            [590] = { 1, 0.616, 0.539 },    -- Lord Serpentis
-            [591] = { 1, 0.555, 0.465 },    -- Verdan the Everliving
-            [592] = { 1, 0.346, 0.137 },    -- Mutanus the Devourer
+            [585] = { 1, 0.306, 0.430, 4313 },    -- Lady Anacondra
+            [586] = { 1, 0.167, 0.568, 4213 },    -- Lord Cobrahn
+            [587] = { 1, 0.385, 0.361, 5126 },    -- Kresh
+            [588] = { 1, 0.191, 0.395, 4214 },    -- Lord Pythas
+            [589] = { 1, 0.623, 0.744, 4203 },    -- Skum
+            [590] = { 1, 0.616, 0.539, 4215 },    -- Lord Serpentis
+            [591] = { 1, 0.555, 0.465, 4256 },    -- Verdan the Everliving
+            [592] = { 1, 0.346, 0.137, 4088 },    -- Mutanus the Devourer
         } },
     [9] = { folder = "BlackfathomDeeps", floors = { true, true, true },
         bosses = {
             [2916] = { 1, 0.333, 0.607 },    -- Ghamoo-ra
-            [2915] = { 1, 0.112, 0.390 },    -- Lady Sarevess
-            [2912] = { 3, 0.587, 0.309 },    -- Old Serra'kis
-            [2911] = { 2, 0.524, 0.808 },    -- Twilight Lord Kelris
-            [2910] = { 2, 0.855, 0.864 },    -- Aku'mai
+            [2915] = { 1, 0.112, 0.390, 4979 },    -- Lady Sarevess
+            [2912] = { 3, 0.587, 0.309, 1816 },    -- Old Serra'kis
+            [2911] = { 2, 0.524, 0.808, 4939 },    -- Twilight Lord Kelris
+            [2910] = { 2, 0.855, 0.864, 2837 },    -- Aku'mai
         } },
     [15] = { folder = "RazorfenKraul", floors = { true },
         bosses = {
-            [2773] = { 1, 0.872, 0.411 },    -- Roogug
-            [2774] = { 1, 0.802, 0.516 },    -- Aggem Thorncurse
-            [2775] = { 1, 0.873, 0.422 },    -- Death Speaker Jargba
-            [2776] = { 1, 0.571, 0.305 },    -- Overlord Ramtusk
-            [2777] = { 1, 0.081, 0.689 },    -- Agathelos the Raging
+            [2773] = { 1, 0.872, 0.411, 6109 },    -- Roogug
+            [2774] = { 1, 0.802, 0.516, 6097 },    -- Aggem Thorncurse
+            [2775] = { 1, 0.873, 0.422, 4644 },    -- Death Speaker Jargba
+            [2776] = { 1, 0.571, 0.305, 4652 },    -- Overlord Ramtusk
+            [2777] = { 1, 0.081, 0.689, 2450 },    -- Agathelos the Raging
             [2778] = { 1, 0.217, 0.314 },    -- Charlga Razorflank
         } },
     [13] = { folder = "Gnomeregan", floors = { true, true, true, true },
         bosses = {
-            [2768] = { 1, 0.779, 0.670 },    -- Grubbis
+            [2768] = { 1, 0.779, 0.670, 6533 },    -- Grubbis
             [2769] = { 2, 0.760, 0.465 },    -- Viscous Fallout
             [2770] = { 2, 0.243, 0.684 },    -- Electrocutioner 6000
             [2771] = { 3, 0.432, 0.883 },    -- Crowd Pummeler 9-60
@@ -98,8 +99,8 @@ ns.DungeonMaps = {
         } },
     [19] = { folder = "RazorfenDowns", floors = { true },
         bosses = {
-            [2780] = { 1, 0.594, 0.340 },    -- Tuten'kash
-            [2782] = { 1, 0.861, 0.467 },    -- Mordresh Fire Eye
+            [2780] = { 1, 0.594, 0.340, 7845 },    -- Tuten'kash
+            [2782] = { 1, 0.861, 0.467, 8055 },    -- Mordresh Fire Eye
             [2784] = { 1, 0.343, 0.668 },    -- Glutton
             [2785] = { 1, 0.445, 0.605 },    -- Amnennar the Coldbringer
         } },
@@ -120,14 +121,14 @@ ns.DungeonMaps = {
         } },
     [21] = { folder = "Uldaman", floors = { true, true },
         bosses = {
-            [547] = { 1, 0.534, 0.725 },    -- Revelosh
-            [548] = { 1, 0.585, 0.920 },    -- The Lost Dwarves
-            [549] = { 1, 0.373, 0.740 },    -- Ironaya
-            [1887] = { 1, 0.289, 0.597 },    -- Obsidian Sentinel
-            [551] = { 1, 0.475, 0.441 },    -- Ancient Stone Keeper
-            [552] = { 1, 0.268, 0.328 },    -- Galgann Firehammer
-            [553] = { 1, 0.220, 0.256 },    -- Grimlok
-            [554] = { 2, 0.553, 0.504 },    -- Archaedas
+            [547] = { 1, 0.534, 0.725, 5945 },    -- Revelosh
+            [548] = { 1, 0.585, 0.920, 5710 },    -- The Lost Dwarves
+            [549] = { 1, 0.373, 0.740, 6089 },    -- Ironaya
+            [1887] = { 1, 0.289, 0.597, 5285 },    -- Obsidian Sentinel
+            [551] = { 1, 0.475, 0.441, 10798 },    -- Ancient Stone Keeper
+            [552] = { 1, 0.268, 0.328, 6059 },    -- Galgann Firehammer
+            [553] = { 1, 0.220, 0.256, 11165 },    -- Grimlok
+            [554] = { 2, 0.553, 0.504, 5988 },    -- Archaedas
         } },
     [3275] = { floors = { true }, bosses = {},    -- Krol'dok Stronghold
         mini = {
@@ -146,25 +147,25 @@ ns.DungeonMaps = {
         } },
     [25] = { folder = "Maraudon", floors = { true, true },
         bosses = {
-            [422] = { 1, 0.362, 0.098 },    -- Noxxion
-            [423] = { 1, 0.167, 0.344 },    -- Razorlash
-            [427] = { 1, 0.510, 0.531 },    -- Tinkerer Gizlock
-            [424] = { 1, 0.378, 0.705 },    -- Lord Vyletongue
-            [425] = { 2, 0.246, 0.143 },    -- Celebras the Cursed
-            [426] = { 2, 0.408, 0.488 },    -- Landslide
-            [428] = { 2, 0.414, 0.818 },    -- Rotgrip
-            [429] = { 2, 0.258, 0.789 },    -- Princess Theradras
+            [422] = { 1, 0.362, 0.098, 11172 },    -- Noxxion
+            [423] = { 1, 0.167, 0.344, 12389 },    -- Razorlash
+            [427] = { 1, 0.510, 0.531, 7125 },    -- Tinkerer Gizlock
+            [424] = { 1, 0.378, 0.705, 12334 },    -- Lord Vyletongue
+            [425] = { 2, 0.246, 0.143, 12350 },    -- Celebras the Cursed
+            [426] = { 2, 0.408, 0.488, 12293 },    -- Landslide
+            [428] = { 2, 0.414, 0.818, 13589 },    -- Rotgrip
+            [429] = { 2, 0.258, 0.789, 12292 },    -- Princess Theradras
         } },
     [23] = { folder = "ZulFarrak", plain = true, floors = { true },
         bosses = {
-            [593] = { 1, 0.336, 0.448 },    -- Hydromancer Velratha
-            [594] = { 1, 0.281, 0.383 },    -- Gahz'rilla
-            [595] = { 1, 0.646, 0.277 },    -- Antu'sul
-            [596] = { 1, 0.531, 0.262 },    -- Theka the Martyr
-            [597] = { 1, 0.443, 0.176 },    -- Witch Doctor Zum'rah
-            [598] = { 1, 0.296, 0.174 },    -- Nekrum Gutchewer
-            [599] = { 1, 0.296, 0.174 },    -- Shadowpriest Sezz'ziz
-            [600] = { 1, 0.422, 0.330 },    -- Chief Ukorz Sandscalp
+            [593] = { 1, 0.336, 0.448, 6685 },    -- Hydromancer Velratha
+            [594] = { 1, 0.281, 0.383, 7271 },    -- Gahz'rilla
+            [595] = { 1, 0.646, 0.277, 7353 },    -- Antu'sul
+            [596] = { 1, 0.531, 0.262, 6696 },    -- Theka the Martyr
+            [597] = { 1, 0.443, 0.176, 6434 },    -- Witch Doctor Zum'rah
+            [598] = { 1, 0.296, 0.174, 6690 },    -- Nekrum Gutchewer
+            [599] = { 1, 0.296, 0.174, 6690 },    -- Shadowpriest Sezz'ziz
+            [600] = { 1, 0.422, 0.330, 6439 },    -- Chief Ukorz Sandscalp
         } },
     [3269] = { floors = { true }, bosses = {},    -- Alcaz Prison
         mini = {
@@ -172,69 +173,69 @@ ns.DungeonMaps = {
         } },
     [29] = { folder = "BlackrockDepths", floors = { true, true },
         bosses = {
-            [227] = { 1, 0.474, 0.922 },    -- High Interrogator Gerstahn
-            [228] = { 1, 0.556, 0.670 },    -- Lord Roccor
-            [229] = { 1, 0.535, 0.573 },    -- Houndmaster Grebmar
-            [230] = { 1, 0.498, 0.646 },    -- Ring of Law
-            [231] = { 2, 0.549, 0.949 },    -- Pyromancer Loregrain
-            [232] = { 1, 0.564, 0.311 },    -- Lord Incendius
-            [233] = { 2, 0.602, 0.660 },    -- Warder Stilgiss
-            [234] = { 1, 0.635, 0.211 },    -- Fineous Darkvire
-            [235] = { 1, 0.251, 0.535 },    -- Bael'Gar
-            [236] = { 2, 0.363, 0.824 },    -- General Angerforge
-            [237] = { 2, 0.365, 0.652 },    -- Golem Lord Argelmach
-            [238] = { 2, 0.506, 0.705 },    -- Hurley Blackbreath
-            [239] = { 2, 0.458, 0.565 },    -- Phalanx
-            [240] = { 2, 0.525, 0.625 },    -- Ribbly Screwspigot
-            [241] = { 2, 0.477, 0.657 },    -- Plugger Spazzring
-            [242] = { 2, 0.538, 0.486 },    -- Ambassador Flamelash
-            [243] = { 2, 0.538, 0.248 },    -- The Seven
-            [244] = { 2, 0.796, 0.119 },    -- Magmus
-            [2790] = { 2, 0.910, 0.119 },    -- Emperor Dagran Thaurissan
+            [227] = { 1, 0.474, 0.922, 8761 },    -- High Interrogator Gerstahn
+            [228] = { 1, 0.556, 0.670, 5781 },    -- Lord Roccor
+            [229] = { 1, 0.535, 0.573, 9212 },    -- Houndmaster Grebmar
+            [230] = { 1, 0.498, 0.646, 9329 },    -- Ring of Law
+            [231] = { 2, 0.549, 0.949, 8762 },    -- Pyromancer Loregrain
+            [232] = { 1, 0.564, 0.311, 1204 },    -- Lord Incendius
+            [233] = { 2, 0.602, 0.660, 9089 },    -- Warder Stilgiss
+            [234] = { 1, 0.635, 0.211, 8704 },    -- Fineous Darkvire
+            [235] = { 1, 0.251, 0.535, 12162 },    -- Bael'Gar
+            [236] = { 2, 0.363, 0.824, 8756 },    -- General Angerforge
+            [237] = { 2, 0.365, 0.652, 8759 },    -- Golem Lord Argelmach
+            [238] = { 2, 0.506, 0.705, 8658 },    -- Hurley Blackbreath
+            [239] = { 2, 0.458, 0.565, 8177 },    -- Phalanx
+            [240] = { 2, 0.525, 0.625, 8667 },    -- Ribbly Screwspigot
+            [241] = { 2, 0.477, 0.657, 8652 },    -- Plugger Spazzring
+            [242] = { 2, 0.538, 0.486, 8329 },    -- Ambassador Flamelash
+            [243] = { 2, 0.538, 0.248, 8687 },    -- The Seven
+            [244] = { 2, 0.796, 0.119, 12162 },    -- Magmus
+            [2790] = { 2, 0.910, 0.119, 8807 },    -- Emperor Dagran Thaurissan
         } },
     [31] = { folder = "BlackrockSpire", floors = { true, true, true, true, true, true },
         bosses = {
-            [267] = { 3, 0.387, 0.590 },    -- Highlord Omokk
-            [268] = { 2, 0.553, 0.693 },    -- Shadow Hunter Vosh'gajin
+            [267] = { 3, 0.387, 0.590, 11565 },    -- Highlord Omokk
+            [268] = { 2, 0.553, 0.693, 9732 },    -- Shadow Hunter Vosh'gajin
             [269] = { 1, 0.525, 0.545 },    -- War Master Voone
-            [270] = { 2, 0.621, 0.741 },    -- Mother Smolderweb
-            [271] = { 4, 0.455, 0.557 },    -- Urok Doomhowl
-            [272] = { 5, 0.540, 0.844 },    -- Quartermaster Zigris
-            [274] = { 5, 0.380, 0.840 },    -- Halycon
-            [273] = { 5, 0.395, 0.793 },    -- Gizrul the Slavener
-            [275] = { 6, 0.575, 0.600 },    -- Overlord Wyrmthalak
+            [270] = { 2, 0.621, 0.741, 9929 },    -- Mother Smolderweb
+            [271] = { 4, 0.455, 0.557, 11583 },    -- Urok Doomhowl
+            [272] = { 5, 0.540, 0.844, 9738 },    -- Quartermaster Zigris
+            [274] = { 5, 0.380, 0.840, 9567 },    -- Halycon
+            [273] = { 5, 0.395, 0.793, 9564 },    -- Gizrul the Slavener
+            [275] = { 6, 0.575, 0.600, 8711 },    -- Overlord Wyrmthalak
         } },
     [43] = { folder = "BlackrockSpire", floors = { false, false, false, false, false, false, true },
         bosses = {
-            [3062] = { 7, 0.303, 0.266 },    -- Pyroguard Emberseer
-            [3063] = { 7, 0.486, 0.246 },    -- Warchief Rend Blackhand
-            [3068] = { 7, 0.642, 0.320 },    -- The Beast
-            [3069] = { 7, 0.350, 0.498 },    -- General Drakkisath
+            [3062] = { 7, 0.303, 0.266, 2172 },    -- Pyroguard Emberseer
+            [3063] = { 7, 0.486, 0.246, 9778 },    -- Warchief Rend Blackhand
+            [3068] = { 7, 0.642, 0.320, 10193 },    -- The Beast
+            [3069] = { 7, 0.350, 0.498, 10115 },    -- General Drakkisath
         } },
     [33] = { folder = "DireMaul", floors = { false, false, false, false, true, true },
         bosses = {
-            [343] = { 6, 0.575, 0.744 },    -- Zevrim Thornhoof
-            [344] = { 6, 0.537, 0.715 },    -- Hydrospawn
+            [343] = { 6, 0.575, 0.744, 11335 },    -- Zevrim Thornhoof
+            [344] = { 6, 0.537, 0.715, 5489 },    -- Hydrospawn
             [345] = { 5, 0.439, 0.482 },    -- Lethtendris
-            [346] = { 6, 0.567, 0.289 },    -- Alzzin the Wildshaper
+            [346] = { 6, 0.567, 0.289, 14416 },    -- Alzzin the Wildshaper
         } },
     [37] = { folder = "DireMaul", floors = { true },
         bosses = {
-            [362] = { 1, 0.695, 0.760 },    -- Guard Mol'dar
-            [363] = { 1, 0.612, 0.693 },    -- Stomper Kreeg
-            [364] = { 1, 0.495, 0.781 },    -- Guard Fengus
-            [365] = { 1, 0.266, 0.572 },    -- Guard Slip'kik
-            [366] = { 1, 0.318, 0.506 },    -- Captain Kromcrush
-            [367] = { 1, 0.320, 0.304 },    -- Cho'Rush the Observer
-            [368] = { 1, 0.320, 0.229 },    -- King Gordok
+            [362] = { 1, 0.695, 0.760, 11561 },    -- Guard Mol'dar
+            [363] = { 1, 0.612, 0.693, 11545 },    -- Stomper Kreeg
+            [364] = { 1, 0.495, 0.781, 11561 },    -- Guard Fengus
+            [365] = { 1, 0.266, 0.572, 11561 },    -- Guard Slip'kik
+            [366] = { 1, 0.318, 0.506, 11564 },    -- Captain Kromcrush
+            [367] = { 1, 0.320, 0.304, 11537 },    -- Cho'Rush the Observer
+            [368] = { 1, 0.320, 0.229, 11583 },    -- King Gordok
         } },
     [35] = { folder = "DireMaul", floors = { false, true, true, true },
         bosses = {
-            [350] = { 2, 0.336, 0.537 },    -- Tendris Warpwood
-            [347] = { 2, 0.204, 0.777 },    -- Illyanna Ravenoak
-            [348] = { 3, 0.339, 0.451 },    -- Magister Kalendris
-            [349] = { 4, 0.350, 0.576 },    -- Immol'thar
-            [361] = { 4, 0.623, 0.232 },    -- Prince Tortheldrin
+            [350] = { 2, 0.336, 0.537, 14383 },    -- Tendris Warpwood
+            [347] = { 2, 0.204, 0.777, 11270 },    -- Illyanna Ravenoak
+            [348] = { 3, 0.339, 0.451, 14384 },    -- Magister Kalendris
+            [349] = { 4, 0.350, 0.576, 14173 },    -- Immol'thar
+            [361] = { 4, 0.623, 0.232, 11256 },    -- Prince Tortheldrin
         } },
     [3268] = { floors = { true }, bosses = {},    -- Blackmaw Hold
         mini = {
@@ -253,47 +254,47 @@ ns.DungeonMaps = {
         } },
     [39] = { folder = "Stratholme", floors = { true, true },
         bosses = {
-            [473] = { 1, 0.605, 0.314 },    -- Hearthsinger Forresten
-            [474] = { 1, 0.500, 0.178 },    -- Timmy the Cruel
+            [473] = { 1, 0.605, 0.314, 10482 },    -- Hearthsinger Forresten
+            [474] = { 1, 0.500, 0.178, 571 },    -- Timmy the Cruel
             [476] = { 1, 0.299, 0.408 },    -- Malor the Zealous
             [475] = { 1, 0.043, 0.510 },    -- Cannon Master Willey
             [477] = { 1, 0.272, 0.750 },    -- Archivist Galford
             [478] = { 1, 0.205, 0.822 },    -- Balnazzar
-            [472] = { 1, 0.735, 0.205 },    -- The Unforgiven
-            [479] = { 2, 0.746, 0.469 },    -- Baroness Anastari
-            [480] = { 2, 0.572, 0.461 },    -- Nerub'enkan
-            [481] = { 2, 0.675, 0.227 },    -- Maleki the Pallid
-            [482] = { 2, 0.567, 0.162 },    -- Magistrate Barthilas
-            [483] = { 2, 0.456, 0.199 },    -- Ramstein the Gorger
+            [472] = { 1, 0.735, 0.205, 10771 },    -- The Unforgiven
+            [479] = { 2, 0.746, 0.469, 10698 },    -- Baroness Anastari
+            [480] = { 2, 0.572, 0.461, 9793 },    -- Nerub'enkan
+            [481] = { 2, 0.675, 0.227, 10546 },    -- Maleki the Pallid
+            [482] = { 2, 0.567, 0.162, 10433 },    -- Magistrate Barthilas
+            [483] = { 2, 0.456, 0.199, 12818 },    -- Ramstein the Gorger
             [484] = { 2, 0.387, 0.201 },    -- Baron Rivendare
-            [2798] = { 1, 0.558, 0.684 },    -- Postmaster Malown
+            [2798] = { 1, 0.558, 0.684, 10669 },    -- Postmaster Malown
         } },
     [49] = { folder = "BlackwingLair", floors = { true, false, true, true },
         bosses = {
-            [610] = { 1, 0.419, 0.602 },    -- Razorgore the Untamed
-            [611] = { 1, 0.333, 0.275 },    -- Vaelastrasz the Corrupt
-            [612] = { 3, 0.506, 0.617 },    -- Broodlord Lashlayer
-            [613] = { 3, 0.464, 0.430 },    -- Firemaw
-            [614] = { 3, 0.349, 0.210 },    -- Ebonroc
-            [615] = { 4, 0.355, 0.371 },    -- Flamegor
-            [616] = { 4, 0.394, 0.726 },    -- Chromaggus
-            [617] = { 4, 0.704, 0.725 },    -- Nefarian
+            [610] = { 1, 0.419, 0.602, 10115 },    -- Razorgore the Untamed
+            [611] = { 1, 0.333, 0.275, 13992 },    -- Vaelastrasz the Corrupt
+            [612] = { 3, 0.506, 0.617, 14308 },    -- Broodlord Lashlayer
+            [613] = { 3, 0.464, 0.430, 6377 },    -- Firemaw
+            [614] = { 3, 0.349, 0.210, 6377 },    -- Ebonroc
+            [615] = { 4, 0.355, 0.371, 6377 },    -- Flamegor
+            [616] = { 4, 0.394, 0.726, 14367 },    -- Chromaggus
+            [617] = { 4, 0.704, 0.725, 11380 },    -- Nefarian
         } },
     [47] = { folder = "MoltenCore", floors = { true },
         bosses = {
-            [663] = { 1, 0.659, 0.375 },    -- Lucifron
-            [664] = { 1, 0.694, 0.237 },    -- Magmadar
-            [665] = { 1, 0.331, 0.485 },    -- Gehennas
-            [666] = { 1, 0.315, 0.690 },    -- Garr
-            [667] = { 1, 0.558, 0.853 },    -- Shazzrah
-            [668] = { 1, 0.524, 0.776 },    -- Baron Geddon
-            [669] = { 1, 0.828, 0.825 },    -- Sulfuron Harbinger
-            [670] = { 1, 0.689, 0.576 },    -- Golemagg the Incinerator
-            [671] = { 1, 0.842, 0.653 },    -- Majordomo Executus
-            [672] = { 1, 0.562, 0.534 },    -- Ragnaros
+            [663] = { 1, 0.659, 0.375, 13031 },    -- Lucifron
+            [664] = { 1, 0.694, 0.237, 10193 },    -- Magmadar
+            [665] = { 1, 0.331, 0.485, 13030 },    -- Gehennas
+            [666] = { 1, 0.315, 0.690, 12110 },    -- Garr
+            [667] = { 1, 0.558, 0.853, 13032 },    -- Shazzrah
+            [668] = { 1, 0.524, 0.776, 12129 },    -- Baron Geddon
+            [669] = { 1, 0.828, 0.825, 13030 },    -- Sulfuron Harbinger
+            [670] = { 1, 0.689, 0.576, 11986 },    -- Golemagg the Incinerator
+            [671] = { 1, 0.842, 0.653, 12029 },    -- Majordomo Executus
+            [672] = { 1, 0.562, 0.534, 11121 },    -- Ragnaros
         } },
     [45] = { folder = "OnyxiasLair", floors = { true },
         bosses = {
-            [1084] = { 1, 0.672, 0.310 },    -- Onyxia
+            [1084] = { 1, 0.672, 0.310, 8570 },    -- Onyxia
         } },
 }

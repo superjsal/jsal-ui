@@ -74,7 +74,8 @@ in the files under their own difficulties and are left out.
 The Map tab's `DungeonMaps.lua` is built by `python -I tools\build_dungeon_maps.py` (`--report` says
 what matched). Forever's files have each dungeon's map pictures but no table of where a boss stands;
 later versions of the game have, for the same pictures, in the dungeon journal. `data\dungeons\journal\`
-holds JournalEncounter, JournalInstance, UiMap and UiMapAssignment from two such builds, cut to the
+holds JournalEncounter, JournalEncounterCreature (a boss's model, for its picture; only the rows whose
+model Forever has), JournalInstance, UiMap and UiMapAssignment from two such builds, cut to the
 columns the tool reads. A dungeon is left out when fewer than half its bosses are found there: the
 ones rebuilt before the journal came (Scarlet Monastery, Scholomance, The Stockade, Shadowfang Keep,
 Sunken Temple, Zul'Gurub). Forever's own dungeons have no map picture: seven of them are shown by a
