@@ -3,15 +3,19 @@
 Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games for your guild. Free, for WoW Forever, from [jsal.io](https://jsal.io).
 Made for casual players: every part is small, has one switch, and is on by default.
 
+Found a bug, got an idea, or not sure how something works? Come and say so on [jsal.ui's Discord](https://discord.gg/BfUKeCjNeZ).
+
 ## What's in it
 
 | Part | What it does |
 | --- | --- |
 | Daily Word | One five-letter word a day, the same for everyone, six tries. Share your grid to guild chat. |
 | Icon Guess | Name the spell from its icon. A daily round of ten, the same for everyone, plus practice rounds. |
-| Flight bar | While you fly, at the top of the screen: the route, the time left, and buttons for Daily Word, Icon Guess and chess with a gold dot when one's waiting. Times come from the game's own flight tables. |
-| Chess | Play guildmates who have jsal.ui, a few games at once, with a win-loss record against each. Moves wait for whoever's turn it is, even across logouts. Guildmates' games show under Watching, to follow as they're played. No computer opponent, to keep jsal.ui light. |
+| Pal run | A short course for your pal against the clock: one a day, the same for everyone, with your guild's times beside yours. |
+| Flight bar | While you fly, at the top of the screen: the route, the time left, and buttons for Daily Word, Icon Guess and Pal run with a gold dot when one's waiting. Times come from the game's own flight tables. |
 | Guild tab | Guildmates who run jsal.ui, their version and today's scores, and the Guild Word the guild master sets. |
+| Jsal's Pals | Hatch an egg, name what comes out and look after it. Your questing pays for its keep. It grows up twice, learns tricks as you grow closer, and walks along your screen while you play. |
+| Home | The dashboard's first page: who you are and how far through the level, what's new, what's ready for you now, where each of your plans stands, your guild, today's games and your Journal. |
 | Build Planner | Any class's three Forever trees in the dashboard, with a ready-made leveling build for each class (Rogue to come) from Wowhead's Forever leveling guides, to follow or copy. A build shows level by level, with what's taken and what's next; Learn next points spends waiting points in its order; Edit opens the trees. Builds are saved for the whole account and shared as Wowhead talent calculator links or short codes. |
 | Training Planner | Your next trainer visit and its cost, your road to 60, and every spell: ready now, coming soon, later, skipped, plus weapon skills. Spells come from the game's files; prices from class trainers you've opened. A panel beside the spellbook and trainers shows what's ready, with the nearest trainer and a map pin. |
 | Professions | Each profession's road to the next rank: what to craft, what it needs and the nearest trainer, in the dashboard and beside the profession window. In the game's profession window: where each recipe turns yellow, green and grey, reagents in bags and bank, a timer while you craft several, recipes you haven't learned (star the ones you want, and a profession trainer offers them), and a heads-up when you can train the next rank. |
@@ -19,29 +23,40 @@ Made for casual players: every part is small, has one switch, and is on by defau
 | Journal | Your character's story from the day you install it, in four tabs. Summary: your character, favourite move and totals (foes, quests, deaths, gold and where it came from, distance, damage, healing, duels, jumps), with kills, quests, deaths and gold from the game's own statistics so they cover the whole life of the character. Story: levels, first kills of rares, dungeon bosses, blue and epic loot, deaths and their cause, profession ranks. By level: time, XP, XP per hour, gold in and out, kills, quests and deaths for each level. Characters: every character on the account with level, zone, gold, professions and rested XP. A screenshot at each level-up, and a recap of your session as you log out. |
 | Gear plan | A window of your gear slots (`/jsal gear`, or the button beside your character pane). Each slot shows what you wear and the best upgrade for your spec from up to five levels above you, from every piece of gear Wowhead Forever lists: dungeon and world drops, quest rewards, vendors and crafting. Click a slot for its options, where each comes from and the stats it adds. Star the ones you want, or add one the plan doesn't list by its item ID, its link or its Wowhead address. A starred item gets a gold line on its tooltip anywhere, a gold banner when it drops, a chat line when you enter a dungeon that has it, and a star in the dungeon guide; its star clears once you wear it or something as good. "Better" is each stat times what a point of it is worth for your spec, from WoWSims; change any of those numbers, or paste a Pawn scale, under Weights. |
 | Dungeons | Every dungeon and raid on Forever, from the game's own files, in a picker grouped by level (10-20 up to 50-60, and raids), the ones right for your level in green, with where each entrance is and which side that is (Horde side, Alliance side, or neither when contested). The chosen one shows its bosses in order, ticked once you've killed them (with the game's own Boss Kills statistics, so it covers kills from before jsal.ui), and under each boss its loot: Wowhead Forever's list with drop chances, plus anything you've seen it drop (from the bosses you loot and the rolls after a boss dies, kept for every character on the account), and what guildmates with jsal.ui have seen it drop, with how often in the guild's kills ("guild 3 of 8"; a switch in Settings turns sharing off). A Quests tab lists the dungeon's quests for your faction, ticked once done. |
-| Quest tags | Off to start. Left of each quest in your tracker (EllesmereUI's or the game's): its place in a chain ("1/4" is the first of four, so skipping it loses the three after it) and about how many minutes it will take, green to red, from the kills still needed and how long your own fights last. Hover them for the reasons. For dropping the slow quests that lead nowhere. |
-| Guild crafters | On the Professions page, search for what you need and see which guildmates can make it, online first, with a button to whisper them. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
-| Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to John in game; your version, class, level, zone and any jsal.ui error are added for you. Outside John's guild, copy it to email instead. |
-| Quick buttons | A small bar you drag anywhere: the dashboard, a Games button (a menu of Daily Word, Icon Guess and chess), the shopping list, the Build Planner, the Training Planner, the gear plan, the dungeon guide and the layer you're in, with a gold dot when something's waiting. Choose its buttons in Settings or by right-clicking its grip, which also stands it up or locks it. |
+| Quest tags | Left of each quest in your tracker (EllesmereUI's or the game's): its place in a chain ("1/4" is the first of four, so skipping it loses the three after it) and about how many minutes it will take, green to red, from the kills still needed and how long your own fights last. Hover them for the reasons. For dropping the slow quests that lead nowhere. |
+| Guild Crafts | Who in your guild makes what, and orders between guildmates. Ask for a craft or an enchant, and guildmates who know the recipe hear about it. Every order shows where it stands, from asked to being made, sent and received; at a mailbox, a card fills in the letter for you. Item tooltips name the guild's crafters too. Each jsal.ui shares the recipes its character knows. |
+| Crafting profit | Every recipe your characters know, by what it costs to make and what it sells for, with prices from Auctionator or your own auction house searches. |
+| Quest reward star | A gold star on the quest reward that's the biggest upgrade for your spec. |
+| Drop log | Counts how often the creatures you loot have the quest items you're after, for the quest tags' times. |
+| Next level on Today | On Home: what your next level brings, and whether your gold covers it. |
+| Waypoint label | Where the game's arrow is taking you, and how far. Follows RestedXP Guides. |
+| Report a problem | At the bottom of the dashboard menu: say what went wrong and send it to jsal in game; your version, class, level, zone and any jsal.ui error are added for you. Outside jsal's guild, copy it to post on [jsal.ui's Discord](https://discord.gg/BfUKeCjNeZ), or to email, instead. |
+| Quick buttons | A small bar you drag anywhere: the dashboard, Jsal's Pals, the shopping list, Crafting profit, Guild Crafts, the time, the Build Planner, the Training Planner, the gear plan, the dungeon guide and the layer you're in, with a gold dot when something's waiting. A Games button (a menu of Daily Word, Icon Guess and Pal run) can be added. Choose its buttons in Settings or by right-clicking its grip, which also stands it up or locks it. |
 | Layers | Reads which copy of a zone you're in from the creatures around you, and changes it through your guild: the quick bar's Layer button lists guildmates in your zone on another layer to join, asks in General, or tells your guild. You keep a layer while you're in that guildmate's group. Inviting guildmates who ask has a switch in Settings. |
 | Minimap button | Opens the dashboard; right-click it for the same places as the quick buttons. Sits in EllesmereUI's Addon Buttons, or on the minimap without it. |
 | Talent helper | When a point comes in, names the next talent in your build, with a Learn it button. |
 | Vendor run | Repairs and sells grey items at any vendor, and says what it spent and earned. |
 | Level-up helper | Talent points and trainer ranks on each level, and what a trainer has for you. |
 | Bags and gear warnings | A heads-up when bags are nearly full or gear is close to breaking. |
-| Unlock Mode | `/jsal unlock`, or Move pieces in Settings: every jsal.ui piece outlined and named on a grid, to drag (snapping to the grid, the centre and each other; Shift to place freely) or to type an exact X and Y. Needs nothing else installed; with EllesmereUI on, the pieces are in its Unlock Mode too. |
-| The look | One-click install of the jsal.ui EllesmereUI profile. Not in this version yet: until it is, setup and the menu don't offer it. |
+| Bag button | One button with your free bag space in place of the game's bag bar. |
+| Menu bar look | The game's menu bar in jsal.ui's gold on dark. |
+| Food reminder | A tile while you aren't Well Fed; click a food to eat it. |
+| Pet feeding | Hunters: a tile while your pet isn't happy; click a food to feed it. |
+| Hunter range check | A small box whose colour shows where you stand from your target: melee, dead zone or shooting. |
+| Pet abilities on beasts | Hunters: a beast's tooltip names the pet ability taming it would teach. |
+| Unlock Mode | `/jsal unlock`, or Move pieces in Settings: every jsal.ui piece outlined and named on a grid, to drag (snapping to the grid, the centre and each other; Shift to place freely) or to type an exact X and Y. Needs nothing else installed. |
+| The welcome | The first time you log in: what jsal.ui is, a step each for Plan, Craft and Play, what's planned for your character, and a switch for everything it puts on your screen. `/jsal welcome` opens it again. |
 
 ## Install
 
 1. Copy the `jsalUI` folder into `World of Warcraft\_forever_\Interface\AddOns`, or install it from CurseForge or Wago.
-2. Log in, or restart the game if it was running, then type `/jsal`.
+2. Log in, or restart the game if it was running. A welcome shows you round the first time; after that, type `/jsal`.
 
-jsal.ui works on its own. [EllesmereUI](https://www.curseforge.com/wow/addons/ellesmereui), which is free, is only needed for the jsal.ui look.
+jsal.ui works on its own: no other addon is needed. Every part starts switched on, and each has its own switch in the welcome and in Settings.
 
 ## Betas
 
-New parts that need longer testing come out as betas first (versions like `0.3.14-beta.1`), on the `beta` branch. To get them, set jsal.ui's release type to **Beta** in the CurseForge app or WowUp; everyone else only ever gets stable versions. A beta shows its version on the dashboard and in `/jsal version`, and Report a problem sends it with your report.
+New parts that need longer testing come out as betas first (versions like `0.3.14-beta.1`), on the `beta` branch. To get them, set jsal.ui's release type to **Beta** in the CurseForge or Wago app; everyone else only ever gets stable versions. A beta shows its version on the dashboard and in `/jsal version`, and Report a problem sends it with your report.
 
 ## Commands
 
@@ -50,30 +65,37 @@ New parts that need longer testing come out as betas first (versions like `0.3.1
 | `/jsal` | Opens or closes the dashboard |
 | `/jsal word` | Today's Daily Word |
 | `/jsal icons` | Today's Icon Guess round |
-| `/jsal chess` | Your chess games |
+| `/jsal run` | Today's Pal run |
+| `/jsal pet` | Your pal's pen |
 | `/jsal shop` | Opens or closes the shopping list |
+| `/jsal crafts` | Guild Crafts |
+| `/jsal profit` | Crafting profit |
 | `/jsal journal` | Your Journal |
 | `/jsal recap` | This session's recap |
 | `/jsal dungeons` | The dungeon guide |
 | `/jsal gear` | The gear plan |
+| `/jsal welcome` | The welcome, again |
+| `/jsal unlock` | Unlock Mode, to move jsal.ui's pieces |
 | `/jsal bug` | Report a problem |
+| `/jsal discord` | The invite to jsal.ui's Discord, in a box to copy |
 | `/jsal layer` | Which layer you're in |
 | `/jsal waypoint` | Why the waypoint label is or isn't showing; `/jsal waypoint clear` removes the map's pin |
-| `/jsal games`, `/jsal guild`, `/jsal settings`, `/jsal install` | Opens that page |
+| `/jsal games`, `/jsal guild`, `/jsal settings` | Opens that page |
 | `/jsal version` | Prints the version |
-| `/jsal perf` | How long jsal.ui took to load |
+| `/jsal perf` | How long jsal.ui took to load, and anything of its that ran slowly |
 
 ## How it's built
 
 - `Compat.lua`: every Blizzard call that has moved between versions, in one place.
 - `Core.lua`: settings, the module guard (a module that errors turns itself off), `/jsal`.
 - `Comms.lua`: addon messages between jsal.ui players, rate-limited, held in combat.
-- `Style.lua`, `Window.lua`: the shared look and the dashboard.
-- `Profile.lua`, `Installer.lua`: the EllesmereUI profile and its one-click install.
-- `Games\`: Daily Word, Icon Guess, the flight offer and chess (its rules, games and page). `Guild.lua`: the Guild tab.
-- `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads and Guild crafters. `Trainers.lua`: where trainers stand.
+- `Style.lua`, `Window.lua`: the shared look and the dashboard. `Home.lua`, `Settings.lua`: its first page and its switches. `Onboarding.lua`: the welcome.
+- `Profile.lua`, `Installer.lua`: for a look to install. No version ships one yet, so nothing offers it.
+- `Games\`: Daily Word, Icon Guess, Pal run, the flight bar, and chess (put away for now). `Guild.lua`: the Guild tab. `Pet\`: Jsal's Pals.
+- `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads, the shopping list, Crafting profit and Guild Crafts. `Trainers.lua`: where trainers stand.
+- `Gear\`, `Dungeons\`, `Quests\`: the gear plan, the dungeon guide, and the quest tags with the drop log.
 - `Journal\`: the Journal's counting, its page and the session recap.
-- `Helpers\`: quests, vendor, level-up, warnings, the minimap button, the quick buttons, layers and Report a problem.
+- `Helpers\`: vendor, level-up, warnings, the minimap button, the quick buttons, Unlock Mode, layers, the waypoint label, the bag button, the menu bar look, the food and pet-feeding tiles, the range check and Report a problem.
 
 Nothing heavy runs during combat. The Journal counts only your own damage, healing and kills, so busy fights stay light.
 
@@ -181,7 +203,7 @@ against 80% on the quest. A creature's rate is used only when at least half its 
 named target everyone kills for the quest); an object's rate per opening is used as it is. In game, the
 Drop log's own counts win once an item has 10 loots.
 EG Link's counts grow every day: `python -I tools\refresh_eglink.py` reads its latest quests and loot and
-rebuilds the data in one go (monthly; a reminder lands on John's to-do list on the 21st).
+rebuilds the data in one go (monthly).
 The Drop log's own counts ship too: `python -I tools\bake_drops.py <a copy of jsalUI.lua>` reads them from a copy
 of the saved file into `data\quests\own-drops.json`, and the build pools them with EG Link's (both count only loot
 while the quest needs it) or, where EG Link has none, uses them alone once an item has 10 loots.
