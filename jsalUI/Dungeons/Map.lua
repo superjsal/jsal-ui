@@ -261,6 +261,33 @@ function Map.Build(parent, width, onBoss)
     -- tooltip's fill, a dim shape in the gap, and sized by another frame's measure. So that no
     -- other tooltip ever has it, it's hidden when the pointer leaves the sign and whenever the
     -- tooltip itself goes. It's made the first time a boss with one is pointed at.
+    -- The boss's name and its floor are set in the middle of the tooltip, over the picture.
+    -- The tooltip is the game's own and every tooltip uses its lines, so what's changed on it
+    -- for a boss (its lines' width and set, the width asked of it for the picture) is put back
+    -- when the tooltip goes, and before the next boss's.
+    local function Restore()
+        for i = 1, pane.heads or 0 do
+            local line = _G["GameTooltipTextLeft" .. i]
+            if line then
+                line:SetJustifyH("LEFT")
+                line:SetWidth(0)
+            end
+        end
+        pane.heads = nil
+        if pane.widened and GameTooltip.SetMinimumWidth then GameTooltip:SetMinimumWidth(0) end
+        pane.widened = nil
+    end
+    local function Centre(lines)
+        for i = 1, lines do
+            local line = _G["GameTooltipTextLeft" .. i]
+            if line then
+                local inset = (line:GetLeft() or 0) - (GameTooltip:GetLeft() or 0)
+                line:SetWidth((GameTooltip:GetWidth() or 0) - inset * 2)
+                line:SetJustifyH("CENTER")
+            end
+        end
+        pane.heads = lines
+    end
     local function Face(display, first)
         -- The model stands in a dark box with a line round it, a picture in its frame.
         local m, box = pane.face, pane.faceBox
@@ -271,14 +298,6 @@ function Map.Build(parent, width, onBoss)
             m = CreateFrame("PlayerModel", nil, box)
             m:SetPoint("TOPLEFT", 1, -1)
             m:SetPoint("BOTTOMRIGHT", -1, 1)
-            if GameTooltip.HookScript then
-                GameTooltip:HookScript("OnHide", function()
-                    box:Hide()
-                    -- The width asked of it for the box isn't left for the next tooltip.
-                    if pane.widened and GameTooltip.SetMinimumWidth then GameTooltip:SetMinimumWidth(0) end
-                    pane.widened = nil
-                end)
-            end
             pane.face, pane.faceBox = m, box
         end
         local top, foot = _G["GameTooltipTextLeft" .. first], _G["GameTooltipTextLeft" .. (first + FACE_LINES - 1)]
@@ -310,8 +329,14 @@ function Map.Build(parent, width, onBoss)
         local d, k = pane.dungeon, sign.k
         local boss = d and k and d.bosses[k]
         if not (boss and GameTooltip) then return end
-        if pane.widened and GameTooltip.SetMinimumWidth then GameTooltip:SetMinimumWidth(0) end
-        pane.widened = nil
+        if not pane.hooked and GameTooltip.HookScript then
+            pane.hooked = true
+            GameTooltip:HookScript("OnHide", function()
+                if pane.faceBox then pane.faceBox:Hide() end
+                Restore()
+            end)
+        end
+        Restore()
         GameTooltip:SetOwner(sign, "ANCHOR_RIGHT")
         GameTooltip:SetText(boss[3] or boss[2], 1, 1, 1)
         local place = Map.Place(d, k)
@@ -320,6 +345,8 @@ function Map.Build(parent, width, onBoss)
         if where ~= "" then GameTooltip:AddLine(where, 0.6, 0.59, 0.53) end
         local face, first = place and place[4], nil
         if face then
+            -- A line of space over the picture, as there is under it.
+            GameTooltip:AddLine(" ")
             first = GameTooltip:NumLines() + 1
             for _ = 1, FACE_LINES do GameTooltip:AddLine(" ") end
         end
@@ -330,6 +357,7 @@ function Map.Build(parent, width, onBoss)
         end
         GameTooltip:Show()
         if face then Face(face, first) elseif pane.faceBox then pane.faceBox:Hide() end
+        Centre(where ~= "" and 2 or 1)
     end
     local function Clickable(frame, tips)
         frame:EnableMouse(true)
