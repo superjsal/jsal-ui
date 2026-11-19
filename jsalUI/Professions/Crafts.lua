@@ -25,8 +25,8 @@ local TRACK_W, MORE_W = 140, 64
 -- The least room who makes it has in the asking card's foot.
 local MAKERS_W = 250
 local TOP, FOOT = 116, 30
--- The asking card's height.
-local ASK_H = 160
+-- The asking card's height: with a line for what you're asking for, between the note and the foot.
+local ASK_H = 192
 local ENCHANTING = 333
 -- A state's colour. "todo" is an order you accepted and "got" one of yours
 -- that was sent to you: the two things that wait on you. "sent" is one you
@@ -838,9 +838,51 @@ function C.Pick(spell)
     end
 end
 
+-- The line for what you're asking for: an item's picture and its name in its colour; an
+-- enchant's picture, its name, and what it does in the game's own words. A description the
+-- game hasn't loaded yet is asked for, and looked at again a second later, once a spell.
+local askedAgain = {}
+local function PaintItem(card, a, enchant)
+    local line = card.item
+    line:Show()
+    line.icon:SetShown(a.spell ~= nil)
+    -- With nothing picked the line says what it's for, rather than leaving a gap in the card.
+    if not a.spell then
+        line.name:SetText("")
+        line.text:SetText("What you pick shows here: its picture and name, and for an enchant what it gives.")
+        line.text:ClearAllPoints()
+        line.text:SetPoint("LEFT", 0, 0)
+        line.text:SetPoint("RIGHT", 0, 0)
+        return
+    end
+    line.text:ClearAllPoints()
+    line.text:SetPoint("LEFT", line.name, "RIGHT", 14, 0)
+    line.text:SetPoint("RIGHT", 0, 0)
+    local recipe = ns.Orders.Recipe(a.spell)
+    if recipe and recipe.item and not enchant then
+        line.icon:SetTexture(Compat.ItemIcon(recipe.item))
+        line.name:SetText(ItemTint(recipe.item) .. (Compat.ItemName(recipe.item) or "...") .. "|r")
+        line.text:SetText("")
+    else
+        local name, icon = Compat.SpellInfo(a.spell)
+        line.icon:SetTexture(icon)
+        line.name:SetText(Style.Tint("gold") .. (name or "...") .. "|r")
+        local describe = (C_Spell and C_Spell.GetSpellDescription) or GetSpellDescription
+        local says = describe and Compat.Plain(describe(a.spell)) or ""
+        if (says or "") == "" and not askedAgain[a.spell] then
+            askedAgain[a.spell] = true
+            if C_Spell and C_Spell.RequestLoadSpellData then C_Spell.RequestLoadSpellData(a.spell) end
+            Compat.After(1, function() if card:IsVisible() then C.Repaint() end end)
+        end
+        line.text:SetText(says or "")
+    end
+    line:Show()
+end
+
 local function PaintAsk()
     local card, a = C.card, C.ask
     local enchant = a.spell ~= nil and IsEnchant(a.spell)
+    PaintItem(card, a, enchant)
     card.countLabel:SetText(enchant and "ON" or "HOW MANY")
     card.count.well:SetShown(not enchant)
     card.on:SetShown(enchant)
@@ -1056,6 +1098,41 @@ local function BuildCard(view, width)
     card.note:SetScript("OnEditFocusGained", function() PaintAsk() end)
     card.note:SetScript("OnEditFocusLost", function() PaintAsk() end)
     card.count:SetScript("OnTextChanged", function() PaintAsk() end)
+
+    -- What you're asking for: its picture, its name in its colour, and for an enchant what it
+    -- does in the game's own words, so the wrong one isn't asked for. Pointing at it shows the
+    -- game's tooltip. (John, 18 Nov 2026: "i also think it should show what the item is",
+    -- "especially for enchants", of two mockups "A", then "just the item is fine".)
+    card.item = CreateFrame("Button", nil, card)
+    card.item:SetPoint("TOPLEFT", 16, -112)
+    card.item:SetPoint("TOPRIGHT", -16, -112)
+    card.item:SetHeight(26)
+    card.item.icon = card.item:CreateTexture(nil, "ARTWORK")
+    card.item.icon:SetSize(24, 24)
+    card.item.icon:SetPoint("LEFT", 0, 0)
+    card.item.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    card.item.name = Style.Text(card.item, 14, "text", nil, true)
+    card.item.name:SetPoint("LEFT", card.item.icon, "RIGHT", 10, 0)
+    card.item.name:SetWordWrap(false)
+    card.item.text = Style.Text(card.item, 12, "muted")
+    card.item.text:SetPoint("LEFT", card.item.name, "RIGHT", 14, 0)
+    card.item.text:SetPoint("RIGHT", 0, 0)
+    card.item.text:SetJustifyH("LEFT")
+    card.item.text:SetWordWrap(false)
+    card.item:SetScript("OnEnter", function(self)
+        local a = C.ask
+        if not a.spell then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        local recipe = ns.Orders.Recipe(a.spell)
+        if recipe and recipe.item and not IsEnchant(a.spell) then
+            GameTooltip:SetItemByID(recipe.item)
+        else
+            GameTooltip:SetSpellByID(a.spell)
+        end
+        GameTooltip:Show()
+    end)
+    card.item:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    card.item:Hide()
 
     card.makers = Style.Text(card.strip, 12, "muted")
     card.makers:SetPoint("LEFT", 16, 0)
