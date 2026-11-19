@@ -270,8 +270,11 @@ function Map.Build(parent, width, onBoss)
         m:SetSize(size, size)
         m:ClearAllPoints()
         if top then m:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else m:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
-        m:SetDisplayInfo(display)
+        -- Shown first: the game loads a model only into a frame that's showing, and this one
+        -- is hidden between tooltips (set while hidden, the picture's place stayed empty).
         m:Show()
+        if m.ClearModel then m:ClearModel() end
+        m:SetDisplayInfo(display)
     end
     local function Tip(sign)
         local d, k = pane.dungeon, sign.k
