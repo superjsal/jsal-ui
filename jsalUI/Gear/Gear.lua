@@ -730,10 +730,24 @@ end
 -- (Gear.PlansChanged: your gear, bags, level, talents, skills, quests, spec, weights or stars),
 -- for ten minutes at most. A plan still waiting on items the game hasn't sent is worked out
 -- again on the next paint.
+--
+-- Your bags change with every thing looted, and a plan reads only the pieces in them you could
+-- wear. So a bag change is only noted (Gear.bagsMoved), and the next plan asked for reads the
+-- bags once: the plans go only when the wearable pieces there aren't the ones they were. Thrown
+-- away on every bag change, the plans were rarely there for a boss list to use: its upgrade
+-- checks took 14 ms of a paint, 33 at worst.
 Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
 function Gear.SlotPlan(slot)
+    if Gear.bagsMoved then
+        Gear.bagsMoved = nil
+        local wearable = Gear.BagsWearable()
+        if wearable ~= Gear.bagsWearable then
+            Gear.bagsWearable = wearable
+            Gear.PlansChanged()
+        end
+    end
     local now = GetTime and GetTime()
     local kept = Gear.slotPlans
     if not (kept and now and kept.at and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP) then
@@ -811,6 +825,16 @@ local function BagItems()
         end
     end
     return bagItems
+end
+
+-- The wearable pieces in your bags, as one word: their item IDs in order.
+function Gear.BagsWearable()
+    local C = ns.Compat
+    if not (C and C.BagSize and C.BagItem and Gear.Info) then return "" end
+    local ids = {}
+    for i, b in ipairs(BagItems()) do ids[i] = b.id end
+    table.sort(ids)
+    return table.concat(ids, " ")
 end
 
 function Gear.Held(slot, classFile, level)
@@ -1116,7 +1140,12 @@ for _, event in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "BAG_UPDATE_DELAYED", "PLAY
     "QUEST_TURNED_IN", "CHARACTER_POINTS_CHANGED", "TRAIT_CONFIG_UPDATED", "PLAYER_ENTERING_WORLD" }) do
     levels:RegisterEvent(event)
 end
-levels:SetScript("OnEvent", function(_, event)
+function Gear.Changed(event)
+    if event == "BAG_UPDATE_DELAYED" then
+        Gear.bagsMoved = true
+        return
+    end
     Gear.PlansChanged()
     if event == "PLAYER_LEVEL_UP" and Gear.running then Gear.Warm(3) end
-end)
+end
+levels:SetScript("OnEvent", function(_, event) Gear.Changed(event) end)
