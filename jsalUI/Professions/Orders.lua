@@ -520,9 +520,27 @@ function Orders.Mine()
     return out
 end
 
--- The number for the menu and the For you tab: what waits on you (orders you
--- accepted, and yours that were sent to you), and with `new`, also the orders
--- you could accept that you haven't looked at yet.
+-- What waits on you, by the tab it's on: orders you accepted and are making
+-- for someone (For you), and yours that were sent to you, to mark received
+-- (Your orders).
+function Orders.WaitingOnMe()
+    local book = On() and Book()
+    if not book then return 0, 0 end
+    local me, now, making, sent = Compat.MyName(), Compat.ServerTime(), 0, 0
+    for _, o in pairs(book) do
+        local state = Orders.State(o, now)
+        if state == "making" and o.c == me then
+            making = making + 1
+        elseif state == "sent" and o.by == me then
+            sent = sent + 1
+        end
+    end
+    return making, sent
+end
+
+-- The number for the menu and the quick button: what waits on you (orders
+-- you accepted, and yours that were sent to you), and with `new`, also the
+-- orders you could accept that you haven't looked at yet.
 function Orders.Badge(new)
     local book = On() and Book()
     if not book then return 0 end

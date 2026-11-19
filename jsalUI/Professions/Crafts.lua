@@ -1413,15 +1413,18 @@ local TABS = { { "foryou", "For you" }, { "yours", "Your orders" }, { "crafters"
 local PAINT = { foryou = PaintForYou, yours = PaintYours, crafters = PaintCrafters }
 
 -- Marks the open tab on a bar of them, and puts their numbers on: what
--- waits on you (in gold), your own orders that aren't done yet, and the
--- guild's crafters. A number only when there's something to count.
+-- you're making for someone (in gold), your own orders that aren't done yet
+-- (in gold while one was sent to you and waits for Mark received), and the
+-- guild's crafters. A number only when there's something to count. An order
+-- sent to you counted on For you, whose page then said nothing waited on you.
 local function PaintBar(bar)
     local O = OrdersOn() and ns.Orders or nil
-    local todo = O and O.Badge() or 0
+    local making, sent = 0, 0
+    if O then making, sent = O.WaitingOnMe() end
     local mine = O and O.Mine() or nil
     local function Some(n) return n and n > 0 and n or nil end
-    bar:Set("foryou", nil, Some(O and todo), todo > 0)
-    bar:Set("yours", nil, Some(mine and (#mine.waiting + #mine.making)))
+    bar:Set("foryou", nil, Some(O and making), making > 0)
+    bar:Set("yours", nil, Some(mine and (#mine.waiting + #mine.making + #mine.sent)), sent > 0)
     bar:Set("crafters", nil, Some(CraftersOn() and ns.Crafters.Count()))
     bar:Pick(CurrentTab())
 end
