@@ -109,18 +109,24 @@ local function Star(button)
     return star
 end
 
--- Another addon may frame a reward's icon with an outline of its own, on a frame the button
--- holds: the star goes above every one of them, looked at each time since an outline can be
--- added after the star was made.
-local function Raise(star, button)
-    local top = button:GetFrameLevel()
-    for _, child in ipairs({ button:GetChildren() }) do
-        if child ~= star.holder then
+-- The highest level among the frames under this one, however deep, leaving out `skip`.
+local function Top(frame, skip, top)
+    for _, child in ipairs({ frame:GetChildren() }) do
+        if child ~= skip then
             local level = child:GetFrameLevel()
             if level > top then top = level end
+            top = Top(child, skip, top)
         end
     end
-    star.holder:SetFrameLevel(top + 1)
+    return top
+end
+
+-- Another addon may frame a reward's icon with an outline of its own. EllesmereUI's is a frame
+-- the button holds with the outline's lines on a frame inside that one, a level higher again:
+-- so the star goes above every frame under the button, not only the ones it holds itself. It's
+-- looked at each time, since an outline can be added after the star was made.
+local function Raise(star, button)
+    star.holder:SetFrameLevel(Top(button, star.holder, button:GetFrameLevel()) + 1)
 end
 
 local function HideAll()
