@@ -1,17 +1,16 @@
--- The Guild tab: who in the guild runs jsal.ui, today's game scores, and the
--- Guild Word, a word the guild master sets for the whole guild to play. It hears
--- only guildmates who have jsal.ui, through addon messages, and keeps
--- guildmates' scores for this session only.
+-- Guild games: who in the guild runs jsal.ui, today's game scores, and the Guild Word, a word
+-- the guild master sets for the whole guild to play. It hears only guildmates who have jsal.ui,
+-- through addon messages, and keeps guildmates' scores for this session only. What it hears is
+-- shown on the Games page; the Guild page it had was folded into that one (18 Nov 2026).
 local _, ns = ...
 local Style, Compat, Comms, Window = ns.Style, ns.Compat, ns.Comms, ns.Window
 
 local Guild = ns.NewModule("guild", {
-    title = "Guild tab",
-    note = "Guildmates with jsal.ui, today's scores and the Guild Word. /jsal guild",
+    title = "Guild games",
+    note = "Your guild's scores beside yours on the Games page, and the Guild Word. /jsal games",
 })
 
 local members, answered = {}, {}
-local MAX_ROWS = 14
 
 ---------------------------------------------------------------------------
 -- The Guild Word: saved per guild as its ID (the moment it was set), the
@@ -153,7 +152,10 @@ local function Store(payload, name, sender)
     if ns.LayerSwitch and ns.Layers and ns.Layers.running then ns.LayerSwitch.Heard(name, layer, sender or name) end
     CheckVersion(version, name, restartSince)
     NoteSeen(name, version)
+    local before = members[name] or {}
     members[name] = {
+        marksDay = before.marksDay, wordMarks = before.wordMarks, iconMarks = before.iconMarks,
+        guildMarksID = before.guildMarksID, guildMarks = before.guildMarks,
         target = sender or name,   -- the name to whisper them by
         average = tonumber(average),
         solved = tonumber(solved),
@@ -190,10 +192,42 @@ function Guild.Members()
     return members
 end
 
+-- How today's games went, without a letter of any word, for the tooltip of a guildmate's row
+-- on the Games page: "day;daily word grid;icon guess marks;guild word ID;guild word grid".
+-- A grid is a row a guess of r, n and x (right, near, miss), the rows joined by dots; the
+-- marks are a 1 or 0 an icon. Its own message, so the scores' message keeps its room.
+local function Details()
+    local word = Guild.Word()
+    return table.concat({
+        ns.Games and ns.Games.Today() or 0,
+        ns.DailyWord and ns.DailyWord.Marks and ns.DailyWord.Marks() or "",
+        ns.IconGuess and ns.IconGuess.Marks and ns.IconGuess.Marks() or "",
+        word and word.id or 0,
+        word and ns.DailyWord and ns.DailyWord.GuildMarks and ns.DailyWord.GuildMarks(word) or "",
+    }, ";")
+end
+
+local function HeardDetails(payload, name)
+    local day, word, icons, guildID, guild = strsplit(";", payload or "")
+    local m = members[name]
+    if not m then
+        m = { seen = GetTime() }
+        members[name] = m
+    end
+    local function Grid(text) return type(text) == "string" and #text <= 60 and text:match("^[rnx.]+$") and text or nil end
+    m.marksDay = tonumber(day)
+    m.wordMarks = Grid(word)
+    m.iconMarks = type(icons) == "string" and #icons <= 10 and icons:match("^[01]+$") and icons or nil
+    m.guildMarksID = tonumber(guildID)
+    m.guildMarks = Grid(guild)
+    Window.Refresh()
+end
+
 -- Tells the guild a game was finished, so the scores update for everyone.
 function Guild.Announce()
     if Guild.running and IsInGuild() then
         Comms.Send("ME", Status())
+        Comms.Send("GD", Details())
     end
 end
 
@@ -224,7 +258,7 @@ local function HeardWord(payload, name)
     if Compat.IsGuildMasterName(setBy) == false then return end
     if SaveWord(id, code, setter ~= "" and setter or name) then
         if setter ~= Compat.MyName() then
-            ns.Print(("New Guild Word from %s. /jsal guild to play it."):format(setter ~= "" and setter or name))
+            ns.Print(("New Guild Word from %s. /jsal games to play it."):format(setter ~= "" and setter or name))
         end
         Window.Refresh()
     end
@@ -238,6 +272,7 @@ function Guild.Hello()
     if not (Guild.running and IsInGuild()) or GetTime() < lastHello + 60 then return end
     lastHello = GetTime()
     Comms.Send("HI", Status())
+    Comms.Send("GD", Details())
 end
 
 function Guild:OnEnable()
@@ -253,12 +288,14 @@ function Guild:OnEnable()
         if name ~= Compat.MyName() and (answered[name] or -30) + 30 < GetTime() then
             answered[name] = GetTime()
             Comms.Send("ME", Status(), "WHISPER", sender)
+            Comms.Send("GD", Details(), "WHISPER", sender)
             local word = WordPayload()
             if word then Comms.Send("GW", word, "WHISPER", sender) end
         end
     end)
     Comms.On("ME", Answer)
     Comms.On("GW", HeardWord)
+    Comms.On("GD", HeardDetails)
     Compat.After(8, Guild.Hello)
 end
 
@@ -266,6 +303,7 @@ function Guild:OnDisable()
     Comms.On("HI", nil)
     Comms.On("ME", nil)
     Comms.On("GW", nil)
+    Comms.On("GD", nil)
 end
 
 -- A guildmate heard this session who has since gone is let go: the guild's roster says who's
@@ -287,279 +325,5 @@ local function Prune()
 end
 
 Guild.Prune = Prune
-
--- Today's scores first: fewest Daily Word tries, then most icons right.
-local function Sorted(wordID)
-    Prune()
-    local today = ns.Games.Today()
-    local list = {}
-    for name, m in pairs(members) do
-        list[#list + 1] = {
-            name = name, version = m.version, average = m.average, solved = m.solved,
-            word = m.wordDay == today and m.wordScore or nil,
-            icons = m.iconDay == today and m.iconScore or nil,
-            guild = wordID and m.guildID == wordID and m.guildScore or nil,
-        }
-    end
-    local function WordRank(e)
-        if not e.word then return 99 end
-        return e.word == "X" and 7 or tonumber(e.word) or 98
-    end
-    table.sort(list, function(a, b)
-        local wa, wb = WordRank(a), WordRank(b)
-        if wa ~= wb then return wa < wb end
-        local ia, ib = tonumber(a.icons) or -1, tonumber(b.icons) or -1
-        if ia ~= ib then return ia > ib end
-        return a.name < b.name
-    end)
-    -- Then those not heard this session, the most recently seen first.
-    local away = {}
-    local seen = SeenList()
-    for name, entry in pairs(seen and seen.names or {}) do
-        if not members[name] and type(entry) == "table" then
-            away[#away + 1] = { name = name, version = entry.version, last = entry.last or 0, away = true }
-        end
-    end
-    table.sort(away, function(a, b) return a.last > b.last end)
-    for _, e in ipairs(away) do list[#list + 1] = e end
-    return list
-end
-
--- "today", "yesterday", or how many days ago.
-local function Ago(t)
-    return Compat.DaysAgo(math.floor((Compat.ServerTime() - (t or 0)) / 86400))
-end
-
-local function Tries(score)
-    if not score then return "Not yet" end
-    return score == "X" and "Missed" or (score .. " of 6")
-end
-
-Window.Page("guild", function(page)
-    -- Across the dashboard's whole width: the guildmates at the left, and at
-    -- the right a column for the Guild Word and today's best.
-    local width = Window.fullWidth
-    local SIDE_W, GAP = 300, 24
-    local tableW, sideX = width - SIDE_W - GAP, width - SIDE_W
-    local title, lead = Window.Header(page, width)
-    lead:SetText("How guildmates with jsal.ui did today. Those not online now are dimmed, with when they were last seen.")
-
-    -- The Guild Word card: what's set and a Play button; the guild master gets a
-    -- box to set a new one.
-    local card = Style.Card(page, "Guild Word")
-    card:SetSize(SIDE_W, 136)
-    card:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", sideX, -14)
-    local wordText = Style.Text(card, 13, "text")
-    wordText:SetPoint("TOPLEFT", card.heading, "BOTTOMLEFT", 0, -8)
-    wordText:SetWidth(SIDE_W - 24)
-    wordText:SetJustifyH("LEFT")
-    local play = Style.Button(card, "Play", "primary", 110)
-    play:SetPoint("TOPLEFT", 12, -92)
-    play:SetScript("OnClick", function()
-        local word = Guild.Word()
-        if word then ns.DailyWord.OpenGuild(word) end
-    end)
-    local box = CreateFrame("EditBox", nil, card)
-    box:SetSize(120, 24)
-    box:SetPoint("TOPLEFT", 12, -134)
-    box:SetAutoFocus(false)
-    box:SetMaxLetters(8)
-    box:SetFont(Style.font, 12, "")
-    box:SetTextColor(Style.Color("text"))
-    box:SetTextInsets(8, 8, 0, 0)
-    Style.Box(box, 5, "window", "lineStrong")
-    local set = Style.Button(card, "Set word", "plain", 90)
-    set:SetHeight(24)
-    set:SetPoint("LEFT", box, "RIGHT", 6, 0)
-    local setNote = Style.Text(card, 11, "muted")
-    setNote:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -8)
-    setNote:SetWidth(SIDE_W - 24)
-    setNote:SetJustifyH("LEFT")
-    setNote:SetText("Guild master: a word of 5 to 8 letters for the whole guild.")
-
-    -- Under it, today's best: who solved the Daily Word in the fewest tries,
-    -- who named the most icons, and whose average is lowest.
-    local bestHead = Style.Section(page, SIDE_W)
-    bestHead:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 0, -22)
-    bestHead.title:SetText("TODAY'S BEST")
-    local bests = {}
-    for i, label in ipairs({ "Daily Word", "Icon Guess", "Word average" }) do
-        local b = Style.Card(page, label)
-        b:SetSize(SIDE_W, 58)
-        b:SetPoint("TOPLEFT", bestHead, "BOTTOMLEFT", 0, -(10 + (i - 1) * 68))
-        b.name = Style.Text(b, 14, "text", nil, true)
-        b.name:SetPoint("BOTTOMLEFT", 12, 10)
-        b.value = Style.Text(b, 14, "gold", nil, true)
-        b.value:SetPoint("BOTTOMRIGHT", -12, 10)
-        b.value:SetJustifyH("RIGHT")
-        bests[i] = b
-    end
-    local function SetWord()
-        local ok, why = Guild.SetWord(box:GetText())
-        if ok then
-            box:SetText("")
-            box:ClearFocus()
-            setNote:SetText("Sent to the guild.")
-        else
-            setNote:SetText(why)
-        end
-        page.Refresh()
-    end
-    set:SetScript("OnClick", SetWord)
-    box:SetScript("OnEnterPressed", SetWord)
-    box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-
-    local COLUMNS = { { "Name", 0 }, { "Daily Word", 210 }, { "Word average", 320 }, { "Icon Guess", 446 },
-        { "Guild Word", 552 }, { "Version", 642 } }
-    local header = CreateFrame("Frame", nil, page)
-    header:SetSize(tableW, 24)
-    header:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", 0, -14)
-    Style.Rule(header, "BOTTOM", "lineStrong")
-    for _, column in ipairs(COLUMNS) do
-        local t = Style.Text(header, 11, "muted", nil, true)
-        t:SetPoint("TOPLEFT", column[2], -4)
-        t:SetText(column[1]:upper())
-    end
-
-    local rows = {}
-    for i = 1, MAX_ROWS do
-        local row = CreateFrame("Frame", nil, page)
-        row:SetSize(tableW, 28)
-        row:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -(i - 1) * 28)
-        Style.Rule(row, "BOTTOM", "line")
-        -- A small square before the name: green while they're on.
-        row.dot = row:CreateTexture(nil, "ARTWORK")
-        row.dot:SetSize(7, 7)
-        row.dot:SetPoint("LEFT", 0, 0)
-        row.cells = {}
-        for c, column in ipairs(COLUMNS) do
-            local t = Style.Text(row, 13, c == 1 and "text" or "muted")
-            t:SetPoint("LEFT", column[2] + (c == 1 and 14 or 0), 0)
-            row.cells[c] = t
-        end
-        rows[i] = row
-    end
-
-    local empty = Style.Text(page, 13, "text")
-    empty:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -12)
-    empty:SetWidth(tableW)
-    local more = Style.Text(page, 11, "muted")
-    more:SetPoint("TOPLEFT", rows[MAX_ROWS], "BOTTOMLEFT", 0, -8)
-
-    -- Each part of a paint, timed, so /jsal perf can say which is slow. A part is noted only when
-    -- the paint was slow.
-    local spent = {}
-    local function Spent(part, since)
-        local now = debugprofilestop()
-        spent[part] = (spent[part] or 0) + now - since
-        return now
-    end
-    page.Refresh = function()
-        local started = debugprofilestop()
-        spent = {}
-        Guild.Hello()
-        local t = Spent("hello to the guild", started)
-        local inGuild = IsInGuild()
-        if Guild.running and inGuild then
-            local status = Status()
-            t = Spent("your own scores, put together", t)
-            Store(status, Compat.MyName())
-            t = Spent("your own scores, kept", t)
-        end
-        local word = Guild.Word()
-        local list = Sorted(word and word.id)
-        t = Spent("who's on, from the roster", t)
-        -- The title: how many of the guild run jsal.ui, and how many are on.
-        local online = 0
-        for _, e in ipairs(list) do if not e.away then online = online + 1 end end
-        if not Guild.running then
-            title:SetText("The Guild tab is turned off")
-        elseif not inGuild then
-            title:SetText("You're not in a guild yet")
-        else
-            title:SetText(("%d in your guild run%s jsal.ui   |cff9a9688%d online|r"):format(#list, #list == 1 and "s" or "", online))
-        end
-
-        -- The Guild Word card.
-        local officer = Compat.IsGuildMaster()
-        box:SetShown(Guild.running and officer)
-        set:SetShown(Guild.running and officer)
-        setNote:SetShown(Guild.running and officer)
-        card:SetHeight((Guild.running and officer) and 204 or 136)
-        if not (Guild.running and inGuild) then
-            wordText:SetText("Join a guild, and turn on the Guild tab, to play the Guild Word.")
-            play:Hide()
-        elseif not word then
-            wordText:SetText("No Guild Word yet. When the guild master sets one, it shows up here for everyone.")
-            play:Hide()
-        else
-            local played = 0
-            for _, e in ipairs(list) do if e.guild then played = played + 1 end end
-            local mine = ns.DailyWord.GuildResult(word.id)
-            wordText:SetText(("%d letters, set by %s. %d of you have played it%s."):format(#word.answer, word.setter, played,
-                mine and (", you " .. (mine == "X" and "missed it" or ("got it in " .. mine))) or ""))
-            play:Show()
-            play:SetLabel(mine and "See result" or "Play")
-        end
-
-        if not Guild.running then
-            empty:SetText("The Guild tab is turned off. /jsal settings turns it on.")
-        elseif not inGuild then
-            empty:SetText("You're not in a guild yet.")
-        elseif #list == 0 then
-            empty:SetText("No one yet. Guildmates show up as they log in with jsal.ui.")
-        end
-        empty:SetShown(#list == 0 or not Guild.running or not inGuild)
-        for i, row in ipairs(rows) do
-            local e = Guild.running and list[i]
-            row:SetShown(e and true or false)
-            if e then row.dot:SetColorTexture(Style.Color(e.away and "lineStrong" or "green")) end
-            if e and e.away then
-                -- Not online now: greyed, with when they were last seen
-                -- beside the name, where it sat under the Daily Word heading
-                -- as if it were a score.
-                row:SetAlpha(0.65)
-                row.cells[1]:SetText(e.name .. "  |cff9a9688·  last seen " .. Ago(e.last) .. "|r")
-                for c = 2, 5 do row.cells[c]:SetText("") end
-                row.cells[6]:SetText(e.version or "")
-            elseif e then
-                row:SetAlpha(1)
-                row.cells[1]:SetText(e.name)
-                row.cells[2]:SetText(Tries(e.word))
-                -- Average tries over every word solved, and how many.
-                row.cells[3]:SetText(e.average and ("%.1f |cff9a9688(%d)|r"):format(e.average, e.solved or 0) or "-")
-                row.cells[4]:SetText(e.icons and (e.icons .. " of 10") or "Not yet")
-                row.cells[5]:SetText(word and Tries(e.guild) or "")
-                row.cells[6]:SetText(e.version or "")
-            end
-        end
-        more:SetText(#list > MAX_ROWS and ("and %d more"):format(#list - MAX_ROWS) or "")
-
-        -- Today's best, of those who've played: the first in the list where
-        -- two are level.
-        local live = Guild.running and inGuild
-        bestHead:SetShown(live)
-        local word1, icons1, average1
-        for _, e in ipairs(live and list or {}) do
-            local tries = tonumber(e.word)
-            if tries and (not word1 or tries < tonumber(word1.word)) then word1 = e end
-            local named = tonumber(e.icons)
-            if named and (not icons1 or named > tonumber(icons1.icons)) then icons1 = e end
-            if e.average and (e.solved or 0) > 0 and (not average1 or e.average < average1.average) then average1 = e end
-        end
-        for i, found in ipairs({ { word1, word1 and ("in " .. word1.word) }, { icons1, icons1 and (icons1.icons .. " of 10") },
-                                 { average1, average1 and ("%.1f tries"):format(average1.average) } }) do
-            local b = bests[i]
-            b:SetShown(live)
-            b.name:SetText(found[1] and found[1].name or "No one yet")
-            b.name:SetTextColor(Style.Color(found[1] and "text" or "muted"))
-            b.value:SetText(found[2] or "")
-        end
-        Spent("drawing", t)
-        if debugprofilestop() - started >= 10 then
-            for part, ms in pairs(spent) do ns.NoteTime("Guild, " .. part, ms) end
-        end
-    end
-end, nil, true)
 
 ns.Guild = Guild

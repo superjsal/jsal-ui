@@ -109,7 +109,7 @@ function PalRun.Status()
     if s.best then return ("Today's best %s, %s"):format(Rules.Clock(s.best), runs) end
     if left == 0 then return "No time today: the runs are used up" end
     if (s.tries or 0) > 0 then return ("No time yet, %s"):format(runs) end
-    return ("#%d is ready"):format(s.day)
+    return "Ready to play"
 end
 
 -- Steps as a time, for a page that shows the board.
@@ -122,13 +122,13 @@ end
 function PalRun.Numbers()
     local s = ns.db.palrun
     if type(s) ~= "table" or not s.ever then return {} end
-    return { { Rules.Clock(s.ever), ("fastest ever, on #%d"):format(s.everDay or 0) } }
+    return { { Rules.Clock(s.ever), "fastest ever, " .. Compat.DaysAgo(Games.Today() - (s.everDay or Games.Today())) } }
 end
 
 function PalRun.Record()
     local s = ns.db.palrun
     if type(s) ~= "table" or not s.ever then return "Pal run: no course finished yet." end
-    return ("Pal run: fastest ever %s, on #%d."):format(Rules.Clock(s.ever), s.everDay or 0)
+    return ("Pal run: fastest ever %s, %s."):format(Rules.Clock(s.ever), Compat.DaysAgo(Games.Today() - (s.everDay or Games.Today())))
 end
 
 -- A run has started. One at the day's course is counted there and then, so
@@ -239,7 +239,7 @@ end
 local function PaintBoard()
     local list, online = PalRun.Board(), Compat.GuildOnline()
     local class, me = Classes(), Compat.MyName()
-    ui.day:SetText(("#%d"):format(Games.Today()))
+    ui.day:SetText("new in " .. Games.Until())
     ui.empty:SetShown(#list == 0)
     for i, row in ipairs(ui.rows) do
         local entry = list[i]
@@ -435,7 +435,7 @@ local function Begin(newMode, newSeed)
         ShowCard(best and ("Today's best   " .. Rules.Clock(best)) or "No time today",
             "No runs left today. A new course comes with the daily reset.", "Practice courses are never counted.")
     else
-        ShowCard(mode == "daily" and ("Today's course   |cff9a9688#%d|r"):format(Games.Today()) or "Practice course",
+        ShowCard(mode == "daily" and "Today's course" or "Practice course",
             "The clock starts when you move. Each treat takes half a second off.",
             ("%d falls end a run.   %s"):format(Rules.FALLS, LeftLine()))
     end
@@ -533,7 +533,7 @@ function PalRun.Now() return run end
 
 local function ShareLine()
     local name = PalRun.PalName()
-    return ("Pal run #%d: %s%s"):format(Games.Today(), name and (name .. ", ") or "", Rules.Clock(Saved().best or 0))
+    return ("Pal run: %s%s"):format(name and (name .. ", ") or "", Rules.Clock(Saved().best or 0))
 end
 PalRun.ShareLine = ShareLine
 

@@ -1214,7 +1214,7 @@ local ORDER_SIGNS = {
 }
 
 local function GuildCard(parent, width)
-    local c = PageCard(parent, "guild", "GUILD", "guild", width, LOW_H)
+    local c = PageCard(parent, "games", "GUILD", "guild", width, LOW_H)
     c.names = {}
     local function Name(i)
         if c.names[i] then return c.names[i] end
@@ -1317,7 +1317,7 @@ local function GamesCard(parent, width)
     return c, function()
         local games = Today.GameTiles()
         c.empty:SetText(#games == 0 and "Turned off. Switch the daily games on in Settings." or "")
-        c.note:SetText(#games > 0 and ns.Games and ns.Games.Today and ("#%d"):format(ns.Games.Today()) or "")
+        c.note:SetText(#games > 0 and ns.Games and ns.Games.Until and ("new in " .. ns.Games.Until(true)) or "")
         for i, t in ipairs(c.tiles) do
             local game = games[i]
             t:SetShown(game ~= nil)

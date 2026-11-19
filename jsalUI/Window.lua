@@ -57,7 +57,6 @@ local PAGES = {
     { key = "pet", label = "Jsal's Pals", icon = OWN .. "pals",
       when = function() return ns.Pet ~= nil and ns.Pet.running == true end,
       open = function() ns.Pet.Open() end },
-    { key = "guild", label = "Guild", icon = OWN .. "guild" },
     -- Installing the look is done once, so it sits with the other rare ones;
     -- and only in a version that has a look to install.
     { key = "install", label = "Install", icon = OWN .. "install", bottom = true,

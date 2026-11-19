@@ -102,7 +102,7 @@ function IconGuess.Status()
     local state = Daily()
     if state.done then return ("%d of %d right"):format(state.score, ROUND) end
     if state.index > 1 then return ("In progress: icon %d of %d"):format(state.index, ROUND) end
-    return ("#%d is ready"):format(state.day)
+    return "Ready to play"
 end
 
 -- Your record as numbers, for the Games page's card: your best practice
@@ -122,11 +122,19 @@ end
 local frame, subtitle, iconHolder, iconTexture, buttons, endText, shareButton, practiceButton
 local round, mode, index, score, marks, locked
 
+-- The score alone, as the Daily Word's share is (John, 18 Nov 2026: "Probably drop the marks
+-- too"); which icons were right shows on the Games page, from IconGuess.Marks.
 local function ShareLine()
     local state = Daily()
+    return ("Icon Guess %d/%d"):format(state.score, ROUND)
+end
+
+-- Today's round, once it's done: a 1 for each icon named right, a 0 for each missed.
+function IconGuess.Marks()
+    if not IconGuess.DailyDone() then return "" end
     local row = {}
-    for i, right in ipairs(state.marks) do row[i] = right and "{rt1}" or "{rt7}" end
-    return ("Icon Guess #%d %d/%d %s"):format(state.day, state.score, ROUND, table.concat(row))
+    for i, right in ipairs(ns.db.icons.marks or {}) do row[i] = right and "1" or "0" end
+    return table.concat(row)
 end
 
 -- The window is shorter on the end screen, which has no choices to show.
@@ -139,7 +147,7 @@ local function ShowEnd()
     endText:Show()
     practiceButton:Show()
     if mode == "daily" then
-        subtitle:SetText(("Daily round #%d"):format(Daily().day))
+        subtitle:SetText("Today's round")
         endText:SetText(("%d of %d right.\nA new round comes with the daily reset."):format(score, ROUND))
         shareButton:Show()
     else
@@ -159,7 +167,7 @@ local function ShowQuestion()
     frame:SetHeight(QUESTION_HEIGHT)
     iconHolder:Show()
     iconTexture:SetTexture(q.answer.icon)
-    local label = mode == "daily" and ("Daily round #%d"):format(Daily().day) or "Practice round"
+    local label = mode == "daily" and "Today's round" or "Practice round"
     subtitle:SetText(("%s · %d of %d · %d right"):format(label, index, ROUND, score))
     for i, b in ipairs(buttons) do
         local choice = q.choices[i]

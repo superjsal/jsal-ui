@@ -339,7 +339,7 @@ SlashCmdList.JSALUI = function(message)
         -- A command is named only while it has somewhere to go: chess while it isn't
         -- put away, install in a version with a look to install.
         local look = ns.Installer and ns.Installer.HasProfile and ns.Installer.HasProfile()
-        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, %s/jsal bug, /jsal discord.")
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal games, /jsal settings, %s/jsal bug, /jsal discord.")
             :format(commands.chess and "/jsal chess, " or "", look and "/jsal install, " or ""))
     end
 end
@@ -375,9 +375,11 @@ ns.Command("perf", function()
     end
 end)
 
-for _, page in ipairs({ "home", "install", "games", "guild", "settings" }) do
+for _, page in ipairs({ "home", "install", "games", "settings" }) do
     ns.Command(page, function() ns.Window.Open(page) end)
 end
+-- The Guild page was folded into Games (18 Nov 2026): /jsal guild goes where the guild's day is.
+ns.Command("guild", function() ns.Window.Open("games") end)
 
 -- The game's addon menu by the minimap.
 function jsalUI_OnCompartmentClick()

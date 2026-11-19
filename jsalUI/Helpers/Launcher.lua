@@ -153,7 +153,7 @@ PLACES = {
     { key = "word", inGames = true, label = "Daily Word", icon = OWN .. "word",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
       open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),
-      waiting = function() return not ns.DailyWord.DailyDone() and ("Puzzle #%d is waiting"):format(ns.Games.Today()) or nil end },
+      waiting = function() return not ns.DailyWord.DailyDone() and "Today's word is waiting" or nil end },
     { key = "icons", inGames = true, label = "Icon Guess", icon = OWN .. "icons",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
