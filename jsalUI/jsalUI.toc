@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.57-beta.4
+## Version: 0.3.57
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
