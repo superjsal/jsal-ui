@@ -170,10 +170,11 @@ local function Tries(score)
     return score == "X" and "Missed" or (score .. " of 6")
 end
 
--- How your guild did today, for the foot of the page: a row for each
+-- How your guild did today, for the foot of the page: a row for you and each
 -- guildmate heard this session with jsal.ui, the best Daily Word first, each
 -- with today's Daily Word, Icon Guess and Pal run where they've played. Nil
--- with Guild games off.
+-- with Guild games off. You're among them, as the Guild page had you (John, 19 Nov
+-- 2026, of the table saying "No one yet": "doesnt seem to count me as a guildmate").
 function Games.GuildToday()
     local guild = ns.Guild
     if not (guild and guild.running and guild.Members) then return nil end
@@ -195,6 +196,23 @@ function Games.GuildToday()
             }
         end
     end
+    -- Your own row, from your own games.
+    local function Today(game)
+        if not (game and game.running and game.Result) then return nil end
+        local day, score = game.Result()
+        return day == today and score or nil
+    end
+    local dw, ig, pr = ns.DailyWord, ns.IconGuess, ns.PalRun
+    local function Marks(text) return (text and text ~= "") and text or nil end
+    list[#list + 1] = {
+        name = me, mine = true,
+        word = Today(dw), icons = Today(ig), run = Today(pr),
+        pal = pr and pr.PalName and pr.PalName() or nil,
+        guild = gw and dw and dw.GuildResult and dw.GuildResult(gw.id) or nil,
+        wordMarks = dw and dw.Marks and Marks(dw.Marks()) or nil,
+        iconMarks = ig and ig.Marks and Marks(ig.Marks()) or nil,
+        guildMarks = gw and dw and dw.GuildMarks and Marks(dw.GuildMarks(gw)) or nil,
+    }
     local function Rank(e)
         if not e.word then return 99 end
         return e.word == "X" and 7 or tonumber(e.word) or 98
@@ -470,6 +488,8 @@ Window.Page("games", function(page)
                 local run = e.run and ns.PalRun and ns.PalRun.Clock and ns.PalRun.Clock(e.run) or nil
                 local gw = e.guild and (e.guild == "X" and "missed" or ("in " .. e.guild)) or false
                 r.cells[1]:SetText(e.name)
+                -- Your own row's name in gold, as yours is on a board.
+                r.cells[1]:SetTextColor(Style.Color(e.mine and "gold" or "text"))
                 for k, value in ipairs({ Tries(e.word) or false, e.icons and (e.icons .. " of 10") or false, run or false, gw }) do
                     -- With no Guild Word set, its column says nothing.
                     r.cells[k + 1]:SetText(value or ((k == 4 and not GuildWord.word) and "" or "Not yet"))
