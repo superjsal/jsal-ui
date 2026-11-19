@@ -86,6 +86,23 @@ function Map.Build(parent, width, onBoss)
         t:SetPoint("TOPLEFT", ((i - 1) % ACROSS) * TILE * scale, -math.floor((i - 1) / ACROSS) * TILE * scale)
         pane.tiles[i] = t
     end
+    pane.canvas = canvas
+    -- The pieces are set one a frame, and only while the map is in view. The game reads a
+    -- piece's file as it comes on screen: all twelve at once made the window's opening frame
+    -- about 100 ms long. Out of view they're let go, so nothing of the map is kept loaded.
+    local want, set = nil, 0
+    local function Feed(self)
+        set = set + 1
+        pane.tiles[set]:SetTexture(want .. set)
+        if set >= PIECES then self:SetScript("OnUpdate", nil) end
+    end
+    local function Picture(path)
+        if path == want then return end
+        want, set = path, 0
+        for _, t in ipairs(pane.tiles) do t:SetTexture(nil) end
+        canvas:SetScript("OnUpdate", path and Feed or nil)
+    end
+    canvas:SetScript("OnHide", function() Picture(nil) end)
 
     local function Hot(k)
         if pane.hot == k then return end
@@ -160,8 +177,7 @@ function Map.Build(parent, width, onBoss)
         end
         pane.floors:Pick(pane.floor)
         pane.floors:SetShown(#maps.floors > 1)
-        local path = "Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. pane.floor .. "_"
-        for i, t in ipairs(pane.tiles) do t:SetTexture(path .. i) end
+        Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. pane.floor .. "_")
 
         local used = 0
         for k, boss in ipairs(d.bosses) do

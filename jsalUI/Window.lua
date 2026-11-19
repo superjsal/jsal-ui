@@ -399,7 +399,7 @@ end
 -- built inside it the first time it opens. It holds no secure button, so
 -- unlike the dashboard it may stay open in a fight.
 local PANEL_PAD, BAR_H = 22, 32
-local function OpenOwn(page)
+local function OpenOwn(page, spent)
     local own = page.own
     if not own.frame then
         local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
@@ -424,8 +424,10 @@ local function OpenOwn(page)
         end
     end
     Refresh(page)
+    local t = debugprofilestop()
     own.frame:Show()
     own.frame:Raise()
+    spent.show = debugprofilestop() - t
 end
 
 -- The second after a page opens, watched: its longest frame, against the game's usual frame
@@ -469,7 +471,7 @@ function Window.Open(key, direct)
     local spent = Window.Watch(page.label) or {}
     local started = debugprofilestop()
     if page.own and page.build then
-        OpenOwn(page)
+        OpenOwn(page, spent)
         spent.code = debugprofilestop() - started
         return
     end
