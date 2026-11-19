@@ -17,6 +17,12 @@ UiMapAssignment (UiMapID, MapID), from https://wago.tools/db2/<Table>/csv?build=
 FOLDERS below is by hand: the picture folder for each of the game's maps, found by asking the game's files
 for them, and how many floors of pictures it has.
 
+A dungeon of Forever's own has no such picture and no journal entry. The game's files do hold its minimap,
+in tiles 512 square: world/minimaps/<the map's directory>/map<column>_<row>.blp, which an addon can show by
+FileDataID only. data/dungeons/minimaps/<build>.csv lists them (MapID, Column, Row, FileDataID), from
+https://wago.tools/api/files?search=world/minimaps/<directory>/&version=<build>. MINIMAPS below is by hand:
+the part of each to show. Such a map has no boss placed on it.
+
 python tools/build_dungeon_maps.py           writes the file
 python tools/build_dungeon_maps.py --report  says what matched and what didn't
 """
@@ -46,6 +52,15 @@ NO_FLOOR = {229: 7}
 ON_FLOOR = {(229, "pyroguardemberseer"): 7}
 # A boss the journal keeps under another name: Zul'Farrak's Nekrum and Sezz'ziz are one entry there.
 SAME = {598: "nekrumsezzziz", 599: "nekrumsezzziz"}
+# A dungeon with no map picture, by map ID: the cut of its minimap shown instead, as the middle of the cut
+# and its height, in pixels of the map's minimap tiles laid side by side (512 a tile, from the first column
+# and row the map has a tile for). By hand, looking at the tiles: around the rooms, or around the ground the
+# dungeon is on.
+MINIMAPS = {
+    3065: (2664, 3344, 800), 2999: (799, 1030, 640), 2959: (1254, 1254, 800),
+    2970: (1460, 1010, 1000), 3039: (1170, 800, 1040), 2994: (286, 279, 230), 2974: (920, 762, 1160),
+}
+MINIMAP_BUILD = "1.60.1.70959"
 BS = chr(92)
 
 
@@ -90,6 +105,23 @@ def dungeons():
     return out
 
 
+def minimap(m):
+    """The tiles of map m's minimap that its cut takes in, each as (FileDataID, left, top, size): where the
+    tile's corner is and how big it is, as parts of the shown picture's width (left, size) and height (top)."""
+    cx, cy, tall = MINIMAPS[m]
+    wide = tall * 1002 / 668
+    left, top = cx - wide / 2, cy - tall / 2
+    with open(os.path.join(ROOT, "data", "dungeons", "minimaps", MINIMAP_BUILD + ".csv"), encoding="utf-8") as f:
+        tiles = [r for r in csv.DictReader(f) if int(r["MapID"]) == m]
+    c0, r0 = min(int(r["Column"]) for r in tiles), min(int(r["Row"]) for r in tiles)
+    out = []
+    for r in sorted(tiles, key=lambda r: (int(r["Row"]), int(r["Column"]))):
+        x, y = (int(r["Column"]) - c0) * 512, (int(r["Row"]) - r0) * 512
+        if x + 512 > left and x < left + wide and y + 512 > top and y < top + tall:
+            out.append((int(r["FileDataID"]), (x - left) / wide, (y - top) / tall, 512 / wide))
+    return out
+
+
 def plain(name):
     return re.sub(r"[^a-z]", "", name.lower())
 
@@ -98,6 +130,11 @@ def build():
     books = [(b, journal(b)) for b in BUILDS]
     out, report = [], []
     for d in dungeons():
+        if d["map"] in MINIMAPS:
+            tiles = minimap(d["map"])
+            report.append("%s: its minimap, %d tiles" % (d["name"], len(tiles)))
+            out.append((d, None, tiles, {}, {}))
+            continue
         if d["map"] not in FOLDERS:
             report.append("%s: no pictures" % d["name"])
             continue
@@ -152,6 +189,10 @@ local _, ns = ...
 -- a boss on it; false: another wing's, or one with no boss placed), and each boss by the game's
 -- encounter ID as { floor, across, down }. A boss not here has no place known. A dungeon with
 -- fewer than half its bosses placed is left out.
+-- A dungeon of Forever's own has no such picture. Its map is a cut of its minimap, which the
+-- game's files hold in tiles an addon can show by file number only: `mini`, each tile as
+-- { file, left, top, size }, where its corner is and how wide it is, as parts of the shown
+-- picture's width (left, size) and height (top). No boss is placed on one.
 ns.DungeonMaps = {
 """.replace("@", BS)
 
@@ -159,6 +200,12 @@ ns.DungeonMaps = {
 def write(out):
     lines = [HEAD]
     for d, folder, count, placed, names in out:
+        if folder is None:
+            lines.append("    [%d] = { floors = { true }, bosses = {},    -- %s\n        mini = {\n" % (d["id"], d["name"]))
+            for t in count:
+                lines.append("            { %d, %.4f, %.4f, %.4f },\n" % t)
+            lines.append("        } },\n")
+            continue
         floors = max(f for f, *_ in placed.values())
         said = ", ".join("true" if f in names else "false" for f in range(1, floors + 1))
         lines.append('    [%d] = { folder = "%s",%s floors = { %s },\n        bosses = {\n' % (
@@ -179,6 +226,8 @@ if __name__ == "__main__":
     if "--report" in sys.argv:
         print("\n".join(report))
         for d, folder, count, placed, names in out:
+            if folder is None:
+                continue
             print(d["name"], folder, count, sorted(names.items()))
             for enc, p in placed.items():
                 if plain(p[3]) != plain(p[5]) or p[4] != BUILDS[0]:

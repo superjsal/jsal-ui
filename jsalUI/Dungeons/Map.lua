@@ -1,6 +1,7 @@
 -- The Dungeon guide's Map tab: the dungeon's floor as the game's own map picture, a numbered
 -- sign on each boss, the floors to pick from over it and the bosses listed beside it. A boss,
--- on the map or in the list, is a click to its loot.
+-- on the map or in the list, is a click to its loot. A dungeon of Forever's own has no map
+-- picture: its map is a cut of its minimap, with no boss placed on it.
 local _, ns = ...
 local Style = ns.Style
 
@@ -20,7 +21,7 @@ end
 -- A floor's name: the game's own word for it where it has one (DUNGEON_FLOOR_MARAUDON2 is
 -- "Zaetar's Grave"), or its number.
 function Map.Floor(maps, i)
-    local own = _G["DUNGEON_FLOOR_" .. maps.folder:upper() .. i]
+    local own = maps.folder and _G["DUNGEON_FLOOR_" .. maps.folder:upper() .. i]
     return type(own) == "string" and own ~= "" and own or ("Floor " .. i)
 end
 
@@ -78,7 +79,8 @@ function Map.Build(parent, width, onBoss)
     pane.floors:SetPoint("TOPLEFT", 0, 0)
     pane.hint = Style.Text(pane, 12, "muted")
     pane.hint:SetPoint("TOPRIGHT", pane, "TOPLEFT", mapW, -6)
-    pane.hint:SetText("Click a boss for its loot")
+    local HINT = "Click a boss for its loot"
+    pane.hint:SetText(HINT)
 
     -- The picture, kept to its own size: its pieces run past it.
     local canvas = CreateFrame("Frame", nil, pane)
@@ -87,27 +89,39 @@ function Map.Build(parent, width, onBoss)
     if canvas.SetClipsChildren then canvas:SetClipsChildren(true) end
     Style.Fill(canvas, "titleBar")
     pane.tiles = {}
-    for i = 1, PIECES do
-        local t = canvas:CreateTexture(nil, "ARTWORK")
-        t:SetSize(TILE * scale, TILE * scale)
-        t:SetPoint("TOPLEFT", ((i - 1) % ACROSS) * TILE * scale, -math.floor((i - 1) / ACROSS) * TILE * scale)
-        pane.tiles[i] = t
-    end
+    for i = 1, PIECES do pane.tiles[i] = canvas:CreateTexture(nil, "ARTWORK") end
     pane.canvas = canvas
     -- The pieces are set one a frame, and only while the map is in view. The game reads a
     -- piece's file as it comes on screen: all twelve at once made the window's opening frame
     -- about 100 ms long. Out of view they're let go, so nothing of the map is kept loaded.
-    local want, set = nil, 0
+    -- A floor's picture is its twelve pieces by `want`, a path; a minimap's is `mini`, as many
+    -- tiles as its cut takes in, each by its file number and its own place and size.
+    local want, mini, set = nil, nil, 0
     local function Feed(self)
         set = set + 1
-        pane.tiles[set]:SetTexture(want .. set)
-        if set >= PIECES then self:SetScript("OnUpdate", nil) end
+        local t = pane.tiles[set]
+        if not t then
+            t = canvas:CreateTexture(nil, "ARTWORK")
+            pane.tiles[set] = t
+        end
+        local m = mini and mini[set]
+        local size = m and m[4] * mapW or TILE * scale
+        t:SetSize(size, size)
+        t:ClearAllPoints()
+        if m then
+            t:SetPoint("TOPLEFT", m[2] * mapW, -m[3] * mapH)
+        else
+            t:SetPoint("TOPLEFT", ((set - 1) % ACROSS) * size, -math.floor((set - 1) / ACROSS) * size)
+        end
+        t:SetTexture(m and m[1] or (want .. set))
+        if set >= (mini and #mini or PIECES) then self:SetScript("OnUpdate", nil) end
     end
-    local function Picture(path)
-        if path == want then return end
-        want, set = path, 0
+    local function Picture(path, tiles)
+        local key = tiles or path
+        if key == (mini or want) then return end
+        want, mini, set = path, tiles, 0
         for _, t in ipairs(pane.tiles) do t:SetTexture(nil) end
-        canvas:SetScript("OnUpdate", path and Feed or nil)
+        canvas:SetScript("OnUpdate", key and Feed or nil)
     end
     canvas:SetScript("OnHide", function() Picture(nil) end)
 
@@ -191,7 +205,15 @@ function Map.Build(parent, width, onBoss)
         end
         pane.floors:Pick(pane.floor)
         pane.floors:SetShown(count > 1)
-        Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. (maps.plain and "" or (pane.floor .. "_")))
+        if maps.mini then
+            Picture(nil, maps.mini)
+        else
+            Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. (maps.plain and "" or (pane.floor .. "_")))
+        end
+        -- A map with no boss placed on it says nothing of places: not on the map, not on a row.
+        local placed = false
+        for _ in pairs(maps.bosses) do placed = true break end
+        pane.hint:SetText(placed and HINT or "")
 
         -- Two bosses in one spot (Razorfen Kraul's first and third share a skull) are set side
         -- by side, so neither sign hides the other.
@@ -225,7 +247,7 @@ function Map.Build(parent, width, onBoss)
             r.name:SetText(boss[3] or boss[2])
             r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
             -- Which floor it's on, where there's more than one to say.
-            local where = (not place and "not on the map yet") or (count > 1 and Map.Floor(maps, place[1])) or ""
+            local where = (not place and (placed and "not on the map yet" or "")) or (count > 1 and Map.Floor(maps, place[1])) or ""
             r.note:SetText(dead and (where ~= "" and (where .. " · killed") or "killed") or where)
             r:Show()
         end
