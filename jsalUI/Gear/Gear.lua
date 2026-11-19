@@ -736,7 +736,10 @@ end
 -- for ten minutes at most. A plan still waiting on items the game hasn't sent is worked out
 -- again once one of them has come, or when they can be asked for again (RETRY seconds on): made
 -- again on every paint meanwhile, it came out the same and was most of a boss list's paint (9 ms
--- of 15, 28 at worst).
+-- of 15, 28 at worst). And one asked for `lazy` (Gear.Better, for a boss list) isn't made again in
+-- the asking at all: the plan as it stands is given, and the waiting ones are made again behind,
+-- a slot at a time (Gear.Refill). Made in the paint when due, they were still 15 ms of it for the
+-- ten seconds or so the game takes to send an item or never send it.
 --
 -- Your bags change with every thing looted, and a plan reads only the pieces in them you could
 -- wear. So a bag change is only noted (Gear.bagsMoved), and the next plan asked for reads the
@@ -746,7 +749,7 @@ end
 Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
-function Gear.SlotPlan(slot)
+function Gear.SlotPlan(slot, lazy)
     if Gear.bagsMoved then
         Gear.bagsMoved = nil
         local wearable = Gear.BagsWearable()
@@ -765,6 +768,7 @@ function Gear.SlotPlan(slot)
     local why
     if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now
         and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+        if lazy and Gear.Refill() then return plan end
         plan, why = nil, "waiting"
     end
     if not plan then
@@ -827,7 +831,7 @@ function Gear.Better(id, equipLoc, classID, subclassID)
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
         if link and tonumber(link:match("item:(%d+)")) == id then return false end
     end
-    local plan = Gear.SlotPlan(slot)
+    local plan = Gear.SlotPlan(slot, true)
     if not plan.Would then return false end
     return plan.Would(stats)
 end
@@ -1142,6 +1146,43 @@ function Gear.Warm(after)
         Compat.After(WARM_STEP, Step)
     end
     Compat.After(after or WARM_AFTER, Step)
+end
+
+-- The kept plans still waiting on items, made again behind the page: one slot a step, a step
+-- every REFILL_STEP seconds, until none is waiting (an item never sent is given up on after a
+-- few asks). True when that's under way, false where it can't be.
+local REFILL_STEP = 0.5
+function Gear.Refill()
+    local Compat = ns.Compat
+    -- Only while the module runs: that is when an item never sent is given up on, and this ends.
+    if not (Compat and Compat.After and Gear.running) then return false end
+    if Gear.refilling then return true end
+    Gear.refilling = true
+    local function Step()
+        if Compat.InCombat and Compat.InCombat() then return Compat.After(5, Step) end
+        local kept = Gear.slotPlans or {}
+        local now = GetTime and GetTime()
+        local any
+        for _, slot in ipairs(Gear.SLOTS) do
+            local plan = kept[slot.key]
+            if plan and (plan.waiting or 0) > 0 then
+                any = true
+                if plan.madeAt ~= now and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+                    local started = debugprofilestop()
+                    xpcall(Gear.SlotPlan, ns.Report, slot)
+                    ns.Timed("Gear plan, made again for items still to come: " .. slot.label, started)
+                    break
+                end
+            end
+        end
+        if not any or not Gear.running then
+            Gear.refilling = nil
+            return
+        end
+        Compat.After(REFILL_STEP, Step)
+    end
+    Compat.After(REFILL_STEP, Step)
+    return true
 end
 
 local levels
