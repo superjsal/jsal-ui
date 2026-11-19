@@ -102,13 +102,14 @@ function PalRun.Signature()
     return ("%d:%d:%s"):format(day, best, PalRun.PalName() or "")
 end
 
+-- The line under the game's name on the Games page, beside its icon: a few
+-- words, as it has room for no more. Today's time is on the board under it.
 function PalRun.Status()
-    if not PalRun.running then return "Turned off in Settings" end
+    if not PalRun.running then return "Off in Settings" end
     local s, left = Saved(), PalRun.Left()
-    local runs = left == 0 and "no runs left" or (left == 1 and "1 run left" or (left .. " runs left"))
-    if s.best then return ("Today's best %s, %s"):format(Rules.Clock(s.best), runs) end
-    if left == 0 then return "No time today: the runs are used up" end
-    if (s.tries or 0) > 0 then return ("No time yet, %s"):format(runs) end
+    if left > 0 and (s.tries or 0) > 0 then return left == 1 and "1 run left" or ("%d runs left"):format(left) end
+    if s.best then return "Done for today" end
+    if left == 0 then return "No time today" end
     return "Ready to play"
 end
 

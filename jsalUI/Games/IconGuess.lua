@@ -98,10 +98,10 @@ function IconGuess.Result()
 end
 
 function IconGuess.Status()
-    if not IconGuess.running then return "Turned off in Settings" end
+    if not IconGuess.running then return "Off in Settings" end
     local state = Daily()
     if state.done then return ("%d of %d right"):format(state.score, ROUND) end
-    if state.index > 1 then return ("In progress: icon %d of %d"):format(state.index, ROUND) end
+    if state.index > 1 then return ("On icon %d of %d"):format(state.index, ROUND) end
     return "Ready to play"
 end
 

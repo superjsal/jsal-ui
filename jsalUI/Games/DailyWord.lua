@@ -116,13 +116,13 @@ function DailyWord.Result()
 end
 
 function DailyWord.Status()
-    if not DailyWord.running then return "Turned off in Settings" end
+    if not DailyWord.running then return "Off in Settings" end
     local game = Game()
     if game.finished then
-        return game.won and ("Solved in " .. #game.guesses) or "Missed it. New word after the daily reset."
+        return game.won and ("Solved in " .. #game.guesses) or "Missed it"
     end
     if #game.guesses > 0 then
-        return ("In progress: %d of %d tries used"):format(#game.guesses, TRIES)
+        return ("%d of %d tries used"):format(#game.guesses, TRIES)
     end
     return "Ready to play"
 end

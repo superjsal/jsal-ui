@@ -72,7 +72,7 @@ function GuildWord.Played()
     return list
 end
 function GuildWord.Status()
-    if not (ns.Guild and ns.Guild.running and ns.DailyWord and ns.DailyWord.running) then return "Turned off in Settings" end
+    if not (ns.Guild and ns.Guild.running and ns.DailyWord and ns.DailyWord.running) then return "Off in Settings" end
     if not IsInGuild() then return "Join a guild to play" end
     local word = GuildWord.word
     if not word then return "No word set yet" end
@@ -498,7 +498,7 @@ Window.Page("games", function(page)
             local game, c = entry.game(), cards[i]
             local on = game ~= nil and game.running == true and (not entry.setword or game.word ~= nil)
             local done = on and game.DailyDone() and true or false
-            c.state:SetText(game and game.Status() or "Turned off in Settings")
+            c.state:SetText(game and game.Status() or "Off in Settings")
             c.state:SetTextColor(Style.Color(not on and "muted" or (done and "green" or "gold")))
             -- The record: numbers where the game gives them, else its line.
             local numbers = game and game.Numbers and game.Numbers() or {}
