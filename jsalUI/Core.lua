@@ -339,7 +339,7 @@ SlashCmdList.JSALUI = function(message)
         -- A command is named only while it has somewhere to go: chess while it isn't
         -- put away, install in a version with a look to install.
         local look = ns.Installer and ns.Installer.HasProfile and ns.Installer.HasProfile()
-        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal games, /jsal settings, %s/jsal bug, /jsal discord.")
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal games, /jsal versions, /jsal settings, %s/jsal bug, /jsal discord.")
             :format(commands.chess and "/jsal chess, " or "", look and "/jsal install, " or ""))
     end
 end

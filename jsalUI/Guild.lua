@@ -327,4 +327,43 @@ end
 
 Guild.Prune = Prune
 
+-- Which jsal.ui each guildmate has, for /jsal versions: those on now first, the newest version
+-- first, then those seen before, the most recently seen first. The Guild page's VERSION column
+-- went when it was folded into Games (John, 19 Nov 2026: "what is the command to show all the
+-- guildies versions now?").
+function Guild.Versions()
+    if not Compat.GuildName() then
+        ns.Print("You're not in a guild.")
+        return
+    end
+    Prune()
+    local me, on, away = Compat.MyName(), {}, {}
+    for name, m in pairs(members) do
+        if name ~= me and m.version then on[#on + 1] = { name = name, version = m.version } end
+    end
+    local function Newer(a, b) return ns.Newer(a.version or "0", b.version or "0") end
+    table.sort(on, function(a, b)
+        if Newer(a, b) ~= Newer(b, a) then return Newer(a, b) end
+        return a.name < b.name
+    end)
+    local seen, now = SeenList(), Compat.ServerTime()
+    for name, entry in pairs(seen and seen.names or {}) do
+        if name ~= me and not (members[name] and members[name].version) and type(entry) == "table" then
+            away[#away + 1] = { name = name, version = entry.version, last = entry.last or 0 }
+        end
+    end
+    table.sort(away, function(a, b)
+        if a.last ~= b.last then return a.last > b.last end
+        return a.name < b.name
+    end)
+    local function Version(v) return (v and v ~= "") and v or "an older version" end
+    ns.Print(("jsal.ui in your guild. You have %s."):format(ns.version))
+    if #on + #away == 0 then print("  No guildmate heard with jsal.ui yet.") end
+    for _, e in ipairs(on) do print(("  %s: %s, on now"):format(e.name, Version(e.version))) end
+    for _, e in ipairs(away) do
+        print(("  %s: %s, seen %s"):format(e.name, Version(e.version), Compat.DaysAgo(math.floor((now - e.last) / 86400))))
+    end
+end
+if ns.Command then ns.Command("versions", Guild.Versions) end
+
 ns.Guild = Guild
