@@ -18,8 +18,6 @@ local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
 local Pet = ns.NewModule("pet", {
     -- Its name; a creature is a pal.
     title = "Jsal's Pals",
-    -- A new part, so it starts off.
-    defaultOn = false,
     note = "A small creature of your own to look after, with supplies your play earns. /jsal pet",
     options = {
         { key = "sound", title = "Sounds", default = true,

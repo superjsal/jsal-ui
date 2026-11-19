@@ -17,8 +17,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local PetFeed = ns.NewModule("petfeed", {
     title = "Pet feeding",
-    -- A new box on the screen, so it starts off.
-    defaultOn = false,
     note = "Hunters: a glowing tile beside the food reminder while your pet isn't happy. Point at it for the food in your bags your pet eats, and click one to feed your pet. Drag it anywhere.",
 })
 ns.PetFeed = PetFeed

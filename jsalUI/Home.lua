@@ -141,8 +141,6 @@ end
 ---------------------------------------------------------------------------
 local NextLevel = ns.NewModule("nextlevel", {
     title = "Next level on Today",
-    -- A new block on the first page, so it starts off.
-    defaultOn = false,
     note = "Beside Today's title: the talent and trainer visit your next level brings, and whether your gold covers it.",
 })
 ns.NextLevel = NextLevel

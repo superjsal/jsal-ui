@@ -12,8 +12,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local FoodTile = ns.NewModule("foodtile", {
     title = "Food reminder",
-    -- A new box on the screen, so it starts off.
-    defaultOn = false,
     note = "A glowing tile while you aren't Well Fed. Point at it for the food in your bags, buff food first, and click one to eat it. Drag it anywhere.",
 })
 ns.FoodTile = FoodTile

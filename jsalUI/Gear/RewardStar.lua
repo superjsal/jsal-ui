@@ -19,8 +19,6 @@ local Gear = ns.Gear
 
 local RewardStar = ns.NewModule("rewardstar", {
     title = "Quest reward star",
-    -- Something new drawn on the game's own window, so it starts off.
-    defaultOn = false,
     note = "When a quest lets you choose a reward, a gold star on the one the Gear plan scores the biggest upgrade for your spec. Point at a reward for how much better it is for you.",
 })
 ns.RewardStar = RewardStar

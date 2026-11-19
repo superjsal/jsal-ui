@@ -9,7 +9,6 @@ local Style, Compat, Games, Rules = ns.Style, ns.Compat, ns.Games, ns.PalRunRule
 local PalRun = ns.NewModule("palrun", {
     title = "Pal run",
     note = "A platformer for your pal: one course a day, the same for everyone, against the clock, with your guild's times beside it. /jsal run",
-    defaultOn = false,
 })
 ns.PalRun = PalRun
 

@@ -14,8 +14,6 @@ local Compat, Style = ns.Compat, ns.Style
 
 local TameTip = ns.NewModule("tametip", {
     title = "Pet abilities on beasts",
-    -- A new line on tooltips, so it starts off.
-    defaultOn = false,
     note = "Hunters: a line on a beast's tooltip when taming it teaches a pet ability rank you don't have yet.",
 })
 ns.TameTip = TameTip
