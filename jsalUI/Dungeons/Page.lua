@@ -443,7 +443,7 @@ local function BossQuests(d)
     return out, lines
 end
 
--- What a boss's tooltip on the map says of you, added to `tip`: under "For you", each piece on
+-- What a boss's tooltip on the map says of you, added to `tip`: each piece on
 -- your Gear plan or better than what you wear, with its picture, its name and by how much, the
 -- starred ones first; then each quest in your log that needs the boss, with what's left of it as
 -- the game words it. Worked out when the boss is pointed at, not before.
@@ -458,8 +458,8 @@ local function BossTip(tip, d, k)
         return a.id < b.id
     end)
     if #pieces > 0 then
+        -- No heading over them: their green gains say whose they are.
         tip:AddLine(" ")
-        tip:AddLine("For you", 0.89, 0.69, 0.29)
         for _, piece in ipairs(pieces) do
             local name, _, quality, _, _, _, _, _, _, texture = ItemInfo(piece.id)
             -- By how much, as its card's tag says it.
