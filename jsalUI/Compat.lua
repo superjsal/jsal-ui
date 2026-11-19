@@ -134,7 +134,7 @@ function Compat.SendChat(text, channel)
 end
 
 -- A player's name the way the guild channel gives it. Forever names have a
--- first name and a surname ("Chicago Illinois"); UnitName returns only the
+-- first name and a surname ("Mira Thornwood"); UnitName returns only the
 -- first, so the whole name comes from GetUnitName, then the realm is dropped
 -- for players on this realm, as Ambiguate does for message senders.
 function Compat.MyName()

@@ -1045,7 +1045,7 @@ combat:SetScript("OnEvent", function()
     byFight = true
     local ok = xpcall(frame.HideNow or frame.Hide, ns.Report, frame)
     byFight = false
-    if ok then ns.Print("The welcome closed for the fight. /jsal setup opens it again.") end
+    if ok then ns.Print("The welcome closed for the fight. /jsal welcome opens it again.") end
 end)
 
 -- Until the welcome has been seen, it opens a few seconds after login, once
