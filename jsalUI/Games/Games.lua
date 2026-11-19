@@ -142,9 +142,10 @@ function Games.SetWord()
     return setter
 end
 
--- The Games page: a card for each daily game, side by side, with how
--- today's stands, your record as numbers, and a button to play it or see how
--- it went; under the cards, how your guild did today. Pal run can be run
+-- The Games page: a card for each daily game, three across and the Guild
+-- Word under them, with how today's stands, your record as numbers, and a
+-- button to play it or see how it went; beside the Guild Word, how your guild
+-- did today. Pal run can be run
 -- again for a better time, so its button plays while it has runs left.
 -- `body` is what a card shows under its numbers: your tries as bars, today's
 -- board, or, with neither, its `words`.
@@ -242,22 +243,30 @@ Window.Page("games", function(page)
     local Heading, Tick
     local width = Window.fullWidth
     local GAP, CARD_H, PAD, CARDS_Y = 16, 346, 18, 70
-    local cardW = math.floor((width - GAP * (#GAMES - 1)) / #GAMES)
+    -- Three cards across; the fourth starts the row under them, a card wide,
+    -- down to the page's foot, with how your guild did today beside it.
+    local ACROSS = 3
+    local cardW = math.floor((width - GAP * (ACROSS - 1)) / ACROSS)
     local inner = cardW - PAD * 2
+    local GUILD_Y = CARDS_Y + CARD_H + 24
     local title = Style.Text(page, 23, "text", nil, true)
     title:SetPoint("TOPLEFT")
     local sub = Style.Text(page, 13, "muted")
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     sub:SetText("Each day's games are the same for everyone, so you can compare with your guild. They're offered when a flight starts, too.")
 
-    -- A card a game, side by side: its tile, its name and how today's
-    -- stands; its record as numbers; something of its own under those; and
-    -- its buttons at the foot.
+    -- A card a game: its tile, its name and how today's stands; its record
+    -- as numbers; something of its own under those; and its buttons at the foot.
     local cards = {}
     for i, entry in ipairs(GAMES) do
         local c = CreateFrame("Frame", nil, page)
-        c:SetSize(cardW, CARD_H)
-        c:SetPoint("TOPLEFT", (i - 1) * (cardW + GAP), -CARDS_Y)
+        if i <= ACROSS then
+            c:SetSize(cardW, CARD_H)
+            c:SetPoint("TOPLEFT", (i - 1) * (cardW + GAP), -CARDS_Y)
+        else
+            c:SetSize(cardW, Window.contentHeight - GUILD_Y)
+            c:SetPoint("TOPLEFT", (i - ACROSS - 1) * (cardW + GAP), -GUILD_Y)
+        end
         Style.Box(c, 6, "well", "cardLine")
         local icon = c:CreateTexture(nil, "ARTWORK")
         icon:SetSize(48, 48)
@@ -326,7 +335,7 @@ Window.Page("games", function(page)
         end
         cards[i] = c
     end
-    -- Four games make narrow cards: a record shows four numbers at most there.
+    -- A narrow card shows four numbers of a record at most.
     local MOST = inner < 260 and 4 or 5
 
     -- A card's lines, all put away, before the ones it uses are shown.
@@ -402,16 +411,18 @@ Window.Page("games", function(page)
     end
 
     ---------------------------------------------------------------------
-    -- Under the cards: how your guild did today, a row a guildmate.
+    -- Beside the Guild Word, under the cards: how your guild did today, a
+    -- row a guildmate.
     ---------------------------------------------------------------------
-    local GUILD_Y, ROWS = CARDS_Y + CARD_H + 24, 7
-    local COLS = { 0, 260, 450, 640, 820 }
-    local guildHead = Style.Section(page, width)
-    guildHead:SetPoint("TOPLEFT", 0, -GUILD_Y)
+    local GUILD_X, ROWS = cardW + GAP, 7
+    local guildW = width - GUILD_X
+    local COLS = { 0, 190, 320, 450, 560 }
+    local guildHead = Style.Section(page, guildW)
+    guildHead:SetPoint("TOPLEFT", GUILD_X, -GUILD_Y)
     guildHead.title:SetText("YOUR GUILD TODAY")
     local guildCols = CreateFrame("Frame", nil, page)
-    guildCols:SetSize(width, 22)
-    guildCols:SetPoint("TOPLEFT", 0, -(GUILD_Y + 26))
+    guildCols:SetSize(guildW, 22)
+    guildCols:SetPoint("TOPLEFT", GUILD_X, -(GUILD_Y + 26))
     Style.Rule(guildCols, "BOTTOM", "lineStrong")
     for k, label in ipairs({ "GUILDMATE", "DAILY WORD", "ICON GUESS", "PAL RUN", "GUILD WORD" }) do
         local t = Style.Text(guildCols, 10, "muted", nil, true)
@@ -421,8 +432,8 @@ Window.Page("games", function(page)
     local guildRows = {}
     for i = 1, ROWS do
         local r = CreateFrame("Frame", nil, page)
-        r:SetSize(width, 28)
-        r:SetPoint("TOPLEFT", 0, -(GUILD_Y + 48 + (i - 1) * 28))
+        r:SetSize(guildW, 28)
+        r:SetPoint("TOPLEFT", GUILD_X, -(GUILD_Y + 48 + (i - 1) * 28))
         Style.Rule(r, "BOTTOM", "line")
         r.dot = r:CreateTexture(nil, "ARTWORK")
         r.dot:SetSize(7, 7)
@@ -441,7 +452,7 @@ Window.Page("games", function(page)
         guildRows[i] = r
     end
     local guildNote = Style.Text(page, 12, "muted")
-    guildNote:SetPoint("TOPLEFT", 0, -(GUILD_Y + 56))
+    guildNote:SetPoint("TOPLEFT", GUILD_X, -(GUILD_Y + 56))
 
     local function PaintGuild()
         local list = Games.GuildToday()
