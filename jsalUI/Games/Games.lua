@@ -231,7 +231,8 @@ end
 -- also tighten this up", then "B, spaced out better top down"), and all of it centred ("B,
 -- centred", of previews\guild_day_card_AB_preview.png). Made the first time it's wanted.
 local TILES = { r = "green", n = "gold", x = "lineStrong", ["1"] = "green", ["0"] = "lineStrong" }
-local DAY_PAD, DAY_GAP, DAY_HEAD, DAY_SCORE = 10, 10, 3, 5   -- the card's edge; between games; under a heading; under a score
+local DAY_PAD, DAY_GAP, DAY_HEAD, DAY_SCORE = 12, 12, 3, 6   -- the card's edge; between games; under a heading; under a score
+-- A touch bigger than first drawn ("can make tiny bit bigger overall"): the words a size up, the tiles 16.
 local day
 local function DayCard()
     if day then return day end
@@ -240,7 +241,7 @@ local function DayCard()
     day:SetClampedToScreen(true)
     day:Hide()
     Style.Box(day, 5, "titleBar", "lineStrong")
-    day.title = Style.Text(day, 14, "text", nil, true)
+    day.title = Style.Text(day, 15, "text", nil, true)
     day.heads, day.scores, day.tiles = {}, {}, {}
     return day
 end
@@ -258,25 +259,25 @@ function Games.ShowDay(owner, e)
     c.title:SetPoint("TOP", 0, -y)
     c.title:SetText(e.name)   -- the name alone ("dont need the today part, name is fine")
     widest = math.max(widest, c.title:GetStringWidth() or 0)
-    y = y + 18
+    y = y + 19
     local games, used = 0, 0
     local function Game(head, score, rows, size)
         games = games + 1
         y = y + (games == 1 and 2 or DAY_GAP)
-        local h = Pooled(c.heads, games, function() return Style.Text(c, 11, "gold", nil, true) end)
+        local h = Pooled(c.heads, games, function() return Style.Text(c, 12, "gold", nil, true) end)
         h:ClearAllPoints()
         h:SetPoint("TOP", 0, -y)
         h:SetText(head)
         h:Show()
-        y = y + 13 + DAY_HEAD
-        local sc = Pooled(c.scores, games, function() return Style.Text(c, 13, "text") end)
+        y = y + 14 + DAY_HEAD
+        local sc = Pooled(c.scores, games, function() return Style.Text(c, 14, "text") end)
         sc:ClearAllPoints()
         sc:SetPoint("TOP", 0, -y)
         sc:SetText(score or "Not played yet")
         sc:SetTextColor(Style.Color(score and "text" or "muted"))
         sc:Show()
         widest = math.max(widest, h:GetStringWidth() or 0, sc:GetStringWidth() or 0)
-        y = y + 15
+        y = y + 16
         local first = true
         for row in (rows or ""):gmatch("[^.]+") do
             y = y + (first and DAY_SCORE or 3)
@@ -303,13 +304,13 @@ function Games.ShowDay(owner, e)
         end
     end
     local function Word(score) return score and (score == "X" and "Missed" or ("Solved in " .. score)) or nil end
-    Game("DAILY WORD", Word(e.word), e.word and e.wordMarks, 14)
+    Game("DAILY WORD", Word(e.word), e.word and e.wordMarks, 16)
     -- Its ten in two rows of five, a block the width of the word's grid ("do 2 columns for icon").
     local ten = e.icons and e.iconMarks and (e.iconMarks:sub(1, 5) .. "." .. e.iconMarks:sub(6)) or nil
-    Game("ICON GUESS", e.icons and (e.icons .. " of 10") or nil, ten, 14)
+    Game("ICON GUESS", e.icons and (e.icons .. " of 10") or nil, ten, 16)
     local run = e.run and ns.PalRun and ns.PalRun.Clock and ns.PalRun.Clock(e.run) or nil
     Game("PAL RUN", run and (run .. ((e.pal and e.pal ~= "") and ("  with " .. e.pal) or "")) or nil)
-    if GuildWord.running and GuildWord.word then Game("GUILD WORD", Word(e.guild), e.guild and e.guildMarks, 12) end
+    if GuildWord.running and GuildWord.word then Game("GUILD WORD", Word(e.guild), e.guild and e.guildMarks, 14) end
     for i = games + 1, #c.heads do c.heads[i]:Hide(); c.scores[i]:Hide() end
     for i = used + 1, #c.tiles do c.tiles[i]:Hide() end
     c:SetSize(math.ceil(widest) + DAY_PAD * 2, y + DAY_PAD)
