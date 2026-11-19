@@ -289,8 +289,8 @@ Window.Page("professions", function(page)
                     -- Behind you, the sign stays solid over the gold (faded, the gold showed through
                     -- it); its line and number are quieter, its picture and words faded.
                     local behind = item.kind == "passed"
-                    stop.disc:Paint("well", behind and "line" or "lineStrong")
-                    stop.level:SetTextColor(Style.Color(behind and "muted" or "text"))
+                    stop.disc:Paint("well", behind and "line" or (item.cap and "gold" or "lineStrong"))
+                    stop.level:SetTextColor(Style.Color(behind and "muted" or (item.cap and "gold" or "text")))
                     for _, part in ipairs({ stop.icon, stop.name, stop.count }) do part:SetAlpha(behind and 0.45 or 1) end
                     if behind then stop.tag:Hide() end
                 elseif item.kind == "rank" then
@@ -332,9 +332,12 @@ Window.Page("professions", function(page)
         -- The road's places: a stop for each step after the one in hand, the
         -- next rank's while it's still ahead, and the cap's sign; but a rank
         -- learned at the cap itself is the road's end, with no sign after it
-        -- saying the same number.
+        -- saying the same number, and so is a last step that reaches the cap
+        -- (John, 19 Nov 2026, of Leatherworking's "225" then the ringed 225: "Yes, drop it").
         local ranks = (not ranked and o.ahead) and 1 or 0
-        local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap)) and 1 or 0
+        local last = plan[#plan]
+        local reached = last ~= nil and (last.to or 0) >= o.cap
+        local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap) and not reached) and 1 or 0
         local passed = {}
         local kept, nextKept = Passed(o.line, o.floor, o.skill, plan[1])
         for _, kept in ipairs(kept) do
@@ -365,6 +368,14 @@ Window.Page("professions", function(page)
         end
         if not ranked and o.ahead then Add("rank") end
         if ends == 1 then Add("cap") end
+        -- A last step that reaches the cap is the cap's sign too: ringed in gold, as the cap's own
+        -- is, until the next rank raises the cap past it (John: "the cap should be gold tinged until
+        -- you get that artisan training at 200").
+        if reached then
+            for i = #items, 1, -1 do
+                if items[i].kind == "step" then items[i].cap = true break end
+            end
+        end
         road = { items = items, Middle = Middle, o = o, spread = places < ACROSS, view = road and road.view }
         -- You: between the sign behind you (or the road's start, the rank's first point) and
         -- the next, by your skill between their numbers; clear of both signs.
