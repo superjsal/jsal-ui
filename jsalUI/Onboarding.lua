@@ -435,8 +435,8 @@ local MENU = {
                 { "gear", "Gear", "upgrades for you", "gear" }, { "dungeons", "Dungeons", "bosses and loot", "dungeons" } } },
     { "Craft", { { "professions", "Professions", "cheapest road" }, { "crafts", "Guild Crafts", "guild orders", "crafters" },
                  { "shop", "Shopping list", "what to buy", "shopping" }, { "profit", "Crafting profit", "what sells", "craftprofit" } } },
-    { "Play", { { "journal", "Journal", "your story so far", "journal" }, { "games", "Games", "a puzzle a day" },
-                { "guild", "Guild Word", "your guild's own", "guild" }, { "pals", "Jsal's Pals", "a pal of your own", "pet" } } },
+    { "Play", { { "journal", "Journal", "your story so far", "journal" }, { "games", "Games", "puzzles with your guild" },
+                { "pals", "Jsal's Pals", "a pal of your own", "pet" } } },
 }
 
 -- A place's few words, or that its part is off.
@@ -651,8 +651,8 @@ BUILD.play = function(page)
     Heading(page, "Play", "Your story, a puzzle a day, your guild, and a pal of your own. Switch off any you don't want.")
     local cards = Grid(page, {
         { "journal", "Journal", "Your levels, deaths, loot and time on each level, written as you play." },
-        { "games", "Games", "Daily Word, Icon Guess and Pal run: one of each a day, the same for everyone, with your guild's results beside yours." },
-        { "guild", "Guild games", "Your guild's results beside yours on Games, and the Guild Word your guild master sets." },
+        { "games", "Games", "Daily Word, Icon Guess and Pal run: one of each a day, the same for everyone." },
+        { "guild", "Guild games", "Your guild's results beside yours on Games, and a Guild Word your guild master sets." },
         { "pals", "Jsal's Pals", "Hatch an egg, name what comes out and look after it. Your questing pays for its keep." },
     })
     page.Refresh = function()
