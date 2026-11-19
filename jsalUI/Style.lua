@@ -688,7 +688,9 @@ end
 -- A page's small print (where its numbers come from, how far to trust
 -- them): one quiet link, "About these numbers", read when it's pointed at
 -- and not printed on the page. `note` is its words, a paragraph a line, or
--- a function that gives them; `about.note` can be set later.
+-- a function that gives them; `about.note` can be set later. A blank line
+-- parts one paragraph from the next, so each reads on its own (John, 19 Nov
+-- 2026: "add a space between so it reads cleaner").
 function Style.About(parent, note)
     local b = CreateFrame("Button", nil, parent)
     b.note = note
@@ -702,7 +704,12 @@ function Style.About(parent, note)
         local words = type(self.note) == "function" and self.note() or self.note
         GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
         GameTooltip:SetText("About these numbers")
-        for line in (words or ""):gmatch("[^\n]+") do GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true) end
+        local first = true
+        for line in (words or ""):gmatch("[^\n]+") do
+            if not first then GameTooltip:AddLine(" ") end
+            GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true)
+            first = false
+        end
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave", function(self)
