@@ -587,6 +587,7 @@ end
 -- A finished order: one grey line with a tick. Or, with `state`
 -- "unconfirmed", one never marked received, with a dash and maybe `action`
 -- = { label, fn }.
+local doneAsked = {}   -- done orders whose item name was asked for again
 local function Done(list, order, words, name, state, action)
     local r = Take(list, "done", MakeDone, DONE_ROW)
     r.order = order
@@ -598,7 +599,19 @@ local function Done(list, order, words, name, state, action)
     end
     r.icon:SetTexture(Icon(order))
     local recipe = ns.Orders.Recipe(order.spell)
-    r.text:SetText((ns.Orders.Name(order) or "...") .. ((recipe and recipe.item) and ("   ×" .. (order.n or 1)) or "")
+    -- An item's name the game hasn't loaded yet: the recipe's own name meanwhile, and the
+    -- list drawn again once a second later, when it may have it. It read "..." for good
+    -- (John's screenshot of a done order, 19 Nov 2026).
+    local called = ns.Orders.Name(order)
+    if not called then
+        called = (Compat.SpellInfo(order.spell))
+        local key = order.id or order.spell
+        if key and not doneAsked[key] then
+            doneAsked[key] = true
+            Compat.After(1, function() if r:IsVisible() then C.Repaint() end end)
+        end
+    end
+    r.text:SetText((called or "...") .. ((recipe and recipe.item) and ("   ×" .. (order.n or 1)) or "")
         .. (name and ("     " .. words .. " " .. name) or ""))
     r.when:SetText(Ago(order.e))
 end
