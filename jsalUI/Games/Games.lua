@@ -547,7 +547,15 @@ Window.Page("games", function(page)
                 local master = game.running and Compat.IsGuildMaster() and true or false
                 c.set:SetShown(master)
                 c.set:SetKind((master and not game.word) and "primary" or "plain")
-                c.play:SetShown(game.word ~= nil or not master)
+                local playing = game.word ~= nil or not master
+                c.play:SetShown(playing)
+                -- Beside Play when it shows, else in its place at the card's right edge.
+                c.set:ClearAllPoints()
+                if playing then
+                    c.set:SetPoint("RIGHT", c.play, "LEFT", -8, 0)
+                else
+                    c.set:SetPoint("BOTTOMRIGHT", -PAD, 16)
+                end
             end
             if on and not done then left = left + 1 end
         end
