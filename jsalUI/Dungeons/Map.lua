@@ -20,6 +20,8 @@ local FLOORS = 7
 local TWO_LINES = 34
 -- A boss's picture in its tooltip is this many of the tooltip's lines high.
 local FACE_LINES = 8
+-- The margin a tooltip keeps either side of the picture.
+local PAD = 12
 
 function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
@@ -269,7 +271,14 @@ function Map.Build(parent, width, onBoss)
             m = CreateFrame("PlayerModel", nil, box)
             m:SetPoint("TOPLEFT", 1, -1)
             m:SetPoint("BOTTOMRIGHT", -1, 1)
-            if GameTooltip.HookScript then GameTooltip:HookScript("OnHide", function() box:Hide() end) end
+            if GameTooltip.HookScript then
+                GameTooltip:HookScript("OnHide", function()
+                    box:Hide()
+                    -- The width asked of it for the box isn't left for the next tooltip.
+                    if pane.widened and GameTooltip.SetMinimumWidth then GameTooltip:SetMinimumWidth(0) end
+                    pane.widened = nil
+                end)
+            end
             pane.face, pane.faceBox = m, box
         end
         local top, foot = _G["GameTooltipTextLeft" .. first], _G["GameTooltipTextLeft" .. (first + FACE_LINES - 1)]
@@ -277,22 +286,32 @@ function Map.Build(parent, width, onBoss)
         box:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 10)
         m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 11)
         box:SetSize(size, size)
+        -- A tooltip with few words is narrower than the box, which then stood out past its
+        -- edge: it's asked to be at least the box's width and a margin, and laid out again.
+        if GameTooltip.SetMinimumWidth and (GameTooltip:GetWidth() or 0) < size + PAD * 2 then
+            GameTooltip:SetMinimumWidth(size + PAD * 2)
+            pane.widened = true
+            GameTooltip:Show()
+        end
+        -- In the middle of the tooltip's width, its top at the first of the lines left for it.
         box:ClearAllPoints()
-        if top then box:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else box:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
+        local down = top and top:GetTop() and GameTooltip:GetTop() and (GameTooltip:GetTop() - top:GetTop()) or 40
+        box:SetPoint("TOP", GameTooltip, "TOP", 0, -down)
         box:Show()
         -- Shown first: the game loads a model only into a frame that's showing, and this one
         -- is hidden between tooltips (set while hidden, the picture's place stayed empty).
         m:Show()
         if m.ClearModel then m:ClearModel() end
+        -- At the game's own distance, which takes each model whole: nearer, the big ones (a
+        -- fire lord, a stone giant) were cut off at the box's edges.
         m:SetDisplayInfo(display)
-        -- A little nearer than the game's own view of it: five lines high and at the game's
-        -- distance, a boss the size of a person was a small figure in the gap.
-        if m.SetCamDistanceScale then m:SetCamDistanceScale(0.8) end
     end
     local function Tip(sign)
         local d, k = pane.dungeon, sign.k
         local boss = d and k and d.bosses[k]
         if not (boss and GameTooltip) then return end
+        if pane.widened and GameTooltip.SetMinimumWidth then GameTooltip:SetMinimumWidth(0) end
+        pane.widened = nil
         GameTooltip:SetOwner(sign, "ANCHOR_RIGHT")
         GameTooltip:SetText(boss[3] or boss[2], 1, 1, 1)
         local place = Map.Place(d, k)
