@@ -139,7 +139,55 @@ local function Tab(m)
     local text = Name(m.piece)
     if m == picked and m.x then text = ("%s   %s %d, %d"):format(text, m.anchor, m.x, m.y) end
     m.tab.text:SetText(text)
-    m.tab:SetWidth((m.tab.text:GetStringWidth() or 60) + 14)
+    m.tabW = (m.tab.text:GetStringWidth() or 60) + 14
+    m.tab:SetWidth(m.tabW)
+end
+
+-- Where each tab goes: above its piece, or below one near the top of the
+-- screen. A small piece's tab is wider than the piece, so two side by side
+-- had their names drawn over each other ("Food reminder" and "Pet
+-- feeding"); from left to right, a tab that would lie on one already placed
+-- goes to the other side of its piece, if that's clear and on the screen
+-- (John, 19 Nov 2026: "A, below").
+local TAB_H, TAB_GAP = 20, 4
+local function Sides()
+    local W, H = Screen()
+    local list = {}
+    for _, m in pairs(movers or {}) do
+        if m.left then list[#list + 1] = m end
+    end
+    table.sort(list, function(a, b)
+        if a.left ~= b.left then return a.left < b.left end
+        if a.bottom ~= b.bottom then return a.bottom > b.bottom end
+        return a.piece.key < b.piece.key
+    end)
+    local placed = {}
+    local function Spot(m, above)
+        local y = above and m.bottom + m.h + TAB_GAP or m.bottom - TAB_GAP - TAB_H
+        return { m.left, y, m.left + (m.tabW or 74), y + TAB_H }
+    end
+    local function Clear(r)
+        if r[2] < 0 or r[4] > H then return false end
+        for _, o in ipairs(placed) do
+            if r[1] < o[3] + 2 and o[1] < r[3] + 2 and r[2] < o[4] + 2 and o[2] < r[4] + 2 then return false end
+        end
+        return true
+    end
+    for _, m in ipairs(list) do
+        local above = m.bottom + m.h <= H - 30
+        local r = Spot(m, above)
+        if not Clear(r) then
+            local other = Spot(m, not above)
+            if Clear(other) then above, r = not above, other end
+        end
+        placed[#placed + 1] = r
+        m.tab:ClearAllPoints()
+        if above then
+            m.tab:SetPoint("BOTTOMLEFT", m, "TOPLEFT", 0, TAB_GAP)
+        else
+            m.tab:SetPoint("TOPLEFT", m, "BOTTOMLEFT", 0, -TAB_GAP)
+        end
+    end
 end
 
 -- Puts a piece's mover at (left, bottom), and the piece itself with it.
@@ -155,6 +203,7 @@ local function Put(m, left, bottom)
         frame:SetPoint(m.anchor, UIParent, m.anchor, m.x, m.y)
     end
     Tab(m)
+    Sides()
 end
 
 -- Keeps where a piece is now, in its own saved spot.
@@ -171,6 +220,7 @@ local function Pick(m)
         other.tab:SetAlpha(on and 1 or 0.85)
         Tab(other)
     end
+    Sides()
     if Paint then Paint() end
 end
 
@@ -298,13 +348,6 @@ local function Lay()
         m:SetSize(w, h)
         local hidden = (piece.hidden and piece.hidden()) or not (piece.frame and piece.frame() and piece.frame():IsShown())
         m.hidden = hidden
-        m.tab:ClearAllPoints()
-        -- The tab above, or below a piece near the top of the screen.
-        if bottom + h > H - 30 then
-            m.tab:SetPoint("TOPLEFT", m, "BOTTOMLEFT", 0, -4)
-        else
-            m.tab:SetPoint("BOTTOMLEFT", m, "TOPLEFT", 0, 4)
-        end
         Put(m, left, bottom)
         local at = piece.load and piece.load()
         started[key] = at and { at[1], at[2], at[3], at[4] } or { nil }
