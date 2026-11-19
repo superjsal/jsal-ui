@@ -349,6 +349,11 @@ Professions.LEAST = 0.1
 -- runs of another, are trips and switches a road to the cap is better without.
 Professions.SHORT = 5
 Professions.DETOUR = 1.5
+-- A short step of a recipe you'd first have to learn is folded where the neighbour costs up to
+-- TRIP times as much: its few points come with a trip to a trainer or a vendor, and a switch
+-- away from a recipe and back to it, and the road's cost counts neither: three points of Thick
+-- Leather between two runs of Guardian Gloves, for being half the Gloves' cost.
+Professions.TRIP = 3
 
 -- What a recipe costs over the skills from `from` to `to`, or nil where it can't give a point
 -- as surely as a green one there, isn't open to you yet or has a wait.
@@ -376,6 +381,7 @@ local function FoldShort(line, steps, open, known, breakAt, pricing)
         local before, after = steps[i - 1], steps[i + 1]
         local into
         if step.to - step.from < Professions.SHORT and not step.recipe.vein and (before or after) then
+            local most = step.learn and Professions.TRIP or Professions.DETOUR
             local best
             for _, side in ipairs({ before or false, after or false }) do
                 local crosses = side and ((side == before and step.from == breakAt) or (side == after and step.to == breakAt))
@@ -388,7 +394,7 @@ local function FoldShort(line, steps, open, known, breakAt, pricing)
                     local cost = Over(line, side.recipe, step.from, step.to, open, known)
                     -- The side that costs least against the step's own cost, weighed the same way.
                     local share = cost and cost / own
-                    if share and share <= Professions.DETOUR and (not best or share < best) then
+                    if share and share <= most and (not best or share < best) then
                         best, into = share, side
                     end
                 end
