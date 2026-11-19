@@ -457,7 +457,20 @@ Window.Page("professions", function(page)
         end
     end
 
-    local function Paint()
+    -- Each profession's road as last worked out, kept while nothing it's worked out from has
+    -- changed: your skill and cap, the recipes you know, what's in your bags, and the prices. A
+    -- name the game loads redraws the page, and so did every switch between professions: each
+    -- worked the road out again (John, 19 Nov 2026: "some lag switching ... between professions",
+    -- "still laggy"). `bags` moves when the game says your bags changed.
+    local plans, bags = {}, 0
+    local Paint
+    local function TimedPaint()
+        local started = debugprofilestop and debugprofilestop()
+        xpcall(Paint, ns.Report)
+        if started and ns.Timed then ns.Timed("Professions page, drawn", started) end
+    end
+
+    function Paint()
         local mine = Professions.Mine()
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
@@ -489,7 +502,7 @@ Window.Page("professions", function(page)
             Style.SetBorder(c.edges, p.line == selected and "gold" or "cardLine")
             c:SetScript("OnClick", function()
                 selected = p.line
-                Paint()
+                TimedPaint()
             end)
             if p.line == selected then current = p end
         end
@@ -529,7 +542,19 @@ Window.Page("professions", function(page)
         local function known(spell) return set[spell] end
         -- The road runs to the rank's cap, with a break where the next rank
         -- is learned, as the profession panel's does.
-        local road, totals, stuck = Professions.Plan(line, skill, cap, known, rankAt)
+        local prices = ns.ItemPrices
+        local knownCount = 0
+        for _ in pairs(set) do knownCount = knownCount + 1 end
+        local key = table.concat({ skill, cap, tostring(rankAt), seen and "seen" or "trainer", knownCount, tostring(Professions.Priced and Professions.Priced()),
+            prices and prices.seen or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
+        local kept = plans[line]
+        local road, totals, stuck
+        if kept and kept.key == key then
+            road, totals, stuck = kept.road, kept.totals, kept.stuck
+        else
+            road, totals, stuck = Professions.Plan(line, skill, cap, known, rankAt)
+            plans[line] = { key = key, road = road, totals = totals, stuck = stuck }
+        end
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
@@ -640,18 +665,19 @@ Window.Page("professions", function(page)
               ranked = ranked, ahead = ahead, capped = not stuck and skill < cap, trainer = trainer })
     end
 
-    page.Refresh = function() xpcall(Paint, ns.Report) end
+    page.Refresh = TimedPaint
     local events = CreateFrame("Frame")
     for _, event in ipairs({ "SKILL_LINES_CHANGED", "BAG_UPDATE_DELAYED", "ITEM_DATA_LOAD_RESULT" }) do
         pcall(events.RegisterEvent, events, event)
     end
     local queued = false
-    events:SetScript("OnEvent", function()
+    events:SetScript("OnEvent", function(_, event)
+        if event == "BAG_UPDATE_DELAYED" then bags = bags + 1 end
         if not page:IsVisible() or queued then return end
         queued = true
         Compat.After(0.3, function()
             queued = false
-            if page:IsVisible() then xpcall(Paint, ns.Report) end
+            if page:IsVisible() then TimedPaint() end
         end)
     end)
 end, nil, true)
