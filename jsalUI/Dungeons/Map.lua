@@ -247,10 +247,37 @@ function Map.Build(parent, width, onBoss)
         pane.hot = k
         Paint()
     end
-    local function Clickable(frame)
+    -- A sign on the map has a tooltip: the boss's name, its floor and whether it's dead, what
+    -- it has for you and the quests that need it (`pane.tip`, the page's to say), and that a
+    -- click opens its loot. The list's rows have none: a tooltip following the pointer down a
+    -- list is a lot of movement, and a row says most of it already.
+    local function Tip(sign)
+        local d, k = pane.dungeon, sign.k
+        local boss = d and k and d.bosses[k]
+        if not (boss and GameTooltip) then return end
+        GameTooltip:SetOwner(sign, "ANCHOR_RIGHT")
+        GameTooltip:SetText(boss[3] or boss[2], 1, 1, 1)
+        local place = Map.Place(d, k)
+        local where = pane.manyFloors and place and Map.Floor(ns.DungeonMaps[d.id], place[1]) or ""
+        if pane.killed and pane.killed(k) then where = where ~= "" and (where .. " · killed") or "Killed" end
+        if where ~= "" then GameTooltip:AddLine(where, 0.6, 0.59, 0.53) end
+        if pane.tip then pane.tip(GameTooltip, k) end
+        if onBoss then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine("Click for its loot", 0.6, 0.59, 0.53)
+        end
+        GameTooltip:Show()
+    end
+    local function Clickable(frame, tips)
         frame:EnableMouse(true)
-        frame:SetScript("OnEnter", function(self) Hot(self.k) end)
-        frame:SetScript("OnLeave", function() Hot(nil) end)
+        frame:SetScript("OnEnter", function(self)
+            Hot(self.k)
+            if tips then Tip(self) end
+        end)
+        frame:SetScript("OnLeave", function()
+            Hot(nil)
+            if tips and GameTooltip then GameTooltip:Hide() end
+        end)
         frame:SetScript("OnMouseUp", function(self) if onBoss and self.k then onBoss(self.k) end end)
     end
 
@@ -260,7 +287,7 @@ function Map.Build(parent, width, onBoss)
         if not pane.pins[i] then
             local p = Sign(canvas)
             p:SetFrameLevel(canvas:GetFrameLevel() + 2)
-            Clickable(p)
+            Clickable(p, true)
             pane.pins[i] = p
         end
         return pane.pins[i]
@@ -298,9 +325,10 @@ function Map.Build(parent, width, onBoss)
     -- asked here, once a boss, and not on every paint: pointing at a boss paints again.
     -- `quests`, where given, is the bosses your quests need: { [k] = the quest's name }.
     pane.star, pane.gain = {}, {}
-    function pane:Draw(d, killed, gear, quests)
+    -- `tip(tooltip, k)`, where given, adds what a boss's tooltip says of you.
+    function pane:Draw(d, killed, gear, quests, tip)
         if self.dungeon ~= d then self.floor, self.hot = nil, nil end
-        self.dungeon, self.killed, self.quests = d, killed, quests or nil
+        self.dungeon, self.killed, self.quests, self.tip = d, killed, quests or nil, tip
         for k = 1, math.max(#d.bosses, #self.star) do
             self.star[k], self.gain[k] = false, nil
             if gear and d.bosses[k] then self.star[k], self.gain[k] = gear(k) end
@@ -334,6 +362,7 @@ function Map.Build(parent, width, onBoss)
         end
         pane.floors:Pick(pane.floor)
         pane.floors:SetShown(count > 1)
+        pane.manyFloors = count > 1
         if maps.mini then
             Picture(nil, maps.mini)
         else

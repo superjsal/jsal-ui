@@ -357,8 +357,10 @@ local RED = Style.Tint("red")
 
 -- What a boss has for you, for its mark on the dungeon's map: whether it drops a piece starred
 -- in your Gear plan, and the most any of its drops betters what you wear (nil for none, or
--- while the game hasn't loaded them). By the rules its card sorts its loot by.
-local function BossGear(boss)
+-- while the game hasn't loaded them). By the rules its card sorts its loot by. Given `pieces`,
+-- each piece for you is put in it as well: { id, star, gain (nil for a starred piece that's no
+-- better) }.
+local function BossGear(boss, pieces)
     local G, D = ns.Gear, ns.Dungeons
     if not (G and G.Better) then return false, nil end
     local starred = G.Starred and G.Starred() or {}
@@ -373,6 +375,7 @@ local function BossGear(boss)
         if classID == RECIPE or (not mine and (CantEquip(classID, subclassID, equipLoc) or ForOthers(id) == true)) then return end
         local is, gain = G.Better(id, equipLoc, classID, subclassID)
         if is and (gain or 0) > (best or -1) then best = gain or 0 end
+        if pieces and (mine or is) then pieces[#pieces + 1] = { id = id, star = mine, gain = is and (gain or 0) or nil } end
     end
     for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[boss[1]] or {}) do Look(drop[1]) end
     for id in pairs(D.Loot()[D.Key(boss[2])] or {}) do Look(id) end
@@ -384,8 +387,10 @@ end
 -- the same boss. Nothing says which boss a quest needs, so it's read off the quests in your log:
 -- of the dungeon's quests you hold, each objective still to do that names a boss, or an item a
 -- boss is known to drop. A quest not picked up yet, or one that wants neither, has no boss.
+-- Returned with them: each boss's objectives, { [k] = { { the quest's name, the objective as the
+-- game words it } } }, for its tooltip.
 local function BossQuests(d)
-    local out
+    local out, lines
     local read = C_QuestLog and C_QuestLog.GetQuestObjectives
     if not read then return nil end
     local byName, byItem
@@ -420,7 +425,9 @@ local function BossQuests(d)
                     k = byItem[name]
                 end
                 if k then
-                    out = out or {}
+                    out, lines = out or {}, lines or {}
+                    lines[k] = lines[k] or {}
+                    lines[k][#lines[k] + 1] = { q[2], text }
                     local has = out[k]
                     if not has then
                         out[k] = { q[2], 0, [q[1]] = true }
@@ -433,10 +440,52 @@ local function BossQuests(d)
     end
     if not out then return nil end
     for k, has in pairs(out) do out[k] = has[2] > 0 and (has[1] .. " +" .. has[2]) or has[1] end
-    return out
+    return out, lines
 end
--- On the module too, so it can be asked by itself.
-if ns.Dungeons then ns.Dungeons.BossQuests = BossQuests end
+
+-- What a boss's tooltip on the map says of you, added to `tip`: under "For you", each piece on
+-- your Gear plan or better than what you wear, with its picture, its name and by how much, the
+-- starred ones first; then each quest in your log that needs the boss, with what's left of it as
+-- the game words it. Worked out when the boss is pointed at, not before.
+local function BossTip(tip, d, k)
+    local boss = d.bosses[k]
+    if not boss then return end
+    local pieces = {}
+    BossGear(boss, pieces)
+    table.sort(pieces, function(a, b)
+        if a.star ~= b.star then return a.star end
+        if (a.gain or -1) ~= (b.gain or -1) then return (a.gain or -1) > (b.gain or -1) end
+        return a.id < b.id
+    end)
+    if #pieces > 0 then
+        tip:AddLine(" ")
+        tip:AddLine("For you", 0.89, 0.69, 0.29)
+        for _, piece in ipairs(pieces) do
+            local name, _, quality, _, _, _, _, _, _, texture = ItemInfo(piece.id)
+            -- By how much, as its card's tag says it.
+            local by = ""
+            if piece.gain then
+                local pct = math.floor(piece.gain * 100 + 0.5)
+                by = pct < 1 and "under 1%" or ("+" .. pct .. "%")
+            end
+            local star = piece.star and ns.Gear and ns.Gear.STAR or nil
+            tip:AddDoubleLine((texture and ("|T" .. texture .. ":16:16:0:0|t ") or "") .. ("|cff%s%s|r"):format(Style.Quality(quality), name or "..."),
+                (star and (star .. (by ~= "" and " " or "")) or "") .. by, 1, 1, 1, 0.38, 0.70, 0.35)
+        end
+    end
+    local _, lines = BossQuests(d)
+    local last
+    for _, line in ipairs(lines and lines[k] or {}) do
+        if line[1] ~= last then
+            tip:AddLine(" ")
+            tip:AddLine("|T" .. ACTIVE_MARK .. ":14:14:0:0|t " .. line[1], 0.89, 0.69, 0.29)
+            last = line[1]
+        end
+        tip:AddLine(line[2], 1, 1, 1)
+    end
+end
+-- On the module too, so they can be asked by themselves.
+if ns.Dungeons then ns.Dungeons.BossQuests, ns.Dungeons.BossTip = BossQuests, BossTip end
 
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
@@ -1836,7 +1885,7 @@ Window.Page("dungeons", function(page)
             mapPane:Draw(d, function(k)
                 local b = d.bosses[k]
                 return D.KillCount(b[2], game, b[3]) > 0
-            end, function(k) return BossGear(d.bosses[k]) end, BossQuests(d))
+            end, function(k) return BossGear(d.bosses[k]) end, (D.BossQuests(d)), function(tip, k) D.BossTip(tip, d, k) end)
             wait.drawn, wait.lacking = d, missed
             Fit(mapPane.height)
             B.Scroll(d, tab)
