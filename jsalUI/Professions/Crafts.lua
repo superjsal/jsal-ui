@@ -742,12 +742,21 @@ local function Names()
         if type(line) == "number" and type(source) == "table" and type(source.recipes) == "table" and not SKIP[line] then
             for _, recipe in ipairs(ns.Professions.Recipes(line) or {}) do
                 local name = Compat.SpellInfo(recipe.spell)
-                if name then list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line } end
+                if name then
+                    list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line, learn = recipe.learn }
+                end
             end
         end
     end
+    -- Two recipes can share a name (Forever's own Enchant Bracer - Agility, taking Vision Dust,
+    -- beside the old one taking Nexus Crystals): those come lowest skill first, and each says its
+    -- skill (`twin`), or the list showed one name twice with nothing to tell them apart.
+    local seen = {}
+    for _, entry in ipairs(list) do seen[entry.lower] = (seen[entry.lower] or 0) + 1 end
+    for _, entry in ipairs(list) do entry.twin = seen[entry.lower] > 1 end
     table.sort(list, function(a, b)
         if a.lower ~= b.lower then return a.lower < b.lower end
+        if (a.learn or 0) ~= (b.learn or 0) then return (a.learn or 0) < (b.learn or 0) end
         return a.spell < b.spell
     end)
     if #list > 0 then C.names = list end
@@ -930,7 +939,8 @@ local function PaintDrop()
         row:SetShown(entry ~= nil)
         if entry then
             row.spell = entry.spell
-            row.text:SetText(entry.name .. "   " .. Style.Tint("muted") .. (ns.Professions.Name(entry.line) or "") .. "|r")
+            row.text:SetText(entry.name .. "   " .. Style.Tint("muted") .. (ns.Professions.Name(entry.line) or "")
+                .. (entry.twin and entry.learn and (" · skill " .. entry.learn) or "") .. "|r")
         end
     end
 end
