@@ -236,6 +236,18 @@ def main():
     used = set()
     for line_id, title, key in PROFESSIONS:
         recipes, seen = [], set()
+        # A pattern is found by the name of the recipe it teaches, and two recipes can share a
+        # name: Forever's Enchant Bracer - Agility for +9 (Nexus Crystals, yellow at 320) and the
+        # one for +5 (Vision Dust), whose formula needs 190. The +9 one, which Wowhead's lists
+        # leave out, took that formula: learned at 190, from a vendor (John, 18 Nov 2026: "seems
+        # wrong"). Where a name is shared, its pattern is only the one Wowhead lists; one Wowhead
+        # leaves out that a pattern of its name was found for stays in, at the skill it turns
+        # yellow, its source not known. One with no pattern of its name stays out, as before (the
+        # second copies of raid crafts, such as the ice and Ahn'Qiraj sets).
+        by_name = {}
+        for r in abilities:
+            if r["SkillLine"] == str(line_id) and reagents.get(int(r["Spell"])):
+                by_name.setdefault(names.get(int(r["Spell"]), ""), set()).add(int(r["Spell"]))
         for r in abilities:
             if r["SkillLine"] != str(line_id):
                 continue
@@ -248,6 +260,10 @@ def main():
                 continue
             name = names.get(spell, "")
             pattern = patterns.get(name)
+            shared = len(by_name.get(name, ())) > 1
+            if shared and spell not in known:
+                skill = yellow if pattern else 0
+                pattern = None
             if skill <= 0:
                 # Not on Wowhead: a pattern's required skill, else where it turns yellow.
                 skill = pattern[2] if pattern else 0
