@@ -75,9 +75,13 @@ function Setup.Read()
     Try(function()
         local build = Today.Build and Today.Build()
         if not build then return end
+        -- A build with no points planned is no build yet, whatever it's called: it's said so, greyed.
+        if (build.planned or 0) == 0 then
+            read.build = { icon = "build", title = "Build not set", sub = "Choose one in Build when you're ready", unset = true }
+            return
+        end
         read.build = { icon = "build", title = build.name or "Your build",
-            sub = build.next and ("Next: " .. build.next.name) or ((build.planned or 0) > 0 and "Every planned point is taken"
-                or "Plan your points in Build") }
+            sub = build.next and ("Next: " .. build.next.name) or "Every planned point is taken" }
     end)
     Try(function()
         if not Today.Training then return end
@@ -151,20 +155,31 @@ local function Planned(build)
     return build ~= nil and not build.builtin and #(build.order or {}) > 0
 end
 
+-- The build of the player's own to keep: the one followed when it has
+-- points, else the first of theirs that has. It's still theirs to keep
+-- after another choice was tried.
+local function Kept(Tree, classID, active)
+    if Planned(active) then return active end
+    for _, build in ipairs(Tree.ClassBuilds(classID)) do
+        if Planned(build) then return build end
+    end
+end
+
 -- The choices there are for this character, in order, and the one in force.
 function Setup.BuildChoices()
     local Tree, classID = Trees()
     if not Tree then return {}, nil end
     local active = Tree.Active()
     local ready = Tree.Suggested(classID)[1]
+    local kept = Kept(Tree, classID, active)
     local list = {}
-    if Planned(active) then list[#list + 1] = { key = "keep", title = "Keep my build", sub = active.name, build = active } end
+    if kept then list[#list + 1] = { key = "keep", title = "Keep my build", sub = kept.name, build = kept } end
     if ready then list[#list + 1] = { key = "ready", title = "Ready-made build", sub = ready.name, build = ready } end
-    if not Planned(active) then list[#list + 1] = { key = "own", title = "Build my own", sub = "Opens Build after this" } end
+    if not kept then list[#list + 1] = { key = "own", title = "Build my own", sub = "Opens Build after this" } end
     list[#list + 1] = { key = "import", title = "Import from Wowhead", sub = "Paste a calculator link" }
     list[#list + 1] = { key = "later", title = "Later", sub = "Nothing is followed yet" }
     local now
-    if Planned(active) then
+    if kept and active == kept then
         now = "keep"
     elseif active and active.builtin then
         now = "ready"
@@ -736,6 +751,9 @@ BUILD.you = function(page)
             line:SetShown(plan ~= nil)
             if plan then
                 line.icon:SetTexture(OWN .. plan.icon)
+                line.icon:SetDesaturated(plan.unset and true or false)
+                line.icon:SetAlpha(plan.unset and 0.4 or 1)
+                line.title:SetTextColor(Style.Color(plan.unset and "muted" or "text"))
                 line.title:SetText(plan.title)
                 line.sub:SetText(plan.sub or "")
                 line.value:SetText(plan.value or "")
