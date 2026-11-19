@@ -34,6 +34,20 @@ local FEET = {
     snowlet = 57, frostmantle = 62, auroracrown = 64, starwhelp = 55, moondrake = 60, eclipselord = 69,
 }
 PalRun.FEET = FEET
+-- And where its feet are across the picture: how many of its pixels right of the middle they sit
+-- (the pictures face left), standing and then on the move, so they're drawn over the box and not
+-- beside it. Measured from each kind's standing frame and the average of its ten running ones.
+local FEETX = {
+    briarboar = { 3, 4 }, thornhog = { 2, 2 }, brambletusk = { -2, 0 }, wispkin = { 1, -1 }, gloamtail = { 0, -1 },
+    wispjester = { -3, -3 }, scrapwing = { -4, -1 }, jabdrake = { -4, 1 }, flarechamp = { 4, 2 },
+    stormcub = { 0, -2 }, thundermane = { -10, -7 }, tempestmane = { -11, -10 }, capling = { 2, 5 },
+    lanternshell = { 6, 4 }, bloomsage = { 1, -1 }, boltusk = { 4, 6 }, rumbletrunk = { 4, -1 },
+    warmammoth = { -3, -2 }, gemlet = { 0, 1 }, miragehoof = { -1, -1 }, sandseer = { 2, 2 },
+    pebblebill = { -2, -2 }, cobbleback = { 0, -2 }, rockwarden = { 8, 1 }, snowlet = { -1, 0 },
+    frostmantle = { 4, 3 }, auroracrown = { 2, 5 }, starwhelp = { -3, -3 }, moondrake = { -6, -5 },
+    eclipselord = { -3, 2 },
+}
+PalRun.FEETX = FEETX
 
 ---------------------------------------------------------------------------
 -- What's kept, for the whole account: today's best time, how many runs at
@@ -348,11 +362,13 @@ local function Paint()
         ui.pal:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
     end
     -- Its picture is centred on the 64 pixels it stands in, whose feet line
-    -- sits on the bottom of the pal's box.
+    -- sits on the bottom of the pal's box; across, its feet are over the box's middle.
     local size = from.cell * SCALE
     local middle = (run.y + Rules.H) * TILE - (FEET[sprite] or 57) * SCALE + 32 * SCALE
+    local feetx = FEETX[sprite] and FEETX[sprite][(from == sheet and cell == sheet.stand) and 1 or 2] or 0
+    local across = (run.x + Rules.W / 2) * TILE + (run.facing > 0 and feetx or -feetx) * SCALE
     ui.pal:SetSize(size, size)
-    ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor((run.x + Rules.W / 2) * TILE), -math.floor(middle))
+    ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor(across), -math.floor(middle))
 
     -- A heart for each fall the run has left; one that's gone is greyed, from the right.
     if ui.fallen ~= run.falls then
