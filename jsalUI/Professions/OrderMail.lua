@@ -6,8 +6,7 @@
 -- (Orders.Mailed) and they're told. An item handed over in a trade is marked
 -- sent the same way: when the game says a trade with whoever asked finished
 -- with the item on your side of it (Orders.Traded). There's no Mark sent
--- button (John, 18 Nov 2026, of two mockups: "A: no button"): with one, an
--- order could be marked sent with nothing handed over.
+-- button: with one, an order could be marked sent with nothing handed over.
 --
 -- The card is a child of UIParent, placed from the mail window's edges and
 -- never anchored to it. Fill in only sets the text of the To and Subject

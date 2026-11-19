@@ -104,8 +104,7 @@ end
 
 -- The latest few, newest first, for a report: "Errors: Helpers/MenuBar.lua:70:
 -- attempt to index a nil value (x3, 5m ago) / ...". Only this version's: an error from an
--- older one has likely been fixed since, and one that hasn't comes again (John, 19 Nov 2026,
--- of a report that carried two errors fixed days before).
+-- older one has likely been fixed since, and one that hasn't comes again.
 function Errors.Summary()
     local list, now, parts = List(), Now(), {}
     for i = #list, 1, -1 do

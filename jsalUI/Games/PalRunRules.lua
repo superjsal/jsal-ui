@@ -10,9 +10,8 @@ ns.PalRunRules = Rules
 Rules.ROWS = 8            -- rows of tiles in a course, counted down from 0 at the top
 Rules.STEP = 1 / 60       -- seconds in one step
 -- The pal's box, in tiles: the same for every kind, so none has the easier run. It's as wide as
--- a pal's feet (John, 19 Nov 2026, of his pal standing with its body over a gap: "how precise
--- can you make the hitboxes?", then "A, one narrower box"): it was 1.2, and a pal stood on the
--- last fifth of a tile with its feet drawn over the pit. Every piece is proven passable with it.
+-- a pal's feet, so a pal stands only where its feet are drawn: a box 1.2 wide let one stand on
+-- the last fifth of a tile with its feet over the pit. Every piece is proven passable with it.
 Rules.W, Rules.H = 0.6, 1.6
 Rules.TREAT = 30          -- steps a treat takes off your time (half a second)
 Rules.FALLS = 3           -- falls into a pit that end a run

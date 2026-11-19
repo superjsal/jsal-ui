@@ -97,9 +97,8 @@ end
 
 ---------------------------------------------------------------------------
 -- Learning the next rank, as a row of its own where the road reaches its
--- skill. A click pins the nearest trainer who teaches it, and its tooltip says so. (`inline`
--- once put that in the row's own words, which ran off the end of a long one: "...Dustwallow
--- Marsh · click for...", on John's First Aid, 19 Nov 2026.)
+-- skill. A click pins the nearest trainer who teaches it, and its tooltip says so, not the
+-- row's own words, which would run off the end of a long one. (`inline` is no longer read.)
 ---------------------------------------------------------------------------
 function Road.RankRow(parent, width, inline)
     local r = CreateFrame("Button", nil, parent)

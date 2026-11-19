@@ -196,10 +196,10 @@ local function AllPriced(line, recipe)
 end
 
 -- What an item is worth from the data alone, by profession: it never changes, so it's worked out
--- once. Unpriced, it was worked out again for every material of every recipe at every point of the
--- road, two makings deep: a third of Leatherworking's road, which took 24 ms to plan and hitched
--- the Professions page on every switch (John, 19 Nov 2026: "some lag switching ... between
--- professions"). Priced, the road's own `seen` keeps it, as prices can change between roads.
+-- once. Not kept, it would be worked out again for every material of every recipe at every point
+-- of the road, two makings deep: a third of Leatherworking's road, which took 24 ms to plan and
+-- hitched the Professions page on every switch. Priced, the road's own `seen` keeps it, as prices
+-- can change between roads.
 local plainWorth = {}
 local function ItemWeight(line, item, depth)
     local key = (depth or 0) == 0 and priced and seen and item
@@ -507,8 +507,8 @@ function Professions.Plan(line, skill, target, known, breakAt)
     -- Only the recipes that could be a step of this road: one still short of a few points a craft at
     -- the skill it starts from (a recipe only gets less likely to give a point as you go), and one
     -- you know or could learn before the cap. At 158 most of Leatherworking's are neither, and
-    -- every point of the road looked at them all (John, 19 Nov 2026: "some lag switching ...
-    -- between professions"). The road it finds is the same.
+    -- looking at them all at every point of the road made a switch between professions lag. The
+    -- road it finds is the same.
     local recipes = {}
     for _, recipe in ipairs(line == MINING and Veins() or Professions.Recipes(line) or {}) do
         if Chance(recipe, skill) >= Professions.LEAST and (recipe.vein or recipe.learn < target or known(recipe.spell)) then

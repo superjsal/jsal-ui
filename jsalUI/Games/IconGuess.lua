@@ -122,8 +122,8 @@ end
 local frame, subtitle, iconHolder, iconTexture, buttons, endText, shareButton, practiceButton
 local round, mode, index, score, marks, locked
 
--- The score alone, as the Daily Word's share is (John, 18 Nov 2026: "Probably drop the marks
--- too"); which icons were right shows on the Games page, from IconGuess.Marks.
+-- The score alone, as the Daily Word's share is; which icons were right shows on the Games
+-- page, from IconGuess.Marks.
 local function ShareLine()
     local state = Daily()
     return ("Icon Guess %d/%d"):format(state.score, ROUND)

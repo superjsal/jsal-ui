@@ -634,9 +634,8 @@ local function BuildParts()
             b.frame[i] = edge
         end
         -- And a little bob of its picture, up and back, for as long as it's needed (Pet.BobCare).
-        -- It was the whole button sliding, with the game's own animation, and in the game the
-        -- button flew up out of the window and was gone (John, 19 Nov 2026, of Lights out: "the
-        -- lights out flies to the top and disappears"): the picture is set in its place each time.
+        -- Only the picture moves, set in its place each time: sliding the whole button with the
+        -- game's own animation sent it up out of the window and out of sight.
         b.bobbing = false
         -- Pressed, its picture dips, like a key going down.
         b:HookScript("OnMouseDown", function(self) self.pressed = true; self.art:SetPoint("TOP", 0, -14) end)

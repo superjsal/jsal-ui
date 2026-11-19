@@ -378,7 +378,7 @@ end)
 for _, page in ipairs({ "home", "install", "games", "settings" }) do
     ns.Command(page, function() ns.Window.Open(page) end)
 end
--- The Guild page was folded into Games (18 Nov 2026): /jsal guild goes where the guild's day is.
+-- /jsal guild opens the Games page, where the guild's day is.
 ns.Command("guild", function() ns.Window.Open("games") end)
 
 -- The game's addon menu by the minimap.

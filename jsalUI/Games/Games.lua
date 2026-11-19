@@ -18,7 +18,7 @@ end
 
 -- How long until the next day's games, as the heading says it: "14h 20m", minutes alone in
 -- the last hour. The day still turns over at the daily reset; the number counting days is
--- never shown (John, 18 Nov 2026: "get rid of the tallying #14s", "a timer instead").
+-- never shown, as how long is left says more than which day it is.
 -- `short`: the hours alone, for Home's small card ("14h").
 function Games.Until(short)
     local left = math.max(0, Compat.SecondsUntilDailyReset() or 0)
@@ -38,9 +38,9 @@ function Games.Random(seed)
     end
 end
 
--- The Guild Word as one of the games (John, 18 Nov 2026: the Guild page folded into this one,
--- "debating if we even need this page"). It answers what a card asks of a game, from the
--- word the guild master or an officer set and what guildmates have told the guild.
+-- The Guild Word as one of the games, on this page with the rest of the guild's day. It
+-- answers what a card asks of a game, from the word the guild master or an officer set and
+-- what guildmates have told the guild.
 local GuildWord = { running = false }
 local function GuildWordGame()
     local guild = ns.Guild
@@ -96,7 +96,7 @@ function GuildWord.Open()
 end
 
 -- Set word, for the guild master and officers: a small window with a box, as Report a problem's Discord
--- link opens one ("A is better", 18 Nov 2026): the card stays the shape of the others.
+-- link opens one, so the card stays the shape of the others.
 local setter
 function Games.SetWord()
     if not setter then
@@ -173,8 +173,8 @@ end
 -- How your guild did today, for the foot of the page: a row for you and each
 -- guildmate heard this session with jsal.ui, the best Daily Word first, each
 -- with today's Daily Word, Icon Guess and Pal run where they've played. Nil
--- with Guild games off. You're among them, as the Guild page had you (John, 19 Nov
--- 2026, of the table saying "No one yet": "doesnt seem to count me as a guildmate").
+-- with Guild games off. You're among them, so with no guildmate on it still has
+-- your day.
 function Games.GuildToday()
     local guild = ns.Guild
     if not (guild and guild.running and guild.Members) then return nil end
@@ -226,10 +226,9 @@ end
 
 -- A guildmate's day, shown beside their row on the Games page while it's pointed at: their name,
 -- then a gold heading a game, its score under it, and for the Word games the grid as tiles (never
--- the letters), for Icon Guess its ten. A card of its own, not the game's tooltip, so its gaps can
--- be set: the tooltip spaced a game from the next by a whole blank line (John, 19 Nov 2026: "lets
--- also tighten this up", then "B, spaced out better top down"), and all of it centred ("B,
--- centred", of previews\guild_day_card_AB_preview.png). Made the first time it's wanted.
+-- the letters), for Icon Guess its ten, all of it centred. A card of its own, not the game's
+-- tooltip, so its gaps can be set: a tooltip spaces a game from the next by a whole blank line.
+-- Made the first time it's wanted.
 local TILES = { r = "green", n = "gold", x = "lineStrong", ["1"] = "green", ["0"] = "lineStrong" }
 local DAY_PAD, DAY_GAP, DAY_HEAD, DAY_SCORE = 12, 12, 3, 6   -- the card's edge; between games; under a heading; under a score
 -- A touch bigger than first drawn ("can make tiny bit bigger overall"): the words a size up, the tiles 16.

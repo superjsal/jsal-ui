@@ -889,11 +889,10 @@ end
 -- What the trainer window open now teaches, from the spells its rows are:
 -- "beast" (Beast Training, with no one on the other side), "pet" (a pet
 -- trainer), "weapons" (a weapon master), "class", or "other" for a trainer
--- of none of those. A riding instructor opens the same window: anything not
--- known to be the others was taken for the class trainer, and the panel
--- stood in for Jartsam, Darnassus's riding instructor, as "Hunter trainer"
--- (John, 18 Nov 2026: "major bug"). A class trainer is one selling a spell
--- of your class, or one jsal.ui knows by name.
+-- of none of those. A riding instructor opens the same window, so a trainer
+-- is taken for the class trainer only when it is one: one selling a spell
+-- of your class, or one jsal.ui knows by name. Otherwise the panel would
+-- stand in for a riding instructor as "Hunter trainer".
 local function TrainerKind()
     if not UnitExists("npc") then return "beast" end
     local _, _, classID = UnitClass("player")

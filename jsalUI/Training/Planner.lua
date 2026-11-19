@@ -702,15 +702,14 @@ Window.Page("training", function(page)
         for k, w in ipairs(weapons) do
             local master = Master(w.id)
             -- Its tooltip a line a fact, as a road step's is: who teaches it, with its cost at the
-            -- right; each master and where under it; what a click does last (John, 19 Nov 2026,
-            -- of it as one paragraph: "can probably space out better the gray text").
+            -- right; each master and where under it; what a click does last.
             local hint = { { "Taught by", w.cost and Compat.Money(w.cost) or nil, "text" } }
             if w.at then
                 for who in (w.at .. " or "):gmatch("(.-) or ") do hint[#hint + 1] = { (who:gsub(" in ", ", ", 1)) } end
             else
                 hint[#hint + 1] = { "No weapon master seen teaching it yet: visit one and jsal.ui remembers." }
             end
-            hint[#hint + 1] = { " " }   -- a gap after who teaches it, as before it (John: "lts add a space after taught by as well")
+            hint[#hint + 1] = { " " }   -- a gap after who teaches it, as before it
             if master then hint[#hint + 1] = { "Click to show them on your map" } end
             hint[#hint + 1] = { w.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
             list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master, hint = hint }

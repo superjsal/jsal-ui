@@ -600,8 +600,7 @@ local function Done(list, order, words, name, state, action)
     r.icon:SetTexture(Icon(order))
     local recipe = ns.Orders.Recipe(order.spell)
     -- An item's name the game hasn't loaded yet: the recipe's own name meanwhile, and the
-    -- list drawn again once a second later, when it may have it. It read "..." for good
-    -- (John's screenshot of a done order, 19 Nov 2026).
+    -- list drawn again once a second later, when it may have it, so it never stays "...".
     local called = ns.Orders.Name(order)
     if not called then
         called = (Compat.SpellInfo(order.spell))
@@ -1140,8 +1139,7 @@ local function BuildCard(view, width)
 
     -- What you're asking for: its picture, its name in its colour, and for an enchant what it
     -- does in the game's own words, so the wrong one isn't asked for. Pointing at it shows the
-    -- game's tooltip. (John, 18 Nov 2026: "i also think it should show what the item is",
-    -- "especially for enchants", of two mockups "A", then "just the item is fine".)
+    -- game's tooltip.
     card.item = CreateFrame("Button", nil, card)
     card.item:SetPoint("TOPLEFT", 16, -112)
     card.item:SetPoint("TOPRIGHT", -16, -112)
@@ -1543,8 +1541,8 @@ end
 ---------------------------------------------------------------------------
 -- The window.
 ---------------------------------------------------------------------------
--- "To make" was "For you", which read as what's coming to you rather than what you can make
--- for others (John, 18 Nov 2026). Its key stays "foryou" so a saved tab still opens.
+-- The first tab is "To make": what you can make for others, not what's coming to you. Its key
+-- stays "foryou", from its old name, so a saved tab still opens.
 local TABS = { { "foryou", "To make" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
 local PAINT = { foryou = PaintForYou, yours = PaintYours, crafters = PaintCrafters }
 

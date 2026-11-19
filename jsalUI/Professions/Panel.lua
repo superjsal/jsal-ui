@@ -28,10 +28,9 @@ local TARGETS = {
 
 local panel, anchor, dismissed
 local Paint
--- What a switch between professions in their window worked out again each time, kept by
--- profession (John's video of 19 Nov 2026: the panel showed the last profession for up to a
--- second after the window had changed): which recipes you know, asked of the game one by one,
--- until it says you learned one; and the road, while nothing it comes from has changed.
+-- What a switch between professions in their window would work out again each time, kept by
+-- profession, so the panel keeps up with the window: which recipes you know, asked of the game
+-- one by one, until it says you learned one; and the road, while nothing it comes from has changed.
 -- `bags` moves when the game says your bags changed. `painted` is the profession last drawn.
 local knownBy, plans, bags, painted = {}, {}, 0, nil
 -- The tab showing: the road with what it needs, or the recipes to learn.
@@ -770,8 +769,7 @@ function Paint()
             return STOP_H
         end
         -- A last step that reaches the cap is the road's end and the cap's sign: ringed in gold,
-        -- with no second sign after it saying the same number (John, 19 Nov 2026, of the panel's
-        -- "225" then the ringed 225: "Yes, match the page").
+        -- with no second sign after it saying the same number, as on the Professions page.
         local reached = more and not stuck and skill < cap and #road - 1 <= MAX_STEPS and (road[#road].to or 0) >= cap
         for i = 2, #road do
             if i - 1 > MAX_STEPS then break end

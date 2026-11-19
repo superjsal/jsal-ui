@@ -1,7 +1,7 @@
 -- Guild games: who in the guild runs jsal.ui, today's game scores, and the Guild Word, a word
 -- the guild master or an officer sets for the whole guild to play. It hears only guildmates who have jsal.ui,
 -- through addon messages, and keeps guildmates' scores for this session only. What it hears is
--- shown on the Games page; the Guild page it had was folded into that one (18 Nov 2026).
+-- shown on the Games page.
 local _, ns = ...
 local Style, Compat, Comms, Window = ns.Style, ns.Compat, ns.Comms, ns.Window
 

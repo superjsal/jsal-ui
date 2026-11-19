@@ -199,8 +199,8 @@ local function Finish(game, won)
 end
 
 -- What's shared to guild chat: the score alone, one line ("Daily Word 3/6"). The grid of
--- marks was hard to read as one line and a lot of chat as several (John, 18 Nov 2026); a
--- guildmate's grid shows on the Games page instead, from Marks below.
+-- marks is hard to read as one line and a lot of chat as several; a guildmate's grid shows
+-- on the Games page instead, from Marks below.
 local function ShareLines(game)
     return { ("%s %s/6"):format(game.guild and "Guild Word" or "Daily Word", game.won and #game.guesses or "X") }
 end

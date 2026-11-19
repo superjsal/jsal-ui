@@ -332,8 +332,7 @@ Window.Page("professions", function(page)
         -- The road's places: a stop for each step after the one in hand, the
         -- next rank's while it's still ahead, and the cap's sign; but a rank
         -- learned at the cap itself is the road's end, with no sign after it
-        -- saying the same number, and so is a last step that reaches the cap
-        -- (John, 19 Nov 2026, of Leatherworking's "225" then the ringed 225: "Yes, drop it").
+        -- saying the same number, and so is a last step that reaches the cap.
         local ranks = (not ranked and o.ahead) and 1 or 0
         local last = plan[#plan]
         local reached = last ~= nil and (last.to or 0) >= o.cap
@@ -369,8 +368,7 @@ Window.Page("professions", function(page)
         if not ranked and o.ahead then Add("rank") end
         if ends == 1 then Add("cap") end
         -- A last step that reaches the cap is the cap's sign too: ringed in gold, as the cap's own
-        -- is, until the next rank raises the cap past it (John: "the cap should be gold tinged until
-        -- you get that artisan training at 200").
+        -- is, until the next rank (Artisan, at 200) raises the cap past it.
         if reached then
             for i = #items, 1, -1 do
                 if items[i].kind == "step" then items[i].cap = true break end
@@ -459,9 +457,8 @@ Window.Page("professions", function(page)
 
     -- Each profession's road as last worked out, kept while nothing it's worked out from has
     -- changed: your skill and cap, the recipes you know, what's in your bags, and the prices. A
-    -- name the game loads redraws the page, and so did every switch between professions: each
-    -- worked the road out again (John, 19 Nov 2026: "some lag switching ... between professions",
-    -- "still laggy"). `bags` moves when the game says your bags changed.
+    -- name the game loads redraws the page, and so does every switch between professions,
+    -- and neither works the road out again. `bags` moves when the game says your bags changed.
     local plans, bags = {}, 0
     local Paint
     local function TimedPaint()
