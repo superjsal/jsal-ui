@@ -1,17 +1,18 @@
 -- The dashboard's first page, Home: who you are and how far through the
--- level, what's ready for you right now (a trainer visit, a talent point),
--- where each of your plans stands as a picture, the guild, today's games and
--- the Journal, and what's new in this version in one line at the bottom.
+-- level, what's new in this version in a strip under that, what's ready for
+-- you right now (a trainer visit, a talent point), where each of your plans
+-- stands as a picture, the guild, today's games and the Journal.
 -- ns.Today works out what's waiting; the side menu's badges ask it too.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
--- What's new in this version, in two or three short lines, written with
--- each release. The line shows once per version, until it's put away.
+-- What's new in this version, two or three things, written with each
+-- release: a few words on it, what a click on it does, and where that goes
+-- (a page's key, or "welcome"). They show once per version, until put away.
 local NEWS = {
-    "A new welcome: /jsal welcome opens it again",
-    "Every part is switched on: turn off what you don't want",
-    "Gear plan: about 1,100 more pieces, the late dungeons' among them",
+    { "A new welcome", "See it again", "welcome" },
+    { "Every part is switched on", "Turn off what you don't want", "settings" },
+    { "Gear plan: 1,100 more pieces", "Open the Gear plan", "gear" },
 }
 
 local function NewsWanted()
@@ -867,7 +868,6 @@ end
 ---------------------------------------------------------------------------
 local function ReadyCards(page, width)
     local head = Caps(page, "READY NOW")
-    head:SetPoint("TOPLEFT", 0, -(HERO_H + 24))
     local count = Style.Text(page, 11, "muted", nil, true)
     count:SetPoint("LEFT", head, "RIGHT", 8, 0)
     local box = CreateFrame("Frame", nil, page)
@@ -974,7 +974,7 @@ local function ReadyCards(page, width)
         count:SetText(#ready > 0 and tostring(#ready) or "")
         box:SetHeight(#ready == 0 and IDLE_H or READY_H)
     end
-    return box, Paint
+    return box, Paint, head
 end
 
 ---------------------------------------------------------------------------
@@ -1379,52 +1379,76 @@ local function JournalCard(parent, width)
 end
 
 ---------------------------------------------------------------------------
--- What's new: one line at the bottom, the rest on hover, until it's put
--- away.
+-- What's new: a strip under the top card with the gold edge, a segment for
+-- each new thing. A segment says the thing and, in gold, what a click on it
+-- does; nothing is behind a tooltip. Its cross puts it away for this version.
 ---------------------------------------------------------------------------
-local function News(page, width)
+local NEWS_H = 60
+
+-- Where a new thing's click goes: the welcome (the dashboard closes for it),
+-- or a page.
+local function NewsGo(target)
+    if target == "welcome" then
+        if not (ns.Setup and ns.Setup.Open) then return end
+        Window.Toggle()
+        return ns.Setup.Open()
+    end
+    Window.Open(target)
+end
+
+local function News(page, width, onAway)
     local news = CreateFrame("Frame", nil, page)
-    news:SetPoint("BOTTOMLEFT")
-    news:SetSize(width, 40)
-    Style.Box(news, 6, "window", "cardLine")
-    news:EnableMouse(true)
-    local newsHead = Caps(news, "NEW IN " .. ns.version)
-    newsHead:SetPoint("LEFT", PAD, 0)
-    local more = Style.Text(news, 12, "muted")
-    more:SetPoint("RIGHT", -36, 0)
-    more:SetText(#NEWS > 1 and ("+%d more"):format(#NEWS - 1) or "")
-    local first = Style.Text(news, 13, "text")
-    first:SetPoint("LEFT", newsHead, "RIGHT", 12, 0)
-    first:SetPoint("RIGHT", more, "LEFT", -12, 0)
-    first:SetWordWrap(false)
-    first:SetText(NEWS[1] or "")
-    news:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("New in " .. ns.version)
-        for _, text in ipairs(NEWS) do GameTooltip:AddLine(text, 1, 1, 1, true) end
-        GameTooltip:Show()
-    end)
-    news:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    news:SetPoint("TOPLEFT", 0, -(HERO_H + GAP))
+    news:SetSize(width, NEWS_H)
+    Style.Box(news, 6, "well", "cardLine")
+    Style.Edge(news, 6)
+    local head = Caps(news, "NEW IN " .. ns.version, "gold")
+    head:SetPoint("TOPLEFT", 18, -15)
+    local count = Style.Text(news, 12, "muted")
+    count:SetPoint("TOPLEFT", 18, -33)
+    count:SetText(#NEWS == 1 and "1 thing" or (#NEWS .. " things"))
+    -- The heading has the room it needs (a beta's version is long); the
+    -- segments share the rest, short of the cross.
+    local left = math.max(130, 18 + Style.Wide(head, (#ns.version + 7) * 7) + 18)
+    local each = math.floor((width - left - 44) / math.max(1, #NEWS))
+    for i, item in ipairs(NEWS) do
+        local b = CreateFrame("Button", nil, news)
+        b:SetSize(each, NEWS_H)
+        b:SetPoint("TOPLEFT", left + (i - 1) * each, 0)
+        Style.Rule(b, "LEFT", "line")
+        b.title = Style.Text(b, 13, "text", nil, true)
+        b.title:SetPoint("TOPLEFT", 16, -14)
+        b.title:SetWidth(each - 32)
+        b.title:SetWordWrap(false)
+        b.title:SetText(item[1])
+        b.action = Style.Text(b, 12, "gold", nil, true)
+        b.action:SetPoint("TOPLEFT", 16, -33)
+        b.action:SetWidth(each - 32)
+        b.action:SetWordWrap(false)
+        b.action:SetText(item[2])
+        b.target = item[3]
+        b:SetScript("OnClick", function() NewsGo(item[3]) end)
+        Style.Hover(b)
+    end
     Style.CloseButton(news, 32, function()
         ns.db.newsSeen = ns.version
-        news:Hide()
-    end):SetPoint("RIGHT", -2, 0)
+        onAway()
+    end):SetPoint("RIGHT", -6, 0)
     return news
 end
 
 ---------------------------------------------------------------------------
--- The page: the top card, Ready now, your plans, the guild, games and
--- Journal, and the what's-new line. It has the whole width of the dashboard.
+-- The page: the top card, what's new, Ready now, your plans, the guild,
+-- games and Journal. It has the whole width of the dashboard.
 ---------------------------------------------------------------------------
 Window.Page("home", function(page)
     local width = Window.fullWidth
     local paints = {}
     paints[#paints + 1] = Hero(page, width)
 
-    local ready, paintReady = ReadyCards(page, width)
+    local ready, paintReady, readyHead = ReadyCards(page, width)
 
     local plansHead = Caps(page, "YOUR PLANS")
-    plansHead:SetPoint("TOPLEFT", ready, "BOTTOMLEFT", 0, -24)
     local plans = CreateFrame("Frame", nil, page)
     plans:SetPoint("TOPLEFT", plansHead, "BOTTOMLEFT", 0, -10)
     plans:SetSize(width, PLAN_H)
@@ -1445,10 +1469,22 @@ Window.Page("home", function(page)
         paints[#paints + 1] = paint
     end
 
-    local news = News(page, width)
+    -- With what's new showing, the sections under it sit a little closer, so
+    -- the page still ends where it did.
+    local news
+    local function Lay()
+        local showing = NewsWanted()
+        local gap = showing and GAP or 24
+        news:SetShown(showing)
+        readyHead:ClearAllPoints()
+        readyHead:SetPoint("TOPLEFT", 0, -(HERO_H + (showing and (GAP + NEWS_H) or 0) + gap))
+        plansHead:ClearAllPoints()
+        plansHead:SetPoint("TOPLEFT", ready, "BOTTOMLEFT", 0, -gap)
+    end
+    news = News(page, width, Lay)
 
     page.Refresh = function()
-        news:SetShown(NewsWanted())
+        Lay()
         paintReady()
         for _, paint in ipairs(paints) do xpcall(paint, ns.Report) end
     end
