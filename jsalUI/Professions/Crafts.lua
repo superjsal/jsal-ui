@@ -231,30 +231,31 @@ local function Pill(parent)
     return p
 end
 
--- A material: a thin box with "16 Medium Leather" in it. Pointed at, it shows the game's own
--- tooltip for the item, with whatever the game and other addons add to one: its vendor and
--- auction prices among them.
+-- A material: a thin pill with "16 Medium Leather" in it, round all the way as the tags beside
+-- it are (John, 19 Nov 2026, of square boxes beside the round "YOU NEED THE MATERIALS": "A, a
+-- pill"). Pointed at, it shows the game's own tooltip for the item, with whatever the game and
+-- other addons add to one: its vendor and auction prices among them.
 local function Chip(parent)
     local c = CreateFrame("Frame", nil, parent)
     c:SetHeight(20)
-    c.edges = Style.Border(c, "cardLine")
+    c.box = Style.PillBox(c, "well", "cardLine")
     c.text = Style.Text(c, 11, "secondary")
     c.text:SetPoint("CENTER")
     function c:Set(label, item)
         self.item = item
         self.text:SetText(label)
-        self:SetWidth(TextWidth(self.text, #label * 6) + 14)
+        self:SetWidth(TextWidth(self.text, #label * 6) + 18)
     end
     c:EnableMouse(true)
     c:SetScript("OnEnter", function(self)
         if not self.item then return end
-        Style.SetBorder(self.edges, "lineStrong")
+        self.box:Paint(nil, "lineStrong")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetItemByID(self.item)
         GameTooltip:Show()
     end)
     c:SetScript("OnLeave", function(self)
-        Style.SetBorder(self.edges, "cardLine")
+        self.box:Paint(nil, "cardLine")
         GameTooltip:Hide()
     end)
     return c
