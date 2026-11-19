@@ -260,6 +260,10 @@ local function SideText(d)
     return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
 end
 
+-- Why a gear plan was made in a paint, as /jsal perf says it (see Gear.SlotPlan).
+local MADE = { first = "made for the first time since loading", changed = "made again after a change",
+    waiting = "made again for items still to come" }
+
 -- An item's details, asking the game to load them when it hasn't yet. `missed` counts the
 -- ones it hadn't, so a paint knows whether anything it drew is still to come.
 local missed = 0
@@ -1775,7 +1779,7 @@ Window.Page("dungeons", function(page)
         hint:SetText("")
         local heights, forYou, sure = {}, 0, 0
         missed = 0
-        if ns.Gear then ns.Gear.madeMs = 0 end
+        if ns.Gear then ns.Gear.made = {} end
         for k, b in ipairs(d.bosses) do
             t = debugprofilestop()
             local card = BossRow(k)
@@ -1838,8 +1842,8 @@ Window.Page("dungeons", function(page)
         Fit(by)
         B.Scroll(d, tab)
         wait.drawn, wait.lacking = d, missed
-        if ns.Gear and (ns.Gear.madeMs or 0) > 0 then
-            spent["bosses: of which, gear plans made anew"] = ns.Gear.madeMs
+        for why, ms in pairs(ns.Gear and ns.Gear.made or {}) do
+            spent["bosses: of which, gear plans " .. (MADE[why] or why)] = ms
         end
         -- Come from the map: the boss clicked there is brought to the top.
         local to = B.jump and bossRows[B.jump]

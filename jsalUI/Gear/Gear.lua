@@ -232,8 +232,13 @@ local RETRY = 2
 -- and the plan said "checking..." for good.
 local TRIES = 5
 local tries = {}
+-- Gear.arrived counts the items that came after being asked for here: a plan waiting on items
+-- is worth making again once it has moved on.
+Gear.arrived = 0
 function Gear.Arrived(id)
-    if id then loading[id], tries[id] = nil, nil end
+    if not id then return end
+    if loading[id] then Gear.arrived = Gear.arrived + 1 end
+    loading[id], tries[id] = nil, nil
 end
 function Gear.GivenUp(id)
     return (tries[id] or 0) >= TRIES
@@ -729,7 +734,9 @@ end
 -- boss list takes to paint, so the plan is kept until something it's worked out from changes
 -- (Gear.PlansChanged: your gear, bags, level, talents, skills, quests, spec, weights or stars),
 -- for ten minutes at most. A plan still waiting on items the game hasn't sent is worked out
--- again on the next paint.
+-- again once one of them has come, or when they can be asked for again (RETRY seconds on): made
+-- again on every paint meanwhile, it came out the same and was most of a boss list's paint (9 ms
+-- of 15, 28 at worst).
 --
 -- Your bags change with every thing looted, and a plan reads only the pieces in them you could
 -- wear. So a bag change is only noted (Gear.bagsMoved), and the next plan asked for reads the
@@ -755,15 +762,25 @@ function Gear.SlotPlan(slot)
         Gear.slotPlans = kept
     end
     local plan = kept[slot.key]
-    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now then plan = nil end
+    local why
+    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now
+        and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+        plan, why = nil, "waiting"
+    end
     if not plan then
-        -- How long plans made anew took, for whoever asks (the dungeon guide's paint, which
-        -- sets it to nothing first): /jsal perf can then say a slow paint was this.
+        -- How long plans made anew took and why, for whoever asks (the dungeon guide's paint,
+        -- which empties Gear.made first): /jsal perf can then say a slow paint was this. "first"
+        -- is a slot's first plan since the game loaded, "changed" one after something it's worked
+        -- out from changed, "waiting" one made again for items still to come.
         local started = debugprofilestop()
         plan = Gear.Plan(slot)
-        plan.madeAt = now
+        plan.madeAt, plan.arrived = now, Gear.arrived
         kept[slot.key] = plan
-        Gear.madeMs = (Gear.madeMs or 0) + debugprofilestop() - started
+        Gear.everMade = Gear.everMade or {}
+        why = why or (Gear.everMade[slot.key] and "changed" or "first")
+        Gear.everMade[slot.key] = true
+        Gear.made = Gear.made or {}
+        Gear.made[why] = (Gear.made[why] or 0) + debugprofilestop() - started
     end
     return plan
 end
