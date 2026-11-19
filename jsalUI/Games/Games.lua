@@ -224,37 +224,99 @@ function Games.GuildToday()
     return list
 end
 
--- A guildmate's day, for the tooltip of their row on the Games page: a gold heading a game, its
--- score, and for the Word games the grid as tiles (never the letters), for Icon Guess its ten.
-local TILES = { r = { 98, 179, 90 }, n = { 227, 176, 75 }, x = { 61, 66, 78 }, ["1"] = { 98, 179, 90 }, ["0"] = { 61, 66, 78 } }
-local function Tiles(row, size)
-    local out = {}
-    for c in row:gmatch(".") do
-        local t = TILES[c]
-        if t then
-            out[#out + 1] = ("|TInterface\\Buttons\\WHITE8X8:%d:%d:0:0:8:8:0:8:0:8:%d:%d:%d|t"):format(size, size, t[1], t[2], t[3])
-        end
-    end
-    return table.concat(out, " ")
+-- A guildmate's day, shown beside their row on the Games page while it's pointed at: their name,
+-- then a gold heading a game, its score under it, and for the Word games the grid as tiles (never
+-- the letters), for Icon Guess its ten. A card of its own, not the game's tooltip, so its gaps can
+-- be set: the tooltip spaced a game from the next by a whole blank line (John, 19 Nov 2026: "lets
+-- also tighten this up", then "B, spaced out better top down"), and all of it centred ("B,
+-- centred", of previews\guild_day_card_AB_preview.png). Made the first time it's wanted.
+local TILES = { r = "green", n = "gold", x = "lineStrong", ["1"] = "green", ["0"] = "lineStrong" }
+local DAY_PAD, DAY_GAP, DAY_HEAD, DAY_SCORE = 10, 10, 3, 5   -- the card's edge; between games; under a heading; under a score
+local day
+local function DayCard()
+    if day then return day end
+    day = CreateFrame("Frame", "jsalUIGuildDay", UIParent)
+    day:SetFrameStrata("TOOLTIP")
+    day:SetClampedToScreen(true)
+    day:Hide()
+    Style.Box(day, 5, "titleBar", "lineStrong")
+    day.title = Style.Text(day, 14, "text", nil, true)
+    day.heads, day.scores, day.tiles = {}, {}, {}
+    return day
+end
+local function Pooled(list, i, make)
+    if not list[i] then list[i] = make() end
+    return list[i]
+end
+function Games.HideDay()
+    if day then day:Hide() end
 end
 function Games.ShowDay(owner, e)
-    local tip = GameTooltip
-    tip:SetOwner(owner, "ANCHOR_TOP")
-    tip:AddLine(e.name .. " today", 1, 1, 1)
-    local gold, muted = { Style.Color("gold") }, { Style.Color("muted") }
+    local c = DayCard()
+    local y, widest = DAY_PAD, 0
+    c.title:ClearAllPoints()
+    c.title:SetPoint("TOP", 0, -y)
+    c.title:SetText(e.name)   -- the name alone ("dont need the today part, name is fine")
+    widest = math.max(widest, c.title:GetStringWidth() or 0)
+    y = y + 18
+    local games, used = 0, 0
     local function Game(head, score, rows, size)
-        tip:AddLine(" ")
-        tip:AddLine(head, gold[1], gold[2], gold[3])
-        if score then tip:AddLine(score, 1, 1, 1) else tip:AddLine("Not played yet", muted[1], muted[2], muted[3]) end
-        for row in (rows or ""):gmatch("[^.]+") do tip:AddLine(Tiles(row, size)) end
+        games = games + 1
+        y = y + (games == 1 and 2 or DAY_GAP)
+        local h = Pooled(c.heads, games, function() return Style.Text(c, 11, "gold", nil, true) end)
+        h:ClearAllPoints()
+        h:SetPoint("TOP", 0, -y)
+        h:SetText(head)
+        h:Show()
+        y = y + 13 + DAY_HEAD
+        local sc = Pooled(c.scores, games, function() return Style.Text(c, 13, "text") end)
+        sc:ClearAllPoints()
+        sc:SetPoint("TOP", 0, -y)
+        sc:SetText(score or "Not played yet")
+        sc:SetTextColor(Style.Color(score and "text" or "muted"))
+        sc:Show()
+        widest = math.max(widest, h:GetStringWidth() or 0, sc:GetStringWidth() or 0)
+        y = y + 15
+        local first = true
+        for row in (rows or ""):gmatch("[^.]+") do
+            y = y + (first and DAY_SCORE or 3)
+            first = false
+            -- A row is centred on the card: its left end half its width left of the middle.
+            local count = 0
+            for ch in row:gmatch(".") do if TILES[ch] then count = count + 1 end end
+            local rowW = count * size + math.max(0, count - 1) * 3
+            local x = -rowW / 2
+            for ch in row:gmatch(".") do
+                if TILES[ch] then
+                    used = used + 1
+                    local t = Pooled(c.tiles, used, function() return c:CreateTexture(nil, "ARTWORK") end)
+                    t:ClearAllPoints()
+                    t:SetSize(size, size)
+                    t:SetPoint("TOPLEFT", c, "TOP", x, -y)
+                    t:SetColorTexture(Style.Color(TILES[ch]))
+                    t:Show()
+                    x = x + size + 3
+                end
+            end
+            widest = math.max(widest, rowW)
+            y = y + size
+        end
     end
     local function Word(score) return score and (score == "X" and "Missed" or ("Solved in " .. score)) or nil end
     Game("DAILY WORD", Word(e.word), e.word and e.wordMarks, 14)
-    Game("ICON GUESS", e.icons and (e.icons .. " of 10") or nil, e.icons and e.iconMarks, 12)
+    -- Its ten in two rows of five, a block the width of the word's grid ("do 2 columns for icon").
+    local ten = e.icons and e.iconMarks and (e.iconMarks:sub(1, 5) .. "." .. e.iconMarks:sub(6)) or nil
+    Game("ICON GUESS", e.icons and (e.icons .. " of 10") or nil, ten, 14)
     local run = e.run and ns.PalRun and ns.PalRun.Clock and ns.PalRun.Clock(e.run) or nil
     Game("PAL RUN", run and (run .. ((e.pal and e.pal ~= "") and ("  with " .. e.pal) or "")) or nil)
     if GuildWord.running and GuildWord.word then Game("GUILD WORD", Word(e.guild), e.guild and e.guildMarks, 12) end
-    tip:Show()
+    for i = games + 1, #c.heads do c.heads[i]:Hide(); c.scores[i]:Hide() end
+    for i = used + 1, #c.tiles do c.tiles[i]:Hide() end
+    c:SetSize(math.ceil(widest) + DAY_PAD * 2, y + DAY_PAD)
+    c:ClearAllPoints()
+    c:SetPoint("BOTTOM", owner, "TOP", 0, 4)
+    c:Show()
+    return c
 end
 
 Window.Page("games", function(page)
@@ -465,7 +527,7 @@ Window.Page("games", function(page)
         end
         r:EnableMouse(true)
         r:SetScript("OnEnter", function(self) if self.entry then Games.ShowDay(self, self.entry) end end)
-        r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        r:SetScript("OnLeave", function() Games.HideDay() end)
         Style.Hover(r)
         guildRows[i] = r
     end
