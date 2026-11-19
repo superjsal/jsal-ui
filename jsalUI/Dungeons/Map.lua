@@ -17,6 +17,13 @@ function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
 end
 
+-- A floor's name: the game's own word for it where it has one (DUNGEON_FLOOR_MARAUDON2 is
+-- "Zaetar's Grave"), or its number.
+function Map.Floor(maps, i)
+    local own = _G["DUNGEON_FLOOR_" .. maps.folder:upper() .. i]
+    return type(own) == "string" and own ~= "" and own or ("Floor " .. i)
+end
+
 -- Which floor a boss is on, and where: nil for one with no place yet.
 function Map.Place(d, k)
     local maps = Map.Has(d) and ns.DungeonMaps[d.id]
@@ -166,18 +173,36 @@ function Map.Build(parent, width, onBoss)
         for k = 1, #d.bosses do
             if not (pane.killed and pane.killed(k)) then next = k break end
         end
-        -- Opens on the floor the next boss is on.
+        -- Its floors: those of the folder's pictures that are this dungeon's (a folder can hold
+        -- several wings').
+        local first, count = nil, 0
+        for i = 1, FLOORS do
+            local own = maps.floors[i] == true
+            pane.floors:Shown(i, own)
+            if own then
+                pane.floors:Set(i, Map.Floor(maps, i))
+                first, count = first or i, count + 1
+            end
+        end
+        -- Opens on the floor the next boss is on, or the first when that one has no place.
         if not pane.floor then
             local place = next and Map.Place(d, next)
-            pane.floor = place and place[1] or 1
-        end
-        for i = 1, FLOORS do
-            pane.floors:Shown(i, maps.floors[i] ~= nil)
-            if maps.floors[i] then pane.floors:Set(i, maps.floors[i]) end
+            pane.floor = place and place[1] or first or 1
         end
         pane.floors:Pick(pane.floor)
-        pane.floors:SetShown(#maps.floors > 1)
-        Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. pane.floor .. "_")
+        pane.floors:SetShown(count > 1)
+        Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. (maps.plain and "" or (pane.floor .. "_")))
+
+        -- Two bosses in one spot (Razorfen Kraul's first and third share a skull) are set side
+        -- by side, so neither sign hides the other.
+        local taken = {}
+        local function Clear(x, y)
+            for _, t in ipairs(taken) do
+                if math.abs(t[1] - x) < SIGN * 0.8 and math.abs(t[2] - y) < SIGN * 0.8 then return Clear(t[1] + SIGN * 0.9, y) end
+            end
+            taken[#taken + 1] = { x, y }
+            return x, y
+        end
 
         local used = 0
         for k, boss in ipairs(d.bosses) do
@@ -190,7 +215,8 @@ function Map.Build(parent, width, onBoss)
                 p.k = k
                 p:Set(k, state)
                 p:ClearAllPoints()
-                p:SetPoint("CENTER", canvas, "TOPLEFT", place[2] * mapW, -place[3] * mapH)
+                local x, y = Clear(place[2] * mapW, place[3] * mapH)
+                p:SetPoint("CENTER", canvas, "TOPLEFT", x, -y)
                 p:Show()
             end
             local r = Row(k)
@@ -198,8 +224,9 @@ function Map.Build(parent, width, onBoss)
             r.sign:Set(k, state)
             r.name:SetText(boss[3] or boss[2])
             r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
-            local where = place and maps.floors[place[1]] or "not on the map yet"
-            r.note:SetText(dead and (where .. " · killed") or where)
+            -- Which floor it's on, where there's more than one to say.
+            local where = (not place and "not on the map yet") or (count > 1 and Map.Floor(maps, place[1])) or ""
+            r.note:SetText(dead and (where ~= "" and (where .. " · killed") or "killed") or where)
             r:Show()
         end
         for i = used + 1, #pane.pins do pane.pins[i]:Hide() end

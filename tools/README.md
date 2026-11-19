@@ -71,6 +71,14 @@ it stops if the game offers a dungeon it doesn't know yet, since where an entran
 files. A dungeon's level is the one it's tuned to; Season of Discovery's versions of some dungeons are
 in the files under their own difficulties and are left out.
 
+The Map tab's `DungeonMaps.lua` is built by `python -I tools\build_dungeon_maps.py` (`--report` says
+what matched). Forever's files have each dungeon's map pictures but no table of where a boss stands;
+later versions of the game have, for the same pictures, in the dungeon journal. `data\dungeons\journal\`
+holds JournalEncounter, JournalInstance, UiMap and UiMapAssignment from two such builds, cut to the
+columns the tool reads. A dungeon is left out when fewer than half its bosses are found there: the
+ones rebuilt before the journal came (Scarlet Monastery, Scholomance, The Stockade, Shadowfang Keep,
+Sunken Temple, Zul'Gurub) and Forever's own.
+
 Loot and quests come from Wowhead Forever, in `data\dungeons\wowhead.json`: each dungeon's zone page
 (its Quests tab, and its NPCs to find each boss) and each boss's NPC page (its Drops tab, with how
 many kills Wowhead has seen and how often each item dropped). It's read in a browser, one page every
