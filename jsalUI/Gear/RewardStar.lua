@@ -104,8 +104,23 @@ local function Star(button)
     local size = (button:GetHeight() or 41) >= 40 and 20 or 16
     star:SetSize(size, size)
     star:SetPoint("CENTER", button.Icon or button, "TOPLEFT", 3, -3)
+    star.holder = holder
     stars[button] = star
     return star
+end
+
+-- Another addon may frame a reward's icon with an outline of its own, on a frame the button
+-- holds: the star goes above every one of them, looked at each time since an outline can be
+-- added after the star was made.
+local function Raise(star, button)
+    local top = button:GetFrameLevel()
+    for _, child in ipairs({ button:GetChildren() }) do
+        if child ~= star.holder then
+            local level = child:GetFrameLevel()
+            if level > top then top = level end
+        end
+    end
+    star.holder:SetFrameLevel(top + 1)
 end
 
 local function HideAll()
@@ -141,7 +156,11 @@ function Look()
     if not (rewards and rewards.RewardButtons) then return end
     local best, waiting, choices = RewardStar.Score(rewards.RewardButtons)
     for _, button in ipairs(choices or {}) do HookEnter(button) end
-    if best then Star(best):Show() end
+    if best then
+        local star = Star(best)
+        Raise(star, best)
+        star:Show()
+    end
     if waiting and looks < LOOKS then WaitForItems() end
 end
 RewardStar.Look = Look
