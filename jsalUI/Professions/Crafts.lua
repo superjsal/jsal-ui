@@ -924,13 +924,24 @@ local function PaintAsk()
     -- From the right: the shopping list's words, then the materials after "Takes". Who makes
     -- it keeps MAKERS_W at the left; the materials have the rest, as many as fit, and the
     -- others are counted ("+2 more").
+    local unnamed = false
     for i, m in ipairs(materials) do
         local chip = card.chips[i]
         if not chip then
             chip = Chip(card.strip)
             card.chips[i] = chip
         end
-        chip:Set(m.count .. " " .. (Compat.ItemName(m.item) or "..."), m.item)
+        local name = Compat.ItemName(m.item)
+        if not name then unnamed = true end
+        chip:Set(m.count .. " " .. (name or "..."), m.item)
+    end
+    -- A name the game hasn't loaded yet reads "..." (and its chip is cut to that): look again a
+    -- second later, five times at most for one pick. It stayed "..." until something else
+    -- repainted the card, so a second thing looked up showed its materials cut off.
+    if a.spell ~= C.askTriesFor then C.askTriesFor, C.askTries = a.spell, 0 end
+    if unnamed and (C.askTries or 0) < 5 then
+        C.askTries = (C.askTries or 0) + 1
+        Compat.After(1, function() if C.ask.spell == a.spell and card:IsVisible() then PaintAsk() end end)
     end
     local strip = C.width - 2
     local room = strip - 16 - MAKERS_W - 16 - (TextWidth(card.takes, 30) + 8) - (card.list:GetWidth() + 14) - 16
