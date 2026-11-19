@@ -99,33 +99,95 @@ function Map.Build(parent, width, onBoss)
     -- A floor's picture is its twelve pieces by `want`, a path; a minimap's is `mini`, as many
     -- tiles as its cut takes in, each by its file number and its own place and size.
     local want, mini, set = nil, nil, 0
-    local function Feed(self)
-        set = set + 1
-        local t = pane.tiles[set]
-        if not t then
-            t = canvas:CreateTexture(nil, "ARTWORK")
-            pane.tiles[set] = t
-        end
-        local m = mini and mini[set]
-        local size = m and m[4] * mapW or TILE * scale
+    -- The view: how far in the picture is zoomed (1: all of it), where its corner then is
+    -- (`x` and `y`, nothing or less: the picture always fills the map), and how far in it may
+    -- go, `most`: until a piece is drawn at its own size, past which it only goes soft. A floor's
+    -- picture is drawn smaller than it is, so it can go in by half as much again; a minimap cut
+    -- wide has more to go, and one already drawn at its size or over has none.
+    local view = { zoom = 1, x = 0, y = 0, most = 1 }
+    pane.view = view
+    local function Tile(i)
+        local t = pane.tiles[i]
+        local m = mini and mini[i]
+        local size = (m and m[4] * mapW or TILE * scale) * view.zoom
         t:SetSize(size, size)
         t:ClearAllPoints()
         if m then
-            t:SetPoint("TOPLEFT", m[2] * mapW, -m[3] * mapH)
+            t:SetPoint("TOPLEFT", view.x + m[2] * mapW * view.zoom, -(view.y + m[3] * mapH * view.zoom))
         else
-            t:SetPoint("TOPLEFT", ((set - 1) % ACROSS) * size, -math.floor((set - 1) / ACROSS) * size)
+            t:SetPoint("TOPLEFT", view.x + ((i - 1) % ACROSS) * size, -(view.y + math.floor((i - 1) / ACROSS) * size))
         end
-        t:SetTexture(m and m[1] or (want .. set))
+    end
+    local function PlaceSign(p)
+        p:ClearAllPoints()
+        p:SetPoint("CENTER", canvas, "TOPLEFT", view.x + p.x * view.zoom, -(view.y + p.y * view.zoom))
+    end
+    -- The view moved: every piece set so far and every sign shown goes to its new place.
+    local function Lay()
+        view.x = math.max(mapW - mapW * view.zoom, math.min(0, view.x))
+        view.y = math.max(mapH - mapH * view.zoom, math.min(0, view.y))
+        for i = 1, set do Tile(i) end
+        for _, p in ipairs(pane.pins) do
+            if p:IsShown() and p.x then PlaceSign(p) end
+        end
+    end
+    local function Feed(self)
+        set = set + 1
+        if not pane.tiles[set] then pane.tiles[set] = canvas:CreateTexture(nil, "ARTWORK") end
+        Tile(set)
+        local m = mini and mini[set]
+        pane.tiles[set]:SetTexture(m and m[1] or (want .. set))
         if set >= (mini and #mini or PIECES) then self:SetScript("OnUpdate", nil) end
     end
+    local dragger = CreateFrame("Frame", nil, canvas)
     local function Picture(path, tiles)
         local key = tiles or path
         if key == (mini or want) then return end
         want, mini, set = path, tiles, 0
         for _, t in ipairs(pane.tiles) do t:SetTexture(nil) end
         canvas:SetScript("OnUpdate", key and Feed or nil)
+        -- Another picture starts whole.
+        view.zoom, view.x, view.y = 1, 0, 0
+        view.most = tiles and TILE * 2 / (tiles[1][4] * mapW) or ART_W / mapW
+        if view.most < 1.1 then view.most = 1 end
+        canvas:EnableMouseWheel(view.most > 1)
+        dragger:SetScript("OnUpdate", nil)
     end
     canvas:SetScript("OnHide", function() Picture(nil) end)
+
+    -- Where the pointer is on the map, from its top left corner.
+    local function Pointer()
+        local x, y = GetCursorPosition()
+        local s = canvas:GetEffectiveScale() or 1
+        return x / s - (canvas:GetLeft() or 0), (canvas:GetTop() or 0) - y / s
+    end
+    -- The wheel zooms on what's under the pointer; a drag moves the picture about once it's
+    -- zoomed. The drag is followed each frame only while the button is down.
+    local STEP = 1.25
+    canvas:SetScript("OnMouseWheel", function(_, delta)
+        local zoom = math.max(1, math.min(view.most, view.zoom * (delta > 0 and STEP or 1 / STEP)))
+        if zoom == view.zoom then return end
+        local px, py = Pointer()
+        view.x = px - (px - view.x) * zoom / view.zoom
+        view.y = py - (py - view.y) * zoom / view.zoom
+        view.zoom = zoom
+        Lay()
+    end)
+    canvas:EnableMouse(true)
+    canvas:SetScript("OnMouseDown", function()
+        if view.zoom <= 1 then return end
+        local fromX, fromY = Pointer()
+        local x0, y0 = view.x, view.y
+        dragger:SetScript("OnUpdate", function()
+            local px, py = Pointer()
+            local x, y = x0 + px - fromX, y0 + py - fromY
+            if x ~= view.x or y ~= view.y then
+                view.x, view.y = x, y
+                Lay()
+            end
+        end)
+    end)
+    canvas:SetScript("OnMouseUp", function() dragger:SetScript("OnUpdate", nil) end)
 
     local function Hot(k)
         if pane.hot == k then return end
@@ -244,9 +306,8 @@ function Map.Build(parent, width, onBoss)
                 local p = Pin(used)
                 p.k = k
                 p:Set(k, state)
-                p:ClearAllPoints()
-                local x, y = Clear(place[2] * mapW, place[3] * mapH)
-                p:SetPoint("CENTER", canvas, "TOPLEFT", x, -y)
+                p.x, p.y = Clear(place[2] * mapW, place[3] * mapH)
+                PlaceSign(p)
                 p:Show()
             end
             local r = Row(k)
