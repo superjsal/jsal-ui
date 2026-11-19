@@ -743,14 +743,15 @@ local function Names()
             for _, recipe in ipairs(ns.Professions.Recipes(line) or {}) do
                 local name = Compat.SpellInfo(recipe.spell)
                 if name then
-                    list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line, learn = recipe.learn }
+                    list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line, learn = recipe.learn,
+                                        reagents = recipe.reagents }
                 end
             end
         end
     end
     -- Two recipes can share a name (Forever's own Enchant Bracer - Agility, taking Vision Dust,
-    -- beside the old one taking Nexus Crystals): those come lowest skill first, and each says its
-    -- skill (`twin`), or the list showed one name twice with nothing to tell them apart.
+    -- beside the old one taking Nexus Crystals): those come lowest skill first, and each says what
+    -- it takes (`twin`, see Takes), or the list showed one name twice with nothing to tell them apart.
     local seen = {}
     for _, entry in ipairs(list) do seen[entry.lower] = (seen[entry.lower] or 0) + 1 end
     for _, entry in ipairs(list) do entry.twin = seen[entry.lower] > 1 end
@@ -977,6 +978,20 @@ local function PaintAsk()
     card.makers:SetWidth(math.max(MAKERS_W, strip - 16 - 16 - taken - (card.list:GetWidth() + 14) - 16))
 end
 
+-- What a recipe that shares its name takes, its first two materials ("takes 1 Vision Dust"), to
+-- tell it from the other: both Enchant Bracer - Agility recipes are learned at 190, so the skill
+-- alone didn't. Nothing while a material's name isn't loaded yet.
+local function Takes(entry)
+    local parts = {}
+    for i = 1, math.min(2, #(entry.reagents or {})) do
+        local r = entry.reagents[i]
+        local name = Compat.ItemName(r.item)
+        if not name then return nil end
+        parts[#parts + 1] = r.count .. " " .. name
+    end
+    return #parts > 0 and ("takes " .. table.concat(parts, ", ")) or nil
+end
+
 -- The names under the search box as you type.
 local function PaintDrop()
     local card = C.card
@@ -993,7 +1008,7 @@ local function PaintDrop()
         if entry then
             row.spell = entry.spell
             row.text:SetText(entry.name .. "   " .. Style.Tint("muted") .. (ns.Professions.Name(entry.line) or "")
-                .. (entry.twin and entry.learn and (" · skill " .. entry.learn) or "") .. "|r")
+                .. (entry.twin and (" · " .. (Takes(entry) or ("skill " .. (entry.learn or "?")))) or "") .. "|r")
         end
     end
 end
