@@ -1021,7 +1021,9 @@ local function BuildCard(parent, width)
         local queue = b and b.next and Today.Queue(5) or {}
         local planned = b ~= nil and b.planned > 0
         c.empty:SetText(b and "" or "No talent trees for this class yet.")
-        c.title:SetText(b and (b.name or "Your build") or "")
+        -- A build with no points planned is no build yet, whatever it's called: it's said so, greyed.
+        c.title:SetText(b and (planned and (b.name or "Your build") or "Build not set") or "")
+        c.title:SetTextColor(Style.Color(planned and "text" or "muted"))
         c.meter:SetShown(planned)
         c.count:SetText(planned and ("%d |cff9a9688of %d|r"):format(b.taken, b.planned) or "")
         if planned then
