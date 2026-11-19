@@ -254,19 +254,21 @@ function Map.Build(parent, width, onBoss)
     -- click opens its loot. The list's rows have none: a tooltip following the pointer down a
     -- list is a lot of movement, and a row says most of it already.
     -- The boss's picture is its own model, drawn by the game where its model is known (the
-    -- fourth of its place), over empty lines left for it under its name. The model is the
-    -- map's own frame, not the tooltip's, so no other tooltip ever has it; it's made the first
-    -- time a boss with one is pointed at, and drawn only while the pointer is on a sign.
+    -- fourth of its place), over empty lines left for it under its name. The model's frame is
+    -- the tooltip's child, well over it: as the map's own frame it was drawn behind the
+    -- tooltip's fill, a dim shape in the gap, and sized by another frame's measure. So that no
+    -- other tooltip ever has it, it's hidden when the pointer leaves the sign and whenever the
+    -- tooltip itself goes. It's made the first time a boss with one is pointed at.
     local function Face(display, first)
         local m = pane.face
         if not m then
-            m = CreateFrame("PlayerModel", nil, pane)
-            m:SetFrameStrata("TOOLTIP")
+            m = CreateFrame("PlayerModel", nil, GameTooltip)
+            if GameTooltip.HookScript then GameTooltip:HookScript("OnHide", function() m:Hide() end) end
             pane.face = m
         end
         local top, foot = _G["GameTooltipTextLeft" .. first], _G["GameTooltipTextLeft" .. (first + FACE_LINES - 1)]
         local size = top and foot and top.GetTop and top:GetTop() and foot:GetBottom() and (top:GetTop() - foot:GetBottom()) or 64
-        m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 2)
+        m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 10)
         m:SetSize(size, size)
         m:ClearAllPoints()
         if top then m:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else m:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
