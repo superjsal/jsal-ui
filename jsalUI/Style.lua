@@ -825,17 +825,27 @@ function Style.Tabs(parent, items, onPick, width, small)
         local x = 3
         local each = width and math.floor((width - 6 - (#self.buttons - 1) * 2) / #self.buttons)
         for _, b in ipairs(self.buttons) do
-            local inner = Style.Wide(b.label, #b.words * (small and 7 or 8))
-            if b.n then inner = inner + 6 + b.badgeWide end
-            local wide = each or (inner + pad * 2)
-            b:SetSize(wide, high)
-            b:ClearAllPoints()
-            b:SetPoint("LEFT", x, 0)
-            b.label:ClearAllPoints()
-            b.label:SetPoint("LEFT", math.floor((wide - inner) / 2), 0)
-            x = x + wide + 2
+            b:SetShown(not b.gone)
+            if not b.gone then
+                local inner = Style.Wide(b.label, #b.words * (small and 7 or 8))
+                if b.n then inner = inner + 6 + b.badgeWide end
+                local wide = each or (inner + pad * 2)
+                b:SetSize(wide, high)
+                b:ClearAllPoints()
+                b:SetPoint("LEFT", x, 0)
+                b.label:ClearAllPoints()
+                b.label:SetPoint("LEFT", math.floor((wide - inner) / 2), 0)
+                x = x + wide + 2
+            end
         end
         self:SetWidth(x + 1)
+    end
+    -- A tab that isn't for what's shown is left out, and the rest close up.
+    function bar:Shown(key, shown)
+        local b = self.byKey[key]
+        if (b.gone or false) == (not shown) then return end
+        b.gone = not shown
+        self:Layout()
     end
     function bar:Set(key, words, n, hot)
         local b = self.byKey[key]

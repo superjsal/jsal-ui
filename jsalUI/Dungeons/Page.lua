@@ -447,10 +447,10 @@ Window.Page("dungeons", function(page)
     local meta = Style.Text(right, 13, "muted")
     meta:SetJustifyH("LEFT")
     meta:SetWordWrap(false)
-    -- Two tabs, at the right of the picker's line: the bosses with their
-    -- loot, and the dungeon's quests.
+    -- The tabs, at the right of the picker's line: the bosses with their
+    -- loot, the dungeon's quests, and its map where there is one.
     local tab = "bosses"
-    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" } }, function(key)
+    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" }, { "map", "Map" } }, function(key)
         tab = key
         Paint()
     end)
@@ -470,6 +470,7 @@ Window.Page("dungeons", function(page)
         bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.\n"
             .. "\"For you\" is by your Gear plan's stat weights, which are estimates: roll by what you know of your spec.",
         quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
+        map = "The maps are the game's own pictures. Where each boss stands is marked by hand, so a sign may be a little off.",
     }
     local about = Style.About(right, function() return NOTE[tab] end)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
@@ -499,6 +500,15 @@ Window.Page("dungeons", function(page)
     local B = {}
     B.sum = Style.Text(right, 15, "text", nil, true)
     B.sum:SetPoint("TOPLEFT", 0, -2)
+    -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
+    local mapPane = ns.DungeonMap and ns.DungeonMap.Build(right, rightW, function(k)
+        tab, B.jump = "bosses", k
+        Paint()
+    end)
+    if mapPane then
+        mapPane:SetPoint("TOPLEFT", 0, -TOP_H)
+        mapPane:Hide()
+    end
     -- Another dungeon, or its other tab, starts from the top; the same one keeps its place,
     -- held in range. (Only held in range, a dungeon picked while scrolled down another's
     -- bosses opened partway down its own.)
@@ -1662,7 +1672,23 @@ Window.Page("dungeons", function(page)
             end
         end
         tabs:Set("quests", nil, #quests > 0 and #quests or nil)
+        local hasMap = mapPane ~= nil and ns.DungeonMap.Has(d)
+        tabs:Shown("map", hasMap)
+        if tab == "map" and not hasMap then tab = "bosses" end
         tabs:Pick(tab)
+        bossScroll:SetShown(tab ~= "map")
+        if mapPane then mapPane:SetShown(tab == "map") end
+        if tab == "map" then
+            hint:SetText("")
+            mapPane:Draw(d, function(k)
+                local b = d.bosses[k]
+                return D.KillCount(b[2], game, b[3]) > 0
+            end)
+            Fit(mapPane.height)
+            B.Scroll(d, tab)
+            NoteParts(started)
+            return
+        end
         local by = 0
         t = Spent("the dungeon's quests, found", t)
         if tab == "quests" then
@@ -1735,6 +1761,7 @@ Window.Page("dungeons", function(page)
                     card:SetHeight(heights[k + side])
                     card:ClearAllPoints()
                     card:SetPoint("TOPLEFT", side * (cardW + GRID_GAP), -by)
+                    card.at = by
                     card:Show()
                 end
             end
@@ -1745,6 +1772,10 @@ Window.Page("dungeons", function(page)
         bossList:SetHeight(by)
         Fit(by)
         B.Scroll(d, tab)
+        -- Come from the map: the boss clicked there is brought to the top.
+        local to = B.jump and bossRows[B.jump]
+        B.jump = nil
+        if to and to.at then bossScroll:SetVerticalScroll(math.min(to.at, bossScroll:GetVerticalScrollRange())) end
         NoteParts(started)
     end
 

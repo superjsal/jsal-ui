@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.57
+## Version: 0.3.58-beta.1
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -138,6 +138,8 @@ Dungeons\DungeonData.lua
 Dungeons\DungeonLoot.lua
 Dungeons\Dungeons.lua
 Dungeons\GuildLoot.lua
+Dungeons\DungeonMaps.lua
+Dungeons\Map.lua
 Dungeons\Page.lua
 
 # Quest tags beside the tracker: each quest's place in a chain and about how long it
