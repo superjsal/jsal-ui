@@ -336,8 +336,11 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug, /jsal discord.")
-            :format(commands.chess and "/jsal chess, " or ""))
+        -- A command is named only while it has somewhere to go: chess while it isn't
+        -- put away, install in a version with a look to install.
+        local look = ns.Installer and ns.Installer.HasProfile and ns.Installer.HasProfile()
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, %s/jsal bug, /jsal discord.")
+            :format(commands.chess and "/jsal chess, " or "", look and "/jsal install, " or ""))
     end
 end
 

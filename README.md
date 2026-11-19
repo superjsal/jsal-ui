@@ -1,6 +1,6 @@
 # jsal.ui
 
-A free UI pack, daily games and easy helpers for WoW Forever, from [jsal.io](https://jsal.io).
+Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games for your guild. Free, for WoW Forever, from [jsal.io](https://jsal.io).
 Made for casual players: every part is small, has one switch, and is on by default.
 
 Found a bug, got an idea, or not sure how something works? Come and say so on [jsal.ui's Discord](https://discord.gg/BfUKeCjNeZ).
