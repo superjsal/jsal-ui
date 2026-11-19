@@ -460,13 +460,20 @@ local function Do(action, id)
     C.Repaint()
 end
 
--- The crafter's button on an order they accepted: Mark sent for an item
--- (done once whoever asked marks it received), Mark done for an enchant
--- (given in a trade).
+-- The crafter's button on an order they accepted: Mark done for an enchant
+-- (given in a trade). None for an item: a letter or a trade with whoever
+-- asked marks it sent by itself (OrderMail.lua), and the row says so.
 local function Finish(order)
     local id, O = order.id, ns.Orders
-    if O.MakesItem(order) then return { "Mark sent", function() Do(O.Sent, id) end } end
+    if O.MakesItem(order) then return nil end
     return { "Mark done", function() Do(O.Done, id) end }
+end
+
+-- What a row you accepted says about sending it, for an item.
+local function HowSent(order, roster)
+    if not ns.Orders.MakesItem(order) then return "" end
+    return DOT .. Style.Tint("gold") .. "mail it, or trade it to " .. Who(order.by, roster) .. Style.Tint("gold")
+        .. ": it's marked sent then|r"
 end
 
 -- Whether what an order makes is in your bags (some of it, at least).
@@ -476,9 +483,9 @@ local function InBags(order)
 end
 C.InBags = InBags
 
--- "mailed 2 min ago", or "sent 2 min ago" for one handed over.
+-- "mailed 2 min ago", or "handed over in a trade 2 min ago".
 local function SentWhen(order)
-    return (order.s == "m" and "mailed " or "sent ") .. Ago(order.e)
+    return (order.s == "m" and "mailed " or "handed over in a trade ") .. Ago(order.e)
 end
 
 -- Fills a row: `state` is its colour, `second` its line under the name,
@@ -672,6 +679,7 @@ local function PaintForYou()
             local where = roster[o.by] and roster[o.by].online and (roster[o.by].zone or "online") or "offline"
             local second = "for " .. Who(o.by, roster) .. DOT .. where .. DOT .. "you accepted it " .. Ago(o.e) .. CostNote(o)
                 .. (InBags(o) and (DOT .. Style.Tint("green") .. "made, in your bags|r") or "")
+                .. HowSent(o, roster)
                 .. (o.note and ("   “" .. o.note .. "”") or "")
             local id, by = o.id, o.by
             waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "todo", second, false, {
@@ -716,7 +724,7 @@ local function PaintForYou()
     end
     Close(list)
     C.foot:SetText((me.other > 0 and ("%d more open %s for a profession you don't have. "):format(me.other, Plural(me.other, "order is", "orders are")) or "")
-        .. "Mail an order from any mailbox and it's marked sent for you. Enchants are done in a trade: whisper to arrange where to meet.")
+        .. "Mail an order, or hand it over in a trade, and it's marked sent for you. Enchants are done in a trade: whisper to arrange where to meet.")
     C.Later(waiting)
 end
 
@@ -1725,9 +1733,11 @@ local function SmallForYou(list)
     if #me.todo > 0 then
         SmallHead(list, "todo", "TO DO", #me.todo)
         for _, o in ipairs(me.todo) do
-            local id = o.id
+            local id, by = o.id, o.by
             local finish = Finish(o)
-            Line(list, o, "todo", Second(o), { finish[1], finish[2], true })
+            -- An item has no button of its own (a letter or a trade sends it): Whisper, to arrange one.
+            Line(list, o, "todo", Second(o), finish and { finish[1], finish[2], true }
+                or { "Whisper", function() Whisper(by, Roster()) end })
         end
     end
     if #me.waiting > 0 then
