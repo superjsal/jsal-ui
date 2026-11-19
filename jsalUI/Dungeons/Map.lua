@@ -13,6 +13,8 @@ ns.DungeonMap = Map
 local ART_W, ART_H, TILE, ACROSS, PIECES = 1002, 668, 256, 4, 12
 local MAP_MAX, LIST_W, GAP, TOP, ROW_H, SIGN = 620, 320, 24, 30, 44, 26
 local FLOORS = 7
+-- A row needs this much height for its two lines; under it, a row is one line.
+local TWO_LINES = 34
 
 function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
@@ -149,17 +151,21 @@ function Map.Build(parent, width, onBoss)
         return pane.pins[i]
     end
 
-    -- The bosses beside the map, in the order you meet them.
+    -- The bosses beside the map, in the order you meet them. The list is the map's legend, so
+    -- all of it stays in view: where the rows don't fit the map's height (Blackrock Depths has
+    -- 21 bosses, and nine rows fit), each is as high as its share of it, and under TWO_LINES
+    -- high a row is one line: a plain number for its sign, the name, and no note, the bosses
+    -- not on the floor shown dim instead. They ran out of the window's foot.
     pane.rows = {}
     local function Row(i)
         if not pane.rows[i] then
             local r = CreateFrame("Frame", nil, pane)
             r:SetSize(LIST_W, ROW_H)
-            r:SetPoint("TOPLEFT", mapW + GAP, -(TOP + (i - 1) * ROW_H))
             r.sign = Sign(r)
             r.sign:SetPoint("LEFT", 6, 0)
+            r.num = Style.Text(r, 12, "secondary", nil, true)
+            r.num:SetPoint("RIGHT", r, "LEFT", 30, 0)
             r.name = Style.Text(r, 14, "secondary")
-            r.name:SetPoint("TOPLEFT", r.sign, "TOPRIGHT", 12, 2)
             r.name:SetWidth(LIST_W - SIGN - 24)
             r.name:SetJustifyH("LEFT")
             r.name:SetWordWrap(false)
@@ -226,6 +232,8 @@ function Map.Build(parent, width, onBoss)
             return x, y
         end
 
+        local high = math.min(ROW_H, math.floor(mapH / math.max(1, #d.bosses)))
+        local tight = high < TWO_LINES
         local used = 0
         for k, boss in ipairs(d.bosses) do
             local dead = pane.killed and pane.killed(k) or false
@@ -243,12 +251,28 @@ function Map.Build(parent, width, onBoss)
             end
             local r = Row(k)
             r.k = k
-            r.sign:Set(k, state)
+            r:SetHeight(high)
+            r:ClearAllPoints()
+            r:SetPoint("TOPLEFT", mapW + GAP, -(TOP + (k - 1) * high))
+            r.sign:SetShown(not tight)
+            r.num:SetShown(tight)
+            r.name:ClearAllPoints()
             r.name:SetText(boss[3] or boss[2])
-            r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
-            -- Which floor it's on, where there's more than one to say.
-            local where = (not place and (placed and "not on the map yet" or "")) or (count > 1 and Map.Floor(maps, place[1])) or ""
-            r.note:SetText(dead and (where ~= "" and (where .. " · killed") or "killed") or where)
+            if tight then
+                local dim = dead or not (place and place[1] == pane.floor)
+                r.num:SetText(k)
+                r.num:SetTextColor(Style.Color(((k == next or pane.hot == k) and "gold") or (dim and "muted" or "secondary")))
+                r.name:SetPoint("LEFT", r, "LEFT", 42, 0)
+                r.name:SetTextColor(Style.Color(((k == next or pane.hot == k) and "text") or (dim and "muted" or "secondary")))
+                r.note:SetText("")
+            else
+                r.sign:Set(k, state)
+                r.name:SetPoint("TOPLEFT", r.sign, "TOPRIGHT", 12, 2)
+                r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
+                -- Which floor it's on, where there's more than one to say.
+                local where = (not place and (placed and "not on the map yet" or "")) or (count > 1 and Map.Floor(maps, place[1])) or ""
+                r.note:SetText(dead and (where ~= "" and (where .. " · killed") or "killed") or where)
+            end
             r:Show()
         end
         for i = used + 1, #pane.pins do pane.pins[i]:Hide() end
