@@ -710,6 +710,7 @@ Window.Page("training", function(page)
             else
                 hint[#hint + 1] = { "No weapon master seen teaching it yet: visit one and jsal.ui remembers." }
             end
+            hint[#hint + 1] = { " " }   -- a gap after who teaches it, as before it (John: "lts add a space after taught by as well")
             if master then hint[#hint + 1] = { "Click to show them on your map" } end
             hint[#hint + 1] = { w.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
             list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master, hint = hint }
