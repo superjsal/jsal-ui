@@ -345,7 +345,7 @@ SlashCmdList.JSALUI = function(message)
 end
 
 -- /jsal perf: how long jsal.ui took to load, and, where the game keeps
--- addon timings, the addons that have cost the most since the last reload.
+-- addon timings, the addons that have cost the most.
 ns.Command("perf", function()
     local t = ns.timings
     ns.Print(("Loading took %.0f ms to read the files, %.0f ms to set up and %.0f ms to start at login.")
@@ -368,7 +368,9 @@ ns.Command("perf", function()
         end
     end
     table.sort(rows, function(a, b) return a.average > b.average end)
-    ns.Print("Average time each frame, and the longest single frame, since the last reload:")
+    -- The longest is the game's own, and a reload doesn't clear it: it read 134.8 ms through six
+    -- reloads, under words that said "since the last reload".
+    ns.Print("Average time each frame, and the longest single frame (the game keeps the longest through a reload):")
     for i = 1, math.min(10, #rows) do
         local r = rows[i]
         print(("  %s: %.3f ms average, %.1f ms longest"):format(r.name, r.average, r.peak))
