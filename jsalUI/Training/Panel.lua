@@ -478,10 +478,13 @@ local function Head(y, count, words, cost, money, costX)
     PlaceRight(panel.nowCost, y)
     y = y + 24
     if cost > 0 then
+        -- One line the panel's width holds: "enough, ... left after" ran off it with two-figure
+        -- gold (John, 19 Nov 2026: "A", of "You have 19g 67s 12c, 18g 37s 12c after"). Green
+        -- says it's enough.
         local short = money < cost
-        panel.gold:SetText(("You have %s:  %s"):format(Compat.Money(money), short
+        panel.gold:SetText(("You have %s,  %s"):format(Compat.Money(money), short
             and (Style.Tint("red") .. "short by " .. Compat.Money(cost - money) .. "|r")
-            or (Style.Tint("green") .. "enough, " .. Compat.Money(money - cost) .. " left after|r")))
+            or (Style.Tint("green") .. Compat.Money(money - cost) .. " after|r")))
         Place(panel.gold, y)
         y = y + 22
     else
