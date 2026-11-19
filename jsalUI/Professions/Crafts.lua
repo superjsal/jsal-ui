@@ -1417,7 +1417,9 @@ end
 ---------------------------------------------------------------------------
 -- The window.
 ---------------------------------------------------------------------------
-local TABS = { { "foryou", "For you" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
+-- "To make" was "For you", which read as what's coming to you rather than what you can make
+-- for others (John, 18 Nov 2026). Its key stays "foryou" so a saved tab still opens.
+local TABS = { { "foryou", "To make" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
 local PAINT = { foryou = PaintForYou, yours = PaintYours, crafters = PaintCrafters }
 
 -- Marks the open tab on a bar of them, and puts their numbers on: what
