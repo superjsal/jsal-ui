@@ -260,12 +260,36 @@ local function SideText(d)
     return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
 end
 
--- An item's details, asking the game to load them when it hasn't yet.
+-- An item's details, asking the game to load them when it hasn't yet. `missed` counts the
+-- ones it hadn't, so a paint knows whether anything it drew is still to come.
+local missed = 0
 local function ItemInfo(id)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, _, classID, subclassID = get(id)
-    if not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+    if not name then
+        missed = missed + 1
+        if C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+    end
     return name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, classID, subclassID
+end
+
+-- How many of a dungeon's listed drops the game hasn't loaded, asking for each when `ask`.
+-- Nothing where the game can't be asked: there's then nothing to wait for. Only the items'
+-- numbers are looked at, no tooltip.
+local function Unloaded(d, ask)
+    local request = C_Item and C_Item.RequestLoadItemDataByID
+    if not request then return 0 end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local n = 0
+    for _, b in ipairs(d.bosses) do
+        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
+            if not get(drop[1]) then
+                n = n + 1
+                if ask then request(drop[1]) end
+            end
+        end
+    end
+    return n
 end
 
 -- Whether an item is for you: the gear plan's rules of what each class
@@ -333,6 +357,21 @@ Window.Page("dungeons", function(page)
     local rightW = width
     local chosen, scrolled
     local Paint, opened
+    -- A dungeon's items come from the game a moment after they're first asked for. Drawn
+    -- before that, every drop was "..." and all of them listed, and the page drew itself
+    -- again a moment later, shorter and with other words. So a dungeon just picked keeps the
+    -- last drawing until its items are in, or HOLD seconds at most; and the dungeons on show
+    -- in the list are asked for as it opens, one a frame, so the wait is mostly none.
+    -- `drawn` is the dungeon whose bosses are on the page, `holding` the one waited for,
+    -- `late` those whose wait ran out (not waited for again), `lacking` how many items the
+    -- last drawing missed. In one table: the paint has little room left for names of its own.
+    local HOLD = 0.5
+    local wait = { late = {}, lacking = 0, asked = {}, queue = {} }
+    function wait.Count(d)
+        local first = not wait.asked[d]
+        wait.asked[d] = true
+        return Unloaded(d, first)
+    end
     -- Each part of a paint, timed, so /jsal perf can say which is slow ("Page: Dungeons,
     -- redraw" was 32 ms, with no word of why). A part is noted only when the paint was slow.
     local spent = {}
@@ -387,6 +426,11 @@ Window.Page("dungeons", function(page)
         Paint()
     end)
     page:SetScript("OnHide", function() drop:Hide() end)
+    function wait.AskNext(self)
+        local d = table.remove(wait.queue)
+        if d and not wait.asked[d] then wait.Count(d) end
+        if #wait.queue == 0 then self:SetScript("OnUpdate", nil) end
+    end
 
     -- A group's heading: click it to open or close the group.
     local groupHeads = {}
@@ -1602,6 +1646,10 @@ Window.Page("dungeons", function(page)
             i = i + 1
             local r = Row(i)
             r.dungeon = d
+            if drop:IsShown() and not wait.asked[d] and not wait.queue[d] then
+                wait.queue[d] = true
+                wait.queue[#wait.queue + 1] = d
+            end
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -y)
             local killed = 0
@@ -1627,6 +1675,7 @@ Window.Page("dungeons", function(page)
             if opened[g] and #inGroup > 0 then y = y + 6 end
         end
         for j = i + 1, #rows do rows[j]:Hide() end
+        if #wait.queue > 0 then drop:SetScript("OnUpdate", wait.AskNext) end
         list:SetHeight(math.max(1, y))
         -- The list is as tall as it needs, up to a limit, and opens at the
         -- chosen dungeon.
@@ -1642,6 +1691,20 @@ Window.Page("dungeons", function(page)
         -- The chosen dungeon.
         local d = chosen
         if not d then return end
+        if not wait.drawn then pickerName:SetText(d.name) end
+        local fresh = tab == "bosses" and d ~= wait.drawn and not wait.late[d]
+        if (fresh or not wait.asked[d]) and wait.Count(d) > 0 and fresh and Compat.After then
+            if wait.holding ~= d then
+                wait.holding = d
+                Compat.After(HOLD, ns.Safe(D, function()
+                    if wait.holding ~= d then return end
+                    wait.holding, wait.late[d] = nil, true
+                    if page:IsVisible() then Paint() end
+                end))
+            end
+            return
+        end
+        wait.holding = nil
         pickerName:SetText(d.name)
         local killed = 0
         for _, b in ipairs(d.bosses) do
@@ -1711,6 +1774,7 @@ Window.Page("dungeons", function(page)
         -- line of how much here is for you.
         hint:SetText("")
         local heights, forYou, sure = {}, 0, 0
+        missed = 0
         for k, b in ipairs(d.bosses) do
             t = debugprofilestop()
             local card = BossRow(k)
@@ -1772,6 +1836,7 @@ Window.Page("dungeons", function(page)
         bossList:SetHeight(by)
         Fit(by)
         B.Scroll(d, tab)
+        wait.drawn, wait.lacking = d, missed
         -- Come from the map: the boss clicked there is brought to the top.
         local to = B.jump and bossRows[B.jump]
         B.jump = nil
@@ -1785,7 +1850,13 @@ Window.Page("dungeons", function(page)
     local waiting
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:SetScript("OnEvent", function()
-        if waiting or not page:IsVisible() or tab ~= "bosses" then return end
+        -- A dungeon waited for is drawn the moment its last item is in.
+        if wait.holding then
+            if page:IsVisible() and Unloaded(wait.holding) == 0 then Paint() end
+            return
+        end
+        -- Nothing missing from the page: an item that arrived is another dungeon's.
+        if waiting or wait.lacking == 0 or not page:IsVisible() or tab ~= "bosses" then return end
         waiting = true
         Compat.After(0.2, ns.Safe(D, function()
             waiting = nil
