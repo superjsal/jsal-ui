@@ -76,6 +76,21 @@ local DEFAULTS = {
 }
 local CHAR_DEFAULTS = {}
 
+-- Every part is switched on once, whatever was saved, for a player who hasn't
+-- seen the welcome: the welcome that follows is where they turn off what they
+-- don't want, with every part in front of them. It's marked, so a part
+-- switched off after that stays off; and a player who has been through the
+-- welcome keeps the switches they left it with.
+local function AllOnOnce(db)
+    if db.allOn then return end
+    if not (type(db.setup) == "table" and db.setup.welcome) then
+        for key, on in pairs(db.modules) do
+            if on == false then db.modules[key] = nil end
+        end
+    end
+    db.allOn = true
+end
+
 local function Fill(target, defaults)
     for key, value in pairs(defaults) do
         if type(value) == "table" then
@@ -259,6 +274,7 @@ events:SetScript("OnEvent", function(self, event, arg1)
         local started = debugprofilestop()
         ns.timings.files = started - (ns.loadStarted or started)
         jsalUIDB = Fill(type(jsalUIDB) == "table" and jsalUIDB or {}, DEFAULTS)
+        AllOnOnce(jsalUIDB)
         jsalUICharDB = Fill(type(jsalUICharDB) == "table" and jsalUICharDB or {}, CHAR_DEFAULTS)
         ns.db, ns.char = jsalUIDB, jsalUICharDB
         -- The daily games used to be saved per character. A character's
