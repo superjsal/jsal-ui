@@ -379,6 +379,65 @@ local function BossGear(boss)
     return star, best
 end
 
+-- The bosses your quests need, for their marks on the dungeon's map: { [the boss's place in the
+-- dungeon's order] = the quest's name }, with "+1" after it for each further quest that needs
+-- the same boss. Nothing says which boss a quest needs, so it's read off the quests in your log:
+-- of the dungeon's quests you hold, each objective still to do that names a boss, or an item a
+-- boss is known to drop. A quest not picked up yet, or one that wants neither, has no boss.
+local function BossQuests(d)
+    local out
+    local read = C_QuestLog and C_QuestLog.GetQuestObjectives
+    if not read then return nil end
+    local byName, byItem
+    for _, q in ipairs(ns.DungeonQuests and ns.DungeonQuests[d.id] or {}) do
+        local objectives = QuestHeld(q[1]) and read(q[1])
+        for _, o in ipairs(type(objectives) == "table" and objectives or {}) do
+            if not o.finished and (o.type == "monster" or o.type == "item") then
+                -- "Revelosh slain: 0/1", "Tablet of Will: 0/1", or the count first.
+                local text = o.text or ""
+                local name = (text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text)
+                name = name:gsub("%s+slain$", ""):match("^%s*(.-)%s*$"):lower()
+                local k
+                if name ~= "" and o.type == "monster" then
+                    if not byName then
+                        byName = {}
+                        for i, b in ipairs(d.bosses) do
+                            byName[b[2]:lower()] = i
+                            if b[3] then byName[b[3]:lower()] = i end
+                        end
+                    end
+                    k = byName[name]
+                elseif name ~= "" then
+                    if not byItem then
+                        byItem = {}
+                        for i, b in ipairs(d.bosses) do
+                            for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
+                                local item = ItemInfo(drop[1])
+                                if item then byItem[item:lower()] = byItem[item:lower()] or i end
+                            end
+                        end
+                    end
+                    k = byItem[name]
+                end
+                if k then
+                    out = out or {}
+                    local has = out[k]
+                    if not has then
+                        out[k] = { q[2], 0, [q[1]] = true }
+                    elseif not has[q[1]] then
+                        has[q[1]], has[2] = true, has[2] + 1
+                    end
+                end
+            end
+        end
+    end
+    if not out then return nil end
+    for k, has in pairs(out) do out[k] = has[2] > 0 and (has[1] .. " +" .. has[2]) or has[1] end
+    return out
+end
+-- On the module too, so it can be asked by itself.
+if ns.Dungeons then ns.Dungeons.BossQuests = BossQuests end
+
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
     local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
@@ -1777,7 +1836,7 @@ Window.Page("dungeons", function(page)
             mapPane:Draw(d, function(k)
                 local b = d.bosses[k]
                 return D.KillCount(b[2], game, b[3]) > 0
-            end, function(k) return BossGear(d.bosses[k]) end)
+            end, function(k) return BossGear(d.bosses[k]) end, BossQuests(d))
             wait.drawn, wait.lacking = d, missed
             Fit(mapPane.height)
             B.Scroll(d, tab)

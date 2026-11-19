@@ -1,7 +1,7 @@
 # jsal.ui 0.3.58
 
 - Games: three cards across, with the Guild Word under Daily Word and your guild beside it.
-- Dungeon guide: a Map tab, with each boss marked on the dungeon's own map, for 19 of the classic dungeons and raids. Seven of Forever's own dungeons have a map too, without boss marks. A boss that drops an upgrade for you, or a piece you starred, is marked on the map. The mouse wheel zooms it.
+- Dungeon guide: a Map tab, with each boss marked on the dungeon's own map, for 19 of the classic dungeons and raids. Seven of Forever's own dungeons have a map too, without boss marks. A boss that drops an upgrade for you, or a piece you starred, is marked on the map, and so is one a quest in your log needs. The mouse wheel zooms it.
 - Officers can set the Guild Word too, not only the guild master.
 - Restart the game once for this version: it adds new files.
 - And a few smaller fixes.

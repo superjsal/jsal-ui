@@ -2,7 +2,8 @@
 -- sign on each boss, the floors to pick from over it and the bosses listed beside it. A boss,
 -- on the map or in the list, is a click to its loot. A boss with gear for you is marked: a
 -- green dot on its sign when it drops something better than what you wear, your Gear plan's
--- star when it drops a piece you starred. A dungeon of Forever's own has no map
+-- star when it drops a piece you starred. A boss a quest in your log needs has a gold "!" at
+-- its sign's other shoulder, and the quest's name under its own. A dungeon of Forever's own has no map
 -- picture: its map is a cut of its minimap, with no boss placed on it.
 local _, ns = ...
 local Style = ns.Style
@@ -58,6 +59,21 @@ local function Sign(parent)
     s.label:SetPoint("CENTER")
     -- The mark at the sign's shoulder, made the first time a sign needs one: a green dot, or the
     -- Gear plan's star on a dark one (the star alone was lost on the map).
+    function s:Quest(on)
+        if not (on or self.quest) then return end
+        if not self.quest then
+            local q = CreateFrame("Frame", nil, self)
+            q:SetSize(13, 13)
+            q:SetPoint("CENTER", self, "TOPLEFT", 3, -3)
+            q:SetFrameLevel(self:GetFrameLevel() + 3)
+            Style.Circle(q, "gold", "window")
+            q.text = Style.Text(q, 10, "onGold", nil, true)
+            q.text:SetPoint("CENTER")
+            q.text:SetText("!")
+            self.quest = q
+        end
+        self.quest:SetShown(on)
+    end
     function s:Mark(star, gain)
         local on = star or gain ~= nil
         if not (on or self.mark) then return end
@@ -280,10 +296,11 @@ function Map.Build(parent, width, onBoss)
     -- `killed(k)` says whether the dungeon's k-th boss is dead; `gear(k)`, where given, whether
     -- it drops a piece you starred and the most a drop of its betters what you wear. That is
     -- asked here, once a boss, and not on every paint: pointing at a boss paints again.
+    -- `quests`, where given, is the bosses your quests need: { [k] = the quest's name }.
     pane.star, pane.gain = {}, {}
-    function pane:Draw(d, killed, gear)
+    function pane:Draw(d, killed, gear, quests)
         if self.dungeon ~= d then self.floor, self.hot = nil, nil end
-        self.dungeon, self.killed = d, killed
+        self.dungeon, self.killed, self.quests = d, killed, quests or nil
         for k = 1, math.max(#d.bosses, #self.star) do
             self.star[k], self.gain[k] = false, nil
             if gear and d.bosses[k] then self.star[k], self.gain[k] = gear(k) end
@@ -351,6 +368,7 @@ function Map.Build(parent, width, onBoss)
                 p.k = k
                 p:Set(k, state)
                 p:Mark(pane.star[k], pane.gain[k])
+                p:Quest(pane.quests ~= nil and pane.quests[k] ~= nil)
                 p.x, p.y = Clear(place[2] * mapW, place[3] * mapH)
                 PlaceSign(p)
                 p:Show()
@@ -365,12 +383,14 @@ function Map.Build(parent, width, onBoss)
             r.name:ClearAllPoints()
             local has = Map.Gain(pane.star[k], pane.gain[k])
             has = has and (Style.Tint("green") .. has .. "|r")
+            local quest = pane.quests and pane.quests[k]
             if tight then
                 local dim = dead or not (place and place[1] == pane.floor)
                 -- One line: what it has for you goes after its name, the star as itself.
                 local star = pane.star[k] and ns.Gear and ns.Gear.STAR
                 local by = pane.gain[k] and Map.Gain(false, pane.gain[k]):gsub("best ", "")
-                r.name:SetText((boss[3] or boss[2]) .. (star and ("  " .. star) or "") .. (by and ("  " .. Style.Tint("green") .. by .. "|r") or ""))
+                r.name:SetText((boss[3] or boss[2]) .. (star and ("  " .. star) or "") .. (by and ("  " .. Style.Tint("green") .. by .. "|r") or "")
+                    .. (quest and ("  " .. Style.Tint("gold") .. "!|r") or ""))
                 r.num:SetText(k)
                 r.num:SetTextColor(Style.Color(((k == next or pane.hot == k) and "gold") or (dim and "muted" or "secondary")))
                 r.name:SetPoint("LEFT", r, "LEFT", 42, 0)
@@ -379,6 +399,7 @@ function Map.Build(parent, width, onBoss)
             else
                 r.sign:Set(k, state)
                 r.sign:Mark(pane.star[k], pane.gain[k])
+                r.sign:Quest(quest ~= nil)
                 r.name:SetText(boss[3] or boss[2])
                 r.name:SetPoint("TOPLEFT", r.sign, "TOPRIGHT", 12, 2)
                 r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
@@ -387,6 +408,8 @@ function Map.Build(parent, width, onBoss)
                 if dead then
                     r.note:SetText(where ~= "" and (where .. " · killed") or "killed")
                 else
+                    -- The quest that needs it is said in place of its floor.
+                    if quest then where = Style.Tint("gold") .. quest .. "|r" end
                     r.note:SetText(has and (where ~= "" and (where .. " · " .. has) or has) or where)
                 end
             end
