@@ -97,8 +97,9 @@ end
 
 ---------------------------------------------------------------------------
 -- Learning the next rank, as a row of its own where the road reaches its
--- skill. A click pins the nearest trainer who teaches it. `inline` says so
--- in the row's own words; without it the row says so in a tooltip.
+-- skill. A click pins the nearest trainer who teaches it, and its tooltip says so. (`inline`
+-- once put that in the row's own words, which ran off the end of a long one: "...Dustwallow
+-- Marsh · click for...", on John's First Aid, 19 Nov 2026.)
 ---------------------------------------------------------------------------
 function Road.RankRow(parent, width, inline)
     local r = CreateFrame("Button", nil, parent)
@@ -120,15 +121,13 @@ function Road.RankRow(parent, width, inline)
     r:SetScript("OnClick", function(self)
         if self.trainer and ns.Trainers then ns.Trainers.Pin(self.trainer) end
     end)
-    if not r.inline then
-        r:SetScript("OnEnter", function(self)
-            if not self.trainer then return end
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:AddLine("Click to show them on your map.", 0.6, 0.59, 0.53)
-            GameTooltip:Show()
-        end)
-        r:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    end
+    r:SetScript("OnEnter", function(self)
+        if not self.trainer then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine("Click to show them on your map.", 0.6, 0.59, 0.53)
+        GameTooltip:Show()
+    end)
+    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
     return r
 end
 
@@ -146,7 +145,6 @@ function Road.PaintRank(r, line, rank, rankIndex, rankAt, skill)
     if about and not who then parts[#parts + 1] = about end
     if trainer then
         parts[#parts + 1] = (who and (about .. " ") or "") .. trainer.name .. (place and (", " .. place) or "")
-            .. (r.inline and " · click for a map pin" or "")
     end
     if not what and (UnitLevel("player") or 0) < rank.level then parts[#parts + 1] = ("needs level %d"):format(rank.level) end
     if #parts == 0 then parts[1] = "jsal.ui doesn't know a trainer for it" end
