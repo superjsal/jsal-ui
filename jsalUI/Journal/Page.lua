@@ -26,6 +26,11 @@ local function Count(n)
     return s
 end
 
+-- A count and its word, the word singular at one: "1 kill", "2 kills".
+local function Counted(n, word)
+    return Count(n) .. " " .. word .. (math.floor(n or 0) == 1 and "" or "s")
+end
+
 local function Miles(yards)
     local miles = (yards or 0) / 1760
     if miles < 1 then return ("%d yd"):format(math.floor(yards or 0)) end
@@ -406,7 +411,7 @@ Window.Page("journal", function(page)
         local spells, zones = J.Top(book.spells, 5), J.Top(book.zones, 5)
         local killer = J.Top(book.killers, 1)[1]
         M.Card(1, "FAVOURITE MOVE", spells[1] and spells[1].key or "None yet",
-            spells[1] and (Count(spells[1].n) .. " times") or "shows once you've cast a few",
+            spells[1] and Counted(spells[1].n, "time") or "shows once you've cast a few",
             spells[1] and select(2, Compat.SpellInfo(spells[1].key)) or nil)
         M.Card(2, "HOME GROUND", zones[1] and zones[1].key or "Nowhere yet", zones[1] and (Hours(zones[1].n) .. " there") or "",
             M.ICONS .. "INV_Misc_Map_01")
@@ -461,8 +466,8 @@ Window.Page("journal", function(page)
             local mine = i == level and i > 2 and i % 10 > 1 and i % 10 < 9
             b.label:SetText((tenth or mine or (i == level and last < 10)) and i or "")
             b.label:SetTextColor(Style.Color(i == level and "text" or "muted"))
-            b.tip = { "Level " .. i, row and ("%s%s  ·  %s kills  ·  %s quests  ·  %s deaths"):format(Hours(took), i == level and " so far" or "",
-                Count(row.foes), Count(row.quests), Count(row.deaths)) or "Before the Journal began" }
+            b.tip = { "Level " .. i, row and ("%s%s  ·  %s  ·  %s  ·  %s"):format(Hours(took), i == level and " so far" or "",
+                Counted(row.foes, "kill"), Counted(row.quests, "quest"), Counted(row.deaths, "death")) or "Before the Journal began" }
         end
         for i = last + 1, #M.bars do M.bars[i]:Hide() end
         M.records:SetText((fastest and longest and fastest ~= longest)
