@@ -115,6 +115,9 @@ local function Build()
     panel.roadNote = Style.Text(panel, 12, "muted")
     panel.roadNote:SetJustifyH("RIGHT")
     panel.thenHead = Style.Text(panel, 12, "gold", nil, true)
+    -- How many crafts the road takes, at the right of its heading, as on the Professions page.
+    panel.thenNote = Style.Text(panel, 12, "muted")
+    panel.thenNote:SetJustifyH("RIGHT")
     panel.note = Style.Text(panel, 12, "muted")
     panel.note:SetWidth(WIDTH - PAD * 2)
     panel.note:SetJustifyH("LEFT")
@@ -731,6 +734,7 @@ function Paint()
             y = y + 8
             panel.thenHead:SetText(("YOUR ROAD TO %d"):format(cap))
             Place(panel.thenHead, y + 2)
+            panel.thenHead.y = y + 2
             y = y + 26
             from = y
         else
@@ -743,6 +747,10 @@ function Paint()
             ranked = true
             return STOP_H
         end
+        -- A last step that reaches the cap is the road's end and the cap's sign: ringed in gold,
+        -- with no second sign after it saying the same number (John, 19 Nov 2026, of the panel's
+        -- "225" then the ringed 225: "Yes, match the page").
+        local reached = more and not stuck and skill < cap and #road - 1 <= MAX_STEPS and (road[#road].to or 0) >= cap
         for i = 2, #road do
             if i - 1 > MAX_STEPS then break end
             local step = road[i]
@@ -750,6 +758,9 @@ function Paint()
             shown = i - 1
             local s = Step(shown)
             Road.PaintStop(s, step, trainer)
+            local capSign = reached and i == #road
+            s.disc:Paint("well", capSign and "gold" or "lineStrong")
+            s.level:SetTextColor(Style.Color(capSign and "gold" or "text"))
             Place(s, y)
             y = y + STOP_H
         end
@@ -766,7 +777,14 @@ function Paint()
         else
             panel.moreSteps:Hide()
         end
-        if more and not stuck and skill < cap then
+        local craftsLine = crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""
+        if reached then
+            panel.thenNote:SetText(craftsLine)
+            PlaceRight(panel.thenNote, panel.thenHead.y or 0)
+        else
+            panel.thenNote:Hide()
+        end
+        if more and not stuck and skill < cap and not reached then
             panel.endSign.level:SetText(cap)
             Place(panel.endSign, y + (STOP_H - SIGN) / 2)
             panel.endText:SetText(crafts > 0 and ("about %d %s%s from here"):format(crafts, unit, crafts == 1 and "" or "s") or "")
@@ -853,7 +871,7 @@ function Paint()
         panel.unlearnedCount:Hide()
         panel.showAll:Hide()
     else
-        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.note, panel.rule, panel.needLine,
+        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.thenNote, panel.note, panel.rule, panel.needLine,
                                   panel.band, panel.moreSteps, panel.endSign, panel.endText }) do
             region:Hide()
         end
