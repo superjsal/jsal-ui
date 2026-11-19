@@ -19,7 +19,7 @@ local FLOORS = 7
 -- A row needs this much height for its two lines; under it, a row is one line.
 local TWO_LINES = 34
 -- A boss's picture in its tooltip is this many of the tooltip's lines high.
-local FACE_LINES = 5
+local FACE_LINES = 8
 
 function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
@@ -260,23 +260,34 @@ function Map.Build(parent, width, onBoss)
     -- other tooltip ever has it, it's hidden when the pointer leaves the sign and whenever the
     -- tooltip itself goes. It's made the first time a boss with one is pointed at.
     local function Face(display, first)
-        local m = pane.face
+        -- The model stands in a dark box with a line round it, a picture in its frame.
+        local m, box = pane.face, pane.faceBox
         if not m then
-            m = CreateFrame("PlayerModel", nil, GameTooltip)
-            if GameTooltip.HookScript then GameTooltip:HookScript("OnHide", function() m:Hide() end) end
-            pane.face = m
+            box = CreateFrame("Frame", nil, GameTooltip)
+            Style.Fill(box, "titleBar")
+            Style.Border(box, "lineStrong")
+            m = CreateFrame("PlayerModel", nil, box)
+            m:SetPoint("TOPLEFT", 1, -1)
+            m:SetPoint("BOTTOMRIGHT", -1, 1)
+            if GameTooltip.HookScript then GameTooltip:HookScript("OnHide", function() box:Hide() end) end
+            pane.face, pane.faceBox = m, box
         end
         local top, foot = _G["GameTooltipTextLeft" .. first], _G["GameTooltipTextLeft" .. (first + FACE_LINES - 1)]
         local size = top and foot and top.GetTop and top:GetTop() and foot:GetBottom() and (top:GetTop() - foot:GetBottom()) or 64
-        m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 10)
-        m:SetSize(size, size)
-        m:ClearAllPoints()
-        if top then m:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else m:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
+        box:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 10)
+        m:SetFrameLevel((GameTooltip:GetFrameLevel() or 1) + 11)
+        box:SetSize(size, size)
+        box:ClearAllPoints()
+        if top then box:SetPoint("TOPLEFT", top, "TOPLEFT", 0, 0) else box:SetPoint("TOPLEFT", GameTooltip, "TOPLEFT", 10, -40) end
+        box:Show()
         -- Shown first: the game loads a model only into a frame that's showing, and this one
         -- is hidden between tooltips (set while hidden, the picture's place stayed empty).
         m:Show()
         if m.ClearModel then m:ClearModel() end
         m:SetDisplayInfo(display)
+        -- A little nearer than the game's own view of it: five lines high and at the game's
+        -- distance, a boss the size of a person was a small figure in the gap.
+        if m.SetCamDistanceScale then m:SetCamDistanceScale(0.8) end
     end
     local function Tip(sign)
         local d, k = pane.dungeon, sign.k
@@ -299,7 +310,7 @@ function Map.Build(parent, width, onBoss)
             GameTooltip:AddLine("Click for its loot", 0.6, 0.59, 0.53)
         end
         GameTooltip:Show()
-        if face then Face(face, first) elseif pane.face then pane.face:Hide() end
+        if face then Face(face, first) elseif pane.faceBox then pane.faceBox:Hide() end
     end
     local function Clickable(frame, tips)
         frame:EnableMouse(true)
@@ -310,7 +321,7 @@ function Map.Build(parent, width, onBoss)
         frame:SetScript("OnLeave", function()
             Hot(nil)
             if tips and GameTooltip then GameTooltip:Hide() end
-            if tips and pane.face then pane.face:Hide() end
+            if tips and pane.faceBox then pane.faceBox:Hide() end
         end)
         frame:SetScript("OnMouseUp", function(self) if onBoss and self.k then onBoss(self.k) end end)
     end
