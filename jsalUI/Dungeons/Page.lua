@@ -355,6 +355,30 @@ local function ForOthers(id)
 end
 local RED = Style.Tint("red")
 
+-- What a boss has for you, for its mark on the dungeon's map: whether it drops a piece starred
+-- in your Gear plan, and the most any of its drops betters what you wear (nil for none, or
+-- while the game hasn't loaded them). By the rules its card sorts its loot by.
+local function BossGear(boss)
+    local G, D = ns.Gear, ns.Dungeons
+    if not (G and G.Better) then return false, nil end
+    local starred = G.Starred and G.Starred() or {}
+    local star, best = false, nil
+    local seen = {}
+    local function Look(id)
+        if seen[id] then return end
+        seen[id] = true
+        local _, _, _, _, _, _, _, _, equipLoc, _, classID, subclassID = ItemInfo(id)
+        local mine = starred[id] == true
+        if mine then star = true end
+        if classID == RECIPE or (not mine and (CantEquip(classID, subclassID, equipLoc) or ForOthers(id) == true)) then return end
+        local is, gain = G.Better(id, equipLoc, classID, subclassID)
+        if is and (gain or 0) > (best or -1) then best = gain or 0 end
+    end
+    for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[boss[1]] or {}) do Look(drop[1]) end
+    for id in pairs(D.Loot()[D.Key(boss[2])] or {}) do Look(id) end
+    return star, best
+end
+
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
     local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
@@ -1747,10 +1771,14 @@ Window.Page("dungeons", function(page)
         if mapPane then mapPane:SetShown(tab == "map") end
         if tab == "map" then
             hint:SetText("")
+            -- The map marks the bosses with gear for you. An item of theirs the game
+            -- hasn't loaded yet is counted, so the map is drawn again when it comes.
+            missed = 0
             mapPane:Draw(d, function(k)
                 local b = d.bosses[k]
                 return D.KillCount(b[2], game, b[3]) > 0
-            end)
+            end, function(k) return BossGear(d.bosses[k]) end)
+            wait.drawn, wait.lacking = d, missed
             Fit(mapPane.height)
             B.Scroll(d, tab)
             NoteParts(started)
@@ -1864,7 +1892,7 @@ Window.Page("dungeons", function(page)
             return
         end
         -- Nothing missing from the page: an item that arrived is another dungeon's.
-        if waiting or wait.lacking == 0 or not page:IsVisible() or tab ~= "bosses" then return end
+        if waiting or wait.lacking == 0 or not page:IsVisible() or tab == "quests" then return end
         waiting = true
         Compat.After(0.2, ns.Safe(D, function()
             waiting = nil

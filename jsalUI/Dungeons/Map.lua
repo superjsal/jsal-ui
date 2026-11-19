@@ -1,6 +1,8 @@
 -- The Dungeon guide's Map tab: the dungeon's floor as the game's own map picture, a numbered
 -- sign on each boss, the floors to pick from over it and the bosses listed beside it. A boss,
--- on the map or in the list, is a click to its loot. A dungeon of Forever's own has no map
+-- on the map or in the list, is a click to its loot. A boss with gear for you is marked: a
+-- green dot on its sign when it drops something better than what you wear, your Gear plan's
+-- star when it drops a piece you starred. A dungeon of Forever's own has no map
 -- picture: its map is a cut of its minimap, with no boss placed on it.
 local _, ns = ...
 local Style = ns.Style
@@ -27,6 +29,18 @@ function Map.Floor(maps, i)
     return type(own) == "string" and own ~= "" and own or ("Floor " .. i)
 end
 
+-- What a boss has for you, in a few words: "best +6%", "starred, +24%", "starred". Nil for
+-- nothing.
+function Map.Gain(star, gain)
+    local by
+    if gain then
+        local pct = math.floor(gain * 100 + 0.5)
+        by = pct < 1 and "under 1%" or ("+" .. pct .. "%")
+    end
+    if star then return by and ("starred, " .. by) or "starred" end
+    return by and ("best " .. by) or nil
+end
+
 -- Which floor a boss is on, and where: nil for one with no place yet.
 function Map.Place(d, k)
     local maps = Map.Has(d) and ns.DungeonMaps[d.id]
@@ -42,6 +56,29 @@ local function Sign(parent)
     s.disc = Style.Circle(s, "well", "lineStrong")
     s.label = Style.Text(s, 12, "text", nil, true)
     s.label:SetPoint("CENTER")
+    -- The mark at the sign's shoulder, made the first time a sign needs one: a green dot, or the
+    -- Gear plan's star on a dark one (the star alone was lost on the map).
+    function s:Mark(star, gain)
+        local on = star or gain ~= nil
+        if not (on or self.mark) then return end
+        if not self.mark then
+            local m = CreateFrame("Frame", nil, self)
+            m:SetSize(12, 12)
+            m:SetPoint("CENTER", self, "TOPRIGHT", -3, -3)
+            m:SetFrameLevel(self:GetFrameLevel() + 3)
+            m.disc = Style.Circle(m, "green", "window")
+            m.star = m:CreateTexture(nil, "OVERLAY")
+            m.star:SetSize(14, 14)
+            m.star:SetPoint("CENTER")
+            m.star:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_1")
+            self.mark = m
+        end
+        self.mark:SetShown(on)
+        if on then
+            self.mark.disc:Paint(star and "window" or "green", "window")
+            self.mark.star:SetShown(star)
+        end
+    end
     function s:Set(n, state)
         self.label:SetText(n)
         if state == "next" then
@@ -240,10 +277,17 @@ function Map.Build(parent, width, onBoss)
         return pane.rows[i]
     end
 
-    -- `killed(k)` says whether the dungeon's k-th boss is dead.
-    function pane:Draw(d, killed)
+    -- `killed(k)` says whether the dungeon's k-th boss is dead; `gear(k)`, where given, whether
+    -- it drops a piece you starred and the most a drop of its betters what you wear. That is
+    -- asked here, once a boss, and not on every paint: pointing at a boss paints again.
+    pane.star, pane.gain = {}, {}
+    function pane:Draw(d, killed, gear)
         if self.dungeon ~= d then self.floor, self.hot = nil, nil end
         self.dungeon, self.killed = d, killed
+        for k = 1, math.max(#d.bosses, #self.star) do
+            self.star[k], self.gain[k] = false, nil
+            if gear and d.bosses[k] then self.star[k], self.gain[k] = gear(k) end
+        end
         Paint()
     end
 
@@ -306,6 +350,7 @@ function Map.Build(parent, width, onBoss)
                 local p = Pin(used)
                 p.k = k
                 p:Set(k, state)
+                p:Mark(pane.star[k], pane.gain[k])
                 p.x, p.y = Clear(place[2] * mapW, place[3] * mapH)
                 PlaceSign(p)
                 p:Show()
@@ -318,9 +363,14 @@ function Map.Build(parent, width, onBoss)
             r.sign:SetShown(not tight)
             r.num:SetShown(tight)
             r.name:ClearAllPoints()
-            r.name:SetText(boss[3] or boss[2])
+            local has = Map.Gain(pane.star[k], pane.gain[k])
+            has = has and (Style.Tint("green") .. has .. "|r")
             if tight then
                 local dim = dead or not (place and place[1] == pane.floor)
+                -- One line: what it has for you goes after its name, the star as itself.
+                local star = pane.star[k] and ns.Gear and ns.Gear.STAR
+                local by = pane.gain[k] and Map.Gain(false, pane.gain[k]):gsub("best ", "")
+                r.name:SetText((boss[3] or boss[2]) .. (star and ("  " .. star) or "") .. (by and ("  " .. Style.Tint("green") .. by .. "|r") or ""))
                 r.num:SetText(k)
                 r.num:SetTextColor(Style.Color(((k == next or pane.hot == k) and "gold") or (dim and "muted" or "secondary")))
                 r.name:SetPoint("LEFT", r, "LEFT", 42, 0)
@@ -328,11 +378,17 @@ function Map.Build(parent, width, onBoss)
                 r.note:SetText("")
             else
                 r.sign:Set(k, state)
+                r.sign:Mark(pane.star[k], pane.gain[k])
+                r.name:SetText(boss[3] or boss[2])
                 r.name:SetPoint("TOPLEFT", r.sign, "TOPRIGHT", 12, 2)
                 r.name:SetTextColor(Style.Color((k == next or pane.hot == k) and "text" or (dead and "muted" or "secondary")))
                 -- Which floor it's on, where there's more than one to say.
                 local where = (not place and (placed and "not on the map yet" or "")) or (count > 1 and Map.Floor(maps, place[1])) or ""
-                r.note:SetText(dead and (where ~= "" and (where .. " · killed") or "killed") or where)
+                if dead then
+                    r.note:SetText(where ~= "" and (where .. " · killed") or "killed")
+                else
+                    r.note:SetText(has and (where ~= "" and (where .. " · " .. has) or has) or where)
+                end
             end
             r:Show()
         end
