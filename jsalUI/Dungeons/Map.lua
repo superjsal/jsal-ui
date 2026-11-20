@@ -27,6 +27,9 @@ local TWO_LINES = 34
 local FACE_LINES = 8
 -- The margin a tooltip keeps either side of the picture.
 local PAD = 12
+-- Why his maps have no boss on them, said under the list; the room the list leaves for it.
+local UNMARKED = "These maps leave the bosses unmarked, so finding them is up to you."
+local NOTE_GAP, NOTE_H = 16, 50
 
 function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
@@ -151,6 +154,11 @@ function Map.Build(parent, width, onBoss)
     pane.credit:SetPoint("LEFT", parent, "BOTTOMLEFT", 0, 9)
     pane.credit:SetText(CREDIT)
     pane.credit:Hide()
+    pane.unmarked = Style.Text(pane, 12, "muted")
+    pane.unmarked:SetWidth(LIST_W - 20)
+    pane.unmarked:SetJustifyH("LEFT")
+    pane.unmarked:SetText(UNMARKED)
+    pane.unmarked:Hide()
 
     -- The picture, kept to its own size: its pieces run past it.
     local canvas = CreateFrame("Frame", nil, pane)
@@ -485,7 +493,7 @@ function Map.Build(parent, width, onBoss)
             return x, y
         end
 
-        local high = math.min(ROW_H, math.floor(mapH / math.max(1, #d.bosses)))
+        local high = math.min(ROW_H, math.floor((mapH - (maps.art and NOTE_H or 0)) / math.max(1, #d.bosses)))
         local tight = high < TWO_LINES
         local used = 0
         for k, boss in ipairs(d.bosses) do
@@ -544,6 +552,11 @@ function Map.Build(parent, width, onBoss)
                 end
             end
             r:Show()
+        end
+        pane.unmarked:SetShown(maps.art ~= nil)
+        if maps.art then
+            pane.unmarked:ClearAllPoints()
+            pane.unmarked:SetPoint("TOPLEFT", mapW + GAP, -(TOP + #d.bosses * high + NOTE_GAP))
         end
         for i = used + 1, #pane.pins do pane.pins[i]:Hide() end
         for i = #d.bosses + 1, #pane.rows do pane.rows[i]:Hide() end
