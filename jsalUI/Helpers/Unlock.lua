@@ -143,10 +143,18 @@ end
 
 local Paint
 
--- A mover's tab: its name, and for the picked one its anchor and numbers too.
+-- The numbers a player reads and types for a piece: how far its middle is
+-- from the middle of the screen, right and up. Always that, whichever point
+-- the piece is saved by, so numbers written down put it back where it was.
+local function Mid(m)
+    local W, H = Screen()
+    return Unlock.Offset("CENTER", m.left, m.bottom, m.w, m.h, W, H)
+end
+
+-- A mover's tab: its name, and for the picked one its numbers too.
 local function Tab(m)
     local text = Name(m.piece)
-    if m == picked and m.x then text = ("%s   %s %d, %d"):format(text, m.anchor, m.x, m.y) end
+    if m == picked and m.left then text = ("%s   %d, %d"):format(text, Mid(m)) end
     m.tab.text:SetText(text)
     m.tabW = (m.tab.text:GetStringWidth() or 60) + 14
     m.tab:SetWidth(m.tabW)
@@ -275,12 +283,12 @@ local function Pick(m)
     if Paint then Paint() end
 end
 
--- Exact numbers: the picked piece's point at (x, y).
+-- Exact numbers: the picked piece's middle at (x, y) from the screen's.
 function Unlock.Place(key, x, y)
     local m = movers and movers[key]
     if not (m and tonumber(x) and tonumber(y)) then return false end
     local W, H = Screen()
-    local left, bottom = Unlock.Rect(m.anchor, m.anchor, tonumber(x), tonumber(y), m.w, m.h, W, H)
+    local left, bottom = Unlock.Rect("CENTER", "CENTER", tonumber(x), tonumber(y), m.w, m.h, W, H)
     Put(m, left, bottom)
     Keep(m)
     if Paint then Paint() end
@@ -345,6 +353,19 @@ function Unlock.Undo(key)
         if at.left then Put(m, at.left, at.bottom) end
         m.piece.save(nil)
     end
+    if Paint then Paint() end
+end
+
+-- Reset: a piece's saved place is forgotten, so it stands where jsal.ui
+-- first puts it (a piece does that itself when its place is cleared), and
+-- its box follows it there.
+function Unlock.Reset(key)
+    local m = movers and movers[key]
+    if not m then return end
+    m.piece.save(nil)
+    local _, _, left, bottom, point = Measure(m.piece)
+    m.anchor = point
+    Put(m, left, bottom)
     if Paint then Paint() end
 end
 
@@ -487,7 +508,7 @@ local function Build()
     help:SetPoint("TOPLEFT", 20, -42)
     help:SetWidth(620)
     help:SetJustifyH("LEFT")
-    help:SetText("Drag any jsal.ui piece to move it. It snaps to the grid, the centre and the other pieces; hold Shift to place it freely. Right-click a piece to put it back where it started.")
+    help:SetText("Drag a piece to move it. It snaps to the grid, the centre and the other pieces; Shift places it freely. Right-click puts it back where it was. X and Y are from the screen's middle.")
 
     -- The picked piece: its name and anchor, and its X and Y to type into.
     panel.which = Style.Text(panel, 13, "text", nil, true)
@@ -533,6 +554,10 @@ local function Build()
         for _, t in ipairs(overlay.grid) do t:SetShown(on) end
     end)
     Switch("Snap", 116, function() return useSnap end, function(on) useSnap = on end)
+    -- The picked piece back to where jsal.ui first puts it.
+    panel.reset = Style.Button(panel, "Reset piece", "plain", 110)
+    panel.reset:SetPoint("BOTTOMRIGHT", -246, 16)
+    panel.reset:SetScript("OnClick", function() if picked then Unlock.Reset(picked.piece.key) end end)
     local undo = Style.Button(panel, "Undo all", "plain", 110)
     undo:SetPoint("BOTTOMRIGHT", -126, 16)
     undo:SetScript("OnClick", function()
@@ -546,6 +571,7 @@ end
 Paint = function()
     if not panel then return end
     local m = picked
+    panel.reset:SetEnabled(m ~= nil)
     if not m then
         panel.which:SetText("Pick a piece to type its position.")
         panel.x:SetText("")
@@ -556,9 +582,10 @@ Paint = function()
         end
         return
     end
-    panel.which:SetText(("%s  ·  %s%s"):format(Name(m.piece), m.anchor, m.hidden and "  ·  hidden for now" or ""))
-    if not panel.x:HasFocus() then panel.x:SetText(tostring(m.x)) end
-    if not panel.y:HasFocus() then panel.y:SetText(tostring(m.y)) end
+    panel.which:SetText(Name(m.piece) .. (m.hidden and "  ·  hidden for now" or ""))
+    local x, y = Mid(m)
+    if not panel.x:HasFocus() then panel.x:SetText(tostring(x)) end
+    if not panel.y:HasFocus() then panel.y:SetText(tostring(y)) end
     local sized = m.piece.resize ~= nil
     for _, e in ipairs({ panel.w, panel.h }) do
         e.well:SetShown(sized)
