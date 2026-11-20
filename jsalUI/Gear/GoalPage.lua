@@ -374,13 +374,18 @@ local function SlotList(view, rowH, onPick)
         r.picks:SetPoint("RIGHT", -6, 0)
         r.picks:SetJustifyH("RIGHT")
         Tipped(r, NAME_X)
-        -- A slot with other choices is a click to them, lit while they show.
+        -- A slot with other choices is a click to them, lit while they show: filled, a gold bar
+        -- at its left, and its slot and picks in gold.
         r.lit = r:CreateTexture(nil, "BACKGROUND")
         r.lit:SetAllPoints()
         r.lit:SetColorTexture(Style.Color("wellHover"))
         r.lit:Hide()
-        r.edges = Style.Border(r, "gold")
-        for _, edge in ipairs(r.edges) do edge:Hide() end
+        r.bar = r:CreateTexture(nil, "BORDER")
+        r.bar:SetPoint("TOPLEFT")
+        r.bar:SetPoint("BOTTOMLEFT")
+        r.bar:SetWidth(2)
+        r.bar:SetColorTexture(Style.Color("gold"))
+        r.bar:Hide()
         r:SetScript("OnMouseUp", function(self) if self.pickable then onPick(self.index) end end)
         r.index = i
         list.rows[i] = r
@@ -438,7 +443,9 @@ local function SlotList(view, rowH, onPick)
             r:EnableMouse(r.pickable)
             local on = r.pickable and chosen == i
             r.lit:SetShown(on)
-            for _, edge in ipairs(r.edges) do edge:SetShown(on) end
+            r.bar:SetShown(on)
+            r.slot:SetTextColor(Style.Color(on and "gold" or "muted"))
+            r.picks:SetTextColor(Style.Color(on and "gold" or "secondary"))
             local count = #others + ((row and (row.pick or row.goal)) and 1 or 0)
             r.picks:SetText(r.pickable and (count .. " picks \226\128\186") or "")
             r.gain:SetText("")
