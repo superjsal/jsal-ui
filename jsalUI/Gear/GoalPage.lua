@@ -297,7 +297,8 @@ local function Hero(view, width, onStage, onSet, onSets)
             right = self.mine
         end
         if self.builds and set and before then
-            self.builds:SetShown(#set.builds > 1 or set.own == true)
+            -- Hidden on a set of yours: they'd take you off it, and the menu's Default line does that.
+            self.builds:SetShown(#set.builds > 1 and not set.own)
             self.builds:Pick(not set.own and set.key or nil)
             self.builds:ClearAllPoints()
             self.builds:SetPoint("RIGHT", right, "LEFT", -8, 0)
