@@ -14,7 +14,7 @@ the other sources. None of this is needed to use jsal.ui. `wowhead\README.md` be
 - `Talents\`, `Training\`, `Professions\`: the Build Planner and talent helper, the Training Planner and its panel, the profession roads, the shopping list, Crafting profit and Guild Crafts. `Trainers.lua`: where trainers stand.
 - `Gear\`, `Dungeons\`, `Quests\`: the gear plan, the dungeon guide, and the quest tags with the drop log.
 - `Journal\`: the Journal's counting, its page and the session recap.
-- `Helpers\`: vendor, level-up, warnings, the minimap button, the quick buttons, Unlock Mode, layers, the waypoint label, the bag button, the menu bar look, the food and pet-feeding tiles, the range check and Report a problem.
+- `Helpers\`: vendor, level-up, warnings, the minimap button, the quick buttons, Unlock Mode, the waypoint label, the bag button, the menu bar look, the food and pet-feeding tiles, the range check and Report a problem.
 
 Nothing heavy runs during combat. The Journal counts only your own damage, healing and kills, so busy fights stay light.
 

@@ -828,11 +828,11 @@ local LOOK = {
     { "vendor", "Repairs, and sells grey items" },
 }
 
--- The quick buttons as a picture, as the bar starts: the grip, the j, a
--- button a place and the layer's number, with a gold dot on Guild Crafts.
+-- The quick buttons as a picture, as the bar starts: the grip, the j and a
+-- button a place, with a gold dot on Guild Crafts.
 local function BarPicture(parent)
     local size, gap = 32, 4
-    local count = #BAR_TILES + 2
+    local count = #BAR_TILES + 1
     local bar = Box(parent, gap + 12 + gap + count * size + (count - 1) * gap + gap, size + gap * 2, 6, "window", "lineStrong")
     for i = 1, 3 do
         local stroke = bar:CreateTexture(nil, "ARTWORK")
@@ -846,10 +846,6 @@ local function BarPicture(parent)
         tile:SetPoint("LEFT", gap + 12 + gap + (i - 1) * (size + gap), 0)
         if i == 1 then
             Picture(tile, MEDIA .. "Logo", 22):SetPoint("CENTER")
-        elseif i == count then
-            local layer = Style.Text(tile, 15, "text", nil, true)
-            layer:SetPoint("CENTER")
-            layer:SetText("3")
         else
             Picture(tile, OWN .. BAR_TILES[i - 1], 30):SetPoint("CENTER")
         end
