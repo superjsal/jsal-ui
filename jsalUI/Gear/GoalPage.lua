@@ -343,6 +343,33 @@ local GROUPS = {
     { "WEAPONS", { main = 1, off = 2, ranged = 3 } },
 }
 local GAIN_W, PICKS_W = 48, 70
+-- Raids, until there's raid loot in the game: over the lines and runs, which show greyed under
+-- it, a box that says so; nothing under it takes a click.
+local function Waiting(view, width, height)
+    local cover = CreateFrame("Frame", nil, view)
+    cover:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
+    cover:SetSize(width, height)
+    cover:SetFrameLevel((view:GetFrameLevel() or 0) + 30)
+    cover:EnableMouse(true)
+    local box = CreateFrame("Frame", nil, cover)
+    box:SetSize(400, 104)
+    box:SetPoint("CENTER")
+    Style.Box(box, 8, "well", "cardLine")
+    local bar = box:CreateTexture(nil, "ARTWORK")
+    bar:SetPoint("TOPLEFT", 0, -8)
+    bar:SetPoint("BOTTOMLEFT", 0, 8)
+    bar:SetWidth(2)
+    bar:SetColorTexture(Style.Color("gold"))
+    local title = Style.Text(box, 17, "gold", nil, true)
+    title:SetPoint("TOPLEFT", 22, -28)
+    title:SetText("Waiting for raid loot")
+    local line = Style.Text(box, 13, "muted")
+    line:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -10)
+    line:SetText("Raids opens once there's raid loot in the game.")
+    cover:Hide()
+    return cover
+end
+
 local function SlotList(view, rowH, onPick)
     local list = CreateFrame("Frame", nil, view)
     list:SetSize(LEFT_W, #GROUPS * HEAD_H + PLACES * rowH)
@@ -857,7 +884,7 @@ function Gear.GoalView(page, width, height)
         end
         Refresh()
     end
-    local hero, list, runs, none
+    local hero, list, runs, none, waiting
     local tabs = Style.Tabs(page, { { "near", "Near your level" }, { "goal", "At " .. Goal.LEVEL } }, function(key)
         showing = key == "goal"
         if page.Refresh then page.Refresh() end
@@ -897,6 +924,7 @@ function Gear.GoalView(page, width, height)
             chosen = nil
             Refresh()
         end)
+        waiting = Waiting(view, width, body)
         none = Style.Text(view, 14, "muted")
         none:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
         none:SetWidth(width)
@@ -928,6 +956,10 @@ function Gear.GoalView(page, width, height)
         list:SetShown(has)
         runs:SetShown(has)
         none:SetShown(not has)
+        local raids = has and stage == Goal.RAIDS
+        waiting:SetShown(raids)
+        list:SetAlpha(raids and 0.3 or 1)
+        runs:SetAlpha(raids and 0.3 or 1)
         if has then
             hero:Paint(read, stage)
             local row = stage == Goal.BEFORE and chosen and read[stage].rows[chosen]
