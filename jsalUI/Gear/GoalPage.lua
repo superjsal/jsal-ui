@@ -244,12 +244,21 @@ local function Hero(view, width, onStage, onSet, onSets)
     -- WoWSims' set, where your class has one: its builds, and the full set or the cheap one,
     -- left of the stages. Made the first time a set is shown: the builds are your class's.
     -- Your own sets' pill, before raids: named for the one you're on, "My sets" when it's none.
-    card.mine = Style.Tabs(card, { { "own", "My sets \226\150\190" } }, function() onSets(card.mine) end)
+    -- Its words leave room at the end for a gold "v" drawn from two strokes, as the dungeon guide's
+    -- picker has: the font has no arrow of its own.
+    card.mine = Style.Tabs(card, { { "own", "My sets    " } }, function() onSets(card.mine) end)
     card.mine:Hide()
+    for _, way in ipairs({ -1, 1 }) do
+        local stroke = card.mine.byKey.own:CreateTexture(nil, "OVERLAY")
+        stroke:SetSize(6, 2)
+        stroke:SetColorTexture(Style.Color("gold"))
+        stroke:SetPoint("RIGHT", -12 - (way == -1 and 4 or 0), 0)
+        stroke:SetRotation(math.rad(45 * way))
+    end
     function card:Choosers(set, before)
         self.mine:SetShown(before)
         if before then
-            self.mine:Set("own", (set and set.own and set.name or "My sets") .. " \226\150\190")
+            self.mine:Set("own", (set and set.own and set.name or "My sets") .. "    ")
             self.mine:Pick(set and set.own and "own" or nil)
         end
         if not (set and before) then
@@ -549,8 +558,21 @@ local function RunCard(parent, width)
         self.open:SetShown(guide)
         self.share:ClearAllPoints()
         if guide then self.share:SetPoint("RIGHT", self.open, "LEFT", -18, 0) else self.share:SetPoint("TOPRIGHT", -14, -13) end
-        self.share:SetText(run.any and ("one in %d%% of runs"):format(math.max(1, math.floor(run.any * 100 + 0.5))) or "")
         self.count:SetText(("%d piece%s"):format(#run.pieces, #run.pieces == 1 and "" or "s"))
+        -- The heading's line gives way whole, from the least needed: the zone, then the share
+        -- of runs in its short form, then the share.
+        local pct = run.any and math.max(1, math.floor(run.any * 100 + 0.5))
+        local left = 14 + Style.Wide(self.name, 150) + (first and (10 + (self.tag:GetWidth() or 90)) or 0) + 10
+        local right = 14 + (guide and (Style.Wide(self.open.text, 70) + 18) or 0) + Style.Wide(self.count, 60) + 8
+        local room = width - left - right
+        local long, short = pct and ("one in %d%% of runs"):format(pct) or "", pct and ("%d%% of runs"):format(pct) or ""
+        self.share:SetText(long)
+        if Style.Wide(self.share, 120) > room then self.share:SetText(short) end
+        if Style.Wide(self.share, 80) > room then self.share:SetText("") end
+        room = room - Style.Wide(self.share, 0) - 10
+        self.zone:SetWidth(math.max(1, room))
+        self.zone:SetWordWrap(false)
+        self.zone:SetShown(room >= Style.Wide(self.zone, 80))
         self:SetHeight(RUN_HEAD + #run.pieces * PIECE_H + 4)
     end
     return card
