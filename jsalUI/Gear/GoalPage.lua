@@ -601,7 +601,10 @@ local function PieceRow(parent, width)
         else
             self.chance:SetText(chance == false and (MUTED .. "no count yet|r") or "")
         end
-        local right = act and (Style.Wide(self.act.text, 130) + 24) or (chance and 110 or (chance == false and 100 or 14))
+        self:Room(act and (Style.Wide(self.act.text, 130) + 24) or (chance and 110 or (chance == false and 100 or 14)))
+    end
+    -- The line under the name stops `right` short of the row's right edge, clear of what's there.
+    function r:Room(right)
         self.sub:SetWidth(math.max(40, width - 46 - Style.Wide(self.name, 150) - 10 - right))
         self:Fit()
     end
@@ -710,7 +713,9 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
     local function Choice(i)
         if choices[i] then return choices[i] end
         local r = PieceRow(choiceCard, inner)
-        r.use = Words(r, "Use this", function(self) onUse(self.id) end)
+        -- The piece into the set (a change that waits to be saved): "Switch" for the piece in
+        -- the place, "Choose" where the place is empty.
+        r.use = Words(r, "Switch", function(self) onUse(self.id) end)
         r.use:SetPoint("RIGHT", -14, 0)
         r.against = Style.Text(r, 13, "muted")
         choices[i] = r
@@ -760,9 +765,13 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
             r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or o.base and "WoWSims' pick · " or "") .. where, nil)
             r.against:SetText(o.pick and "|cffe3b04bpick|r" or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
             r.use.id = o.piece.id
+            r.use.text:SetText(pick and "Switch" or "Choose")
+            r.use:SetWidth(Style.Wide(r.use.text, 48))
             r.use:SetShown(not o.pick)
             r.against:ClearAllPoints()
             r.against:SetPoint("RIGHT", o.pick and r or r.use, o.pick and "RIGHT" or "LEFT", o.pick and -14 or -12, 0)
+            -- Its source stops short of how it stands and Use this.
+            r:Room(14 + (o.pick and 0 or (Style.Wide(r.use.text, 60) + 12)) + (r.against:GetText() ~= "" and (Style.Wide(r.against, 40) + 10) or 0))
             r.rule:SetShown(k > 1)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -((k - 1) * PIECE_H))
