@@ -1360,14 +1360,21 @@ local function MakeFound(parent, width)
     r.whisper = Style.Button(r, "Whisper", "plain", 140)
     r.whisper:SetPoint("RIGHT", r.order, "LEFT", -8, 0)
     Style.Rule(r, "BOTTOM", "line")
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", function(self)
-        if not (self.item or self.spell) then return end
+    -- The tooltip belongs to the picture and the name, as wide as the name
+    -- is written: over the rest of the row it would cover the rows under
+    -- the pointer on its way to a button.
+    r.nameRoom = width - 46 - 280
+    r.hot = CreateFrame("Frame", nil, r)
+    r.hot:SetPoint("LEFT")
+    r.hot:SetSize(46, FOUND_ROW)
+    r.hot:EnableMouse(true)
+    r.hot:SetScript("OnEnter", function(self)
+        if not (r.item or r.spell) then return end
         GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-        if self.item then GameTooltip:SetItemByID(self.item) else GameTooltip:SetSpellByID(self.spell) end
+        if r.item then GameTooltip:SetItemByID(r.item) else GameTooltip:SetSpellByID(r.spell) end
         GameTooltip:Show()
     end)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r.hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
     return r
 end
 
@@ -1377,6 +1384,7 @@ local function Found(list, entry, roster)
     r.item, r.spell = entry.row.item, entry.row.spell
     r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(entry.row.spell)))
     r.name:SetText(ItemTint(entry.row.item) .. entry.name .. "|r")
+    r.hot:SetWidth(46 + math.min(r.name:GetStringWidth() or 0, r.nameRoom))
     local on, off = {}, {}
     for _, p in ipairs(entry.people) do
         if p.online then
