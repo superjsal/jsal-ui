@@ -89,6 +89,8 @@ function Goal.From(e)
         from.kind, from.text = "zone", place ~= "" and place or "Drop"
     elseif set.world then
         from.kind, from.text = "world", "World drop"
+    elseif set.pvp then
+        from.kind, from.text = "pvp", "PvP"
     else
         from.kind, from.text = "unknown", ""
     end
@@ -96,14 +98,28 @@ function Goal.From(e)
     return from
 end
 
+-- The pieces got by a quest, a vendor or a craft that need a raid first (GearData's `raid`):
+-- a raid's quest or trader, a craft of what only drops in a raid. Read once.
+local raidOnly
+local function RaidOnly(id)
+    if not raidOnly then
+        raidOnly = {}
+        for n in ((ns.GearData and ns.GearData.raid) or ""):gmatch("%d+") do raidOnly[tonumber(n)] = true end
+    end
+    return raidOnly[id] == true
+end
+
 -- The first stage a piece can be a goal in, nil for never. A boss the guide lists outside a
--- raid is before raids; one in a raid waits for the raids. Anything else (a craft, a quest, a
--- vendor, a drop out in the world) has nothing that says it's in the game, and Wowhead lists
--- pieces of raids still to come, so it counts only up to the item level dungeons give
--- (`ceiling`): above that it's a raid's piece by another road.
+-- raid is before raids; one in a raid waits for the raids, and so does a piece that needs a
+-- raid first by another road (up to the same item level: past it, it's a raid's still to
+-- come). Anything else (a craft, a quest, a vendor, PvP, a drop out in
+-- the world) has nothing that says it's in the game, and Wowhead lists pieces of raids still to
+-- come, so it counts only up to the item level dungeons give (`ceiling`): above that it's a
+-- raid's piece by another road.
 function Goal.Stage(e, ceiling)
     local from = Goal.From(e)
     if from.notYet then return nil end
+    if RaidOnly(e.id) then return (e.ilvl or 0) <= ceiling and Goal.RAIDS or nil end
     if from.kind == "run" then
         for _, r in ipairs(from.runs) do
             if not r.raid then return Goal.BEFORE end
@@ -235,14 +251,26 @@ end
 -- pieces take the weakest places. A place nothing known beats, that a piece of no known
 -- source does, has that piece as its goal, marked. Rows come back in the places' own order.
 function Goal.Choose(worn, list, stage, skip)
-    local wearing = {}
+    -- Two pieces of one name (a ring of a quest chain's several, a unique one) can't be worn
+    -- together: only the best of a name is offered, and none of the name of one you wear.
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local function Named(id) return id and get and get(id) or nil end
+    local wearing, names = {}, {}
     for _, w in ipairs(worn) do
-        if w.id then wearing[w.id] = true end
+        if w.id then
+            wearing[w.id] = true
+            local name = Named(w.id)
+            if name then names[name] = true end
+        end
     end
     local known, unknown = {}, {}
     for _, c in ipairs(list) do
         if c.stage <= stage and not wearing[c.id] and c.id ~= skip then
-            if c.unknown then unknown[#unknown + 1] = c else known[#known + 1] = c end
+            local name = Named(c.id)
+            if not (name and names[name]) then
+                if name then names[name] = true end
+                if c.unknown then unknown[#unknown + 1] = c else known[#known + 1] = c end
+            end
         end
     end
     local order = {}

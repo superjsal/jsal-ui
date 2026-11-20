@@ -36,6 +36,7 @@ for dps classes"; "lets keep it as universal as possible".)
 Run: python -I tools/build_gear.py
 """
 
+import csv
 import json
 import pathlib
 import re
@@ -191,7 +192,52 @@ STAT_KEYS = {
 # Weapon damage per second, by where the weapon goes.
 DPS_KEYS = {"PseudoStatMainHandDps": "mh", "PseudoStatOffHandDps": "oh", "PseudoStatRangedDps": "ranged"}
 
-SOURCE = {1: "Crafted", 2: "Drop", 4: "Quest", 5: "Vendor"}
+SOURCE = {1: "Crafted", 2: "Drop", 3: "PvP", 4: "Quest", 5: "Vendor"}
+# What only a raid gives, for the gear goal's stages: a piece got by another road (a quest, a
+# vendor, a craft) that needs a raid first waits for the raids. Raids' zones, by Wowhead's zone
+# ID (a quest's or a vendor's); what a craft takes that only drops in a raid; and the rest by
+# hand, as nothing in the lists says it (Onyxia's and Nefarian's heads, the Ahn'Qiraj signets,
+# the Zandalar Tribe's trader).
+RAID_ZONES = {1977, 2717, 2677, 2159, 3428, 3429, 3456}
+RAID_REAGENTS = {
+    17010, 17011, 17012, 17203,                    # Fiery Core, Lava Core, Core Leather, Sulfuron Ingot
+    19767, 19768, 19726, 19774, 19943,             # Primal Bat and Tiger Leather, Bloodvine, Souldarite, Massive Mojo
+    19698, 19699, 19700, 19701, 19702, 19703, 19704, 19705, 19706,   # Zul'Gurub's coins
+    18562, 17771, 15410,                           # Elementium Ore and Bar, Scale of Onyxia
+    22202, 22203, 22682, 22373, 22374, 22375, 22376,   # Obsidian Shards, Frozen Rune, Wartorn Scraps
+}
+RAID_ITEMS = {18404, 18403, 18406, 19383, 19384, 19366}
+RAID_NAMES = {"Signet Ring of the Bronze Dragonflight"}
+RAID_VENDORS = {"Rin'wosho the Trader"}
+
+
+def craft_reagents():
+    """By a craft's spell ID: the items it takes."""
+    out = {}
+    with open(ROOT / "data" / "professions" / "SpellReagents.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            out[int(row["SpellID"])] = {int(row["Reagent_%d" % i]) for i in range(8) if row["Reagent_%d" % i] != "0"}
+    return out
+
+
+def raid_only(item, reagents):
+    """Whether a piece got by another road than a boss's drop needs a raid first."""
+    item_id, name = item[0], item[1]
+    if item_id in RAID_ITEMS or name in RAID_NAMES:
+        return True
+    sources = item[10] or []
+    for more in item[11] or []:
+        if not more:
+            continue
+        mname, mtype, mid, zone, cat = more
+        kind = SOURCE.get(sources[0], "") if sources else ""
+        if kind == "Quest" and (cat in RAID_ZONES or zone in RAID_ZONES):
+            return True
+        if kind == "Vendor" and (zone in RAID_ZONES or mname in RAID_VENDORS):
+            return True
+        if kind == "Crafted" and mtype == 6 and reagents.get(mid, set()) & RAID_REAGENTS:
+            return True
+    return False
 
 
 def lua_string(text):
@@ -327,11 +373,14 @@ def main():
     zones = json.loads((SRC / "zones.json").read_text(encoding="utf-8"))
     places, place_index = [], {}
     by_slot, quests = {}, {}
-    kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4}
+    kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4, "PvP": 5}
+    reagents, raid = craft_reagents(), []
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
         kind, place = where(item, zones)
         quest = only_quest(item)
+        if kind != "Drop" and raid_only(item, reagents):
+            raid.append(item_id)
         if quest:
             quests[item_id] = quest
         if place not in place_index:
@@ -364,8 +413,8 @@ def main():
         "local _, ns = ...",
         "",
         "ns.GearData = {",
-        "    -- Where each item comes from: 0 not known, 1 drop, 2 quest, 3 vendor, 4 crafted.",
-        "    kinds = { [0] = \"\", \"Drop\", \"Quest\", \"Vendor\", \"Crafted\" },",
+        "    -- Where each item comes from: 0 not known, 1 drop, 2 quest, 3 vendor, 4 crafted, 5 PvP.",
+        "    kinds = { [0] = \"\", \"Drop\", \"Quest\", \"Vendor\", \"Crafted\", \"PvP\" },",
         "    -- The places named in sources (a mob and its zone, a quest, a vendor), by number.",
         "    places = { " + ", ".join(lua_string(p) for p in places) + " },",
         "    -- By the game's slot (inventory type): one line of items, each \"item ID, required level,",
@@ -378,6 +427,8 @@ def main():
         "    -- Items whose one source is a quest, \"item ID:quest ID\" separated by \";\": once the quest",
         "    -- is done, its reward can't be had again.",
         "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
+        "    -- Items got by a quest, a vendor or a craft that need a raid first, separated by \";\".",
+        "    raid = " + lua_string(";".join(str(i) for i in sorted(raid))) + ",",
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,

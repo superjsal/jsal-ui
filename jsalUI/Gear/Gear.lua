@@ -545,6 +545,7 @@ end
 Gear.SOURCE_KINDS = {
     { key = "dungeon", label = "Dungeon" }, { key = "quest", label = "Quest" }, { key = "vendor", label = "Vendor" },
     { key = "crafted", label = "Crafted" }, { key = "world", label = "World drop" }, { key = "zone", label = "Zone drop" },
+    { key = "pvp", label = "PvP" },
     { key = "unknown", label = "Unknown" },
 }
 
@@ -567,6 +568,8 @@ function Gear.SourceKinds(o)
             kinds[1] = "vendor"
         elseif kind == "World drop" then
             kinds[1] = "world"
+        elseif kind == "PvP" then
+            kinds[1] = "pvp"
         elseif kind == "Added by you" then
             kinds[1] = "added"
         elseif place ~= "" then
