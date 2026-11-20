@@ -83,7 +83,7 @@ function Tree.Forget() kept = {} end
 local forget = CreateFrame("Frame")
 for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "TRAIT_NODE_CHANGED", "TRAIT_TREE_CURRENCY_INFO_UPDATED",
     "TRAIT_CONFIG_LIST_UPDATED", "CHARACTER_POINTS_CHANGED", "PLAYER_TALENT_UPDATE", "PLAYER_LEVEL_UP",
-    "PLAYER_ENTERING_WORLD", "SPELLS_CHANGED" }) do
+    "PLAYER_ENTERING_WORLD", "SPELLS_CHANGED", "ACTIVE_TALENT_GROUP_CHANGED" }) do
     forget:RegisterEvent(event)
 end
 forget:SetScript("OnEvent", Tree.Forget)
@@ -424,7 +424,8 @@ local listeners = {}
 function Tree.OnChange(fn) listeners[#listeners + 1] = fn end
 
 local watcher = CreateFrame("Frame")
-for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "TRAIT_NODE_CHANGED", "TRAIT_TREE_CURRENCY_INFO_UPDATED", "PLAYER_LEVEL_UP" }) do
+for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "TRAIT_NODE_CHANGED", "TRAIT_TREE_CURRENCY_INFO_UPDATED", "PLAYER_LEVEL_UP",
+    "ACTIVE_TALENT_GROUP_CHANGED" }) do
     watcher:RegisterEvent(event)
 end
 local queued = false
@@ -541,16 +542,33 @@ function Tree.Delete(build)
     if ns.db.selectedBuild[build.class] == build.id then ns.db.selectedBuild[build.class] = nil end
 end
 
--- The build the talent helper follows, per character: the one you chose with Follow this
--- build. With none chosen, the one selected the first time it's asked is kept as followed, so
--- looking at another build (a suggested one) doesn't make it the one followed: its title, the
+-- Your talent group: 1, or 2 on your second spec where the game has dual spec.
+function Tree.Group()
+    local get = GetActiveTalentGroup or GetActiveSpecGroup
+    local ok, group = pcall(get or function() return 1 end)
+    return ok and tonumber(group) or 1
+end
+
+-- The build the talent helper follows, per character and per spec: the one you chose with
+-- Follow this build. Your second spec follows its own once you choose one there, the first's
+-- until then. With none chosen, the one selected the first time it's asked is kept as followed,
+-- so looking at another build (a suggested one) doesn't make it the one followed: its title, the
 -- helper, Home and the talent window's glow keep to the followed one.
 function Tree.Follow(build)
-    ns.char.follow = build.id
+    local group = Tree.Group()
+    if group == 1 then
+        ns.char.follow = build.id
+    else
+        ns.char.followSpec = type(ns.char.followSpec) == "table" and ns.char.followSpec or {}
+        ns.char.followSpec[group] = build.id
+    end
 end
 
 function Tree.Active()
     local classID = Tree.PlayerClass()
+    local group = Tree.Group()
+    local own = group ~= 1 and type(ns.char.followSpec) == "table" and Find(classID, ns.char.followSpec[group])
+    if own then return own end
     local followed = Find(classID, ns.char.follow)
     if followed then return followed end
     local selected = Tree.Selected(classID)
