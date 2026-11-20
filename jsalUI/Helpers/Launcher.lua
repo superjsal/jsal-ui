@@ -1,6 +1,6 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
 -- your pal, the shopping list, Crafting profit, Guild Crafts, the planners, the gear plan,
--- the dungeon guide) and the layer you're in, that can be dragged anywhere by
+-- the dungeon guide), that can be dragged anywhere by
 -- its grip, so nobody has to type /jsal. The games share one button
 -- that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
@@ -30,44 +30,6 @@ local function ChessWaiting()
         if game.status == "asked" then return game.opp .. " wants a game" end
         if chess.MyTurn(game) then return "Your move against " .. game.opp end
     end
-end
-
--- The Layer button opens a menu: guildmates in your zone on another layer
--- to join, asking in General, telling your guild, leaving a group. Telling
--- puts "I'm on layer 12 in Darkshore." in the guild chat box, ready to
--- send with Enter; it never sends by itself.
-local function TellLayer()
-    local c = ns.Layers.Current()
-    if not c then return ns.Print(ns.Layers.NONE) end
-    local line = ns.Layers.ShareLine(c)
-    local open = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
-    if not open then return ns.Print(line) end
-    open((IsInGuild() and "/g " or "") .. line)
-end
-
-local function LayerTooltip(tip)
-    local c = ns.Layers.Current()
-    if not c then
-        tip:SetText("Layer")
-        tip:AddLine(ns.Layers.unreadable and "Can't be read on this version of the game. A /reload checks again."
-            or "Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
-        return
-    end
-    local mapName = ns.Layers.MapName(c)
-    tip:SetText("Layer " .. c.layer)
-    tip:AddLine((mapName and (mapName .. ", read ") or "Read ") .. ns.Layers.Ago(c), 1, 1, 1)
-    local others = ns.LayerSwitch and #ns.LayerSwitch.Choices() or 0
-    if others > 0 then
-        tip:AddLine(("%d guildmate%s here on another layer"):format(others, others == 1 and "" or "s"), 1, 1, 1)
-    end
-    tip:AddLine("Click to change layer or tell your guild", 0.89, 0.69, 0.29)
-end
-
-local function LayerMenu(button)
-    -- From the minimap button's list there's no button to open beside, so
-    -- the menu opens mid-screen.
-    if ns.LayerSwitch then return ns.LayerSwitch.Menu(button or UIParent, TellLayer) end
-    TellLayer()
 end
 
 -- Every button opens its place, and closes it when it's already open: the
@@ -203,13 +165,6 @@ PLACES = {
     { key = "dungeons", label = "Dungeon guide", icon = OWN .. "dungeons",
       ready = function() return ns.Dungeons and ns.Dungeons.running end,
       open = Page("dungeons") },
-    -- Shows a number, not an icon: the layer last read on this map.
-    { key = "layer", label = "Layer",
-      ready = function() return ns.Layers and ns.Layers.running end,
-      number = function() local c = ns.Layers.Current(); return c and c.layer end,
-      tooltip = LayerTooltip,
-      open = LayerMenu,
-      note = "The layer jsal.ui last read on this map. Click it to join a guildmate on another layer, or to tell your guild. Needs Layers on." },
 }
 
 -- Settings has a switch for each button, the same choice as the grip's
@@ -470,16 +425,10 @@ local function Button(place)
     local b = CreateFrame("Button", nil, bar)
     b:SetSize(SIZE, SIZE)
     b.edges = { Style.Box(b, 5, "well", "lineStrong").line }
-    if place.number then
-        b.number = Style.Text(b, 15, "gold", nil, true)
-        b.number:SetPoint("CENTER", 0, 0)
-        b.number:SetText("?")
-    else
-        b.icon = b:CreateTexture(nil, "ARTWORK")
-        b.icon:SetPoint("TOPLEFT", 2, -2)
-        b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
-        b.icon:SetTexture(place.icon)
-    end
+    b.icon = b:CreateTexture(nil, "ARTWORK")
+    b.icon:SetPoint("TOPLEFT", 2, -2)
+    b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    b.icon:SetTexture(place.icon)
     b.dot = b:CreateTexture(nil, "OVERLAY")
     b.dot:SetTexture("Interface\\AddOns\\" .. addonName .. "\\Media\\Chess\\dot")
     b.dot:SetVertexColor(Style.Color("gold"))
@@ -589,24 +538,11 @@ Layout = function()
     end
 end
 
--- A number button's number: gold once read, a grey "?" before, smaller
--- when it has more digits so it stays inside the button.
-local function PaintNumber(b)
-    local ok, n = pcall(b.place.number)
-    n = ok and n or nil
-    local text = n and tostring(n) or "?"
-    local font, _, flags = b.number:GetFont()
-    if font then b.number:SetFont(font, #text <= 2 and 15 or #text == 3 and 13 or 11, flags) end
-    b.number:SetText(text)
-    b.number:SetTextColor(Style.Color(n and "gold" or "muted"))
-end
-
--- The dots: something waiting at a place; and the numbers.
+-- The dots: something waiting at a place.
 local function PaintDots()
     if not bar then return end
     for _, b in pairs(buttons) do
         b.dot:SetShown(b:IsShown() and Waiting(b.place) ~= nil)
-        if b.number and b:IsShown() then PaintNumber(b) end
     end
 end
 
@@ -823,7 +759,6 @@ function Launcher:OnEnable()
     xpcall(PaintClock, ns.Report)
     Compat.After(0, function() xpcall(Look, ns.Report) end)
     if ns.Chess and ns.Chess.OnChange then ns.Chess.OnChange(function() xpcall(PaintDots, ns.Report) end) end
-    if ns.Layers and ns.Layers.OnChange then ns.Layers.OnChange(function() xpcall(PaintDots, ns.Report) end) end
     Compat.After(2, function() xpcall(PaintDots, ns.Report) end)
 end
 

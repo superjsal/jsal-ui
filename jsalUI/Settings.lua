@@ -87,7 +87,6 @@ local SHORT = {
     foodtile = "A reminder when you aren't Well Fed",
     petfeed = "Hunters: feed your pet in one click",
     rangecheck = "Hunters: melee, dead zone or shooting",
-    layers = "Your layer, and a way to change it",
     sharedFonts = "jsal.ui's font in other addons' lists",
 }
 
@@ -108,7 +107,7 @@ local ICON = {
     launcher = "Parts\\launcher", minimap = "Parts\\minimap", menubar = "Parts\\menubar", bagbutton = "Menu\\bag",
     vendor = "Parts\\vendor", warnings = "Parts\\warnings", waypoint = "Parts\\waypoint", foodtile = "Parts\\foodtile",
     petfeed = "Parts\\foodtile",
-    rangecheck = "Parts\\rangecheck", layers = "Parts\\layers", sharedFonts = "Parts\\sharedFonts",
+    rangecheck = "Parts\\rangecheck", sharedFonts = "Parts\\sharedFonts",
 }
 
 -- A part's short line: its own, or its note up to the first full stop.
