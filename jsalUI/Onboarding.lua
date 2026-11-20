@@ -893,6 +893,8 @@ BUILD.screen = function(page)
         local row = ExtraRow(pieces, SIDE_W - 32)
         row:SetPoint("TOPLEFT", 16, -(34 + (i - 1) * EXTRA_ROW))
         row.key, row.words = piece[1], piece[2]
+        -- A switch flipped here changes what the window's foot offers.
+        row.onChange = function() Setup.Foot() end
         rows[i] = row
     end
 
@@ -953,7 +955,13 @@ local function Show(i)
     local page = pages[step.key]
     if page.Refresh then xpcall(page.Refresh, ns.Report) end
     stepName:SetText(step.label)
+    Setup.Foot()
+end
+Setup.Show = Show
 
+-- The foot's buttons for the step in hand. On the last step the way on is
+-- the dashboard, or a reload first while a switched part waits for one.
+function Setup.Foot()
     local last = current == #STEPS
     local waiting = last and Setup.Waiting() or 0
     skip:SetShown(current == 1)
@@ -963,7 +971,6 @@ local function Show(i)
     reload:SetShown(last and waiting > 0)
     note:SetText(waiting == 0 and "" or (waiting == 1 and "1 change waits for a reload" or (waiting .. " changes wait for a reload")))
 end
-Setup.Show = Show
 
 -- A fight closes the welcome (at the foot of this file). That isn't the
 -- player closing it, so it doesn't count as seen.
