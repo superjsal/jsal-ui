@@ -15,7 +15,7 @@ local SLOT_X, ICON_X, NAME_X = 0, 78, 112
 local RUN_HEAD, PIECE_H, CARD_GAP = 40, 32, 10
 local FOOT = 24                         -- room for the link to the small print
 local PLACES = 17                       -- the most slots there are: fifteen, with two rings and two trinkets
-local FULL_BAR = 40                     -- the chance that fills a piece's bar
+local FULL_BAR = 100                    -- the chance that fills a piece's bar: a bar reads as the share it is
 local TICK = "|TInterface\\RaidFrame\\ReadyCheck-Ready:14|t"
 local MUTED, DIM = "|cff9a9688", "|cff5d5b55"
 
