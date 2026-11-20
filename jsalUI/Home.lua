@@ -12,7 +12,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local NEWS = {
     { "Dungeon maps, with your gear on them", "Open the Dungeon guide", "dungeons" },
     { "Games: three cards across", "Open Games", "games" },
-    { "Journal: your best pace", "Open the Journal", "journal" },
+    { "Layers: gone, the game hides them", "Open Settings", "settings" },
 }
 
 local function NewsWanted()
