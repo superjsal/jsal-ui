@@ -435,6 +435,38 @@ def only_quest(item):
     return None
 
 
+# The Barrens' two reputation quartermasters, whose pieces Wowhead lists for both sides: the
+# Theramore Expeditionary Force's sells to the Alliance, the Darkspear Raiders' to the Horde.
+QUARTERMASTERS = {"Bryanna Embreeze": 1, "Creeg Bothunk": 2}
+
+
+def quartermaster_side(item):
+    """The side whose quartermaster alone sells `item`, else 0."""
+    sides = {QUARTERMASTERS.get(s[0], 0) for s in item[11]} if item[11] else {0}
+    return sides.pop() if len(sides) == 1 else 0
+
+
+def twins(items):
+    """Each Horde quartermaster piece and its Alliance twin, "horde:alliance": the one piece of the
+    other quartermaster with the same slot, kind, quality, levels and classes (by name, past the
+    side's word, where several are alike)."""
+    by = {1: [], 2: []}
+    for x in items:
+        side = quartermaster_side(x)
+        if side:
+            by[side].append(x)
+    key = lambda x: (x[5], x[6], x[7], x[2], x[4], x[3], str(x[9]))
+    bare = lambda n: n.replace("Darkspear ", "").replace("Theramore ", "").replace("Raider ", "")
+    out = []
+    for h in by[2]:
+        same = [a for a in by[1] if key(a) == key(h)]
+        if len(same) > 1:
+            same = [a for a in same if bare(a[1]) == bare(h[1])]
+        if len(same) == 1:
+            out.append(f"{h[0]}:{same[0][0]}")
+    return ";".join(sorted(out))
+
+
 def main():
     data = json.loads((SRC / "wowhead-items.json").read_text(encoding="utf-8"))
     zones = json.loads((SRC / "zones.json").read_text(encoding="utf-8"))
@@ -444,6 +476,7 @@ def main():
     reagents, raid = craft_reagents(), []
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
+        side = side or quartermaster_side(item)
         kind, place = where(item, zones)
         quest = only_quest(item)
         if kind != "Drop" and raid_only(item, reagents):
@@ -496,6 +529,9 @@ def main():
         "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
         "    -- Items got by a quest, a vendor or a craft that need a raid first, separated by \";\".",
         "    raid = " + lua_string(";".join(str(i) for i in sorted(raid))) + ",",
+        "    -- The Barrens' quartermasters' twin pieces, \"Horde:Alliance\", separated by \";\": a set's piece",
+        "    -- from the other side's is its twin from yours.",
+        "    twins = " + lua_string(twins(data["items"])) + ",",
         "    -- WoWSims Forever's pre-raid sets (its batch sims, MIT): by class, the build each talent tree",
         "    -- starts on (false: none), and each build's set, and its cheap one, as 17 item IDs in the order",
         "    -- head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet, two fingers, two",

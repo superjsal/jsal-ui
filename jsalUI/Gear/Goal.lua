@@ -109,6 +109,20 @@ local function RaidOnly(id)
     return raidOnly[id] == true
 end
 
+-- A piece of one side's quartermaster in the Barrens and its twin from the other's (GearData's
+-- `twins`, "Horde:Alliance"): a WoWSims set's piece your side can't buy is its twin. Read once.
+local twinOf
+local function Twin(id, side)
+    if not twinOf then
+        twinOf = { {}, {} }
+        for h, a in ((ns.GearData and ns.GearData.twins) or ""):gmatch("(%d+):(%d+)") do
+            twinOf[1][tonumber(h)] = tonumber(a)
+            twinOf[2][tonumber(a)] = tonumber(h)
+        end
+    end
+    return twinOf[side] and twinOf[side][id] or id
+end
+
 -- The first stage a piece can be a goal in, nil for never. A boss the guide lists outside a
 -- raid is before raids; one in a raid waits for the raids, and so does a piece that needs a
 -- raid first by another road (up to the same item level: past it, it's a raid's still to
@@ -684,7 +698,7 @@ function Goal.ChosenSet()
     end
     if not chosen then return nil end
     local ids = {}
-    for n in ((keptChoice.cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = tonumber(n) end
+    for n in ((keptChoice.cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), Side()) end
     return ids, chosen.name
 end
 
@@ -762,7 +776,7 @@ function Goal.Read(spec, build, cheap)
         chosen = own
     elseif chosen then
         local ids = {}
-        for n in ((cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = tonumber(n) end
+        for n in ((cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), ctx.side) end
         out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids }
         out[Goal.BEFORE] = SetRows(ctx, ids, lists)
     else
