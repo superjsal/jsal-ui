@@ -497,7 +497,7 @@ end
 -- The rows of a stage whose goal is a set (`ids`, 17 in the sets' order): each place has the
 -- set's piece; one you wear is done, in either place of a pair; an empty off hand under a
 -- two-hander is taken.
-local function SetRows(ctx, ids, lists)
+local function SetRows(ctx, ids, lists, own)
     local slotOf, worn = {}, {}
     for _, slot in ipairs(Gear.SLOTS) do
         for _, equip in ipairs(slot.equip) do slotOf[equip] = slot end
@@ -515,7 +515,8 @@ local function SetRows(ctx, ids, lists)
         local row = { equip = equip, worn = worn[equip], slot = slot,
                       label = pair and (slot.label .. " " .. (equip == slot.equip[1] and 1 or 2)) or slot.label }
         if id == 0 then
-            if equip == 17 and twoHand then row.taken = true else row.none = true end
+            -- A place of a set of yours left empty is one to fill: it counts, and has picks.
+            if equip == 17 and twoHand then row.taken = true elseif own then row.open = true else row.none = true end
         else
             local piece = SetPiece(id, lists[slot.key].list, slot, ctx)
             row.pick = piece
@@ -552,7 +553,7 @@ function Goal.Others(read, row, n, stage)
     stage = stage or Goal.BEFORE
     local out = {}
     local pick = row and (row.pick or row.goal)
-    local list = pick and read.lists and read.lists[row.slot.key]
+    local list = (pick or (row and row.open)) and read.lists and read.lists[row.slot.key]
     if not list then return out end
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local skip, names = {}, {}
@@ -568,7 +569,7 @@ function Goal.Others(read, row, n, stage)
         local name = get and get(c.id)
         if c.stage <= stage and not c.unknown and not skip[c.id] and not (name and names[name]) then
             if name then names[name] = true end
-            out[#out + 1] = { piece = c, against = pick.score > 0 and (c.score - pick.score) / pick.score or nil }
+            out[#out + 1] = { piece = c, against = pick and pick.score > 0 and (c.score - pick.score) / pick.score or nil }
             if #out >= (n or 3) then break end
         end
     end
@@ -594,13 +595,21 @@ end
 
 local function Changed() Gear.PlansChanged() end
 
--- A new set from `ids` (copied), named `name` or "My set" and a number; its key.
+-- A new set from `ids` (copied; nil for an empty one), named `name` or "My set" and the
+-- lowest number no set of yours has; its key, which is never used again.
 function Goal.NewSet(ids, from, name)
     local sets = Goal.OwnSets()
     ns.char.prebisNext = (tonumber(ns.char.prebisNext) or 0) + 1
     local copy = {}
     for i = 1, #SET_EQUIP do copy[i] = tonumber(ids and ids[i]) or 0 end
-    local set = { key = "own" .. ns.char.prebisNext, name = name or ("My set " .. ns.char.prebisNext), ids = copy, from = from }
+    if not name then
+        local taken = {}
+        for _, set in ipairs(sets) do taken[set.name] = true end
+        local n = 1
+        while taken["My set " .. n] do n = n + 1 end
+        name = "My set " .. n
+    end
+    local set = { key = "own" .. ns.char.prebisNext, name = name, ids = copy, from = from }
     sets[#sets + 1] = set
     Changed()
     return set.key
@@ -749,7 +758,7 @@ function Goal.Read(spec, build, cheap)
             if b.key == own.from then fromName = b.name end
         end
         out.set = { builds = builds or {}, key = own.key, name = own.name, own = true, from = fromName, ids = own.ids, hasCheap = false }
-        out[Goal.BEFORE] = SetRows(ctx, own.ids, lists)
+        out[Goal.BEFORE] = SetRows(ctx, own.ids, lists, true)
         chosen = own
     elseif chosen then
         local ids = {}

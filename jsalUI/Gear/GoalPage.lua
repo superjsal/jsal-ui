@@ -63,6 +63,12 @@ local function Tipped(row, from)
     hot:EnableMouse(true)
     hot:SetScript("OnEnter", Tip)
     hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    -- It takes the mouse for its tooltip, so a click on it is the row's click: a line is picked
+    -- by a click anywhere on it, its picture and name too.
+    hot:SetScript("OnMouseUp", function(self, button)
+        local click = self.row:GetScript("OnMouseUp")
+        if click then click(self.row, button) end
+    end)
     row.hot = hot
     function row:Fit()
         local room = self.name:GetWidth() or 0
@@ -183,17 +189,17 @@ local function SetsMenu(parent, act)
         self:SetHeight(48)
     end
     -- `current` is the set you're on when it's one of yours.
-    function menu:Open(anchor, current)
+    function menu:Open(anchor, current, from)
         if self:IsShown() then return self:Hide() end
         field.well:Hide()
         local list = { { words = "YOUR SETS", tone = "muted" } }
         for _, set in ipairs(Goal.OwnSets()) do
             list[#list + 1] = { words = set.name, what = "choose", key = set.key, tone = set.key == current and "gold" or nil }
         end
-        list[#list + 1] = { words = "+ New set", what = "new" }
+        list[#list + 1] = { words = "+ New empty set", what = "empty" }
+        list[#list + 1] = { words = "+ New set from \226\128\156" .. (from or "your goal") .. "\226\128\157", what = "new" }
         local mine = current and Goal.OwnSet(current)
         if mine then
-            list[#list + 1] = { words = "Copy \226\128\156" .. mine.name .. "\226\128\157", what = "copy", key = current }
             list[#list + 1] = { words = "Rename \226\128\156" .. mine.name .. "\226\128\157", what = "rename", key = current }
             list[#list + 1] = { words = "Delete \226\128\156" .. mine.name .. "\226\128\157", what = "delete", key = current, tone = "red" }
         end
@@ -422,13 +428,14 @@ local function SlotList(view, rowH, onPick)
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
-            local others = row and stage == Goal.BEFORE and (row.pick or row.goal) and Goal.Others(read, row, 3) or {}
+            local others = row and stage == Goal.BEFORE and (row.pick or row.goal or row.open) and Goal.Others(read, row, 3) or {}
             r.pickable = #others > 0
             r:EnableMouse(r.pickable)
             local on = r.pickable and chosen == i
             r.lit:SetShown(on)
             for _, edge in ipairs(r.edges) do edge:SetShown(on) end
-            r.picks:SetText(r.pickable and ((#others + 1) .. " picks \226\128\186") or "")
+            local count = #others + ((row and (row.pick or row.goal)) and 1 or 0)
+            r.picks:SetText(r.pickable and (count .. " picks \226\128\186") or "")
             r.gain:SetText("")
             if row then
                 r.slot:SetText(row.label:upper())
@@ -437,6 +444,10 @@ local function SlotList(view, rowH, onPick)
                 if row.taken then
                     r.box.icon:SetTexture(emptyTexture)
                     r.name:SetText(MUTED .. "Taken by your two-hander|r")
+                    r.where:SetText("")
+                elseif row.open then
+                    r.box.icon:SetTexture(emptyTexture)
+                    r.name:SetText(MUTED .. "Empty: choose a piece|r")
                     r.where:SetText("")
                 elseif row.goal then
                     local name, quality, texture = ItemInfo(row.goal.id)
@@ -653,14 +664,15 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
         choiceHead:SetShown(shown)
         choiceCard:SetShown(shown)
         runsHead:SetShown(shown)
-        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. (#choice.others + 1) .. " PICKS") or "RUN NEXT")
+        local pick = shown and (choice.row.pick or choice.row.goal)
+        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. (#choice.others + (pick and 1 or 0)) .. " PICKS") or "RUN NEXT")
         head.note:SetText(shown and "" or "ranked by the pieces left for you")
         back:SetShown(shown)
         if not shown then
             for _, r in ipairs(choices) do r:Hide() end
             return 0
         end
-        local list = { { pick = true, piece = choice.row.pick or choice.row.goal } }
+        local list = pick and { { pick = true, piece = pick } } or {}
         for _, o in ipairs(choice.others) do list[#list + 1] = o end
         for k, o in ipairs(list) do
             local r = Choice(k)
@@ -805,11 +817,11 @@ function Gear.GoalView(page, width, height)
     local function Sets(what, key, words)
         if what == "choose" then
             Keep().build = key
+        elseif what == "empty" then
+            Keep().build = Goal.NewSet(nil, nil)
         elseif what == "new" then
-            Keep().build = Goal.NewSet(Current(), last and last.set and not last.set.own and last.set.key or nil)
-        elseif what == "copy" then
-            local set = Goal.OwnSet(key)
-            if set then Keep().build = Goal.NewSet(set.ids, set.from, set.name .. " copy") end
+            local set = last and last.set
+            Keep().build = Goal.NewSet(Current(), set and (set.own and set.from or (not set.own and set.key)) or nil)
         elseif what == "rename" then
             Goal.RenameSet(key, words)
         elseif what == "delete" then
@@ -841,7 +853,7 @@ function Gear.GoalView(page, width, height)
             Refresh()
         end, function(bar)
             menu = menu or SetsMenu(view, Sets)
-            menu:Open(bar, last and last.set and last.set.own and last.set.key or nil)
+            menu:Open(bar, last and last.set and last.set.own and last.set.key or nil, last and last.set and last.set.name or nil)
         end)
         list = SlotList(view, math.max(24, math.min(32, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
