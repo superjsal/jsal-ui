@@ -229,7 +229,7 @@ end
 ---------------------------------------------------------------------------
 -- The card at the top: how many slots are at your goal, and the stage.
 ---------------------------------------------------------------------------
-local function Hero(view, width, onStage, onSet, onSets)
+local function Hero(view, width, onStage, onSet, onSets, onDraft)
     local card = CreateFrame("Frame", nil, view)
     card:SetSize(width, HERO_H)
     card:SetPoint("TOPLEFT")
@@ -251,6 +251,24 @@ local function Hero(view, width, onStage, onSet, onSets)
     card.note = Style.Text(card, 12, "muted")
     card.note:SetPoint("TOPRIGHT", card.stages, "BOTTOMRIGHT", 0, -8)
     card.note:SetJustifyH("RIGHT")
+    -- A change to the set waiting to be kept, under the stages: what changed, then Save (over a set
+    -- of yours), Save as new set and Undo. On WoWSims' set there's nothing of yours to save over,
+    -- so Save as new set stands first, gold.
+    local function Act(words, kind, w, what)
+        local b = Style.Button(card, words, kind, w)
+        b:SetHeight(24)
+        b:SetScript("OnClick", function() onDraft(what) end)
+        b:Hide()
+        return b
+    end
+    card.undo = Act("Undo", "plain", 64, "undo")
+    card.undo:SetPoint("TOPRIGHT", card.stages, "BOTTOMRIGHT", 0, -6)
+    card.saveNew = Act("Save as new set", "plain", 124, "new")
+    card.saveNew:SetPoint("RIGHT", card.undo, "LEFT", -6, 0)
+    card.saveFirst = Act("Save as new set", "primary", 124, "new")
+    card.saveFirst:SetPoint("RIGHT", card.undo, "LEFT", -6, 0)
+    card.save = Act("Save", "primary", 64, "save")
+    card.save:SetPoint("RIGHT", card.saveNew, "LEFT", -6, 0)
     -- WoWSims' set, where your class has one: its builds, and the full set or the cheap one,
     -- left of the stages. Made the first time a set is shown: the builds are your class's.
     -- Your sets' pill, before raids: named for the one of yours you're on, "Default set" on
@@ -329,6 +347,22 @@ local function Hero(view, width, onStage, onSet, onSets)
         else
             self.note:SetText("The best of the raids in the dungeon guide, over what comes before them.")
         end
+        local changed = stage == Goal.BEFORE and set and set.changed
+        local own = changed and set.own and true or false
+        self.undo:SetShown(changed and true or false)
+        self.save:SetShown(own)
+        self.saveNew:SetShown(own)
+        self.saveFirst:SetShown(changed and not own and true or false)
+        self.note:ClearAllPoints()
+        if changed then
+            local said = {}
+            for i = 1, math.min(#changed, 3) do said[i] = changed[i] end
+            local more = #changed > 3 and (" +" .. (#changed - 3)) or ""
+            self.note:SetPoint("RIGHT", own and self.save or self.saveFirst, "LEFT", -10, 0)
+            self.note:SetText((own and "Changed: " or ("Changed from WoWSims' " .. set.name .. ": ")) .. table.concat(said, ", ") .. more)
+        else
+            self.note:SetPoint("TOPRIGHT", self.stages, "BOTTOMRIGHT", 0, -8)
+        end
     end
     return card
 end
@@ -343,6 +377,8 @@ local GROUPS = {
     { "WEAPONS", { main = 1, off = 2, ranged = 3 } },
 }
 local GAIN_W, PICKS_W = 48, 70
+-- A slot's picks by the weights, after the set's piece and WoWSims' own.
+local PICKS = 5
 -- Raids, until there's raid loot in the game: over the lines and runs, which show greyed under
 -- it, a box that says so; nothing under it takes a click.
 local function Waiting(view, width, height)
@@ -355,11 +391,7 @@ local function Waiting(view, width, height)
     box:SetSize(400, 104)
     box:SetPoint("CENTER")
     Style.Box(box, 8, "well", "cardLine")
-    local bar = box:CreateTexture(nil, "ARTWORK")
-    bar:SetPoint("TOPLEFT", 0, -8)
-    bar:SetPoint("BOTTOMLEFT", 0, 8)
-    bar:SetWidth(2)
-    bar:SetColorTexture(Style.Color("gold"))
+    Style.Edge(box, 8)
     local title = Style.Text(box, 17, "gold", nil, true)
     title:SetPoint("TOPLEFT", 22, -28)
     title:SetText("Waiting for raid loot")
@@ -403,14 +435,14 @@ local function SlotList(view, rowH, onPick)
         r.picks:SetJustifyH("RIGHT")
         Tipped(r, NAME_X)
         -- A slot with other choices is a click to them, lit while they show: filled, a gold bar
-        -- at its left, and its slot and picks in gold.
+        -- in the gutter at its left (clear of the slot's name), and its slot and picks in gold.
         r.lit = r:CreateTexture(nil, "BACKGROUND")
         r.lit:SetAllPoints()
         r.lit:SetColorTexture(Style.Color("wellHover"))
         r.lit:Hide()
         r.bar = r:CreateTexture(nil, "BORDER")
-        r.bar:SetPoint("TOPLEFT")
-        r.bar:SetPoint("BOTTOMLEFT")
+        r.bar:SetPoint("TOPLEFT", -8, 0)
+        r.bar:SetPoint("BOTTOMLEFT", -8, 0)
         r.bar:SetWidth(2)
         r.bar:SetColorTexture(Style.Color("gold"))
         r.bar:Hide()
@@ -466,7 +498,7 @@ local function SlotList(view, rowH, onPick)
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
-            local others = row and stage == Goal.BEFORE and (row.pick or row.goal or row.open) and Goal.Others(read, row, 3) or {}
+            local others = row and stage == Goal.BEFORE and (row.pick or row.goal or row.open) and Goal.Others(read, row, PICKS) or {}
             r.pickable = #others > 0
             r:EnableMouse(r.pickable)
             local on = r.pickable and chosen == i
@@ -725,7 +757,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
             local r = Choice(k)
             local from = Goal.From(o.piece.e)
             local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
-            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and (choice.own and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or "") .. where, nil)
+            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or o.base and "WoWSims' pick · " or "") .. where, nil)
             r.against:SetText(o.pick and "|cffe3b04bpick|r" or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
             r.use.id = o.piece.id
             r.use:SetShown(not o.pick)
@@ -829,7 +861,8 @@ end
 ---------------------------------------------------------------------------
 function Gear.GoalView(page, width, height)
     local showing, stage, retrying, chosen = false, Goal.BEFORE, false, nil
-    local last, menu
+    -- `shownFor`: the spec the page was last drawn for, which a change is made on.
+    local last, menu, draft, shownFor
     local function Keep()
         ns.char.prebis = type(ns.char.prebis) == "table" and ns.char.prebis or {}
         return ns.char.prebis
@@ -843,16 +876,37 @@ function Gear.GoalView(page, width, height)
         end
         return ids
     end
-    -- An item for the chosen slot: into your set, or a new set from the one you're on.
+    -- An item for the chosen slot. Into a set (WoWSims' or yours) it's a change that waits to be
+    -- saved over your set, saved as a new one, or undone; with no set, a new set of yours.
     local function Use(id)
         local set = last and last.set
         if not (chosen and id) then return end
-        local key = set and set.own and set.key
-        if not key then
-            key = Goal.NewSet(Current(), set and set.key or nil)
+        if not set then
+            local key = Goal.NewSet(Current(), nil)
             Keep().build = key
+            Goal.SetSlot(key, chosen, id)
+            return Refresh()
         end
-        Goal.SetSlot(key, chosen, id)
+        draft = draft or { ids = Current(), labels = {}, spec = shownFor, build = Keep().build or "", cheap = Keep().cheap or false }
+        draft.ids[chosen] = id
+        local row = last[Goal.BEFORE].rows[chosen]
+        local label, said = row and row.label, false
+        for _, l in ipairs(draft.labels) do
+            if l == label then said = true end
+        end
+        if label and not said then draft.labels[#draft.labels + 1] = label end
+        Refresh()
+    end
+    -- What the top card's buttons do with a change.
+    local function Draft(what)
+        local set = last and last.set
+        if draft and set and what == "save" and set.own then
+            Goal.SaveSet(set.key, draft.ids)
+        elseif draft and set and what == "new" then
+            local mine = set.own and Goal.OwnSet(set.key)
+            Keep().build = Goal.NewSet(draft.ids, mine and mine.from or (not set.own and set.key) or nil)
+        end
+        draft = nil
         Refresh()
     end
     local function AddItem(text)
@@ -882,6 +936,7 @@ function Gear.GoalView(page, width, height)
             Goal.DeleteSet(key)
             Keep().build = nil
         end
+        if what ~= "rename" then draft = nil end
         Refresh()
     end
     local hero, list, runs, none, waiting
@@ -915,7 +970,7 @@ function Gear.GoalView(page, width, height)
             end
             base = base or (set and not set.own and set.name) or nil
             menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, base)
-        end)
+        end, Draft)
         list = SlotList(view, math.max(24, math.min(32, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
             if page.Refresh then page.Refresh() end
@@ -948,7 +1003,11 @@ function Gear.GoalView(page, width, height)
         if not hero then Build() end
         local started = debugprofilestop()
         local kept = type(ns.char.prebis) == "table" and ns.char.prebis or {}
-        local read = Goal.Read(spec, kept.build, kept.cheap)
+        shownFor = spec
+        -- A change waits only on the set, spec and cheap or full it was made on.
+        if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
+        local read = Goal.Read(spec, kept.build, kept.cheap, draft and draft.ids)
+        if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
         ns.Timed("Gear goal, working out", started)
         local has = not read.noWeights
@@ -966,7 +1025,7 @@ function Gear.GoalView(page, width, height)
             -- A slot with picks stays chosen: a piece's, or an empty place of a set of yours.
             if not (row and (row.pick or row.goal or row.open)) then chosen, row = nil, nil end
             list:Paint(read[stage].rows, stage, chosen, read)
-            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, 3), own = read.set and read.set.own, set = read.set ~= nil } or nil)
+            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, PICKS), own = read.set and read.set.own, set = read.set ~= nil, draft = read.set and read.set.draft } or nil)
             -- Still waiting on items: look again by itself, once at a time.
             if read.waiting > 0 and not retrying then
                 retrying = true

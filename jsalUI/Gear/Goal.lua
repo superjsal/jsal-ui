@@ -511,7 +511,9 @@ end
 -- The rows of a stage whose goal is a set (`ids`, 17 in the sets' order): each place has the
 -- set's piece; one you wear is done, in either place of a pair; an empty off hand under a
 -- two-hander is taken.
-local function SetRows(ctx, ids, lists, own)
+-- `base`, where given, is WoWSims' set for the same places: each row keeps its piece (`base`),
+-- the way back to it from a piece of yours.
+local function SetRows(ctx, ids, lists, own, base)
     local slotOf, worn = {}, {}
     for _, slot in ipairs(Gear.SLOTS) do
         for _, equip in ipairs(slot.equip) do slotOf[equip] = slot end
@@ -546,6 +548,8 @@ local function SetRows(ctx, ids, lists, own)
                 row.share = ctx.total > 0 and (piece.score - row.worn.score) / ctx.total or nil
             end
         end
+        local baseId = base and base[i] or 0
+        if baseId > 0 then row.base = baseId == id and row.pick or SetPiece(baseId, lists[slot.key].list, slot, ctx) end
         rows[#rows + 1] = row
     end
     local done, slots = 0, 0
@@ -579,12 +583,21 @@ function Goal.Others(read, row, n, stage)
             if name then names[name] = true end
         end
     end
+    -- WoWSims' piece for the place first, where it isn't the pick: the way back to it.
+    local base = row.base
+    if base and not (pick and pick.id == base.id) then
+        skip[base.id] = true
+        local name = get and get(base.id)
+        if name then names[name] = true end
+        out[1] = { piece = base, base = true, against = pick and pick.score > 0 and (base.score - pick.score) / pick.score or nil }
+    end
+    local first = #out
     for _, c in ipairs(list.list) do
         local name = get and get(c.id)
         if c.stage <= stage and not c.unknown and not skip[c.id] and not (name and names[name]) then
             if name then names[name] = true end
             out[#out + 1] = { piece = c, against = pick and pick.score > 0 and (c.score - pick.score) / pick.score or nil }
-            if #out >= (n or 3) then break end
+            if #out - first >= (n or 3) then break end
         end
     end
     return out
@@ -658,6 +671,14 @@ function Goal.SetSlot(key, i, id)
     end
 end
 
+-- A set of yours given `ids` (copied) in place of its own: a change saved over it.
+function Goal.SaveSet(key, ids)
+    local set = Goal.OwnSet(key)
+    if not set then return end
+    for i = 1, #SET_EQUIP do set.ids[i] = tonumber(ids and ids[i]) or 0 end
+    Changed()
+end
+
 -- Whether an item fits place `i` (the sets' order): its kind of slot, or for the off hand
 -- what a hand holds. Nil while the game hasn't sent it.
 function Goal.Fits(id, i)
@@ -683,6 +704,13 @@ end
 -- The set that's your goal before raids, as the view chooses it: one of yours, or WoWSims'
 -- build (the one kept for the character, else the tree's own; full or cheap). Its 17 IDs and
 -- its name; nil with none.
+-- A WoWSims build's set (full or cheap) as 17 IDs, each from your side's quartermaster.
+local function IdsOf(build, cheap, side)
+    local ids = {}
+    for n in ((cheap and build.cheap) or build.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), side) end
+    return ids
+end
+
 function Goal.ChosenSet()
     local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
     local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
@@ -697,9 +725,7 @@ function Goal.ChosenSet()
         if b.key == start then chosen = b end
     end
     if not chosen then return nil end
-    local ids = {}
-    for n in ((keptChoice.cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), Side()) end
-    return ids, chosen.name
+    return IdsOf(chosen, keptChoice.cheap, Side()), chosen.name
 end
 
 -- Whether an item is in your set and not worn: the slot it's for ("Trinket 1"), else nil. For
@@ -731,17 +757,20 @@ local KEEP = 600
 -- unknown }; a row: { slot, label, equip, worn, goal, done, taken, none, unknown, gains, share,
 -- pick (a set's piece) }. `build` and `cheap` choose the set (the tree's own build, full, by
 -- default); `set` says which it is: { builds, key, name, cheap, hasCheap }, nil with none.
-function Goal.Read(spec, build, cheap)
+-- `draft`, where given, is 17 IDs in the sets' order: a change to the set not yet saved, read in
+-- the set's place.
+function Goal.Read(spec, build, cheap, draft)
     spec = spec or Gear.Spec()
     cheap = cheap and true or false
+    local drafted = draft and table.concat(draft, ",") or ""
     local now = GetTime and GetTime()
-    if kept and kept.stamp == Gear.planStamp and kept.spec == spec and kept.build == build and kept.cheap == cheap
+    if kept and kept.stamp == Gear.planStamp and kept.spec == spec and kept.build == build and kept.cheap == cheap and kept.drafted == drafted
         and now and kept.at and now - kept.at < KEEP and (kept.waiting == 0 or kept.at == now) then
         return kept
     end
     local weights = Gear.Weights(spec)
     local _, classFile, classID = UnitClass("player")
-    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, at = now, waiting = 0 }
+    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = drafted, at = now, waiting = 0 }
     kept = out
     if not (weights and ns.GearData) then
         out.noWeights = true
@@ -772,13 +801,20 @@ function Goal.Read(spec, build, cheap)
             if b.key == own.from then fromName = b.name end
         end
         out.set = { builds = builds or {}, key = own.key, name = own.name, own = true, from = fromName, ids = own.ids, hasCheap = false }
-        out[Goal.BEFORE] = SetRows(ctx, own.ids, lists, true)
+        -- WoWSims' set it was started from (else the tree's), for the way back to its pieces.
+        local from
+        for _, b in ipairs(builds or {}) do
+            if b.key == own.from then from = b end
+        end
+        for _, b in ipairs(from and {} or builds or {}) do
+            if b.key == start then from = b end
+        end
+        out[Goal.BEFORE] = SetRows(ctx, draft or own.ids, lists, true, from and IdsOf(from, false, ctx.side))
         chosen = own
     elseif chosen then
-        local ids = {}
-        for n in ((cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), ctx.side) end
+        local ids = IdsOf(chosen, cheap, ctx.side)
         out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids }
-        out[Goal.BEFORE] = SetRows(ctx, ids, lists)
+        out[Goal.BEFORE] = SetRows(ctx, draft or ids, lists, nil, ids)
     else
         out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)
     end
