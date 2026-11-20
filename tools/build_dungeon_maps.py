@@ -57,12 +57,13 @@ ON_FLOOR = {(229, "pyroguardemberseer"): 7}
 # A boss the journal keeps under another name: Zul'Farrak's Nekrum and Sezz'ziz are one entry there.
 SAME = {598: "nekrumsezzziz", 599: "nekrumsezzziz"}
 # A dungeon of Forever's own, by map ID: each floor's picture in jsalUI/Media/Maps and its name. Blackmaw
-# Hold's six are named short, so their tabs fit over the map.
+# Hold's six are named short, so their tabs fit over the map. A dungeon entered from below has that floor
+# first, as the tab it opens on: Dalaran's sewers.
 ART = {
     3065: [("hallofthanes", "Hall of Thanes")],
     2999: [("lordaeron", "Ruins of Lordaeron")],
     2998: [("excavation", "Excavation Site")],
-    2959: [("dalaran1", "City of Dalaran"), ("dalaran2", "The Underbelly")],
+    2959: [("dalaran2", "Sewers"), ("dalaran1", "City of Dalaran")],
     2970: [("drowned1", "The Drowned City"), ("drowned2", "Atal'Byzal")],
     3039: [("kroldok", "Krol'dok Stronghold")],
     2994: [("alcaz1", "Main Unit"), ("alcaz2", "Maximum Security Unit")],

@@ -73,8 +73,8 @@ ns.DungeonMaps = {
         art = { "excavation" },
         names = { "Excavation Site" } },
     [3271] = { floors = { true, true }, bosses = {},    -- City of Dalaran
-        art = { "dalaran1", "dalaran2" },
-        names = { "City of Dalaran", "The Underbelly" } },
+        art = { "dalaran2", "dalaran1" },
+        names = { "Sewers", "City of Dalaran" } },
     [19] = { folder = "RazorfenDowns", floors = { true },
         bosses = {
             [2780] = { 1, 0.594, 0.340, 7845 },    -- Tuten'kash
