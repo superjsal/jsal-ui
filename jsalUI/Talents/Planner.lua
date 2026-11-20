@@ -423,10 +423,11 @@ Window.Page("build", function(page)
         -- next names the rank that is.
         -- The card: your next point, or a build's first for another class. A point learned since
         -- the card last showed is LEARNED, unless another is ready to learn.
-        -- Points spent that the plan doesn't have where you are in it ("off the plan"): no Learn.
+        -- Points spent that the plan you follow doesn't have where you are in it ("off the plan"):
+        -- no Learn. Another build isn't yours to be off: it says which you follow.
         local spent = 0
         for _, n in pairs(data.own and data.nodes or {}) do spent = spent + (tonumber(n.learned) or 0) end
-        local off = data.own and nextIndex and spent > taken and (spent - taken) or 0
+        local off = data.own and following and nextIndex and spent > taken and (spent - taken) or 0
         local ready = data.own and following and nextIndex ~= nil and waiting > 0 and off == 0
         if not ready then ask:Hide() end
         local group = Tree.Group and Tree.Group() or 1
