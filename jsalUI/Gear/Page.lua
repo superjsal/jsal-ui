@@ -13,6 +13,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local WINDOW_W, WINDOW_H = 1240, 860
 local FOOT = 34                    -- under the list: room for the link to the page's small print
 local SLOT_W, SLOT_H, GAP, ICON, ROW_H, LIST_GAP = 540, 40, 1, 30, 54, 20
+-- With the goal's tabs over the page, the title has a row of its own under them and
+-- everything else moves down this much; the slots' rows give up the height between them.
+local TABS_ROW = 42
 local UP_X = 220               -- in a slot's row, where its best upgrade starts
 local OPT_H, OPT_GAP = 54, 6   -- an upgrade's card, and the room between two
 local GAIN_W = 118             -- room for what an upgrade adds ("+14 AP, +3 Sta")
@@ -366,7 +369,6 @@ Window.Page("gear", function(page)
     local wearing = Style.Text(page.near, 10, "muted", nil, true)
     -- At the page's left edge, in line with the title over it and the slots' rows under it: over
     -- the slots' names it stood 44 in.
-    wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 18))
     -- Its column ends where the best upgrade's begins: the longer "SLOT, AND WHAT YOU WEAR" ran
     -- into the next heading. It's held to its column, on one line.
     wearing:SetWidth(UP_X - 10)
@@ -374,24 +376,20 @@ Window.Page("gear", function(page)
     wearing:SetWordWrap(false)
     wearing:SetText("CURRENTLY EQUIPPED")
     local bestHead = Style.Text(page.near, 10, "muted", nil, true)
-    bestHead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", UP_X, -(top - 18))
     bestHead:SetText("BEST UPGRADE NEAR YOUR LEVEL")
     local adds = Style.Text(page.near, 10, "muted", nil, true)
-    adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 10, -(top - 18))
     adds:SetJustifyH("RIGHT")
     adds:SetText("IT ADDS")
     local slotRule = page.near:CreateTexture(nil, "BORDER")
     slotRule:SetColorTexture(Style.Color("lineStrong"))
-    slotRule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(top - 3))
     slotRule:SetSize(SLOT_W, 1)
     -- A slot: its icon (what you wear, or the empty slot), its name, what you
     -- wear and the best upgrade.
     local slotFrames = {}
-    local function SlotButton(row, x, y)
+    local function SlotButton(row)
         local slot = row.slot
         local b = CreateFrame("Button", nil, page.near)
         b:SetSize(SLOT_W, SLOT_H)
-        b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", x, -y)
         local box = Style.Box(b, 5, "well", "gold")
         b.bg, b.edges = box.fill, { box.line }
         b.box = IconBox(b, ICON)
@@ -445,14 +443,13 @@ Window.Page("gear", function(page)
             slotRows[#slotRows + 1] = row
             byKey[row.key] = row
             firstRow[s.key] = firstRow[s.key] or row.key
-            SlotButton(row, 0, top + (#slotRows - 1) * (SLOT_H + GAP))
+            SlotButton(row)
         end
     end
 
     -- Beside the slots: the chosen slot's plan.
     local list = CreateFrame("Frame", nil, page.near)
-    list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", paneW + LIST_GAP, -top)
-    list:SetSize(listW, height - top - FOOT)
+    list:SetWidth(listW)
     Style.Rule(list, "LEFT", "line")
     local wearHead = Style.Text(list, 12, "gold", nil, true)
     wearHead:SetPoint("TOPLEFT", 14, 0)
@@ -484,6 +481,31 @@ Window.Page("gear", function(page)
     local VIEW_H = (height - top - FOOT) - OPT_TOP - ADD_H
     local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
+    -- Where the page's lists start, `down` under the usual place (the goal's tabs' row, or
+    -- nothing): the headings, the slots' rows (shorter, so they still end where they did) and
+    -- the plan beside them. Done again only when it changes.
+    local laid
+    local viewH = VIEW_H
+    local function Lay(down)
+        if laid == down then return end
+        laid = down
+        local y = top + down
+        wearing:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(y - 18))
+        bestHead:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", UP_X, -(y - 18))
+        adds:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", SLOT_W - 10, -(y - 18))
+        slotRule:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(y - 3))
+        local step = SLOT_H + GAP - math.ceil(down / #slotRows)
+        for i, row in ipairs(slotRows) do
+            local b = slotFrames[row.key]
+            b:SetHeight(step - GAP)
+            b:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(y + (i - 1) * step))
+        end
+        list:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", paneW + LIST_GAP, -y)
+        list:SetHeight(height - y - FOOT)
+        viewH = VIEW_H - down
+        scroll:SetHeight(viewH)
+    end
+    Lay(0)
 
     local rows = {}
     local function Row(i)
@@ -681,11 +703,13 @@ Window.Page("gear", function(page)
         weightsButton:SetSelected(panel:IsShown())
         PaintWeights()
         -- The goal for the last level, when that part is on: its tabs stand at the page's top
-        -- left, with the title after them, and with "At 60" chosen its view is painted in
-        -- place of this one.
+        -- left, with the title on a row of its own under them, and with "At 60" chosen its
+        -- view is painted in place of this one.
         local inset, goal = 0, false
         if page.Goal then inset, goal = page.Goal(spec) end
-        title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", inset, -6)
+        local down = (inset or 0) > 0 and TABS_ROW or 0
+        title:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -(6 + down))
+        Lay(down)
         page.near:SetShown(not goal)
         if goal then return end
 
@@ -834,7 +858,7 @@ Window.Page("gear", function(page)
         for i = shown + 2, #rows do rows[i]:Hide() end
         -- Back to the top for another slot; kept in range otherwise.
         optList:SetHeight(math.max(1, shown * (OPT_H + OPT_GAP)))
-        local most = math.max(0, shown * (OPT_H + OPT_GAP) - VIEW_H)
+        local most = math.max(0, shown * (OPT_H + OPT_GAP) - viewH)
         scroll:SetVerticalScroll((chosen ~= paintedSlot or filter.moved) and 0 or math.min(scroll:GetVerticalScroll() or 0, most))
         paintedSlot, filter.moved = chosen, nil
         scroll:UpdateScrollChildRect()
