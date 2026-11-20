@@ -560,7 +560,20 @@ BUILD.plan = function(page)
     local does = Style.Text(build, 13, "secondary")
     does:SetPoint("LEFT", name, "RIGHT", 14, 0)
     does:SetWordWrap(false)
-    does:SetText("Your talents, a point at a time. It names the next one when a point comes in.")
+    does:SetText("Your talents, a point at a time.")
+    -- The talent helper's switch, at the end of that line; nothing where the part isn't there.
+    local helper = ns.modules.talents
+    local helps, words
+    if helper then
+        helps = Style.Switch(build, function(on)
+            ns.db.modules[helper.key] = on
+            words:SetTextColor(Style.Color(on and "text" or "secondary"))
+        end, true)
+        helps:SetPoint("RIGHT", build, "TOPRIGHT", -16, -29)
+        words = Style.Text(build, 13, "text")
+        words:SetPoint("RIGHT", helps, "LEFT", -12, 0)
+        words:SetText("Name my next talent when a point comes in")
+    end
     local none = Style.Text(build, 13, "muted")
     none:SetPoint("TOPLEFT", 18, -72)
     none:SetText("Your talents haven't been read yet. Choose a build in Build once they have.")
@@ -604,6 +617,11 @@ BUILD.plan = function(page)
 
     page.Refresh = function()
         Paint()
+        if helps then
+            local on = ns.ModuleWanted(helper)
+            helps:SetOn(on)
+            words:SetTextColor(Style.Color(on and "text" or "secondary"))
+        end
         local read = Setup.Read()
         if read.training then training:Say(read.training.short, read.training.value) else training:Say("") end
         gear:Say(read.gear and read.gear.sub or "")
