@@ -43,19 +43,32 @@ end
 
 -- The game's tooltip for a row's piece (what you wear there, or the goal), with what the
 -- goal adds and where it's from under it.
-local function Tip(self)
+local function Tip(hot)
+    local self = hot.row
     if not (self.item or self.equip) then return end
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetOwner(hot, "ANCHOR_RIGHT")
     if self.equip then GameTooltip:SetInventoryItem("player", self.equip) else GameTooltip:SetItemByID(self.item) end
     if self.adds and self.adds ~= "" then GameTooltip:AddLine("Adds " .. self.adds, Style.Color("green")) end
     for _, line in ipairs(self.lines or {}) do GameTooltip:AddLine(line, 0.6, 0.59, 0.53, true) end
     GameTooltip:Show()
 end
-local function Tipped(frame)
-    frame:EnableMouse(true)
-    frame:SetScript("OnEnter", Tip)
-    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame)
+-- The tooltip belongs to a row's picture and name, as wide as the name is written (`from`
+-- is where the name starts): over the rest of the row it covered the rows under the pointer
+-- on its way down the list. `Fit` sets its width once the name is written.
+local function Tipped(row, from)
+    local hot = CreateFrame("Frame", nil, row)
+    hot.row = row
+    hot:SetPoint("LEFT")
+    hot:SetSize(from, row:GetHeight())
+    hot:EnableMouse(true)
+    hot:SetScript("OnEnter", Tip)
+    hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    row.hot = hot
+    function row:Fit()
+        local room = self.name:GetWidth() or 0
+        local wide = self.name:GetStringWidth() or 0
+        self.hot:SetWidth(from + math.max(0, room > 0 and math.min(wide, room) or wide))
+    end
 end
 
 -- A quiet action: gold words that light up.
@@ -186,7 +199,7 @@ local function SlotList(view, rowH)
         r.where = Style.Text(r, 12, "muted")
         r.where:SetPoint("RIGHT")
         r.where:SetJustifyH("RIGHT")
-        Tipped(r)
+        Tipped(r, NAME_X)
         list.rows[i] = r
     end
     function list:Paint(rows, stage)
@@ -221,6 +234,7 @@ local function SlotList(view, rowH)
                 end
                 -- The name has what the line's end leaves it.
                 r.name:SetWidth(LEFT_W - NAME_X - Style.Wide(r.where, 90) - 12)
+                r:Fit()
             end
         end
     end
@@ -257,7 +271,7 @@ local function PieceRow(parent, width)
     r.chance:SetPoint("RIGHT", r.track, "LEFT", -8, 0)
     r.act = Words(r, "Order from your guild", function() Window.Open("guildcrafts") end)
     r.act:SetPoint("RIGHT", -14, 0)
-    Tipped(r)
+    Tipped(r, 46)
     -- `chance` is a number, false for a boss's piece nobody has counted, nil for a piece
     -- that isn't from a run; `act` shows the action in its place.
     function r:Set(row, stage, sub, chance, act)
@@ -277,6 +291,7 @@ local function PieceRow(parent, width)
         end
         local right = act and (Style.Wide(self.act.text, 130) + 24) or (chance and 110 or (chance == false and 100 or 14))
         self.sub:SetWidth(math.max(40, width - 46 - Style.Wide(self.name, 150) - 10 - right))
+        self:Fit()
     end
     return r
 end
