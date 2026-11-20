@@ -7,8 +7,6 @@ local Gear = ns.Gear
 
 local Goal = ns.NewModule("geargoal", {
     title = "Gear goal for 60",
-    -- A new view, so it starts off.
-    defaultOn = false,
     note = "An \"At 60\" view on the Gear plan, open at any level: the best piece for each slot at level 60 for your spec, which of them you already wear, and the dungeons to run for the rest.",
 })
 ns.GearGoal = Goal
