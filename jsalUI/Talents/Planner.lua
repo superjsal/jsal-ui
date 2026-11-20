@@ -124,6 +124,10 @@ Window.Page("build", function(page)
         row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -3)
         row.sub:SetWidth(LIST_W - 20)
         row.sub:SetWordWrap(false)
+        -- The build you follow (on the spec you're on), yours or a suggested one: a gold tag after
+        -- its name, or, where the name is too long for both, at the start of the line under it.
+        row.tag = Style.Tag(row, "FOLLOWING", "gold", true)
+        row.tag:Hide()
         row:SetScript("OnClick", function(self)
             Tree.Select(classID, self.build)
             editing, status = false, nil
@@ -132,8 +136,9 @@ Window.Page("build", function(page)
         return row
     end
 
-    -- A build's line under its name: its main tree and points.
-    local function Summary(b)
+    -- A build's line under its name: its main tree and points; in the title, whether it's followed
+    -- (the list says so with a tag instead: `bare`).
+    local function Summary(b, bare)
         if not data then return "" end
         local order, _, treePoints = Tree.Replay(data, b.order or {})
         local text = "No points yet"
@@ -144,7 +149,7 @@ Window.Page("build", function(page)
             end
             text = ("%s, %d points"):format(data.trees[best].name, #order)
         end
-        if data.own and Tree.Active() == b then text = text .. " · following" end
+        if not bare and data.own and Tree.Active() == b then text = text .. " · following" end
         return text
     end
 
@@ -833,7 +838,23 @@ Window.Page("build", function(page)
             y = y + ROW_H
             row.build = b
             row.name:SetText(b.name)
-            row.sub:SetText(Summary(b))
+            row.sub:SetText(Summary(b, true))
+            local followed = data and data.own and Tree.Active() == b or false
+            row.tag:SetShown(followed)
+            row.tag:ClearAllPoints()
+            row.sub:ClearAllPoints()
+            row.name:SetWidth(LIST_W - 20)
+            local beside = followed and Style.Wide(row.name, #(b.name or "") * 7.5) + 6 + row.tag.wide <= LIST_W - 20
+            if followed and not beside then
+                row.tag:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
+                row.sub:SetPoint("LEFT", row.tag, "RIGHT", 6, 0)
+                row.sub:SetWidth(LIST_W - 20 - row.tag.wide - 6)
+            else
+                if followed then row.name:SetWidth(Style.Wide(row.name, #(b.name or "") * 7.5)) end
+                row.tag:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
+                row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -3)
+                row.sub:SetWidth(LIST_W - 20)
+            end
             local selected = b == build
             row.bg:SetShown(selected)
             row.mark:SetShown(selected)
