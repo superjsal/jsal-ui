@@ -4,6 +4,12 @@
 -- other, with exact X and Y for the one picked. It needs nothing else
 -- installed, and each piece still drags on its own without it.
 --
+-- A piece is shown as itself: lifted over the grid for as long as Unlock
+-- Mode is open, under a gold outline and its name, so what's being placed
+-- is what will stand there. One that's hidden just now shows a sample of
+-- itself. (Each was a gold block the piece's size, and a block says nothing
+-- of what it is or how it will look where it's put.)
+--
 -- The pieces are in no other addon's unlock mode, on purpose. One that takes
 -- a piece in also takes charge of where it stands: it puts the piece back in
 -- its place whenever the piece changes size, a locked one too, and a frame
@@ -20,7 +26,10 @@ local pieces = {}
 
 -- A piece: key, label, frame() (the frame, or nil if it isn't built),
 -- load() and save(point, relative, x, y) for its saved spot, and hidden()
--- for when it isn't in use.
+-- for when it isn't in use. For one hidden just now, sample(on) shows it as
+-- it would look and takes that away again (without it, its frame is shown
+-- and hidden as it is), and refresh() puts it right for how things are once
+-- Unlock Mode closes.
 function Unlock.Add(piece)
     pieces[piece.key] = piece
 end
@@ -211,12 +220,54 @@ local function Keep(m)
     m.piece.save(m.anchor, m.anchor, m.x, m.y)
 end
 
+-- How gold a mover's inside is. Over a piece shown as itself: nothing, and a
+-- light wash on the one picked. A piece with nothing to show (your pal while
+-- it isn't out with you) is a see-through gold block.
+local function Wash(m, on)
+    m.fill:SetColorTexture(Style.Color("gold"))
+    if m.staged then m.fill:SetAlpha(on and 0.14 or 0) else m.fill:SetAlpha(on and 0.32 or 0.14) end
+end
+
+-- Lifts a piece's own frame over the grid, under its mover (which is what
+-- takes the mouse), showing a sample of one that's hidden; what it was is
+-- kept, to put back.
+local function Stage(m)
+    local piece = m.piece
+    local frame = piece.frame and piece.frame()
+    m.staged = nil
+    if not frame then return end
+    local was = { frame = frame, strata = frame:GetFrameStrata(), level = frame:GetFrameLevel() }
+    if m.hidden then
+        was.sampled = true
+        if piece.sample then piece.sample(true) else frame:Show() end
+    end
+    frame:SetFrameStrata(overlay:GetFrameStrata() or "DIALOG")
+    frame:SetFrameLevel((overlay:GetFrameLevel() or 1) + 2)
+    m.staged = was
+end
+
+-- And puts every piece back as it was: its own layer, a sample taken away,
+-- and the piece set right for how things are now.
+local function Unstage()
+    for _, m in pairs(movers or {}) do
+        local was = m.staged
+        if was then
+            m.staged = nil
+            if was.strata then was.frame:SetFrameStrata(was.strata) end
+            if was.level then was.frame:SetFrameLevel(was.level) end
+            if was.sampled then
+                if m.piece.sample then m.piece.sample(false) else was.frame:Hide() end
+            end
+        end
+        if m.piece.refresh then m.piece.refresh() end
+    end
+end
+
 local function Pick(m)
     picked = m
     for _, other in pairs(movers or {}) do
         local on = other == m
-        other.fill:SetColorTexture(Style.Color("gold"))
-        other.fill:SetAlpha(on and 0.32 or 0.14)
+        Wash(other, on)
         other.tab:SetAlpha(on and 1 or 0.85)
         Tab(other)
     end
@@ -300,7 +351,8 @@ end
 local function Mover(piece)
     local m = CreateFrame("Button", nil, overlay)
     m.piece = piece
-    m:SetFrameLevel(overlay:GetFrameLevel() + 10)
+    -- Well over the pieces lifted under it, and their own buttons.
+    m:SetFrameLevel(overlay:GetFrameLevel() + 40)
     m:EnableMouse(true)
     m:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     -- A mover is square: see-through gold inside a solid gold line, which
@@ -348,6 +400,8 @@ local function Lay()
         m:SetSize(w, h)
         local hidden = (piece.hidden and piece.hidden()) or not (piece.frame and piece.frame() and piece.frame():IsShown())
         m.hidden = hidden
+        if not m.staged then Stage(m) end
+        Wash(m, false)
         Put(m, left, bottom)
         local at = piece.load and piece.load()
         started[key] = at and { at[1], at[2], at[3], at[4] } or { nil }
@@ -410,6 +464,7 @@ local function Build()
         if dragging then Keep(dragging.m) end
         dragging = nil
         if panel then panel:Hide() end
+        Unstage()
     end)
 
     -- The panel: what to do, the picked piece's numbers, two switches, and Done.

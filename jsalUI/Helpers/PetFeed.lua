@@ -323,6 +323,8 @@ end
 -- buttons can't change then.
 function PetFeed.Update()
     if not holder or Compat.InCombat() then return end
+    -- Unlock Mode shows the tile whether or not it's wanted, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if PetFeed.Wanted() then
         FillRow()
         if not holder:IsShown() then
@@ -354,6 +356,7 @@ function PetFeed:OnEnable()
         ns.Unlock.Add({
             key = "PetFeed", label = "jsal.ui pet feeding",
             frame = function() return holder end,
+            refresh = PetFeed.Update,
             load = function() return ns.db and ns.db.petFeedAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end

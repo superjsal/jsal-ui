@@ -302,6 +302,8 @@ end
 -- buttons can't change then.
 function FoodTile.Update()
     if not holder or Compat.InCombat() then return end
+    -- Unlock Mode shows the tile whether or not it's wanted, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if FoodTile.Wanted() then
         if not holder:IsShown() then
             holder:Show()
@@ -327,6 +329,7 @@ function FoodTile:OnEnable()
         ns.Unlock.Add({
             key = "FoodTile", label = "jsal.ui food reminder",
             frame = function() return holder end,
+            refresh = FoodTile.Update,
             load = function() return ns.db and ns.db.foodTileAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end

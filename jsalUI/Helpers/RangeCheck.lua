@@ -275,6 +275,8 @@ end
 -- Shown while a living enemy is targeted; read ten times a second meanwhile.
 function RangeCheck.Update()
     if not box then return end
+    -- Unlock Mode shows the box whether or not there's a target, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if Wanted() then
         if not box:IsShown() then
             state, last = nil, nil
@@ -304,6 +306,14 @@ function RangeCheck:OnEnable()
         ns.Unlock.Add({
             key = "RangeCheck", label = "jsal.ui range check",
             frame = function() return box end,
+            -- With no target it has no colour to be: as in shooting range, for Unlock Mode.
+            sample = function(on)
+                box:SetScript("OnUpdate", nil)
+                state = nil
+                if on then box.fill:SetColorTexture(Style.Color(RangeCheck.COLORS.shoot)) end
+                box:SetShown(on)
+            end,
+            refresh = RangeCheck.Update,
             load = function() return ns.db and ns.db.rangeCheckAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end
