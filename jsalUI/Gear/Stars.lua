@@ -217,20 +217,24 @@ function Gear.StarsIn(dungeon)
 end
 
 ---------------------------------------------------------------------------
--- The drop alert: a gold banner when a starred item shows in a loot window
--- or a roll, once a minute at most for the same item.
+-- The drop alert: a gold banner when a starred item, or one in your set for 60
+-- (the Gear plan's At 60), shows in a loot window or a roll, once a minute at
+-- most for the same item.
 ---------------------------------------------------------------------------
 local alerted = {}
 function Gear.Dropped(link)
     local id = type(link) == "string" and tonumber(link:match("item:(%d+)"))
-    if not (id and Gear.Starred()[id]) then return false end
+    local starred = id and Gear.Starred()[id]
+    local G = ns.GearGoal
+    local wanted = id and not starred and G and G.running and G.Wanted and G.Wanted(id)
+    if not (starred or wanted) then return false end
     local now = GetTime and GetTime() or 0
     if alerted[id] and now - alerted[id] < 60 then return false end
     alerted[id] = now
-    local said = Gear.StarLine(id)
+    local said = starred and Gear.StarLine(id) or ("for your " .. wanted .. ", in your set for 60")
     local line = link .. (said and ("  |cff9a9688· " .. said .. "|r") or "")
     if ns.Style and ns.Style.Banner then
-        ns.Style.Banner(Gear.STAR .. " Starred item dropped", line)
+        ns.Style.Banner(Gear.STAR .. (starred and " Starred item dropped" or " Pre-BiS item dropped"), line)
     end
     if PlaySound then pcall(PlaySound, SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) end
     return true

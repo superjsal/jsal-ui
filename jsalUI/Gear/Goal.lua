@@ -656,6 +656,50 @@ function Goal.Fits(id, i)
     return false
 end
 
+-- The set that's your goal before raids, as the view chooses it: one of yours, or WoWSims'
+-- build (the one kept for the character, else the tree's own; full or cheap). Its 17 IDs and
+-- its name; nil with none.
+function Goal.ChosenSet()
+    local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
+    local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
+    if own then return own.ids, own.name end
+    local _, classFile = UnitClass("player")
+    local builds, start = Goal.Builds(classFile, Gear.Spec())
+    local chosen
+    for _, b in ipairs(builds or {}) do
+        if b.key == keptChoice.build then chosen = b end
+    end
+    for _, b in ipairs(chosen and {} or builds or {}) do
+        if b.key == start then chosen = b end
+    end
+    if not chosen then return nil end
+    local ids = {}
+    for n in ((keptChoice.cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = tonumber(n) end
+    return ids, chosen.name
+end
+
+-- Whether an item is in your set and not worn: the slot it's for ("Trinket 1"), else nil. For
+-- the drop alert: worked out again only when the plans change.
+local wantedStamp, wanted
+function Goal.Wanted(id)
+    if wantedStamp ~= Gear.planStamp then
+        wantedStamp, wanted = Gear.planStamp, {}
+        local ids = Goal.ChosenSet()
+        for i, n in ipairs(ids or {}) do
+            local equip = SET_EQUIP[i]
+            for _, slot in ipairs(Gear.SLOTS) do
+                for k, e in ipairs(slot.equip) do
+                    if e == equip and n > 0 then wanted[n] = #slot.equip > 1 and (slot.label .. " " .. k) or slot.label end
+                end
+            end
+        end
+    end
+    local slot = id and wanted[id]
+    local equipped = C_Item and C_Item.IsEquippedItem
+    if slot and equipped and equipped(id) then return nil end
+    return slot
+end
+
 local kept
 local KEEP = 600
 -- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
