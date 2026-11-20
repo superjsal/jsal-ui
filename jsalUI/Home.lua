@@ -10,9 +10,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- release: a few words on it, what a click on it does, and where that goes
 -- (a page's key, or "welcome"). They show once per version, until put away.
 local NEWS = {
-    { "A new welcome", "See it again", "welcome" },
-    { "Every part is switched on", "Turn off what you don't want", "settings" },
-    { "Gear plan: 1,100 more pieces", "Open the Gear plan", "gear" },
+    { "Dungeon maps, with your gear on them", "Open the Dungeon guide", "dungeons" },
+    { "Games: three cards across", "Open Games", "games" },
+    { "Journal: your best pace", "Open the Journal", "journal" },
 }
 
 local function NewsWanted()
