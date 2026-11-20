@@ -52,6 +52,9 @@ function Pet:OnEnable()
     local learnAfter = Now() + 10
     -- A boss brought down: Onyxia may leave the Aurora egg, Ragnaros the Eclipse egg.
     pcall(events.RegisterEvent, events, "ENCOUNTER_END")
+    -- Marked away, and back: the Gloom egg's source. `awaySince` is when the mark went up.
+    pcall(events.RegisterEvent, events, "PLAYER_FLAGS_CHANGED")
+    local awaySince
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, text, ...)
         -- A chat line can be hidden in a dungeon: then it's nil.
         text = Compat.Plain(text)
@@ -70,6 +73,21 @@ function Pet:OnEnable()
                 ns.Print(("Boss fight %s (%s): %s."):format(tostring(text or "hidden"), tostring(Compat.Plain((...)) or "hidden"), won and "won" or "not won"))
             end
             if boss and won then Pet.Found(boss) end
+        elseif event == "PLAYER_FLAGS_CHANGED" then
+            -- The game says this of anyone near; only you count. Back after long
+            -- enough away, there may be something waiting where you stood.
+            if text == "player" then
+                -- The game can keep the mark back: then it's taken as not away, and at worst
+                -- a long time away ends early and counts.
+                local away = Compat.Away()
+                if away == true then
+                    awaySince = awaySince or Now()
+                elseif awaySince then
+                    local long = Now() - awaySince >= Rules.STOOD
+                    awaySince = nil
+                    if long then Pet.Found("away") end
+                end
+            end
         elseif event == "LEARNED_SPELL_IN_SKILL_LINE" then
             if Now() >= learnAfter then Pet.Found("learn") end
         elseif event == "LOOT_READY" then

@@ -14,7 +14,6 @@ local Compat, Professions = ns.Compat, ns.Professions
 local CraftProfit = ns.NewModule("craftprofit", {
     title = "Crafting profit",
     note = "A dashboard page of every recipe your characters know, by what it earns at the auction house after its cut. Prices from Auctionator when it's installed, else from your own auction house searches. /jsal profit",
-    defaultOn = false,
     options = {
         { key = "road", title = "Price the road to the next rank", default = true,
           note = "The profession panel's road picks the cheapest way to each point by what its materials cost at these prices, instead of a rough worth of them." },

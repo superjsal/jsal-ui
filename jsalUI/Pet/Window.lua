@@ -224,12 +224,14 @@ local function BuildPen()
     ui.snore:SetText("z z z")
 
     -- Only while the page is showing: a hidden frame gets no updates.
-    local since, pace = 0, 0
+    local since, pace, bob = 0, 0, 0
     ui.pen:SetScript("OnUpdate", ns.Safe(Pet, function(_, elapsed)
         -- However fast the game draws, it's only looked at thirty times a second.
         pace = pace + elapsed
         if pace < FRAME then return end
         elapsed, pace = pace, 0
+        bob = bob + elapsed
+        Pet.BobCare(bob)
         if ui.window.out then
             ui.pen.held, ui.pen.toss = nil, nil
             -- Out with you, it keeps out of a fight: faint and still until it's over.
@@ -631,19 +633,13 @@ local function BuildParts()
             edge:Hide()
             b.frame[i] = edge
         end
-        -- And a little bob, up and back, for as long as it's needed.
-        local group = b.CreateAnimationGroup and b:CreateAnimationGroup()
-        if group then
-            group:SetLooping("BOUNCE")
-            local hop = group:CreateAnimation("Translation")
-            hop:SetOffset(0, 4)
-            hop:SetDuration(0.45)
-            hop:SetSmoothing("IN_OUT")
-            b.bob = group
-        end
+        -- And a little bob of its picture, up and back, for as long as it's needed (Pet.BobCare).
+        -- Only the picture moves, set in its place each time: sliding the whole button with the
+        -- game's own animation sent it up out of the window and out of sight.
+        b.bobbing = false
         -- Pressed, its picture dips, like a key going down.
-        b:HookScript("OnMouseDown", function(self) self.art:SetPoint("TOP", 0, -14) end)
-        b:HookScript("OnMouseUp", function(self) self.art:SetPoint("TOP", 0, -11) end)
+        b:HookScript("OnMouseDown", function(self) self.pressed = true; self.art:SetPoint("TOP", 0, -14) end)
+        b:HookScript("OnMouseUp", function(self) self.pressed = nil; self.art:SetPoint("TOP", 0, -11) end)
         b:HookScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_TOP")
             GameTooltip:SetText(self.word:GetText() or name)

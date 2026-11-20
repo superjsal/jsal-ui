@@ -17,8 +17,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local PetFeed = ns.NewModule("petfeed", {
     title = "Pet feeding",
-    -- A new box on the screen, so it starts off.
-    defaultOn = false,
     note = "Hunters: a glowing tile beside the food reminder while your pet isn't happy. Point at it for the food in your bags your pet eats, and click one to feed your pet. Drag it anywhere.",
 })
 ns.PetFeed = PetFeed
@@ -253,6 +251,14 @@ local function Place()
     local food = ns.db and ns.db.foodTileAt
     if type(food) == "table" and food[1] then
         holder:SetPoint(food[1], UIParent, food[2], food[3] + SIZE + 8, food[4])
+        return
+    end
+    -- Neither placed by the player: above the quick buttons, beside the
+    -- food reminder; with no quick buttons, under the middle of the screen.
+    local edge, x, y
+    if ns.Launcher and ns.Launcher.Beside then edge, x, y = ns.Launcher.Beside(1) end
+    if edge then
+        holder:SetPoint(edge, UIParent, "BOTTOMLEFT", x, y)
     else
         holder:SetPoint("CENTER", UIParent, "CENTER", SIZE + 8, -170)
     end
@@ -317,6 +323,8 @@ end
 -- buttons can't change then.
 function PetFeed.Update()
     if not holder or Compat.InCombat() then return end
+    -- Unlock Mode shows the tile whether or not it's wanted, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if PetFeed.Wanted() then
         FillRow()
         if not holder:IsShown() then
@@ -340,10 +348,15 @@ function PetFeed:OnEnable()
     if class ~= "HUNTER" then return end
     if not holder then Build() end
     Place()
+    -- The quick buttons may not have their place yet as the game loads: look again a moment later.
+    Compat.After(1, ns.Safe(PetFeed, function()
+        if not Compat.InCombat() then Place() end
+    end))
     if ns.Unlock then
         ns.Unlock.Add({
             key = "PetFeed", label = "jsal.ui pet feeding",
             frame = function() return holder end,
+            refresh = PetFeed.Update,
             load = function() return ns.db and ns.db.petFeedAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end

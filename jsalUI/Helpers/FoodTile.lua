@@ -12,8 +12,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local FoodTile = ns.NewModule("foodtile", {
     title = "Food reminder",
-    -- A new box on the screen, so it starts off.
-    defaultOn = false,
     note = "A glowing tile while you aren't Well Fed. Point at it for the food in your bags, buff food first, and click one to eat it. Drag it anywhere.",
 })
 ns.FoodTile = FoodTile
@@ -238,6 +236,14 @@ local function Place()
     local at = ns.db and ns.db.foodTileAt
     if type(at) == "table" and at[1] then
         holder:SetPoint(at[1], UIParent, at[2], at[3], at[4])
+        return
+    end
+    -- Not placed by the player: above the quick buttons, the first of the
+    -- row there; with no quick buttons, under the middle of the screen.
+    local edge, x, y
+    if ns.Launcher and ns.Launcher.Beside then edge, x, y = ns.Launcher.Beside(-43) end
+    if edge then
+        holder:SetPoint(edge, UIParent, "BOTTOMLEFT", x, y)
     else
         holder:SetPoint("CENTER", UIParent, "CENTER", 0, -170)
     end
@@ -296,6 +302,8 @@ end
 -- buttons can't change then.
 function FoodTile.Update()
     if not holder or Compat.InCombat() then return end
+    -- Unlock Mode shows the tile whether or not it's wanted, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if FoodTile.Wanted() then
         if not holder:IsShown() then
             holder:Show()
@@ -312,11 +320,16 @@ end
 function FoodTile:OnEnable()
     if not holder then Build() end
     Place()
+    -- The quick buttons may not have their place yet as the game loads: look again a moment later.
+    Compat.After(1, ns.Safe(FoodTile, function()
+        if not Compat.InCombat() then Place() end
+    end))
     -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
             key = "FoodTile", label = "jsal.ui food reminder",
             frame = function() return holder end,
+            refresh = FoodTile.Update,
             load = function() return ns.db and ns.db.foodTileAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end

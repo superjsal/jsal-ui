@@ -1,7 +1,8 @@
-# jsal.ui 0.3.57
+# jsal.ui 0.3.58
 
-- Gear plan: about 1,100 more pieces, with most of what the level 53 to 60 dungeons drop.
-- The dashboard has an Unlock button beside Reload. jsal.ui's pieces now move only in its own Unlock Mode, not EllesmereUI's.
-- Quick buttons: the bar stays the same width at every hour, and a button no longer goes missing.
-- jsal.ui has a Discord: /jsal discord, or the link on Report a problem.
+- Restart the game once for this version: it adds new files.
+- Dungeon guide: a Map tab for 33 dungeons and raids, Forever's own drawn by Santiago Reyes, with the bosses that have gear or a quest for you marked.
+- Jsal's Pals: a new pal, and a new egg to find.
+- Games: three cards across, and officers can set the Guild Word.
+- Unlock Mode shows each piece as itself.
 - And a few smaller fixes.

@@ -478,10 +478,13 @@ local function Head(y, count, words, cost, money, costX)
     PlaceRight(panel.nowCost, y)
     y = y + 24
     if cost > 0 then
+        -- One line the panel's width holds: "enough, ... left after" ran off it with two-figure
+        -- gold (John, 19 Nov 2026: "A", of "You have 19g 67s 12c, 18g 37s 12c after"). Green
+        -- says it's enough.
         local short = money < cost
-        panel.gold:SetText(("You have %s:  %s"):format(Compat.Money(money), short
+        panel.gold:SetText(("You have %s,  %s"):format(Compat.Money(money), short
             and (Style.Tint("red") .. "short by " .. Compat.Money(cost - money) .. "|r")
-            or (Style.Tint("green") .. "enough, " .. Compat.Money(money - cost) .. " left after|r")))
+            or (Style.Tint("green") .. Compat.Money(money - cost) .. " after|r")))
         Place(panel.gold, y)
         y = y + 22
     else
@@ -888,36 +891,55 @@ end
 ---------------------------------------------------------------------------
 -- What the trainer window open now teaches, from the spells its rows are:
 -- "beast" (Beast Training, with no one on the other side), "pet" (a pet
--- trainer), "weapons" (a weapon master) or "class".
+-- trainer), "weapons" (a weapon master), "class", or "other" for a trainer
+-- of none of those. A riding instructor opens the same window, so a trainer
+-- is taken for the class trainer only when it is one: one selling a spell
+-- of your class, or one jsal.ui knows by name. Otherwise the panel would
+-- stand in for a riding instructor as "Hunter trainer".
 local function TrainerKind()
     if not UnitExists("npc") then return "beast" end
     local _, _, classID = UnitClass("player")
     local source = ns.SpellData[classID] or {}
-    local pets, weapons = {}, {}
+    local pets, weapons, spells = {}, {}, {}
     for _, list in pairs(source.families or {}) do
         for _, entry in ipairs(list) do pets[entry[1]] = true end
     end
     for _, id in ipairs(source.weapons or {}) do weapons[id] = true end
-    local function Of(id) return id and (pets[id] and "pet" or weapons[id] and "weapons") or nil end
+    for _, entry in ipairs(source.spells or {}) do spells[entry[1]] = true end
+    -- A talent's later ranks, and spells taught under another ID than the list's (a hunter's traps),
+    -- which have a price of their own.
+    for id in pairs(source.talent or {}) do spells[id] = true end
+    for id in pairs(source.prices or {}) do spells[id] = true end
+    local function Of(id) return id and (pets[id] and "pet" or weapons[id] and "weapons" or spells[id] and "class") or nil end
+    local rows = 0
     for i = 1, GetNumTrainerServices() do
         local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
+        if info and info.id then rows = rows + 1 end
         local kind = Of(info and info.id)
         if kind then return kind end
     end
     -- The rows in sight may not say: the game's list can leave out what's
-    -- learned, so a pet trainer with everything bought shows none at all,
-    -- and looked like a class trainer. The visit saved for this trainer
-    -- holds every row; and the pet trainers jsal.ui ships are known by name.
+    -- learned, so a trainer with everything bought shows none at all. The
+    -- visit saved for this trainer holds every row; and the class and pet
+    -- trainers jsal.ui ships are known by name.
     local visit = ns.TrainerPrices.Here and ns.TrainerPrices.Here()
     for _, row in ipairs(visit and ns.TrainerPrices.RowsOf(visit) or {}) do
+        rows = rows + 1
         local kind = Of(row.spell)
         if kind then return kind end
     end
     local name = Compat.Name("npc")
-    for _, trainer in ipairs(ns.TrainerData and ns.TrainerData.pet or {}) do
+    local data = ns.TrainerData or {}
+    for _, trainer in ipairs(data["class" .. tostring(classID)] or {}) do
+        if name and trainer.name == name then return "class" end
+    end
+    for _, trainer in ipairs(data.pet or {}) do
         if name and trainer.name == name then return "pet" end
     end
-    return "class"
+    -- Rows to see, and none of them yours: another kind of trainer. With none in sight yet (the
+    -- list fills in a moment after the window opens) it's taken for the class trainer, as before:
+    -- the repaint when the list arrives asks again.
+    return rows > 0 and "other" or "class"
 end
 
 local function OpenBeside(frame)
@@ -929,6 +951,13 @@ local function OpenBeside(frame)
     if frame == ClassTrainerFrame then
         local ok, kind = pcall(TrainerKind)
         context = ok and kind or "class"
+        -- Not a trainer the panel is for (a riding instructor): the game's own window, as it is.
+        if context == "other" then
+            if concealed and concealed.frame == frame then Reveal() end
+            anchor = nil
+            panel:Hide()
+            return
+        end
     elseif frame == CraftFrame then
         context = "beast"
     else

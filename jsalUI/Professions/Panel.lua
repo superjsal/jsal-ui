@@ -28,6 +28,11 @@ local TARGETS = {
 
 local panel, anchor, dismissed
 local Paint
+-- What a switch between professions in their window would work out again each time, kept by
+-- profession, so the panel keeps up with the window: which recipes you know, asked of the game
+-- one by one, until it says you learned one; and the road, while nothing it comes from has changed.
+-- `bags` moves when the game says your bags changed. `painted` is the profession last drawn.
+local knownBy, plans, bags, painted = {}, {}, 0, nil
 -- The tab showing: the road with what it needs, or the recipes to learn.
 local tab = "road"
 local hooked = {}
@@ -115,6 +120,9 @@ local function Build()
     panel.roadNote = Style.Text(panel, 12, "muted")
     panel.roadNote:SetJustifyH("RIGHT")
     panel.thenHead = Style.Text(panel, 12, "gold", nil, true)
+    -- How many crafts the road takes, at the right of its heading, as on the Professions page.
+    panel.thenNote = Style.Text(panel, 12, "muted")
+    panel.thenNote:SetJustifyH("RIGHT")
     panel.note = Style.Text(panel, 12, "muted")
     panel.note:SetWidth(WIDTH - PAD * 2)
     panel.note:SetJustifyH("LEFT")
@@ -628,15 +636,31 @@ function Paint()
 
     -- What you know, asked once for the whole list, and kept for the
     -- Professions page, which can't ask while this window is closed.
-    local known, saved = {}, {}
-    for _, recipe in ipairs(Professions.Recipes(line)) do
-        known[recipe.spell] = Compat.KnowsRecipe(recipe.spell)
-        if known[recipe.spell] then saved[#saved + 1] = recipe.spell end
+    local mind = knownBy[line]
+    if not mind or mind.skill ~= skill then
+        mind = { skill = skill, known = {}, saved = {} }
+        for _, recipe in ipairs(Professions.Recipes(line)) do
+            mind.known[recipe.spell] = Compat.KnowsRecipe(recipe.spell)
+            if mind.known[recipe.spell] then mind.saved[#mind.saved + 1] = recipe.spell end
+        end
+        knownBy[line] = mind
+        Professions.Remember(line, skill, cap, mind.saved)
     end
-    Professions.Remember(line, skill, cap, saved)
+    local known = mind.known
+    painted = name
     -- The road runs to this rank's cap, and no step runs across the skill
     -- the next rank is trained at, so that has a place of its own on it.
-    local road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rankAt)
+    local prices = ns.ItemPrices
+    local key = table.concat({ skill, cap, tostring(rankAt), #mind.saved, tostring(Professions.Priced and Professions.Priced()),
+        prices and prices.seen or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
+    local kept = plans[line]
+    local road, totals, stuck, made
+    if kept and kept.key == key then
+        road, totals, stuck, made = kept.road, kept.totals, kept.stuck, kept.made
+    else
+        road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rankAt)
+        plans[line] = { key = key, road = road, totals = totals, stuck = stuck, made = made }
+    end
 
     -- Recipes not learned yet, with where each comes from: starred ones
     -- first, then by the skill they're learned at.
@@ -731,6 +755,7 @@ function Paint()
             y = y + 8
             panel.thenHead:SetText(("YOUR ROAD TO %d"):format(cap))
             Place(panel.thenHead, y + 2)
+            panel.thenHead.y = y + 2
             y = y + 26
             from = y
         else
@@ -743,6 +768,9 @@ function Paint()
             ranked = true
             return STOP_H
         end
+        -- A last step that reaches the cap is the road's end and the cap's sign: ringed in gold,
+        -- with no second sign after it saying the same number, as on the Professions page.
+        local reached = more and not stuck and skill < cap and #road - 1 <= MAX_STEPS and (road[#road].to or 0) >= cap
         for i = 2, #road do
             if i - 1 > MAX_STEPS then break end
             local step = road[i]
@@ -750,6 +778,9 @@ function Paint()
             shown = i - 1
             local s = Step(shown)
             Road.PaintStop(s, step, trainer)
+            local capSign = reached and i == #road
+            s.disc:Paint("well", capSign and "gold" or "lineStrong")
+            s.level:SetTextColor(Style.Color(capSign and "gold" or "text"))
             Place(s, y)
             y = y + STOP_H
         end
@@ -766,7 +797,14 @@ function Paint()
         else
             panel.moreSteps:Hide()
         end
-        if more and not stuck and skill < cap then
+        local craftsLine = crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""
+        if reached then
+            panel.thenNote:SetText(craftsLine)
+            PlaceRight(panel.thenNote, panel.thenHead.y or 0)
+        else
+            panel.thenNote:Hide()
+        end
+        if more and not stuck and skill < cap and not reached then
             panel.endSign.level:SetText(cap)
             Place(panel.endSign, y + (STOP_H - SIGN) / 2)
             panel.endText:SetText(crafts > 0 and ("about %d %s%s from here"):format(crafts, unit, crafts == 1 and "" or "s") or "")
@@ -853,7 +891,7 @@ function Paint()
         panel.unlearnedCount:Hide()
         panel.showAll:Hide()
     else
-        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.note, panel.rule, panel.needLine,
+        for _, region in ipairs({ panel.roadHead, panel.roadNote, panel.thenHead, panel.thenNote, panel.note, panel.rule, panel.needLine,
                                   panel.band, panel.moreSteps, panel.endSign, panel.endText }) do
             region:Hide()
         end
@@ -1055,6 +1093,11 @@ local function Hook()
 end
 
 -- Paints the panel again, if it is up.
+-- Lets go of what it keeps, so the next drawing works everything out again.
+function Panel.Forget()
+    knownBy, plans = {}, {}
+end
+
 function Panel.Refresh()
     if panel and panel:IsShown() then xpcall(Paint, ns.Report) end
 end
@@ -1070,16 +1113,26 @@ function Panel:OnEnable()
     -- the first open after a reload the profession's details arrive after
     -- the window shows, so an update also brings back a panel that hid
     -- for lack of them, unless it was closed, and does it on the next frame.
+    -- A switch to another profession in the window is drawn on the next frame, not after the
+    -- third of a second a burst waits.
     local queued = false
+    local function Draw()
+        local started = debugprofilestop and debugprofilestop()
+        xpcall(Paint, ns.Report)
+        if started and ns.Timed then ns.Timed("Profession window panel, drawn", started) end
+    end
     events:SetScript("OnEvent", function(_, event)
         if event == "ADDON_LOADED" then return Hook() end
+        if event == "NEW_RECIPE_LEARNED" or event == "SKILL_LINES_CHANGED" then knownBy = {} end
+        if event == "BAG_UPDATE_DELAYED" then bags = bags + 1 end
         if not (panel and Wanted()) or queued then return end
         queued = true
-        Compat.After(panel:IsShown() and 0.3 or 0, function()
+        local switched = panel:IsShown() and Compat.OpenProfession() ~= painted
+        Compat.After((panel:IsShown() and not switched) and 0.3 or 0, function()
             queued = false
             if Wanted() then
                 panel:Show()
-                xpcall(Paint, ns.Report)
+                Draw()
             end
         end)
     end)

@@ -232,8 +232,13 @@ local RETRY = 2
 -- and the plan said "checking..." for good.
 local TRIES = 5
 local tries = {}
+-- Gear.arrived counts the items that came after being asked for here: a plan waiting on items
+-- is worth making again once it has moved on.
+Gear.arrived = 0
 function Gear.Arrived(id)
-    if id then loading[id], tries[id] = nil, nil end
+    if not id then return end
+    if loading[id] then Gear.arrived = Gear.arrived + 1 end
+    loading[id], tries[id] = nil, nil
 end
 function Gear.GivenUp(id)
     return (tries[id] or 0) >= TRIES
@@ -729,11 +734,30 @@ end
 -- boss list takes to paint, so the plan is kept until something it's worked out from changes
 -- (Gear.PlansChanged: your gear, bags, level, talents, skills, quests, spec, weights or stars),
 -- for ten minutes at most. A plan still waiting on items the game hasn't sent is worked out
--- again on the next paint.
+-- again once one of them has come, or when they can be asked for again (RETRY seconds on): made
+-- again on every paint meanwhile, it came out the same and was most of a boss list's paint (9 ms
+-- of 15, 28 at worst). And one asked for `lazy` (Gear.Better, for a boss list) isn't made again in
+-- the asking at all: the plan as it stands is given, and the waiting ones are made again behind,
+-- a slot at a time (Gear.Refill). Made in the paint when due, they were still 15 ms of it for the
+-- ten seconds or so the game takes to send an item or never send it.
+--
+-- Your bags change with every thing looted, and a plan reads only the pieces in them you could
+-- wear. So a bag change is only noted (Gear.bagsMoved), and the next plan asked for reads the
+-- bags once: the plans go only when the wearable pieces there aren't the ones they were. Thrown
+-- away on every bag change, the plans were rarely there for a boss list to use: its upgrade
+-- checks took 14 ms of a paint, 33 at worst.
 Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
-function Gear.SlotPlan(slot)
+function Gear.SlotPlan(slot, lazy)
+    if Gear.bagsMoved then
+        Gear.bagsMoved = nil
+        local wearable = Gear.BagsWearable()
+        if wearable ~= Gear.bagsWearable then
+            Gear.bagsWearable = wearable
+            Gear.PlansChanged()
+        end
+    end
     local now = GetTime and GetTime()
     local kept = Gear.slotPlans
     if not (kept and now and kept.at and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP) then
@@ -741,31 +765,53 @@ function Gear.SlotPlan(slot)
         Gear.slotPlans = kept
     end
     local plan = kept[slot.key]
-    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now then plan = nil end
+    local why
+    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now
+        and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+        if lazy and Gear.Refill() then return plan end
+        plan, why = nil, "waiting"
+    end
     if not plan then
+        -- How long plans made anew took and why, for whoever asks (the dungeon guide's paint,
+        -- which empties Gear.made first): /jsal perf can then say a slow paint was this. "first"
+        -- is a slot's first plan since the game loaded, "changed" one after something it's worked
+        -- out from changed, "waiting" one made again for items still to come.
+        local started = debugprofilestop()
         plan = Gear.Plan(slot)
-        plan.madeAt = now
+        plan.madeAt, plan.arrived = now, Gear.arrived
         kept[slot.key] = plan
+        Gear.everMade = Gear.everMade or {}
+        why = why or (Gear.everMade[slot.key] and "changed" or "first")
+        Gear.everMade[slot.key] = true
+        Gear.made = Gear.made or {}
+        Gear.made[why] = (Gear.made[why] or 0) + debugprofilestop() - started
     end
     return plan
 end
 
 -- What all you wear scores for a spec's weights: each slot's piece, each ring and trinket, its
--- weapon damage for where it goes. Kept for the one paint, as a slot's plan is.
+-- weapon damage for where it goes. Kept as the slots' plans are: until something they're worked
+-- out from changes, ten minutes at most. (It was kept for the one paint, and reading nineteen
+-- pieces' stats again was part of every boss list's paint.) One made while a piece you wear
+-- hadn't loaded is short of that piece, and is kept for the one moment only.
 function Gear.WornTotal(weights)
     if not weights then return 0 end
     local now = GetTime and GetTime()
     local kept = Gear.wornTotal
-    if kept and now and kept.at == now and kept.weights == weights then return kept.total end
-    local total = 0
+    if kept and now and kept.at and kept.weights == weights
+        and (kept.at == now or (not kept.short and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP)) then
+        return kept.total
+    end
+    local total, short = 0, false
     for _, slot in ipairs(Gear.SLOTS) do
         for _, equip in ipairs(slot.equip) do
             local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
             local stats = link and Stats(link)
             if stats then total = total + (Gear.Score(stats, weights, slot.dps) or 0) end
+            if link and not stats then short = true end
         end
     end
-    Gear.wornTotal = { at = now, weights = weights, total = total }
+    Gear.wornTotal = { at = now, stamp = Gear.planStamp, weights = weights, total = total, short = short }
     return total
 end
 
@@ -785,7 +831,7 @@ function Gear.Better(id, equipLoc, classID, subclassID)
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
         if link and tonumber(link:match("item:(%d+)")) == id then return false end
     end
-    local plan = Gear.SlotPlan(slot)
+    local plan = Gear.SlotPlan(slot, true)
     if not plan.Would then return false end
     return plan.Would(stats)
 end
@@ -811,6 +857,16 @@ local function BagItems()
         end
     end
     return bagItems
+end
+
+-- The wearable pieces in your bags, as one word: their item IDs in order.
+function Gear.BagsWearable()
+    local C = ns.Compat
+    if not (C and C.BagSize and C.BagItem and Gear.Info) then return "" end
+    local ids = {}
+    for i, b in ipairs(BagItems()) do ids[i] = b.id end
+    table.sort(ids)
+    return table.concat(ids, " ")
 end
 
 function Gear.Held(slot, classFile, level)
@@ -1092,6 +1148,43 @@ function Gear.Warm(after)
     Compat.After(after or WARM_AFTER, Step)
 end
 
+-- The kept plans still waiting on items, made again behind the page: one slot a step, a step
+-- every REFILL_STEP seconds, until none is waiting (an item never sent is given up on after a
+-- few asks). True when that's under way, false where it can't be.
+local REFILL_STEP = 0.5
+function Gear.Refill()
+    local Compat = ns.Compat
+    -- Only while the module runs: that is when an item never sent is given up on, and this ends.
+    if not (Compat and Compat.After and Gear.running) then return false end
+    if Gear.refilling then return true end
+    Gear.refilling = true
+    local function Step()
+        if Compat.InCombat and Compat.InCombat() then return Compat.After(5, Step) end
+        local kept = Gear.slotPlans or {}
+        local now = GetTime and GetTime()
+        local any
+        for _, slot in ipairs(Gear.SLOTS) do
+            local plan = kept[slot.key]
+            if plan and (plan.waiting or 0) > 0 then
+                any = true
+                if plan.madeAt ~= now and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+                    local started = debugprofilestop()
+                    xpcall(Gear.SlotPlan, ns.Report, slot)
+                    ns.Timed("Gear plan, made again for items still to come: " .. slot.label, started)
+                    break
+                end
+            end
+        end
+        if not any or not Gear.running then
+            Gear.refilling = nil
+            return
+        end
+        Compat.After(REFILL_STEP, Step)
+    end
+    Compat.After(REFILL_STEP, Step)
+    return true
+end
+
 local levels
 function Gear:OnEnable()
     local b = Button()
@@ -1116,7 +1209,12 @@ for _, event in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "BAG_UPDATE_DELAYED", "PLAY
     "QUEST_TURNED_IN", "CHARACTER_POINTS_CHANGED", "TRAIT_CONFIG_UPDATED", "PLAYER_ENTERING_WORLD" }) do
     levels:RegisterEvent(event)
 end
-levels:SetScript("OnEvent", function(_, event)
+function Gear.Changed(event)
+    if event == "BAG_UPDATE_DELAYED" then
+        Gear.bagsMoved = true
+        return
+    end
     Gear.PlansChanged()
     if event == "PLAYER_LEVEL_UP" and Gear.running then Gear.Warm(3) end
-end)
+end
+levels:SetScript("OnEvent", function(_, event) Gear.Changed(event) end)

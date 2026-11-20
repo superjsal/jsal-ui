@@ -3,8 +3,10 @@
 -- whoever ordered it into the letter's To box and the order into its Subject;
 -- the item is dragged in and the letter sent by hand. When the game says a
 -- letter went to them with the item in it, the order is marked sent
--- (Orders.Mailed) and they're told. Mark sent is for an item handed over in a
--- trade.
+-- (Orders.Mailed) and they're told. An item handed over in a trade is marked
+-- sent the same way: when the game says a trade with whoever asked finished
+-- with the item on your side of it (Orders.Traded). There's no Mark sent
+-- button: with one, an order could be marked sent with nothing handed over.
 --
 -- The card is a child of UIParent, placed from the mail window's edges and
 -- never anchored to it. Fill in only sets the text of the To and Subject
@@ -72,8 +74,6 @@ local function MakeRow(parent)
     r.who:SetWordWrap(false)
     r.fill = Quiet(r, "Fill in letter", "gold")
     r.fill:SetPoint("RIGHT", 0, 0)
-    r.sent = Quiet(r, "Mark sent", "muted")
-    r.sent:SetPoint("RIGHT", r.fill, "LEFT", -14, 0)
     r.rule = Style.Rule(r, "BOTTOM", "line")
     return r
 end
@@ -182,15 +182,10 @@ function M.Paint()
         r.icon:SetTexture(Compat.ItemIcon(recipe.item))
         r.name:SetText(C and C.Title and C.Title(o) or Label(o))
         r.who:SetText("for " .. (C and C.Who and C.Who(o.by) or o.by))
-        local room = (card:GetWidth() or MIN_W) - 28 - 32 - r.fill:GetWidth() - r.sent:GetWidth() - 24
+        local room = (card:GetWidth() or MIN_W) - 28 - 32 - r.fill:GetWidth() - 12
         r.name:SetWidth(room)
         r.who:SetWidth(room)
         r.fill:SetScript("OnClick", function() M.Fill(o) end)
-        r.sent:SetScript("OnClick", function()
-            local ok, why = Orders.Sent(o.id)
-            if not ok and why then ns.Print(why) end
-            M.Paint()
-        end)
         r.rule:SetShown(i < shown)
         r:Show()
     end
@@ -212,9 +207,51 @@ local function Attached()
     return items
 end
 
+-- A trade: who it's with, and what's on your side of it, read again as it
+-- changes; when the game says it finished, those orders are sent.
+local trading
+local function TradeItems()
+    local items = {}
+    for i = 1, 6 do                       -- slot 7 is "will not be traded"
+        local link = GetTradePlayerItemLink and GetTradePlayerItemLink(i)
+        local item = link and tonumber(tostring(link):match("item:(%d+)"))
+        if item then
+            local count = select(3, GetTradePlayerItemInfo(i))
+            items[item] = (items[item] or 0) + (Compat.Plain(count) or 1)
+        end
+    end
+    return items
+end
+-- Who the trade is with ("NPC" is the other side of a trade). A guildmate is
+-- matched by name alone, as a letter's To is.
+local function TradeWith()
+    local name = Compat.Name("NPC")
+    return name ~= "" and name or nil
+end
+-- UI_INFO_MESSAGE is (type, message) in this client, (message) in older ones.
+local function TradeFinished(a, b)
+    return ERR_TRADE_COMPLETE ~= nil and (a == ERR_TRADE_COMPLETE or b == ERR_TRADE_COMPLETE)
+end
+
 local events = CreateFrame("Frame")
-events:SetScript("OnEvent", ns.Safe(Orders, function(_, event)
-    if event == "MAIL_SHOW" then
+events:SetScript("OnEvent", ns.Safe(Orders, function(_, event, ...)
+    local a, b = Compat.Plains(...)
+    if event == "TRADE_SHOW" then
+        trading = { with = TradeWith(), items = {} }
+    elseif event == "TRADE_PLAYER_ITEM_CHANGED" or event == "TRADE_ACCEPT_UPDATE" then
+        if trading then
+            trading.with = trading.with or TradeWith()
+            trading.items = TradeItems()
+        end
+    elseif event == "UI_INFO_MESSAGE" then
+        if trading and TradeFinished(a, b) then
+            local done = trading
+            trading = nil
+            if Orders.Traded(done.with, done.items) > 0 then M.Paint() end
+        end
+    elseif event == "TRADE_CLOSED" then
+        trading = nil
+    elseif event == "MAIL_SHOW" then
         M.open = true
         M.Paint()
     elseif event == "MAIL_CLOSED" then
@@ -233,7 +270,8 @@ end))
 
 local hooked = false
 function M.Start()
-    for _, event in ipairs({ "MAIL_SHOW", "MAIL_CLOSED", "MAIL_SEND_SUCCESS", "MAIL_FAILED", "BAG_UPDATE_DELAYED" }) do
+    for _, event in ipairs({ "MAIL_SHOW", "MAIL_CLOSED", "MAIL_SEND_SUCCESS", "MAIL_FAILED", "BAG_UPDATE_DELAYED",
+        "TRADE_SHOW", "TRADE_PLAYER_ITEM_CHANGED", "TRADE_ACCEPT_UPDATE", "TRADE_CLOSED", "UI_INFO_MESSAGE" }) do
         events:RegisterEvent(event)
     end
     if not hooked then
@@ -247,6 +285,7 @@ end
 function M.Stop()
     events:UnregisterAllEvents()
     Orders.Mailing(nil)
+    trading = nil
     M.open = false
     if card then card:Hide() end
 end

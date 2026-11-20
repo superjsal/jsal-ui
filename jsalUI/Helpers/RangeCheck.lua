@@ -17,8 +17,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local RangeCheck = ns.NewModule("rangecheck", {
     title = "Hunter range check",
-    -- A new box on the screen, so it starts off.
-    defaultOn = false,
     note = "A small box that shows, by its colour, where you stand from your target: white melee, red dead zone, green shooting, dim grey too far. Hunters only; drag it anywhere and resize it from its corner.",
     options = {
         { key = "sound", title = "Sound in the dead zone", default = false,
@@ -150,10 +148,19 @@ local SIZE, MIN, MAX = 26, 8, 400
 local function Place()
     box:ClearAllPoints()
     local at = ns.db and ns.db.rangeCheckAt
+    local edge, x, y
     if type(at) == "table" and at[1] then
         box:SetPoint(at[1], UIParent, at[2], at[3], at[4])
     else
-        box:SetPoint("CENTER", UIParent, "CENTER", 0, -250)
+        -- Not placed by the player: above the quick buttons, after the two
+        -- tiles there and level with their middles; with no quick buttons,
+        -- under the middle of the screen.
+        if ns.Launcher and ns.Launcher.Beside then edge, x, y = ns.Launcher.Beside(48, 5) end
+        if edge then
+            box:SetPoint(edge, UIParent, "BOTTOMLEFT", x, y)
+        else
+            box:SetPoint("CENTER", UIParent, "CENTER", 0, -250)
+        end
     end
     local size = ns.db and ns.db.rangeCheckSize
     if type(size) == "table" and tonumber(size[1]) and tonumber(size[2]) then
@@ -268,6 +275,8 @@ end
 -- Shown while a living enemy is targeted; read ten times a second meanwhile.
 function RangeCheck.Update()
     if not box then return end
+    -- Unlock Mode shows the box whether or not there's a target, to be placed.
+    if ns.Unlock and ns.Unlock.IsOpen and ns.Unlock.IsOpen() then return end
     if Wanted() then
         if not box:IsShown() then
             state, last = nil, nil
@@ -288,11 +297,23 @@ function RangeCheck:OnEnable()
     if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, MELEE_ITEM) end
     if not box then Build() end
     Place()
+    -- The quick buttons may not have their place yet as the game loads: look again a moment later.
+    Compat.After(1, ns.Safe(RangeCheck, function()
+        if not Compat.InCombat() then Place() end
+    end))
     -- One of the pieces Unlock Mode moves (/jsal unlock), on its grid.
     if ns.Unlock then
         ns.Unlock.Add({
             key = "RangeCheck", label = "jsal.ui range check",
             frame = function() return box end,
+            -- With no target it has no colour to be: as in shooting range, for Unlock Mode.
+            sample = function(on)
+                box:SetScript("OnUpdate", nil)
+                state = nil
+                if on then box.fill:SetColorTexture(Style.Color(RangeCheck.COLORS.shoot)) end
+                box:SetShown(on)
+            end,
+            refresh = RangeCheck.Update,
             load = function() return ns.db and ns.db.rangeCheckAt end,
             save = function(point, relative, x, y)
                 if not ns.db then return end

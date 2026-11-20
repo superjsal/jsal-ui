@@ -9,7 +9,6 @@ local Style, Compat, Games, Rules = ns.Style, ns.Compat, ns.Games, ns.PalRunRule
 local PalRun = ns.NewModule("palrun", {
     title = "Pal run",
     note = "A platformer for your pal: one course a day, the same for everyone, against the clock, with your guild's times beside it. /jsal run",
-    defaultOn = false,
 })
 ns.PalRun = PalRun
 
@@ -33,8 +32,23 @@ local FEET = {
     capling = 56, lanternshell = 57, bloomsage = 60, boltusk = 58, rumbletrunk = 61, warmammoth = 65,
     gemlet = 57, miragehoof = 59, sandseer = 65, pebblebill = 53, cobbleback = 54, rockwarden = 63,
     snowlet = 57, frostmantle = 62, auroracrown = 64, starwhelp = 55, moondrake = 60, eclipselord = 69,
+    glumbill = 57, broodstork = 61, dreadmire = 62,
 }
 PalRun.FEET = FEET
+-- And where its feet are across the picture: how many of its pixels right of the middle they sit
+-- (the pictures face left), standing and then on the move, so they're drawn over the box and not
+-- beside it. Measured from each kind's standing frame and the average of its ten running ones.
+local FEETX = {
+    briarboar = { 3, 4 }, thornhog = { 2, 2 }, brambletusk = { -2, 0 }, wispkin = { 1, -1 }, gloamtail = { 0, -1 },
+    wispjester = { -3, -3 }, scrapwing = { -4, -1 }, jabdrake = { -4, 1 }, flarechamp = { 4, 2 },
+    stormcub = { 0, -2 }, thundermane = { -10, -7 }, tempestmane = { -11, -10 }, capling = { 2, 5 },
+    lanternshell = { 6, 4 }, bloomsage = { 1, -1 }, boltusk = { 4, 6 }, rumbletrunk = { 4, -1 },
+    warmammoth = { -3, -2 }, gemlet = { 0, 1 }, miragehoof = { -1, -1 }, sandseer = { 2, 2 },
+    pebblebill = { -2, -2 }, cobbleback = { 0, -2 }, rockwarden = { 8, 1 }, snowlet = { -1, 0 },
+    frostmantle = { 4, 3 }, auroracrown = { 2, 5 }, starwhelp = { -3, -3 }, moondrake = { -6, -5 },
+    eclipselord = { -3, 2 }, glumbill = { -1, -3 }, broodstork = { -1, -4 }, dreadmire = { -1, -4 },
+}
+PalRun.FEETX = FEETX
 
 ---------------------------------------------------------------------------
 -- What's kept, for the whole account: today's best time, how many runs at
@@ -103,14 +117,15 @@ function PalRun.Signature()
     return ("%d:%d:%s"):format(day, best, PalRun.PalName() or "")
 end
 
+-- The line under the game's name on the Games page, beside its icon: a few
+-- words, as it has room for no more. Today's time is on the board under it.
 function PalRun.Status()
-    if not PalRun.running then return "Turned off in Settings" end
+    if not PalRun.running then return "Off in Settings" end
     local s, left = Saved(), PalRun.Left()
-    local runs = left == 0 and "no runs left" or (left == 1 and "1 run left" or (left .. " runs left"))
-    if s.best then return ("Today's best %s, %s"):format(Rules.Clock(s.best), runs) end
-    if left == 0 then return "No time today: the runs are used up" end
-    if (s.tries or 0) > 0 then return ("No time yet, %s"):format(runs) end
-    return ("#%d is ready"):format(s.day)
+    if left > 0 and (s.tries or 0) > 0 then return left == 1 and "1 run left" or ("%d runs left"):format(left) end
+    if s.best then return "Done for today" end
+    if left == 0 then return "No time today" end
+    return "Ready to play"
 end
 
 -- Steps as a time, for a page that shows the board.
@@ -123,13 +138,13 @@ end
 function PalRun.Numbers()
     local s = ns.db.palrun
     if type(s) ~= "table" or not s.ever then return {} end
-    return { { Rules.Clock(s.ever), ("fastest ever, on #%d"):format(s.everDay or 0) } }
+    return { { Rules.Clock(s.ever), "fastest ever, " .. Compat.DaysAgo(Games.Today() - (s.everDay or Games.Today())) } }
 end
 
 function PalRun.Record()
     local s = ns.db.palrun
     if type(s) ~= "table" or not s.ever then return "Pal run: no course finished yet." end
-    return ("Pal run: fastest ever %s, on #%d."):format(Rules.Clock(s.ever), s.everDay or 0)
+    return ("Pal run: fastest ever %s, %s."):format(Rules.Clock(s.ever), Compat.DaysAgo(Games.Today() - (s.everDay or Games.Today())))
 end
 
 -- A run has started. One at the day's course is counted there and then, so
@@ -155,13 +170,13 @@ function PalRun.Finished(mode, steps)
     return was and "best" or "first", was and (was - steps) or nil
 end
 
--- Today's times, fastest first: yours, and those of guildmates heard this
--- session. Each has whose it is, and their pal's name where they have one.
+-- Today's times, fastest first: yours, and those of guildmates who ran
+-- today. Each has whose it is, and their pal's name where they have one.
 function PalRun.Board()
     local today, me, list = Games.Today(), Compat.MyName(), {}
     local day, best = PalRun.Result()
     if day then list[#list + 1] = { name = me, pal = PalRun.PalName(), steps = best, mine = true } end
-    for name, m in pairs(ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}) do
+    for name, m in pairs(ns.Guild and ns.Guild.Day and ns.Guild.Day() or {}) do
         if name ~= me and m.runDay == today and m.runSteps then
             list[#list + 1] = { name = name, pal = m.runPal, steps = m.runSteps }
         end
@@ -240,7 +255,7 @@ end
 local function PaintBoard()
     local list, online = PalRun.Board(), Compat.GuildOnline()
     local class, me = Classes(), Compat.MyName()
-    ui.day:SetText(("#%d"):format(Games.Today()))
+    ui.day:SetText("new in " .. Games.Until())
     ui.empty:SetShown(#list == 0)
     for i, row in ipairs(ui.rows) do
         local entry = list[i]
@@ -254,7 +269,7 @@ local function PaintBoard()
             if colour then row.r, row.g, row.b = colour.r, colour.g, colour.b else row.r, row.g, row.b = Style.Color("text") end
             row.name:SetTextColor(row.r, row.g, row.b)
             row.time:SetText(Rules.Clock(entry.steps))
-            row.dot:SetColorTexture(Style.Color((entry.name == me or online[entry.name]) and "green" or "lineStrong"))
+            row.dot:Paint((entry.name == me or online[entry.name]) and "green" or "lineStrong")
             row.fill:SetShown(entry.mine == true)
             row.edge:SetShown(entry.mine == true)
             row.rule:SetShown(not entry.mine)
@@ -348,11 +363,13 @@ local function Paint()
         ui.pal:SetTexture(file, "CLAMP", "CLAMP", "NEAREST")
     end
     -- Its picture is centred on the 64 pixels it stands in, whose feet line
-    -- sits on the bottom of the pal's box.
+    -- sits on the bottom of the pal's box; across, its feet are over the box's middle.
     local size = from.cell * SCALE
     local middle = (run.y + Rules.H) * TILE - (FEET[sprite] or 57) * SCALE + 32 * SCALE
+    local feetx = FEETX[sprite] and FEETX[sprite][(from == sheet and cell == sheet.stand) and 1 or 2] or 0
+    local across = (run.x + Rules.W / 2) * TILE + (run.facing > 0 and feetx or -feetx) * SCALE
     ui.pal:SetSize(size, size)
-    ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor((run.x + Rules.W / 2) * TILE), -math.floor(middle))
+    ui.pal:SetPoint("CENTER", ui.world, "TOPLEFT", math.floor(across), -math.floor(middle))
 
     -- A heart for each fall the run has left; one that's gone is greyed, from the right.
     if ui.fallen ~= run.falls then
@@ -436,7 +453,7 @@ local function Begin(newMode, newSeed)
         ShowCard(best and ("Today's best   " .. Rules.Clock(best)) or "No time today",
             "No runs left today. A new course comes with the daily reset.", "Practice courses are never counted.")
     else
-        ShowCard(mode == "daily" and ("Today's course   |cff9a9688#%d|r"):format(Games.Today()) or "Practice course",
+        ShowCard(mode == "daily" and "Today's course" or "Practice course",
             "The clock starts when you move. Each treat takes half a second off.",
             ("%d falls end a run.   %s"):format(Rules.FALLS, LeftLine()))
     end
@@ -534,7 +551,7 @@ function PalRun.Now() return run end
 
 local function ShareLine()
     local name = PalRun.PalName()
-    return ("Pal run #%d: %s%s"):format(Games.Today(), name and (name .. ", ") or "", Rules.Clock(Saved().best or 0))
+    return ("Pal run: %s%s"):format(name and (name .. ", ") or "", Rules.Clock(Saved().best or 0))
 end
 PalRun.ShareLine = ShareLine
 
@@ -645,9 +662,8 @@ local function Build()
         row.rule = Style.Rule(row, "BOTTOM", "line")
         row.rank = Style.Text(row, 13, "muted")
         row.rank:SetPoint("LEFT", 12, 0)
-        row.dot = row:CreateTexture(nil, "ARTWORK")
-        row.dot:SetSize(6, 6)
-        row.dot:SetPoint("LEFT", 30, 0)
+        row.dot = Style.Dot(row, 8)
+        row.dot:SetPoint("LEFT", 29, 0)
         row.time = Style.Text(row, 14, "text", nil, true)
         row.time:SetPoint("RIGHT", -10, 0)
         row.name = Style.Text(row, 13, "text", nil, true)

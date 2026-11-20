@@ -103,18 +103,17 @@ local function Ago(seconds)
 end
 
 -- The latest few, newest first, for a report: "Errors: Helpers/MenuBar.lua:70:
--- attempt to index a nil value (x3, 5m ago) / ...". Those from an older
--- version say which.
+-- attempt to index a nil value (x3, 5m ago) / ...". Only this version's: an error from an
+-- older one has likely been fixed since, and one that hasn't comes again.
 function Errors.Summary()
     local list, now, parts = List(), Now(), {}
     for i = #list, 1, -1 do
         local e = list[i]
         if #parts >= SHOW then break end
-        if now - (e.at or 0) <= FRESH then
+        if now - (e.at or 0) <= FRESH and e.version == ns.version then
             local notes = {}
             if (e.count or 1) > 1 then notes[#notes + 1] = "x" .. e.count end
             notes[#notes + 1] = Ago(now - (e.at or now))
-            if e.version and e.version ~= ns.version then notes[#notes + 1] = "in " .. e.version end
             local msg = e.msg
             if #msg > LONGEST then msg = msg:sub(1, LONGEST - 3) .. "..." end
             parts[#parts + 1] = ("%s (%s)"):format(msg, table.concat(notes, ", "))

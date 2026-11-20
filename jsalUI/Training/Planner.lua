@@ -98,7 +98,20 @@ local function Tooltip(frame)
         if not self.spellID then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetSpellByID(self.spellID)
-        if self.hint then GameTooltip:AddLine(self.hint, 0.6, 0.59, 0.53, true) end
+        -- A hint is a line of words, or lines of facts: { left, right, colour } each.
+        if type(self.hint) == "table" then
+            GameTooltip:AddLine(" ")
+            for _, line in ipairs(self.hint) do
+                local r, g, b = Style.Color(line[3] or "muted")
+                if line[2] then
+                    GameTooltip:AddDoubleLine(line[1], line[2], r, g, b, 1, 1, 1)
+                else
+                    GameTooltip:AddLine(line[1], r, g, b, true)
+                end
+            end
+        elseif self.hint then
+            GameTooltip:AddLine(self.hint, 0.6, 0.59, 0.53, true)
+        end
         GameTooltip:Show()
     end)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -688,12 +701,18 @@ Window.Page("training", function(page)
         end)
         for k, w in ipairs(weapons) do
             local master = Master(w.id)
-            list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master,
-                hint = (w.at and ("Taught by " .. w.at .. ".")
-                    or "Each weapon master teaches only some weapons, and jsal.ui hasn't seen who teaches this one. Visit one and it remembers.")
-                    .. (w.cost and (" " .. Compat.Money(w.cost) .. ".") or "")
-                    .. (master and (" Click to show " .. master.name .. " on the map.") or "")
-                    .. (w.skipped and " Skipped: right-click to put it back." or " Right-click to skip it.") }
+            -- Its tooltip a line a fact, as a road step's is: who teaches it, with its cost at the
+            -- right; each master and where under it; what a click does last.
+            local hint = { { "Taught by", w.cost and Compat.Money(w.cost) or nil, "text" } }
+            if w.at then
+                for who in (w.at .. " or "):gmatch("(.-) or ") do hint[#hint + 1] = { (who:gsub(" in ", ", ", 1)) } end
+            else
+                hint[#hint + 1] = { "No weapon master seen teaching it yet: visit one and jsal.ui remembers." }
+            end
+            hint[#hint + 1] = { " " }   -- a gap after who teaches it, as before it
+            if master then hint[#hint + 1] = { "Click to show them on your map" } end
+            hint[#hint + 1] = { w.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
+            list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master, hint = hint }
             if not w.skipped then
                 n = n + 1
                 if w.cost then

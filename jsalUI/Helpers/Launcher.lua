@@ -1,7 +1,7 @@
 -- Quick buttons: a small bar of jsal.ui's places (the dashboard, the games,
 -- your pal, the shopping list, Crafting profit, Guild Crafts, the planners, the gear plan,
 -- the dungeon guide) and the layer you're in, that can be dragged anywhere by
--- its grip, so nobody has to type /jsal. The three games share one button
+-- its grip, so nobody has to type /jsal. The games share one button
 -- that opens a menu of them.
 -- A gold dot marks a button with something waiting: today's puzzle not
 -- played, your move in chess. Laid side by side, the time sits between its
@@ -49,7 +49,8 @@ local function LayerTooltip(tip)
     local c = ns.Layers.Current()
     if not c then
         tip:SetText("Layer")
-        tip:AddLine("Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
+        tip:AddLine(ns.Layers.unreadable and "Can't be read on this version of the game. A /reload checks again."
+            or "Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
         return
     end
     local mapName = ns.Layers.MapName(c)
@@ -104,7 +105,7 @@ local function Games()
     return list
 end
 
--- One button for the three games: its menu lists them, with what's waiting.
+-- One button for the games: its menu lists them, with what's waiting.
 local function GamesMenu(button)
     local items = {}
     for _, place in ipairs(Games()) do
@@ -113,9 +114,18 @@ local function GamesMenu(button)
     ns.Launcher.ShowMenu(button or UIParent, items)
 end
 
+-- The games by name, in a line: Pal run among them while its part is on.
+local function GameNames()
+    local names = { "Daily Word", "Icon Guess" }
+    if ns.PalRun and ns.PalRun.running then names[#names + 1] = "Pal run" end
+    if ns.Chess then names[#names + 1] = "chess" end
+    local last = table.remove(names)
+    return table.concat(names, ", ") .. " and " .. last
+end
+
 local function GamesTooltip(tip)
     tip:SetText("Games")
-    tip:AddLine(ns.Chess and "Daily Word, Icon Guess and chess" or "Daily Word and Icon Guess", 1, 1, 1)
+    tip:AddLine(GameNames(), 1, 1, 1)
     for _, place in ipairs(Games()) do
         local waiting = Waiting(place)
         if waiting then tip:AddLine(waiting, 0.89, 0.69, 0.29) end
@@ -127,7 +137,9 @@ end
 PLACES = {
     { key = "dashboard", label = "Dashboard", icon = "Interface\\AddOns\\" .. addonName .. "\\Media\\Logo",
       open = function() ns.Window.Toggle() end },
-    { key = "games", label = "Games", icon = OWN .. "games", barOnly = true,
+    -- Games starts off the bar (`off`): today's games are on Home and the flight bar, and the
+    -- bar's room goes to the places a player goes back to all day.
+    { key = "games", label = "Games", icon = OWN .. "games", barOnly = true, off = true,
       ready = function() return #Games() > 0 end,
       open = GamesMenu,
       waiting = function()
@@ -142,19 +154,23 @@ PLACES = {
     { key = "word", inGames = true, label = "Daily Word", icon = OWN .. "word",
       ready = function() return ns.DailyWord and ns.DailyWord.running end,
       open = Game(function() return jsalUIDailyWord end, function() ns.DailyWord.Open() end),
-      waiting = function() return not ns.DailyWord.DailyDone() and ("Puzzle #%d is waiting"):format(ns.Games.Today()) or nil end },
+      waiting = function() return not ns.DailyWord.DailyDone() and "Today's word is waiting" or nil end },
     { key = "icons", inGames = true, label = "Icon Guess", icon = OWN .. "icons",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
       open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
+    -- Pal run, while its part is on: today's course waits until it has a
+    -- time or its runs are used up.
+    { key = "run", inGames = true, label = "Pal run", icon = OWN .. "run",
+      ready = function() return ns.PalRun and ns.PalRun.running end,
+      open = Game(function() return jsalUIPalRun end, function() ns.PalRun.Open() end),
+      waiting = function() return not ns.PalRun.DailyDone() and "Today's course is waiting" or nil end },
     { key = "chess", inGames = true, label = "Chess", icon = OWN .. "chess",
       ready = function() return ns.Chess and ns.Chess.running end,
       open = Page("chess"),
       waiting = ChessWaiting },
-    -- Jsal's Pals and Crafting profit: a button each, while its part is on. They came after
-    -- the bar, so each starts switched off (`off`): an update puts nothing on a bar that
-    -- wasn't there.
-    { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals", off = true,
+    -- Jsal's Pals and Crafting profit: a button each, while its part is on.
+    { key = "pals", label = "Jsal's Pals", icon = OWN .. "pals",
       ready = function() return ns.Pet and ns.Pet.running end,
       -- The pen's own Open closes it when it's open.
       open = function() ns.Pet.Open() end,
@@ -162,7 +178,7 @@ PLACES = {
     { key = "shop", label = "Shopping list", icon = OWN .. "shop",
       ready = function() return ns.Shopping and ns.Shopping.running end,
       open = function() ns.Shopping.Toggle() end },
-    { key = "profit", label = "Crafting profit", icon = OWN .. "profit", off = true,
+    { key = "profit", label = "Crafting profit", icon = OWN .. "profit",
       ready = function() return ns.CraftProfit and ns.CraftProfit.running end,
       open = Page("craftprofit"),
       note = "A button for the Crafting profit window: a click opens it, another closes it. Needs Crafting profit on." },
@@ -205,7 +221,7 @@ for _, place in ipairs(PLACES) do
             note = place.note or "Show its button on the bar. Right-clicking the bar's grip gives the same choice." }
     end
 end
-Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = false,
+Launcher.options[#Launcher.options + 1] = { key = "time", title = "The time", default = true,
     note = "The time in the middle of the bar, when it's laid out side by side. Hover it for local and realm time; click it for the game's clock." }
 
 local function Hidden(key) return not ns.OptionOn("launcher", key) end
@@ -813,6 +829,27 @@ end
 
 -- /jsal bar: what the game says about the bar and the j, into chat and the
 -- settings file, then the repair. For when a button has gone missing.
+-- Where a small piece the player hasn't placed starts: just above the bar,
+-- `dx` to the right of its middle and `rise` higher, or under the bar where
+-- there's no room above it. The bar is the one piece whose place is known on
+-- any screen and beside any other addon, so the pieces that would otherwise
+-- start at a fixed spot (the food reminder, pet feeding, the range check)
+-- start by it. Returned as the piece's edge and a point on UIParent, worked
+-- out from where the bar stands: nothing is hung on the bar. Nil while the
+-- bar isn't there or hasn't a place yet.
+local ROOM = 56
+function Launcher.Beside(dx, rise)
+    if not (bar and bar:IsShown()) then return nil end
+    local left, top, bottom, width = bar:GetLeft(), bar:GetTop(), bar:GetBottom(), bar:GetWidth()
+    if not (left and top and bottom and width) then return nil end
+    local scale = bar:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    local x = (left + width / 2) * scale + (dx or 0)
+    if UIParent:GetHeight() - top * scale >= ROOM then
+        return "BOTTOM", x, top * scale + 8 + (rise or 0)
+    end
+    return "TOP", x, bottom * scale - 8 - (rise or 0)
+end
+
 ns.Command("bar", function()
     if not bar then return ns.Print("The quick buttons are switched off.") end
     for _, line in ipairs(Launcher.Check("asked")) do ns.Print(line) end

@@ -18,8 +18,6 @@ local _, ns = ...
 
 local GuideTags = ns.NewModule("guidetags", {
     title = "Quest tags on RestedXP",
-    -- Something new beside another addon's window, so it starts off.
-    defaultOn = false,
     note = "Left of RestedXP's guide window: beside each step that has you take or do a quest, its place in a chain and about how many minutes it will take. For when you follow the guide and keep the quest tracker hidden. Hover a tag for the reasons.",
 })
 ns.GuideTags = GuideTags

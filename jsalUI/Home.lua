@@ -1,17 +1,18 @@
 -- The dashboard's first page, Home: who you are and how far through the
--- level, what's ready for you right now (a trainer visit, a talent point),
--- where each of your plans stands as a picture, the guild, today's games and
--- the Journal, and what's new in this version in one line at the bottom.
+-- level, what's new in this version in a strip under that, what's ready for
+-- you right now (a trainer visit, a talent point), where each of your plans
+-- stands as a picture, the guild, today's games and the Journal.
 -- ns.Today works out what's waiting; the side menu's badges ask it too.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
--- What's new in this version, in two or three short lines, written with
--- each release. The line shows once per version, until it's put away.
+-- What's new in this version, two or three things, written with each
+-- release: a few words on it, what a click on it does, and where that goes
+-- (a page's key, or "welcome"). They show once per version, until put away.
 local NEWS = {
-    "Gear plan: about 1,100 more pieces, the late dungeons' among them",
-    "An Unlock button beside Reload moves jsal.ui's pieces",
-    "jsal.ui has a Discord: /jsal discord",
+    { "Dungeon maps, with your gear on them", "Open the Dungeon guide", "dungeons" },
+    { "Games: three cards across", "Open Games", "games" },
+    { "Journal: your best pace", "Open the Journal", "journal" },
 }
 
 local function NewsWanted()
@@ -141,8 +142,6 @@ end
 ---------------------------------------------------------------------------
 local NextLevel = ns.NewModule("nextlevel", {
     title = "Next level on Today",
-    -- A new block on the first page, so it starts off.
-    defaultOn = false,
     note = "Beside Today's title: the talent and trainer visit your next level brings, and whether your gold covers it.",
 })
 ns.NextLevel = NextLevel
@@ -869,7 +868,6 @@ end
 ---------------------------------------------------------------------------
 local function ReadyCards(page, width)
     local head = Caps(page, "READY NOW")
-    head:SetPoint("TOPLEFT", 0, -(HERO_H + 24))
     local count = Style.Text(page, 11, "muted", nil, true)
     count:SetPoint("LEFT", head, "RIGHT", 8, 0)
     local box = CreateFrame("Frame", nil, page)
@@ -976,7 +974,7 @@ local function ReadyCards(page, width)
         count:SetText(#ready > 0 and tostring(#ready) or "")
         box:SetHeight(#ready == 0 and IDLE_H or READY_H)
     end
-    return box, Paint
+    return box, Paint, head
 end
 
 ---------------------------------------------------------------------------
@@ -1023,7 +1021,9 @@ local function BuildCard(parent, width)
         local queue = b and b.next and Today.Queue(5) or {}
         local planned = b ~= nil and b.planned > 0
         c.empty:SetText(b and "" or "No talent trees for this class yet.")
-        c.title:SetText(b and (b.name or "Your build") or "")
+        -- A build with no points planned is no build yet, whatever it's called: it's said so, greyed.
+        c.title:SetText(b and (planned and (b.name or "Your build") or "Build not set") or "")
+        c.title:SetTextColor(Style.Color(planned and "text" or "muted"))
         c.meter:SetShown(planned)
         c.count:SetText(planned and ("%d |cff9a9688of %d|r"):format(b.taken, b.planned) or "")
         if planned then
@@ -1114,7 +1114,6 @@ local function ProfessionsCard(parent, width)
         local y = -51 - (i - 1) * 47
         l.icon:SetPoint("TOPLEFT", PAD, y)
         l.name:SetPoint("TOPLEFT", PAD + 38, y + 2)
-        l.name:SetWidth(barW - 64)
         l.name:SetWordWrap(false)
         l.count:SetPoint("TOPRIGHT", -PAD, y + 1)
         l.count:SetJustifyH("RIGHT")
@@ -1143,7 +1142,21 @@ local function ProfessionsCard(parent, width)
                 local open = rank ~= nil and rank.next ~= nil and level >= (rank.level or 0)
                     and p.skill >= (P.At and P.At(p.line, rank) or p.cap)
                 l.train:SetShown(open)
-                l.count:SetText(open and "" or ("%d |cff9a9688/ %d|r"):format(p.skill, p.cap))
+                -- The name is written whole and the count gives way to it:
+                -- "158 / 225", then "158/225", then the skill alone, whose
+                -- share of the cap the bar under it shows.
+                l.name:SetWidth(0)
+                local room = barW - l.name:GetStringWidth() - 8
+                local right, words = open and l.train:GetWidth() or 0, ""
+                if not open then
+                    for _, form in ipairs({ { "%d / %d", "%d |cff9a9688/ %d|r" }, { "%d/%d", "%d|cff9a9688/%d|r" }, { "%d", "%d" } }) do
+                        l.count:SetText(form[1]:format(p.skill, p.cap))
+                        right, words = l.count:GetStringWidth(), form[2]:format(p.skill, p.cap)
+                        if right <= room then break end
+                    end
+                end
+                l.count:SetText(words)
+                l.name:SetWidth(math.max(40, barW - right - 8))
             end
         end
     end
@@ -1214,13 +1227,12 @@ local ORDER_SIGNS = {
 }
 
 local function GuildCard(parent, width)
-    local c = PageCard(parent, "guild", "GUILD", "guild", width, LOW_H)
+    local c = PageCard(parent, "games", "GUILD", "guild", width, LOW_H)
     c.names = {}
     local function Name(i)
         if c.names[i] then return c.names[i] end
-        local n = { dot = c:CreateTexture(nil, "ARTWORK"), text = Style.Text(c, 13, "text") }
-        n.dot:SetSize(7, 7)
-        n.dot:SetColorTexture(Style.Color("green"))
+        local n = { dot = Style.Dot(c, 9), text = Style.Text(c, 13, "text") }
+        n.dot:Paint("green")
         n.text:SetPoint("LEFT", n.dot, "RIGHT", 5, 0)
         c.names[i] = n
         return n
@@ -1267,7 +1279,7 @@ local function GuildCard(parent, width)
         for i, mate in ipairs(mates or {}) do
             local n = Name(i)
             n.text:SetText(ClassTint(mate.class) .. mate.name .. "|r")
-            local wide = 12 + Style.Wide(n.text, #mate.name * 7)
+            local wide = 14 + Style.Wide(n.text, #mate.name * 7)
             local function Room() return width - PAD - at - ((line == lines and i < #mates) and 84 or 0) end
             if wide > Room() and line < lines then at, line = PAD, line + 1 end
             if wide > Room() then break end
@@ -1317,7 +1329,7 @@ local function GamesCard(parent, width)
     return c, function()
         local games = Today.GameTiles()
         c.empty:SetText(#games == 0 and "Turned off. Switch the daily games on in Settings." or "")
-        c.note:SetText(#games > 0 and ns.Games and ns.Games.Today and ("#%d"):format(ns.Games.Today()) or "")
+        c.note:SetText(#games > 0 and ns.Games and ns.Games.Until and ("new in " .. ns.Games.Until(true)) or "")
         for i, t in ipairs(c.tiles) do
             local game = games[i]
             t:SetShown(game ~= nil)
@@ -1379,52 +1391,76 @@ local function JournalCard(parent, width)
 end
 
 ---------------------------------------------------------------------------
--- What's new: one line at the bottom, the rest on hover, until it's put
--- away.
+-- What's new: a strip under the top card with the gold edge, a segment for
+-- each new thing. A segment says the thing and, in gold, what a click on it
+-- does; nothing is behind a tooltip. Its cross puts it away for this version.
 ---------------------------------------------------------------------------
-local function News(page, width)
+local NEWS_H = 60
+
+-- Where a new thing's click goes: the welcome (the dashboard closes for it),
+-- or a page.
+local function NewsGo(target)
+    if target == "welcome" then
+        if not (ns.Setup and ns.Setup.Open) then return end
+        Window.Toggle()
+        return ns.Setup.Open()
+    end
+    Window.Open(target)
+end
+
+local function News(page, width, onAway)
     local news = CreateFrame("Frame", nil, page)
-    news:SetPoint("BOTTOMLEFT")
-    news:SetSize(width, 40)
-    Style.Box(news, 6, "window", "cardLine")
-    news:EnableMouse(true)
-    local newsHead = Caps(news, "NEW IN " .. ns.version)
-    newsHead:SetPoint("LEFT", PAD, 0)
-    local more = Style.Text(news, 12, "muted")
-    more:SetPoint("RIGHT", -36, 0)
-    more:SetText(#NEWS > 1 and ("+%d more"):format(#NEWS - 1) or "")
-    local first = Style.Text(news, 13, "text")
-    first:SetPoint("LEFT", newsHead, "RIGHT", 12, 0)
-    first:SetPoint("RIGHT", more, "LEFT", -12, 0)
-    first:SetWordWrap(false)
-    first:SetText(NEWS[1] or "")
-    news:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("New in " .. ns.version)
-        for _, text in ipairs(NEWS) do GameTooltip:AddLine(text, 1, 1, 1, true) end
-        GameTooltip:Show()
-    end)
-    news:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    news:SetPoint("TOPLEFT", 0, -(HERO_H + GAP))
+    news:SetSize(width, NEWS_H)
+    Style.Box(news, 6, "well", "cardLine")
+    Style.Edge(news, 6)
+    local head = Caps(news, "NEW IN " .. ns.version, "gold")
+    head:SetPoint("TOPLEFT", 18, -15)
+    local count = Style.Text(news, 12, "muted")
+    count:SetPoint("TOPLEFT", 18, -33)
+    count:SetText(#NEWS == 1 and "1 thing" or (#NEWS .. " things"))
+    -- The heading has the room it needs (a beta's version is long); the
+    -- segments share the rest, short of the cross.
+    local left = math.max(130, 18 + Style.Wide(head, (#ns.version + 7) * 7) + 18)
+    local each = math.floor((width - left - 44) / math.max(1, #NEWS))
+    for i, item in ipairs(NEWS) do
+        local b = CreateFrame("Button", nil, news)
+        b:SetSize(each, NEWS_H)
+        b:SetPoint("TOPLEFT", left + (i - 1) * each, 0)
+        Style.Rule(b, "LEFT", "line")
+        b.title = Style.Text(b, 13, "text", nil, true)
+        b.title:SetPoint("TOPLEFT", 16, -14)
+        b.title:SetWidth(each - 32)
+        b.title:SetWordWrap(false)
+        b.title:SetText(item[1])
+        b.action = Style.Text(b, 12, "gold", nil, true)
+        b.action:SetPoint("TOPLEFT", 16, -33)
+        b.action:SetWidth(each - 32)
+        b.action:SetWordWrap(false)
+        b.action:SetText(item[2])
+        b.target = item[3]
+        b:SetScript("OnClick", function() NewsGo(item[3]) end)
+        Style.Hover(b)
+    end
     Style.CloseButton(news, 32, function()
         ns.db.newsSeen = ns.version
-        news:Hide()
-    end):SetPoint("RIGHT", -2, 0)
+        onAway()
+    end):SetPoint("RIGHT", -6, 0)
     return news
 end
 
 ---------------------------------------------------------------------------
--- The page: the top card, Ready now, your plans, the guild, games and
--- Journal, and the what's-new line. It has the whole width of the dashboard.
+-- The page: the top card, what's new, Ready now, your plans, the guild,
+-- games and Journal. It has the whole width of the dashboard.
 ---------------------------------------------------------------------------
 Window.Page("home", function(page)
     local width = Window.fullWidth
     local paints = {}
     paints[#paints + 1] = Hero(page, width)
 
-    local ready, paintReady = ReadyCards(page, width)
+    local ready, paintReady, readyHead = ReadyCards(page, width)
 
     local plansHead = Caps(page, "YOUR PLANS")
-    plansHead:SetPoint("TOPLEFT", ready, "BOTTOMLEFT", 0, -24)
     local plans = CreateFrame("Frame", nil, page)
     plans:SetPoint("TOPLEFT", plansHead, "BOTTOMLEFT", 0, -10)
     plans:SetSize(width, PLAN_H)
@@ -1445,10 +1481,22 @@ Window.Page("home", function(page)
         paints[#paints + 1] = paint
     end
 
-    local news = News(page, width)
+    -- With what's new showing, the sections under it sit a little closer, so
+    -- the page still ends where it did.
+    local news
+    local function Lay()
+        local showing = NewsWanted()
+        local gap = showing and GAP or 24
+        news:SetShown(showing)
+        readyHead:ClearAllPoints()
+        readyHead:SetPoint("TOPLEFT", 0, -(HERO_H + (showing and (GAP + NEWS_H) or 0) + gap))
+        plansHead:ClearAllPoints()
+        plansHead:SetPoint("TOPLEFT", ready, "BOTTOMLEFT", 0, -gap)
+    end
+    news = News(page, width, Lay)
 
     page.Refresh = function()
-        news:SetShown(NewsWanted())
+        Lay()
         paintReady()
         for _, paint in ipairs(paints) do xpcall(paint, ns.Report) end
     end

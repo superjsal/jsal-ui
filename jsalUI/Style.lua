@@ -32,7 +32,7 @@ for key, hex in pairs({
     secondary = "c4bfb0",
     muted = "9a9688",
     gold = "e3b04b",
-    goldHover = "ecbe62",
+    goldHover = "f6d489",
     -- Red and green are for text on a card, so both keep 4.5:1 against it.
     red = "ef7a66",
     green = "62b35a",
@@ -271,6 +271,20 @@ function Style.Circle(frame, fillKey, lineKey)
     disc.fill:SetPoint("TOPLEFT", px, -px)
     disc.fill:SetPoint("BOTTOMRIGHT", -px, px)
     return disc
+end
+
+-- A round mark, as for a guildmate who's on: the circle's picture, one
+-- piece, `size` across. Paint(colorKey) colours it. Where round corners
+-- can't be drawn it's a square.
+function Style.Dot(parent, size, layer)
+    local t = parent:CreateTexture(nil, layer or "ARTWORK")
+    t:SetSize(size, size)
+    if t.SetTextureSliceMargins and Style.Rounded() then
+        t.round = true
+        t:SetTexture(CIRCLE)
+    end
+    t.Paint = PaintShape
+    return t
 end
 
 -- A pill: a shape whose ends are half circles, whatever its size and the
@@ -688,7 +702,9 @@ end
 -- A page's small print (where its numbers come from, how far to trust
 -- them): one quiet link, "About these numbers", read when it's pointed at
 -- and not printed on the page. `note` is its words, a paragraph a line, or
--- a function that gives them; `about.note` can be set later.
+-- a function that gives them; `about.note` can be set later. A blank line
+-- parts one paragraph from the next, so each reads on its own (John, 19 Nov
+-- 2026: "add a space between so it reads cleaner").
 function Style.About(parent, note)
     local b = CreateFrame("Button", nil, parent)
     b.note = note
@@ -697,12 +713,24 @@ function Style.About(parent, note)
     b.text:SetText("About these numbers")
     b:SetSize(Style.Wide(b.text, 124), 18)
     Style.Rule(b, "BOTTOM", "lineStrong")
+    -- Named for what it's about where that isn't numbers ("About this map"); its tooltip takes
+    -- the name.
+    function b:Say(words)
+        if self.text:GetText() == words then return end
+        self.text:SetText(words)
+        self:SetWidth(Style.Wide(self.text, 124))
+    end
     b:SetScript("OnEnter", function(self)
         self.text:SetTextColor(Style.Color("text"))
         local words = type(self.note) == "function" and self.note() or self.note
         GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-        GameTooltip:SetText("About these numbers")
-        for line in (words or ""):gmatch("[^\n]+") do GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true) end
+        GameTooltip:SetText(self.text:GetText() or "About these numbers")
+        local first = true
+        for line in (words or ""):gmatch("[^\n]+") do
+            if not first then GameTooltip:AddLine(" ") end
+            GameTooltip:AddLine(line, 0.77, 0.75, 0.69, true)
+            first = false
+        end
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave", function(self)
@@ -716,6 +744,8 @@ end
 -- for the one main action on a page; "plain" is a well with a line around
 -- it. Under the pointer both light up a step, and a plain one darkens while
 -- it's pressed.
+-- "gilt" is for an action offered on every row of a list: a plain button
+-- at rest, so a long list isn't a column of gold, and gold under the pointer.
 -- "tab" is one of a row of choices (a page's tabs, a filter, a spec), a pill:
 -- the chosen one, set with SetSelected, has gold words on a dim gold fill in
 -- a gold line, so a gold fill stays the mark of the main action.
@@ -733,6 +763,8 @@ local function PaintButton(b)
     elseif b.kind == "primary" and enabled then
         fill = (b.hover and not b.down) and "goldHover" or "gold"
         line, text = fill, "onGold"
+    elseif b.kind == "gilt" and lit then
+        fill, line, text = "gold", "gold", "onGold"
     elseif chosen then
         fill, line, text = "needFill", "gold", "gold"
     elseif b.kind == "tab" then
@@ -825,17 +857,27 @@ function Style.Tabs(parent, items, onPick, width, small)
         local x = 3
         local each = width and math.floor((width - 6 - (#self.buttons - 1) * 2) / #self.buttons)
         for _, b in ipairs(self.buttons) do
-            local inner = Style.Wide(b.label, #b.words * (small and 7 or 8))
-            if b.n then inner = inner + 6 + b.badgeWide end
-            local wide = each or (inner + pad * 2)
-            b:SetSize(wide, high)
-            b:ClearAllPoints()
-            b:SetPoint("LEFT", x, 0)
-            b.label:ClearAllPoints()
-            b.label:SetPoint("LEFT", math.floor((wide - inner) / 2), 0)
-            x = x + wide + 2
+            b:SetShown(not b.gone)
+            if not b.gone then
+                local inner = Style.Wide(b.label, #b.words * (small and 7 or 8))
+                if b.n then inner = inner + 6 + b.badgeWide end
+                local wide = each or (inner + pad * 2)
+                b:SetSize(wide, high)
+                b:ClearAllPoints()
+                b:SetPoint("LEFT", x, 0)
+                b.label:ClearAllPoints()
+                b.label:SetPoint("LEFT", math.floor((wide - inner) / 2), 0)
+                x = x + wide + 2
+            end
         end
         self:SetWidth(x + 1)
+    end
+    -- A tab that isn't for what's shown is left out, and the rest close up.
+    function bar:Shown(key, shown)
+        local b = self.byKey[key]
+        if (b.gone or false) == (not shown) then return end
+        b.gone = not shown
+        self:Layout()
     end
     function bar:Set(key, words, n, hot)
         local b = self.byKey[key]

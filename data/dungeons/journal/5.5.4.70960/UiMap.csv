@@ -1,0 +1,537 @@
+ID,Name_lang,Type
+1,Durotar,3
+2,Burning Blade Coven,5
+3,Tiragarde Keep,5
+4,Tiragarde Keep,5
+5,Skull Rock,5
+6,Dustwind Cave,5
+7,Mulgore,3
+8,Palemane Rock,5
+9,The Venture Co. Mine,5
+10,The Barrens,3
+11,Wailing Caverns,5
+12,Kalimdor,2
+13,Eastern Kingdoms,2
+14,Arathi Highlands,3
+15,Badlands,3
+16,Uldaman,5
+17,Blasted Lands,3
+18,Tirisfal Glades,3
+19,Scarlet Monastery Entrance,5
+21,Silverpine Forest,3
+22,Western Plaguelands,3
+23,Eastern Plaguelands,3
+25,Hillsbrad Foothills,3
+26,The Hinterlands,3
+27,Dun Morogh,3
+28,Coldridge Pass,5
+29,The Grizzled Den,5
+30,New Tinkertown,5
+31,Gol'Bolar Quarry,5
+32,Searing Gorge,3
+33,Blackrock Mountain,5
+34,Blackrock Mountain,5
+35,Blackrock Mountain,5
+36,Burning Steppes,3
+37,Elwynn Forest,3
+38,Fargodeep Mine,5
+39,Fargodeep Mine,5
+40,Jasperlode Mine,5
+42,Deadwind Pass,3
+47,Duskwood,3
+48,Loch Modan,3
+49,Redridge Mountains,3
+50,Northern Stranglethorn,3
+51,Swamp of Sorrows,3
+52,Westfall,3
+53,Gold Coast Quarry,5
+54,Jangolode Mine,5
+55,The Deadmines,5
+56,Wetlands,3
+57,Teldrassil,3
+58,Shadowthread Cave,5
+59,Fel Rock,5
+60,Ban'ethil Barrow Den,5
+61,Ban'ethil Barrow Den,5
+62,Darkshore,3
+63,Ashenvale,3
+64,Thousand Needles,3
+65,Stonetalon Mountains,3
+66,Desolace,3
+67,Maraudon,5
+68,Maraudon,5
+69,Feralas,3
+70,Dustwallow Marsh,3
+71,Tanaris,3
+72,The Noxious Lair,5
+73,The Gaping Chasm,5
+74,Caverns of Time,5
+75,Caverns of Time,5
+76,Azshara,3
+77,Felwood,3
+78,Un'Goro Crater,3
+79,The Slithering Scar,5
+80,Moonglade,3
+81,Silithus,3
+82,Twilight's Run,5
+83,Winterspring,3
+84,Stormwind City,3
+85,Orgrimmar,3
+86,Orgrimmar,6
+87,Ironforge,3
+88,Thunder Bluff,3
+89,Darnassus,3
+91,Alterac Valley,3
+92,Warsong Gulch,3
+93,Arathi Basin,3
+94,Eversong Woods,3
+95,Ghostlands,3
+96,Amani Catacombs,5
+97,Azuremyst Isle,3
+98,Tides' Hollow,5
+99,Stillpine Hold,5
+100,Hellfire Peninsula,3
+102,Zangarmarsh,3
+103,The Exodar,3
+104,Shadowmoon Valley,3
+105,Blade's Edge Mountains,3
+106,Bloodmyst Isle,3
+107,Nagrand,3
+108,Terokkar Forest,3
+109,Netherstorm,3
+110,Silvermoon City,3
+111,Shattrath City,3
+112,Eye of the Storm,3
+113,Northrend,2
+114,Borean Tundra,3
+115,Dragonblight,3
+116,Grizzly Hills,3
+117,Howling Fjord,3
+118,Icecrown,3
+119,Sholazar Basin,3
+120,The Storm Peaks,3
+121,Zul'Drak,3
+122,Isle of Quel'Danas,3
+123,Wintergrasp,3
+124,Plaguelands: The Scarlet Enclave,6
+125,Dalaran,4
+126,Dalaran,4
+127,Crystalsong Forest,3
+128,Strand of the Ancients,6
+129,The Nexus,4
+130,The Culling of Stratholme,4
+131,The Culling of Stratholme,4
+132,Ahn'kahet: The Old Kingdom,4
+133,Utgarde Keep,4
+134,Utgarde Keep,4
+135,Utgarde Keep,4
+136,Utgarde Pinnacle,4
+137,Utgarde Pinnacle,4
+138,Halls of Lightning,4
+139,Halls of Lightning,4
+140,Halls of Stone,4
+141,The Eye of Eternity,4
+142,The Oculus,6
+143,The Oculus,4
+144,The Oculus,4
+145,The Oculus,4
+146,The Oculus,4
+147,Ulduar,4
+148,Ulduar,4
+149,Ulduar,4
+150,Ulduar,4
+151,Ulduar,4
+152,Ulduar,4
+153,Gundrak,6
+154,Gundrak,4
+155,The Obsidian Sanctum,6
+156,Vault of Archavon,4
+157,Azjol-Nerub,4
+158,Azjol-Nerub,4
+159,Azjol-Nerub,4
+160,Drak'Tharon Keep,4
+161,Drak'Tharon Keep,4
+162,Naxxramas,4
+163,Naxxramas,4
+164,Naxxramas,4
+165,Naxxramas,4
+166,Naxxramas,4
+167,Naxxramas,4
+168,The Violet Hold,4
+169,Isle of Conquest,6
+170,Hrothgar's Landing,3
+171,Trial of the Champion,4
+172,Trial of the Crusader,4
+173,Trial of the Crusader,4
+174,The Lost Isles,3
+175,Kaja'mite Cavern,5
+176,Volcanoth's Lair,5
+177,Gallywix Labor Mine,5
+178,Gallywix Labor Mine,5
+179,Gilneas,6
+180,Emberstone Mine,5
+181,Greymane Manor,5
+182,Greymane Manor,5
+183,The Forge of Souls,4
+184,Pit of Saron,6
+185,Halls of Reflection,4
+186,Icecrown Citadel,4
+187,Icecrown Citadel,4
+188,Icecrown Citadel,4
+189,Icecrown Citadel,4
+190,Icecrown Citadel,4
+191,Icecrown Citadel,4
+192,Icecrown Citadel,4
+193,Icecrown Citadel,4
+194,Kezan,3
+195,Kaja'mine,5
+196,Kaja'mine,5
+197,Kaja'mine,5
+198,Mount Hyjal,3
+199,Southern Barrens,3
+200,The Ruby Sanctum,6
+201,Kelp'thar Forest,3
+202,Gilneas City,3
+203,Vashj'ir,3
+204,Abyssal Depths,3
+205,Shimmering Expanse,3
+206,Twin Peaks,6
+207,Deepholm,3
+210,The Cape of Stranglethorn,3
+213,Ragefire Chasm,4
+217,Ruins of Gilneas,3
+218,Ruins of Gilneas City,6
+219,Zul'Farrak,6
+220,The Temple of Atal'Hakkar,4
+221,Blackfathom Deeps,4
+222,Blackfathom Deeps,4
+223,Blackfathom Deeps,4
+224,Stranglethorn Vale,3
+225,The Stockade,4
+226,Gnomeregan,4
+227,Gnomeregan,4
+228,Gnomeregan,4
+229,Gnomeregan,4
+230,Uldaman,4
+231,Uldaman,4
+232,Molten Core,4
+233,Zul'Gurub,6
+234,Dire Maul,6
+235,Dire Maul,4
+236,Dire Maul,4
+237,Dire Maul,4
+238,Dire Maul,4
+239,Dire Maul,4
+240,Dire Maul,4
+241,Twilight Highlands,3
+242,Blackrock Depths,4
+243,Blackrock Depths,4
+244,Tol Barad,3
+245,Tol Barad Peninsula,3
+246,The Shattered Halls,4
+247,Ruins of Ahn'Qiraj,6
+248,Onyxia's Lair,4
+249,Uldum,3
+250,Blackrock Spire,4
+251,Blackrock Spire,4
+252,Blackrock Spire,4
+253,Blackrock Spire,4
+254,Blackrock Spire,4
+255,Blackrock Spire,4
+256,Auchenai Crypts,4
+257,Auchenai Crypts,4
+258,Sethekk Halls,4
+259,Sethekk Halls,4
+260,Shadow Labyrinth,4
+261,The Blood Furnace,4
+262,The Underbog,4
+263,The Steamvault,4
+264,The Steamvault,4
+265,The Slave Pens,4
+266,The Botanica,4
+267,The Mechanar,4
+268,The Mechanar,4
+269,The Arcatraz,4
+270,The Arcatraz,4
+271,The Arcatraz,4
+272,Mana-Tombs,4
+273,The Black Morass,6
+274,Old Hillsbrad Foothills,6
+275,The Battle for Gilneas,6
+276,The Maelstrom,3
+277,Lost City of the Tol'vir,6
+279,Wailing Caverns,4
+280,Maraudon,4
+281,Maraudon,4
+282,Baradin Hold,4
+283,Blackrock Caverns,4
+284,Blackrock Caverns,4
+285,Blackwing Descent,4
+286,Blackwing Descent,4
+287,Blackwing Lair,4
+288,Blackwing Lair,4
+289,Blackwing Lair,4
+290,Blackwing Lair,4
+291,The Deadmines,4
+292,The Deadmines,4
+293,Grim Batol,4
+294,The Bastion of Twilight,4
+295,The Bastion of Twilight,4
+296,The Bastion of Twilight,4
+297,Halls of Origination,4
+298,Halls of Origination,4
+299,Halls of Origination,4
+300,Razorfen Downs,4
+301,Razorfen Kraul,4
+302,Scarlet Monastery,4
+303,Scarlet Monastery,4
+304,Scarlet Monastery,4
+305,Scarlet Monastery,4
+306,ScholomanceOLD,4
+307,ScholomanceOLD,4
+308,ScholomanceOLD,4
+309,ScholomanceOLD,4
+310,Shadowfang Keep,4
+311,Shadowfang Keep,4
+312,Shadowfang Keep,4
+313,Shadowfang Keep,4
+314,Shadowfang Keep,4
+315,Shadowfang Keep,4
+316,Shadowfang Keep,4
+317,Stratholme,4
+318,Stratholme,4
+319,Ahn'Qiraj,4
+320,Ahn'Qiraj,4
+321,Ahn'Qiraj,4
+322,Throne of the Tides,4
+323,Throne of the Tides,4
+324,The Stonecore,4
+325,The Vortex Pinnacle,4
+327,Ahn'Qiraj: The Fallen Kingdom,6
+328,Throne of the Four Winds,4
+329,Hyjal Summit,6
+330,Gruul's Lair,4
+331,Magtheridon's Lair,4
+332,Serpentshrine Cavern,4
+333,Zul'Aman,6
+334,Tempest Keep,4
+335,Sunwell Plateau,4
+336,Sunwell Plateau,4
+337,Zul'Gurub,6
+338,Molten Front,6
+339,Black Temple,4
+340,Black Temple,4
+341,Black Temple,4
+342,Black Temple,4
+343,Black Temple,4
+344,Black Temple,4
+345,Black Temple,4
+346,Black Temple,4
+347,Hellfire Ramparts,4
+348,Magisters' Terrace,4
+349,Magisters' Terrace,4
+350,Karazhan,4
+351,Karazhan,4
+352,Karazhan,4
+353,Karazhan,4
+354,Karazhan,4
+355,Karazhan,4
+356,Karazhan,4
+357,Karazhan,4
+358,Karazhan,4
+359,Karazhan,4
+360,Karazhan,4
+361,Karazhan,4
+362,Karazhan,4
+363,Karazhan,4
+364,Karazhan,4
+365,Karazhan,4
+366,Karazhan,4
+367,Firelands,4
+368,Firelands,4
+369,Firelands,4
+370,The Nexus,4
+371,The Jade Forest,3
+372,Greenstone Quarry,5
+373,Greenstone Quarry,5
+374,The Widow's Wail,5
+375,Oona Kagu,5
+376,Valley of the Four Winds,3
+377,Cavern of Endless Echoes,5
+378,The Wandering Isle,6
+379,Kun-Lai Summit,3
+380,Howlingwind Cavern,5
+381,Pranksters' Hollow,5
+382,Knucklethump Hole,5
+383,The Deeper,5
+384,The Deeper,5
+385,Tomb of Conquerors,5
+386,Ruins of Korune,5
+387,Ruins of Korune,5
+388,Townlong Steppes,3
+389,Niuzao Temple,5
+390,Vale of Eternal Blossoms,3
+391,Shrine of Two Moons,5
+392,Shrine of Two Moons,5
+393,Shrine of Seven Stars,5
+394,Shrine of Seven Stars,5
+395,Guo-Lai Halls,5
+396,Guo-Lai Halls,5
+397,Eye of the Storm,6
+398,Well of Eternity,6
+399,Hour of Twilight,4
+400,Hour of Twilight,4
+401,End Time,4
+402,End Time,4
+403,End Time,4
+404,End Time,4
+405,End Time,4
+406,End Time,4
+407,Darkmoon Island,6
+409,Dragon Soul,4
+410,Dragon Soul,4
+411,Dragon Soul,4
+412,Dragon Soul,4
+413,Dragon Soul,4
+414,Dragon Soul,4
+415,Dragon Soul,4
+416,Dustwallow Marsh,6
+417,Temple of Kotmogu,6
+418,Krasarang Wilds,3
+419,Ruins of Ogudei,5
+420,Ruins of Ogudei,5
+421,Ruins of Ogudei,5
+422,Dread Wastes,3
+423,Silvershard Mines,4
+424,Pandaria,2
+425,Northshire,3
+426,Echo Ridge Mine,5
+427,Coldridge Valley,6
+428,Frostmane Hovel,5
+429,Temple of the Jade Serpent,4
+430,Temple of the Jade Serpent,4
+431,Scarlet Halls,4
+432,Scarlet Halls,4
+433,The Veiled Stair,3
+434,The Ancient Passage,5
+435,Scarlet Monastery,4
+436,Scarlet Monastery,4
+437,Gate of the Setting Sun,4
+438,Gate of the Setting Sun,4
+439,Stormstout Brewery,4
+440,Stormstout Brewery,4
+441,Stormstout Brewery,4
+442,Stormstout Brewery,4
+443,Shado-Pan Monastery,4
+444,Shado-Pan Monastery,4
+445,Shado-Pan Monastery,4
+446,Shado-Pan Monastery,4
+447,A Brewing Storm,6
+448,The Jade Forest,6
+449,Temple of Kotmogu,6
+450,Unga Ingoo,6
+451,Assault on Zan'vess,6
+452,Brewmoon Festival,6
+453,Mogu'shan Palace,4
+454,Mogu'shan Palace,4
+455,Mogu'shan Palace,4
+456,Terrace of Endless Spring,6
+457,Siege of Niuzao Temple,4
+458,Siege of Niuzao Temple,4
+459,Siege of Niuzao Temple,4
+460,Shadowglen,3
+461,Valley of Trials,3
+462,Camp Narache,3
+463,Echo Isles,3
+464,Spitescale Cavern,5
+465,Deathknell,3
+466,Night Web's Hollow,5
+467,Sunstrider Isle,3
+468,Ammen Vale,3
+469,New Tinkertown,3
+470,Frostmane Hold,5
+471,Mogu'shan Vaults,4
+472,Mogu'shan Vaults,4
+473,Mogu'shan Vaults,4
+474,Heart of Fear,4
+475,Heart of Fear,4
+476,Scholomance,4
+477,Scholomance,4
+478,Scholomance,4
+479,Scholomance,4
+480,Proving Grounds,4
+481,Crypt of Forgotten Kings,4
+482,Crypt of Forgotten Kings,4
+483,Dustwallow Marsh,6
+486,Krasarang Wilds,6
+487,A Little Patience,6
+488,Dagger in the Dark,6
+489,Dagger in the Dark,4
+490,Black Temple,4
+491,Black Temple,4
+492,Black Temple,4
+493,Black Temple,4
+494,Black Temple,4
+495,Black Temple,4
+496,Black Temple,4
+497,Black Temple,4
+498,Krasarang Wilds,6
+499,Deeprun Tram,4
+500,Deeprun Tram,4
+501,Dalaran,4
+502,Dalaran,4
+503,Brawl'gar Arena,4
+504,Isle of Thunder,3
+505,Lightning Vein Mine,5
+506,The Swollen Vault,5
+507,Isle of Giants,3
+508,Throne of Thunder,4
+509,Throne of Thunder,4
+510,Throne of Thunder,4
+511,Throne of Thunder,4
+512,Throne of Thunder,4
+513,Throne of Thunder,4
+514,Throne of Thunder,4
+515,Throne of Thunder,4
+516,Isle of Thunder,6
+517,Lightning Vein Mine,5
+518,Thunder King's Citadel,4
+519,Deepwind Gorge,6
+520,Vale of Eternal Blossoms,6
+521,Vale of Eternal Blossoms,4
+522,The Secrets of Ragefire,4
+523,Dun Morogh,6
+524,Battle on the High Seas,6
+554,Timeless Isle,3
+555,Cavern of Lost Spirits,5
+556,Siege of Orgrimmar,4
+557,Siege of Orgrimmar,4
+558,Siege of Orgrimmar,4
+559,Siege of Orgrimmar,4
+560,Siege of Orgrimmar,4
+561,Siege of Orgrimmar,4
+562,Siege of Orgrimmar,4
+563,Siege of Orgrimmar,4
+564,Siege of Orgrimmar,4
+565,Siege of Orgrimmar,4
+566,Siege of Orgrimmar,4
+567,Siege of Orgrimmar,4
+568,Siege of Orgrimmar,4
+569,Siege of Orgrimmar,4
+570,Siege of Orgrimmar,4
+571,Celestial Tournament,6
+946,Cosmic,0
+947,Azeroth,1
+948,The Maelstrom,2
+987,Outland,2
+988,Northrend,2
+998,Undercity,3
+1375,Halls of Stone,4
+1463,Eastern Kingdoms,2
+1464,Kalimdor,2
+1467,Outland,2
+1554,Serpentshrine Cavern,4
+1555,Tempest Keep,4
+2104,Wintergrasp,3
+2340,Tol Barad,3
+2473,Pandaria,2

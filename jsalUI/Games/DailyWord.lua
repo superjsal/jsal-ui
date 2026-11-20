@@ -116,15 +116,15 @@ function DailyWord.Result()
 end
 
 function DailyWord.Status()
-    if not DailyWord.running then return "Turned off in Settings" end
+    if not DailyWord.running then return "Off in Settings" end
     local game = Game()
     if game.finished then
-        return game.won and ("Solved in " .. #game.guesses) or "Missed it. New word after the daily reset."
+        return game.won and ("Solved in " .. #game.guesses) or "Missed it"
     end
     if #game.guesses > 0 then
-        return ("In progress: %d of %d tries used"):format(#game.guesses, TRIES)
+        return ("%d of %d tries used"):format(#game.guesses, TRIES)
     end
-    return ("#%d is ready"):format(game.day)
+    return "Ready to play"
 end
 
 -- The average number of tries over every game solved, and how many games
@@ -198,27 +198,41 @@ local function Finish(game, won)
     ns.Window.Refresh()
 end
 
--- The share line uses raid markers in the tiles' colours: the green triangle,
--- the yellow star, and a cross for a miss.
-local MARKS = { right = "{rt4}", near = "{rt1}", miss = "{rt7}" }
-
--- A chat line holds 255 bytes, and each marker is five. A long Guild Word's grid alone can come
--- to 245 (six rows of eight), so when the score and the grid don't fit one line together, the
--- score goes on one and the grid on the next. Sent as one, it was too long to go at all.
-local CHAT_MAX = 255
-local function ShareLines(game, answer, title)
-    local rows = {}
-    for i, guess in ipairs(game.guesses) do
-        local scored, row = Score(guess, answer), {}
-        for c = 1, #answer do row[c] = MARKS[scored[c]] end
-        rows[i] = table.concat(row)
-    end
-    local head = ("%s %s/6"):format(title, game.won and #game.guesses or "X")
-    local grid = table.concat(rows, " ")
-    if #head + 1 + #grid <= CHAT_MAX then return { head .. " " .. grid } end
-    return { head, grid }
+-- What's shared to guild chat: the score alone, one line ("Daily Word 3/6"). The grid of
+-- marks is hard to read as one line and a lot of chat as several; a guildmate's grid shows
+-- on the Games page instead, from Marks below.
+local function ShareLines(game)
+    return { ("%s %s/6"):format(game.guild and "Guild Word" or "Daily Word", game.won and #game.guesses or "X") }
 end
 DailyWord.ShareLines = ShareLines
+
+-- A finished game's grid without its letters, for guildmates: a row a guess, each tile
+-- r (right), n (near) or x (miss), the rows joined by dots ("xnxxr.rnxrr.rrrrr").
+local TILE = { right = "r", near = "n", miss = "x" }
+local function Marks(game, answer)
+    if type(game) ~= "table" or not game.finished or not answer then return "" end
+    local rows = {}
+    for i, guess in ipairs(game.guesses or {}) do
+        local scored, row = Score(guess, answer), {}
+        for c = 1, #answer do row[c] = TILE[scored[c]] or "x" end
+        rows[i] = table.concat(row)
+    end
+    return table.concat(rows, ".")
+end
+
+-- Today's Daily Word grid, once it's finished.
+function DailyWord.Marks()
+    local game = ns.db.word
+    if type(game) ~= "table" or game.day ~= Games.Today() then return "" end
+    return Marks(game, Answer(game.day))
+end
+
+-- A Guild Word's grid, once this account has finished it. word: { id, answer }.
+function DailyWord.GuildMarks(word)
+    local game = ns.db.guildGame
+    if not (word and type(game) == "table" and game.guild == word.id) then return "" end
+    return Marks(game, word.answer)
+end
 
 -- The window plays either today's Daily Word or the guild's Guild Word: the
 -- game in play, its answer, and its title.
@@ -234,7 +248,7 @@ local function Current()
         return game, guildWord.answer, "Guild Word · set by " .. guildWord.setter
     end
     local game = Game()
-    return game, Answer(game.day), "Daily Word #" .. game.day
+    return game, Answer(game.day), "Today's word"
 end
 
 DailyWord.IsWord = function(word)
@@ -327,7 +341,7 @@ local function Paint()
     keyboard:SetShown(not game.finished)
     result:SetShown(game.finished)
     if game.finished then
-        recordText:SetText(game.guild and "Your score is on the Guild tab, next to your guildmates'." or "")
+        recordText:SetText(game.guild and "Your score is on the Games page, next to your guildmates'." or "")
         -- Your record: a number over a word each, centred under the board.
         local numbers = not game.guild and DailyWord.Numbers() or {}
         local cellW = (WIDTH - 32) / 5
@@ -471,7 +485,7 @@ local function Build()
     shareButton:SetPoint("TOPRIGHT", result, "TOP", -4, -50)
     shareButton:SetScript("OnClick", function()
         if not IsInGuild() then return Say("Join a guild to share.") end
-        for _, line in ipairs(ShareLines(Current())) do Compat.SendChat(line, "GUILD") end
+        for _, line in ipairs(ShareLines((Current()))) do Compat.SendChat(line, "GUILD") end
         shareButton:SetEnabled(false)
     end)
     local icons = Style.Button(result, "Play Icon Guess", "plain", 150)

@@ -16,6 +16,8 @@ local C = { views = {}, ask = { have = true } }
 ns.GuildCrafts = C
 
 local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 88, 40, 26, 52, 76
+-- One guildmate's recipes: a line each, two across.
+local RECIPE_ROW, RECIPE_GAP = 44, 28
 -- An order is a card this tall, in a row with a gap under it; what's in it
 -- starts this far from its sides.
 local ORDER_H, ORDER_PAD = 80, 14
@@ -25,8 +27,8 @@ local TRACK_W, MORE_W = 140, 64
 -- The least room who makes it has in the asking card's foot.
 local MAKERS_W = 250
 local TOP, FOOT = 116, 30
--- The asking card's height.
-local ASK_H = 160
+-- The asking card's height: with a line for what you're asking for, between the note and the foot.
+local ASK_H = 192
 local ENCHANTING = 333
 -- A state's colour. "todo" is an order you accepted and "got" one of yours
 -- that was sent to you: the two things that wait on you. "sent" is one you
@@ -231,30 +233,31 @@ local function Pill(parent)
     return p
 end
 
--- A material: a thin box with "16 Medium Leather" in it. Pointed at, it shows the game's own
--- tooltip for the item, with whatever the game and other addons add to one: its vendor and
--- auction prices among them.
+-- A material: a thin pill with "16 Medium Leather" in it, round all the way as the tags beside
+-- it are (John, 19 Nov 2026, of square boxes beside the round "YOU NEED THE MATERIALS": "A, a
+-- pill"). Pointed at, it shows the game's own tooltip for the item, with whatever the game and
+-- other addons add to one: its vendor and auction prices among them.
 local function Chip(parent)
     local c = CreateFrame("Frame", nil, parent)
     c:SetHeight(20)
-    c.edges = Style.Border(c, "cardLine")
+    c.box = Style.PillBox(c, "well", "cardLine")
     c.text = Style.Text(c, 11, "secondary")
     c.text:SetPoint("CENTER")
     function c:Set(label, item)
         self.item = item
         self.text:SetText(label)
-        self:SetWidth(TextWidth(self.text, #label * 6) + 14)
+        self:SetWidth(TextWidth(self.text, #label * 6) + 18)
     end
     c:EnableMouse(true)
     c:SetScript("OnEnter", function(self)
         if not self.item then return end
-        Style.SetBorder(self.edges, "lineStrong")
+        self.box:Paint(nil, "lineStrong")
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetItemByID(self.item)
         GameTooltip:Show()
     end)
     c:SetScript("OnLeave", function(self)
-        Style.SetBorder(self.edges, "cardLine")
+        self.box:Paint(nil, "cardLine")
         GameTooltip:Hide()
     end)
     return c
@@ -369,6 +372,14 @@ local function MakeHead(parent, width)
     -- The same words as far as the number, to find where the pill ends.
     h.twin = Style.Text(h, 11, "text", nil, true)
     h.twin:Hide()
+    -- A quiet note at the line's right edge, with a mark before it: whether
+    -- the guildmate a heading names is on.
+    h.note = Style.Text(h, 12, "muted")
+    h.note:SetPoint("RIGHT")
+    h.note:SetJustifyH("RIGHT")
+    h.dot = Style.Dot(h, 9)
+    h.dot:SetPoint("RIGHT", h.note, "LEFT", -6, 0)
+    h.dot:Hide()
     return h
 end
 
@@ -392,14 +403,18 @@ local function Head(list, state, title, n, say)
     HeadState(h, state, title, n)
     h.text:SetText(Style.Tint(state and STATE[state] or "gold") .. title .. "|r   " .. Style.Tint("text") .. n .. "|r"
         .. (say and ("     " .. Style.Tint("muted") .. say .. "|r") or ""))
+    h.note:SetText("")
+    h.dot:Hide()
     return h
 end
 
-local function ShowTip(self)
+-- An order's tooltip, for the row `self`, shown from `owner`: the part of
+-- the row that's pointed at.
+local function ShowTip(self, owner)
     local order = self.order
     local recipe = order and ns.Orders.Recipe(order.spell)
     if not recipe then return end
-    GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+    GameTooltip:SetOwner(owner or self, "ANCHOR_CURSOR")
     if recipe.item then GameTooltip:SetItemByID(recipe.item) else GameTooltip:SetSpellByID(order.spell) end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine(order.have and (order.by .. " has the materials:") or (order.by .. " needs the materials too:"), 0.89, 0.69, 0.29)
@@ -418,6 +433,25 @@ local function ShowTip(self)
     end
     if order.note then GameTooltip:AddLine("“" .. order.note .. "”", 0.77, 0.75, 0.69, true) end
     GameTooltip:Show()
+end
+
+-- The part of a row its tooltip belongs to: its picture and its name. Over
+-- the whole row a tooltip covers what the pointer is on its way to. The
+-- row sets its width once it knows how long the name is written.
+local function Hot(r, enter)
+    local hot = CreateFrame("Frame", nil, r)
+    hot:EnableMouse(true)
+    hot:SetScript("OnEnter", enter)
+    hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r.hot = hot
+    return hot
+end
+local function OrderHot(r)
+    return Hot(r, function(self) ShowTip(r, self) end)
+end
+-- As wide as from the row's left to the end of `text` as it's written.
+local function HotTo(r, from, text)
+    r.hot:SetWidth(from + math.min(text:GetStringWidth() or 0, text:GetWidth()))
 end
 
 local function MakeOrder(parent, width)
@@ -447,9 +481,8 @@ local function MakeOrder(parent, width)
     r.lesser = Quiet(r)
     r.track = Track(r)
     r.track:SetPoint("BOTTOMRIGHT", -ORDER_PAD, 11)
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("TOPLEFT", ORDER_PAD, -8)
+    r.hot:SetHeight(46)
     return r
 end
 
@@ -460,13 +493,20 @@ local function Do(action, id)
     C.Repaint()
 end
 
--- The crafter's button on an order they accepted: Mark sent for an item
--- (done once whoever asked marks it received), Mark done for an enchant
--- (given in a trade).
+-- The crafter's button on an order they accepted: Mark done for an enchant
+-- (given in a trade). None for an item: a letter or a trade with whoever
+-- asked marks it sent by itself (OrderMail.lua), and the row says so.
 local function Finish(order)
     local id, O = order.id, ns.Orders
-    if O.MakesItem(order) then return { "Mark sent", function() Do(O.Sent, id) end } end
+    if O.MakesItem(order) then return nil end
     return { "Mark done", function() Do(O.Done, id) end }
+end
+
+-- What a row you accepted says about sending it, for an item.
+local function HowSent(order, roster)
+    if not ns.Orders.MakesItem(order) then return "" end
+    return DOT .. Style.Tint("gold") .. "mail it, or trade it to " .. Who(order.by, roster) .. Style.Tint("gold")
+        .. ": it's marked sent then|r"
 end
 
 -- Whether what an order makes is in your bags (some of it, at least).
@@ -476,9 +516,9 @@ local function InBags(order)
 end
 C.InBags = InBags
 
--- "mailed 2 min ago", or "sent 2 min ago" for one handed over.
+-- "mailed 2 min ago", or "handed over in a trade 2 min ago".
 local function SentWhen(order)
-    return (order.s == "m" and "mailed " or "sent ") .. Ago(order.e)
+    return (order.s == "m" and "mailed " or "handed over in a trade ") .. Ago(order.e)
 end
 
 -- Fills a row: `state` is its colour, `second` its line under the name,
@@ -488,6 +528,7 @@ local function FillOrder(r, order, state, second, mine, buttons)
     r.edge:Paint(STATE[state])
     r.icon:SetTexture(Icon(order))
     r.l1:SetText(Title(order))
+    HotTo(r, 70 - ORDER_PAD, r.l1)
     r.l2:SetText(second)
     if order.have then
         r.pill:Set(mine and "YOU HAVE THE MATERIALS" or "HAS THE MATERIALS", "good")
@@ -571,15 +612,15 @@ local function MakeDone(parent, width)
     r.action = Quiet(r)
     r.action:SetPoint("RIGHT", -84, 0)
     Style.Rule(r, "BOTTOM", "line")
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("LEFT", 24, 0)
+    r.hot:SetHeight(DONE_ROW)
     return r
 end
 
 -- A finished order: one grey line with a tick. Or, with `state`
 -- "unconfirmed", one never marked received, with a dash and maybe `action`
 -- = { label, fn }.
+local doneAsked = {}   -- done orders whose item name was asked for again
 local function Done(list, order, words, name, state, action)
     local r = Take(list, "done", MakeDone, DONE_ROW)
     r.order = order
@@ -591,8 +632,20 @@ local function Done(list, order, words, name, state, action)
     end
     r.icon:SetTexture(Icon(order))
     local recipe = ns.Orders.Recipe(order.spell)
-    r.text:SetText((ns.Orders.Name(order) or "...") .. ((recipe and recipe.item) and ("   ×" .. (order.n or 1)) or "")
+    -- An item's name the game hasn't loaded yet: the recipe's own name meanwhile, and the
+    -- list drawn again once a second later, when it may have it, so it never stays "...".
+    local called = ns.Orders.Name(order)
+    if not called then
+        called = (Compat.SpellInfo(order.spell))
+        local key = order.id or order.spell
+        if key and not doneAsked[key] then
+            doneAsked[key] = true
+            Compat.After(1, function() if r:IsVisible() then C.Repaint() end end)
+        end
+    end
+    r.text:SetText((called or "...") .. ((recipe and recipe.item) and ("   ×" .. (order.n or 1)) or "")
         .. (name and ("     " .. words .. " " .. name) or ""))
+    HotTo(r, 40, r.text)
     r.when:SetText(Ago(order.e))
 end
 
@@ -672,6 +725,7 @@ local function PaintForYou()
             local where = roster[o.by] and roster[o.by].online and (roster[o.by].zone or "online") or "offline"
             local second = "for " .. Who(o.by, roster) .. DOT .. where .. DOT .. "you accepted it " .. Ago(o.e) .. CostNote(o)
                 .. (InBags(o) and (DOT .. Style.Tint("green") .. "made, in your bags|r") or "")
+                .. HowSent(o, roster)
                 .. (o.note and ("   “" .. o.note .. "”") or "")
             local id, by = o.id, o.by
             waiting = FillOrder(Take(list, "order", MakeOrder, ROW), o, "todo", second, false, {
@@ -716,7 +770,7 @@ local function PaintForYou()
     end
     Close(list)
     C.foot:SetText((me.other > 0 and ("%d more open %s for a profession you don't have. "):format(me.other, Plural(me.other, "order is", "orders are")) or "")
-        .. "Mail an order from any mailbox and it's marked sent for you. Enchants are done in a trade: whisper to arrange where to meet.")
+        .. "Mail an order, or hand it over in a trade, and it's marked sent for you. Enchants are done in a trade: whisper to arrange where to meet.")
     C.Later(waiting)
 end
 
@@ -734,12 +788,22 @@ local function Names()
         if type(line) == "number" and type(source) == "table" and type(source.recipes) == "table" and not SKIP[line] then
             for _, recipe in ipairs(ns.Professions.Recipes(line) or {}) do
                 local name = Compat.SpellInfo(recipe.spell)
-                if name then list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line } end
+                if name then
+                    list[#list + 1] = { spell = recipe.spell, name = name, lower = name:lower(), line = line, learn = recipe.learn,
+                                        reagents = recipe.reagents }
+                end
             end
         end
     end
+    -- Two recipes can share a name (Forever's own Enchant Bracer - Agility, taking Vision Dust,
+    -- beside the old one taking Nexus Crystals): those come lowest skill first, and each says what
+    -- it takes (`twin`, see Takes), or the list showed one name twice with nothing to tell them apart.
+    local seen = {}
+    for _, entry in ipairs(list) do seen[entry.lower] = (seen[entry.lower] or 0) + 1 end
+    for _, entry in ipairs(list) do entry.twin = seen[entry.lower] > 1 end
     table.sort(list, function(a, b)
         if a.lower ~= b.lower then return a.lower < b.lower end
+        if (a.learn or 0) ~= (b.learn or 0) then return (a.learn or 0) < (b.learn or 0) end
         return a.spell < b.spell
     end)
     if #list > 0 then C.names = list end
@@ -821,9 +885,53 @@ function C.Pick(spell)
     end
 end
 
+-- The line for what you're asking for: an item's picture and its name in its colour; an
+-- enchant's picture, its name, and what it does in the game's own words. A description the
+-- game hasn't loaded yet is asked for, and looked at again a second later, once a spell.
+local askedAgain = {}
+local function PaintItem(card, a, enchant)
+    local line = card.item
+    line:Show()
+    line.icon:SetShown(a.spell ~= nil)
+    -- With nothing picked the line says what it's for, rather than leaving a gap in the card.
+    if not a.spell then
+        line.name:SetText("")
+        line.text:SetText("What you pick shows here: its picture and name, and for an enchant what it gives.")
+        line.hot:SetWidth(1)
+        line.text:ClearAllPoints()
+        line.text:SetPoint("LEFT", 0, 0)
+        line.text:SetPoint("RIGHT", 0, 0)
+        return
+    end
+    line.text:ClearAllPoints()
+    line.text:SetPoint("LEFT", line.name, "RIGHT", 14, 0)
+    line.text:SetPoint("RIGHT", 0, 0)
+    local recipe = ns.Orders.Recipe(a.spell)
+    if recipe and recipe.item and not enchant then
+        line.icon:SetTexture(Compat.ItemIcon(recipe.item))
+        line.name:SetText(ItemTint(recipe.item) .. (Compat.ItemName(recipe.item) or "...") .. "|r")
+        line.text:SetText("")
+    else
+        local name, icon = Compat.SpellInfo(a.spell)
+        line.icon:SetTexture(icon)
+        line.name:SetText(Style.Tint("gold") .. (name or "...") .. "|r")
+        local describe = (C_Spell and C_Spell.GetSpellDescription) or GetSpellDescription
+        local says = describe and Compat.Plain(describe(a.spell)) or ""
+        if (says or "") == "" and not askedAgain[a.spell] then
+            askedAgain[a.spell] = true
+            if C_Spell and C_Spell.RequestLoadSpellData then C_Spell.RequestLoadSpellData(a.spell) end
+            Compat.After(1, function() if card:IsVisible() then C.Repaint() end end)
+        end
+        line.text:SetText(says or "")
+    end
+    line.hot:SetWidth(34 + (line.name:GetStringWidth() or 0))
+    line:Show()
+end
+
 local function PaintAsk()
     local card, a = C.card, C.ask
     local enchant = a.spell ~= nil and IsEnchant(a.spell)
+    PaintItem(card, a, enchant)
     card.countLabel:SetText(enchant and "ON" or "HOW MANY")
     card.count.well:SetShown(not enchant)
     card.on:SetShown(enchant)
@@ -865,13 +973,24 @@ local function PaintAsk()
     -- From the right: the shopping list's words, then the materials after "Takes". Who makes
     -- it keeps MAKERS_W at the left; the materials have the rest, as many as fit, and the
     -- others are counted ("+2 more").
+    local unnamed = false
     for i, m in ipairs(materials) do
         local chip = card.chips[i]
         if not chip then
             chip = Chip(card.strip)
             card.chips[i] = chip
         end
-        chip:Set(m.count .. " " .. (Compat.ItemName(m.item) or "..."), m.item)
+        local name = Compat.ItemName(m.item)
+        if not name then unnamed = true end
+        chip:Set(m.count .. " " .. (name or "..."), m.item)
+    end
+    -- A name the game hasn't loaded yet reads "..." (and its chip is cut to that): look again a
+    -- second later, five times at most for one pick. It stayed "..." until something else
+    -- repainted the card, so a second thing looked up showed its materials cut off.
+    if a.spell ~= C.askTriesFor then C.askTriesFor, C.askTries = a.spell, 0 end
+    if unnamed and (C.askTries or 0) < 5 then
+        C.askTries = (C.askTries or 0) + 1
+        Compat.After(1, function() if C.ask.spell == a.spell and card:IsVisible() then PaintAsk() end end)
     end
     local strip = C.width - 2
     local room = strip - 16 - MAKERS_W - 16 - (TextWidth(card.takes, 30) + 8) - (card.list:GetWidth() + 14) - 16
@@ -907,6 +1026,20 @@ local function PaintAsk()
     card.makers:SetWidth(math.max(MAKERS_W, strip - 16 - 16 - taken - (card.list:GetWidth() + 14) - 16))
 end
 
+-- What a recipe that shares its name takes, its first two materials ("takes 1 Vision Dust"), to
+-- tell it from the other: both Enchant Bracer - Agility recipes are learned at 190, so the skill
+-- alone didn't. Nothing while a material's name isn't loaded yet.
+local function Takes(entry)
+    local parts = {}
+    for i = 1, math.min(2, #(entry.reagents or {})) do
+        local r = entry.reagents[i]
+        local name = Compat.ItemName(r.item)
+        if not name then return nil end
+        parts[#parts + 1] = r.count .. " " .. name
+    end
+    return #parts > 0 and ("takes " .. table.concat(parts, ", ")) or nil
+end
+
 -- The names under the search box as you type.
 local function PaintDrop()
     local card = C.card
@@ -922,7 +1055,8 @@ local function PaintDrop()
         row:SetShown(entry ~= nil)
         if entry then
             row.spell = entry.spell
-            row.text:SetText(entry.name .. "   " .. Style.Tint("muted") .. (ns.Professions.Name(entry.line) or "") .. "|r")
+            row.text:SetText(entry.name .. "   " .. Style.Tint("muted") .. (ns.Professions.Name(entry.line) or "")
+                .. (entry.twin and (" · " .. (Takes(entry) or ("skill " .. (entry.learn or "?")))) or "") .. "|r")
         end
     end
 end
@@ -1038,6 +1172,40 @@ local function BuildCard(view, width)
     card.note:SetScript("OnEditFocusGained", function() PaintAsk() end)
     card.note:SetScript("OnEditFocusLost", function() PaintAsk() end)
     card.count:SetScript("OnTextChanged", function() PaintAsk() end)
+
+    -- What you're asking for: its picture, its name in its colour, and for an enchant what it
+    -- does in the game's own words, so the wrong one isn't asked for. Pointing at it shows the
+    -- game's tooltip.
+    card.item = CreateFrame("Button", nil, card)
+    card.item:SetPoint("TOPLEFT", 16, -112)
+    card.item:SetPoint("TOPRIGHT", -16, -112)
+    card.item:SetHeight(26)
+    card.item.icon = card.item:CreateTexture(nil, "ARTWORK")
+    card.item.icon:SetSize(24, 24)
+    card.item.icon:SetPoint("LEFT", 0, 0)
+    card.item.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    card.item.name = Style.Text(card.item, 14, "text", nil, true)
+    card.item.name:SetPoint("LEFT", card.item.icon, "RIGHT", 10, 0)
+    card.item.name:SetWordWrap(false)
+    card.item.text = Style.Text(card.item, 12, "muted")
+    card.item.text:SetPoint("LEFT", card.item.name, "RIGHT", 14, 0)
+    card.item.text:SetPoint("RIGHT", 0, 0)
+    card.item.text:SetJustifyH("LEFT")
+    card.item.text:SetWordWrap(false)
+    Hot(card.item, function(self)
+        local a = C.ask
+        if not a.spell then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        local recipe = ns.Orders.Recipe(a.spell)
+        if recipe and recipe.item and not IsEnchant(a.spell) then
+            GameTooltip:SetItemByID(recipe.item)
+        else
+            GameTooltip:SetSpellByID(a.spell)
+        end
+        GameTooltip:Show()
+    end):SetPoint("LEFT")
+    card.item.hot:SetHeight(26)
+    card.item:Hide()
 
     card.makers = Style.Text(card.strip, 12, "muted")
     card.makers:SetPoint("LEFT", 16, 0)
@@ -1222,19 +1390,26 @@ local function MakeFound(parent, width)
     r.who:SetPoint("TOPLEFT", 46, -28)
     r.who:SetWidth(width - 46 - 280)
     r.who:SetWordWrap(false)
-    r.order = Style.Button(r, "Order", "primary", 80)
+    r.order = Style.Button(r, "Order", "gilt", 80)
     r.order:SetPoint("RIGHT", 0, 0)
     r.whisper = Style.Button(r, "Whisper", "plain", 140)
     r.whisper:SetPoint("RIGHT", r.order, "LEFT", -8, 0)
     Style.Rule(r, "BOTTOM", "line")
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", function(self)
-        if not (self.item or self.spell) then return end
+    -- The tooltip belongs to the picture and the name, as wide as the name
+    -- is written: over the rest of the row it would cover the rows under
+    -- the pointer on its way to a button.
+    r.nameRoom = width - 46 - 280
+    r.hot = CreateFrame("Frame", nil, r)
+    r.hot:SetPoint("LEFT")
+    r.hot:SetSize(46, FOUND_ROW)
+    r.hot:EnableMouse(true)
+    r.hot:SetScript("OnEnter", function(self)
+        if not (r.item or r.spell) then return end
         GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-        if self.item then GameTooltip:SetItemByID(self.item) else GameTooltip:SetSpellByID(self.spell) end
+        if r.item then GameTooltip:SetItemByID(r.item) else GameTooltip:SetSpellByID(r.spell) end
         GameTooltip:Show()
     end)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r.hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
     return r
 end
 
@@ -1244,6 +1419,7 @@ local function Found(list, entry, roster)
     r.item, r.spell = entry.row.item, entry.row.spell
     r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(entry.row.spell)))
     r.name:SetText(ItemTint(entry.row.item) .. entry.name .. "|r")
+    r.hot:SetWidth(46 + math.min(r.name:GetStringWidth() or 0, r.nameRoom))
     local on, off = {}, {}
     for _, p in ipairs(entry.people) do
         if p.online then
@@ -1264,13 +1440,65 @@ local function Found(list, entry, roster)
     r.order:SetScript("OnClick", function() C.Ask(spell) end)
 end
 
+-- One of a guildmate's recipes, in the list of what they make: a line, two
+-- across. Who makes it is in the heading, so a row is the recipe alone.
+local function MakeRecipe(parent, width)
+    local wide = math.floor((width - RECIPE_GAP) / 2)
+    local r = CreateFrame("Frame", nil, parent)
+    r:SetSize(wide, RECIPE_ROW)
+    r.icon = r:CreateTexture(nil, "ARTWORK")
+    r.icon:SetSize(32, 32)
+    r.icon:SetPoint("LEFT", 0, 0)
+    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r.nameRoom = wide - 46 - 80 - 12
+    r.name = Style.Text(r, 14, "text", nil, true)
+    r.name:SetPoint("LEFT", 46, 0)
+    r.name:SetWidth(r.nameRoom)
+    r.name:SetWordWrap(false)
+    r.name:SetJustifyV("MIDDLE")
+    r.order = Style.Button(r, "Order", "gilt", 80)
+    r.order:SetPoint("RIGHT", 0, 0)
+    Style.Rule(r, "BOTTOM", "line")
+    -- The tooltip belongs to the picture and the name, as on a found row.
+    r.hot = CreateFrame("Frame", nil, r)
+    r.hot:SetPoint("LEFT")
+    r.hot:SetSize(46, RECIPE_ROW)
+    r.hot:EnableMouse(true)
+    r.hot:SetScript("OnEnter", function(self)
+        if not (r.item or r.spell) then return end
+        GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+        if r.item then GameTooltip:SetItemByID(r.item) else GameTooltip:SetSpellByID(r.spell) end
+        GameTooltip:Show()
+    end)
+    r.hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return r
+end
+
+local function Recipe(list, entry, column)
+    local r
+    if column == 0 then
+        r = Take(list, "recipe", MakeRecipe, RECIPE_ROW)
+    else
+        -- The second of a pair sits beside the first, on its line.
+        local y = list.y
+        r = Take(list, "recipe", MakeRecipe, 0)
+        r:ClearAllPoints()
+        r:SetPoint("TOPLEFT", r:GetWidth() + RECIPE_GAP, -(y - RECIPE_ROW))
+    end
+    local spell = entry.row.spell
+    r.item, r.spell = entry.row.item, spell
+    r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(spell)))
+    r.name:SetText(ItemTint(entry.row.item) .. entry.name .. "|r")
+    r.hot:SetWidth(46 + math.min(r.name:GetStringWidth() or 0, r.nameRoom))
+    r.order:SetScript("OnClick", function() C.Ask(spell) end)
+end
+
 local function MakePerson(parent, width)
     local card = CreateFrame("Frame", nil, parent)
     card:SetSize(math.floor((width - 14) / 2), CARD_H)
     Style.Box(card, 6, "well", "cardLine")
-    card.dot = card:CreateTexture(nil, "ARTWORK")
-    card.dot:SetSize(7, 7)
-    card.dot:SetPoint("TOPLEFT", 14, -17)
+    card.dot = Style.Dot(card, 9)
+    card.dot:SetPoint("TOPLEFT", 13, -16)
     card.name = Style.Text(card, 14, "text", nil, true)
     card.name:SetPoint("TOPLEFT", 28, -11)
     card.name:SetWordWrap(false)
@@ -1317,7 +1545,7 @@ local function Person(list, p, roster, column)
         card:ClearAllPoints()
         card:SetPoint("TOPLEFT", card:GetWidth() + 14, -(y - CARD_H - 12))
     end
-    card.dot:SetColorTexture(Style.Color(p.online and "green" or "lineStrong"))
+    card.dot:Paint(p.online and "green" or "lineStrong")
     card.name:SetText(Who(p.name, roster))
     card.where:SetText(DOT .. (p.online and (p.zone or "online") or ns.Crafters.Ago(p.seen)))
     local x, limit, left = 14, card:GetWidth() - 14, 0
@@ -1386,7 +1614,15 @@ local function PaintCrafters()
         local found
         if C.pick then
             found = Crafters.Makes(C.pick.name, C.pick.line)
-            Head(list, nil, ("%s'S %s"):format(C.pick.name:upper(), C.pick.label:upper()), #found)
+            local head = Head(list, nil, ("%s'S %s"):format(C.pick.name:upper(), C.pick.label:upper()), #found)
+            for _, p in ipairs(Crafters.Sharing()) do
+                if p.name == C.pick.name then
+                    head.dot:Paint(p.online and "green" or "lineStrong")
+                    head.dot:Show()
+                    head.note:SetText(p.online and (p.zone and ("online" .. DOT .. p.zone) or "online") or Crafters.Ago(p.seen))
+                    break
+                end
+            end
             view.back:Show()
             view.searchWell:SetWidth(view.fullW - BACK_W - 10)
             if #found == 0 then Note(list, "Nothing to list yet: the game is still loading their names.") end
@@ -1394,7 +1630,9 @@ local function PaintCrafters()
             found = Crafters.Search(text, 60)
             if #found == 0 then Note(list, "No guildmate makes anything by that name yet.") end
         end
-        for _, entry in ipairs(found) do Found(list, entry, roster) end
+        for i, entry in ipairs(found) do
+            if C.pick then Recipe(list, entry, (i - 1) % 2) else Found(list, entry, roster) end
+        end
     else
         local people = Crafters.Sharing()
         local online = 0
@@ -1409,19 +1647,24 @@ end
 ---------------------------------------------------------------------------
 -- The window.
 ---------------------------------------------------------------------------
-local TABS = { { "foryou", "For you" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
+-- The first tab is "To make": what you can make for others, not what's coming to you. Its key
+-- stays "foryou", from its old name, so a saved tab still opens.
+local TABS = { { "foryou", "To make" }, { "yours", "Your orders" }, { "crafters", "Crafters" } }
 local PAINT = { foryou = PaintForYou, yours = PaintYours, crafters = PaintCrafters }
 
 -- Marks the open tab on a bar of them, and puts their numbers on: what
--- waits on you (in gold), your own orders that aren't done yet, and the
--- guild's crafters. A number only when there's something to count.
+-- you're making for someone (in gold), your own orders that aren't done yet
+-- (in gold while one was sent to you and waits for Mark received), and the
+-- guild's crafters. A number only when there's something to count. An order
+-- sent to you counted on For you, whose page then said nothing waited on you.
 local function PaintBar(bar)
     local O = OrdersOn() and ns.Orders or nil
-    local todo = O and O.Badge() or 0
+    local making, sent = 0, 0
+    if O then making, sent = O.WaitingOnMe() end
     local mine = O and O.Mine() or nil
     local function Some(n) return n and n > 0 and n or nil end
-    bar:Set("foryou", nil, Some(O and todo), todo > 0)
-    bar:Set("yours", nil, Some(mine and (#mine.waiting + #mine.making)))
+    bar:Set("foryou", nil, Some(O and making), making > 0)
+    bar:Set("yours", nil, Some(mine and (#mine.waiting + #mine.making + #mine.sent)), sent > 0)
     bar:Set("crafters", nil, Some(CraftersOn() and ns.Crafters.Count()))
     bar:Pick(CurrentTab())
 end
@@ -1630,9 +1873,8 @@ local function MakeLine(parent, width)
     r.main:SetPoint("RIGHT", -10, 0)
     r.lesser = Quiet(r)
     r.lesser:SetPoint("RIGHT", -12, 0)
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("LEFT", 9, 0)
+    r.hot:SetHeight(LINE)
     return r
 end
 
@@ -1645,6 +1887,7 @@ local function Line(list, order, state, second, button)
     local recipe = ns.Orders.Recipe(order.spell)
     r.l1:SetText(ItemTint(recipe and recipe.item) .. (ns.Orders.Name(order) or "...") .. "|r"
         .. ((recipe and recipe.item) and ("  " .. Style.Tint("secondary") .. "×" .. (order.n or 1) .. "|r") or ""))
+    HotTo(r, 42, r.l1)
     r.l2:SetText(second)
     r.main:SetShown(button ~= nil and button[3] == true)
     r.lesser:SetShown(button ~= nil and button[3] ~= true)
@@ -1722,9 +1965,11 @@ local function SmallForYou(list)
     if #me.todo > 0 then
         SmallHead(list, "todo", "TO DO", #me.todo)
         for _, o in ipairs(me.todo) do
-            local id = o.id
+            local id, by = o.id, o.by
             local finish = Finish(o)
-            Line(list, o, "todo", Second(o), { finish[1], finish[2], true })
+            -- An item has no button of its own (a letter or a trade sends it): Whisper, to arrange one.
+            Line(list, o, "todo", Second(o), finish and { finish[1], finish[2], true }
+                or { "Whisper", function() Whisper(by, Roster()) end })
         end
     end
     if #me.waiting > 0 then
@@ -1800,7 +2045,7 @@ local function MakeSmallFound(parent, width)
     r.who:SetPoint("TOPLEFT", 38, -25)
     r.who:SetWidth(width - 38 - 80)
     r.who:SetWordWrap(false)
-    r.order = Style.Button(r, "Order", "primary", 68)
+    r.order = Style.Button(r, "Order", "gilt", 68)
     r.order:SetHeight(26)
     r.order:SetPoint("RIGHT", 0, 1)
     Style.Rule(r, "BOTTOM", "line")
@@ -1810,9 +2055,8 @@ end
 local function MakePersonLine(parent, width)
     local r = CreateFrame("Frame", nil, parent)
     r:SetSize(width, PERSON_LINE)
-    r.dot = r:CreateTexture(nil, "ARTWORK")
-    r.dot:SetSize(6, 6)
-    r.dot:SetPoint("LEFT", 2, 0)
+    r.dot = Style.Dot(r, 8)
+    r.dot:SetPoint("LEFT", 1, 0)
     r.name = Style.Text(r, 12, "text", nil, true)
     r.name:SetPoint("LEFT", 16, 0)
     r.name:SetJustifyV("MIDDLE")
@@ -1854,7 +2098,7 @@ local function SmallCrafters(list)
         SmallHead(list, nil, "EVERYONE WHO SHARES", #people)
         for _, p in ipairs(people) do
             local r = Take(list, "person", MakePersonLine, PERSON_LINE)
-            r.dot:SetColorTexture(Style.Color(p.online and "green" or "lineStrong"))
+            r.dot:Paint(p.online and "green" or "lineStrong")
             r.name:SetText(p.online and Who(p.name, roster) or (Style.Tint("muted") .. p.name .. "|r"))
             local words = {}
             for _, prof in ipairs(p.profs) do words[#words + 1] = ("%s %d%s"):format(prof.name, prof.skill, prof.steps and "+" or "") end

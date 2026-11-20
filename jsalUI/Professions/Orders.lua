@@ -1,9 +1,12 @@
 -- Guild orders: ask the guild for a craft or an enchant, and accept what
 -- guildmates ask for. An order is waiting for a crafter, being made, sent,
 -- or done; whoever asked can cancel it, whoever accepted can give it back.
--- The crafter marks it sent (a letter to whoever asked, with the item in
--- it, does so by itself), and it's done when whoever asked marks it
--- received. One never marked received is "not confirmed" after a week.
+-- An item is sent by handing it over: a letter to whoever asked, or a
+-- finished trade with them, with the item in it, marks it sent by itself.
+-- There's no button for it: one that said "sent" let an order be sent with
+-- nothing handed over. An enchant is marked done by the crafter. It's done
+-- when whoever asked marks it received. One never marked received is "not
+-- confirmed" after a week.
 -- Orders travel through the game's hidden addon channel to guildmates who
 -- have jsal.ui with this on, and each jsal.ui passes on what it has heard,
 -- so an order outlives the session it was posted in. Kept per guild, for
@@ -38,8 +41,8 @@ local FRESH = 600
 local PACK = 230                          -- letters in one message
 local ASK_AGAIN, ASK_ANYONE, ANSWER_AGAIN = 300, 20, 60
 
--- The states, as one letter each: open, taken, sent, mailed (sent by a
--- letter), done, gone (cancelled).
+-- The states, as one letter each: open, taken, sent (in a trade; before
+-- 0.3.57 also by a button), mailed (sent by a letter), done, gone (cancelled).
 local STATES = { o = true, t = true, s = true, m = true, d = true, x = true }
 local SENT = { s = true, m = true }
 
@@ -275,7 +278,7 @@ local function Tell(new, old)
             ns.Print(("%s mailed you your order of %s. Once it's in your bags, mark it received in /jsal crafts.")
                 :format(new.c or "The crafter", Label(new)))
         elseif new.s == "s" and not SENT[old.s] then
-            ns.Print(("%s sent your order of %s. Once you have it, mark it received in /jsal crafts.")
+            ns.Print(("%s handed you your order of %s. Once you have it, mark it received in /jsal crafts.")
                 :format(new.c or "The crafter", Label(new)))
         elseif new.s == "d" and old.s ~= "d" and not SENT[old.s] then
             ns.Print(("%s finished your order for %s."):format(new.c or "A guildmate", Label(new)))
@@ -396,8 +399,9 @@ function Orders.Done(id)
     return Step(order, "d", order.c)
 end
 
--- The crafter's "Mark sent", for an item: it's on its way, and done once
--- whoever asked marks it received. `mailed` when a letter carried it.
+-- An item handed over: it's on its way, and done once whoever asked marks it
+-- received. `mailed` when a letter carried it, else a trade did. Called from
+-- the letter and the trade (Orders.Mailed, Orders.Traded), never a button.
 function Orders.Sent(id, mailed)
     local order, why = Find(id)
     if not order then return false, why end
@@ -430,23 +434,37 @@ function Orders.Mailing(to, items)
     letter = to and { to = Addressee(to), items = items or {} } or nil
 end
 
--- The letter went: each order you accepted from whoever it was to, for an
--- item it carried, is sent. Gives how many.
-function Orders.Mailed()
-    local sent, n = letter, 0
-    letter = nil
-    local book = sent and On() and Book()
+-- Something went to `to` (a name) carrying `items` (item = how many): each
+-- order you accepted from them, for an item it carried, is sent. Gives how many.
+local function HandedOver(to, items, mailed)
+    local book = to and On() and Book()
     if not book then return 0 end
-    local me, ids = Compat.MyName(), {}
+    local me, ids, n = Compat.MyName(), {}, 0
+    to = Addressee(to)
     for id, o in pairs(book) do
-        local recipe = o.s == "t" and o.c == me and Addressee(o.by) == sent.to and Orders.Recipe(o.spell)
-        if recipe and recipe.item and (sent.items[recipe.item] or 0) > 0 then ids[#ids + 1] = id end
+        local recipe = o.s == "t" and o.c == me and Addressee(o.by) == to and Orders.Recipe(o.spell)
+        if recipe and recipe.item and ((items or {})[recipe.item] or 0) > 0 then ids[#ids + 1] = id end
     end
     table.sort(ids)
     for _, id in ipairs(ids) do
-        if Orders.Sent(id, true) then n = n + 1 end
+        if Orders.Sent(id, mailed) then n = n + 1 end
     end
     return n
+end
+
+-- The letter went: each order you accepted from whoever it was to, for an
+-- item it carried, is sent. Gives how many.
+function Orders.Mailed()
+    local sent = letter
+    letter = nil
+    if not sent then return 0 end
+    return HandedOver(sent.to, sent.items, true)
+end
+
+-- A trade with `with` finished, with `items` (item = how many) on your side
+-- of it: each order you accepted from them, for one of those, is sent.
+function Orders.Traded(with, items)
+    return HandedOver(with, items, false)
 end
 
 function Orders.Cancel(id)
@@ -520,9 +538,27 @@ function Orders.Mine()
     return out
 end
 
--- The number for the menu and the For you tab: what waits on you (orders you
--- accepted, and yours that were sent to you), and with `new`, also the orders
--- you could accept that you haven't looked at yet.
+-- What waits on you, by the tab it's on: orders you accepted and are making
+-- for someone (For you), and yours that were sent to you, to mark received
+-- (Your orders).
+function Orders.WaitingOnMe()
+    local book = On() and Book()
+    if not book then return 0, 0 end
+    local me, now, making, sent = Compat.MyName(), Compat.ServerTime(), 0, 0
+    for _, o in pairs(book) do
+        local state = Orders.State(o, now)
+        if state == "making" and o.c == me then
+            making = making + 1
+        elseif state == "sent" and o.by == me then
+            sent = sent + 1
+        end
+    end
+    return making, sent
+end
+
+-- The number for the menu and the quick button: what waits on you (orders
+-- you accepted, and yours that were sent to you), and with `new`, also the
+-- orders you could accept that you haven't looked at yet.
 function Orders.Badge(new)
     local book = On() and Book()
     if not book then return 0 end

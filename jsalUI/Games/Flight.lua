@@ -104,10 +104,10 @@ local function Settling()
     return loaded ~= nil and current ~= nil and current.resumed == true and Compat.Now() - loaded < SETTLE
 end
 
--- Today's games and chess, as the quick buttons' icons: a gold dot when
--- one is waiting (today's puzzle not played, your move), a tooltip saying
--- what. Parts that are switched off leave no gap.
-local GAMES, TILE = { "word", "icons", "chess" }, 32
+-- Today's games, Pal run and chess, as the quick buttons' icons: a gold dot
+-- when one is waiting (today's puzzle or course not played, your move), a
+-- tooltip saying what. Parts that are switched off leave no gap.
+local GAMES, TILE = { "word", "icons", "run", "chess" }, 32
 local tiles = {}
 
 local function PaintGames()

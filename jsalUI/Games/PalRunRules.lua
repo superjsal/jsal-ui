@@ -9,7 +9,10 @@ ns.PalRunRules = Rules
 
 Rules.ROWS = 8            -- rows of tiles in a course, counted down from 0 at the top
 Rules.STEP = 1 / 60       -- seconds in one step
-Rules.W, Rules.H = 1.2, 1.6   -- the pal's size: the same for every kind, so none has the easier run
+-- The pal's box, in tiles: the same for every kind, so none has the easier run. It's as wide as
+-- a pal's feet, so a pal stands only where its feet are drawn: a box 1.2 wide let one stand on
+-- the last fifth of a tile with its feet over the pit. Every piece is proven passable with it.
+Rules.W, Rules.H = 0.6, 1.6
 Rules.TREAT = 30          -- steps a treat takes off your time (half a second)
 Rules.FALLS = 3           -- falls into a pit that end a run
 

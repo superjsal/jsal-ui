@@ -342,7 +342,7 @@ Window.Page("report", function(page)
     local SIDE_W, GAP, LABEL_W = 372, 24, 96
     local boxW, sideX = width - SIDE_W - GAP, width - SIDE_W
     local title, lead = Window.Header(page, width)
-    title:SetText("Tell John what went wrong")
+    title:SetText("Tell jsal what went wrong")
     lead:SetText("Your version, class, level, zone and any jsal.ui error are added for you.")
 
     local well = CreateFrame("Frame", nil, page)
@@ -366,7 +366,7 @@ Window.Page("report", function(page)
     hint:SetPoint("TOPLEFT", 12, -11)
     hint:SetText("What went wrong, and what were you doing?")
 
-    local send = Style.Button(page, "Send to John", "primary", 150)
+    local send = Style.Button(page, "Send to jsal", "primary", 150)
     send:SetPoint("TOPLEFT", well, "BOTTOMLEFT", 0, -14)
     local status = Style.Text(page, 13, "muted")
     status:SetPoint("LEFT", send, "RIGHT", 14, 0)
@@ -400,7 +400,7 @@ Window.Page("report", function(page)
     other:SetPoint("TOPLEFT", added, "BOTTOMLEFT", 0, -18)
     other:SetWidth(SIDE_W)
     other:SetJustifyH("LEFT")
-    other:SetText("Not in John's guild? Press Copy, then Ctrl+C, and post it in bug-reports on jsal.ui's Discord, or email it to "
+    other:SetText("Not in jsal's guild? Press Copy, then Ctrl+C, and post it in bug-reports on jsal.ui's Discord, or email it to "
         .. EMAIL .. ".")
     local copy = Style.Button(page, "Copy", "plain", 110)
     copy:SetPoint("TOPLEFT", other, "BOTTOMLEFT", 0, -10)
@@ -417,7 +417,7 @@ Window.Page("report", function(page)
         rows[1].value:SetText(version)
         rows[2].value:SetText(character)
         rows[3].value:SetText(where)
-        rows[4].value:SetText(waiting == 0 and "none waiting" or (waiting .. " waiting to reach John"))
+        rows[4].value:SetText(waiting == 0 and "none waiting" or (waiting .. " waiting to reach jsal"))
         rows[4].value:SetTextColor(Style.Color(waiting == 0 and "muted" or "text"))
         -- The errors, without the word the row already says. A few long ones
         -- wrap to several lines: the card grows to hold them, and the Copy
@@ -429,10 +429,10 @@ Window.Page("report", function(page)
         if message then
             status:SetText(message)
         elseif waiting > 0 then
-            status:SetText(("Waiting to reach John: %d. %s go the next time you're both online."):format(
+            status:SetText(("Waiting to reach jsal: %d. %s go the next time you're both online."):format(
                 waiting, waiting == 1 and "It will" or "They will"))
         elseif Reports.justSent then
-            status:SetText("John has it. Thanks for telling him.")
+            status:SetText("jsal has it. Thanks for telling him.")
         else
             status:SetText(IsInGuild() and "" or "Reports travel through your guild. Outside one, use Copy below.")
         end

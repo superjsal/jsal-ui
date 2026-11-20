@@ -196,7 +196,9 @@ function Switch.Menu(anchor, tell)
     local list, c = Switch.Choices()
     local items = {}
     local nothing = function() end
-    if not c then
+    if not c and ns.Layers.unreadable then
+        items[#items + 1] = { "Layers can't be read", "a /reload checks again", nothing }
+    elseif not c then
         items[#items + 1] = { "No layer read yet", "mouse over a creature", nothing }
     else
         items[#items + 1] = { ("You're on layer %d"):format(c.layer), nil, nothing }

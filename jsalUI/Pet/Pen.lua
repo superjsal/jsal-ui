@@ -706,9 +706,19 @@ function Pet.DressCare(s)
         b.art:SetDesaturated(none)
         b.art:SetAlpha(none and 0.4 or 1)
         for _, edge in ipairs(b.frame) do edge:SetShown(wanted) end
-        if b.bob then
-            if wanted and not b.bob:IsPlaying() then b.bob:Play() elseif not wanted then b.bob:Stop() end
-        end
+        b.bobbing = wanted
+        if not wanted and not b.pressed then b.art:SetPoint("TOP", 0, -11) end
+    end
+end
+
+-- The needed one's picture bobs: up four pixels and back in just under a second, set in its
+-- place each time it's drawn, so nothing it does can carry the button away. A pressed one dips.
+local BOB_HIGH, BOB_TIME = 4, 0.9
+function Pet.BobCare(clock)
+    if not ui.care then return end
+    local up = math.floor(BOB_HIGH * (1 - math.cos((clock or 0) * 2 * math.pi / BOB_TIME)) / 2 + 0.5)
+    for _, b in pairs(ui.care) do
+        if b.bobbing and not b.pressed then b.art:SetPoint("TOP", 0, -11 + up) end
     end
 end
 

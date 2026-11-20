@@ -4,6 +4,12 @@
 -- other, with exact X and Y for the one picked. It needs nothing else
 -- installed, and each piece still drags on its own without it.
 --
+-- A piece is shown as itself: lifted over the grid for as long as Unlock
+-- Mode is open, under a gold outline and its name, so what's being placed
+-- is what will stand there. One that's hidden just now shows a sample of
+-- itself. (Each was a gold block the piece's size, and a block says nothing
+-- of what it is or how it will look where it's put.)
+--
 -- The pieces are in no other addon's unlock mode, on purpose. One that takes
 -- a piece in also takes charge of where it stands: it puts the piece back in
 -- its place whenever the piece changes size, a locked one too, and a frame
@@ -20,7 +26,10 @@ local pieces = {}
 
 -- A piece: key, label, frame() (the frame, or nil if it isn't built),
 -- load() and save(point, relative, x, y) for its saved spot, and hidden()
--- for when it isn't in use.
+-- for when it isn't in use. For one hidden just now, sample(on) shows it as
+-- it would look and takes that away again (without it, its frame is shown
+-- and hidden as it is), and refresh() puts it right for how things are once
+-- Unlock Mode closes.
 function Unlock.Add(piece)
     pieces[piece.key] = piece
 end
@@ -134,12 +143,68 @@ end
 
 local Paint
 
--- A mover's tab: its name, and for the picked one its anchor and numbers too.
+-- The numbers a player reads and types for a piece: how far its middle is
+-- from the middle of the screen, right and up. Always that, whichever point
+-- the piece is saved by, so numbers written down put it back where it was.
+local function Mid(m)
+    local W, H = Screen()
+    return Unlock.Offset("CENTER", m.left, m.bottom, m.w, m.h, W, H)
+end
+
+-- A mover's tab: its name, and for the picked one its numbers too.
 local function Tab(m)
     local text = Name(m.piece)
-    if m == picked and m.x then text = ("%s   %s %d, %d"):format(text, m.anchor, m.x, m.y) end
+    if m == picked and m.left then text = ("%s   %d, %d"):format(text, Mid(m)) end
     m.tab.text:SetText(text)
-    m.tab:SetWidth((m.tab.text:GetStringWidth() or 60) + 14)
+    m.tabW = (m.tab.text:GetStringWidth() or 60) + 14
+    m.tab:SetWidth(m.tabW)
+end
+
+-- Where each tab goes: above its piece, or below one near the top of the
+-- screen. A small piece's tab is wider than the piece, so two side by side
+-- had their names drawn over each other ("Food reminder" and "Pet
+-- feeding"); from left to right, a tab that would lie on one already placed
+-- goes to the other side of its piece, if that's clear and on the screen
+-- (John, 19 Nov 2026: "A, below").
+local TAB_H, TAB_GAP = 20, 4
+local function Sides()
+    local W, H = Screen()
+    local list = {}
+    for _, m in pairs(movers or {}) do
+        if m.left then list[#list + 1] = m end
+    end
+    table.sort(list, function(a, b)
+        if a.left ~= b.left then return a.left < b.left end
+        if a.bottom ~= b.bottom then return a.bottom > b.bottom end
+        return a.piece.key < b.piece.key
+    end)
+    local placed = {}
+    local function Spot(m, above)
+        local y = above and m.bottom + m.h + TAB_GAP or m.bottom - TAB_GAP - TAB_H
+        return { m.left, y, m.left + (m.tabW or 74), y + TAB_H }
+    end
+    local function Clear(r)
+        if r[2] < 0 or r[4] > H then return false end
+        for _, o in ipairs(placed) do
+            if r[1] < o[3] + 2 and o[1] < r[3] + 2 and r[2] < o[4] + 2 and o[2] < r[4] + 2 then return false end
+        end
+        return true
+    end
+    for _, m in ipairs(list) do
+        local above = m.bottom + m.h <= H - 30
+        local r = Spot(m, above)
+        if not Clear(r) then
+            local other = Spot(m, not above)
+            if Clear(other) then above, r = not above, other end
+        end
+        placed[#placed + 1] = r
+        m.tab:ClearAllPoints()
+        if above then
+            m.tab:SetPoint("BOTTOMLEFT", m, "TOPLEFT", 0, TAB_GAP)
+        else
+            m.tab:SetPoint("TOPLEFT", m, "BOTTOMLEFT", 0, -TAB_GAP)
+        end
+    end
 end
 
 -- Puts a piece's mover at (left, bottom), and the piece itself with it.
@@ -155,6 +220,7 @@ local function Put(m, left, bottom)
         frame:SetPoint(m.anchor, UIParent, m.anchor, m.x, m.y)
     end
     Tab(m)
+    Sides()
 end
 
 -- Keeps where a piece is now, in its own saved spot.
@@ -162,24 +228,67 @@ local function Keep(m)
     m.piece.save(m.anchor, m.anchor, m.x, m.y)
 end
 
+-- How gold a mover's inside is. Over a piece shown as itself: nothing, and a
+-- light wash on the one picked. A piece with nothing to show (your pal while
+-- it isn't out with you) is a see-through gold block.
+local function Wash(m, on)
+    m.fill:SetColorTexture(Style.Color("gold"))
+    if m.staged then m.fill:SetAlpha(on and 0.14 or 0) else m.fill:SetAlpha(on and 0.32 or 0.14) end
+end
+
+-- Lifts a piece's own frame over the grid, under its mover (which is what
+-- takes the mouse), showing a sample of one that's hidden; what it was is
+-- kept, to put back.
+local function Stage(m)
+    local piece = m.piece
+    local frame = piece.frame and piece.frame()
+    m.staged = nil
+    if not frame then return end
+    local was = { frame = frame, strata = frame:GetFrameStrata(), level = frame:GetFrameLevel() }
+    if m.hidden then
+        was.sampled = true
+        if piece.sample then piece.sample(true) else frame:Show() end
+    end
+    frame:SetFrameStrata(overlay:GetFrameStrata() or "DIALOG")
+    frame:SetFrameLevel((overlay:GetFrameLevel() or 1) + 2)
+    m.staged = was
+end
+
+-- And puts every piece back as it was: its own layer, a sample taken away,
+-- and the piece set right for how things are now.
+local function Unstage()
+    for _, m in pairs(movers or {}) do
+        local was = m.staged
+        if was then
+            m.staged = nil
+            if was.strata then was.frame:SetFrameStrata(was.strata) end
+            if was.level then was.frame:SetFrameLevel(was.level) end
+            if was.sampled then
+                if m.piece.sample then m.piece.sample(false) else was.frame:Hide() end
+            end
+        end
+        if m.piece.refresh then m.piece.refresh() end
+    end
+end
+
 local function Pick(m)
     picked = m
     for _, other in pairs(movers or {}) do
         local on = other == m
-        other.fill:SetColorTexture(Style.Color("gold"))
-        other.fill:SetAlpha(on and 0.32 or 0.14)
+        Wash(other, on)
         other.tab:SetAlpha(on and 1 or 0.85)
         Tab(other)
     end
+    Sides()
     if Paint then Paint() end
 end
 
--- Exact numbers: the picked piece's point at (x, y).
+-- Exact numbers: the picked piece's middle at (x, y) from the screen's.
 function Unlock.Place(key, x, y)
     local m = movers and movers[key]
     if not (m and tonumber(x) and tonumber(y)) then return false end
     local W, H = Screen()
-    local left, bottom = Unlock.Rect(m.anchor, m.anchor, tonumber(x), tonumber(y), m.w, m.h, W, H)
+    local left, bottom = Unlock.Rect("CENTER", "CENTER", tonumber(x), tonumber(y), m.w, m.h, W, H)
     Put(m, left, bottom)
     Keep(m)
     if Paint then Paint() end
@@ -247,10 +356,24 @@ function Unlock.Undo(key)
     if Paint then Paint() end
 end
 
+-- Reset: a piece's saved place is forgotten, so it stands where jsal.ui
+-- first puts it (a piece does that itself when its place is cleared), and
+-- its box follows it there.
+function Unlock.Reset(key)
+    local m = movers and movers[key]
+    if not m then return end
+    m.piece.save(nil)
+    local _, _, left, bottom, point = Measure(m.piece)
+    m.anchor = point
+    Put(m, left, bottom)
+    if Paint then Paint() end
+end
+
 local function Mover(piece)
     local m = CreateFrame("Button", nil, overlay)
     m.piece = piece
-    m:SetFrameLevel(overlay:GetFrameLevel() + 10)
+    -- Well over the pieces lifted under it, and their own buttons.
+    m:SetFrameLevel(overlay:GetFrameLevel() + 40)
     m:EnableMouse(true)
     m:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     -- A mover is square: see-through gold inside a solid gold line, which
@@ -298,13 +421,8 @@ local function Lay()
         m:SetSize(w, h)
         local hidden = (piece.hidden and piece.hidden()) or not (piece.frame and piece.frame() and piece.frame():IsShown())
         m.hidden = hidden
-        m.tab:ClearAllPoints()
-        -- The tab above, or below a piece near the top of the screen.
-        if bottom + h > H - 30 then
-            m.tab:SetPoint("TOPLEFT", m, "BOTTOMLEFT", 0, -4)
-        else
-            m.tab:SetPoint("BOTTOMLEFT", m, "TOPLEFT", 0, 4)
-        end
+        if not m.staged then Stage(m) end
+        Wash(m, false)
         Put(m, left, bottom)
         local at = piece.load and piece.load()
         started[key] = at and { at[1], at[2], at[3], at[4] } or { nil }
@@ -367,6 +485,7 @@ local function Build()
         if dragging then Keep(dragging.m) end
         dragging = nil
         if panel then panel:Hide() end
+        Unstage()
     end)
 
     -- The panel: what to do, the picked piece's numbers, two switches, and Done.
@@ -389,7 +508,7 @@ local function Build()
     help:SetPoint("TOPLEFT", 20, -42)
     help:SetWidth(620)
     help:SetJustifyH("LEFT")
-    help:SetText("Drag any jsal.ui piece to move it. It snaps to the grid, the centre and the other pieces; hold Shift to place it freely. Right-click a piece to put it back where it started.")
+    help:SetText("Drag a piece to move it. It snaps to the grid, the centre and the other pieces; Shift places it freely. Right-click puts it back where it was. X and Y are from the screen's middle.")
 
     -- The picked piece: its name and anchor, and its X and Y to type into.
     panel.which = Style.Text(panel, 13, "text", nil, true)
@@ -435,6 +554,10 @@ local function Build()
         for _, t in ipairs(overlay.grid) do t:SetShown(on) end
     end)
     Switch("Snap", 116, function() return useSnap end, function(on) useSnap = on end)
+    -- The picked piece back to where jsal.ui first puts it.
+    panel.reset = Style.Button(panel, "Reset piece", "plain", 110)
+    panel.reset:SetPoint("BOTTOMRIGHT", -246, 16)
+    panel.reset:SetScript("OnClick", function() if picked then Unlock.Reset(picked.piece.key) end end)
     local undo = Style.Button(panel, "Undo all", "plain", 110)
     undo:SetPoint("BOTTOMRIGHT", -126, 16)
     undo:SetScript("OnClick", function()
@@ -448,6 +571,7 @@ end
 Paint = function()
     if not panel then return end
     local m = picked
+    panel.reset:SetEnabled(m ~= nil)
     if not m then
         panel.which:SetText("Pick a piece to type its position.")
         panel.x:SetText("")
@@ -458,9 +582,10 @@ Paint = function()
         end
         return
     end
-    panel.which:SetText(("%s  ·  %s%s"):format(Name(m.piece), m.anchor, m.hidden and "  ·  hidden for now" or ""))
-    if not panel.x:HasFocus() then panel.x:SetText(tostring(m.x)) end
-    if not panel.y:HasFocus() then panel.y:SetText(tostring(m.y)) end
+    panel.which:SetText(Name(m.piece) .. (m.hidden and "  ·  hidden for now" or ""))
+    local x, y = Mid(m)
+    if not panel.x:HasFocus() then panel.x:SetText(tostring(x)) end
+    if not panel.y:HasFocus() then panel.y:SetText(tostring(y)) end
     local sized = m.piece.resize ~= nil
     for _, e in ipairs({ panel.w, panel.h }) do
         e.well:SetShown(sized)

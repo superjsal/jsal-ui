@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: |cffe3b04bjsal|r.ui
-## Notes: A free UI pack, daily games and easy helpers for WoW Forever, from jsal.io.
+## Notes: Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: John Salvador
 ## Version: 0.3.58-beta.1
 ## Category: User Interface
@@ -142,6 +142,8 @@ Dungeons\DungeonData.lua
 Dungeons\DungeonLoot.lua
 Dungeons\Dungeons.lua
 Dungeons\GuildLoot.lua
+Dungeons\DungeonMaps.lua
+Dungeons\Map.lua
 Dungeons\Page.lua
 
 # Quest tags beside the tracker: each quest's place in a chain and about how long it
@@ -157,5 +159,5 @@ Quests\GuideTags.lua
 Home.lua
 Settings.lua
 
-# The guided setup, the first time jsal.ui runs and from Settings.
+# The welcome, the first time jsal.ui runs and from Settings.
 Onboarding.lua

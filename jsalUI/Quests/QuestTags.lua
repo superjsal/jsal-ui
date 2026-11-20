@@ -17,8 +17,6 @@ local Style, Compat = ns.Style, ns.Compat
 
 local QuestTags = ns.NewModule("questtags", {
     title = "Quest tags",
-    -- Something new beside the tracker, so it starts off.
-    defaultOn = false,
     note = "Beside each quest in your tracker: its place in a chain (1/4 is the first of four) and about how many minutes it will take, from how often its items drop and how long your fights last. Hover them for the details.",
 })
 ns.QuestTags = QuestTags

@@ -18,8 +18,6 @@ local Style, Compat, Rules = ns.Style, ns.Compat, ns.PetRules
 local Pet = ns.NewModule("pet", {
     -- Its name; a creature is a pal.
     title = "Jsal's Pals",
-    -- A new part, so it starts off.
-    defaultOn = false,
     note = "A small creature of your own to look after, with supplies your play earns. /jsal pet",
     options = {
         { key = "sound", title = "Sounds", default = true,
@@ -388,6 +386,9 @@ local SHEETS = {
     -- The largest of them all: its open wings are 120 pixels across.
     eclipselord = Packed("eclipselord_sheet", { calm = 6, cell = 128, cols = 16, w = 2048, h = 1024, walk = 8, walkTime = 0.1,
         special = 128, specialW = 2048 }),
+    glumbill = Packed("glumbill_sheet", { calm = 0, hatch = true, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    broodstork = Packed("broodstork_sheet", { calm = 0, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
+    dreadmire = Packed("dreadmire_sheet", { calm = 0, cell = 80, cols = 12, w = 1024, h = 512, walk = 8, walkTime = 0.1 }),
 }
 -- Everything /jsal pet look can show, in the order it shows them, one line
 -- of three after another. `form` is which of the three sizes it's drawn at.
@@ -422,6 +423,9 @@ local LOOKS = {
     { sprite = "starwhelp", name = "Starwhelp", form = 1 },
     { sprite = "moondrake", name = "Moondrake", form = 2 },
     { sprite = "eclipselord", name = "Eclipselord", form = 3 },
+    { sprite = "glumbill", name = "Glumbill", form = 1 },
+    { sprite = "broodstork", name = "Broodstork", form = 2 },
+    { sprite = "dreadmire", name = "Dreadmire", form = 3 },
 }
 Pet.LOOKS = LOOKS
 Pet.SHEETS = SHEETS

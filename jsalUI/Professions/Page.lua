@@ -289,8 +289,8 @@ Window.Page("professions", function(page)
                     -- Behind you, the sign stays solid over the gold (faded, the gold showed through
                     -- it); its line and number are quieter, its picture and words faded.
                     local behind = item.kind == "passed"
-                    stop.disc:Paint("well", behind and "line" or "lineStrong")
-                    stop.level:SetTextColor(Style.Color(behind and "muted" or "text"))
+                    stop.disc:Paint("well", behind and "line" or (item.cap and "gold" or "lineStrong"))
+                    stop.level:SetTextColor(Style.Color(behind and "muted" or (item.cap and "gold" or "text")))
                     for _, part in ipairs({ stop.icon, stop.name, stop.count }) do part:SetAlpha(behind and 0.45 or 1) end
                     if behind then stop.tag:Hide() end
                 elseif item.kind == "rank" then
@@ -332,9 +332,11 @@ Window.Page("professions", function(page)
         -- The road's places: a stop for each step after the one in hand, the
         -- next rank's while it's still ahead, and the cap's sign; but a rank
         -- learned at the cap itself is the road's end, with no sign after it
-        -- saying the same number.
+        -- saying the same number, and so is a last step that reaches the cap.
         local ranks = (not ranked and o.ahead) and 1 or 0
-        local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap)) and 1 or 0
+        local last = plan[#plan]
+        local reached = last ~= nil and (last.to or 0) >= o.cap
+        local ends = (o.capped and not (ranks == 1 and o.rankAt >= o.cap) and not reached) and 1 or 0
         local passed = {}
         local kept, nextKept = Passed(o.line, o.floor, o.skill, plan[1])
         for _, kept in ipairs(kept) do
@@ -365,6 +367,13 @@ Window.Page("professions", function(page)
         end
         if not ranked and o.ahead then Add("rank") end
         if ends == 1 then Add("cap") end
+        -- A last step that reaches the cap is the cap's sign too: ringed in gold, as the cap's own
+        -- is, until the next rank (Artisan, at 200) raises the cap past it.
+        if reached then
+            for i = #items, 1, -1 do
+                if items[i].kind == "step" then items[i].cap = true break end
+            end
+        end
         road = { items = items, Middle = Middle, o = o, spread = places < ACROSS, view = road and road.view }
         -- You: between the sign behind you (or the road's start, the rank's first point) and
         -- the next, by your skill between their numbers; clear of both signs.
@@ -446,7 +455,19 @@ Window.Page("professions", function(page)
         end
     end
 
-    local function Paint()
+    -- Each profession's road as last worked out, kept while nothing it's worked out from has
+    -- changed: your skill and cap, the recipes you know, what's in your bags, and the prices. A
+    -- name the game loads redraws the page, and so does every switch between professions,
+    -- and neither works the road out again. `bags` moves when the game says your bags changed.
+    local plans, bags = {}, 0
+    local Paint
+    local function TimedPaint()
+        local started = debugprofilestop and debugprofilestop()
+        xpcall(Paint, ns.Report)
+        if started and ns.Timed then ns.Timed("Professions page, drawn", started) end
+    end
+
+    function Paint()
         local mine = Professions.Mine()
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
@@ -478,7 +499,7 @@ Window.Page("professions", function(page)
             Style.SetBorder(c.edges, p.line == selected and "gold" or "cardLine")
             c:SetScript("OnClick", function()
                 selected = p.line
-                Paint()
+                TimedPaint()
             end)
             if p.line == selected then current = p end
         end
@@ -518,7 +539,19 @@ Window.Page("professions", function(page)
         local function known(spell) return set[spell] end
         -- The road runs to the rank's cap, with a break where the next rank
         -- is learned, as the profession panel's does.
-        local road, totals, stuck = Professions.Plan(line, skill, cap, known, rankAt)
+        local prices = ns.ItemPrices
+        local knownCount = 0
+        for _ in pairs(set) do knownCount = knownCount + 1 end
+        local key = table.concat({ skill, cap, tostring(rankAt), seen and "seen" or "trainer", knownCount, tostring(Professions.Priced and Professions.Priced()),
+            prices and prices.seen or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
+        local kept = plans[line]
+        local road, totals, stuck
+        if kept and kept.key == key then
+            road, totals, stuck = kept.road, kept.totals, kept.stuck
+        else
+            road, totals, stuck = Professions.Plan(line, skill, cap, known, rankAt)
+            plans[line] = { key = key, road = road, totals = totals, stuck = stuck }
+        end
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
         local unit = Professions.IsGathering(line) and "vein" or "craft"
@@ -629,18 +662,19 @@ Window.Page("professions", function(page)
               ranked = ranked, ahead = ahead, capped = not stuck and skill < cap, trainer = trainer })
     end
 
-    page.Refresh = function() xpcall(Paint, ns.Report) end
+    page.Refresh = TimedPaint
     local events = CreateFrame("Frame")
     for _, event in ipairs({ "SKILL_LINES_CHANGED", "BAG_UPDATE_DELAYED", "ITEM_DATA_LOAD_RESULT" }) do
         pcall(events.RegisterEvent, events, event)
     end
     local queued = false
-    events:SetScript("OnEvent", function()
+    events:SetScript("OnEvent", function(_, event)
+        if event == "BAG_UPDATE_DELAYED" then bags = bags + 1 end
         if not page:IsVisible() or queued then return end
         queued = true
         Compat.After(0.3, function()
             queued = false
-            if page:IsVisible() then xpcall(Paint, ns.Report) end
+            if page:IsVisible() then TimedPaint() end
         end)
     end)
 end, nil, true)

@@ -26,6 +26,11 @@ local function Count(n)
     return s
 end
 
+-- A count and its word, the word singular at one: "1 kill", "2 kills".
+local function Counted(n, word)
+    return Count(n) .. " " .. word .. (math.floor(n or 0) == 1 and "" or "s")
+end
+
 local function Miles(yards)
     local miles = (yards or 0) / 1760
     if miles < 1 then return ("%d yd"):format(math.floor(yards or 0)) end
@@ -406,7 +411,7 @@ Window.Page("journal", function(page)
         local spells, zones = J.Top(book.spells, 5), J.Top(book.zones, 5)
         local killer = J.Top(book.killers, 1)[1]
         M.Card(1, "FAVOURITE MOVE", spells[1] and spells[1].key or "None yet",
-            spells[1] and (Count(spells[1].n) .. " times") or "shows once you've cast a few",
+            spells[1] and Counted(spells[1].n, "time") or "shows once you've cast a few",
             spells[1] and select(2, Compat.SpellInfo(spells[1].key)) or nil)
         M.Card(2, "HOME GROUND", zones[1] and zones[1].key or "Nowhere yet", zones[1] and (Hours(zones[1].n) .. " there") or "",
             M.ICONS .. "INV_Misc_Map_01")
@@ -461,8 +466,8 @@ Window.Page("journal", function(page)
             local mine = i == level and i > 2 and i % 10 > 1 and i % 10 < 9
             b.label:SetText((tenth or mine or (i == level and last < 10)) and i or "")
             b.label:SetTextColor(Style.Color(i == level and "text" or "muted"))
-            b.tip = { "Level " .. i, row and ("%s%s  ·  %s kills  ·  %s quests  ·  %s deaths"):format(Hours(took), i == level and " so far" or "",
-                Count(row.foes), Count(row.quests), Count(row.deaths)) or "Before the Journal began" }
+            b.tip = { "Level " .. i, row and ("%s%s  ·  %s  ·  %s  ·  %s"):format(Hours(took), i == level and " so far" or "",
+                Counted(row.foes, "kill"), Counted(row.quests, "quest"), Counted(row.deaths, "death")) or "Before the Journal began" }
         end
         for i = last + 1, #M.bars do M.bars[i]:Hide() end
         M.records:SetText((fastest and longest and fastest ~= longest)
@@ -815,8 +820,10 @@ Window.Page("journal", function(page)
     -- marked, XP an hour has a bar beside it, gold and silver each have a
     -- place of their own so a column reads down, the net has its sign and
     -- colour, and a death is red. The time a level took has a grey bar beside
-    -- it, against the longest. Over the table, four records: the fastest
-    -- level and the longest, of those seen start to end, the one with the
+    -- it, against the longest. Over the table, four records: the level with
+    -- the best pace (the most XP an hour; the fastest level was always one of
+    -- the first few, which take minutes) and the longest, of those seen start
+    -- to end, the one with the
     -- most deaths, and the one that earned the most over what it spent.
     -----------------------------------------------------------------
     local levels = View("levels")
@@ -852,7 +859,7 @@ Window.Page("journal", function(page)
     -- The records, four across: what it's the record for, the level in large
     -- figures, and its figure at the right.
     L.recordW = math.floor((width - 3 * 12) / 4)
-    for i, record in ipairs({ { "FASTEST", "green" }, { "LONGEST", "text" }, { "MOST DEATHS", "red" }, { "BEST FOR GOLD", "green" } }) do
+    for i, record in ipairs({ { "BEST PACE", "green" }, { "LONGEST", "text" }, { "MOST DEATHS", "red" }, { "BEST FOR GOLD", "green" } }) do
         local c = CreateFrame("Frame", nil, levels)
         c:SetSize(L.recordW, L.RECORD_H)
         c:SetPoint("TOPLEFT", (i - 1) * (L.recordW + 12), 0)
@@ -985,11 +992,18 @@ Window.Page("journal", function(page)
         return rate
     end
 
+    -- A pace in a record's few words: "15.4k XP/hr", "22k XP/hr", or the number whole under a
+    -- thousand. (In full, "15,367 XP an hour" ran into the level's figure beside it.)
+    function L.Pace(rate)
+        local words = rate >= 1000 and ("%.1fk"):format(rate / 1000):gsub("%.0k$", "k") or tostring(math.floor(rate + 0.5))
+        return words .. " XP/hr"
+    end
+
     local function PaintLevels()
         local all = J.Book().levels or {}
         local now = UnitLevel("player")
         local groups, byTen, total, best, began, count = {}, {}, {}, 0, nil, 0
-        -- The records: fastest, longest, most deaths, best for gold; and the
+        -- The records: best pace, longest, most deaths, best for gold; and the
         -- longest any level took, for the time's bar.
         local records, slowest = { {}, {}, {}, {} }, 0
         local function Record(i, level, n, less)
@@ -1003,7 +1017,7 @@ Window.Page("journal", function(page)
             local took, died, net = row.seconds or 0, row.deaths or 0, (row.earned or 0) - (row.spent or 0)
             slowest = math.max(slowest, took)
             if level ~= now and not row.partial and took >= 60 then
-                Record(1, level, took, true)
+                Record(1, level, L.Rate(row.xp, row.seconds) or 0)
                 Record(2, level, took)
             end
             if died > 0 then Record(3, level, died) end
@@ -1029,7 +1043,7 @@ Window.Page("journal", function(page)
             local n = held.n or 0
             card.level:SetText(held.level and tostring(held.level) or "–")
             card.level:SetTextColor(Style.Color(held.level and "text" or "muted"))
-            card.value:SetText(not held.level and "" or (i <= 2 and Hours(n)) or (i == 3 and ("%d death%s"):format(n, n == 1 and "" or "s"))
+            card.value:SetText(not held.level and "" or (i == 1 and L.Pace(n)) or (i == 2 and Hours(n)) or (i == 3 and ("%d death%s"):format(n, n == 1 and "" or "s"))
                 or ("+" .. Coins(n)))
         end
         -- The page's lines: a line a ten, and under an open one its levels.

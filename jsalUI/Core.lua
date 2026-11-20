@@ -76,6 +76,21 @@ local DEFAULTS = {
 }
 local CHAR_DEFAULTS = {}
 
+-- Every part is switched on once, whatever was saved, for a player who hasn't
+-- seen the welcome: the welcome that follows is where they turn off what they
+-- don't want, with every part in front of them. It's marked, so a part
+-- switched off after that stays off; and a player who has been through the
+-- welcome keeps the switches they left it with.
+local function AllOnOnce(db)
+    if db.allOn then return end
+    if not (type(db.setup) == "table" and db.setup.welcome) then
+        for key, on in pairs(db.modules) do
+            if on == false then db.modules[key] = nil end
+        end
+    end
+    db.allOn = true
+end
+
 local function Fill(target, defaults)
     for key, value in pairs(defaults) do
         if type(value) == "table" then
@@ -122,11 +137,18 @@ ns.moduleOrder = {}
 ns.SHELVED = { chess = true }
 function ns.Shelved(key) return ns.SHELVED[key] == true end
 
+-- On a beta, what jsal.ui's memory goes on, for /jsal mem: how much the
+-- game's Lua held as each part's file was read, and how much each part's
+-- start added. Nothing else of the game's runs between two of jsal.ui's own
+-- files or inside a part's start, so the growth there is jsal.ui's.
+local mem = ns.IsBeta(ns.version) and { marks = {}, starts = {} } or nil
+
 function ns.NewModule(key, module)
     module.key = key
     module.title = module.title or key
     ns.modules[key] = module
     ns.moduleOrder[#ns.moduleOrder + 1] = module
+    if mem then mem.marks[#mem.marks + 1] = { module.title, collectgarbage("count") } end
     return module
 end
 
@@ -236,7 +258,19 @@ local function StartModules()
         -- its switch with this, to say which changes wait for a reload.
         module.wantedAtStart = ns.ModuleWanted(module)
         if ns.ModuleWanted(module) and type(module.OnEnable) == "function" then
+            -- A measured start (/jsal mem asked for it before this reload)
+            -- clears the leftovers either side of each part, so what's left
+            -- is what the part holds. It makes the start slow, once.
+            local before
+            if mem then
+                if mem.exact then collectgarbage("collect") end
+                before = collectgarbage("count")
+            end
             local ok, err = xpcall(function() module:OnEnable() end, Report)
+            if mem then
+                if mem.exact then collectgarbage("collect") end
+                mem.starts[#mem.starts + 1] = { module.title or module.key, collectgarbage("count") - before }
+            end
             if ok then
                 module.running = true
             else
@@ -259,6 +293,7 @@ events:SetScript("OnEvent", function(self, event, arg1)
         local started = debugprofilestop()
         ns.timings.files = started - (ns.loadStarted or started)
         jsalUIDB = Fill(type(jsalUIDB) == "table" and jsalUIDB or {}, DEFAULTS)
+        AllOnOnce(jsalUIDB)
         jsalUICharDB = Fill(type(jsalUICharDB) == "table" and jsalUICharDB or {}, CHAR_DEFAULTS)
         ns.db, ns.char = jsalUIDB, jsalUICharDB
         -- The daily games used to be saved per character. A character's
@@ -290,14 +325,21 @@ events:SetScript("OnEvent", function(self, event, arg1)
             end
             ns.db.renumbered = true
         end
+        if mem then mem.files = collectgarbage("count") end
         RunAll(onLoad)
         ns.timings.setup = debugprofilestop() - started
+        if mem then
+            mem.setup = collectgarbage("count")
+            mem.exact, ns.db.memNext = ns.db.memNext == true, nil
+        end
         self:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_LOGIN" then
         local started = debugprofilestop()
+        if mem then mem.login = collectgarbage("count") end
         StartModules()
         RunAll(onLogin)
         ns.timings.login = debugprofilestop() - started
+        if mem then mem.started = collectgarbage("count") end
     elseif event == "PLAYER_REGEN_ENABLED" and #waiting > 0 then
         local now = waiting
         waiting = {}
@@ -320,13 +362,137 @@ SlashCmdList.JSALUI = function(message)
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else
-        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal guild, /jsal settings, /jsal install, /jsal bug, /jsal discord.")
-            :format(commands.chess and "/jsal chess, " or ""))
+        -- A command is named only while it has somewhere to go: chess while it isn't
+        -- put away, install in a version with a look to install.
+        local look = ns.Installer and ns.Installer.HasProfile and ns.Installer.HasProfile()
+        ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal games, /jsal versions, /jsal settings, %s/jsal bug, /jsal discord.")
+            :format(commands.chess and "/jsal chess, " or "", look and "/jsal install, " or ""))
     end
 end
 
+-- /jsal mem, on a beta: what jsal.ui's memory goes on. The first time it
+-- asks for a reload, since a measured start is slow and isn't every start;
+-- after that reload it says what jsal.ui holds now, and where it went.
+if mem then
+    local function MB(kb) return ("%.1f MB"):format((kb or 0) / 1024) end
+    local function Most(rows, limit)
+        table.sort(rows, function(a, b) return a[2] > b[2] end)
+        for i = 1, math.min(limit, #rows) do
+            if rows[i][2] < 100 then break end
+            print(("  %s: %s"):format(rows[i][1], MB(rows[i][2])))
+        end
+    end
+    -- What one table keeps, in KB: the game's Lua is cleaned up, the table is
+    -- copied, it's cleaned up again, and what it grew by is the table's size
+    -- (with its words added, which a copy shares and so doesn't count).
+    -- Functions and the game's own frames aren't followed, nor the tables in
+    -- `stop`: jsal.ui's other parts, each weighed on its own.
+    local function Walk(root, stop, copying)
+        local seen, words, count = {}, 0, 0
+        local function Word(s)
+            if not seen[s] then seen[s] = true; words = words + #s + 25 end
+        end
+        local function Copy(t)
+            if seen[t] then return seen[t] end
+            local out = copying and {} or true
+            seen[t] = out
+            count = count + 1
+            for k, v in pairs(t) do
+                count = count + 1
+                if type(k) == "string" then Word(k) end
+                local kind = type(v)
+                if kind == "string" then
+                    Word(v)
+                    if copying then out[k] = v end
+                elseif kind == "table" then
+                    if not stop[v] and type(rawget(v, 0)) ~= "userdata" then
+                        local inner = Copy(v)
+                        if copying then out[k] = inner end
+                    end
+                elseif copying and (kind == "number" or kind == "boolean") then
+                    out[k] = v
+                end
+            end
+            return out
+        end
+        local copy = Copy(root)
+        seen = nil
+        return copy, words, count
+    end
+    local function Weigh(root, stop)
+        collectgarbage("collect")
+        local before = collectgarbage("count")
+        local copy, words = Walk(root, stop, true)
+        collectgarbage("collect")
+        local kb = collectgarbage("count") - before + words / 1024
+        copy = nil
+        return kb
+    end
+    -- The largest of a table's own tables, weighed: first counted, which is
+    -- quick, so that only the few largest are copied.
+    local function Largest(owner, skip, limit)
+        local stop, found = { [ns] = true, [_G] = true }, {}
+        for _, v in pairs(ns) do if type(v) == "table" then stop[v] = true end end
+        for key, v in pairs(owner) do
+            if type(v) == "table" and not skip[key] and type(rawget(v, 0)) ~= "userdata" then
+                stop[v] = nil
+                local ok, _, words, count = pcall(Walk, v, stop, false)
+                stop[v] = owner == ns or nil
+                if ok then found[#found + 1] = { tostring(key), count * 40 + words, v } end
+            end
+        end
+        table.sort(found, function(a, b) return a[2] > b[2] end)
+        local rows = {}
+        for i = 1, math.min(limit, #found) do
+            local v = found[i][3]
+            stop[v] = nil
+            local ok, kb = pcall(Weigh, v, stop)
+            stop[v] = owner == ns or nil
+            if ok then rows[#rows + 1] = { found[i][1], kb } end
+        end
+        return rows
+    end
+    local function Tables()
+        ns.Print("The largest things jsal.ui keeps, each copied and weighed (this takes a few seconds):")
+        Most(Largest(ns, { db = true, char = true }, 14), 14)
+        ns.Print("And of what's saved for your account:")
+        Most(Largest(ns.db or {}, {}, 8), 8)
+    end
+
+    ns.Command("mem", function()
+        if not mem.exact then
+            ns.db.memNext = true
+            Tables()
+            ns.Print("For where the rest goes, type /reload, then /jsal mem again: the next start is measured part by part. It starts slower, that once.")
+            return
+        end
+        collectgarbage("collect")
+        local now
+        if UpdateAddOnMemoryUsage and GetAddOnMemoryUsage then
+            UpdateAddOnMemoryUsage()
+            now = GetAddOnMemoryUsage(addonName)
+        end
+        ns.Print(("jsal.ui holds %s now, after a clean-up."):format(now and MB(now) or "an unknown amount"))
+        -- Between one part's file and the next, with every file in between
+        -- (its data, its helpers) counted to the later one. Clean-ups run
+        -- while files are read, so these are rough.
+        local files, last = {}, ns.memStarted or 0
+        for _, mark in ipairs(mem.marks) do
+            files[#files + 1] = { "up to " .. mark[1], mark[2] - last }
+            last = mark[2]
+        end
+        files[#files + 1] = { "after the last part", (mem.files or last) - last }
+        ns.Print(("Reading the files: about %s (rough). The most, by the part whose file ends each stretch:"):format(MB((mem.files or 0) - (ns.memStarted or 0))))
+        Most(files, 10)
+        ns.Print(("Setting up once the settings exist: %s."):format(MB((mem.setup or 0) - (mem.files or 0))))
+        ns.Print(("Starting at login: %s. The parts that kept the most:"):format(MB((mem.started or 0) - (mem.login or 0))))
+        Most(mem.starts, 12)
+        Tables()
+    end)
+end
+
 -- /jsal perf: how long jsal.ui took to load, and, where the game keeps
--- addon timings, the addons that have cost the most since the last reload.
+-- addon timings, the addons that have cost the most.
 ns.Command("perf", function()
     local t = ns.timings
     ns.Print(("Loading took %.0f ms to read the files, %.0f ms to set up and %.0f ms to start at login.")
@@ -349,16 +515,20 @@ ns.Command("perf", function()
         end
     end
     table.sort(rows, function(a, b) return a.average > b.average end)
-    ns.Print("Average time each frame, and the longest single frame, since the last reload:")
+    -- The longest is the game's own, and a reload doesn't clear it: it read 134.8 ms through six
+    -- reloads, under words that said "since the last reload".
+    ns.Print("Average time each frame, and the longest single frame (the game keeps the longest through a reload):")
     for i = 1, math.min(10, #rows) do
         local r = rows[i]
         print(("  %s: %.3f ms average, %.1f ms longest"):format(r.name, r.average, r.peak))
     end
 end)
 
-for _, page in ipairs({ "home", "install", "games", "guild", "settings" }) do
+for _, page in ipairs({ "home", "install", "games", "settings" }) do
     ns.Command(page, function() ns.Window.Open(page) end)
 end
+-- /jsal guild opens the Games page, where the guild's day is.
+ns.Command("guild", function() ns.Window.Open("games") end)
 
 -- The game's addon menu by the minimap.
 function jsalUI_OnCompartmentClick()

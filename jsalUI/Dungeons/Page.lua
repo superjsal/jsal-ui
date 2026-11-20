@@ -260,12 +260,40 @@ local function SideText(d)
     return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
 end
 
--- An item's details, asking the game to load them when it hasn't yet.
+-- Why a gear plan was made in a paint, as /jsal perf says it (see Gear.SlotPlan).
+local MADE = { first = "made for the first time since loading", changed = "made again after a change",
+    waiting = "made again for items still to come" }
+
+-- An item's details, asking the game to load them when it hasn't yet. `missed` counts the
+-- ones it hadn't, so a paint knows whether anything it drew is still to come.
+local missed = 0
 local function ItemInfo(id)
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, _, classID, subclassID = get(id)
-    if not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+    if not name then
+        missed = missed + 1
+        if C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+    end
     return name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, classID, subclassID
+end
+
+-- How many of a dungeon's listed drops the game hasn't loaded, asking for each when `ask`.
+-- Nothing where the game can't be asked: there's then nothing to wait for. Only the items'
+-- numbers are looked at, no tooltip.
+local function Unloaded(d, ask)
+    local request = C_Item and C_Item.RequestLoadItemDataByID
+    if not request then return 0 end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local n = 0
+    for _, b in ipairs(d.bosses) do
+        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
+            if not get(drop[1]) then
+                n = n + 1
+                if ask then request(drop[1]) end
+            end
+        end
+    end
+    return n
 end
 
 -- Whether an item is for you: the gear plan's rules of what each class
@@ -327,12 +355,159 @@ local function ForOthers(id)
 end
 local RED = Style.Tint("red")
 
+-- What a boss has for you, for its mark on the dungeon's map: whether it drops a piece starred
+-- in your Gear plan, and the most any of its drops betters what you wear (nil for none, or
+-- while the game hasn't loaded them). By the rules its card sorts its loot by. Given `pieces`,
+-- each piece for you is put in it as well: { id, star, gain (nil for a starred piece that's no
+-- better) }.
+local function BossGear(boss, pieces)
+    local G, D = ns.Gear, ns.Dungeons
+    if not (G and G.Better) then return false, nil end
+    local starred = G.Starred and G.Starred() or {}
+    local star, best = false, nil
+    local seen = {}
+    local function Look(id)
+        if seen[id] then return end
+        seen[id] = true
+        local _, _, _, _, _, _, _, _, equipLoc, _, classID, subclassID = ItemInfo(id)
+        local mine = starred[id] == true
+        if mine then star = true end
+        if classID == RECIPE or (not mine and (CantEquip(classID, subclassID, equipLoc) or ForOthers(id) == true)) then return end
+        local is, gain = G.Better(id, equipLoc, classID, subclassID)
+        if is and (gain or 0) > (best or -1) then best = gain or 0 end
+        if pieces and (mine or is) then pieces[#pieces + 1] = { id = id, star = mine, gain = is and (gain or 0) or nil } end
+    end
+    for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[boss[1]] or {}) do Look(drop[1]) end
+    for id in pairs(D.Loot()[D.Key(boss[2])] or {}) do Look(id) end
+    return star, best
+end
+
+-- The bosses your quests need, for their marks on the dungeon's map: { [the boss's place in the
+-- dungeon's order] = the quest's name }, with "+1" after it for each further quest that needs
+-- the same boss. Nothing says which boss a quest needs, so it's read off the quests in your log:
+-- of the dungeon's quests you hold, each objective still to do that names a boss, or an item a
+-- boss is known to drop. A quest not picked up yet, or one that wants neither, has no boss.
+-- Returned with them: each boss's objectives, { [k] = { { the quest's name, the objective as the
+-- game words it } } }, for its tooltip.
+local function BossQuests(d)
+    local out, lines
+    local read = C_QuestLog and C_QuestLog.GetQuestObjectives
+    if not read then return nil end
+    local byName, byItem
+    for _, q in ipairs(ns.DungeonQuests and ns.DungeonQuests[d.id] or {}) do
+        local objectives = QuestHeld(q[1]) and read(q[1])
+        for _, o in ipairs(type(objectives) == "table" and objectives or {}) do
+            if not o.finished and (o.type == "monster" or o.type == "item") then
+                -- "Revelosh slain: 0/1", "Tablet of Will: 0/1", or the count first.
+                local text = o.text or ""
+                local name = (text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text)
+                name = name:gsub("%s+slain$", ""):match("^%s*(.-)%s*$"):lower()
+                local k
+                if name ~= "" and o.type == "monster" then
+                    if not byName then
+                        byName = {}
+                        for i, b in ipairs(d.bosses) do
+                            byName[b[2]:lower()] = i
+                            if b[3] then byName[b[3]:lower()] = i end
+                        end
+                    end
+                    k = byName[name]
+                elseif name ~= "" then
+                    if not byItem then
+                        byItem = {}
+                        for i, b in ipairs(d.bosses) do
+                            for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
+                                local item = ItemInfo(drop[1])
+                                if item then byItem[item:lower()] = byItem[item:lower()] or i end
+                            end
+                        end
+                    end
+                    k = byItem[name]
+                end
+                if k then
+                    out, lines = out or {}, lines or {}
+                    lines[k] = lines[k] or {}
+                    lines[k][#lines[k] + 1] = { q[2], text }
+                    local has = out[k]
+                    if not has then
+                        out[k] = { q[2], 0, [q[1]] = true }
+                    elseif not has[q[1]] then
+                        has[q[1]], has[2] = true, has[2] + 1
+                    end
+                end
+            end
+        end
+    end
+    if not out then return nil end
+    for k, has in pairs(out) do out[k] = has[2] > 0 and (has[1] .. " +" .. has[2]) or has[1] end
+    return out, lines
+end
+
+-- What a boss's tooltip on the map says of you, added to `tip`: each piece on
+-- your Gear plan or better than what you wear, with its picture, its name and by how much, the
+-- starred ones first; then each quest in your log that needs the boss, with what's left of it as
+-- the game words it. Worked out when the boss is pointed at, not before.
+local function BossTip(tip, d, k)
+    local boss = d.bosses[k]
+    if not boss then return end
+    local pieces = {}
+    BossGear(boss, pieces)
+    table.sort(pieces, function(a, b)
+        if a.star ~= b.star then return a.star end
+        if (a.gain or -1) ~= (b.gain or -1) then return (a.gain or -1) > (b.gain or -1) end
+        return a.id < b.id
+    end)
+    if #pieces > 0 then
+        -- No heading over them: their green gains say whose they are.
+        tip:AddLine(" ")
+        for _, piece in ipairs(pieces) do
+            local name, _, quality, _, _, _, _, _, _, texture = ItemInfo(piece.id)
+            -- By how much, as its card's tag says it.
+            local by = ""
+            if piece.gain then
+                local pct = math.floor(piece.gain * 100 + 0.5)
+                by = pct < 1 and "under 1%" or ("+" .. pct .. "%")
+            end
+            local star = piece.star and ns.Gear and ns.Gear.STAR or nil
+            tip:AddDoubleLine((texture and ("|T" .. texture .. ":16:16:0:0|t ") or "") .. ("|cff%s%s|r"):format(Style.Quality(quality), name or "..."),
+                (star and (star .. (by ~= "" and " " or "")) or "") .. by, 1, 1, 1, 0.38, 0.70, 0.35)
+        end
+    end
+    local _, lines = BossQuests(d)
+    local last
+    for _, line in ipairs(lines and lines[k] or {}) do
+        if line[1] ~= last then
+            tip:AddLine(" ")
+            tip:AddLine("|T" .. ACTIVE_MARK .. ":14:14:0:0|t " .. line[1], 0.89, 0.69, 0.29)
+            last = line[1]
+        end
+        tip:AddLine(line[2], 1, 1, 1)
+    end
+end
+-- On the module too, so they can be asked by themselves.
+if ns.Dungeons then ns.Dungeons.BossQuests, ns.Dungeons.BossTip = BossQuests, BossTip end
+
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
     local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
     local rightW = width
     local chosen, scrolled
     local Paint, opened
+    -- A dungeon's items come from the game a moment after they're first asked for. Drawn
+    -- before that, every drop was "..." and all of them listed, and the page drew itself
+    -- again a moment later, shorter and with other words. So a dungeon just picked keeps the
+    -- last drawing until its items are in, or HOLD seconds at most; and the dungeons on show
+    -- in the list are asked for as it opens, one a frame, so the wait is mostly none.
+    -- `drawn` is the dungeon whose bosses are on the page, `holding` the one waited for,
+    -- `late` those whose wait ran out (not waited for again), `lacking` how many items the
+    -- last drawing missed. In one table: the paint has little room left for names of its own.
+    local HOLD = 0.5
+    local wait = { late = {}, lacking = 0, asked = {}, queue = {} }
+    function wait.Count(d)
+        local first = not wait.asked[d]
+        wait.asked[d] = true
+        return Unloaded(d, first)
+    end
     -- Each part of a paint, timed, so /jsal perf can say which is slow ("Page: Dungeons,
     -- redraw" was 32 ms, with no word of why). A part is noted only when the paint was slow.
     local spent = {}
@@ -387,6 +562,11 @@ Window.Page("dungeons", function(page)
         Paint()
     end)
     page:SetScript("OnHide", function() drop:Hide() end)
+    function wait.AskNext(self)
+        local d = table.remove(wait.queue)
+        if d and not wait.asked[d] then wait.Count(d) end
+        if #wait.queue == 0 then self:SetScript("OnUpdate", nil) end
+    end
 
     -- A group's heading: click it to open or close the group.
     local groupHeads = {}
@@ -447,10 +627,10 @@ Window.Page("dungeons", function(page)
     local meta = Style.Text(right, 13, "muted")
     meta:SetJustifyH("LEFT")
     meta:SetWordWrap(false)
-    -- Two tabs, at the right of the picker's line: the bosses with their
-    -- loot, and the dungeon's quests.
+    -- The tabs, at the right of the picker's line: the bosses with their
+    -- loot, the dungeon's quests, and its map where there is one.
     local tab = "bosses"
-    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" } }, function(key)
+    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" }, { "map", "Map" } }, function(key)
         tab = key
         Paint()
     end)
@@ -471,7 +651,9 @@ Window.Page("dungeons", function(page)
             .. "\"For you\" is by your Gear plan's stat weights, which are estimates: roll by what you know of your spec.",
         quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
     }
-    local about = Style.About(right, function() return NOTE[tab] end)
+    -- The Map tab's words are the shown dungeon's map's own (DungeonMap.About), set as it's drawn.
+    local about
+    about = Style.About(right, function() return tab == "map" and about.mapNote or NOTE[tab] end)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
 
     -- The window is as tall as what's in the list, between a least and the
@@ -497,8 +679,18 @@ Window.Page("dungeons", function(page)
     -- strip of small pictures for what isn't for you.
     local cardW = math.floor((rightW - GRID_GAP) / 2)
     local B = {}
+    B.about = about
     B.sum = Style.Text(right, 15, "text", nil, true)
     B.sum:SetPoint("TOPLEFT", 0, -2)
+    -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
+    local mapPane = ns.DungeonMap and ns.DungeonMap.Build(right, rightW, function(k)
+        tab, B.jump = "bosses", k
+        Paint()
+    end)
+    if mapPane then
+        mapPane:SetPoint("TOPLEFT", 0, -TOP_H)
+        mapPane:Hide()
+    end
     -- Another dungeon, or its other tab, starts from the top; the same one keeps its place,
     -- held in range. (Only held in range, a dungeon picked while scrolled down another's
     -- bosses opened partway down its own.)
@@ -1594,6 +1786,10 @@ Window.Page("dungeons", function(page)
             i = i + 1
             local r = Row(i)
             r.dungeon = d
+            if drop:IsShown() and not wait.asked[d] and not wait.queue[d] then
+                wait.queue[d] = true
+                wait.queue[#wait.queue + 1] = d
+            end
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", 0, -y)
             local killed = 0
@@ -1619,6 +1815,7 @@ Window.Page("dungeons", function(page)
             if opened[g] and #inGroup > 0 then y = y + 6 end
         end
         for j = i + 1, #rows do rows[j]:Hide() end
+        if #wait.queue > 0 then drop:SetScript("OnUpdate", wait.AskNext) end
         list:SetHeight(math.max(1, y))
         -- The list is as tall as it needs, up to a limit, and opens at the
         -- chosen dungeon.
@@ -1634,6 +1831,20 @@ Window.Page("dungeons", function(page)
         -- The chosen dungeon.
         local d = chosen
         if not d then return end
+        if not wait.drawn then pickerName:SetText(d.name) end
+        local fresh = tab == "bosses" and d ~= wait.drawn and not wait.late[d]
+        if (fresh or not wait.asked[d]) and wait.Count(d) > 0 and fresh and Compat.After then
+            if wait.holding ~= d then
+                wait.holding = d
+                Compat.After(HOLD, ns.Safe(D, function()
+                    if wait.holding ~= d then return end
+                    wait.holding, wait.late[d] = nil, true
+                    if page:IsVisible() then Paint() end
+                end))
+            end
+            return
+        end
+        wait.holding = nil
         pickerName:SetText(d.name)
         local killed = 0
         for _, b in ipairs(d.bosses) do
@@ -1664,7 +1875,29 @@ Window.Page("dungeons", function(page)
             end
         end
         tabs:Set("quests", nil, #quests > 0 and #quests or nil)
+        local hasMap = mapPane ~= nil and ns.DungeonMap.Has(d)
+        tabs:Shown("map", hasMap)
+        if tab == "map" and not hasMap then tab = "bosses" end
         tabs:Pick(tab)
+        B.about:Say(tab == "map" and "About this map" or "About these numbers")
+        bossScroll:SetShown(tab ~= "map")
+        if mapPane then mapPane:SetShown(tab == "map") end
+        if tab == "map" then
+            hint:SetText("")
+            B.about.mapNote = ns.DungeonMap.About(d)
+            -- The map marks the bosses with gear for you. An item of theirs the game
+            -- hasn't loaded yet is counted, so the map is drawn again when it comes.
+            missed = 0
+            mapPane:Draw(d, function(k)
+                local b = d.bosses[k]
+                return D.KillCount(b[2], game, b[3]) > 0
+            end, function(k) return BossGear(d.bosses[k]) end, (D.BossQuests(d)), function(tip, k) D.BossTip(tip, d, k) end)
+            wait.drawn, wait.lacking = d, missed
+            Fit(mapPane.height)
+            B.Scroll(d, tab)
+            NoteParts(started)
+            return
+        end
         local by = 0
         t = Spent("the dungeon's quests, found", t)
         if tab == "quests" then
@@ -1687,6 +1920,8 @@ Window.Page("dungeons", function(page)
         -- line of how much here is for you.
         hint:SetText("")
         local heights, forYou, sure = {}, 0, 0
+        missed = 0
+        if ns.Gear then ns.Gear.made = {} end
         for k, b in ipairs(d.bosses) do
             t = debugprofilestop()
             local card = BossRow(k)
@@ -1737,6 +1972,7 @@ Window.Page("dungeons", function(page)
                     card:SetHeight(heights[k + side])
                     card:ClearAllPoints()
                     card:SetPoint("TOPLEFT", side * (cardW + GRID_GAP), -by)
+                    card.at = by
                     card:Show()
                 end
             end
@@ -1747,6 +1983,14 @@ Window.Page("dungeons", function(page)
         bossList:SetHeight(by)
         Fit(by)
         B.Scroll(d, tab)
+        wait.drawn, wait.lacking = d, missed
+        for why, ms in pairs(ns.Gear and ns.Gear.made or {}) do
+            spent["bosses: of which, gear plans " .. (MADE[why] or why)] = ms
+        end
+        -- Come from the map: the boss clicked there is brought to the top.
+        local to = B.jump and bossRows[B.jump]
+        B.jump = nil
+        if to and to.at then bossScroll:SetVerticalScroll(math.min(to.at, bossScroll:GetVerticalScrollRange())) end
         NoteParts(started)
     end
 
@@ -1756,7 +2000,13 @@ Window.Page("dungeons", function(page)
     local waiting
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:SetScript("OnEvent", function()
-        if waiting or not page:IsVisible() or tab ~= "bosses" then return end
+        -- A dungeon waited for is drawn the moment its last item is in.
+        if wait.holding then
+            if page:IsVisible() and Unloaded(wait.holding) == 0 then Paint() end
+            return
+        end
+        -- Nothing missing from the page: an item that arrived is another dungeon's.
+        if waiting or wait.lacking == 0 or not page:IsVisible() or tab == "quests" then return end
         waiting = true
         Compat.After(0.2, ns.Safe(D, function()
             waiting = nil

@@ -19,8 +19,6 @@ local Gear = ns.Gear
 
 local RewardStar = ns.NewModule("rewardstar", {
     title = "Quest reward star",
-    -- Something new drawn on the game's own window, so it starts off.
-    defaultOn = false,
     note = "When a quest lets you choose a reward, a gold star on the one the Gear plan scores the biggest upgrade for your spec. Point at a reward for how much better it is for you.",
 })
 ns.RewardStar = RewardStar
@@ -106,8 +104,29 @@ local function Star(button)
     local size = (button:GetHeight() or 41) >= 40 and 20 or 16
     star:SetSize(size, size)
     star:SetPoint("CENTER", button.Icon or button, "TOPLEFT", 3, -3)
+    star.holder = holder
     stars[button] = star
     return star
+end
+
+-- The highest level among the frames under this one, however deep, leaving out `skip`.
+local function Top(frame, skip, top)
+    for _, child in ipairs({ frame:GetChildren() }) do
+        if child ~= skip then
+            local level = child:GetFrameLevel()
+            if level > top then top = level end
+            top = Top(child, skip, top)
+        end
+    end
+    return top
+end
+
+-- Another addon may frame a reward's icon with an outline of its own. EllesmereUI's is a frame
+-- the button holds with the outline's lines on a frame inside that one, a level higher again:
+-- so the star goes above every frame under the button, not only the ones it holds itself. It's
+-- looked at each time, since an outline can be added after the star was made.
+local function Raise(star, button)
+    star.holder:SetFrameLevel(Top(button, star.holder, button:GetFrameLevel()) + 1)
 end
 
 local function HideAll()
@@ -143,7 +162,11 @@ function Look()
     if not (rewards and rewards.RewardButtons) then return end
     local best, waiting, choices = RewardStar.Score(rewards.RewardButtons)
     for _, button in ipairs(choices or {}) do HookEnter(button) end
-    if best then Star(best):Show() end
+    if best then
+        local star = Star(best)
+        Raise(star, best)
+        star:Show()
+    end
     if waiting and looks < LOOKS then WaitForItems() end
 end
 RewardStar.Look = Look
