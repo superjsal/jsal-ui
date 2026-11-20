@@ -146,19 +146,6 @@ local function SavedLoadout(configID)
     return saved
 end
 
--- Spends a point on one of your own talents. A refused commit is rolled
--- back, so nothing is left half-learned.
-function Tree.Learn(data, id)
-    if not data.configID then return false, "Only your own class's talents can be learned." end
-    if Compat.InCombat() then return false, "Talents can't change in combat." end
-    if not C_Traits.PurchaseRank(data.configID, id) then
-        return false, "The game won't let you learn that one yet."
-    end
-    if C_ClassTalents.CommitConfig(SavedLoadout(data.configID)) then return true end
-    C_Traits.RollbackConfig(data.configID)
-    return false, "The game didn't save it. Try again in a moment."
-end
-
 -- Spends several points at once, in the plan's order, and saves them in one
 -- go. If the game refuses any of them, none are kept.
 function Tree.LearnMany(data, ids)

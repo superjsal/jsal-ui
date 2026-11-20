@@ -1,6 +1,7 @@
 -- The talent helper: when a talent point is waiting, a note names the next
--- talent in your active build, with a button to learn it. It only learns the
--- talent the plan says is next, never in combat, and only what the game allows.
+-- talent in your active build. The note spends nothing: a press that spends a
+-- point can't be taken back, and the note comes up unasked where a player may
+-- already be clicking. The point is spent on the Build page, which it opens.
 local _, ns = ...
 local Style, Compat, Tree = ns.Style, ns.Compat, ns.TalentTree
 
@@ -10,7 +11,7 @@ local Helper = ns.NewModule("talents", {
 })
 ns.TalentHelper = Helper
 
-local toast, text, why, learn
+local toast, text
 
 -- The next step, when a point is waiting and the plan has one.
 local function Pending()
@@ -29,8 +30,6 @@ function Helper.Covers()
     local ok, data = pcall(Pending)
     return ok and data ~= nil
 end
-
-local Show
 
 local function Build()
     toast = CreateFrame("Frame", "jsalUITalentNote", UIParent)
@@ -51,16 +50,14 @@ local function Build()
     text = Style.Text(toast, 13, "text")
     text:SetPoint("TOPLEFT", 14, -12)
     text:SetWidth(392)
-    why = Style.Text(toast, 12, "gold")
-    why:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -4)
-    why:SetWidth(392)
+    local where = Style.Text(toast, 12, "muted")
+    where:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -4)
+    where:SetWidth(392)
+    where:SetText("Learn it on your Build page.")
 
-    learn = Style.Button(toast, "Learn it", "primary", 90)
-    learn:SetHeight(26)
-    learn:SetPoint("BOTTOMLEFT", 14, 12)
-    local open = Style.Button(toast, "Open plan", "plain", 96)
+    local open = Style.Button(toast, "Open plan", "primary", 96)
     open:SetHeight(26)
-    open:SetPoint("LEFT", learn, "RIGHT", 6, 0)
+    open:SetPoint("BOTTOMLEFT", 14, 12)
     open:SetScript("OnClick", function()
         toast:Hide()
         ns.Window.Open("build")
@@ -69,23 +66,9 @@ local function Build()
     later:SetHeight(26)
     later:SetPoint("LEFT", open, "RIGHT", 6, 0)
     later:SetScript("OnClick", function() toast:Hide() end)
-
-    learn:SetScript("OnClick", function()
-        local data, node, rank = Pending()
-        if not data then return toast:Hide() end
-        local ok, reason = Tree.Learn(data, node.id)
-        if not ok then
-            why:SetText(reason)
-            return
-        end
-        ns.Print(("Learned %s, rank %d of %d."):format(node.name, rank, node.max))
-        -- The game updates the talents a moment later; then the next one shows.
-        toast:Hide()
-        Compat.After(0.5, function() Show() end)
-    end)
 end
 
-Show = function()
+local function Show()
     if not Helper.running or Compat.InCombat() then return end
     local data, node, rank = Pending()
     if not data then
@@ -96,7 +79,6 @@ Show = function()
     local level = UnitLevel("player")
     text:SetText(("Level %d · next talent: |cffe3b04b%s|r, rank %d of %d  |cff9a9688(%s)|r"):format(
         level, node.name, rank, node.max, data.trees[node.tree].name))
-    why:SetText("")
     toast:Show()
 end
 
