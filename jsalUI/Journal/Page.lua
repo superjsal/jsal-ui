@@ -992,11 +992,11 @@ Window.Page("journal", function(page)
         return rate
     end
 
-    -- A pace in a record's few words: "15.4k an hour", "22k an hour", or the number whole under a
+    -- A pace in a record's few words: "15.4k XP/hr", "22k XP/hr", or the number whole under a
     -- thousand. (In full, "15,367 XP an hour" ran into the level's figure beside it.)
     function L.Pace(rate)
         local words = rate >= 1000 and ("%.1fk"):format(rate / 1000):gsub("%.0k$", "k") or tostring(math.floor(rate + 0.5))
-        return words .. " an hour"
+        return words .. " XP/hr"
     end
 
     local function PaintLevels()
