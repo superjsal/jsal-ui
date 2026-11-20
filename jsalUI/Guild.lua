@@ -348,6 +348,21 @@ function Guild.Hello()
     Comms.Send("GD", Details())
 end
 
+-- A minute after login, a second hello if a guildmate the roster has on, and known to have
+-- jsal.ui, hasn't answered the first: each answers a hello at most every 30 seconds, so two
+-- reloads close together leave the second unanswered. One look at the roster, once a login.
+function Guild.HelloAgain()
+    if not (Guild.running and IsInGuild()) then return end
+    local seen, me = SeenList(), Compat.MyName()
+    if not seen then return end
+    for name in pairs(Compat.GuildOnline()) do
+        if name ~= me and seen.names[name] and not members[name] then
+            Guild.Hello()
+            return
+        end
+    end
+end
+
 function Guild:OnEnable()
     -- "HI" comes from someone logging in or reloading: note them and
     -- answer by whisper with your scores and the Guild Word you have. Every
@@ -370,6 +385,7 @@ function Guild:OnEnable()
     Comms.On("GW", HeardWord)
     Comms.On("GD", HeardDetails)
     Compat.After(8, Guild.Hello)
+    Compat.After(75, Guild.HelloAgain)
 end
 
 function Guild:OnDisable()
