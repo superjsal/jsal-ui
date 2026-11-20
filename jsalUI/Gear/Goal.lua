@@ -488,7 +488,8 @@ local function SetPiece(id, list, slot, ctx)
     end
     local e = Gear.Lookup(id) or { id = id, ilvl = 0, kind = "", place = "" }
     local stats = Gear.Stats(id)
-    if not stats then ctx.waiting = ctx.waiting + 1 end
+    -- Waited on while it's coming; one the game never sends is given up on, as the slots' own are.
+    if not stats and not Gear.GivenUp(id) then ctx.waiting = ctx.waiting + 1 end
     stats = stats or {}
     return { e = e, id = id, stats = stats, score = Gear.Score(stats, ctx.weights, slot.dps) or 0, stage = Goal.BEFORE }
 end
