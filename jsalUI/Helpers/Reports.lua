@@ -254,10 +254,10 @@ end
 Comms.On("BR", Received)
 Comms.On("BA", Confirmed)
 
--- /jsal bug opens the page. /jsal reports lists what came in; "on" and "off"
--- choose whether this account takes reports.
+-- /jsal bug opens the page. /jsal reports lists what came in (and so does logging in, where there
+-- are any); "clear" lets them go; "on" and "off" choose whether this account takes reports.
 ns.Command("bug", function() Window.Open("report") end)
-ns.Command("reports", function()
+function Reports.List()
     local list = In()
     if not Reports.Receiving() and #list == 0 then
         return ns.Print("This account doesn't take problem reports.")
@@ -268,6 +268,25 @@ ns.Command("reports", function()
         local r = list[i]
         ns.Print(("%s: %s (%s. %s)"):format(r.from, r.text, r.details, r.error))
     end
+    if #list > 0 then ns.Print("/jsal reports clear lets them go.") end
+end
+ns.Command("reports", Reports.List)
+ns.Command("reports clear", function()
+    local n = #In()
+    ns.db.reportsIn = {}
+    ns.Print(("Cleared %d problem report%s."):format(n, n == 1 and "" or "s"))
+end)
+
+-- Logging in (not a /reload) on an account that takes reports, with some kept: the list, after the
+-- game's own lines.
+function Reports.AtLogin()
+    if Reports.Receiving() and #In() > 0 then Reports.List() end
+end
+local login = CreateFrame("Frame")
+login:RegisterEvent("PLAYER_ENTERING_WORLD")
+login:SetScript("OnEvent", function(self, _, initial)
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    if Compat.Plain(initial) then Compat.After(8, function() xpcall(Reports.AtLogin, ns.Report) end) end
 end)
 ns.Command("reports on", function()
     ns.db.takesReports = true
