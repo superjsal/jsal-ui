@@ -148,7 +148,9 @@ end
 -- Today's scores, saved per guild. A reload forgets who was heard, and a
 -- guildmate who has logged off can't say again what they played, so what
 -- each one told the guild is kept by name: until the daily reset for the
--- daily games, and for as long as the Guild Word they played stands.
+-- daily games, and for as long as the Guild Word they played stands. One
+-- heard today who has played nothing is kept too, until the reset, so they
+-- stay in the day's list once they've logged off.
 ---------------------------------------------------------------------------
 -- Each group is a game's day (or word ID) and what goes with it. A group is taken from a
 -- message only when it's as new as the one kept: a message that came out of order, or one
@@ -159,7 +161,7 @@ local KEPT = {
 }
 
 local function Worth(r, today, word)
-    return (r.wordDay == today and r.wordScore ~= nil) or (r.iconDay == today and r.iconScore ~= nil)
+    return r.seenDay == today or (r.wordDay == today and r.wordScore ~= nil) or (r.iconDay == today and r.iconScore ~= nil)
         or (r.runDay == today and r.runSteps ~= nil) or (word ~= 0 and r.guildID == word and r.guildScore ~= nil)
 end
 
@@ -192,6 +194,7 @@ local function Keep(name, m)
     local book, today, word = DayBook()
     if not book then return end
     local r = book.names[name] or {}
+    r.seenDay = today
     for _, group in ipairs(KEPT) do
         local key = group[1]
         if m[key] and m[key] >= (r[key] or 0) then
@@ -202,7 +205,7 @@ local function Keep(name, m)
 end
 
 -- Everyone with something to show today, by name: guildmates heard this session, and those
--- whose scores for today were saved before a reload or before they logged off.
+-- heard earlier today, with any scores of theirs saved before a reload or before they logged off.
 function Guild.Day()
     local book = DayBook()
     local list = {}
