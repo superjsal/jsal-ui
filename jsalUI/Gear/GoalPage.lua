@@ -10,7 +10,7 @@ local Gear, Goal = ns.Gear, ns.GearGoal
 
 local TOP = 44                          -- under the tabs
 local HERO_H, HERO_GAP = 84, 16
-local LEFT_W, COL_GAP, HEAD_H = 452, 40, 26
+local LEFT_W, COL_GAP, HEAD_H = 600, 28, 26
 local SLOT_X, ICON_X, NAME_X = 0, 78, 112
 local RUN_HEAD, PIECE_H, CARD_GAP = 40, 32, 10
 local FOOT = 24                         -- room for the link to the small print
@@ -315,18 +315,26 @@ end
 ---------------------------------------------------------------------------
 -- Your goal, slot by slot: a line each.
 ---------------------------------------------------------------------------
+-- The groups the lines are in, by slot, in the order they're shown.
+local GROUPS = {
+    { "ARMOR", { head = 1, shoulder = 2, back = 3, chest = 4, wrist = 5, hands = 6, waist = 7, legs = 8, feet = 9 } },
+    { "JEWELRY", { neck = 1, finger = 2, trinket = 3 } },
+    { "WEAPONS", { main = 1, off = 2, ranged = 3 } },
+}
+local GAIN_W, PICKS_W = 48, 70
 local function SlotList(view, rowH, onPick)
     local list = CreateFrame("Frame", nil, view)
-    list:SetSize(LEFT_W, HEAD_H + PLACES * rowH)
+    list:SetSize(LEFT_W, #GROUPS * HEAD_H + PLACES * rowH)
     list:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
-    local head = Style.Section(list, LEFT_W)
-    head:SetPoint("TOPLEFT")
-    head.title:SetText("YOUR GOAL, SLOT BY SLOT")
+    list.heads = {}
+    for g in ipairs(GROUPS) do
+        list.heads[g] = Style.Section(list, LEFT_W)
+        list.heads[g].title:SetText(GROUPS[g][1])
+    end
     list.rows = {}
     for i = 1, PLACES do
         local r = CreateFrame("Frame", nil, list)
         r:SetSize(LEFT_W, rowH)
-        r:SetPoint("TOPLEFT", 0, -(HEAD_H + (i - 1) * rowH))
         Style.Rule(r, "BOTTOM", "line")
         r.slot = Style.Text(r, 11, "muted", nil, true)
         r.slot:SetPoint("LEFT", SLOT_X, 0)
@@ -336,11 +344,17 @@ local function SlotList(view, rowH, onPick)
         r.name:SetPoint("LEFT", NAME_X, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
+        r.gain = Style.Text(r, 12, "green", nil, true)
+        r.gain:SetPoint("LEFT", r.name, "RIGHT", 10, 0)
         r.where = Style.Text(r, 12, "muted")
-        r.where:SetPoint("RIGHT")
-        r.where:SetJustifyH("RIGHT")
+        r.where:SetPoint("LEFT", r.gain, "RIGHT", 10, 0)
+        r.where:SetJustifyH("LEFT")
+        r.where:SetWordWrap(false)
+        r.picks = Style.Text(r, 12, "secondary", nil, true)
+        r.picks:SetPoint("RIGHT", -6, 0)
+        r.picks:SetJustifyH("RIGHT")
         Tipped(r, NAME_X)
-        -- A set's slot is a click to its other choices, lit while they show.
+        -- A slot with other choices is a click to them, lit while they show.
         r.lit = r:CreateTexture(nil, "BACKGROUND")
         r.lit:SetAllPoints()
         r.lit:SetColorTexture(Style.Color("wellHover"))
@@ -351,15 +365,62 @@ local function SlotList(view, rowH, onPick)
         r.index = i
         list.rows[i] = r
     end
-    function list:Paint(rows, stage, chosen)
+    -- Where each row stands: its group's place, then its own in the group (rings and trinkets
+    -- in their pairs' order).
+    local function Place(rows)
+        local order = {}
+        for i, row in ipairs(rows) do
+            for g, group in ipairs(GROUPS) do
+                local at = group[2][row.slot.key]
+                if at then order[#order + 1] = { i = i, g = g, at = at, n = row.equip } end
+            end
+        end
+        table.sort(order, function(a, b)
+            if a.g ~= b.g then return a.g < b.g end
+            if a.at ~= b.at then return a.at < b.at end
+            return a.n < b.n
+        end)
+        return order
+    end
+    function list:Paint(rows, stage, chosen, read)
+        local y, group, counts = 0, nil, {}
+        for _, row in ipairs(rows) do
+            for g, gr in ipairs(GROUPS) do
+                if gr[2][row.slot.key] and not (row.taken or row.none) then
+                    counts[g] = counts[g] or { 0, 0 }
+                    counts[g][2] = counts[g][2] + 1
+                    if row.done then counts[g][1] = counts[g][1] + 1 end
+                end
+            end
+        end
+        for _, h in ipairs(self.heads) do h:Hide() end
+        for _, at in ipairs(Place(rows)) do
+            if at.g ~= group then
+                group = at.g
+                local h = self.heads[group]
+                h:ClearAllPoints()
+                h:SetPoint("TOPLEFT", 0, -y)
+                local c = counts[group] or { 0, 0 }
+                h.note:SetText(("%d of %d at your goal"):format(c[1], c[2]))
+                h:Show()
+                y = y + HEAD_H
+            end
+            local r, row = self.rows[at.i], rows[at.i]
+            r:ClearAllPoints()
+            r:SetPoint("TOPLEFT", 0, -y)
+            y = y + rowH
+        end
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
-            r.pickable = row ~= nil and row.pick ~= nil and stage == Goal.BEFORE
+            local others = row and stage == Goal.BEFORE and (row.pick or row.goal) and Goal.Others(read, row, 3) or {}
+            r.pickable = #others > 0
             r:EnableMouse(r.pickable)
             local on = r.pickable and chosen == i
             r.lit:SetShown(on)
             for _, edge in ipairs(r.edges) do edge:SetShown(on) end
+            r.picks:SetText(r.pickable and ((#others + 1) .. " picks \226\128\186") or "")
+            r.gain:SetText("")
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
@@ -373,7 +434,8 @@ local function SlotList(view, rowH, onPick)
                     local from = Goal.From(row.goal.e)
                     r.box.icon:SetTexture(texture)
                     r.name:SetText(Colored(name, quality or row.goal.e.quality))
-                    r.where:SetText(Gear.GoalPlace(from, stage))
+                    r.gain:SetText(row.share and row.share > 0 and ("+%d%%"):format(math.max(1, math.floor(row.share * 100 + 0.5))) or "")
+                    r.where:SetText(Gear.GoalSources(from, stage)[1] or "")
                     r.item, r.adds, r.lines = row.goal.id, row.gains, Gear.GoalSources(from, stage)
                 elseif row.done then
                     local name, quality, texture = ItemInfo(row.worn.id)
@@ -386,8 +448,12 @@ local function SlotList(view, rowH, onPick)
                     r.name:SetText(DIM .. "nothing found for it yet|r")
                     r.where:SetText("")
                 end
-                -- The name has what the line's end leaves it.
-                r.name:SetWidth(LEFT_W - NAME_X - Style.Wide(r.where, 90) - 12)
+                -- The name as wide as it's written, up to the room the line leaves it; the
+                -- source has what's left before the picks.
+                r.name:SetWidth(0)
+                local room = LEFT_W - NAME_X - GAIN_W - PICKS_W - 120
+                r.name:SetWidth(math.min(Style.Wide(r.name, 200), room))
+                r.where:SetWidth(math.max(40, LEFT_W - NAME_X - r.name:GetWidth() - Style.Wide(r.gain, 40) - PICKS_W - 30))
                 r:Fit()
             end
         end
@@ -491,14 +557,18 @@ local function RunCard(parent, width)
 end
 
 -- The column: a heading, then a list that scrolls when a class has many places to go.
-local function Runs(view, width, height, onUse, onAdd)
+local function Runs(view, width, height, onUse, onAdd, onBack)
     local col = CreateFrame("Frame", nil, view)
     col:SetSize(width, height)
     col:SetPoint("TOPLEFT", LEFT_W + COL_GAP, -(HERO_H + HERO_GAP))
     local head = Style.Section(col, width)
     head:SetPoint("TOPLEFT")
-    head.title:SetText("WHERE TO GO NEXT")
+    head.title:SetText("RUN NEXT")
     head.note:SetText("ranked by the pieces left for you")
+    -- With a slot's picks showing, the way back to what to run, at the heading's right.
+    local back = Words(col, "\226\128\185 Run next", onBack)
+    back:SetPoint("RIGHT", head, "RIGHT", 0, 0)
+    back:Hide()
     local inner = width - 10
     local scroll, child = Style.Scroller(col, width, height - HEAD_H - 4, inner, 0)
     scroll:SetPoint("TOPLEFT", 0, -(HEAD_H + 4))
@@ -524,7 +594,7 @@ local function Runs(view, width, height, onUse, onAdd)
     choiceCard:SetWidth(inner)
     Style.Box(choiceCard, 6, "well", "cardLine")
     local runsHead = Style.Section(child, inner)
-    runsHead.title:SetText("WHERE TO GO NEXT")
+    runsHead.title:SetText("RUN NEXT")
     runsHead.note:SetText("ranked by the pieces left for you")
     local choices = {}
     local function Choice(i)
@@ -561,19 +631,20 @@ local function Runs(view, width, height, onUse, onAdd)
         choiceHead:SetShown(shown)
         choiceCard:SetShown(shown)
         runsHead:SetShown(shown)
-        head.title:SetText(shown and (choice.row.label:upper() .. " · OTHER CHOICES") or "WHERE TO GO NEXT")
-        head.note:SetText(shown and ("by your weights, against " .. (choice.own and "your pick" or "the pre-BiS pick")) or "ranked by the pieces left for you")
+        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. (#choice.others + 1) .. " PICKS") or "RUN NEXT")
+        head.note:SetText(shown and "" or "ranked by the pieces left for you")
+        back:SetShown(shown)
         if not shown then
             for _, r in ipairs(choices) do r:Hide() end
             return 0
         end
-        local list = { { pick = true, piece = choice.row.pick } }
+        local list = { { pick = true, piece = choice.row.pick or choice.row.goal } }
         for _, o in ipairs(choice.others) do list[#list + 1] = o end
         for k, o in ipairs(list) do
             local r = Choice(k)
             local from = Goal.From(o.piece.e)
             local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
-            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and (choice.own and "your pick · " or "the pre-BiS pick · ") or "") .. where, nil)
+            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and (choice.own and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or "") .. where, nil)
             r.against:SetText(o.pick and "|cffe3b04bpick|r" or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
             r.use.id = o.piece.id
             r.use:SetShown(not o.pick)
@@ -750,11 +821,14 @@ function Gear.GoalView(page, width, height)
             menu = menu or SetsMenu(view, Sets)
             menu:Open(bar, last and last.set and last.set.own and last.set.key or nil)
         end)
-        list = SlotList(view, math.max(24, math.min(35, math.floor((body - HEAD_H) / PLACES))), function(i)
+        list = SlotList(view, math.max(24, math.min(32, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
             if page.Refresh then page.Refresh() end
         end)
-        runs = Runs(view, width - LEFT_W - COL_GAP, body, Use, AddItem)
+        runs = Runs(view, width - LEFT_W - COL_GAP, body, Use, AddItem, function()
+            chosen = nil
+            Refresh()
+        end)
         none = Style.Text(view, 14, "muted")
         none:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
         none:SetWidth(width)
@@ -789,9 +863,9 @@ function Gear.GoalView(page, width, height)
         if has then
             hero:Paint(read, stage)
             local row = stage == Goal.BEFORE and chosen and read[stage].rows[chosen]
-            if not (row and row.pick) then chosen, row = nil, nil end
-            list:Paint(read[stage].rows, stage, chosen)
-            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, 3), own = read.set and read.set.own } or nil)
+            if not (row and (row.pick or row.goal)) then chosen, row = nil, nil end
+            list:Paint(read[stage].rows, stage, chosen, read)
+            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, 3), own = read.set and read.set.own, set = read.set ~= nil } or nil)
             -- Still waiting on items: look again by itself, once at a time.
             if read.waiting > 0 and not retrying then
                 retrying = true

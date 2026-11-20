@@ -543,26 +543,29 @@ local function SetRows(ctx, ids, lists)
     return { rows = rows, done = done, slots = slots, runs = runs, other = other, unknown = unknown }
 end
 
--- A set slot's other choices: the weights' best for the slot before raids, leaving out the
--- set's own pieces and anything of their names, up to `n`, each with how it stands against
--- the set's piece by your weights (`against`, a share: -0.02 is 2% under it).
-function Goal.Others(read, row, n)
+-- A slot's other choices: the weights' best for the slot in a stage (before raids by
+-- default), leaving out the goal's own pieces and anything of their names, up to `n`, each
+-- with how it stands against the slot's goal by your weights (`against`, a share: -0.02 is
+-- 2% under it).
+function Goal.Others(read, row, n, stage)
+    stage = stage or Goal.BEFORE
     local out = {}
-    local pick = row and row.pick
+    local pick = row and (row.pick or row.goal)
     local list = pick and read.lists and read.lists[row.slot.key]
     if not list then return out end
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local skip, names = {}, {}
-    for _, r in ipairs(read[Goal.BEFORE].rows) do
-        if r.slot == row.slot and r.pick then
-            skip[r.pick.id] = true
-            local name = get and get(r.pick.id)
+    for _, r in ipairs(read[stage].rows) do
+        local own = r.pick or r.goal
+        if r.slot == row.slot and own then
+            skip[own.id] = true
+            local name = get and get(own.id)
             if name then names[name] = true end
         end
     end
     for _, c in ipairs(list.list) do
         local name = get and get(c.id)
-        if c.stage <= Goal.BEFORE and not c.unknown and not skip[c.id] and not (name and names[name]) then
+        if c.stage <= stage and not c.unknown and not skip[c.id] and not (name and names[name]) then
             if name then names[name] = true end
             out[#out + 1] = { piece = c, against = pick.score > 0 and (c.score - pick.score) / pick.score or nil }
             if #out >= (n or 3) then break end
