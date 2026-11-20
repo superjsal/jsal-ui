@@ -8,6 +8,9 @@ local Style, Compat, Tree = ns.Style, ns.Compat, ns.TalentTree
 local Helper = ns.NewModule("talents", {
     title = "Talent helper",
     note = "Names the next talent in your plan when a point comes in, and marks it in the talent window.",
+    -- The one part that starts off: it speaks up about a player's talents unasked, so it waits to
+    -- be switched on, in the welcome or in Settings.
+    defaultOn = false,
 })
 ns.TalentHelper = Helper
 
