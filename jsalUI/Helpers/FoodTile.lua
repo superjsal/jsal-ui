@@ -356,6 +356,11 @@ function FoodTile:OnEnable()
             return
         end
         FoodTile.Update()
+        -- Brought back, the game can still call you dead (or a ghost) as it says you're alive, and
+        -- nothing comes after to look again (the buff was already gone): look again a moment later.
+        if event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" or event == "PLAYER_DEAD" or event == "PLAYER_CONTROL_GAINED" then
+            Compat.After(1, ns.Safe(FoodTile, FoodTile.Update))
+        end
     end))
     FoodTile.Update()
 end
