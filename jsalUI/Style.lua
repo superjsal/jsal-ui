@@ -32,7 +32,7 @@ for key, hex in pairs({
     secondary = "c4bfb0",
     muted = "9a9688",
     gold = "e3b04b",
-    goldHover = "ecbe62",
+    goldHover = "f6d489",
     -- Red and green are for text on a card, so both keep 4.5:1 against it.
     red = "ef7a66",
     green = "62b35a",
