@@ -175,26 +175,28 @@ end
 -- and has since gone, the best Daily Word first, each with today's Daily
 -- Word, Icon Guess and Pal run where they've played. Nil with Guild games
 -- off. You're among them, so with no guildmate on it still has your day.
+-- Each says whether they're on now (`on`); one who has gone and played
+-- nothing today has nothing to show and is left out.
 function Games.GuildToday()
     local guild = ns.Guild
     if not (guild and guild.running and guild.Day) then return nil end
     local today, list = Games.Today(), {}
     local gw, me = guild.Word and guild.Word(), Compat.MyName()
+    local on = guild.OnNow()
     for name, m in pairs(guild.Day()) do
-        if name ~= me then
-            list[#list + 1] = {
-                name = name,
-                word = m.wordDay == today and m.wordScore or nil,
-                icons = m.iconDay == today and m.iconScore or nil,
-                run = m.runDay == today and m.runSteps or nil,
-                pal = m.runDay == today and m.runPal or nil,
-                guild = gw and m.guildID == gw.id and m.guildScore or nil,
-                -- How their games went, from guildmates on 0.3.57 or later.
-                wordMarks = m.marksDay == today and m.wordMarks or nil,
-                iconMarks = m.marksDay == today and m.iconMarks or nil,
-                guildMarks = gw and m.guildMarksID == gw.id and m.guildMarks or nil,
-            }
-        end
+        local e = name ~= me and {
+            name = name, on = on[name] == true,
+            word = m.wordDay == today and m.wordScore or nil,
+            icons = m.iconDay == today and m.iconScore or nil,
+            run = m.runDay == today and m.runSteps or nil,
+            pal = m.runDay == today and m.runPal or nil,
+            guild = gw and m.guildID == gw.id and m.guildScore or nil,
+            -- How their games went, from guildmates on 0.3.57 or later.
+            wordMarks = m.marksDay == today and m.wordMarks or nil,
+            iconMarks = m.marksDay == today and m.iconMarks or nil,
+            guildMarks = gw and m.guildMarksID == gw.id and m.guildMarks or nil,
+        }
+        if e and (e.on or e.word or e.icons or e.run or e.guild) then list[#list + 1] = e end
     end
     -- Your own row, from your own games.
     local function Today(game)
@@ -205,7 +207,7 @@ function Games.GuildToday()
     local dw, ig, pr = ns.DailyWord, ns.IconGuess, ns.PalRun
     local function Marks(text) return (text and text ~= "") and text or nil end
     list[#list + 1] = {
-        name = me, mine = true,
+        name = me, mine = true, on = true,
         word = Today(dw), icons = Today(ig), run = Today(pr),
         pal = pr and pr.PalName and pr.PalName() or nil,
         guild = gw and dw and dw.GuildResult and dw.GuildResult(gw.id) or nil,
@@ -519,6 +521,17 @@ Window.Page("games", function(page)
         r.dot:SetSize(7, 7)
         r.dot:SetPoint("LEFT", 0, 0)
         r.dot:SetColorTexture(Style.Color("green"))
+        -- A guildmate who has gone has the dot's outline instead, made when first wanted.
+        r.Gone = function(self, gone)
+            self.dot:SetShown(not gone)
+            if gone and not self.gone then
+                self.gone = CreateFrame("Frame", nil, self)
+                self.gone:SetSize(7, 7)
+                self.gone:SetPoint("LEFT", 0, 0)
+                Style.Border(self.gone, "muted")
+            end
+            if self.gone then self.gone:SetShown(gone) end
+        end
         r.cells = {}
         for k = 1, 5 do
             local t = Style.Text(r, 13, "text")
@@ -550,6 +563,8 @@ Window.Page("games", function(page)
                 local run = e.run and ns.PalRun and ns.PalRun.Clock and ns.PalRun.Clock(e.run) or nil
                 local gw = e.guild and (e.guild == "X" and "missed" or ("in " .. e.guild)) or false
                 r.cells[1]:SetText(e.name)
+                -- A green dot for one who's on now, its outline in grey for one who has gone.
+                r:Gone(not e.on)
                 -- Your own row's name in gold, as yours is on a board.
                 r.cells[1]:SetTextColor(Style.Color(e.mine and "gold" or "text"))
                 for k, value in ipairs({ Tries(e.word) or false, e.icons and (e.icons .. " of 10") or false, run or false, gw }) do

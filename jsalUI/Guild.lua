@@ -399,6 +399,18 @@ end
 
 Guild.Prune = Prune
 
+-- Who of those heard this session is on now, by name: on by the guild's roster, or heard in
+-- the last few minutes. With no roster in yet, everyone heard counts.
+function Guild.OnNow()
+    local online = Compat.GuildOnline()
+    local known = next(online) ~= nil
+    local now, on = GetTime(), {}
+    for name, m in pairs(members) do
+        if not known or online[name] or now - (m.seen or 0) <= HEARD then on[name] = true end
+    end
+    return on
+end
+
 -- Which jsal.ui each guildmate has, for /jsal versions: those on now first, the newest version
 -- first, then those seen before, the most recently seen first. The Guild page's VERSION column
 -- went when it was folded into Games (John, 19 Nov 2026: "what is the command to show all the
