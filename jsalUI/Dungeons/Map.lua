@@ -55,6 +55,18 @@ function Map.Gain(star, gain)
     return by and ("best " .. by) or nil
 end
 
+-- What the page's "About this map" says of a dungeon's map: whose it is, or where its signs come
+-- from.
+function Map.About(d)
+    local maps = Map.Has(d) and ns.DungeonMaps[d.id]
+    if maps and maps.art then
+        return "This map is Santiago Reyes's, drawn for his Atlas de Azeroth: Forever and used with his leave. "
+            .. "More of his maps are at sreyesmaps.com."
+    end
+    return "The maps are the game's own pictures. Where each boss stands comes from later versions of the game, "
+        .. "which kept the same pictures, so a sign may be a little off."
+end
+
 -- Which floor a boss is on, and where: nil for one with no place yet.
 function Map.Place(d, k)
     local maps = Map.Has(d) and ns.DungeonMaps[d.id]

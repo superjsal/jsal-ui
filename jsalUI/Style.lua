@@ -713,11 +713,18 @@ function Style.About(parent, note)
     b.text:SetText("About these numbers")
     b:SetSize(Style.Wide(b.text, 124), 18)
     Style.Rule(b, "BOTTOM", "lineStrong")
+    -- Named for what it's about where that isn't numbers ("About this map"); its tooltip takes
+    -- the name.
+    function b:Say(words)
+        if self.text:GetText() == words then return end
+        self.text:SetText(words)
+        self:SetWidth(Style.Wide(self.text, 124))
+    end
     b:SetScript("OnEnter", function(self)
         self.text:SetTextColor(Style.Color("text"))
         local words = type(self.note) == "function" and self.note() or self.note
         GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
-        GameTooltip:SetText("About these numbers")
+        GameTooltip:SetText(self.text:GetText() or "About these numbers")
         local first = true
         for line in (words or ""):gmatch("[^\n]+") do
             if not first then GameTooltip:AddLine(" ") end

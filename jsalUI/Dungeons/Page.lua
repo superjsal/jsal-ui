@@ -650,9 +650,10 @@ Window.Page("dungeons", function(page)
         bosses = "Loot and drop chances come from Wowhead Forever and what you and your guild have seen drop. They're incomplete, especially past level 30, and will change as more people play.\n"
             .. "\"For you\" is by your Gear plan's stat weights, which are estimates: roll by what you know of your spec.",
         quests = "Quests and where they start come from Wowhead Forever. Some may be missing, and they'll change as more people play.",
-        map = "The maps are the game's own pictures. Where each boss stands is marked by hand, so a sign may be a little off.",
     }
-    local about = Style.About(right, function() return NOTE[tab] end)
+    -- The Map tab's words are the shown dungeon's map's own (DungeonMap.About), set as it's drawn.
+    local about
+    about = Style.About(right, function() return tab == "map" and about.mapNote or NOTE[tab] end)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
 
     -- The window is as tall as what's in the list, between a least and the
@@ -678,6 +679,7 @@ Window.Page("dungeons", function(page)
     -- strip of small pictures for what isn't for you.
     local cardW = math.floor((rightW - GRID_GAP) / 2)
     local B = {}
+    B.about = about
     B.sum = Style.Text(right, 15, "text", nil, true)
     B.sum:SetPoint("TOPLEFT", 0, -2)
     -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
@@ -1875,10 +1877,12 @@ Window.Page("dungeons", function(page)
         tabs:Shown("map", hasMap)
         if tab == "map" and not hasMap then tab = "bosses" end
         tabs:Pick(tab)
+        B.about:Say(tab == "map" and "About this map" or "About these numbers")
         bossScroll:SetShown(tab ~= "map")
         if mapPane then mapPane:SetShown(tab == "map") end
         if tab == "map" then
             hint:SetText("")
+            B.about.mapNote = ns.DungeonMap.About(d)
             -- The map marks the bosses with gear for you. An item of theirs the game
             -- hasn't loaded yet is counted, so the map is drawn again when it comes.
             missed = 0
