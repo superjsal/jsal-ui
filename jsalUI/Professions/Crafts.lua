@@ -408,11 +408,13 @@ local function Head(list, state, title, n, say)
     return h
 end
 
-local function ShowTip(self)
+-- An order's tooltip, for the row `self`, shown from `owner`: the part of
+-- the row that's pointed at.
+local function ShowTip(self, owner)
     local order = self.order
     local recipe = order and ns.Orders.Recipe(order.spell)
     if not recipe then return end
-    GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+    GameTooltip:SetOwner(owner or self, "ANCHOR_CURSOR")
     if recipe.item then GameTooltip:SetItemByID(recipe.item) else GameTooltip:SetSpellByID(order.spell) end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine(order.have and (order.by .. " has the materials:") or (order.by .. " needs the materials too:"), 0.89, 0.69, 0.29)
@@ -431,6 +433,25 @@ local function ShowTip(self)
     end
     if order.note then GameTooltip:AddLine("“" .. order.note .. "”", 0.77, 0.75, 0.69, true) end
     GameTooltip:Show()
+end
+
+-- The part of a row its tooltip belongs to: its picture and its name. Over
+-- the whole row a tooltip covers what the pointer is on its way to. The
+-- row sets its width once it knows how long the name is written.
+local function Hot(r, enter)
+    local hot = CreateFrame("Frame", nil, r)
+    hot:EnableMouse(true)
+    hot:SetScript("OnEnter", enter)
+    hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    r.hot = hot
+    return hot
+end
+local function OrderHot(r)
+    return Hot(r, function(self) ShowTip(r, self) end)
+end
+-- As wide as from the row's left to the end of `text` as it's written.
+local function HotTo(r, from, text)
+    r.hot:SetWidth(from + math.min(text:GetStringWidth() or 0, text:GetWidth()))
 end
 
 local function MakeOrder(parent, width)
@@ -460,9 +481,8 @@ local function MakeOrder(parent, width)
     r.lesser = Quiet(r)
     r.track = Track(r)
     r.track:SetPoint("BOTTOMRIGHT", -ORDER_PAD, 11)
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("TOPLEFT", ORDER_PAD, -8)
+    r.hot:SetHeight(46)
     return r
 end
 
@@ -508,6 +528,7 @@ local function FillOrder(r, order, state, second, mine, buttons)
     r.edge:Paint(STATE[state])
     r.icon:SetTexture(Icon(order))
     r.l1:SetText(Title(order))
+    HotTo(r, 70 - ORDER_PAD, r.l1)
     r.l2:SetText(second)
     if order.have then
         r.pill:Set(mine and "YOU HAVE THE MATERIALS" or "HAS THE MATERIALS", "good")
@@ -591,9 +612,8 @@ local function MakeDone(parent, width)
     r.action = Quiet(r)
     r.action:SetPoint("RIGHT", -84, 0)
     Style.Rule(r, "BOTTOM", "line")
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("LEFT", 24, 0)
+    r.hot:SetHeight(DONE_ROW)
     return r
 end
 
@@ -625,6 +645,7 @@ local function Done(list, order, words, name, state, action)
     end
     r.text:SetText((called or "...") .. ((recipe and recipe.item) and ("   ×" .. (order.n or 1)) or "")
         .. (name and ("     " .. words .. " " .. name) or ""))
+    HotTo(r, 40, r.text)
     r.when:SetText(Ago(order.e))
 end
 
@@ -876,6 +897,7 @@ local function PaintItem(card, a, enchant)
     if not a.spell then
         line.name:SetText("")
         line.text:SetText("What you pick shows here: its picture and name, and for an enchant what it gives.")
+        line.hot:SetWidth(1)
         line.text:ClearAllPoints()
         line.text:SetPoint("LEFT", 0, 0)
         line.text:SetPoint("RIGHT", 0, 0)
@@ -902,6 +924,7 @@ local function PaintItem(card, a, enchant)
         end
         line.text:SetText(says or "")
     end
+    line.hot:SetWidth(34 + (line.name:GetStringWidth() or 0))
     line:Show()
 end
 
@@ -1169,7 +1192,7 @@ local function BuildCard(view, width)
     card.item.text:SetPoint("RIGHT", 0, 0)
     card.item.text:SetJustifyH("LEFT")
     card.item.text:SetWordWrap(false)
-    card.item:SetScript("OnEnter", function(self)
+    Hot(card.item, function(self)
         local a = C.ask
         if not a.spell then return end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
@@ -1180,8 +1203,8 @@ local function BuildCard(view, width)
             GameTooltip:SetSpellByID(a.spell)
         end
         GameTooltip:Show()
-    end)
-    card.item:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end):SetPoint("LEFT")
+    card.item.hot:SetHeight(26)
     card.item:Hide()
 
     card.makers = Style.Text(card.strip, 12, "muted")
@@ -1850,9 +1873,8 @@ local function MakeLine(parent, width)
     r.main:SetPoint("RIGHT", -10, 0)
     r.lesser = Quiet(r)
     r.lesser:SetPoint("RIGHT", -12, 0)
-    r:EnableMouse(true)
-    r:SetScript("OnEnter", ShowTip)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    OrderHot(r):SetPoint("LEFT", 9, 0)
+    r.hot:SetHeight(LINE)
     return r
 end
 
@@ -1865,6 +1887,7 @@ local function Line(list, order, state, second, button)
     local recipe = ns.Orders.Recipe(order.spell)
     r.l1:SetText(ItemTint(recipe and recipe.item) .. (ns.Orders.Name(order) or "...") .. "|r"
         .. ((recipe and recipe.item) and ("  " .. Style.Tint("secondary") .. "×" .. (order.n or 1) .. "|r") or ""))
+    HotTo(r, 42, r.l1)
     r.l2:SetText(second)
     r.main:SetShown(button ~= nil and button[3] == true)
     r.lesser:SetShown(button ~= nil and button[3] ~= true)
