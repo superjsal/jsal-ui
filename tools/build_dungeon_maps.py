@@ -139,6 +139,11 @@ FACES = {
 # chosen by hand where several pictures take the spot, by the skull and the room's name on the picture and by
 # height. A boss called up rather than standing there is placed at its room's skull. Zul'Gurub has no
 # picture of the classic city (its pictures are the rebuilt one's), and Kormok no place.
+# A floor's name where the game has none for its picture, by map ID: the room each picture names that matters
+# most there. Scholomance's old pictures have no names in the game.
+FLOOR_NAMES = {
+    289: {2: "Chamber of Summoning", 3: "Headmaster's Study", 4: "Barov Family Vault"},
+}
 HAND = {
     33: {    # Shadowfang Keep
         "Rethilgore": (1, 0.661, 0.711),
@@ -342,8 +347,12 @@ def write(out):
             continue
         floors = max(f for f, *_ in placed.values())
         said = ", ".join("true" if f in names else "false" for f in range(1, floors + 1))
-        lines.append('    [%d] = { folder = "%s",%s floors = { %s },\n        bosses = {\n' % (
+        lines.append('    [%d] = { folder = "%s",%s floors = { %s },\n' % (
             d["id"], folder, count == 0 and " plain = true," or "", said))
+        if d["map"] in FLOOR_NAMES:
+            lines.append("        names = { %s },\n" % ", ".join(
+                '[%d] = "%s"' % (f, n) for f, n in sorted(FLOOR_NAMES[d["map"]].items())))
+        lines.append("        bosses = {\n")
         for enc, name, _ in d["bosses"]:
             if enc in placed:
                 f, x, y = placed[enc][:3]

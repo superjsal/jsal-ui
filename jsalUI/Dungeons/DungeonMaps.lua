@@ -251,6 +251,7 @@ ns.DungeonMaps = {
             [2798] = { 1, 0.558, 0.684, 10669 },    -- Postmaster Malown
         } },
     [2] = { folder = "ScholomanceOLD", floors = { false, true, true, true },
+        names = { [2] = "Chamber of Summoning", [3] = "Headmaster's Study", [4] = "Barov Family Vault" },
         bosses = {
             [2805] = { 2, 0.492, 0.108, 143673 },    -- Kirtonos
             [2804] = { 3, 0.543, 0.144, 11073 },    -- Jandice Barov
