@@ -1231,9 +1231,8 @@ local function GuildCard(parent, width)
     c.names = {}
     local function Name(i)
         if c.names[i] then return c.names[i] end
-        local n = { dot = c:CreateTexture(nil, "ARTWORK"), text = Style.Text(c, 13, "text") }
-        n.dot:SetSize(7, 7)
-        n.dot:SetColorTexture(Style.Color("green"))
+        local n = { dot = Style.Dot(c, 9), text = Style.Text(c, 13, "text") }
+        n.dot:Paint("green")
         n.text:SetPoint("LEFT", n.dot, "RIGHT", 5, 0)
         c.names[i] = n
         return n
@@ -1280,7 +1279,7 @@ local function GuildCard(parent, width)
         for i, mate in ipairs(mates or {}) do
             local n = Name(i)
             n.text:SetText(ClassTint(mate.class) .. mate.name .. "|r")
-            local wide = 12 + Style.Wide(n.text, #mate.name * 7)
+            local wide = 14 + Style.Wide(n.text, #mate.name * 7)
             local function Room() return width - PAD - at - ((line == lines and i < #mates) and 84 or 0) end
             if wide > Room() and line < lines then at, line = PAD, line + 1 end
             if wide > Room() then break end

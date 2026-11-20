@@ -273,6 +273,20 @@ function Style.Circle(frame, fillKey, lineKey)
     return disc
 end
 
+-- A round mark, as for a guildmate who's on: the circle's picture, one
+-- piece, `size` across. Paint(colorKey) colours it. Where round corners
+-- can't be drawn it's a square.
+function Style.Dot(parent, size, layer)
+    local t = parent:CreateTexture(nil, layer or "ARTWORK")
+    t:SetSize(size, size)
+    if t.SetTextureSliceMargins and Style.Rounded() then
+        t.round = true
+        t:SetTexture(CIRCLE)
+    end
+    t.Paint = PaintShape
+    return t
+end
+
 -- A pill: a shape whose ends are half circles, whatever its size and the
 -- screen's. It's the circle's picture in three pieces: its left half, a
 -- flat middle, its right half. A sliced corner (Style.Round) is drawn at a

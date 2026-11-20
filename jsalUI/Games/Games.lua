@@ -517,18 +517,17 @@ Window.Page("games", function(page)
         r:SetSize(guildW, 28)
         r:SetPoint("TOPLEFT", GUILD_X, -(GUILD_Y + 48 + (i - 1) * 28))
         Style.Rule(r, "BOTTOM", "line")
-        r.dot = r:CreateTexture(nil, "ARTWORK")
-        r.dot:SetSize(7, 7)
+        r.dot = Style.Dot(r, 9)
         r.dot:SetPoint("LEFT", 0, 0)
-        r.dot:SetColorTexture(Style.Color("green"))
-        -- A guildmate who has gone has the dot's outline instead, made when first wanted.
+        r.dot:Paint("green")
+        -- A guildmate who has gone has the dot's outline instead, a ring, made when first wanted.
         r.Gone = function(self, gone)
             self.dot:SetShown(not gone)
             if gone and not self.gone then
                 self.gone = CreateFrame("Frame", nil, self)
-                self.gone:SetSize(7, 7)
+                self.gone:SetSize(9, 9)
                 self.gone:SetPoint("LEFT", 0, 0)
-                Style.Border(self.gone, "muted")
+                Style.Circle(self.gone, "well", "muted")
             end
             if self.gone then self.gone:SetShown(gone) end
         end
