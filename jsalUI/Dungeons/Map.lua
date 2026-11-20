@@ -4,7 +4,8 @@
 -- green dot on its sign when it drops something better than what you wear, your Gear plan's
 -- star when it drops a piece you starred. A boss a quest in your log needs has a gold "!" at
 -- its sign's other shoulder, and the quest's name under its own. A dungeon of Forever's own has no map
--- picture: its map is a cut of its minimap, with no boss placed on it.
+-- picture in the game: its map is Santiago Reyes's, a picture a floor, with no boss placed on it and his
+-- credit under it.
 local _, ns = ...
 local Style = ns.Style
 
@@ -16,6 +17,10 @@ ns.DungeonMap = Map
 local ART_W, ART_H, TILE, ACROSS, PIECES = 1002, 668, 256, 4, 12
 local MAP_MAX, LIST_W, GAP, TOP, ROW_H, SIGN = 620, 320, 24, 30, 44, 26
 local FLOORS = 7
+-- The artist's pictures: where they are, how wide each is, and his credit, said under every one.
+local ART = "Interface\\AddOns\\jsalUI\\Media\\Maps\\"
+local ART_PX = 1024
+local CREDIT = "Map by Santiago Reyes \194\183 Atlas de Azeroth: Forever \194\183 sreyesmaps.com"
 -- A row needs this much height for its two lines; under it, a row is one line.
 local TWO_LINES = 34
 -- A boss's picture in its tooltip is this many of the tooltip's lines high.
@@ -27,9 +32,10 @@ function Map.Has(d)
     return d ~= nil and ns.DungeonMaps ~= nil and ns.DungeonMaps[d.id] ~= nil
 end
 
--- A floor's name: the game's own word for it where it has one (DUNGEON_FLOOR_MARAUDON2 is
--- "Zaetar's Grave"), or its number.
+-- A floor's name: the one its map gives it, the game's own word for it where it has one
+-- (DUNGEON_FLOOR_MARAUDON2 is "Zaetar's Grave"), or its number.
 function Map.Floor(maps, i)
+    if maps.names and maps.names[i] then return maps.names[i] end
     local own = maps.folder and _G["DUNGEON_FLOOR_" .. maps.folder:upper() .. i]
     return type(own) == "string" and own ~= "" and own or ("Floor " .. i)
 end
@@ -140,6 +146,11 @@ function Map.Build(parent, width, onBoss)
     pane.hint:SetPoint("TOPRIGHT", pane, "TOPLEFT", mapW, -6)
     local HINT = "Click a boss for its loot"
     pane.hint:SetText(HINT)
+    -- The artist's credit, at the page's foot under his map, on the line of its other small print.
+    pane.credit = Style.Text(pane, 12, "muted")
+    pane.credit:SetPoint("LEFT", parent, "BOTTOMLEFT", 0, 9)
+    pane.credit:SetText(CREDIT)
+    pane.credit:Hide()
 
     -- The picture, kept to its own size: its pieces run past it.
     local canvas = CreateFrame("Frame", nil, pane)
@@ -153,25 +164,24 @@ function Map.Build(parent, width, onBoss)
     -- The pieces are set one a frame, and only while the map is in view. The game reads a
     -- piece's file as it comes on screen: all twelve at once made the window's opening frame
     -- about 100 ms long. Out of view they're let go, so nothing of the map is kept loaded.
-    -- A floor's picture is its twelve pieces by `want`, a path; a minimap's is `mini`, as many
-    -- tiles as its cut takes in, each by its file number and its own place and size.
-    local want, mini, set = nil, nil, 0
+    -- A floor's picture is its twelve pieces by `want`, a path; the artist's is one picture,
+    -- `whole`, the map's own shape.
+    local want, whole, set = nil, false, 0
     -- The view: how far in the picture is zoomed (1: all of it), where its corner then is
     -- (`x` and `y`, nothing or less: the picture always fills the map), and how far in it may
-    -- go, `most`: until a piece is drawn at its own size, past which it only goes soft. A floor's
-    -- picture is drawn smaller than it is, so it can go in by half as much again; a minimap cut
-    -- wide has more to go, and one already drawn at its size or over has none.
+    -- go, `most`: until the picture is drawn at its own size, past which it only goes soft. Both
+    -- kinds are drawn smaller than they are, so they can go in by half as much again or more.
     local view = { zoom = 1, x = 0, y = 0, most = 1 }
     pane.view = view
     local function Tile(i)
         local t = pane.tiles[i]
-        local m = mini and mini[i]
-        local size = (m and m[4] * mapW or TILE * scale) * view.zoom
-        t:SetSize(size, size)
         t:ClearAllPoints()
-        if m then
-            t:SetPoint("TOPLEFT", view.x + m[2] * mapW * view.zoom, -(view.y + m[3] * mapH * view.zoom))
+        if whole then
+            t:SetSize(mapW * view.zoom, mapH * view.zoom)
+            t:SetPoint("TOPLEFT", view.x, -view.y)
         else
+            local size = TILE * scale * view.zoom
+            t:SetSize(size, size)
             t:SetPoint("TOPLEFT", view.x + ((i - 1) % ACROSS) * size, -(view.y + math.floor((i - 1) / ACROSS) * size))
         end
     end
@@ -190,22 +200,20 @@ function Map.Build(parent, width, onBoss)
     end
     local function Feed(self)
         set = set + 1
-        if not pane.tiles[set] then pane.tiles[set] = canvas:CreateTexture(nil, "ARTWORK") end
         Tile(set)
-        local m = mini and mini[set]
-        pane.tiles[set]:SetTexture(m and m[1] or (want .. set))
-        if set >= (mini and #mini or PIECES) then self:SetScript("OnUpdate", nil) end
+        pane.tiles[set]:SetTexture(whole and want or (want .. set))
+        if set >= (whole and 1 or PIECES) then self:SetScript("OnUpdate", nil) end
     end
     local dragger = CreateFrame("Frame", nil, canvas)
-    local function Picture(path, tiles)
-        local key = tiles or path
-        if key == (mini or want) then return end
-        want, mini, set = path, tiles, 0
+    local function Picture(path, one)
+        one = one and true or false
+        if path == want and one == whole then return end
+        want, whole, set = path, one, 0
         for _, t in ipairs(pane.tiles) do t:SetTexture(nil) end
-        canvas:SetScript("OnUpdate", key and Feed or nil)
+        canvas:SetScript("OnUpdate", path and Feed or nil)
         -- Another picture starts whole.
         view.zoom, view.x, view.y = 1, 0, 0
-        view.most = tiles and TILE * 2 / (tiles[1][4] * mapW) or ART_W / mapW
+        view.most = (one and ART_PX or ART_W) / mapW
         if view.most < 1.1 then view.most = 1 end
         canvas:EnableMouseWheel(view.most > 1)
         dragger:SetScript("OnUpdate", nil)
@@ -455,8 +463,9 @@ function Map.Build(parent, width, onBoss)
         pane.floors:Pick(pane.floor)
         pane.floors:SetShown(count > 1)
         pane.manyFloors = count > 1
-        if maps.mini then
-            Picture(nil, maps.mini)
+        pane.credit:SetShown(maps.art ~= nil)
+        if maps.art then
+            Picture(ART .. maps.art[pane.floor] .. ".png", true)
         else
             Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. (maps.plain and "" or (pane.floor .. "_")))
         end

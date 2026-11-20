@@ -13,32 +13,16 @@ local _, ns = ...
 -- encounter ID as { floor, across, down, and its model where one is known, for its picture in
 -- its tooltip }. A boss not here has no place known. A dungeon with
 -- fewer than half its bosses placed is left out.
--- A dungeon of Forever's own has no such picture. Its map is a cut of its minimap, which the
--- game's files hold in tiles an addon can show by file number only: `mini`, each tile as
--- { file, left, top, size }, where its corner is and how wide it is, as parts of the shown
--- picture's width (left, size) and height (top). No boss is placed on one.
+-- A dungeon of Forever's own has no such picture. Its map is Santiago Reyes's (Atlas de Azeroth:
+-- Forever, sreyesmaps.com), shown with his credit: `art`, each floor's picture in Media\Maps,
+-- and `names`, each floor's name. No boss is placed on one.
 ns.DungeonMaps = {
     [3273] = { floors = { true }, bosses = {},    -- Hall of Thanes
-        mini = {
-            { 7726086, -0.0133, -0.4800, 0.4267 },
-            { 7726092, 0.4133, -0.4800, 0.4267 },
-            { 7726098, 0.8400, -0.4800, 0.4267 },
-            { 7726140, -0.0133, 0.1600, 0.4267 },
-            { 7726146, 0.4133, 0.1600, 0.4267 },
-            { 7726152, 0.8400, 0.1600, 0.4267 },
-            { 7726194, -0.0133, 0.8000, 0.4267 },
-            { 7726200, 0.4133, 0.8000, 0.4267 },
-            { 7726206, 0.8400, 0.8000, 0.4267 },
-        } },
+        art = { "hallofthanes" },
+        names = { "Hall of Thanes" } },
     [3272] = { floors = { true }, bosses = {},    -- Ruins of Lordaeron
-        mini = {
-            { 7255730, -0.3323, -0.3094, 0.5333 },
-            { 7255736, 0.2010, -0.3094, 0.5333 },
-            { 7255742, 0.7344, -0.3094, 0.5333 },
-            { 7255748, -0.3323, 0.4906, 0.5333 },
-            { 7255754, 0.2010, 0.4906, 0.5333 },
-            { 7255760, 0.7344, 0.4906, 0.5333 },
-        } },
+        art = { "lordaeron" },
+        names = { "Ruins of Lordaeron" } },
     [5] = { folder = "TheDeadmines", floors = { true, true },
         bosses = {
             [2741] = { 1, 0.365, 0.612, 14403 },    -- Rhahk'Zor
@@ -85,18 +69,12 @@ ns.DungeonMaps = {
             [2771] = { 3, 0.432, 0.883 },    -- Crowd Pummeler 9-60
             [2772] = { 4, 0.311, 0.303 },    -- Mekgineer Thermaplugg
         } },
-    [3271] = { floors = { true }, bosses = {},    -- City of Dalaran
-        mini = {
-            { 6982326, -0.1183, -0.4275, 0.4267 },
-            { 6982322, 0.3083, -0.4275, 0.4267 },
-            { 6982391, 0.7350, -0.4275, 0.4267 },
-            { 6982332, -0.1183, 0.2125, 0.4267 },
-            { 6982328, 0.3083, 0.2125, 0.4267 },
-            { 6982395, 0.7350, 0.2125, 0.4267 },
-            { 6982439, -0.1183, 0.8525, 0.4267 },
-            { 6982441, 0.3083, 0.8525, 0.4267 },
-            { 6982489, 0.7350, 0.8525, 0.4267 },
-        } },
+    [3274] = { floors = { true }, bosses = {},    -- Excavation Site: Wetlands
+        art = { "excavation" },
+        names = { "Excavation Site" } },
+    [3271] = { floors = { true, true }, bosses = {},    -- City of Dalaran
+        art = { "dalaran1", "dalaran2" },
+        names = { "City of Dalaran", "The Underbelly" } },
     [19] = { folder = "RazorfenDowns", floors = { true },
         bosses = {
             [2780] = { 1, 0.594, 0.340, 7845 },    -- Tuten'kash
@@ -104,21 +82,9 @@ ns.DungeonMaps = {
             [2784] = { 1, 0.343, 0.668 },    -- Glutton
             [2785] = { 1, 0.445, 0.605 },    -- Amnennar the Coldbringer
         } },
-    [3270] = { floors = { true }, bosses = {},    -- The Drowned City
-        mini = {
-            { 7557511, -0.1320, -0.5100, 0.3413 },
-            { 7557513, 0.2093, -0.5100, 0.3413 },
-            { 7557515, 0.5507, -0.5100, 0.3413 },
-            { 7557583, 0.8920, -0.5100, 0.3413 },
-            { 7557517, -0.1320, 0.0020, 0.3413 },
-            { 7557519, 0.2093, 0.0020, 0.3413 },
-            { 7557521, 0.5507, 0.0020, 0.3413 },
-            { 7557587, 0.8920, 0.0020, 0.3413 },
-            { 7557523, -0.1320, 0.5140, 0.3413 },
-            { 7557525, 0.2093, 0.5140, 0.3413 },
-            { 7557527, 0.5507, 0.5140, 0.3413 },
-            { 7557591, 0.8920, 0.5140, 0.3413 },
-        } },
+    [3270] = { floors = { true, true }, bosses = {},    -- The Drowned City
+        art = { "drowned1", "drowned2" },
+        names = { "The Drowned City", "Atal'Byzal" } },
     [21] = { folder = "Uldaman", floors = { true, true },
         bosses = {
             [547] = { 1, 0.534, 0.725, 5945 },    -- Revelosh
@@ -131,20 +97,8 @@ ns.DungeonMaps = {
             [554] = { 2, 0.553, 0.504, 5988 },    -- Archaedas
         } },
     [3275] = { floors = { true }, bosses = {},    -- Krol'dok Stronghold
-        mini = {
-            { 7540085, -0.2500, -0.2692, 0.3282 },
-            { 7540087, 0.0782, -0.2692, 0.3282 },
-            { 7540089, 0.4064, -0.2692, 0.3282 },
-            { 7540091, 0.7346, -0.2692, 0.3282 },
-            { 7540093, -0.2500, 0.2231, 0.3282 },
-            { 7540095, 0.0782, 0.2231, 0.3282 },
-            { 7540097, 0.4064, 0.2231, 0.3282 },
-            { 7540099, 0.7346, 0.2231, 0.3282 },
-            { 7540101, -0.2500, 0.7154, 0.3282 },
-            { 7540103, 0.0782, 0.7154, 0.3282 },
-            { 7540105, 0.4064, 0.7154, 0.3282 },
-            { 7540107, 0.7346, 0.7154, 0.3282 },
-        } },
+        art = { "kroldok" },
+        names = { "Krol'dok Stronghold" } },
     [25] = { folder = "Maraudon", floors = { true, true },
         bosses = {
             [422] = { 1, 0.362, 0.098, 11172 },    -- Noxxion
@@ -167,10 +121,9 @@ ns.DungeonMaps = {
             [599] = { 1, 0.296, 0.174, 6690 },    -- Shadowpriest Sezz'ziz
             [600] = { 1, 0.422, 0.330, 6439 },    -- Chief Ukorz Sandscalp
         } },
-    [3269] = { floors = { true }, bosses = {},    -- Alcaz Prison
-        mini = {
-            { 7250238, -0.3290, -0.7130, 1.4841 },
-        } },
+    [3269] = { floors = { true, true }, bosses = {},    -- Alcaz Prison
+        art = { "alcaz1", "alcaz2" },
+        names = { "Main Unit", "Maximum Security Unit" } },
     [29] = { folder = "BlackrockDepths", floors = { true, true },
         bosses = {
             [227] = { 1, 0.474, 0.922, 8761 },    -- High Interrogator Gerstahn
@@ -237,21 +190,9 @@ ns.DungeonMaps = {
             [349] = { 4, 0.350, 0.576, 14173 },    -- Immol'thar
             [361] = { 4, 0.623, 0.232, 11256 },    -- Prince Tortheldrin
         } },
-    [3268] = { floors = { true }, bosses = {},    -- Blackmaw Hold
-        mini = {
-            { 7011727, -0.0287, -0.1569, 0.2943 },
-            { 7011733, 0.2655, -0.1569, 0.2943 },
-            { 7011739, 0.5598, -0.1569, 0.2943 },
-            { 7011745, 0.8540, -0.1569, 0.2943 },
-            { 7011757, -0.0287, 0.2845, 0.2943 },
-            { 7011763, 0.2655, 0.2845, 0.2943 },
-            { 7011769, 0.5598, 0.2845, 0.2943 },
-            { 7011775, 0.8540, 0.2845, 0.2943 },
-            { 7011787, -0.0287, 0.7259, 0.2943 },
-            { 7011793, 0.2655, 0.7259, 0.2943 },
-            { 7011799, 0.5598, 0.7259, 0.2943 },
-            { 7011805, 0.8540, 0.7259, 0.2943 },
-        } },
+    [3268] = { floors = { true, true, true, true, true, true }, bosses = {},    -- Blackmaw Hold
+        art = { "blackmaw1", "blackmaw2", "blackmaw3", "blackmaw4", "blackmaw5", "blackmaw6" },
+        names = { "Blackmaw Grove", "Festering Grotto", "Fallen Grove", "Elders", "Burrow", "Forbidden Magic" } },
     [39] = { folder = "Stratholme", floors = { true, true },
         bosses = {
             [473] = { 1, 0.605, 0.314, 10482 },    -- Hearthsinger Forresten
@@ -269,6 +210,9 @@ ns.DungeonMaps = {
             [484] = { 2, 0.387, 0.201 },    -- Baron Rivendare
             [2798] = { 1, 0.558, 0.684, 10669 },    -- Postmaster Malown
         } },
+    [3267] = { floors = { true, true }, bosses = {},    -- The Shaper's Terrace
+        art = { "shaper1", "shaper2" },
+        names = { "The Shaper's Terrace", "Prismatic Talus" } },
     [49] = { folder = "BlackwingLair", floors = { true, false, true, true },
         bosses = {
             [610] = { 1, 0.419, 0.602, 10115 },    -- Razorgore the Untamed

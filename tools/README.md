@@ -78,10 +78,10 @@ holds JournalEncounter, JournalEncounterCreature (a boss's model, for its pictur
 model Forever has), JournalInstance, UiMap and UiMapAssignment from two such builds, cut to the
 columns the tool reads. A dungeon is left out when fewer than half its bosses are found there: the
 ones rebuilt before the journal came (Scarlet Monastery, Scholomance, The Stockade, Shadowfang Keep,
-Sunken Temple, Zul'Gurub). Forever's own dungeons have no map picture: seven of them are shown by a
-cut of their minimap, whose tiles `data\dungeons\minimaps\` lists by file number (the cut is the
-tool's `MINIMAPS`, by hand), with no boss placed. Excavation Site: Wetlands and The Shaper's Terrace
-are left out: where they sit on their minimaps isn't known.
+Sunken Temple, Zul'Gurub). Forever's own dungeons have no map picture: theirs are Santiago Reyes's,
+from Atlas de Azeroth: Forever (sreyesmaps.com), with his leave and his credit under each, a picture a
+floor in `jsalUI\Media\Maps\` made by `python -I tools\build_map_art.py <folder>` from his full-size
+maps (not kept here); the tool's `ART` names each floor. No boss is placed on them.
 
 Loot and quests come from Wowhead Forever, in `data\dungeons\wowhead.json`: each dungeon's zone page
 (its Quests tab, and its NPCs to find each boss) and each boss's NPC page (its Drops tab, with how
