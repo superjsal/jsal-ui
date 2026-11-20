@@ -485,7 +485,7 @@ function Map.Build(parent, width, onBoss)
         pane.manyFloors = count > 1
         pane.credit:SetShown(maps.art ~= nil)
         if maps.art then
-            Picture(ART .. maps.art[pane.floor] .. ".png", true)
+            Picture(ART .. maps.art[pane.floor] .. ".jpg", true)
         else
             Picture("Interface\\WorldMap\\" .. maps.folder .. "\\" .. maps.folder .. (maps.plain and "" or (pane.floor .. "_")))
         end

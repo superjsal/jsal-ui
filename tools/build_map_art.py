@@ -1,9 +1,13 @@
-"""Builds jsalUI/Media/Maps/*.png: the maps of Forever's own dungeons for the Dungeon guide's Map tab.
+"""Builds jsalUI/Media/Maps/*.jpg: the maps of Forever's own dungeons for the Dungeon guide's Map tab.
 
 The maps are Santiago Reyes's, from Atlas de Azeroth: Forever (sreyesmaps.com), used with his leave and his
 credit under each one in the addon. Each is 3000 by 2000 on his site, with his watermarks and his credit
 line, which are kept as they are: a map is only made smaller, never cut. They're shown 612 wide and can be
 zoomed in until drawn at their own size, so 1024 by 683 keeps them sharp there and no bigger than that.
+
+They're saved as JPEGs, which the game draws: his are JPEGs to begin with, and at this quality one can't
+be told from the same picture saved without loss, at a quarter of the size (4.5 MB for the eighteen, where
+PNGs were 19). Fewer colours was tried and isn't an answer: 256 lose the tints he paints rooms with.
 
 The sources aren't in this repository. Give the folder they were saved in, each named as below.
 
@@ -18,6 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT = os.path.join(ROOT, "jsalUI", "Media", "Maps")
 WIDE, TALL = 1024, 683
+QUALITY = 92
 # The addon's name for each picture, from the source's file name (his site's page, then the floor).
 ART = {
     "hallofthanes": "salon-de-los-feudales-hall-of-thanes_1",
@@ -47,8 +52,8 @@ def main(src):
     for name, source in sorted(ART.items()):
         im = Image.open(os.path.join(src, source + ".jpg")).convert("RGB")
         im = im.resize((WIDE, TALL), Image.LANCZOS)
-        path = os.path.join(OUT, name + ".png")
-        im.save(path, optimize=True)
+        path = os.path.join(OUT, name + ".jpg")
+        im.save(path, "JPEG", quality=QUALITY, subsampling=0, optimize=True)
         total += os.path.getsize(path)
         print("%-12s %5d KB" % (name, os.path.getsize(path) // 1024))
     print("%d pictures, %.1f MB" % (len(ART), total / 1048576))
