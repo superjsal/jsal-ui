@@ -723,6 +723,8 @@ end
 -- for the one main action on a page; "plain" is a well with a line around
 -- it. Under the pointer both light up a step, and a plain one darkens while
 -- it's pressed.
+-- "gilt" is for an action offered on every row of a list: a plain button
+-- at rest, so a long list isn't a column of gold, and gold under the pointer.
 -- "tab" is one of a row of choices (a page's tabs, a filter, a spec), a pill:
 -- the chosen one, set with SetSelected, has gold words on a dim gold fill in
 -- a gold line, so a gold fill stays the mark of the main action.
@@ -740,6 +742,8 @@ local function PaintButton(b)
     elseif b.kind == "primary" and enabled then
         fill = (b.hover and not b.down) and "goldHover" or "gold"
         line, text = fill, "onGold"
+    elseif b.kind == "gilt" and lit then
+        fill, line, text = "gold", "gold", "onGold"
     elseif chosen then
         fill, line, text = "needFill", "gold", "gold"
     elseif b.kind == "tab" then
