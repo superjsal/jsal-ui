@@ -31,6 +31,27 @@ end
 -- from which creature.
 local current
 
+-- A layer changes once in a while, when you join a group or the game moves
+-- you. If the creatures on one map give MIXED different layers within WINDOW
+-- seconds, the zone part no longer names a layer (the game scrambles it), so
+-- layers are taken to be unreadable and no number is shown, rather than a
+-- wrong one, until a /reload checks again.
+local MIXED, WINDOW = 4, 60
+local seenAt, seenMap = {}, nil   -- [layer] = when it was last read on seenMap
+Layers.unreadable = false
+Layers.UNREADABLE = "Layers can't be read on this version of the game: the creatures around you each give a different one, so jsal.ui shows none. A /reload checks again."
+
+local function Mixed(zone, map)
+    local now = Compat.Now()
+    if map ~= seenMap then seenAt, seenMap = {}, map end
+    seenAt[zone] = now
+    local kinds = 0
+    for layer, at in pairs(seenAt) do
+        if now - at > WINDOW then seenAt[layer] = nil else kinds = kinds + 1 end
+    end
+    return kinds >= MIXED
+end
+
 -- Other parts (the quick bar's Layer button) hear when the number changes.
 local listeners = {}
 function Layers.OnChange(fn) listeners[#listeners + 1] = fn end
@@ -39,10 +60,16 @@ local function Changed()
 end
 
 local function Note(unit)
-    if not (UnitExists(unit) and not UnitIsPlayer(unit)) then return end
+    if Layers.unreadable or not (UnitExists(unit) and not UnitIsPlayer(unit)) then return end
     local zone, server, _, npc = Layers.FromGUID(Compat.GUID(unit))
     if not zone then return end
     local map = Compat.PlayerPosition()
+    if Mixed(zone, map) then
+        Layers.unreadable, current = true, nil
+        ns.Print(Layers.UNREADABLE)
+        Changed()
+        return
+    end
     local was = current
     current = { layer = zone, server = server, map = map, at = Compat.Now(), from = Compat.Name(unit), npc = npc }
     if not was or was.layer ~= zone or was.map ~= map then Changed() end
@@ -77,6 +104,7 @@ function Layers.ShareLine(c)
 end
 
 ns.Command("layer", function()
+    if Layers.unreadable then return ns.Print(Layers.UNREADABLE) end
     local c = Layers.Current()
     if not c then
         ns.Print(Layers.NONE)
@@ -97,6 +125,7 @@ function Layers:OnEnable()
     events:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
         unit = Compat.Plain(unit)
         if event == "ZONE_CHANGED_NEW_AREA" then
+            seenAt, seenMap = {}, nil
             if current then
                 current = nil
                 Changed()

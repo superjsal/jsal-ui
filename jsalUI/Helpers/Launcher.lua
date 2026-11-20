@@ -49,7 +49,8 @@ local function LayerTooltip(tip)
     local c = ns.Layers.Current()
     if not c then
         tip:SetText("Layer")
-        tip:AddLine("Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
+        tip:AddLine(ns.Layers.unreadable and "Can't be read on this version of the game. A /reload checks again."
+            or "Not read on this map yet: mouse over any creature.", 1, 1, 1, true)
         return
     end
     local mapName = ns.Layers.MapName(c)
