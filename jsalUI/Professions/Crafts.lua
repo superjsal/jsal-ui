@@ -16,6 +16,8 @@ local C = { views = {}, ask = { have = true } }
 ns.GuildCrafts = C
 
 local ROW, DONE_ROW, HEAD_ROW, FOUND_ROW, CARD_H = 88, 40, 26, 52, 76
+-- One guildmate's recipes: a line each, two across.
+local RECIPE_ROW, RECIPE_GAP = 44, 28
 -- An order is a card this tall, in a row with a gap under it; what's in it
 -- starts this far from its sides.
 local ORDER_H, ORDER_PAD = 80, 14
@@ -370,6 +372,15 @@ local function MakeHead(parent, width)
     -- The same words as far as the number, to find where the pill ends.
     h.twin = Style.Text(h, 11, "text", nil, true)
     h.twin:Hide()
+    -- A quiet note at the line's right edge, with a mark before it: whether
+    -- the guildmate a heading names is on.
+    h.note = Style.Text(h, 12, "muted")
+    h.note:SetPoint("RIGHT")
+    h.note:SetJustifyH("RIGHT")
+    h.dot = h:CreateTexture(nil, "ARTWORK")
+    h.dot:SetSize(7, 7)
+    h.dot:SetPoint("RIGHT", h.note, "LEFT", -6, 0)
+    h.dot:Hide()
     return h
 end
 
@@ -393,6 +404,8 @@ local function Head(list, state, title, n, say)
     HeadState(h, state, title, n)
     h.text:SetText(Style.Tint(state and STATE[state] or "gold") .. title .. "|r   " .. Style.Tint("text") .. n .. "|r"
         .. (say and ("     " .. Style.Tint("muted") .. say .. "|r") or ""))
+    h.note:SetText("")
+    h.dot:Hide()
     return h
 end
 
@@ -1405,6 +1418,59 @@ local function Found(list, entry, roster)
     r.order:SetScript("OnClick", function() C.Ask(spell) end)
 end
 
+-- One of a guildmate's recipes, in the list of what they make: a line, two
+-- across. Who makes it is in the heading, so a row is the recipe alone.
+local function MakeRecipe(parent, width)
+    local wide = math.floor((width - RECIPE_GAP) / 2)
+    local r = CreateFrame("Frame", nil, parent)
+    r:SetSize(wide, RECIPE_ROW)
+    r.icon = r:CreateTexture(nil, "ARTWORK")
+    r.icon:SetSize(32, 32)
+    r.icon:SetPoint("LEFT", 0, 0)
+    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    r.nameRoom = wide - 46 - 80 - 12
+    r.name = Style.Text(r, 14, "text", nil, true)
+    r.name:SetPoint("LEFT", 46, 0)
+    r.name:SetWidth(r.nameRoom)
+    r.name:SetWordWrap(false)
+    r.name:SetJustifyV("MIDDLE")
+    r.order = Style.Button(r, "Order", "gilt", 80)
+    r.order:SetPoint("RIGHT", 0, 0)
+    Style.Rule(r, "BOTTOM", "line")
+    -- The tooltip belongs to the picture and the name, as on a found row.
+    r.hot = CreateFrame("Frame", nil, r)
+    r.hot:SetPoint("LEFT")
+    r.hot:SetSize(46, RECIPE_ROW)
+    r.hot:EnableMouse(true)
+    r.hot:SetScript("OnEnter", function(self)
+        if not (r.item or r.spell) then return end
+        GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
+        if r.item then GameTooltip:SetItemByID(r.item) else GameTooltip:SetSpellByID(r.spell) end
+        GameTooltip:Show()
+    end)
+    r.hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return r
+end
+
+local function Recipe(list, entry, column)
+    local r
+    if column == 0 then
+        r = Take(list, "recipe", MakeRecipe, RECIPE_ROW)
+    else
+        -- The second of a pair sits beside the first, on its line.
+        local y = list.y
+        r = Take(list, "recipe", MakeRecipe, 0)
+        r:ClearAllPoints()
+        r:SetPoint("TOPLEFT", r:GetWidth() + RECIPE_GAP, -(y - RECIPE_ROW))
+    end
+    local spell = entry.row.spell
+    r.item, r.spell = entry.row.item, spell
+    r.icon:SetTexture((entry.row.item and Compat.ItemIcon(entry.row.item)) or select(2, Compat.SpellInfo(spell)))
+    r.name:SetText(ItemTint(entry.row.item) .. entry.name .. "|r")
+    r.hot:SetWidth(46 + math.min(r.name:GetStringWidth() or 0, r.nameRoom))
+    r.order:SetScript("OnClick", function() C.Ask(spell) end)
+end
+
 local function MakePerson(parent, width)
     local card = CreateFrame("Frame", nil, parent)
     card:SetSize(math.floor((width - 14) / 2), CARD_H)
@@ -1527,7 +1593,15 @@ local function PaintCrafters()
         local found
         if C.pick then
             found = Crafters.Makes(C.pick.name, C.pick.line)
-            Head(list, nil, ("%s'S %s"):format(C.pick.name:upper(), C.pick.label:upper()), #found)
+            local head = Head(list, nil, ("%s'S %s"):format(C.pick.name:upper(), C.pick.label:upper()), #found)
+            for _, p in ipairs(Crafters.Sharing()) do
+                if p.name == C.pick.name then
+                    head.dot:SetColorTexture(Style.Color(p.online and "green" or "lineStrong"))
+                    head.dot:Show()
+                    head.note:SetText(p.online and (p.zone and ("online" .. DOT .. p.zone) or "online") or Crafters.Ago(p.seen))
+                    break
+                end
+            end
             view.back:Show()
             view.searchWell:SetWidth(view.fullW - BACK_W - 10)
             if #found == 0 then Note(list, "Nothing to list yet: the game is still loading their names.") end
@@ -1535,7 +1609,9 @@ local function PaintCrafters()
             found = Crafters.Search(text, 60)
             if #found == 0 then Note(list, "No guildmate makes anything by that name yet.") end
         end
-        for _, entry in ipairs(found) do Found(list, entry, roster) end
+        for i, entry in ipairs(found) do
+            if C.pick then Recipe(list, entry, (i - 1) % 2) else Found(list, entry, roster) end
+        end
     else
         local people = Crafters.Sharing()
         local online = 0
