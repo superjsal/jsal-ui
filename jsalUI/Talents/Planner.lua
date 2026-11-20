@@ -157,12 +157,10 @@ Window.Page("build", function(page)
     local viewHead = Style.Section(view, rightW)
     viewHead:SetPoint("TOPLEFT")
 
-    -- Six buttons in one row; the widths add up to the column's width. A
-    -- suggested build swaps Edit, Rename and Delete for Copy to my builds.
-    local learn = Small(view, "Learn next points", "primary", 128)
-    learn:SetPoint("TOPLEFT", 0, -30)
+    -- Five buttons in one row. A suggested build swaps Edit, Rename and Delete for Copy to my
+    -- builds. (Learn is on the next point's card, when there's a point to spend.)
     local follow = Small(view, "Follow this build", "plain", 118)
-    follow:SetPoint("LEFT", learn, "RIGHT", 6, 0)
+    follow:SetPoint("TOPLEFT", 0, -30)
     local edit = Small(view, "Edit", "plain", 56)
     local rename = Small(view, "Rename", "plain", 70)
     local export = Small(view, "Export", "plain", 64)
@@ -204,9 +202,12 @@ Window.Page("build", function(page)
 
     -- Your next point: its picture in a gold line, its name, its tree and which rank, the level it
     -- comes at, and what it does, in the game's own words. For another class's build, its first.
+    -- It goes by three steps: the next point; READY TO LEARN with Learn at its foot when there's a
+    -- point to spend; LEARNED, green, when you take it (with the game's quest-done chime when it
+    -- happens with the page open), until the page closes or the next point is ready.
     local nextCard = CreateFrame("Frame", nil, view)
     nextCard:SetWidth(NEXT_W)
-    Style.Box(nextCard, 6, "well", "gold")
+    nextCard.box = Style.Box(nextCard, 6, "well", "gold")
     nextCard.title = Style.Text(nextCard, 11, "gold", nil, true)
     nextCard.title:SetPoint("TOPLEFT", 16, -14)
     nextCard.level = Style.Text(nextCard, 11, "muted")
@@ -215,7 +216,7 @@ Window.Page("build", function(page)
     local iconFrame = CreateFrame("Frame", nil, nextCard)
     iconFrame:SetSize(40, 40)
     iconFrame:SetPoint("TOPLEFT", 16, -38)
-    Style.Lined(iconFrame, "gold")
+    iconFrame.line = Style.Lined(iconFrame, "gold")
     nextCard.icon = iconFrame:CreateTexture(nil, "ARTWORK")
     nextCard.icon:SetPoint("TOPLEFT", 1, -1)
     nextCard.icon:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -232,6 +233,22 @@ Window.Page("build", function(page)
     nextCard.text:SetWidth(NEXT_W - 32)
     nextCard.text:SetJustifyH("LEFT")
     nextCard.text:SetWordWrap(true)
+    nextCard.foot = CreateFrame("Frame", nil, nextCard)
+    nextCard.foot:SetSize(NEXT_W, 44)
+    Style.Rule(nextCard.foot, "TOP", "line")
+    nextCard.footText = Style.Text(nextCard.foot, 13, "muted")
+    nextCard.footText:SetPoint("LEFT", 16, 0)
+    nextCard.footText:SetWidth(NEXT_W - 32 - 96)
+    nextCard.footText:SetJustifyH("LEFT")
+    local learn = Style.Button(nextCard.foot, "Learn", "primary", 84)
+    learn:SetHeight(26)
+    learn:SetPoint("RIGHT", -14, 0)
+    nextCard.foot:Hide()
+    -- What was taken when the card last showed, and the point just learned since (shown green
+    -- until the page closes); `open` while the page has been showing since then. A respec only
+    -- lowers what was taken; a switch to your other spec starts afresh, learning nothing.
+    local learned = {}
+    view:HookScript("OnHide", function() learned.fresh, learned.open = nil, false end)
     -- What a spell does can come a moment after it's first asked for: asked once more then.
     local askedAgain = {}
 
@@ -330,8 +347,6 @@ Window.Page("build", function(page)
         -- when you aren't following it (the build's title says when you
         -- are). They were both there always, greyed out, ahead of the rest.
         local following = data.own and Tree.Active() == build
-        learn:SetShown(not renaming and data.own and nextIndex ~= nil and waiting > 0)
-        learn:SetEnabled(true)
         follow:SetShown(not renaming and data.own and not following)
         follow:SetLabel("Follow this build")
         follow:SetEnabled(true)
@@ -342,7 +357,7 @@ Window.Page("build", function(page)
         delete:SetShown(not renaming and not builtin)
         -- Side by side from the left, whichever are showing.
         local before
-        for _, b in ipairs({ learn, follow, edit, rename, copy, export, delete }) do
+        for _, b in ipairs({ follow, edit, rename, copy, export, delete }) do
             if b:IsShown() then
                 b:ClearAllPoints()
                 if before then b:SetPoint("LEFT", before, "RIGHT", 6, 0) else b:SetPoint("TOPLEFT", 0, -30) end
@@ -376,17 +391,33 @@ Window.Page("build", function(page)
         -- starts at what's next; a heading where the build moves to another
         -- tree; and a step you're partway through split, so the row that's
         -- next names the rank that is.
-        -- The card: your next point, or a build's first for another class.
-        local nextAt = data.own and nextIndex or (#kept > 0 and 1 or nil)
+        -- The card: your next point, or a build's first for another class. A point learned since
+        -- the card last showed is LEARNED, unless another is ready to learn.
+        local ready = data.own and nextIndex ~= nil and waiting > 0
+        local group = Tree.Group and Tree.Group() or 1
+        if data.own and learned.build == build and learned.group == group and learned.taken and taken > learned.taken then
+            learned.fresh, learned.many = taken, taken - learned.taken
+            if learned.open and SOUNDKIT then pcall(PlaySound, SOUNDKIT.IG_QUEST_LIST_COMPLETE or 878, "SFX") end
+        end
+        if learned.build ~= build or ready or (learned.fresh and taken < learned.fresh) then learned.fresh = nil end
+        learned.build, learned.group, learned.taken, learned.open = build, group, data.own and taken or nil, true
+        local fresh = data.own and learned.fresh
+        local nextAt = fresh or (data.own and nextIndex or (#kept > 0 and 1 or nil))
         local nextID = nextAt and kept[nextAt]
         local node = nextID and data.nodes[nextID]
         nextCard:SetShown(node ~= nil)
         if node then
             local rank = 0
             for k = 1, nextAt do if kept[k] == nextID then rank = rank + 1 end end
+            local tone = fresh and "green" or "gold"
+            Style.SetBorder({ nextCard.box.line }, tone)
+            Style.SetBorder(iconFrame.line, tone)
+            nextCard.title:SetTextColor(Style.Color(tone))
             -- Yours only for the build you follow; one you're looking at says it's that build's.
-            nextCard.title:SetText(not data.own and "THE BUILD'S FIRST POINT" or (following and "YOUR NEXT POINT" or "THIS BUILD'S NEXT POINT"))
-            nextCard.level:SetText(("level %d"):format(Tree.Level(nextAt)))
+            nextCard.title:SetText(fresh and (learned.many > 1 and ("LEARNED %d POINTS"):format(learned.many) or "LEARNED")
+                or ready and "READY TO LEARN"
+                or not data.own and "THE BUILD'S FIRST POINT" or (following and "YOUR NEXT POINT" or "THIS BUILD'S NEXT POINT"))
+            nextCard.level:SetText(ready and "now" or ("level %d"):format(Tree.Level(nextAt)))
             nextCard.icon:SetTexture(node.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
             nextCard.name:SetText(node.name or "")
             local tree = data.trees[node.tree]
@@ -401,7 +432,29 @@ Window.Page("build", function(page)
             end
             nextCard.text:SetText(says)
             local tall = Style.Wide and nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
-            nextCard:SetHeight(94 + (type(tall) == "number" and tall or 0) + 18)
+            local h = 94 + (type(tall) == "number" and tall or 0) + 18
+            -- Its foot: Learn, with how many points there are to spend; or, learned, what's next.
+            local after = fresh and nextIndex
+            local afterID = after and kept[after]
+            local afterNode = afterID and data.nodes[afterID]
+            nextCard.foot:SetShown((ready or fresh) and true or false)
+            learn:SetShown(ready and true or false)
+            if ready then
+                local n = math.min(waiting, #kept - nextIndex + 1)
+                learn:SetLabel(n > 1 and ("Learn %d"):format(n) or "Learn")
+                nextCard.footText:SetText(("%d point%s to spend"):format(waiting, waiting == 1 and "" or "s"))
+            elseif fresh then
+                local afterRank = 0
+                for k = 1, after or 0 do if kept[k] == afterID then afterRank = afterRank + 1 end end
+                nextCard.footText:SetText(afterNode and ("Next: |cffe3b04b%s|r rank %d, at level %d"):format(afterNode.name or "", afterRank, Tree.Level(after))
+                    or "Every point of the plan is taken.")
+            end
+            if nextCard.foot:IsShown() then
+                nextCard.foot:ClearAllPoints()
+                nextCard.foot:SetPoint("TOPLEFT", 0, -(h - 6))
+                h = h - 6 + 44
+            end
+            nextCard:SetHeight(h)
         end
 
         local rows = Tree.PlanRows(steps, taken, function(id) return data.nodes[id].tree end, V.open)
