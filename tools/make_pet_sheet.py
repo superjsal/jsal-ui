@@ -78,6 +78,10 @@ LAYOUT = {
     "moondrake": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
     "eclipselord": {"cell": 128, "cols": 16, "sheet": (2048, 1024), "walk": 8, "shift": 0,
                     "special": 128, "special_size": (2048, 128)},
+    # The gloomy shoebill: long legs and a wide special want the room, as the camel's do.
+    "glumbill": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "broodstork": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
+    "dreadmire": {"cell": 80, "cols": 12, "sheet": (1024, 512), "walk": 8, "shift": 0},
 }
 
 # A creature whose animations came out standing at different heights names the

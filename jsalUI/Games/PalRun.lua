@@ -32,6 +32,7 @@ local FEET = {
     capling = 56, lanternshell = 57, bloomsage = 60, boltusk = 58, rumbletrunk = 61, warmammoth = 65,
     gemlet = 57, miragehoof = 59, sandseer = 65, pebblebill = 53, cobbleback = 54, rockwarden = 63,
     snowlet = 57, frostmantle = 62, auroracrown = 64, starwhelp = 55, moondrake = 60, eclipselord = 69,
+    glumbill = 57, broodstork = 61, dreadmire = 62,
 }
 PalRun.FEET = FEET
 -- And where its feet are across the picture: how many of its pixels right of the middle they sit
@@ -45,7 +46,7 @@ local FEETX = {
     warmammoth = { -3, -2 }, gemlet = { 0, 1 }, miragehoof = { -1, -1 }, sandseer = { 2, 2 },
     pebblebill = { -2, -2 }, cobbleback = { 0, -2 }, rockwarden = { 8, 1 }, snowlet = { -1, 0 },
     frostmantle = { 4, 3 }, auroracrown = { 2, 5 }, starwhelp = { -3, -3 }, moondrake = { -6, -5 },
-    eclipselord = { -3, 2 },
+    eclipselord = { -3, 2 }, glumbill = { -1, -3 }, broodstork = { -1, -4 }, dreadmire = { -1, -4 },
 }
 PalRun.FEETX = FEETX
 

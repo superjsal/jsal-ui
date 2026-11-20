@@ -55,12 +55,15 @@ Rules.SPECIES = {
                 sprites = { "snowlet", "frostmantle", "auroracrown" }, name = "Nova" },
     starwhelp = { forms = { "Starwhelp", "Moondrake", "Eclipselord" },
                   sprites = { "starwhelp", "moondrake", "eclipselord" }, name = "Umbra" },
+    glumbill = { forms = { "Glumbill", "Broodstork", "Dreadmire" },
+                 sprites = { "glumbill", "broodstork", "dreadmire" }, name = "Mope" },
 }
 -- The eggs your play can turn up, and what hatches from each. `from` is
 -- the thing you do that can turn it up, and `chance` how often it does:
 -- a quest handed in, coming back from being a ghost, a new level, a
 -- flight, arriving in another zone, a fight you come out of alive, a new
--- spell learned, a fish caught, and Onyxia or Ragnaros brought down. Fights and fish
+-- spell learned, a fish caught, coming back after standing away from the game a
+-- while, and Onyxia or Ragnaros brought down. Fights and fish
 -- come far oftener than the rest, so that chance is far smaller: about one
 -- egg in two hundred fights. Bosses are kept for rarer eggs to come.
 Rules.EGGS = {
@@ -80,6 +83,10 @@ Rules.EGGS = {
                 hint = "It hums in your head before you hear it." },
     riverstone = { name = "River Stone egg", species = "pebblebill", from = "fishing", chance = 0.01,
                    hint = "It's smooth and cold, like a stone from the bottom of a stream." },
+    -- Found by standing still, as its bird does: coming back from being away
+    -- (Rules.STOOD seconds or more of it), one time in four.
+    gloom = { name = "Gloom egg", species = "glumbill", from = "away", chance = 0.25,
+              hint = "It hasn't moved since you found it, and you're fairly sure it's glaring at you." },
     -- The rare one: only Onyxia's hoard holds it, one kill in ten. Never one a
     -- new player is offered.
     aurora = { name = "Aurora egg", species = "snowlet", from = "onyxia", chance = 0.1,
@@ -92,9 +99,11 @@ Rules.EGGS = {
 -- The bosses whose fall can leave an egg, by the game's own number for the
 -- fight (the same in every language), and the `from` their egg names.
 Rules.BOSSES = { [1084] = "onyxia", [672] = "ragnaros" }
+-- How long you must have been marked away for coming back to count as an "away".
+Rules.STOOD = 300
 -- A new player chooses between three eggs, any three of all there are. Before
 -- that it was always the first three of this list.
-Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel", "crystal", "riverstone" }
+Rules.STARTERS = { "mossy", "ember", "toadstool", "ghostly", "storm", "steel", "crystal", "riverstone", "gloom" }
 Rules.OFFERED = 3
 -- Three of them, no two alike. `roll(a, b)` is a whole number from a to b,
 -- as math.random gives.
@@ -109,7 +118,7 @@ function Rules.Offer(roll)
     return offer
 end
 -- The kinds in the order an album shows them.
-Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill", "snowlet", "starwhelp" }
+Rules.KINDS = { "briarboar", "wispkin", "scrapwing", "stormcub", "capling", "boltusk", "gemlet", "pebblebill", "snowlet", "starwhelp", "glumbill" }
 
 -- Whether play can turn up an egg for this companion yet: only once it's
 -- fully grown, when an egg is something it can make way for.
