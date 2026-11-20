@@ -447,7 +447,7 @@ local function SlotList(view, rowH, onPick)
             r.slot:SetTextColor(Style.Color(on and "gold" or "muted"))
             r.picks:SetTextColor(Style.Color(on and "gold" or "secondary"))
             local count = #others + ((row and (row.pick or row.goal)) and 1 or 0)
-            r.picks:SetText(r.pickable and (count .. " picks \226\128\186") or "")
+            r.picks:SetText(r.pickable and (count .. (count == 1 and " pick " or " picks ") .. "\226\128\186") or "")
             r.gain:SetText("")
             if row then
                 r.slot:SetText(row.label:upper())
@@ -683,7 +683,8 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
         weighed:SetShown(shown and choice.set ~= nil and not choice.own)
         runsHead:SetShown(shown)
         local pick = shown and (choice.row.pick or choice.row.goal)
-        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. (#choice.others + (pick and 1 or 0)) .. " PICKS") or "RUN NEXT")
+        local n = shown and (#choice.others + (pick and 1 or 0)) or 0
+        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. n .. (n == 1 and " PICK" or " PICKS")) or "RUN NEXT")
         head.note:SetText(shown and "" or "ranked by the pieces left for you")
         back:SetShown(shown)
         if not shown then
@@ -929,7 +930,8 @@ function Gear.GoalView(page, width, height)
         if has then
             hero:Paint(read, stage)
             local row = stage == Goal.BEFORE and chosen and read[stage].rows[chosen]
-            if not (row and (row.pick or row.goal)) then chosen, row = nil, nil end
+            -- A slot with picks stays chosen: a piece's, or an empty place of a set of yours.
+            if not (row and (row.pick or row.goal or row.open)) then chosen, row = nil, nil end
             list:Paint(read[stage].rows, stage, chosen, read)
             runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, 3), own = read.set and read.set.own, set = read.set ~= nil } or nil)
             -- Still waiting on items: look again by itself, once at a time.
