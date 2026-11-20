@@ -138,7 +138,7 @@ Window.Page("build", function(page)
 
     -- A build's line under its name: its main tree and points; in the title, whether it's followed
     -- (the list says so with a tag instead: `bare`).
-    local function Summary(b, bare)
+    local function Summary(b, bare, short)
         if not data then return "" end
         local order, _, treePoints = Tree.Replay(data, b.order or {})
         local text = "No points yet"
@@ -147,7 +147,7 @@ Window.Page("build", function(page)
             for i in ipairs(data.trees) do
                 if (treePoints[i] or 0) > most then best, most = i, treePoints[i] or 0 end
             end
-            text = ("%s, %d points"):format(data.trees[best].name, #order)
+            text = short and ("%d points"):format(#order) or ("%s, %d points"):format(data.trees[best].name, #order)
         end
         if not bare and data.own and Tree.Active() == b then text = text .. " · following" end
         return text
@@ -839,13 +839,36 @@ Window.Page("build", function(page)
             row.build = b
             row.name:SetText(b.name)
             row.sub:SetText(Summary(b, true))
-            local followed = data and data.own and Tree.Active() == b or false
+            -- Which specs follow it: FOLLOWING with one spec; with dual spec SPEC 1, SPEC 2 or
+            -- SPEC 1 & 2, gold where the spec you're on is one, grey where it's only your other.
+            local followed, ours = false, false
+            if data and data.own then
+                if Tree.Dual and Tree.Dual() then
+                    local specs, here = {}, Tree.Group()
+                    for g = 1, 2 do
+                        if Tree.Followed(g) == b then
+                            specs[#specs + 1] = tostring(g)
+                            if g == here then ours = true end
+                        end
+                    end
+                    if #specs > 0 then
+                        followed = true
+                        row.tag:Say("SPEC " .. table.concat(specs, " & "))
+                    end
+                elseif Tree.Active() == b then
+                    followed, ours = true, true
+                    row.tag:Say("FOLLOWING")
+                end
+            end
+            row.tag:Tone(ours and "gold" or "plain")
             row.tag:SetShown(followed)
             row.tag:ClearAllPoints()
             row.sub:ClearAllPoints()
             row.name:SetWidth(LIST_W - 20)
             local beside = followed and Style.Wide(row.name, #(b.name or "") * 7.5) + 6 + row.tag.wide <= LIST_W - 20
             if followed and not beside then
+                -- Beside the tag, just its points: the tree's name was cut off there.
+                row.sub:SetText(Summary(b, true, true))
                 row.tag:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
                 row.sub:SetPoint("LEFT", row.tag, "RIGHT", 6, 0)
                 row.sub:SetWidth(LIST_W - 20 - row.tag.wide - 6)

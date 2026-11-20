@@ -564,6 +564,22 @@ function Tree.Follow(build)
     end
 end
 
+-- The build spec `group` follows, without choosing one for it: the spec you're on's is
+-- Tree.Active(); your second spec's own, else the first's.
+function Tree.Followed(group)
+    if group == Tree.Group() then return Tree.Active() end
+    local classID = Tree.PlayerClass()
+    local own = group ~= 1 and type(ns.char.followSpec) == "table" and Find(classID, ns.char.followSpec[group])
+    return own or Find(classID, ns.char.follow)
+end
+
+-- Whether you have a second spec to follow a build with.
+function Tree.Dual()
+    if Tree.Group() > 1 then return true end
+    local ok, n = pcall(GetNumSpecGroups or function() return 1 end)
+    return ok and (tonumber(n) or 1) > 1
+end
+
 function Tree.Active()
     local classID = Tree.PlayerClass()
     local group = Tree.Group()
