@@ -571,6 +571,88 @@ function Goal.Others(read, row, n)
     return out
 end
 
+---------------------------------------------------------------------------
+-- Sets of your own, kept for the character (ns.char.prebisSets): each a
+-- name, its 17 item IDs in the sets' order, the build it was started from,
+-- and a key ("own" and a number) that stays when it's renamed.
+---------------------------------------------------------------------------
+function Goal.OwnSets()
+    if not ns.char then return {} end
+    ns.char.prebisSets = type(ns.char.prebisSets) == "table" and ns.char.prebisSets or {}
+    return ns.char.prebisSets
+end
+
+function Goal.OwnSet(key)
+    for _, set in ipairs(Goal.OwnSets()) do
+        if set.key == key then return set end
+    end
+end
+
+local function Changed() Gear.PlansChanged() end
+
+-- A new set from `ids` (copied), named `name` or "My set" and a number; its key.
+function Goal.NewSet(ids, from, name)
+    local sets = Goal.OwnSets()
+    ns.char.prebisNext = (tonumber(ns.char.prebisNext) or 0) + 1
+    local copy = {}
+    for i = 1, #SET_EQUIP do copy[i] = tonumber(ids and ids[i]) or 0 end
+    local set = { key = "own" .. ns.char.prebisNext, name = name or ("My set " .. ns.char.prebisNext), ids = copy, from = from }
+    sets[#sets + 1] = set
+    Changed()
+    return set.key
+end
+
+function Goal.RenameSet(key, name)
+    local set = Goal.OwnSet(key)
+    name = name and name:match("^%s*(.-)%s*$") or ""
+    if set and name ~= "" then
+        set.name = name:sub(1, 24)
+        Changed()
+    end
+end
+
+function Goal.DeleteSet(key)
+    local sets = Goal.OwnSets()
+    for i, set in ipairs(sets) do
+        if set.key == key then
+            table.remove(sets, i)
+            Changed()
+            return
+        end
+    end
+end
+
+-- Puts an item in place `i` of a set of your own (the sets' order).
+function Goal.SetSlot(key, i, id)
+    local set = Goal.OwnSet(key)
+    if set and i and i >= 1 and i <= #SET_EQUIP then
+        set.ids[i] = tonumber(id) or 0
+        Changed()
+    end
+end
+
+-- Whether an item fits place `i` (the sets' order): its kind of slot, or for the off hand
+-- what a hand holds. Nil while the game hasn't sent it.
+function Goal.Fits(id, i)
+    if not (C_Item and C_Item.GetItemInfoInstant) then return nil end
+    local _, _, _, loc = C_Item.GetItemInfoInstant(id)
+    if not loc then return nil end
+    local invType = Gear.INVTYPE and Gear.INVTYPE[loc]
+    local equip = SET_EQUIP[i]
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, e in ipairs(slot.equip) do
+            if e == equip then
+                for _, t in ipairs(slot.types) do
+                    if t == invType then return true end
+                end
+                if equip == 17 and (invType == 13 or invType == 21) then return true end
+                return false
+            end
+        end
+    end
+    return false
+end
+
 local kept
 local KEEP = 600
 -- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
@@ -604,14 +686,27 @@ function Goal.Read(spec, build, cheap)
     for _, slot in ipairs(Gear.SLOTS) do lists[slot.key] = { slot = slot, list = Scored(slot, ctx) } end
     out.lists = lists
     local builds, start = Goal.Builds(classFile, spec)
+    -- The build asked for, or the tree's own when it's none of WoWSims' (a set of yours, or one deleted).
     local chosen
     for _, b in ipairs(builds or {}) do
-        if b.key == (build or start) then chosen = b end
+        if b.key == build then chosen = b end
     end
-    if chosen then
+    for _, b in ipairs(chosen and {} or builds or {}) do
+        if b.key == start then chosen = b end
+    end
+    local own = build and Goal.OwnSet(build)
+    if own then
+        local fromName
+        for _, b in ipairs(builds or {}) do
+            if b.key == own.from then fromName = b.name end
+        end
+        out.set = { builds = builds or {}, key = own.key, name = own.name, own = true, from = fromName, ids = own.ids, hasCheap = false }
+        out[Goal.BEFORE] = SetRows(ctx, own.ids, lists)
+        chosen = own
+    elseif chosen then
         local ids = {}
         for n in ((cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = tonumber(n) end
-        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil }
+        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids }
         out[Goal.BEFORE] = SetRows(ctx, ids, lists)
     else
         out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)
