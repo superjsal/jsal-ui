@@ -382,10 +382,88 @@ if mem then
             print(("  %s: %s"):format(rows[i][1], MB(rows[i][2])))
         end
     end
+    -- What one table keeps, in KB: the game's Lua is cleaned up, the table is
+    -- copied, it's cleaned up again, and what it grew by is the table's size
+    -- (with its words added, which a copy shares and so doesn't count).
+    -- Functions and the game's own frames aren't followed, nor the tables in
+    -- `stop`: jsal.ui's other parts, each weighed on its own.
+    local function Walk(root, stop, copying)
+        local seen, words, count = {}, 0, 0
+        local function Word(s)
+            if not seen[s] then seen[s] = true; words = words + #s + 25 end
+        end
+        local function Copy(t)
+            if seen[t] then return seen[t] end
+            local out = copying and {} or true
+            seen[t] = out
+            count = count + 1
+            for k, v in pairs(t) do
+                count = count + 1
+                if type(k) == "string" then Word(k) end
+                local kind = type(v)
+                if kind == "string" then
+                    Word(v)
+                    if copying then out[k] = v end
+                elseif kind == "table" then
+                    if not stop[v] and type(rawget(v, 0)) ~= "userdata" then
+                        local inner = Copy(v)
+                        if copying then out[k] = inner end
+                    end
+                elseif copying and (kind == "number" or kind == "boolean") then
+                    out[k] = v
+                end
+            end
+            return out
+        end
+        local copy = Copy(root)
+        seen = nil
+        return copy, words, count
+    end
+    local function Weigh(root, stop)
+        collectgarbage("collect")
+        local before = collectgarbage("count")
+        local copy, words = Walk(root, stop, true)
+        collectgarbage("collect")
+        local kb = collectgarbage("count") - before + words / 1024
+        copy = nil
+        return kb
+    end
+    -- The largest of a table's own tables, weighed: first counted, which is
+    -- quick, so that only the few largest are copied.
+    local function Largest(owner, skip, limit)
+        local stop, found = { [ns] = true, [_G] = true }, {}
+        for _, v in pairs(ns) do if type(v) == "table" then stop[v] = true end end
+        for key, v in pairs(owner) do
+            if type(v) == "table" and not skip[key] and type(rawget(v, 0)) ~= "userdata" then
+                stop[v] = nil
+                local ok, _, words, count = pcall(Walk, v, stop, false)
+                stop[v] = owner == ns or nil
+                if ok then found[#found + 1] = { tostring(key), count * 40 + words, v } end
+            end
+        end
+        table.sort(found, function(a, b) return a[2] > b[2] end)
+        local rows = {}
+        for i = 1, math.min(limit, #found) do
+            local v = found[i][3]
+            stop[v] = nil
+            local ok, kb = pcall(Weigh, v, stop)
+            stop[v] = owner == ns or nil
+            if ok then rows[#rows + 1] = { found[i][1], kb } end
+        end
+        return rows
+    end
+    local function Tables()
+        ns.Print("The largest things jsal.ui keeps, each copied and weighed (this takes a few seconds):")
+        Most(Largest(ns, { db = true, char = true }, 14), 14)
+        ns.Print("And of what's saved for your account:")
+        Most(Largest(ns.db or {}, {}, 8), 8)
+    end
+
     ns.Command("mem", function()
         if not mem.exact then
             ns.db.memNext = true
-            ns.Print("Type /reload, then /jsal mem again: the next start is measured part by part. It starts slower, that once.")
+            Tables()
+            ns.Print("For where the rest goes, type /reload, then /jsal mem again: the next start is measured part by part. It starts slower, that once.")
             return
         end
         collectgarbage("collect")
@@ -409,6 +487,7 @@ if mem then
         ns.Print(("Setting up once the settings exist: %s."):format(MB((mem.setup or 0) - (mem.files or 0))))
         ns.Print(("Starting at login: %s. The parts that kept the most:"):format(MB((mem.started or 0) - (mem.login or 0))))
         Most(mem.starts, 12)
+        Tables()
     end)
 end
 
