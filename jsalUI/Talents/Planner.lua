@@ -243,12 +243,42 @@ Window.Page("build", function(page)
     local learn = Style.Button(nextCard.foot, "Learn", "primary", 84)
     learn:SetHeight(26)
     learn:SetPoint("RIGHT", -14, 0)
+    -- On a build you don't follow, Follow this build in Learn's place: Learn is only ever for the
+    -- build you follow, on the spec you're on.
+    local cardFollow = Style.Button(nextCard.foot, "Follow this build", "plain", 124)
+    cardFollow:SetHeight(26)
+    cardFollow:SetPoint("RIGHT", -14, 0)
     nextCard.foot:Hide()
+
+    -- Learn asks first: a box of each point it would spend, in order, where they go (which spec,
+    -- by which plan), with Learn and Cancel. Nothing is spent until Learn there.
+    local ask = CreateFrame("Frame", nil, view)
+    ask:SetSize(NEXT_W, 160)
+    ask:SetFrameStrata("DIALOG")
+    ask:EnableMouse(true)
+    Style.Box(ask, 8, "titleBar", "lineStrong")
+    ask.title = Style.Text(ask, 15, "text", nil, true)
+    ask.title:SetPoint("TOPLEFT", 18, -16)
+    ask.where = Style.Text(ask, 12, "muted")
+    ask.where:SetPoint("TOPLEFT", ask.title, "BOTTOMLEFT", 0, -5)
+    ask.where:SetWidth(NEXT_W - 36)
+    ask.where:SetJustifyH("LEFT")
+    ask.list = Style.Text(ask, 13, "text")
+    ask.list:SetPoint("TOPLEFT", ask.where, "BOTTOMLEFT", 0, -10)
+    ask.list:SetWidth(NEXT_W - 36)
+    ask.list:SetJustifyH("LEFT")
+    ask.go = Style.Button(ask, "Learn", "primary", 84)
+    ask.go:SetHeight(26)
+    ask.go:SetPoint("BOTTOMRIGHT", -16, 14)
+    ask.cancel = Style.Button(ask, "Cancel", "plain", 84)
+    ask.cancel:SetHeight(26)
+    ask.cancel:SetPoint("RIGHT", ask.go, "LEFT", -8, 0)
+    ask:Hide()
     -- What was taken when the card last showed, and the point just learned since (shown green
     -- until the page closes); `open` while the page has been showing since then. A respec only
     -- lowers what was taken; a switch to your other spec starts afresh, learning nothing.
     local learned = {}
-    view:HookScript("OnHide", function() learned.fresh, learned.open = nil, false end)
+    view:HookScript("OnHide", function() learned.fresh, learned.open, ask.ids = nil, false, nil; ask:Hide() end)
     -- What a spell does can come a moment after it's first asked for: asked once more then.
     local askedAgain = {}
 
@@ -393,7 +423,12 @@ Window.Page("build", function(page)
         -- next names the rank that is.
         -- The card: your next point, or a build's first for another class. A point learned since
         -- the card last showed is LEARNED, unless another is ready to learn.
-        local ready = data.own and nextIndex ~= nil and waiting > 0
+        -- Points spent that the plan doesn't have where you are in it ("off the plan"): no Learn.
+        local spent = 0
+        for _, n in pairs(data.own and data.nodes or {}) do spent = spent + (tonumber(n.learned) or 0) end
+        local off = data.own and nextIndex and spent > taken and (spent - taken) or 0
+        local ready = data.own and following and nextIndex ~= nil and waiting > 0 and off == 0
+        if not ready then ask:Hide() end
         local group = Tree.Group and Tree.Group() or 1
         if data.own and learned.build == build and learned.group == group and learned.taken and taken > learned.taken then
             learned.fresh, learned.many = taken, taken - learned.taken
@@ -409,12 +444,13 @@ Window.Page("build", function(page)
         if node then
             local rank = 0
             for k = 1, nextAt do if kept[k] == nextID then rank = rank + 1 end end
-            local tone = fresh and "green" or "gold"
+            local tone = fresh and "green" or off > 0 and "red" or "gold"
             Style.SetBorder({ nextCard.box.line }, tone)
             Style.SetBorder(iconFrame.line, tone)
             nextCard.title:SetTextColor(Style.Color(tone))
             -- Yours only for the build you follow; one you're looking at says it's that build's.
             nextCard.title:SetText(fresh and (learned.many > 1 and ("LEARNED %d POINTS"):format(learned.many) or "LEARNED")
+                or off > 0 and "OFF THE PLAN"
                 or ready and "READY TO LEARN"
                 or not data.own and "THE BUILD'S FIRST POINT" or (following and "YOUR NEXT POINT" or "THIS BUILD'S NEXT POINT"))
             nextCard.level:SetText(ready and "now" or ("level %d"):format(Tree.Level(nextAt)))
@@ -437,9 +473,20 @@ Window.Page("build", function(page)
             local after = fresh and nextIndex
             local afterID = after and kept[after]
             local afterNode = afterID and data.nodes[afterID]
-            nextCard.foot:SetShown((ready or fresh) and true or false)
+            local other = data.own and not following and not fresh and off == 0
+            nextCard.foot:SetShown((ready or fresh or off > 0 or other) and true or false)
             learn:SetShown(ready and true or false)
-            if ready then
+            cardFollow:SetShown(other and true or false)
+            nextCard.footText:SetWidth(NEXT_W - 32 - (ready and 96 or other and 136 or 0))
+            nextCard.footText:SetTextColor(Style.Color(off > 0 and "red" or "muted"))
+            if off > 0 then
+                nextCard.footText:SetText(("%d of your points %s off this plan, so Learn is off. Respec, or follow a build that has them.")
+                    :format(off, off == 1 and "is" or "are"))
+            elseif other then
+                local followed = Tree.Active()
+                nextCard.footText:SetText(followed and followed ~= build and ("You follow |cffe8e4d8%s|r, not this build."):format(followed.name or "")
+                    or "You don't follow this build.")
+            elseif ready then
                 local n = math.min(waiting, #kept - nextIndex + 1)
                 learn:SetLabel(n > 1 and ("Learn %d"):format(n) or "Learn")
                 nextCard.footText:SetText(("%d point%s to spend"):format(waiting, waiting == 1 and "" or "s"))
@@ -450,9 +497,12 @@ Window.Page("build", function(page)
                     or "Every point of the plan is taken.")
             end
             if nextCard.foot:IsShown() then
+                local words = nextCard.footText.GetStringHeight and nextCard.footText:GetStringHeight() or 0
+                local footH = math.max(44, (type(words) == "number" and words or 0) + 22)
+                nextCard.foot:SetHeight(footH)
                 nextCard.foot:ClearAllPoints()
                 nextCard.foot:SetPoint("TOPLEFT", 0, -(h - 6))
-                h = h - 6 + 44
+                h = h - 6 + footH
             end
             nextCard:SetHeight(h)
         end
@@ -813,14 +863,62 @@ Window.Page("build", function(page)
     end
 
     -- View-mode buttons.
-    learn:SetScript("OnClick", function()
-        local _, nextIndex = Progress()
+    -- The points Learn would spend now, in the plan's order, and each one's rank; nil when it
+    -- mustn't: not the build you follow, nothing to spend, or points spent off the plan.
+    local function ToLearn()
+        local taken, nextIndex = Progress()
         local waiting = Compat.UnspentTalentPoints()
-        if not nextIndex or waiting <= 0 then return end
-        local ids = {}
-        for i = nextIndex, math.min(#kept, nextIndex + waiting - 1) do ids[#ids + 1] = kept[i] end
+        if not (data.own and nextIndex and waiting > 0 and Tree.Active() == build) then return nil end
+        local spent = 0
+        for _, n in pairs(data.nodes) do spent = spent + (tonumber(n.learned) or 0) end
+        if spent > taken then return nil end
+        local ids, lines = {}, {}
+        for i = nextIndex, math.min(#kept, nextIndex + waiting - 1) do
+            local rank = 0
+            for k = 1, i do if kept[k] == kept[i] then rank = rank + 1 end end
+            local node = data.nodes[kept[i]]
+            ids[#ids + 1] = kept[i]
+            if #lines < 8 then
+                lines[#lines + 1] = ("%d.  %s  |cff9a9688%s|r"):format(#ids, node and node.name or "?",
+                    node and node.max == 1 and "" or ("rank " .. rank))
+            end
+        end
+        if #ids > 8 then lines[#lines + 1] = ("|cff9a9688and %d more|r"):format(#ids - 8) end
+        return ids, lines, nextIndex .. ":" .. table.concat(ids, ",")
+    end
+    learn:SetScript("OnClick", function()
+        local ids, lines, key = ToLearn()
+        if not ids then return end
+        local group = Tree.Group and Tree.Group() or 1
+        local dual = group > 1 or (GetNumSpecGroups and (tonumber(GetNumSpecGroups()) or 1) > 1)
+        ask.title:SetText(("Learn %d point%s?"):format(#ids, #ids == 1 and "" or "s"))
+        ask.where:SetText(("Into %s, by the plan %s."):format(not dual and "your talents"
+            or (group == 1 and "your first spec" or "your second spec"), build.name or ""))
+        ask.list:SetText(table.concat(lines, "\n"))
+        ask.ids = key
+        local tall = ask.list.GetStringHeight and ask.list:GetStringHeight() or 0
+        ask:SetHeight(16 + 20 + 22 + (type(tall) == "number" and tall or #lines * 18) + 16 + 26 + 16)
+        ask:ClearAllPoints()
+        ask:SetPoint("TOPLEFT", nextCard, "BOTTOMLEFT", 0, -8)
+        ask:Show()
+    end)
+    ask.cancel:SetScript("OnClick", function() ask.ids = nil; ask:Hide() end)
+    -- Learn in the box spends only what it listed: if anything changed since, it says so instead.
+    ask.go:SetScript("OnClick", function()
+        local ids, _, key = ToLearn()
+        local listed = ask.ids
+        ask.ids = nil
+        ask:Hide()
+        if not ids or key ~= listed then
+            Say("Your talents changed since. Look at the plan again before learning.")
+            return
+        end
         local ok, why = Tree.LearnMany(data, ids)
         Say(ok and (("Learned %d point%s from the plan."):format(#ids, #ids == 1 and "" or "s")) or why)
+    end)
+    cardFollow:SetScript("OnClick", function()
+        Tree.Follow(build)
+        Say("The talent helper now follows " .. build.name .. ".")
     end)
     follow:SetScript("OnClick", function()
         Tree.Follow(build)
