@@ -1114,7 +1114,6 @@ local function ProfessionsCard(parent, width)
         local y = -51 - (i - 1) * 47
         l.icon:SetPoint("TOPLEFT", PAD, y)
         l.name:SetPoint("TOPLEFT", PAD + 38, y + 2)
-        l.name:SetWidth(barW - 64)
         l.name:SetWordWrap(false)
         l.count:SetPoint("TOPRIGHT", -PAD, y + 1)
         l.count:SetJustifyH("RIGHT")
@@ -1143,7 +1142,21 @@ local function ProfessionsCard(parent, width)
                 local open = rank ~= nil and rank.next ~= nil and level >= (rank.level or 0)
                     and p.skill >= (P.At and P.At(p.line, rank) or p.cap)
                 l.train:SetShown(open)
-                l.count:SetText(open and "" or ("%d |cff9a9688/ %d|r"):format(p.skill, p.cap))
+                -- The name is written whole and the count gives way to it:
+                -- "158 / 225", then "158/225", then the skill alone, whose
+                -- share of the cap the bar under it shows.
+                l.name:SetWidth(0)
+                local room = barW - l.name:GetStringWidth() - 8
+                local right, words = open and l.train:GetWidth() or 0, ""
+                if not open then
+                    for _, form in ipairs({ { "%d / %d", "%d |cff9a9688/ %d|r" }, { "%d/%d", "%d|cff9a9688/%d|r" }, { "%d", "%d" } }) do
+                        l.count:SetText(form[1]:format(p.skill, p.cap))
+                        right, words = l.count:GetStringWidth(), form[2]:format(p.skill, p.cap)
+                        if right <= room then break end
+                    end
+                end
+                l.count:SetText(words)
+                l.name:SetWidth(math.max(40, barW - right - 8))
             end
         end
     end
