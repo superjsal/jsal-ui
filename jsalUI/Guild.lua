@@ -1,7 +1,8 @@
 -- Guild games: who in the guild runs jsal.ui, today's game scores, and the Guild Word, a word
 -- the guild master or an officer sets for the whole guild to play. It hears only guildmates who have jsal.ui,
--- through addon messages, and keeps guildmates' scores for this session only. What it hears is
--- shown on the Games page.
+-- through addon messages. Who is on is kept for this session only; a guildmate's scores for
+-- today are saved, so they're still there after a reload or once that guildmate has logged off.
+-- What it hears is shown on the Games page.
 local _, ns = ...
 local Style, Compat, Comms, Window = ns.Style, ns.Compat, ns.Comms, ns.Window
 
@@ -143,6 +144,75 @@ local function NoteSeen(name, version)
     entry.last, entry.version = now, version
 end
 
+---------------------------------------------------------------------------
+-- Today's scores, saved per guild. A reload forgets who was heard, and a
+-- guildmate who has logged off can't say again what they played, so what
+-- each one told the guild is kept by name: until the daily reset for the
+-- daily games, and for as long as the Guild Word they played stands.
+---------------------------------------------------------------------------
+-- Each group is a game's day (or word ID) and what goes with it. A group is taken from a
+-- message only when it's as new as the one kept: a message that came out of order, or one
+-- from before that guildmate played, never wipes a score.
+local KEPT = {
+    { "wordDay", "wordScore" }, { "iconDay", "iconScore" }, { "runDay", "runSteps", "runPal" },
+    { "marksDay", "wordMarks", "iconMarks" }, { "guildID", "guildScore" }, { "guildMarksID", "guildMarks" },
+}
+
+local function Worth(r, today, word)
+    return (r.wordDay == today and r.wordScore ~= nil) or (r.iconDay == today and r.iconScore ~= nil)
+        or (r.runDay == today and r.runSteps ~= nil) or (word ~= 0 and r.guildID == word and r.guildScore ~= nil)
+end
+
+-- The guild's saved day, with today's number and the Guild Word's ID. When either has changed
+-- since it was last read, everyone with nothing left to show is let go, so it never holds more
+-- than a day's players.
+local function DayBook()
+    local guild = Compat.GuildName()
+    if not guild then return nil end
+    ns.db.guildDay = type(ns.db.guildDay) == "table" and ns.db.guildDay or {}
+    local book = ns.db.guildDay[guild]
+    if type(book) ~= "table" or type(book.names) ~= "table" then
+        book = { names = {} }
+        ns.db.guildDay[guild] = book
+    end
+    local today = ns.Games and ns.Games.Today() or 0
+    local saved = Words()[guild]
+    local word = type(saved) == "table" and saved.id or 0
+    if book.day ~= today or book.word ~= word then
+        for name, r in pairs(book.names) do
+            if type(r) ~= "table" or not Worth(r, today, word) then book.names[name] = nil end
+        end
+        book.day, book.word = today, word
+    end
+    return book, today, word
+end
+
+local function Keep(name, m)
+    if name == Compat.MyName() then return end
+    local book, today, word = DayBook()
+    if not book then return end
+    local r = book.names[name] or {}
+    for _, group in ipairs(KEPT) do
+        local key = group[1]
+        if m[key] and m[key] >= (r[key] or 0) then
+            for _, field in ipairs(group) do r[field] = m[field] end
+        end
+    end
+    book.names[name] = Worth(r, today, word) and r or nil
+end
+
+-- Everyone with something to show today, by name: guildmates heard this session, and those
+-- whose scores for today were saved before a reload or before they logged off.
+function Guild.Day()
+    local book = DayBook()
+    local list = {}
+    for name, r in pairs(book and book.names or {}) do list[name] = r end
+    for name, m in pairs(members) do
+        if not list[name] then list[name] = m end
+    end
+    return list
+end
+
 local function Store(payload, name, sender)
     local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, layer, restartSince, loot, orders, run = strsplit(";", payload or "")
     local runDay, runSteps, runPal = (run or ""):match("^(%d+):(%d+):(.*)$")
@@ -172,6 +242,7 @@ local function Store(payload, name, sender)
         runPal = ns.PalRun and ns.PalRun.Clean and ns.PalRun.Clean(runPal) or nil,
         seen = GetTime(),
     }
+    Keep(name, members[name])
 end
 
 local function Record(payload, name, _, sender)
@@ -220,6 +291,7 @@ local function HeardDetails(payload, name)
     m.iconMarks = type(icons) == "string" and #icons <= 10 and icons:match("^[01]+$") and icons or nil
     m.guildMarksID = tonumber(guildID)
     m.guildMarks = Grid(guild)
+    Keep(name, m)
     Window.Refresh()
 end
 

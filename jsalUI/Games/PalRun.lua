@@ -170,13 +170,13 @@ function PalRun.Finished(mode, steps)
     return was and "best" or "first", was and (was - steps) or nil
 end
 
--- Today's times, fastest first: yours, and those of guildmates heard this
--- session. Each has whose it is, and their pal's name where they have one.
+-- Today's times, fastest first: yours, and those of guildmates who ran
+-- today. Each has whose it is, and their pal's name where they have one.
 function PalRun.Board()
     local today, me, list = Games.Today(), Compat.MyName(), {}
     local day, best = PalRun.Result()
     if day then list[#list + 1] = { name = me, pal = PalRun.PalName(), steps = best, mine = true } end
-    for name, m in pairs(ns.Guild and ns.Guild.Members and ns.Guild.Members() or {}) do
+    for name, m in pairs(ns.Guild and ns.Guild.Day and ns.Guild.Day() or {}) do
         if name ~= me and m.runDay == today and m.runSteps then
             list[#list + 1] = { name = name, pal = m.runPal, steps = m.runSteps }
         end

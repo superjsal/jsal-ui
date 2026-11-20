@@ -57,7 +57,7 @@ function GuildWord.Played()
     local word, list = GuildWord.word, {}
     if not word then return list end
     local me = Compat.MyName()
-    for name, m in pairs(ns.Guild.Members() or {}) do
+    for name, m in pairs(ns.Guild.Day() or {}) do
         if m.guildID == word.id and m.guildScore and name ~= me then
             list[#list + 1] = { name = name, score = m.guildScore }
         end
@@ -84,7 +84,7 @@ function GuildWord.Numbers()
     local word = GuildWord.word
     if not word then return {} end
     local heard, me = 1, Compat.MyName()
-    for name in pairs(ns.Guild.Members() or {}) do if name ~= me then heard = heard + 1 end end
+    for name in pairs(ns.Guild.Day() or {}) do if name ~= me then heard = heard + 1 end end
     return { { ("%d of %d"):format(#GuildWord.Played(), heard), "have played" }, { tostring(#word.answer), "letters" } }
 end
 function GuildWord.Record()
@@ -170,17 +170,17 @@ local function Tries(score)
     return score == "X" and "Missed" or (score .. " of 6")
 end
 
--- How your guild did today, for the foot of the page: a row for you and each
--- guildmate heard this session with jsal.ui, the best Daily Word first, each
--- with today's Daily Word, Icon Guess and Pal run where they've played. Nil
--- with Guild games off. You're among them, so with no guildmate on it still has
--- your day.
+-- How your guild did today, for the foot of the page: a row for you, each
+-- guildmate heard this session with jsal.ui and each one who played today
+-- and has since gone, the best Daily Word first, each with today's Daily
+-- Word, Icon Guess and Pal run where they've played. Nil with Guild games
+-- off. You're among them, so with no guildmate on it still has your day.
 function Games.GuildToday()
     local guild = ns.Guild
-    if not (guild and guild.running and guild.Members) then return nil end
+    if not (guild and guild.running and guild.Day) then return nil end
     local today, list = Games.Today(), {}
     local gw, me = guild.Word and guild.Word(), Compat.MyName()
-    for name, m in pairs(guild.Members()) do
+    for name, m in pairs(guild.Day()) do
         if name ~= me then
             list[#list + 1] = {
                 name = name,
