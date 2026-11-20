@@ -189,10 +189,14 @@ local function SetsMenu(parent, act)
         self:SetHeight(48)
     end
     -- `current` is the set you're on when it's one of yours.
-    function menu:Open(anchor, current, from)
+    -- `base` names WoWSims' build that is your default set, nil where there's none.
+    function menu:Open(anchor, current, from, base)
         if self:IsShown() then return self:Hide() end
         field.well:Hide()
         local list = { { words = "YOUR SETS", tone = "muted" } }
+        if base then
+            list[#list + 1] = { words = "Default: WoWSims' " .. base, what = "default", tone = not current and "gold" or nil }
+        end
         for _, set in ipairs(Goal.OwnSets()) do
             list[#list + 1] = { words = set.name, what = "choose", key = set.key, tone = set.key == current and "gold" or nil }
         end
@@ -249,7 +253,8 @@ local function Hero(view, width, onStage, onSet, onSets)
     card.note:SetJustifyH("RIGHT")
     -- WoWSims' set, where your class has one: its builds, and the full set or the cheap one,
     -- left of the stages. Made the first time a set is shown: the builds are your class's.
-    -- Your own sets' pill, before raids: named for the one you're on, "My sets" when it's none.
+    -- Your sets' pill, before raids: named for the one of yours you're on, "Default set" on
+    -- WoWSims' (your default set), "My sets" where WoWSims has none for the spec.
     -- Its words leave room at the end for a gold "v" drawn from two strokes, as the dungeon guide's
     -- picker has: the font has no arrow of its own.
     card.mine = Style.Tabs(card, { { "own", "My sets    " } }, function() onSets(card.mine) end)
@@ -264,7 +269,7 @@ local function Hero(view, width, onStage, onSet, onSets)
     function card:Choosers(set, before)
         self.mine:SetShown(before)
         if before then
-            self.mine:Set("own", (set and set.own and set.name or "My sets") .. "    ")
+            self.mine:Set("own", (set and (set.own and set.name or "Default set") or "My sets") .. "    ")
             self.mine:Pick(set and set.own and "own" or nil)
         end
         if not (set and before) then
@@ -817,6 +822,8 @@ function Gear.GoalView(page, width, height)
     local function Sets(what, key, words)
         if what == "choose" then
             Keep().build = key
+        elseif what == "default" then
+            Keep().build = Keep().base
         elseif what == "empty" then
             Keep().build = Goal.NewSet(nil, nil)
         elseif what == "new" then
@@ -848,12 +855,19 @@ function Gear.GoalView(page, width, height)
             if page.Refresh then page.Refresh() end
         end, function(build, cheap)
             -- Which of WoWSims' sets is your goal, kept for the character.
-            if build then Keep().build = build end
+            -- A WoWSims build chosen is your default set from then on.
+            if build then Keep().build, Keep().base = build, build end
             if cheap ~= nil then Keep().cheap = cheap end
             Refresh()
         end, function(bar)
             menu = menu or SetsMenu(view, Sets)
-            menu:Open(bar, last and last.set and last.set.own and last.set.key or nil, last and last.set and last.set.name or nil)
+            local set = last and last.set
+            local base
+            for _, b in ipairs(set and set.builds or {}) do
+                if b.key == (Keep().base or (not (set and set.own) and set.key)) then base = b.name end
+            end
+            base = base or (set and not set.own and set.name) or nil
+            menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, base)
         end)
         list = SlotList(view, math.max(24, math.min(32, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
