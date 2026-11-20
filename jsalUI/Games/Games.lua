@@ -170,13 +170,12 @@ local function Tries(score)
     return score == "X" and "Missed" or (score .. " of 6")
 end
 
--- How your guild did today, for the foot of the page: a row for you, each
--- guildmate heard this session with jsal.ui and each one who played today
--- and has since gone, the best Daily Word first, each with today's Daily
--- Word, Icon Guess and Pal run where they've played. Nil with Guild games
--- off. You're among them, so with no guildmate on it still has your day.
--- Each says whether they're on now (`on`); one who has gone and played
--- nothing today has nothing to show and is left out.
+-- How your guild did today, for the foot of the page: a row for you and
+-- each guildmate heard today with jsal.ui, the best Daily Word first, each
+-- with today's Daily Word, Icon Guess and Pal run where they've played. Nil
+-- with Guild games off. You're among them, so with no guildmate on it still
+-- has your day. Each says whether they're on now (`on`): one who has gone
+-- keeps their row, played or not.
 function Games.GuildToday()
     local guild = ns.Guild
     if not (guild and guild.running and guild.Day) then return nil end
@@ -196,7 +195,7 @@ function Games.GuildToday()
             iconMarks = m.marksDay == today and m.iconMarks or nil,
             guildMarks = gw and m.guildMarksID == gw.id and m.guildMarks or nil,
         }
-        if e and (e.on or e.word or e.icons or e.run or e.guild) then list[#list + 1] = e end
+        if e then list[#list + 1] = e end
     end
     -- Your own row, from your own games.
     local function Today(game)
