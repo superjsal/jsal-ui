@@ -25,7 +25,8 @@ no boss placed on it.
 A boss's picture, for its tooltip, is the journal's too: JournalEncounterCreature (JournalEncounterID,
 CreatureDisplayInfoID, OrderIndex, Name_lang; from the same place) gives each journal boss's models, the
 first being the boss. Only the rows whose model Forever's own CreatureDisplayInfo has are kept there: a boss
-remodelled since has none.
+remodelled since has none. Those, and the bosses the journal doesn't have, take their model from their NPC's
+page on Wowhead Forever (its "View in 3D" displayId): FACES below.
 
 python tools/build_dungeon_maps.py           writes the file
 python tools/build_dungeon_maps.py --report  says what matched and what didn't
@@ -70,6 +71,25 @@ ART = {
     2974: [("blackmaw1", "Blackmaw Grove"), ("blackmaw2", "Festering Grotto"), ("blackmaw3", "Fallen Grove"),
            ("blackmaw4", "Elders"), ("blackmaw5", "Burrow"), ("blackmaw6", "Forbidden Magic")],
     3001: [("shaper1", "The Shaper's Terrace"), ("shaper2", "Prismatic Talus")],
+}
+# A boss's model where the journal has none for it, by its name: from its NPC's page on Wowhead Forever
+# (wowhead.com/forever/npc=<id>, the displayId of "View in 3D"), NPC ID in the comment.
+FACES = {
+    "Ghamoo-ra": 5027,                   # 4887
+    "Charlga Razorflank": 4642,          # 4421
+    "Viscous Fallout": 5497,             # 7079
+    "Electrocutioner 6000": 6915,        # 6235
+    "Crowd Pummeler 9-60": 6774,         # 6229
+    "Mekgineer Thermaplugg": 6980,       # 7800
+    "Glutton": 7864,                     # 8567
+    "Amnennar the Coldbringer": 7971,    # 7358
+    "War Master Voone": 9733,            # 9237
+    "Lethtendris": 14378,                # 14327
+    "Malor the Zealous": 10458,          # 11032
+    "Cannon Master Willey": 10674,       # 10997
+    "Archivist Galford": 10544,          # 10811
+    "Balnazzar": 10691,                  # 10813
+    "Baron Rivendare": 10729,            # 10440
 }
 BS = chr(92)
 
@@ -168,7 +188,7 @@ def build():
                 missing.append("%s (floor %d of %d)" % (name, floor, count))
                 continue
             floor_names[floor] = True
-            placed[enc] = (floor, b["x"], b["y"], name, build_name, b["name"], b["instance"], models[build_name].get(b["jid"]))
+            placed[enc] = (floor, b["x"], b["y"], name, build_name, b["name"], b["instance"], models[build_name].get(b["jid"]) or FACES.get(name))
         report.append("%s: %d of %d placed%s" % (d["name"], len(placed), len(d["bosses"]),
                                                  missing and ("; not: " + ", ".join(missing)) or ""))
         if len(placed) * 2 >= len(d["bosses"]):

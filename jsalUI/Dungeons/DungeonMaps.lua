@@ -46,7 +46,7 @@ ns.DungeonMaps = {
         } },
     [9] = { folder = "BlackfathomDeeps", floors = { true, true, true },
         bosses = {
-            [2916] = { 1, 0.333, 0.607 },    -- Ghamoo-ra
+            [2916] = { 1, 0.333, 0.607, 5027 },    -- Ghamoo-ra
             [2915] = { 1, 0.112, 0.390, 4979 },    -- Lady Sarevess
             [2912] = { 3, 0.587, 0.309, 1816 },    -- Old Serra'kis
             [2911] = { 2, 0.524, 0.808, 4939 },    -- Twilight Lord Kelris
@@ -59,15 +59,15 @@ ns.DungeonMaps = {
             [2775] = { 1, 0.873, 0.422, 4644 },    -- Death Speaker Jargba
             [2776] = { 1, 0.571, 0.305, 4652 },    -- Overlord Ramtusk
             [2777] = { 1, 0.081, 0.689, 2450 },    -- Agathelos the Raging
-            [2778] = { 1, 0.217, 0.314 },    -- Charlga Razorflank
+            [2778] = { 1, 0.217, 0.314, 4642 },    -- Charlga Razorflank
         } },
     [13] = { folder = "Gnomeregan", floors = { true, true, true, true },
         bosses = {
             [2768] = { 1, 0.779, 0.670, 6533 },    -- Grubbis
-            [2769] = { 2, 0.760, 0.465 },    -- Viscous Fallout
-            [2770] = { 2, 0.243, 0.684 },    -- Electrocutioner 6000
-            [2771] = { 3, 0.432, 0.883 },    -- Crowd Pummeler 9-60
-            [2772] = { 4, 0.311, 0.303 },    -- Mekgineer Thermaplugg
+            [2769] = { 2, 0.760, 0.465, 5497 },    -- Viscous Fallout
+            [2770] = { 2, 0.243, 0.684, 6915 },    -- Electrocutioner 6000
+            [2771] = { 3, 0.432, 0.883, 6774 },    -- Crowd Pummeler 9-60
+            [2772] = { 4, 0.311, 0.303, 6980 },    -- Mekgineer Thermaplugg
         } },
     [3274] = { floors = { true }, bosses = {},    -- Excavation Site: Wetlands
         art = { "excavation" },
@@ -79,8 +79,8 @@ ns.DungeonMaps = {
         bosses = {
             [2780] = { 1, 0.594, 0.340, 7845 },    -- Tuten'kash
             [2782] = { 1, 0.861, 0.467, 8055 },    -- Mordresh Fire Eye
-            [2784] = { 1, 0.343, 0.668 },    -- Glutton
-            [2785] = { 1, 0.445, 0.605 },    -- Amnennar the Coldbringer
+            [2784] = { 1, 0.343, 0.668, 7864 },    -- Glutton
+            [2785] = { 1, 0.445, 0.605, 7971 },    -- Amnennar the Coldbringer
         } },
     [3270] = { floors = { true, true }, bosses = {},    -- The Drowned City
         art = { "drowned1", "drowned2" },
@@ -150,7 +150,7 @@ ns.DungeonMaps = {
         bosses = {
             [267] = { 3, 0.387, 0.590, 11565 },    -- Highlord Omokk
             [268] = { 2, 0.553, 0.693, 9732 },    -- Shadow Hunter Vosh'gajin
-            [269] = { 1, 0.525, 0.545 },    -- War Master Voone
+            [269] = { 1, 0.525, 0.545, 9733 },    -- War Master Voone
             [270] = { 2, 0.621, 0.741, 9929 },    -- Mother Smolderweb
             [271] = { 4, 0.455, 0.557, 11583 },    -- Urok Doomhowl
             [272] = { 5, 0.540, 0.844, 9738 },    -- Quartermaster Zigris
@@ -169,7 +169,7 @@ ns.DungeonMaps = {
         bosses = {
             [343] = { 6, 0.575, 0.744, 11335 },    -- Zevrim Thornhoof
             [344] = { 6, 0.537, 0.715, 5489 },    -- Hydrospawn
-            [345] = { 5, 0.439, 0.482 },    -- Lethtendris
+            [345] = { 5, 0.439, 0.482, 14378 },    -- Lethtendris
             [346] = { 6, 0.567, 0.289, 14416 },    -- Alzzin the Wildshaper
         } },
     [37] = { folder = "DireMaul", floors = { true },
@@ -197,17 +197,17 @@ ns.DungeonMaps = {
         bosses = {
             [473] = { 1, 0.605, 0.314, 10482 },    -- Hearthsinger Forresten
             [474] = { 1, 0.500, 0.178, 571 },    -- Timmy the Cruel
-            [476] = { 1, 0.299, 0.408 },    -- Malor the Zealous
-            [475] = { 1, 0.043, 0.510 },    -- Cannon Master Willey
-            [477] = { 1, 0.272, 0.750 },    -- Archivist Galford
-            [478] = { 1, 0.205, 0.822 },    -- Balnazzar
+            [476] = { 1, 0.299, 0.408, 10458 },    -- Malor the Zealous
+            [475] = { 1, 0.043, 0.510, 10674 },    -- Cannon Master Willey
+            [477] = { 1, 0.272, 0.750, 10544 },    -- Archivist Galford
+            [478] = { 1, 0.205, 0.822, 10691 },    -- Balnazzar
             [472] = { 1, 0.735, 0.205, 10771 },    -- The Unforgiven
             [479] = { 2, 0.746, 0.469, 10698 },    -- Baroness Anastari
             [480] = { 2, 0.572, 0.461, 9793 },    -- Nerub'enkan
             [481] = { 2, 0.675, 0.227, 10546 },    -- Maleki the Pallid
             [482] = { 2, 0.567, 0.162, 10433 },    -- Magistrate Barthilas
             [483] = { 2, 0.456, 0.199, 12818 },    -- Ramstein the Gorger
-            [484] = { 2, 0.387, 0.201 },    -- Baron Rivendare
+            [484] = { 2, 0.387, 0.201, 10729 },    -- Baron Rivendare
             [2798] = { 1, 0.558, 0.684, 10669 },    -- Postmaster Malown
         } },
     [3267] = { floors = { true, true }, bosses = {},    -- The Shaper's Terrace
