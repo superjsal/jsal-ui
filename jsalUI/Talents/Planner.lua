@@ -136,9 +136,9 @@ Window.Page("build", function(page)
         return row
     end
 
-    -- A build's line under its name: its main tree and points; in the title, whether it's followed
-    -- (the list says so with a tag instead: `bare`).
-    local function Summary(b, bare, short)
+    -- A build's line under its name, and after it in the title: its main tree and points (`short`:
+    -- just its points). Whether it's followed is the list's tag.
+    local function Summary(b, short)
         if not data then return "" end
         local order, _, treePoints = Tree.Replay(data, b.order or {})
         local text = "No points yet"
@@ -149,7 +149,6 @@ Window.Page("build", function(page)
             end
             text = short and ("%d points"):format(#order) or ("%s, %d points"):format(data.trees[best].name, #order)
         end
-        if not bare and data.own and Tree.Active() == b then text = text .. " · following" end
         return text
     end
 
@@ -838,7 +837,7 @@ Window.Page("build", function(page)
             y = y + ROW_H
             row.build = b
             row.name:SetText(b.name)
-            row.sub:SetText(Summary(b, true))
+            row.sub:SetText(Summary(b))
             -- Which specs follow it: FOLLOWING with one spec; with dual spec SPEC 1, SPEC 2 or
             -- SPEC 1 & 2, gold where the spec you're on is one, grey where it's only your other.
             local followed, ours = false, false
@@ -868,7 +867,7 @@ Window.Page("build", function(page)
             local beside = followed and Style.Wide(row.name, #(b.name or "") * 7.5) + 6 + row.tag.wide <= LIST_W - 20
             if followed and not beside then
                 -- Beside the tag, just its points: the tree's name was cut off there.
-                row.sub:SetText(Summary(b, true, true))
+                row.sub:SetText(Summary(b, true))
                 row.tag:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
                 row.sub:SetPoint("LEFT", row.tag, "RIGHT", 6, 0)
                 row.sub:SetWidth(LIST_W - 20 - row.tag.wide - 6)
