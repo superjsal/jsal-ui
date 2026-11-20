@@ -44,6 +44,17 @@ ns.DungeonMaps = {
             [591] = { 1, 0.555, 0.465, 4256 },    -- Verdan the Everliving
             [592] = { 1, 0.346, 0.137, 4088 },    -- Mutanus the Devourer
         } },
+    [7] = { folder = "ShadowfangKeep", floors = { true, true, false, true, false, true, true },
+        bosses = {
+            [2748] = { 1, 0.661, 0.711, 524 },    -- Rethilgore
+            [2749] = { 2, 0.480, 0.290, 524 },    -- Razorclaw the Butcher
+            [2750] = { 2, 0.295, 0.803, 3222 },    -- Baron Silverlaine
+            [2751] = { 1, 0.275, 0.586, 3223 },    -- Commander Springvale
+            [2752] = { 7, 0.551, 0.771, 522 },    -- Odo the Blindwatcher
+            [2753] = { 4, 0.574, 0.433, 2352 },    -- Fenrus the Devourer
+            [2754] = { 6, 0.590, 0.533, 11179 },    -- Wolf Master Nandos
+            [2755] = { 6, 0.639, 0.200, 2353 },    -- Archmage Arugal
+        } },
     [9] = { folder = "BlackfathomDeeps", floors = { true, true, true },
         bosses = {
             [2916] = { 1, 0.333, 0.607, 5027 },    -- Ghamoo-ra
@@ -51,6 +62,14 @@ ns.DungeonMaps = {
             [2912] = { 3, 0.587, 0.309, 1816 },    -- Old Serra'kis
             [2911] = { 2, 0.524, 0.808, 4939 },    -- Twilight Lord Kelris
             [2910] = { 2, 0.855, 0.864, 2837 },    -- Aku'mai
+        } },
+    [11] = { folder = "TheStockade", floors = { true },
+        bosses = {
+            [2756] = { 1, 0.499, 0.242, 517 },    -- Targorr the Dread
+            [2757] = { 1, 0.692, 0.309, 825 },    -- Kam Deepfury
+            [2758] = { 1, 0.782, 0.457, 3250 },    -- Hamhock
+            [2759] = { 1, 0.146, 0.214, 2149 },    -- Dextren Ward
+            [2760] = { 1, 0.864, 0.520, 1621 },    -- Bazil Thredd
         } },
     [15] = { folder = "RazorfenKraul", floors = { true },
         bosses = {
@@ -75,6 +94,16 @@ ns.DungeonMaps = {
     [3271] = { floors = { true, true }, bosses = {},    -- City of Dalaran
         art = { "dalaran2", "dalaran1" },
         names = { "Sewers", "City of Dalaran" } },
+    [17] = { folder = "ScarletMonastery", floors = { true, true, true, true },
+        bosses = {
+            [444] = { 1, 0.715, 0.589, 2044 },    -- Interrogator Vishas
+            [2779] = { 1, 0.244, 0.508, 11396 },    -- Bloodmage Thalnos
+            [446] = { 2, 0.308, 0.878, 2040 },    -- Houndmaster Loksey
+            [447] = { 2, 0.832, 0.745, 5266 },    -- Arcanist Doan
+            [448] = { 3, 0.786, 0.108, 2041 },    -- Herod
+            [449] = { 4, 0.554, 0.261, 2605 },    -- High Inquisitor Fairbanks
+            [450] = { 4, 0.490, 0.169, 2043 },    -- High Inquisitor Whitemane
+        } },
     [19] = { folder = "RazorfenDowns", floors = { true },
         bosses = {
             [2780] = { 1, 0.594, 0.340, 7845 },    -- Tuten'kash
@@ -120,6 +149,17 @@ ns.DungeonMaps = {
             [598] = { 1, 0.296, 0.174, 6690 },    -- Nekrum Gutchewer
             [599] = { 1, 0.296, 0.174, 6690 },    -- Shadowpriest Sezz'ziz
             [600] = { 1, 0.422, 0.330, 6439 },    -- Chief Ukorz Sandscalp
+        } },
+    [27] = { folder = "TheTempleOfAtalHakkar", floors = { true },
+        bosses = {
+            [3582] = { 1, 0.498, 0.486, 7873 },    -- Atal'alarion
+            [3583] = { 1, 0.240, 0.452, 8053 },    -- Avatar of Hakkar
+            [3584] = { 1, 0.688, 0.870, 7806 },    -- Shade of Eranikus
+            [3585] = { 1, 0.521, 0.890, 9584 },    -- Hazzas
+            [3586] = { 1, 0.489, 0.890, 7975 },    -- Morphaz
+            [3587] = { 1, 0.453, 0.440, 6375 },    -- Weaver
+            [3588] = { 1, 0.440, 0.428, 7553 },    -- Dreamscythe
+            [3589] = { 1, 0.761, 0.368, 6708 },    -- Jammal'an the Prophet
         } },
     [3269] = { floors = { true, true }, bosses = {},    -- Alcaz Prison
         art = { "alcaz1", "alcaz2" },
@@ -209,6 +249,22 @@ ns.DungeonMaps = {
             [483] = { 2, 0.456, 0.199, 12818 },    -- Ramstein the Gorger
             [484] = { 2, 0.387, 0.201, 10729 },    -- Baron Rivendare
             [2798] = { 1, 0.558, 0.684, 10669 },    -- Postmaster Malown
+        } },
+    [2] = { folder = "ScholomanceOLD", floors = { false, true, true, true },
+        bosses = {
+            [2805] = { 2, 0.492, 0.108, 143673 },    -- Kirtonos
+            [2804] = { 3, 0.543, 0.144, 11073 },    -- Jandice Barov
+            [2811] = { 3, 0.304, 0.624, 12073 },    -- Rattlegore
+            [2809] = { 2, 0.444, 0.639, 10248 },    -- Marduk Blackpool
+            [2813] = { 2, 0.482, 0.662, 2606 },    -- Vectus
+            [2810] = { 4, 0.406, 0.884, 7919 },    -- Ras Frostwhisperer
+            [2803] = { 3, 0.728, 0.809, 11069 },    -- Instructor Malicia
+            [2802] = { 3, 0.956, 0.459, 10901 },    -- Doctor Theolen Krastinov
+            [2808] = { 3, 0.720, 0.120, 11492 },    -- Lorekeeper Polkelt
+            [2812] = { 4, 0.675, 0.521, 10433 },    -- The Ravenian
+            [2807] = { 4, 0.844, 0.308, 11072 },    -- Lord Alexei Barov
+            [2806] = { 4, 0.670, 0.061, 11835 },    -- Lady Illucia Barov
+            [2801] = { 4, 0.682, 0.302, 11070 },    -- Darkmaster Gandling
         } },
     [3267] = { floors = { true, true }, bosses = {},    -- The Shaper's Terrace
         art = { "shaper1", "shaper2" },

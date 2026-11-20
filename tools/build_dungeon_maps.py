@@ -46,7 +46,7 @@ FOLDERS = {
     34: ("TheStockade", 1), 47: ("RazorfenKraul", 1), 90: ("Gnomeregan", 4), 189: ("ScarletMonastery", 4),
     129: ("RazorfenDowns", 1), 70: ("Uldaman", 2), 349: ("Maraudon", 2), 209: ("ZulFarrak", 0),
     109: ("TheTempleOfAtalHakkar", 1), 230: ("BlackrockDepths", 2), 229: ("BlackrockSpire", 7),
-    429: ("DireMaul", 6), 329: ("Stratholme", 2), 289: ("Scholomance", 4), 409: ("MoltenCore", 1),
+    429: ("DireMaul", 6), 329: ("Stratholme", 2), 289: ("ScholomanceOLD", 4), 409: ("MoltenCore", 1),
     469: ("BlackwingLair", 4), 249: ("OnyxiasLair", 1), 309: ("ZulGurub", 0),
 }
 # A boss the journal has no floor for, by map: the floor it's on (Upper Blackrock Spire's last rooms).
@@ -90,6 +90,107 @@ FACES = {
     "Archivist Galford": 10544,          # 10811
     "Balnazzar": 10691,                  # 10813
     "Baron Rivendare": 10729,            # 10440
+    "High Inquisitor Whitemane":          2043,    # 3977
+    "Shade of Eranikus":                  7806,    # 5709
+    "Hazzas":                             9584,    # 5722
+    "Kirtonos":                           143673,  # 10506
+    "Razorclaw the Butcher":              524,     # 3886
+    "Darkmaster Gandling":                11070,   # 1853
+    "Rethilgore":                         524,     # 3914
+    "Targorr the Dread":                  517,     # 1696
+    "Herod":                              2041,    # 3975
+    "Interrogator Vishas":                2044,    # 3983
+    "Bloodmage Thalnos":                  11396,   # 4543
+    "Odo the Blindwatcher":               522,     # 4279
+    "Baron Silverlaine":                  3222,    # 3887
+    "Fenrus the Devourer":                2352,    # 4274
+    "Lady Illucia Barov":                 11835,   # 10502
+    "Rattlegore":                         12073,   # 11622
+    "Lorekeeper Polkelt":                 11492,   # 10901
+    "Jammal'an the Prophet":              6708,    # 5710
+    "Weaver":                             6375,    # 5720
+    "Bazil Thredd":                       1621,    # 1716
+    "Jandice Barov":                      11073,   # 10503
+    "Hamhock":                            3250,    # 1717
+    "Instructor Malicia":                 11069,   # 10505
+    "High Inquisitor Fairbanks":          2605,    # 4542
+    "Ras Frostwhisperer":                 7919,    # 10508
+    "Arcanist Doan":                      5266,    # 6487
+    "Houndmaster Loksey":                 2040,    # 3974
+    "Commander Springvale":               3223,    # 4278
+    "Wolf Master Nandos":                 11179,   # 3927
+    "Morphaz":                            7975,    # 5719
+    "Doctor Theolen Krastinov":           10901,   # 11261
+    "Marduk Blackpool":                   10248,   # 10433
+    "Dreamscythe":                        7553,    # 5721
+    "The Ravenian":                       10433,   # 10507
+    "Atal'alarion":                       7873,    # 8580
+    "Avatar of Hakkar":                   8053,    # 8443
+    "Lord Alexei Barov":                  11072,   # 10504
+    "Kam Deepfury":                       825,     # 1666
+    "Dextren Ward":                       2149,    # 1663
+    "Vectus":                             2606,    # 10432
+    "Archmage Arugal":                    2353,    # 4275
+}
+# The dungeons rebuilt before the journal came, by map ID: each boss's floor and place on the classic pictures,
+# by hand. The place is where the boss stands, from AzerothCore's spawns (data/sql/base/db_world/creature.sql,
+# world X, Y and Z) inside the floor's bounds in a Wrath-era build's UiMapAssignment (wago.tools, build
+# 3.80.2.70522; a picture's across is the bounds' Y from its top, its down the bounds' X); the floor is
+# chosen by hand where several pictures take the spot, by the skull and the room's name on the picture and by
+# height. A boss called up rather than standing there is placed at its room's skull. Zul'Gurub has no
+# picture of the classic city (its pictures are the rebuilt one's), and Kormok no place.
+HAND = {
+    33: {    # Shadowfang Keep
+        "Rethilgore": (1, 0.661, 0.711),
+        "Razorclaw the Butcher": (2, 0.480, 0.290),
+        "Baron Silverlaine": (2, 0.295, 0.803),
+        "Commander Springvale": (1, 0.275, 0.586),
+        "Odo the Blindwatcher": (7, 0.551, 0.771),
+        "Fenrus the Devourer": (4, 0.574, 0.433),
+        "Wolf Master Nandos": (6, 0.590, 0.533),
+        "Archmage Arugal": (6, 0.639, 0.200),
+    },
+    34: {    # The Stockade
+        "Targorr the Dread": (1, 0.499, 0.242),
+        "Kam Deepfury": (1, 0.692, 0.309),
+        "Hamhock": (1, 0.782, 0.457),
+        "Dextren Ward": (1, 0.146, 0.214),
+        "Bazil Thredd": (1, 0.864, 0.520),
+    },
+    189: {    # Scarlet Monastery
+        "Interrogator Vishas": (1, 0.715, 0.589),
+        "Bloodmage Thalnos": (1, 0.244, 0.508),
+        "Houndmaster Loksey": (2, 0.308, 0.878),
+        "Arcanist Doan": (2, 0.832, 0.745),
+        "Herod": (3, 0.786, 0.108),
+        "High Inquisitor Fairbanks": (4, 0.554, 0.261),
+        "High Inquisitor Whitemane": (4, 0.490, 0.169),
+    },
+    109: {    # Sunken Temple
+        "Atal'alarion": (1, 0.498, 0.486),
+        "Shade of Eranikus": (1, 0.688, 0.870),
+        "Hazzas": (1, 0.521, 0.890),
+        "Morphaz": (1, 0.489, 0.890),
+        "Weaver": (1, 0.453, 0.440),
+        "Dreamscythe": (1, 0.440, 0.428),
+        "Jammal'an the Prophet": (1, 0.761, 0.368),
+        "Avatar of Hakkar": (1, 0.240, 0.452),
+    },
+    289: {    # Scholomance
+        "Jandice Barov": (3, 0.543, 0.144),
+        "Rattlegore": (3, 0.304, 0.624),
+        "Marduk Blackpool": (2, 0.444, 0.639),
+        "Vectus": (2, 0.482, 0.662),
+        "Ras Frostwhisperer": (4, 0.406, 0.884),
+        "Instructor Malicia": (3, 0.728, 0.809),
+        "Doctor Theolen Krastinov": (3, 0.956, 0.459),
+        "Lorekeeper Polkelt": (3, 0.720, 0.120),
+        "The Ravenian": (4, 0.675, 0.521),
+        "Lord Alexei Barov": (4, 0.844, 0.308),
+        "Lady Illucia Barov": (4, 0.670, 0.061),
+        "Darkmaster Gandling": (4, 0.682, 0.302),
+        "Kirtonos": (2, 0.492, 0.108),
+    },
 }
 BS = chr(92)
 
@@ -161,6 +262,18 @@ def build():
             continue
         folder, count = FOLDERS[d["map"]]
         placed, missing, floor_names = {}, [], {}
+        if d["map"] in HAND:
+            for enc, name, own in d["bosses"]:
+                if name in HAND[d["map"]]:
+                    floor, x, y = HAND[d["map"]][name]
+                    floor_names[floor] = True
+                    placed[enc] = (floor, x, y, name, "hand", name, None, FACES.get(name))
+                else:
+                    missing.append(name)
+            report.append("%s: %d of %d placed by hand%s" % (d["name"], len(placed), len(d["bosses"]),
+                                                            missing and ("; not: " + ", ".join(missing)) or ""))
+            out.append((d, folder, count, placed, floor_names))
+            continue
         for enc, name, own in d["bosses"]:
             found = None
             for build_name, book in books:
