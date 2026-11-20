@@ -211,6 +211,72 @@ RAID_NAMES = {"Signet Ring of the Bronze Dragonflight"}
 RAID_VENDORS = {"Rin'wosho the Trader"}
 
 
+# WoWSims Forever's pre-raid sets, from its batch sims (data/gear/wowsims-forever/sets, its COMMIT beside them;
+# MIT, as its weights are): by class, each build's set and its cheap one where there is one, and the build each
+# talent tree starts on (None: WoWSims has no pre-raid set for it, and the goal is the weights' own).
+PREBIS = {
+    "HUNTER": ([("weave", "Weave", "hunter_dps_prebis_weave"), ("turret", "Turret", "hunter_dps_prebis_turret"),
+                ("melee", "Melee", "hunter_dps_prebis_melee")], ["turret", "turret", "weave"]),
+    "MAGE": ([("arcane", "Arcane", "mage_dps_preraid"), ("fire", "Fire", "mage_dps_preraidFire"),
+              ("frost", "Frost", "mage_dps_preraidFrost")], ["arcane", "fire", "frost"]),
+    "WARLOCK": ([("preraid", "Pre-raid", "warlock_dps_preraid")], ["preraid", "preraid", "preraid"]),
+    "WARRIOR": ([("arms", "Arms", "warrior_dps_prebis_arms"), ("fury", "Fury", "warrior_dps_prebis_fury"),
+                 ("protection", "Protection", "warrior_protection_prebis")], ["arms", "fury", "protection"]),
+    "DRUID": ([("balance", "Balance", "druid_balance_prebis"), ("feral", "Feral", "druid_feralcat_pre_raid")],
+              ["balance", "feral", None]),
+    "PRIEST": ([("healer", "Healer", "priest_healer_preraid")], ["healer", "healer", None]),
+}
+SET_SLOTS = ["head", "neck", "shoulder", "back", "chest", "wrist", "hands", "waist", "legs", "feet",
+             "finger1", "finger2", "trinket1", "trinket2", "main_hand", "off_hand", "ranged"]
+
+
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "_", name.lower().replace("'", "")).strip("_")
+
+
+def read_set(name, items):
+    """A set's 17 item IDs in WoWSims' slot order (0 for an empty place), from its .gear.json or .gear.siml.
+    A .siml names its items: by the name, with "_ilvlN" where two share one; of several, the newest ID."""
+    folder = SRC / "wowsims-forever" / "sets"
+    path = folder / (name + ".gear.json")
+    if path.exists():
+        ids = [int(it.get("id", 0)) for it in json.loads(path.read_text(encoding="utf-8"))["items"]]
+        return (ids + [0] * 17)[:17]
+    path = folder / (name + ".gear.siml")
+    if not path.exists():
+        return None
+    by = {}
+    for x in items:
+        by.setdefault(slug(x[1]), []).append(x)
+    ids = [0] * 17
+    for line in path.read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) < 2 or parts[0] not in SET_SLOTS:
+            continue
+        key, level = parts[1], None
+        m = re.match(r"(.*)_ilvl(\d+)$", key)
+        if m:
+            key, level = m.group(1), int(m.group(2))
+        found = [x for x in by.get(key, []) if level is None or x[4] == level]
+        if not found:
+            raise SystemExit("no item for %s in %s" % (parts[1], name))
+        ids[SET_SLOTS.index(parts[0])] = max(found, key=lambda x: (x[4], x[0]))[0]
+    return ids
+
+
+def prebis_lines(items):
+    out = []
+    for class_file, (builds, default) in PREBIS.items():
+        parts = ["        default = { %s }," % ", ".join(lua_string(d) if d else "false" for d in default)]
+        for key, label, name in builds:
+            full, cheap = read_set(name, items), read_set(name + "_cheap", items)
+            parts.append("        { key = %s, name = %s, full = %s%s }," % (
+                lua_string(key), lua_string(label), lua_string(",".join(map(str, full))),
+                (", cheap = " + lua_string(",".join(map(str, cheap)))) if cheap else ""))
+        out.append("    %s = {\n%s\n    }," % (class_file, "\n".join(parts)))
+    return out
+
+
 def craft_reagents():
     """By a craft's spell ID: the items it takes."""
     out = {}
@@ -429,6 +495,13 @@ def main():
         "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
         "    -- Items got by a quest, a vendor or a craft that need a raid first, separated by \";\".",
         "    raid = " + lua_string(";".join(str(i) for i in sorted(raid))) + ",",
+        "    -- WoWSims Forever's pre-raid sets (its batch sims, MIT): by class, the build each talent tree",
+        "    -- starts on (false: none), and each build's set, and its cheap one, as 17 item IDs in the order",
+        "    -- head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet, two fingers, two",
+        "    -- trinkets, main hand, off hand, ranged (0 for an empty place).",
+        "    prebis = {",
+        *prebis_lines(data["items"]),
+        "    },",
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,

@@ -127,7 +127,7 @@ end
 ---------------------------------------------------------------------------
 -- The card at the top: how many slots are at your goal, and the stage.
 ---------------------------------------------------------------------------
-local function Hero(view, width, onStage)
+local function Hero(view, width, onStage, onSet)
     local card = CreateFrame("Frame", nil, view)
     card:SetSize(width, HERO_H)
     card:SetPoint("TOPLEFT")
@@ -149,10 +149,39 @@ local function Hero(view, width, onStage)
     card.note = Style.Text(card, 12, "muted")
     card.note:SetPoint("TOPRIGHT", card.stages, "BOTTOMRIGHT", 0, -8)
     card.note:SetJustifyH("RIGHT")
+    -- WoWSims' set, where your class has one: its builds, and the full set or the cheap one,
+    -- left of the stages. Made the first time a set is shown: the builds are your class's.
+    function card:Choosers(set)
+        if not set then
+            if self.builds then self.builds:Hide() self.costs:Hide() end
+            return
+        end
+        if not self.builds then
+            local items = {}
+            for _, b in ipairs(set.builds) do items[#items + 1] = { b.key, b.name } end
+            self.builds = Style.Tabs(self, items, function(key) onSet(key, nil) end)
+            self.costs = Style.Tabs(self, { { "full", "Full" }, { "cheap", "Cheap" } }, function(key) onSet(nil, key == "cheap") end)
+            self.costs:SetPoint("RIGHT", self.stages, "LEFT", -8, 0)
+            self.builds:SetPoint("RIGHT", self.costs, "LEFT", -8, 0)
+        end
+        self.builds:SetShown(#set.builds > 1)
+        self.builds:Pick(set.key)
+        self.costs:SetShown(set.hasCheap)
+        self.costs:Pick(set.cheap and "cheap" or "full")
+        if not set.hasCheap then
+            self.builds:ClearAllPoints()
+            self.builds:SetPoint("RIGHT", self.stages, "LEFT", -8, 0)
+        else
+            self.builds:ClearAllPoints()
+            self.builds:SetPoint("RIGHT", self.costs, "LEFT", -8, 0)
+        end
+    end
     function card:Paint(read, stage)
         local s = read[stage]
+        local set = stage == Goal.BEFORE and read.set
         self.count:SetText(("|cffe3b04b%d|r of %d"):format(s.done, s.slots))
-        self.label:SetText("slots at your goal for " .. Goal.LEVEL)
+        self.label:SetText(set and "slots at your pre-BiS" or ("slots at your goal for " .. Goal.LEVEL))
+        self:Choosers(set)
         for i, t in ipairs(self.pips) do
             t:SetShown(i <= s.slots)
             t:SetColorTexture(Style.Color(i <= s.done and "gold" or "lineStrong"))
@@ -163,8 +192,10 @@ local function Hero(view, width, onStage)
         self.stages:Pick(stage)
         if read.waiting > 0 then
             self.note:SetText(("Checking %d piece%s the game hasn't sent yet..."):format(read.waiting, read.waiting == 1 and "" or "s"))
+        elseif set then
+            self.note:SetText("WoWSims Forever's pre-raid set for " .. set.name .. (set.cheap and ", the cheap one" or "") .. ", from its sims")
         elseif stage == Goal.BEFORE then
-            self.note:SetText("Dungeons, quests, vendors and crafting first; raid pieces after.")
+            self.note:SetText("An estimate by your weights: WoWSims has no pre-raid set for this spec yet.")
         else
             self.note:SetText("The best of the raids in the dungeon guide, over what comes before them.")
         end
@@ -175,7 +206,7 @@ end
 ---------------------------------------------------------------------------
 -- Your goal, slot by slot: a line each.
 ---------------------------------------------------------------------------
-local function SlotList(view, rowH)
+local function SlotList(view, rowH, onPick)
     local list = CreateFrame("Frame", nil, view)
     list:SetSize(LEFT_W, HEAD_H + PLACES * rowH)
     list:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
@@ -200,12 +231,26 @@ local function SlotList(view, rowH)
         r.where:SetPoint("RIGHT")
         r.where:SetJustifyH("RIGHT")
         Tipped(r, NAME_X)
+        -- A set's slot is a click to its other choices, lit while they show.
+        r.lit = r:CreateTexture(nil, "BACKGROUND")
+        r.lit:SetAllPoints()
+        r.lit:SetColorTexture(Style.Color("wellHover"))
+        r.lit:Hide()
+        r.edges = Style.Border(r, "gold")
+        for _, edge in ipairs(r.edges) do edge:Hide() end
+        r:SetScript("OnMouseUp", function(self) if self.pickable then onPick(self.index) end end)
+        r.index = i
         list.rows[i] = r
     end
-    function list:Paint(rows, stage)
+    function list:Paint(rows, stage, chosen)
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
+            r.pickable = row ~= nil and row.pick ~= nil and stage == Goal.BEFORE
+            r:EnableMouse(r.pickable)
+            local on = r.pickable and chosen == i
+            r.lit:SetShown(on)
+            for _, edge in ipairs(r.edges) do edge:SetShown(on) end
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
@@ -363,8 +408,58 @@ local function Runs(view, width, height)
         if not pieces[i] then pieces[i] = PieceRow(child, inner) end
         return pieces[i]
     end
-    function col:Paint(s, stage)
-        local y, used = 0, 0
+    -- A chosen slot's other choices, at the column's top: the set's piece, then the weights'
+    -- best, each with how it stands against it.
+    local choiceHead = Style.Section(child, inner)
+    local choiceCard = CreateFrame("Frame", nil, child)
+    choiceCard:SetWidth(inner)
+    Style.Box(choiceCard, 6, "well", "cardLine")
+    local runsHead = Style.Section(child, inner)
+    runsHead.title:SetText("WHERE TO GO NEXT")
+    runsHead.note:SetText("ranked by the pieces left for you")
+    local choices = {}
+    local function Choice(i)
+        if choices[i] then return choices[i] end
+        local r = PieceRow(choiceCard, inner)
+        r.against = Style.Text(r, 13, "muted")
+        r.against:SetPoint("RIGHT", -14, 0)
+        choices[i] = r
+        return r
+    end
+    local function Choices(choice)
+        local shown = choice ~= nil
+        choiceHead:SetShown(shown)
+        choiceCard:SetShown(shown)
+        runsHead:SetShown(shown)
+        head.title:SetText(shown and (choice.row.label:upper() .. " · OTHER CHOICES") or "WHERE TO GO NEXT")
+        head.note:SetText(shown and "by your weights, against the pre-BiS pick" or "ranked by the pieces left for you")
+        if not shown then
+            for _, r in ipairs(choices) do r:Hide() end
+            return 0
+        end
+        local list = { { pick = true, piece = choice.row.pick } }
+        for _, o in ipairs(choice.others) do list[#list + 1] = o end
+        for k, o in ipairs(list) do
+            local r = Choice(k)
+            local from = Goal.From(o.piece.e)
+            local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
+            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and "the pre-BiS pick · " or "") .. where, nil)
+            r.against:SetText(o.pick and "|cffe3b04bpick|r" or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
+            r.rule:SetShown(k > 1)
+            r:ClearAllPoints()
+            r:SetPoint("TOPLEFT", 0, -((k - 1) * PIECE_H))
+            r:Show()
+        end
+        for k = #list + 1, #choices do choices[k]:Hide() end
+        choiceCard:ClearAllPoints()
+        choiceCard:SetPoint("TOPLEFT", 0, 0)
+        choiceCard:SetHeight(#list * PIECE_H)
+        runsHead:ClearAllPoints()
+        runsHead:SetPoint("TOPLEFT", 0, -(#list * PIECE_H + CARD_GAP + 6))
+        return #list * PIECE_H + CARD_GAP + 6 + HEAD_H + 2
+    end
+    function col:Paint(s, stage, choice)
+        local y, used = Choices(choice), 0
         for i, run in ipairs(s.runs) do
             if not cards[i] then cards[i] = RunCard(child, inner) end
             local card = cards[i]
@@ -418,7 +513,7 @@ local function Runs(view, width, height)
             more:SetText(("+ %d more"):format(s.unknown))
             y = y + 24
         end
-        empty:SetShown(y == 0)
+        empty:SetShown(y == 0 and not choice)
         if y == 0 then
             empty:SetText(s.slots > 0 and s.done == s.slots and "Every slot is at your goal."
                 or "Nothing to go and get that we know of yet.")
@@ -436,7 +531,7 @@ end
 -- this view is the one showing, painting it when it is.
 ---------------------------------------------------------------------------
 function Gear.GoalView(page, width, height)
-    local showing, stage, retrying = false, Goal.BEFORE, false
+    local showing, stage, retrying, chosen = false, Goal.BEFORE, false, nil
     local hero, list, runs, none
     local tabs = Style.Tabs(page, { { "near", "Near your level" }, { "goal", "At " .. Goal.LEVEL } }, function(key)
         showing = key == "goal"
@@ -453,15 +548,24 @@ function Gear.GoalView(page, width, height)
         hero = Hero(view, width, function(key)
             stage = key
             if page.Refresh then page.Refresh() end
+        end, function(build, cheap)
+            -- Which of WoWSims' sets is your goal, kept for the character.
+            ns.char.prebis = type(ns.char.prebis) == "table" and ns.char.prebis or {}
+            if build then ns.char.prebis.build = build end
+            if cheap ~= nil then ns.char.prebis.cheap = cheap end
+            if page.Refresh then page.Refresh() end
         end)
-        list = SlotList(view, math.max(24, math.min(35, math.floor((body - HEAD_H) / PLACES))))
+        list = SlotList(view, math.max(24, math.min(35, math.floor((body - HEAD_H) / PLACES))), function(i)
+            chosen = chosen ~= i and i or nil
+            if page.Refresh then page.Refresh() end
+        end)
         runs = Runs(view, width - LEFT_W - COL_GAP, body)
         none = Style.Text(view, 14, "muted")
         none:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
         none:SetWidth(width)
         none:SetJustifyH("LEFT")
         none:SetText("This spec has no stat weights yet, so there's no goal to work out. Add some under Weights.")
-        local about = Style.About(view, "Your goal is the best piece for each slot at level 60 for your spec, by the Gear plan's own weights. It can be opened at any level.\n"
+        local about = Style.About(view, "Before raids, where WoWSims Forever has a pre-raid set for your spec, your goal is that set, from its sims, which weigh the hit cap and a weapon and a bow as a pair; click a slot for its other choices, by the Gear plan's weights. Elsewhere your goal is the best piece for each slot at level 60 by those weights. It can be opened at any level.\n"
             .. "Before raids: what a dungeon boss in the guide drops, and crafts, quests and vendors up to the item level dungeons give. Raids: what the guide's raid bosses drop.\n"
             .. "Items, bosses and chances are from Wowhead Forever, and are still filling in at level 60.")
         about:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", 0, 0)
@@ -478,7 +582,8 @@ function Gear.GoalView(page, width, height)
         if not showing then return tabs:GetWidth() + 18, false end
         if not hero then Build() end
         local started = debugprofilestop()
-        local read = Goal.Read(spec)
+        local kept = type(ns.char.prebis) == "table" and ns.char.prebis or {}
+        local read = Goal.Read(spec, kept.build, kept.cheap)
         ns.Timed("Gear goal, working out", started)
         local has = not read.noWeights
         hero:SetShown(has)
@@ -487,8 +592,10 @@ function Gear.GoalView(page, width, height)
         none:SetShown(not has)
         if has then
             hero:Paint(read, stage)
-            list:Paint(read[stage].rows, stage)
-            runs:Paint(read[stage], stage)
+            local row = stage == Goal.BEFORE and chosen and read[stage].rows[chosen]
+            if not (row and row.pick) then chosen, row = nil, nil end
+            list:Paint(read[stage].rows, stage, chosen)
+            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, 3) } or nil)
             -- Still waiting on items: look again by itself, once at a time.
             if read.waiting > 0 and not retrying then
                 retrying = true

@@ -463,21 +463,132 @@ local function StageRows(ctx, stage, lists)
     return { rows = rows, done = done, slots = slots, runs = runs, other = other, unknown = unknown }
 end
 
+---------------------------------------------------------------------------
+-- WoWSims Forever's pre-raid sets (GearData.prebis): the goal before raids
+-- where your class has one, from its sims, which know what weights can't
+-- (the hit cap, a weapon and a bow picked as a pair). The weights' own best
+-- for each slot are kept as its other choices.
+---------------------------------------------------------------------------
+-- The game's equipment places, in the sets' order.
+local SET_EQUIP = { 1, 2, 3, 15, 5, 9, 10, 6, 7, 8, 11, 12, 13, 14, 16, 17, 18 }
+
+-- Your class's builds with a set, and the one your talent tree starts on (nil for a tree
+-- WoWSims has no set for).
+function Goal.Builds(classFile, spec)
+    local all = ns.GearData and ns.GearData.prebis and ns.GearData.prebis[classFile or ""]
+    if not all then return nil end
+    local start = all.default and all.default[spec or 1]
+    return all, start or nil
+end
+
+-- A set's piece for a slot: the slot's scored one where it's there, else one made for it.
+local function SetPiece(id, list, slot, ctx)
+    for _, c in ipairs(list) do
+        if c.id == id then return c end
+    end
+    local e = Gear.Lookup(id) or { id = id, ilvl = 0, kind = "", place = "" }
+    local stats = Gear.Stats(id)
+    if not stats then ctx.waiting = ctx.waiting + 1 end
+    stats = stats or {}
+    return { e = e, id = id, stats = stats, score = Gear.Score(stats, ctx.weights, slot.dps) or 0, stage = Goal.BEFORE }
+end
+
+-- The rows of a stage whose goal is a set (`ids`, 17 in the sets' order): each place has the
+-- set's piece; one you wear is done, in either place of a pair; an empty off hand under a
+-- two-hander is taken.
+local function SetRows(ctx, ids, lists)
+    local slotOf, worn = {}, {}
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, equip in ipairs(slot.equip) do slotOf[equip] = slot end
+    end
+    for _, equip in ipairs(SET_EQUIP) do worn[equip] = Worn(equip, slotOf[equip], ctx) end
+    local main = ids[15] or 0
+    local _, _, _, loc
+    if main > 0 and C_Item and C_Item.GetItemInfoInstant then _, _, _, loc = C_Item.GetItemInfoInstant(main) end
+    local mainEntry = main > 0 and Gear.Lookup(main) or nil
+    local twoHand = loc == "INVTYPE_2HWEAPON" or (mainEntry and mainEntry.slotType == 17) or false
+    local rows = {}
+    for i, equip in ipairs(SET_EQUIP) do
+        local slot, id = slotOf[equip], ids[i] or 0
+        local pair = #slot.equip > 1
+        local row = { equip = equip, worn = worn[equip], slot = slot,
+                      label = pair and (slot.label .. " " .. (equip == slot.equip[1] and 1 or 2)) or slot.label }
+        if id == 0 then
+            if equip == 17 and twoHand then row.taken = true else row.none = true end
+        else
+            local piece = SetPiece(id, lists[slot.key].list, slot, ctx)
+            row.pick = piece
+            local wearing = worn[equip].id == id
+            for _, other in ipairs(pair and slot.equip or {}) do
+                if worn[other].id == id then wearing = true end
+            end
+            if wearing then
+                row.done = true
+            else
+                row.goal = piece
+                row.gains = Gear.Gains(piece.stats, row.worn.stats, ctx.weights, slot.dps)
+                row.share = ctx.total > 0 and (piece.score - row.worn.score) / ctx.total or nil
+            end
+        end
+        rows[#rows + 1] = row
+    end
+    local done, slots = 0, 0
+    for _, row in ipairs(rows) do
+        if not (row.taken or row.none) then
+            slots = slots + 1
+            if row.done then done = done + 1 end
+        end
+    end
+    local runs, other, unknown = Goal.Runs(rows, Goal.BEFORE)
+    return { rows = rows, done = done, slots = slots, runs = runs, other = other, unknown = unknown }
+end
+
+-- A set slot's other choices: the weights' best for the slot before raids, leaving out the
+-- set's own pieces and anything of their names, up to `n`, each with how it stands against
+-- the set's piece by your weights (`against`, a share: -0.02 is 2% under it).
+function Goal.Others(read, row, n)
+    local out = {}
+    local pick = row and row.pick
+    local list = pick and read.lists and read.lists[row.slot.key]
+    if not list then return out end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local skip, names = {}, {}
+    for _, r in ipairs(read[Goal.BEFORE].rows) do
+        if r.slot == row.slot and r.pick then
+            skip[r.pick.id] = true
+            local name = get and get(r.pick.id)
+            if name then names[name] = true end
+        end
+    end
+    for _, c in ipairs(list.list) do
+        local name = get and get(c.id)
+        if c.stage <= Goal.BEFORE and not c.unknown and not skip[c.id] and not (name and names[name]) then
+            if name then names[name] = true end
+            out[#out + 1] = { piece = c, against = pick.score > 0 and (c.score - pick.score) / pick.score or nil }
+            if #out >= (n or 3) then break end
+        end
+    end
+    return out
+end
+
 local kept
 local KEEP = 600
--- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling }, or { noWeights = true }
--- for a spec with no weights. A stage: { rows, done, slots, runs, other, unknown }; a row:
--- { slot, label, equip, worn, goal, done, taken, none, unknown, gains, share }.
-function Goal.Read(spec)
+-- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
+-- { noWeights = true } for a spec with no weights. A stage: { rows, done, slots, runs, other,
+-- unknown }; a row: { slot, label, equip, worn, goal, done, taken, none, unknown, gains, share,
+-- pick (a set's piece) }. `build` and `cheap` choose the set (the tree's own build, full, by
+-- default); `set` says which it is: { builds, key, name, cheap, hasCheap }, nil with none.
+function Goal.Read(spec, build, cheap)
     spec = spec or Gear.Spec()
+    cheap = cheap and true or false
     local now = GetTime and GetTime()
-    if kept and kept.stamp == Gear.planStamp and kept.spec == spec and now and kept.at
-        and now - kept.at < KEEP and (kept.waiting == 0 or kept.at == now) then
+    if kept and kept.stamp == Gear.planStamp and kept.spec == spec and kept.build == build and kept.cheap == cheap
+        and now and kept.at and now - kept.at < KEEP and (kept.waiting == 0 or kept.at == now) then
         return kept
     end
     local weights = Gear.Weights(spec)
     local _, classFile, classID = UnitClass("player")
-    local out = { stamp = Gear.planStamp, spec = spec, at = now, waiting = 0 }
+    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, at = now, waiting = 0 }
     kept = out
     if not (weights and ns.GearData) then
         out.noWeights = true
@@ -491,8 +602,34 @@ function Goal.Read(spec)
     ctx.total = Gear.WornTotal(weights)
     local lists = {}
     for _, slot in ipairs(Gear.SLOTS) do lists[slot.key] = { slot = slot, list = Scored(slot, ctx) } end
-    out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)
+    out.lists = lists
+    local builds, start = Goal.Builds(classFile, spec)
+    local chosen
+    for _, b in ipairs(builds or {}) do
+        if b.key == (build or start) then chosen = b end
+    end
+    if chosen then
+        local ids = {}
+        for n in ((cheap and chosen.cheap) or chosen.full or ""):gmatch("%d+") do ids[#ids + 1] = tonumber(n) end
+        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil }
+        out[Goal.BEFORE] = SetRows(ctx, ids, lists)
+    else
+        out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)
+    end
     out[Goal.RAIDS] = StageRows(ctx, Goal.RAIDS, lists)
+    -- With raids, nothing of the set is given up for a raid's piece the weights think less of.
+    if chosen then
+        local raids, changed = out[Goal.RAIDS], false
+        for i, row in ipairs(raids.rows) do
+            local pick = out[Goal.BEFORE].rows[i] and out[Goal.BEFORE].rows[i].pick
+            if pick and row.goal and row.goal.score < pick.score then
+                row.goal, row.pick, row.unknown, changed = pick, pick, nil, true
+                row.gains = Gear.Gains(pick.stats, row.worn.stats, ctx.weights, row.slot.dps)
+                row.share = ctx.total > 0 and (pick.score - row.worn.score) / ctx.total or nil
+            end
+        end
+        if changed then raids.runs, raids.other, raids.unknown = Goal.Runs(raids.rows, Goal.RAIDS) end
+    end
     out.waiting, out.ceiling = ctx.waiting, ctx.ceiling
     return out
 end
