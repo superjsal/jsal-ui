@@ -137,11 +137,18 @@ ns.moduleOrder = {}
 ns.SHELVED = { chess = true }
 function ns.Shelved(key) return ns.SHELVED[key] == true end
 
+-- On a beta, what jsal.ui's memory goes on, for /jsal mem: how much the
+-- game's Lua held as each part's file was read, and how much each part's
+-- start added. Nothing else of the game's runs between two of jsal.ui's own
+-- files or inside a part's start, so the growth there is jsal.ui's.
+local mem = ns.IsBeta(ns.version) and { marks = {}, starts = {} } or nil
+
 function ns.NewModule(key, module)
     module.key = key
     module.title = module.title or key
     ns.modules[key] = module
     ns.moduleOrder[#ns.moduleOrder + 1] = module
+    if mem then mem.marks[#mem.marks + 1] = { module.title, collectgarbage("count") } end
     return module
 end
 
@@ -251,7 +258,19 @@ local function StartModules()
         -- its switch with this, to say which changes wait for a reload.
         module.wantedAtStart = ns.ModuleWanted(module)
         if ns.ModuleWanted(module) and type(module.OnEnable) == "function" then
+            -- A measured start (/jsal mem asked for it before this reload)
+            -- clears the leftovers either side of each part, so what's left
+            -- is what the part holds. It makes the start slow, once.
+            local before
+            if mem then
+                if mem.exact then collectgarbage("collect") end
+                before = collectgarbage("count")
+            end
             local ok, err = xpcall(function() module:OnEnable() end, Report)
+            if mem then
+                if mem.exact then collectgarbage("collect") end
+                mem.starts[#mem.starts + 1] = { module.title or module.key, collectgarbage("count") - before }
+            end
             if ok then
                 module.running = true
             else
@@ -306,14 +325,21 @@ events:SetScript("OnEvent", function(self, event, arg1)
             end
             ns.db.renumbered = true
         end
+        if mem then mem.files = collectgarbage("count") end
         RunAll(onLoad)
         ns.timings.setup = debugprofilestop() - started
+        if mem then
+            mem.setup = collectgarbage("count")
+            mem.exact, ns.db.memNext = ns.db.memNext == true, nil
+        end
         self:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_LOGIN" then
         local started = debugprofilestop()
+        if mem then mem.login = collectgarbage("count") end
         StartModules()
         RunAll(onLogin)
         ns.timings.login = debugprofilestop() - started
+        if mem then mem.started = collectgarbage("count") end
     elseif event == "PLAYER_REGEN_ENABLED" and #waiting > 0 then
         local now = waiting
         waiting = {}
@@ -342,6 +368,48 @@ SlashCmdList.JSALUI = function(message)
         ns.Print(("/jsal opens the dashboard. Also: /jsal word, /jsal icons, %s/jsal shop, /jsal games, /jsal versions, /jsal settings, %s/jsal bug, /jsal discord.")
             :format(commands.chess and "/jsal chess, " or "", look and "/jsal install, " or ""))
     end
+end
+
+-- /jsal mem, on a beta: what jsal.ui's memory goes on. The first time it
+-- asks for a reload, since a measured start is slow and isn't every start;
+-- after that reload it says what jsal.ui holds now, and where it went.
+if mem then
+    local function MB(kb) return ("%.1f MB"):format((kb or 0) / 1024) end
+    local function Most(rows, limit)
+        table.sort(rows, function(a, b) return a[2] > b[2] end)
+        for i = 1, math.min(limit, #rows) do
+            if rows[i][2] < 100 then break end
+            print(("  %s: %s"):format(rows[i][1], MB(rows[i][2])))
+        end
+    end
+    ns.Command("mem", function()
+        if not mem.exact then
+            ns.db.memNext = true
+            ns.Print("Type /reload, then /jsal mem again: the next start is measured part by part. It starts slower, that once.")
+            return
+        end
+        collectgarbage("collect")
+        local now
+        if UpdateAddOnMemoryUsage and GetAddOnMemoryUsage then
+            UpdateAddOnMemoryUsage()
+            now = GetAddOnMemoryUsage(addonName)
+        end
+        ns.Print(("jsal.ui holds %s now, after a clean-up."):format(now and MB(now) or "an unknown amount"))
+        -- Between one part's file and the next, with every file in between
+        -- (its data, its helpers) counted to the later one. Clean-ups run
+        -- while files are read, so these are rough.
+        local files, last = {}, ns.memStarted or 0
+        for _, mark in ipairs(mem.marks) do
+            files[#files + 1] = { "up to " .. mark[1], mark[2] - last }
+            last = mark[2]
+        end
+        files[#files + 1] = { "after the last part", (mem.files or last) - last }
+        ns.Print(("Reading the files: about %s (rough). The most, by the part whose file ends each stretch:"):format(MB((mem.files or 0) - (ns.memStarted or 0))))
+        Most(files, 10)
+        ns.Print(("Setting up once the settings exist: %s."):format(MB((mem.setup or 0) - (mem.files or 0))))
+        ns.Print(("Starting at login: %s. The parts that kept the most:"):format(MB((mem.started or 0) - (mem.login or 0))))
+        Most(mem.starts, 12)
+    end)
 end
 
 -- /jsal perf: how long jsal.ui took to load, and, where the game keeps

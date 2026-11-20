@@ -5,6 +5,8 @@ local _, ns = ...
 
 -- The moment jsal.ui starts loading, for /jsal perf.
 ns.loadStarted = debugprofilestop()
+-- And how much the game's Lua held then, in KB, for /jsal mem.
+ns.memStarted = collectgarbage("count")
 
 local Compat = {}
 ns.Compat = Compat
