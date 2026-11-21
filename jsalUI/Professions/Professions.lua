@@ -383,13 +383,17 @@ end
 -- With `pricing`, a short step and a neighbour are weighed by real prices only when both
 -- recipes have them for every material, and by the rough worth otherwise: like against like,
 -- as on the road itself.
-local function FoldShort(line, steps, open, known, breakAt, pricing)
+-- The step in hand (`held`), when the road starts on it, is never folded away: it runs to its
+-- own end however few points are left, as you're making it; a short step after it can still
+-- fold into it.
+local function FoldShort(line, steps, open, known, breakAt, pricing, held)
     local i = 1
     while i <= #steps do
         local step = steps[i]
         local before, after = steps[i - 1], steps[i + 1]
         local into
-        if step.to - step.from < Professions.SHORT and not step.recipe.vein and (before or after) then
+        local inHand = i == 1 and held ~= nil and step.recipe == held
+        if not inHand and step.to - step.from < Professions.SHORT and not step.recipe.vein and (before or after) then
             local most = step.learn and Professions.TRIP or Professions.DETOUR
             local best
             for _, side in ipairs({ before or false, after or false }) do
@@ -667,7 +671,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
             end
             s = s + 1
         end
-        FoldShort(line, steps, Open, known, breakAt, pricing)
+        FoldShort(line, steps, Open, known, breakAt, pricing, held)
         return steps, s, used
     end
     -- What a road comes to, counting what you have once, in the order the road uses it: the
