@@ -358,13 +358,24 @@ function Gear.Losses(stats, worn, weights, dpsKey)
     return Changes(stats, worn, weights, dpsKey, -1)
 end
 
--- A plan's best upgrade: its first option that's better than what you wear. A
--- piece you starred, added or carry comes first whatever it scores, and was
--- tagged "best for you" for it.
+-- A plan's first upgrade: its first option that's better than what you
+-- wear. A piece you starred, added or carry comes first whatever it scores,
+-- so this is the one to see to first, for the slot's line.
 function Gear.Best(plan)
     for _, o in ipairs(plan and plan.options or {}) do
         if o.better then return o end
     end
+end
+
+-- A plan's best upgrade for you: the option better than what you wear that
+-- adds the most, the first of those in the list on a tie. The one tagged
+-- "best for you", wherever the list puts it.
+function Gear.Top(plan)
+    local top
+    for _, o in ipairs(plan and plan.options or {}) do
+        if o.better and (not top or (o.share or 0) > (top.share or 0)) then top = o end
+    end
+    return top
 end
 
 ---------------------------------------------------------------------------
