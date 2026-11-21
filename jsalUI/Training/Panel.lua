@@ -355,6 +355,38 @@ local function TrainAll(skippedIDs, skippedNames)
     end
 end
 
+-- At a weapon master: the weapon skills this one teaches, as two sets, by spell ID and by name.
+-- Its window's rows say: those in sight, and every row of the visit saved for it. Before its
+-- list is in, jsal.ui's own list of weapon masters. Nil where neither knows.
+local function MasterTeaches()
+    local ids, names, any = {}, {}, false
+    for i = 1, GetNumTrainerServices() do
+        local name, kind = Compat.TrainerService(i)
+        if name and kind ~= "header" then
+            local info = C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_TooltipInfo.GetTrainerService(i)
+            if info and info.id then ids[info.id] = true end
+            names[name], any = true, true
+        end
+    end
+    local visit = ns.TrainerPrices.Here and ns.TrainerPrices.Here()
+    for _, row in ipairs(visit and ns.TrainerPrices.RowsOf(visit) or {}) do
+        if row.spell then ids[row.spell] = true end
+        if row.name then names[row.name] = true end
+        any = true
+    end
+    if any then return ids, names end
+    local npc = Compat.Name("npc")
+    for _, master in ipairs(ns.TrainerData and ns.TrainerData.weapons or {}) do
+        if npc and master.name == npc then
+            for _, id in ipairs(master.teaches or {}) do ids[id] = true end
+            return ids, names
+        end
+    end
+end
+
+-- What a trainer turned down, this visit: said once, as more clicks change nothing.
+local refused = {}
+
 -- The trainer's row for one spell, by its ID or else its name and rank.
 local function TrainOne(spell)
     local result
@@ -383,7 +415,8 @@ local function TrainOne(spell)
     if not ok then return ns.Report(err) end
     if result == "short" then
         ns.Print(("%s needs more gold than you have."):format(spell.name))
-    elseif not result then
+    elseif not result and not refused[spell.id or spell.name] then
+        refused[spell.id or spell.name] = true
         ns.Print(("This trainer doesn't teach %s right now."):format(spell.name))
     end
 end
@@ -472,7 +505,7 @@ end
 -- under it. `words` says what `count` things are; `costX` is how far in from
 -- the right the prices are.
 local function Head(y, count, words, cost, money, costX)
-    panel.count:SetText(count > 0 and words or "Nothing to train right now")
+    panel.count:SetText(count > 0 and words or (context == "weapons" and "Nothing to learn here" or "Nothing to train right now"))
     Place(panel.count, y)
     panel.nowCost:SetText(cost > 0 and Compat.Money(cost) or "")
     PlaceRight(panel.nowCost, y)
@@ -500,6 +533,55 @@ local function Head(y, count, words, cost, money, costX)
         panel.cols:Hide()
     end
     return y
+end
+
+-- Under a weapon master's list: what's still to learn that this one doesn't teach, by the
+-- nearest master of your side who does, a line a master (the one with most first), two at most
+-- and a line for the rest. Returns the y under them.
+local elsewhereLines = {}
+local function Elsewhere(y, list)
+    for _, line in ipairs(elsewhereLines) do line:Hide() end
+    if #list == 0 then return y end
+    local count, order, rest = {}, {}, 0
+    for _, w in ipairs(list) do
+        local master = ns.Trainers and ns.Trainers.Nearest("weapons", nil, nil, w.id)
+        if master then
+            if not count[master] then count[master], order[#order + 1] = 0, master end
+            count[master] = count[master] + 1
+        else
+            rest = rest + 1
+        end
+    end
+    table.sort(order, function(a, b)
+        if count[a] ~= count[b] then return count[a] > count[b] end
+        return a.name < b.name
+    end)
+    local words = {}
+    for i, master in ipairs(order) do
+        if i > 2 then
+            rest = rest + count[master]
+        else
+            local place = ns.Trainers.Zone(master)
+            words[#words + 1] = ("%d more at |cffece6d6%s|r%s"):format(count[master], master.name, place and (", " .. place) or "")
+        end
+    end
+    if rest > 0 then
+        words[#words + 1] = #words > 0 and ("and %d more elsewhere"):format(rest) or ("%d more at another weapon master"):format(rest)
+    end
+    y = y + 4
+    for i, text in ipairs(words) do
+        local line = elsewhereLines[i]
+        if not line then
+            line = Style.Text(panel, 12, "muted")
+            line:SetWordWrap(false)
+            elsewhereLines[i] = line
+        end
+        line:SetWidth(inner)
+        line:SetText(text)
+        Place(line, y)
+        y = y + 18
+    end
+    return y + 4
 end
 
 -- What there is to train, in words.
@@ -580,8 +662,13 @@ local function Foot(y, data, count, cost)
     panel.train:SetEnabled(count > 0)
     panel.train:SetScript("OnClick", function() TrainAll(skippedIDs, skippedNames) end)
     panel.train:SetWidth(inner)
-    Place(panel.train, y)
-    y = y + 32 + 8
+    -- A weapon master with nothing of yours to teach: no Train all.
+    if count == 0 and context == "weapons" then
+        panel.train:Hide()
+    else
+        Place(panel.train, y)
+        y = y + 32 + 8
+    end
     panel.open:SetWidth(110)
     panel.open:SetKind("plain")
     Place(panel.open, y)
@@ -634,12 +721,20 @@ local function Paint()
             if not Free(spell) and spell.cost then nextCost = nextCost + spell.cost end
         end
     end
-    -- A weapon master: the weapon skills still to learn.
+    -- A weapon master: the weapon skills still to learn that this one teaches; the rest are
+    -- named under the list, with who teaches them.
+    local teachesID, teachesName, elsewhere = nil, nil, {}
+    if context == "weapons" then teachesID, teachesName = MasterTeaches() end
+    local function Here(w) return not teachesID or teachesID[w.id] or teachesName[w.name] or false end
     if context == "weapons" then
         for _, w in ipairs(data.weapons) do
             if not w.known and not w.skipped then
-                now[#now + 1] = w
-                if w.cost then nowCost = nowCost + w.cost end
+                if Here(w) then
+                    now[#now + 1] = w
+                    if w.cost then nowCost = nowCost + w.cost end
+                else
+                    elsewhere[#elsewhere + 1] = w
+                end
             end
         end
     end
@@ -674,7 +769,7 @@ local function Paint()
     end
 
     if panel.standIn then
-        return PaintTrainer(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs)
+        return PaintTrainer(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs, Here, elsewhere)
     end
 
     local y = Head(36 + 12, #now, Count(#now, petName), nowCost, money)
@@ -693,6 +788,7 @@ local function Paint()
     else
         panel.more:Hide()
     end
+    y = Elsewhere(y, elsewhere)
 
     -- What the next level brings.
     if nextLevel then
@@ -772,7 +868,7 @@ end
 local TRAIN_ROWS = 8
 local showSkipped = false
 
-PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs)
+PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextHead, Belongs, Here, elsewhere)
     local level, money = UnitLevel("player"), GetMoney()
     local who = context == "weapons" and "Weapon master" or context == "pet" and "Pet trainer"
         or ((UnitClass("player")) .. " trainer")
@@ -824,6 +920,7 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
     else
         panel.more:Hide()
     end
+    y = Elsewhere(y, elsewhere)
     panel.map:Hide()
     panel.where:Hide()
     panel.rule2:Hide()
@@ -835,7 +932,7 @@ PaintTrainer = function(data, now, nowCost, nextLevel, nextList, nextCost, nextH
     end
     if context == "weapons" then
         for _, w in ipairs(data.weapons) do
-            if w.skipped and not w.known then skipped[#skipped + 1] = w end
+            if w.skipped and not w.known and Here(w) then skipped[#skipped + 1] = w end
         end
     end
     if #skipped > 0 then
@@ -947,6 +1044,7 @@ local function OpenBeside(frame)
     -- A profession trainer teaches crafts, not class spells.
     if frame == ClassTrainerFrame and IsTradeskillTrainer and IsTradeskillTrainer() then return end
     if not panel then Build() end
+    if anchor ~= frame then refused = {} end
     anchor = frame
     if frame == ClassTrainerFrame then
         local ok, kind = pcall(TrainerKind)
