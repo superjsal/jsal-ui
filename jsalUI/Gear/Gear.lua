@@ -259,6 +259,27 @@ local function Mark(id)
         tries[id] = (tries[id] or 0) + 1
     end
 end
+-- Crit and hit an "Equip:" line gives as a percent ("Improves your chance to get a critical
+-- strike by 1%"), which the game's item stats leave out: from GearData's `pct` (Wowhead's item
+-- data), read once. Kept apart from rating, in percent already: a weapon's (melee or ranged)
+-- counts for a spec that fights with one, a spell's for one that casts (see Weight).
+local PCT_KEYS = { c = "PCT_CRIT_PHYSICAL", sc = "PCT_CRIT_SPELL", h = "PCT_HIT_PHYSICAL", sh = "PCT_HIT_SPELL" }
+local pctOf
+local function Pct(id)
+    if not pctOf then
+        pctOf = {}
+        for item, list in ((ns.GearData and ns.GearData.pct) or ""):gmatch("(%d+):([^;]+)") do
+            local t = {}
+            for key, value in list:gmatch("(%a+)([%d.]+)") do
+                if PCT_KEYS[key] then t[PCT_KEYS[key]] = tonumber(value) end
+            end
+            pctOf[tonumber(item)] = t
+        end
+    end
+    return id and pctOf[id] or nil
+end
+Gear.Pct = Pct
+
 -- `quiet`: never ask the game to load the item (for a tooltip, which shows
 -- only what's loaded).
 local function Stats(item, quiet)
@@ -267,11 +288,16 @@ local function Stats(item, quiet)
     if not get then return nil end
     local link = type(item) == "string" and item or ("item:" .. item)
     local ok, stats = pcall(get, link)
-    if ok and stats and next(stats) then
+    -- A piece whose only stat is a percent comes back empty: once the game has it, that's all.
+    local id = type(item) == "number" and item or tonumber(link:match("item:(%d+)"))
+    local extra = Pct(id)
+    local loaded = extra and (not (C_Item and C_Item.IsItemDataCachedByID) or C_Item.IsItemDataCachedByID(id))
+    if ok and stats and (next(stats) or loaded) then
         local out = {}
         for key, value in pairs(stats) do
             out[key] = PER_PERCENT[key] and value / PER_PERCENT[key] or value
         end
+        for key, value in pairs(extra or {}) do out[key] = value end
         if type(item) == "number" then statsOf[item] = out end
         return out
     end
@@ -283,17 +309,32 @@ local function Stats(item, quiet)
 end
 Gear.Stats = Stats
 
+-- What one of a stat is worth to a spec: its weight; weapon damage per second for where it goes;
+-- a percent crit or hit (Pct) at the weight of its kind's rating, but only for the kind the spec
+-- uses: one that weighs a weapon's damage gets a weapon's, one that doesn't a spell's.
+local PCT_WEIGHT = {
+    PCT_CRIT_PHYSICAL = { weapon = true, key = "ITEM_MOD_CRIT_MELEE_RATING_SHORT" },
+    PCT_HIT_PHYSICAL = { weapon = true, key = "ITEM_MOD_HIT_MELEE_RATING_SHORT" },
+    PCT_CRIT_SPELL = { weapon = false, key = "ITEM_MOD_CRIT_SPELL_RATING_SHORT" },
+    PCT_HIT_SPELL = { weapon = false, key = "ITEM_MOD_HIT_SPELL_RATING_SHORT" },
+}
+local function Weight(key, weights, dpsKey)
+    if key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then return (dpsKey and weights.dps[dpsKey]) or 0 end
+    local pct = PCT_WEIGHT[key]
+    if pct then
+        if (next(weights.dps or {}) ~= nil) ~= pct.weapon then return 0 end
+        return weights.stats[pct.key] or 0
+    end
+    return weights.stats[key] or 0
+end
+
 -- An item's worth for a spec: each stat times its weight, and its weapon
 -- damage per second for where it goes.
 function Gear.Score(stats, weights, dpsKey)
     if not (stats and weights) then return nil end
     local score = 0
     for key, value in pairs(stats) do
-        if key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
-            score = score + value * ((dpsKey and weights.dps[dpsKey]) or 0)
-        else
-            score = score + value * (weights.stats[key] or 0)
-        end
+        score = score + value * Weight(key, weights, dpsKey)
     end
     return score
 end
@@ -316,6 +357,7 @@ local SHORT = {
     ITEM_MOD_MANA_SHORT = "Mana", ITEM_MOD_HEALTH_SHORT = "Health", ITEM_MOD_FERAL_ATTACK_POWER_SHORT = "Feral AP",
     ITEM_MOD_DODGE_RATING_SHORT = "Dodge", ITEM_MOD_PARRY_RATING_SHORT = "Parry", ITEM_MOD_BLOCK_RATING_SHORT = "Block",
     ITEM_MOD_BLOCK_VALUE_SHORT = "Block Value", ITEM_MOD_EXTRA_ARMOR_SHORT = "Bonus Armor",
+    PCT_CRIT_PHYSICAL = "Crit", PCT_CRIT_SPELL = "Crit", PCT_HIT_PHYSICAL = "Hit", PCT_HIT_SPELL = "Hit",
 }
 -- The two changes that count most for your spec, gains (sign 1: "+14 AP,
 -- +6 Sta") or losses (sign -1: "-5 Agi, -5 Int").
@@ -327,7 +369,7 @@ local function Changes(stats, worn, weights, dpsKey, sign)
     for key in pairs(worn) do keys[key] = true end
     for key in pairs(keys) do
         local diff = ((stats[key] or 0) - (worn[key] or 0)) * sign
-        local w = key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" and ((dpsKey and weights.dps[dpsKey]) or 0) or (weights.stats[key] or 0)
+        local w = Weight(key, weights, dpsKey)
         if diff > 0 and w > 0 and SHORT[key] then list[#list + 1] = { key = key, diff = diff, worth = diff * w } end
     end
     table.sort(list, function(a, b)
@@ -340,7 +382,7 @@ local function Changes(stats, worn, weights, dpsKey, sign)
         local amount
         if e.key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
             amount = ("%.1f"):format(e.diff)
-        elseif PER_PERCENT[e.key] then
+        elseif PER_PERCENT[e.key] or PCT_WEIGHT[e.key] then
             amount = (("%.1f"):format(e.diff):gsub("%.0$", "")) .. "%"
         else
             amount = tostring(math.floor(e.diff + 0.5))
@@ -1008,7 +1050,7 @@ function Gear.Plan(slot, spec, only)
             if value > 0 and key ~= "ITEM_MOD_STAMINA_SHORT" then
                 if key == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
                     if slot.dps and (weights.dps[slot.dps] or 0) > 0 then return true end
-                elseif (weights.stats[key] or 0) >= floor and (weights.stats[key] or 0) > 0 then
+                elseif Weight(key, weights) >= floor and Weight(key, weights) > 0 then
                     return true
                 end
             end
