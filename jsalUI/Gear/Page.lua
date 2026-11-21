@@ -260,20 +260,6 @@ local function NearLineParts(lines)
     end
 end
 
--- Where an upgrade is from, short: the place for a drop (the dungeon, or the zone), else the
--- kind; then the kind alone, for a line with less room. Nothing where it isn't known.
-local KIND_WORD = { crafted = "Crafted", quest = "Quest", vendor = "Vendor", world = "World drop", pvp = "PvP" }
-local function ShortSource(o)
-    local from = ns.GearGoal.From(o)
-    local run = from.kind == "run" and from.runs[1]
-    if run then return run.name, run.raid and "Raid" or "Dungeon" end
-    if from.kind == "zone" then
-        local zone = from.text ~= "Drop" and (from.text:match(" \194\183 (.*)$") or from.text) or nil
-        return zone or "Zone drop", "Zone drop"
-    end
-    return KIND_WORD[from.kind], KIND_WORD[from.kind]
-end
-
 -- Paints the slots' lines: what you wear and each slot's best upgrade (the most it adds), with
 -- where it's from and what it adds; the chosen one lit. Gives how many can be better, of how many slots, and whether
 -- any is still waiting on the game.
@@ -345,14 +331,7 @@ local function PaintNearLines(lines, slotRows, plans, chosen, P)
             -- Its source between the name and what it adds; the name keeps its room, and the
             -- source gives way whole: to its kind, else nothing.
             r.source:SetText("")
-            if up then
-                local place, kind = ShortSource(top)
-                local free = P.LEFT_W - LINE_SOURCE_R - (UP_NAME_X + (r.name:GetWidth() or 0) + 12)
-                for _, words in ipairs({ place or "", kind or "", "" }) do
-                    r.source:SetText(words)
-                    if words == "" or Style.Wide(r.source, #words * 6.5) <= free then break end
-                end
-            end
+            if up then G.ShortSource(r.source, top, P.LEFT_W - LINE_SOURCE_R - (UP_NAME_X + (r.name:GetWidth() or 0) + 12)) end
             r:Fit()
         end
     end

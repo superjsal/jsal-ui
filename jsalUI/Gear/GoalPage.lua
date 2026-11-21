@@ -16,7 +16,9 @@ local RUN_HEAD, PIECE_H, CARD_GAP = 40, 32, 10
 local FOOT = 24                         -- room for the link to the small print
 local PLACES = 17                       -- the most slots there are: fifteen, with two rings and two trinkets
 local FULL_BAR = 100                    -- the chance that fills a piece's bar: a bar reads as the share it is
-local TICK = "|TInterface\\RaidFrame\\ReadyCheck-Ready:14|t"
+-- A finished slot's mark: the game's check, tinted gold (as the road tints it green).
+local CHECK = "Interface\\Buttons\\UI-CheckBox-Check"
+local GOLD_TICK = "|T" .. CHECK .. ":14:14:0:0:32:32:0:32:0:32:227:176:75|t"
 local MUTED, DIM = "|cff9a9688", "|cff5d5b55"
 
 local function ItemInfo(id)
@@ -110,6 +112,29 @@ function Gear.GoalPlace(from, stage)
     end
     if from.kind == "zone" then return from.text:match(" · (.*)$") or from.text end
     return SHORT[from.kind] or ""
+end
+
+-- Where a piece is from in a word or two, at the right of a slot's line (both views): the place
+-- for a drop (the dungeon, or the zone), else the kind. `text` takes the first that fits `room`
+-- whole: the place, then the kind, else nothing; never cut short. `e` is the piece's entry.
+local KIND_WORD = { crafted = "Crafted", quest = "Quest", vendor = "Vendor", world = "World drop", pvp = "PvP" }
+function Gear.ShortSource(text, e, room)
+    local from = Goal.From(e)
+    local place, kind
+    local run = from.kind == "run" and from.runs[1]
+    if run then
+        place, kind = run.name, run.raid and "Raid" or "Dungeon"
+    elseif from.kind == "zone" then
+        kind = "Zone drop"
+        place = from.text ~= "Drop" and (from.text:match(" \194\183 (.*)$") or from.text) or kind
+    else
+        place = KIND_WORD[from.kind]
+        kind = place
+    end
+    for _, words in ipairs({ place or "", kind or "", "" }) do
+        text:SetText(words)
+        if words == "" or Style.Wide(text, #words * 6.5) <= room then return end
+    end
 end
 
 -- In full, a line a source, for a tooltip.
@@ -373,7 +398,30 @@ local GROUPS = {
     { "JEWELRY", { neck = 1, finger = 2, trinket = 3 } },
     { "WEAPONS", { main = 1, off = 2, ranged = 3 } },
 }
-local GAIN_W, PICKS_W = 48, 70
+-- A slot's line's columns at its right, from the right edge: what it adds ends here, wide enough
+-- for "sims' pick" and a finished slot's "at goal", and the source ends left of it.
+local LINE_GAIN_R, LINE_GAIN_W = 30, 60
+local LINE_WHERE_R = LINE_GAIN_R + LINE_GAIN_W + 8
+
+-- A finished slot's badge: a gold disc with the check on the corner of its picture. Made the first
+-- time a line is finished.
+local function Badge(r)
+    if r.badge then return r.badge end
+    local dot = Style.Dot(r.box, 12, "OVERLAY")
+    dot:SetPoint("CENTER", r.box, "BOTTOMRIGHT", -2, 2)
+    dot:Paint("gold")
+    dot.tick = r.box:CreateTexture(nil, "OVERLAY", nil, 7)
+    dot.tick:SetTexture(CHECK)
+    dot.tick:SetSize(12, 12)
+    dot.tick:SetPoint("CENTER", dot, "CENTER", 0, 0)
+    dot.tick:SetDesaturated(true)
+    dot.tick:SetVertexColor(Style.Color("window"))
+    function dot:SetShown(on)
+        if on then self:Show() self.tick:Show() else self:Hide() self.tick:Hide() end
+    end
+    r.badge = dot
+    return dot
+end
 -- A slot's picks by the weights, after the set's piece and WoWSims' own.
 local PICKS = 5
 -- Raids, until there's raid loot in the game: over the lines and runs, which show greyed under
@@ -421,13 +469,16 @@ local function SlotList(view, rowH, onPick, bare)
         r.name:SetPoint("LEFT", NAME_X, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
+        -- At the right, in columns: where it's from in a word or two, then what it adds (or "sims'
+        -- pick", or a finished slot's gold tick), then the quiet ›. A `bare` list (Near your
+        -- level's) places its own source.
         r.gain = Style.Text(r, 12, "green", nil, true)
-        r.gain:SetPoint("LEFT", r.name, "RIGHT", 10, 0)
-        -- Where the piece is from, after what it adds; a `bare` list (Near your level's) has none.
+        r.gain:SetPoint("RIGHT", -LINE_GAIN_R, 0)
+        r.gain:SetJustifyH("RIGHT")
         if not bare then
             r.where = Style.Text(r, 12, "muted")
-            r.where:SetPoint("LEFT", r.gain, "RIGHT", 10, 0)
-            r.where:SetJustifyH("LEFT")
+            r.where:SetPoint("RIGHT", -LINE_WHERE_R, 0)
+            r.where:SetJustifyH("RIGHT")
             r.where:SetWordWrap(false)
         end
         r.picks = Style.Text(r, 12, "secondary", nil, true)
@@ -520,10 +571,10 @@ local function SlotList(view, rowH, onPick, bare)
             r.bar:SetShown(on)
             r.slot:SetTextColor(Style.Color(on and "gold" or "muted"))
             r.picks:SetTextColor(Style.Color(on and "gold" or "secondary"))
-            local count = #others + ((row and (row.pick or row.goal)) and 1 or 0)
-            r.picks:SetText(r.pickable and (count .. (count == 1 and " pick " or " picks ") .. "\226\128\186") or "")
+            r.picks:SetText(r.pickable and "\226\128\186" or "")
             r.gain:SetText("")
             r.gain:SetTextColor(Style.Color("green"))
+            if r.badge then r.badge:SetShown(false) end
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
@@ -542,7 +593,6 @@ local function SlotList(view, rowH, onPick, bare)
                     r.box.icon:SetTexture(texture)
                     r.name:SetText(Colored(name, quality or row.goal.e.quality))
                     r.gain:SetText(row.share and row.share > 0 and ("+%d%%"):format(math.max(1, math.floor(row.share * 100 + 0.5))) or "")
-                    r.where:SetText(Gear.GoalSources(from, stage)[1] or "")
                     r.item, r.adds, r.lines = row.goal.id, row.gains, Gear.GoalSources(from, stage)
                     -- WoWSims' own pick that the weights put at or below what you wear: its worth
                     -- is an effect they can't see (a proc, a weapon's swing), so it says whose
@@ -553,22 +603,28 @@ local function SlotList(view, rowH, onPick, bare)
                         r.lines[#r.lines + 1] = "WoWSims' sims count what this piece does; the weights can't."
                     end
                 elseif row.done then
+                    -- Finished: you wear it. Marked in gold, as something earned, never dimmed.
                     local name, quality, texture = ItemInfo(row.worn.id)
                     r.box.icon:SetTexture(texture)
                     r.name:SetText(Colored(name, quality))
-                    r.where:SetText(TICK .. " |cff62b35aworn|r")
+                    r.where:SetText("")
+                    r.gain:SetText(GOLD_TICK .. " at goal")
+                    r.gain:SetTextColor(Style.Color("gold"))
+                    Badge(r):SetShown(true)
                     r.equip = row.equip
                 else
                     r.box.icon:SetTexture(emptyTexture)
                     r.name:SetText(DIM .. "nothing found for it yet|r")
                     r.where:SetText("")
                 end
-                -- The name as wide as it's written, up to the room the line leaves it; the
-                -- source has what's left before the picks.
+                -- The name as wide as it's written, up to the column of what it adds; the source
+                -- has what's left between them, and gives way whole.
                 r.name:SetWidth(0)
-                local room = LEFT_W - NAME_X - GAIN_W - PICKS_W - 120
+                local room = LEFT_W - LINE_GAIN_R - LINE_GAIN_W - 10 - NAME_X
                 r.name:SetWidth(math.min(Style.Wide(r.name, 200), room))
-                r.where:SetWidth(math.max(40, LEFT_W - NAME_X - r.name:GetWidth() - Style.Wide(r.gain, 40) - PICKS_W - 30))
+                if row.goal then
+                    Gear.ShortSource(r.where, row.goal.e, LEFT_W - LINE_WHERE_R - (NAME_X + (r.name:GetWidth() or 0) + 12))
+                end
                 r:Fit()
             end
         end
@@ -813,7 +869,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
             local from = Goal.From(o.piece.e)
             local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
             r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or o.base and "WoWSims' pick · " or "") .. where, nil)
-            r.against:SetText(o.pick and "|cffe3b04bpick|r" or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
+            r.against:SetText(o.pick and (choice.row.done and (GOLD_TICK .. " |cffe3b04bworn|r") or "|cffe3b04bpick|r") or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
             r.use.id = o.piece.id
             r.use.text:SetText(pick and "Switch" or "Choose")
             r.use:SetWidth(Style.Wide(r.use.text, 48))
