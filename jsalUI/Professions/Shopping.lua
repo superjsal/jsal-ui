@@ -186,6 +186,58 @@ local function PriceOf(item)
     return ns.ItemPrices.Of(item)
 end
 
+-- What vendors charged this character, by vendor and item, where it wasn't
+-- the data's price: a reputation's discount, which the game takes off at
+-- the vendor and says nowhere else. Read off the vendor's own window at
+-- each visit, so a standing that changes is seen there next time.
+local function Charged()
+    local c = ns.char.vendorPrices
+    if type(c) ~= "table" then
+        c = {}
+        ns.char.vendorPrices = c
+    end
+    return c
+end
+
+-- A merchant row's price for one, and its item.
+local function MerchantUnit(i)
+    local item = GetMerchantItemID and GetMerchantItemID(i)
+    local price, stack
+    local info = C_MerchantFrame and C_MerchantFrame.GetItemInfo and C_MerchantFrame.GetItemInfo(i)
+    if info then
+        price, stack = info.price, info.stackCount
+    elseif GetMerchantItemInfo then
+        local _, _, p, q = GetMerchantItemInfo(i)
+        price, stack = p, q
+    end
+    if not (item and price and price > 0) then return nil end
+    return item, price / math.max(1, stack or 1)
+end
+
+-- The vendor whose window is open: what it asks for the items the data
+-- prices, kept where that differs. Nothing is kept for a vendor at full price.
+local function LearnVendor()
+    local guid = Compat.GUID and Compat.GUID("npc")
+    local npc = type(guid) == "string" and tonumber(guid:match("^Creature%-.-%-.-%-.-%-.-%-(%d+)%-"))
+    if not npc then return end
+    local all = Charged()
+    local kept = type(all[npc]) == "table" and all[npc] or {}
+    for i = 1, (GetMerchantNumItems and GetMerchantNumItems() or 0) do
+        local item, unit = MerchantUnit(i)
+        local full = item and Professions.IsVendor(item)
+        if full then kept[item] = math.abs(unit - full) >= 0.01 and unit or nil end
+    end
+    all[npc] = next(kept) and kept or nil
+end
+
+-- What a vendor will ask this character for one: what that vendor last
+-- charged, else the data's price.
+function Shopping.VendorPrice(item, npc)
+    local seen = npc and Charged()[npc]
+    local unit = type(seen) == "table" and tonumber(seen[item])
+    return unit or Professions.IsVendor(item)
+end
+
 ---------------------------------------------------------------------------
 -- The window.
 ---------------------------------------------------------------------------
@@ -676,7 +728,7 @@ function Shopping.Vendor(items)
     for _, item in ipairs(items) do
         if not has[best][item] then rest[#rest + 1] = item end
     end
-    return { name = shop[1], map = shop[2], x = shop[3], y = shop[4] }, bestCount, rest
+    return { name = shop[1], map = shop[2], x = shop[3], y = shop[4], npc = best, sells = has[best] }, bestCount, rest
 end
 
 -- The lines for a list of items still to buy from a vendor: each { text, shop }, two at most.
@@ -870,16 +922,27 @@ local function PaintList()
             enough[#enough + 1] = e
         else
             local price, where = PriceOf(item)
-            if price then
-                total = total + price * e.short
-                if where == "vendor" then vendorCost = vendorCost + price * e.short else auctionCost = auctionCost + price * e.short end
-            else
+            if not price then
                 unpriced = unpriced + 1
+            elseif where ~= "vendor" then
+                auctionCost = auctionCost + price * e.short
             end
             local group = (price and where == "vendor") and vendor or other
             group[#group + 1] = e
         end
     end
+    -- What's bought from a vendor costs what the vendor named for it asks.
+    local toBuy = {}
+    for _, e in ipairs(vendor) do toBuy[#toBuy + 1] = e.item end
+    local whereToBuy = Shopping.WhereToBuy(toBuy)
+    for _, e in ipairs(vendor) do
+        local npc
+        for _, line in ipairs(whereToBuy) do
+            if line.shop.sells and line.shop.sells[e.item] then npc = line.shop.npc break end
+        end
+        vendorCost = vendorCost + math.floor(Shopping.VendorPrice(e.item, npc) * e.short + 0.5)
+    end
+    total = vendorCost + auctionCost
     local function Biggest(a, b)
         if a.short ~= b.short then return a.short > b.short end
         return a.item < b.item
@@ -937,9 +1000,7 @@ local function PaintList()
     if #vendor + #other > 0 then
         Place(frame.buyHead, y)
         y = y + 24
-        local buying = {}
-        for _, e in ipairs(vendor) do buying[#buying + 1] = e.item end
-        Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor, Shopping.WhereToBuy(buying))
+        Group("FROM A VENDOR", vendorCost > 0 and Compat.Money(vendorCost) or nil, vendor, whereToBuy)
         Group("AUCTION HOUSE OR THE WORLD", auctionCost > 0 and ("about " .. Compat.Money(auctionCost)) or nil, other)
         More(#vendor + #other - listed, "and %d more not shown, counted in the total")
     else
@@ -1177,7 +1238,10 @@ function Shopping:OnEnable()
                 if frame and frame:IsShown() then Paint() end
                 PaintVendor()
             elseif event == "MERCHANT_SHOW" or event == "MERCHANT_UPDATE" then
-                Compat.After(0.2, function() xpcall(PaintVendor, ns.Report) end)
+                Compat.After(0.2, function()
+                    xpcall(LearnVendor, ns.Report)
+                    xpcall(frame and frame:IsShown() and Paint or PaintVendor, ns.Report)
+                end)
             elseif event == "MERCHANT_CLOSED" then
                 if vendorFrame then vendorFrame:Hide() end
             else
