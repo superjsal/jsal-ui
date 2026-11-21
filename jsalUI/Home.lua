@@ -735,6 +735,182 @@ local function Hero(page, width)
     end)
     soon:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
+    -- At the last level, with the gear goal on: where your pre-raid set stands in the level bar's
+    -- place (how many slots, a pip a slot, which set), and in the next level's, what to run next
+    -- for what's left. Made the first time it shows, so a character below the cap never has it.
+    local goal
+    local function OpenGoal()
+        if ns.Gear then ns.Gear.openAt60 = true end
+        Window.Open("gear")
+    end
+    local function GoalParts()
+        if goal then return goal end
+        goal = CreateFrame("Frame", nil, level)
+        goal:SetPoint("TOPLEFT", 24, -17)
+        goal:SetHeight(72)
+        goal.count = Style.Text(goal, 26, "gold", nil, true)
+        goal.count:SetPoint("TOPLEFT")
+        goal.label = Style.Text(goal, 15, "secondary")
+        goal.tick = goal:CreateTexture(nil, "ARTWORK")
+        goal.tick:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
+        goal.tick:SetSize(16, 16)
+        goal.tick:SetPoint("LEFT", goal.label, "RIGHT", 8, 0)
+        -- Quiet gold words to the At 60 view, lit under the pointer.
+        goal.open = CreateFrame("Button", nil, goal)
+        goal.open.text = Style.Text(goal.open, 13, "gold", nil, true)
+        goal.open.text:SetPoint("RIGHT")
+        goal.open.text:SetText("Open Gear plan")
+        goal.open:SetSize(Style.Wide(goal.open.text, 100), 20)
+        goal.open:SetPoint("TOPRIGHT", 0, -4)
+        goal.open:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("text")) end)
+        goal.open:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
+        goal.open:SetScript("OnClick", OpenGoal)
+        goal.pips = {}
+        for i = 1, 17 do
+            local t = goal:CreateTexture(nil, "ARTWORK")
+            t:SetSize(12, 12)
+            t:SetPoint("TOPLEFT", (i - 1) * 16, -37)
+            goal.pips[i] = t
+        end
+        goal.set = Style.Text(goal, 12, "muted")
+        goal.set:SetPoint("TOPLEFT", 0, -57)
+        goal.set:SetWordWrap(false)
+        -- What to run next, in the next level's place; a click goes to the At 60 view, and the
+        -- whole of it is in its tooltip.
+        local nextRow = CreateFrame("Frame", nil, level)
+        nextRow:SetHeight(42)
+        nextRow:SetPoint("BOTTOMLEFT", 24, 0)
+        Style.Rule(nextRow, "TOP", "line")
+        nextRow.head = Caps(nextRow, "NEXT", "muted")
+        nextRow.head:SetPoint("LEFT", 0, -1)
+        nextRow.icons = {}
+        for i = 1, 3 do
+            local icon = GameIcon(nextRow, 24, "window")
+            icon:SetPoint("LEFT", nextRow.head, "RIGHT", 14 + (i - 1) * 28, 0)
+            icon:EnableMouse(true)
+            icon:SetScript("OnEnter", function(self)
+                if not self.item then return end
+                GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+                GameTooltip:SetItemByID(self.item)
+                GameTooltip:Show()
+            end)
+            icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            icon:SetScript("OnMouseUp", OpenGoal)
+            nextRow.icons[i] = icon
+        end
+        nextRow.line = Style.Text(nextRow, 13, "text")
+        nextRow.line:SetWordWrap(false)
+        nextRow:EnableMouse(true)
+        nextRow:SetScript("OnEnter", function(self)
+            if not self.title then return end
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(self.title)
+            for _, line in ipairs(self.lines or {}) do GameTooltip:AddLine(line, 1, 1, 1) end
+            GameTooltip:Show()
+        end)
+        nextRow:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        nextRow:SetScript("OnMouseUp", OpenGoal)
+        goal.next = nextRow
+        return goal
+    end
+
+    -- The next row's words: the first that fits whole of `list`, the first part in text colour
+    -- and the rest muted.
+    local function Fits(text, list, room)
+        for _, words in ipairs(list) do
+            text:SetText(words[1] .. (words[2] ~= "" and ("|cff9a9688" .. words[2] .. "|r") or ""))
+            if Style.Wide(text, #(words[1] .. words[2]) * 6.5) <= room then return end
+        end
+    end
+
+    -- At the last level: paints the set's place and returns true, or false where there's no set to
+    -- show (the gear goal off, a tree WoWSims has no set for), for the level's card as before.
+    local function PaintGoal(room)
+        local Goal = ns.GearGoal
+        local ok, s = pcall(function() return Goal and Goal.running and Goal.Summary and Goal.Summary() end)
+        if not ok then ns.Report(s) end
+        if not (ok and s) then
+            if goal then goal:Hide() goal.next:Hide() end
+            return false
+        end
+        GoalParts()
+        goal:Show()
+        goal.next:Show()
+        goal:SetWidth(room)
+        goal.next:SetWidth(room)
+        local done = s.of > 0 and s.at >= s.of
+        goal.label:ClearAllPoints()
+        if s.empty then
+            goal.count:SetText("")
+            goal.label:SetPoint("TOPLEFT", 0, -4)
+            goal.label:SetText("Your set has no pieces yet")
+        else
+            goal.count:SetText(s.at)
+            goal.label:SetPoint("BOTTOMLEFT", goal.count, "BOTTOMRIGHT", 8, 3)
+            goal.label:SetText(("of %d slot%s at your pre-BiS"):format(s.of, s.of == 1 and "" or "s"))
+        end
+        goal.tick:SetShown(done)
+        for i, t in ipairs(goal.pips) do
+            t:SetShown(i <= s.of)
+            t:SetColorTexture(Style.Color(i <= s.at and "gold" or "lineStrong"))
+        end
+        goal.set:SetWidth(room)
+        goal.set:SetText((s.own and s.name or ("WoWSims' " .. (s.name or "") .. " set")) .. ", before raids")
+        -- What's next.
+        local nextRow = goal.next
+        local run, piece = s.runs and s.runs[1], s.other and s.other[1]
+        local ids = {}
+        if not (s.empty or done) then
+            if run then
+                for i, p in ipairs(run.pieces) do if i <= 3 then ids[i] = p.row.goal.id end end
+            elseif piece then
+                ids[1] = piece.goal.id
+            end
+        end
+        for i, icon in ipairs(nextRow.icons) do
+            local id = ids[i]
+            icon:SetShown(id ~= nil)
+            icon.item = id
+            if id then
+                icon:Set(Compat.ItemIcon(id))
+                local e = ns.Gear and ns.Gear.Lookup and ns.Gear.Lookup(id)
+                local hex = Style.Quality(e and e.quality or 1)
+                icon.edges[1]:SetColorTexture(tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255)
+            end
+        end
+        nextRow.line:ClearAllPoints()
+        if #ids > 0 then
+            nextRow.line:SetPoint("LEFT", nextRow.icons[#ids], "RIGHT", 10, 0)
+        else
+            nextRow.line:SetPoint("LEFT", nextRow.head, "RIGHT", 14, 0)
+        end
+        local lineRoom = room - Style.Wide(nextRow.head, 30) - 14 - (#ids > 0 and (#ids * 28 + 6) or 0)
+        nextRow.line:SetWidth(0)
+        nextRow.title, nextRow.lines = nil, nil
+        if s.empty then
+            Fits(nextRow.line, { { "", "Choose its pieces in the Gear plan" } }, lineRoom)
+        elseif done then
+            Fits(nextRow.line, { { "Your set is done", " \194\183 Raids opens once there's raid loot" }, { "Your set is done", "" } }, lineRoom)
+        elseif run then
+            local n = #run.pieces
+            local pieces = (" \194\183 %d piece%s"):format(n, n == 1 and "" or "s")
+            local share = run.any and (" \194\183 one in %d%% of runs"):format(math.max(1, math.floor(run.any * 100 + 0.5))) or ""
+            Fits(nextRow.line, { { run.name, pieces .. share }, { run.name, pieces }, { run.name, "" } }, lineRoom)
+            nextRow.title = run.name .. pieces .. share
+            nextRow.lines = {}
+            for _, p in ipairs(run.pieces) do
+                nextRow.lines[#nextRow.lines + 1] = p.row.label .. (p.boss and (" \194\183 " .. p.boss) or "")
+                    .. (p.chance and (" \194\183 %d%%"):format(math.floor(p.chance + 0.5)) or "")
+            end
+        elseif piece then
+            local from = ns.GearGoal.From(piece.goal.e)
+            Fits(nextRow.line, { { piece.label, " \194\183 " .. (from.text or "") }, { piece.label, "" } }, lineRoom)
+        else
+            Fits(nextRow.line, { { "", ("%d piece%s with no known source yet"):format(s.unknown or 0, (s.unknown or 0) == 1 and "" or "s") } }, lineRoom)
+        end
+        return true
+    end
+
     local function PaintWho()
         local _, classFile = UnitClass("player")
         local colour = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
@@ -833,6 +1009,13 @@ local function Hero(page, width)
         local hasPal = PaintPal()
         local room = width - WHO_W - (hasPal and PAL_W or 0) - 48
         level:SetWidth(room + 48)
+        -- At the last level, where your set stands takes the level's place.
+        local atGoal = (UnitLevel("player") or 0) >= LAST_LEVEL and PaintGoal(room)
+        now:SetShown(not atGoal)
+        if atGoal then
+            soon:Hide()
+            return
+        end
         local ok, info = pcall(Today.NextLevel)
         if not ok then
             ns.Report(info)

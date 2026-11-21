@@ -1065,6 +1065,10 @@ function Gear.GoalView(page, width, height)
             return 0, false
         end
         tabs:Show()
+        -- Opened from Home's card at 60: on At 60, before raids.
+        if Gear.openAt60 then
+            Gear.openAt60, showing, stage = nil, true, Goal.BEFORE
+        end
         tabs:Pick(showing and "goal" or "near")
         view:SetShown(showing)
         if not showing then return tabs:GetWidth() + 18, false end

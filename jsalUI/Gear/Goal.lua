@@ -768,6 +768,60 @@ function Goal.Wanted(id)
     return slot
 end
 
+-- Where your set stands before raids, for Home's card at 60, without working the goal out: which
+-- of the set's pieces you wear, and where the rest are got. Nothing is scored and no item is asked
+-- of the game; places are counted as the At 60 view counts them. Kept until the plans or the set
+-- chosen change. nil for a tree WoWSims has no set for.
+-- { at, of, name, own, empty (a set of yours with no pieces yet), runs, other, unknown }
+local summary, summaryKey
+function Goal.Summary()
+    local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
+    local key = table.concat({ Gear.planStamp, Gear.Spec(), tostring(keptChoice.build), tostring(keptChoice.base),
+                               tostring(keptChoice.cheap) }, ":")
+    if summaryKey == key then return summary end
+    summaryKey, summary = key, nil
+    local ids, name = Goal.ChosenSet()
+    if not ids then return nil end
+    local own = keptChoice.build and Goal.OwnSet(keptChoice.build) ~= nil
+    local slotOf = {}
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, equip in ipairs(slot.equip) do slotOf[equip] = slot end
+    end
+    local main = ids[15] or 0
+    local loc
+    if main > 0 and C_Item and C_Item.GetItemInfoInstant then loc = select(4, C_Item.GetItemInfoInstant(main)) end
+    local mainEntry = main > 0 and Gear.Lookup(main) or nil
+    local twoHand = loc == "INVTYPE_2HWEAPON" or (mainEntry and mainEntry.slotType == 17) or false
+    local out = { at = 0, of = 0, name = name, own = own, rows = {} }
+    local pieces = 0
+    for i, equip in ipairs(SET_EQUIP) do
+        local slot, id = slotOf[equip], ids[i] or 0
+        local pair = #slot.equip > 1
+        if id > 0 then
+            pieces = pieces + 1
+            out.of = out.of + 1
+            local wearing = false
+            for _, place in ipairs(pair and slot.equip or { equip }) do
+                local link = GetInventoryItemLink and GetInventoryItemLink("player", place)
+                if link and tonumber(link:match("item:(%d+)")) == id then wearing = true end
+            end
+            if wearing then
+                out.at = out.at + 1
+            else
+                local label = pair and (slot.label .. " " .. (equip == slot.equip[1] and 1 or 2)) or slot.label
+                out.rows[#out.rows + 1] = { equip = equip, slot = slot, label = label,
+                    goal = { id = id, e = Gear.Lookup(id) or { id = id, ilvl = 0, kind = "", place = "" } } }
+            end
+        elseif own and not (equip == 17 and twoHand) then
+            out.of = out.of + 1
+        end
+    end
+    out.empty = pieces == 0
+    out.runs, out.other, out.unknown = Goal.Runs(out.rows, Goal.BEFORE)
+    summary = out
+    return out
+end
+
 local kept
 local KEEP = 600
 -- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
