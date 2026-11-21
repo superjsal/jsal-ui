@@ -35,6 +35,8 @@ local function List()
     end
     s.crafts = type(s.crafts) == "table" and s.crafts or {}
     s.items = type(s.items) == "table" and s.items or {}
+    -- Materials you'd rather buy than make, by item: absent on a list that has none.
+    s.bought = type(s.bought) == "table" and next(s.bought) and s.bought or nil
     return s
 end
 
@@ -87,19 +89,95 @@ local function Recipe(spell)
     return ns.ProfWindow and ns.ProfWindow.RecipeFor(spell)
 end
 
+-- A recipe you know in one of your own professions that makes an item, where
+-- making it is how you'd come by it (not a leather that's skinned as it is).
+local function KnownMaker(mine, item)
+    for _, p in ipairs(mine) do
+        local recipe = Professions.Makes(p.line, item)
+        if recipe then
+            local seen = Professions.Remembered(p.line)
+            if (type(seen) == "table" and type(seen.known) == "table" and seen.known[recipe.spell])
+                or (Compat.KnowsRecipe and Compat.KnowsRecipe(recipe.spell)) then
+                return recipe
+            end
+        end
+    end
+end
+
 -- What everything on the list needs, by item: each craft's reagents times
--- how many, and the other items themselves.
+-- how many, and the other items themselves. A craft's material you can make
+-- yourself is made rather than bought, all the way down: what the crafts
+-- need of it, less what you have and what a craft of it you listed makes,
+-- in crafts of its recipe, whose own materials are needed instead. Returns
+-- what to get by item; what's made, { item, recipe, crafts } by item; and
+-- the materials you could make but chose to buy.
+local BUSY = {}
 local function Needs()
-    local need = {}
     local s = List()
+    local bought = s.bought or {}
+    local base = {}
     for spell, count in pairs(s.crafts) do
         local recipe = Recipe(spell)
         for _, reagent in ipairs(recipe and recipe.reagents or {}) do
-            need[reagent.item] = (need[reagent.item] or 0) + reagent.count * count
+            base[reagent.item] = (base[reagent.item] or 0) + reagent.count * count
         end
     end
+    -- Each material looked at once a call. One made from something made from
+    -- it isn't made: a loop has nowhere to start.
+    local mine, opens, buying = nil, {}, {}
+    local function Opens(item)
+        local known = opens[item]
+        if known == BUSY then return nil, true end
+        if known ~= nil then return known or nil end
+        opens[item] = BUSY
+        mine = mine or Professions.Mine()
+        local recipe = KnownMaker(mine, item)
+        if recipe and bought[item] then recipe, buying[item] = nil, true end
+        for _, reagent in ipairs(recipe and recipe.reagents or {}) do
+            local _, loop = Opens(reagent.item)
+            if loop then recipe = nil break end
+        end
+        opens[item] = recipe or false
+        return recipe
+    end
+    local function Have(item, recipe)
+        return Compat.ItemCount(item, true) + (s.crafts[recipe.spell] or 0) * math.max(1, recipe.makes or 1)
+    end
+    -- Over again until the counts hold: a material can be wanted both by a
+    -- craft and by another made material, one level further down.
+    local made, need = {}, base
+    for _ = 1, 8 do
+        need = {}
+        for item, count in pairs(base) do need[item] = count end
+        for item, crafts in pairs(made) do
+            for _, reagent in ipairs(opens[item].reagents) do
+                need[reagent.item] = (need[reagent.item] or 0) + reagent.count * crafts
+            end
+        end
+        local changed = false
+        for item in pairs(made) do
+            if not need[item] then made[item], changed = nil, true end
+        end
+        for item, count in pairs(need) do
+            local recipe = Opens(item)
+            if recipe then
+                local crafts = math.ceil(math.max(0, count - Have(item, recipe)) / math.max(1, recipe.makes or 1))
+                if crafts ~= (made[item] or 0) then
+                    made[item], changed = crafts > 0 and crafts or nil, true
+                end
+            end
+        end
+        if not changed then break end
+    end
+    -- What's made comes off what's to get; what you have of it is still used.
+    local making = {}
+    for item, crafts in pairs(made) do
+        making[item] = { item = item, recipe = opens[item], crafts = crafts }
+        local have = Compat.ItemCount(item, true)
+        need[item] = have > 0 and math.min(have, need[item] or 0) or nil
+    end
     for item, count in pairs(s.items) do need[item] = (need[item] or 0) + count end
-    return need
+    return need, making, buying
 end
 
 -- A unit price for an item: the vendor's if a vendor sells it, else its
@@ -157,13 +235,15 @@ local function RowTip(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
     if self.note then GameTooltip:AddLine(self.note, Style.Color("text")) end
-    if self.drop then GameTooltip:AddLine("Right-click to take it off the list", Style.Color("muted")) end
+    if self.drop then GameTooltip:AddLine(self.dropTip or "Right-click to take it off the list", Style.Color("muted")) end
     GameTooltip:Show()
 end
 
--- A row is one of two things. Something you put on the list, a craft or an
+-- A row is one of three things. Something you put on the list, a craft or an
 -- item: its count in a pill, with less and more either side (less than one
--- takes it off, and so does a right-click). Or something still to get, in a
+-- takes it off, and so does a right-click). A material you'll make for the
+-- crafts, muted: its count follows the list, so there's no pill, and "Buy it
+-- instead" puts it back with what's to get. Or something still to get, in a
 -- group's card: how many more, with a bar for how much of it you have.
 local function Row(i)
     local r = rows[i]
@@ -191,6 +271,10 @@ local function Row(i)
     r.status = Style.Text(r, 12, "muted")
     r.status:SetPoint("RIGHT", r.step, "LEFT", -10, 0)
     r.status:SetJustifyH("RIGHT")
+    r.made = Style.Text(r, 13, "muted", nil, true)
+    r.made:SetPoint("CENTER", r.step, "CENTER")
+    r.buy = Link(r, "Buy it instead")
+    r.buy:SetPoint("RIGHT", r.step, "LEFT", -10, 0)
     r.more = Style.Text(r, 14, "text", nil, true)
     r.more:SetPoint("RIGHT", -CARD_PAD, 0)
     r.more:SetJustifyH("RIGHT")
@@ -641,11 +725,14 @@ local function PaintList()
     local y = 36 + 12 + 26 + 18
     -- The next row: `counted`, one you put on the list, with its pill; else
     -- one still to get, in a group's card.
-    local function Next(counted)
+    -- `worked`: a material to make, worked out from the crafts.
+    local function Next(counted, worked)
         used = used + 1
         local r = Row(used)
-        r.step:SetShown(counted)
-        r.status:SetShown(counted)
+        r.step:SetShown(counted and not worked)
+        r.status:SetShown(counted and not worked)
+        r.made:SetShown(worked and true or false)
+        r.buy:SetShown(worked and true or false)
         r.rule:SetShown(not counted)
         r.bar:SetShown(not counted)
         r.more:SetShown(not counted)
@@ -653,8 +740,9 @@ local function PaintList()
         r.icon:SetPoint("LEFT", counted and 0 or CARD_PAD, 0)
         r.name:ClearAllPoints()
         r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
-        r.name:SetPoint("RIGHT", counted and r.status or r.bar, "LEFT", -8, 0)
-        r.drop, r.note = nil, nil
+        r.name:SetPoint("RIGHT", worked and r.buy or (counted and r.status or r.bar), "LEFT", -8, 0)
+        r.name:SetTextColor(Style.Color(worked and "muted" or "text"))
+        r.drop, r.note, r.dropTip = nil, nil, nil
         -- The light under the pointer: past the row's ends, or within its card.
         if r.glow then
             r.glow:ClearAllPoints()
@@ -693,23 +781,44 @@ local function PaintList()
         y = y + 20
     end
 
-    -- Crafts, by name.
+    -- Making or buying a material the crafts need, and painting it so.
+    local function Buy(item, on)
+        local list = List()
+        list.bought = list.bought or {}
+        list.bought[item] = on or nil
+        Paint()
+    end
+    local needs, making, buying = Needs()
+
+    -- Crafts, by name; then what's made for them, by item.
     local crafts = {}
     for spell, count in pairs(s.crafts) do crafts[#crafts + 1] = { spell = spell, count = count, recipe = Recipe(spell) } end
     table.sort(crafts, function(a, b) return a.spell < b.spell end)
+    local made = {}
+    for _, m in pairs(making) do made[#made + 1] = m end
+    table.sort(made, function(a, b) return a.item < b.item end)
+    for _, m in ipairs(made) do crafts[#crafts + 1] = { spell = m.recipe.spell, count = m.crafts, recipe = m.recipe, made = m } end
     if #crafts > 0 then
         frame.craftsHead.note:SetText(#crafts)
         Place(frame.craftsHead, y)
         y = y + 22
         for i, c in ipairs(crafts) do
             if i > MAX_CRAFTS then break end
-            local r = Next(true)
+            local r = Next(true, c.made ~= nil)
             Place(r, y)
             r.item, r.spell = c.recipe and c.recipe.item, c.spell
             r.icon:SetTexture((r.item and Compat.ItemIcon(r.item)) or select(2, Compat.SpellInfo(c.spell)))
             r.name:SetText((r.item and Compat.ItemName(r.item)) or (Compat.SpellInfo(c.spell)) or "...")
             r.status:SetText("")
-            Count(r, s.crafts, c.spell)
+            if c.made then
+                local item = c.made.item
+                r.made:SetText(c.count)
+                r.note = "Made for the crafts above: what it takes is under Still to get."
+                r.drop, r.dropTip = function() Buy(item, true) end, "Right-click to buy it instead"
+                r.buy:SetScript("OnClick", r.drop)
+            else
+                Count(r, s.crafts, c.spell)
+            end
             y = y + ROW_H
         end
         More(#crafts - MAX_CRAFTS, "and %d more not shown, counted below")
@@ -754,9 +863,9 @@ local function PaintList()
     local vendor, other, enough = {}, {}, {}
     local count = ns.ItemPrices.Counting()
     local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
-    for item, need in pairs(Needs()) do
+    for item, need in pairs(needs) do
         local have = Compat.ItemCount(item, true)
-        local e = { item = item, need = need, have = have, short = math.max(0, need - have) }
+        local e = { item = item, need = need, have = have, short = math.max(0, need - have), buying = buying[item] }
         if e.short == 0 then
             enough[#enough + 1] = e
         else
@@ -799,6 +908,10 @@ local function PaintList()
             r.fill:SetShown(e.have > 0)
             r.fill:SetWidth(math.max(1, BAR_W * math.min(1, e.have / e.need)))
             r.note = ("You have %d of %d."):format(e.have, e.need)
+            if e.buying then
+                local item = e.item
+                r.drop, r.dropTip = function() Buy(item, false) end, "Right-click to make it instead"
+            end
             tall = tall + ROW_H
         end
         -- Where to go for these, along the card's foot.
