@@ -740,6 +740,8 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
     addButton:SetPoint("LEFT", addBox.well, "RIGHT", 8, 0)
     addButton:SetScript("OnClick", Add)
     addBox:SetScript("OnEnterPressed", Add)
+    -- Shift-clicking an item while the box has the cursor puts its link there.
+    Style.TakesLinks(addBox, Gear)
     col.addBox = addBox
     local function Choices(choice)
         local shown = choice ~= nil
