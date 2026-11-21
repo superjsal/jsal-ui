@@ -332,8 +332,17 @@ end
 -- How much dearer the recipe in hand may be than the best one before the
 -- road changes to the other.
 Professions.STAY = 1.15
--- How much of its worth a material you already have is let off.
+-- How much of its worth a material you already have is let off, on a road by the rough worth.
 Professions.OWNED = 0.95
+
+-- How much of a material's worth comes off for one you already have. Priced, one you own is
+-- worth what selling it would bring, its auction price less the house's cut, so only the cut
+-- comes off: the road is the cheapest way at auction prices whatever is in your bags, and what
+-- you have settles only a near tie. By the rough worth, what you have is nearly free, so it is
+-- spent before anything is made or bought.
+local function LetOff()
+    return priced and ns.ItemPrices.CUT or Professions.OWNED
+end
 -- The chance of a point at which a recipe turns green in the game's list:
 -- half way from yellow to grey. The road takes a green recipe only when
 -- nothing yellow or orange can be made. Leftovers count as nearly free, so
@@ -522,9 +531,9 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
     end
     local totals = {}
-    -- What's in your bags and bank counts as nearly free until the road has
-    -- used it up, so a pile of leather or cloth you already have gets spent
-    -- before anything is made or bought. Not counting, it's all bought.
+    -- What's in your bags and bank comes off a craft's cost until the road has used it up: by
+    -- the rough worth nearly all of it, priced only the auction house's cut (LetOff). Not
+    -- counting, it's all bought.
     local function Stock(counting)
         return setmetatable({}, { __index = function(t, item)
             local n = counting and Compat.ItemCount(item, true) or 0
@@ -547,7 +556,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
                 local owned = math.min(stock[reagent.item], reagent.count)
                 if owned > 0 and not Data.vendor[reagent.item] then
                     used = true
-                    w = w - owned * ItemWeight(line, reagent.item) * Professions.OWNED
+                    w = w - owned * ItemWeight(line, reagent.item) * LetOff()
                 end
             end
             -- Never below 1. Priced, a craft that sells for what goes in costs next to nothing
@@ -660,7 +669,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
                 local need = reagent.count * step.exact
                 local owned = Data.vendor[reagent.item] and 0 or math.min(left[reagent.item], need)
                 left[reagent.item] = left[reagent.item] - owned
-                total = total + (need - owned * Professions.OWNED) * ItemWeight(line, reagent.item)
+                total = total + (need - owned * LetOff()) * ItemWeight(line, reagent.item)
             end
             if step.buy then
                 total = total + (mode and PatternPrice(recipe.spell) or 0.5 * Weight(line, recipe) * step.exact)
