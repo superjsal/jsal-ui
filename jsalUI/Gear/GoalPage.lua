@@ -459,8 +459,35 @@ local function SlotList(view, rowH, onPick)
         end)
         return order
     end
+    -- The lines in their places under their groups' headings; `Note(g)` is what a heading says
+    -- at its right. Near your level lays its lines out the same way.
+    function list:Arrange(rows, Note)
+        local y, group = 0, nil
+        for _, h in ipairs(self.heads) do h:Hide() end
+        for _, at in ipairs(Place(rows)) do
+            if at.g ~= group then
+                group = at.g
+                local h = self.heads[group]
+                h:ClearAllPoints()
+                h:SetPoint("TOPLEFT", 0, -y)
+                h.note:SetText(Note(group))
+                h:Show()
+                y = y + HEAD_H
+            end
+            local r = self.rows[at.i]
+            r:ClearAllPoints()
+            r:SetPoint("TOPLEFT", 0, -y)
+            y = y + rowH
+        end
+    end
+    -- Which group a slot's line is in.
+    function list.GroupOf(row)
+        for g, gr in ipairs(GROUPS) do
+            if gr[2][row.slot.key] then return g end
+        end
+    end
     function list:Paint(rows, stage, chosen, read)
-        local y, group, counts = 0, nil, {}
+        local counts = {}
         for _, row in ipairs(rows) do
             for g, gr in ipairs(GROUPS) do
                 if gr[2][row.slot.key] and not (row.taken or row.none) then
@@ -470,23 +497,10 @@ local function SlotList(view, rowH, onPick)
                 end
             end
         end
-        for _, h in ipairs(self.heads) do h:Hide() end
-        for _, at in ipairs(Place(rows)) do
-            if at.g ~= group then
-                group = at.g
-                local h = self.heads[group]
-                h:ClearAllPoints()
-                h:SetPoint("TOPLEFT", 0, -y)
-                local c = counts[group] or { 0, 0 }
-                h.note:SetText(("%d of %d at your goal"):format(c[1], c[2]))
-                h:Show()
-                y = y + HEAD_H
-            end
-            local r, row = self.rows[at.i], rows[at.i]
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 0, -y)
-            y = y + rowH
-        end
+        self:Arrange(rows, function(g)
+            local c = counts[g] or { 0, 0 }
+            return ("%d of %d at your goal"):format(c[1], c[2])
+        end)
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
@@ -656,15 +670,17 @@ local function RunCard(parent, width)
     return card
 end
 
--- The column: a heading, then a list that scrolls when a class has many places to go.
-local function Runs(view, width, height, onUse, onAdd, onBack)
+-- The column: a heading, then a list that scrolls when a class has many places to go. `note`
+-- is what the heading says at its right.
+local function Runs(view, width, height, onUse, onAdd, onBack, note)
+    note = note or "ranked by the pieces left for you"
     local col = CreateFrame("Frame", nil, view)
     col:SetSize(width, height)
     col:SetPoint("TOPLEFT", LEFT_W + COL_GAP, -(HERO_H + HERO_GAP))
     local head = Style.Section(col, width)
     head:SetPoint("TOPLEFT")
     head.title:SetText("RUN NEXT")
-    head.note:SetText("ranked by the pieces left for you")
+    head.note:SetText(note)
     -- With a slot's picks showing, the way back to what to run, at the heading's right.
     local back = Words(col, "\226\128\185 Run next", onBack)
     back:SetPoint("RIGHT", head, "RIGHT", 0, 0)
@@ -688,55 +704,67 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
         return pieces[i]
     end
     -- A chosen slot's other choices, at the column's top: the set's piece, then the weights'
-    -- best, each with how it stands against it.
-    local choiceHead = Style.Section(child, inner)
-    local choiceCard = CreateFrame("Frame", nil, child)
-    choiceCard:SetWidth(inner)
-    Style.Box(choiceCard, 6, "well", "cardLine")
-    -- Under the picks of WoWSims' set: their % are the weights', the set is the sims'.
-    local weighed = Style.Text(child, 12, "muted")
-    weighed:SetWidth(inner)
-    weighed:SetJustifyH("LEFT")
-    weighed:SetText("The % come from your stat weights, a rough guide. WoWSims' set comes from full sims: where they disagree, go by the set.")
-    local runsHead = Style.Section(child, inner)
-    runsHead.title:SetText("RUN NEXT")
-    runsHead.note:SetText("ranked by the pieces left for you")
+    -- best, each with how it stands against it. Made the first time a slot is chosen: Near
+    -- your level shows its own list instead, and has no use for them.
+    local choiceHead, choiceCard, weighed, runsHead, addBox, addSaid, Choice
     local choices = {}
-    local function Choice(i)
-        if choices[i] then return choices[i] end
-        local r = PieceRow(choiceCard, inner)
-        -- The piece into the set (a change that waits to be saved): "Switch" for the piece in
-        -- the place, "Choose" where the place is empty.
-        r.use = Words(r, "Switch", function(self) onUse(self.id) end)
-        r.use:SetPoint("RIGHT", -14, 0)
-        r.against = Style.Text(r, 13, "muted")
-        choices[i] = r
-        return r
+    local function MakeChoices()
+        if choiceHead then return end
+        choiceHead = Style.Section(child, inner)
+        choiceCard = CreateFrame("Frame", nil, child)
+        choiceCard:SetWidth(inner)
+        Style.Box(choiceCard, 6, "well", "cardLine")
+        -- Under the picks of WoWSims' set: their % are the weights', the set is the sims'.
+        weighed = Style.Text(child, 12, "muted")
+        weighed:SetWidth(inner)
+        weighed:SetJustifyH("LEFT")
+        weighed:SetText("The % come from your stat weights, a rough guide. WoWSims' set comes from full sims: where they disagree, go by the set.")
+        runsHead = Style.Section(child, inner)
+        runsHead.title:SetText("RUN NEXT")
+        runsHead.note:SetText(note)
+        Choice = function(i)
+            if choices[i] then return choices[i] end
+            local r = PieceRow(choiceCard, inner)
+            -- The piece into the set (a change that waits to be saved): "Switch" for the piece in
+            -- the place, "Choose" where the place is empty.
+            r.use = Words(r, "Switch", function(self) onUse(self.id) end)
+            r.use:SetPoint("RIGHT", -14, 0)
+            r.against = Style.Text(r, 13, "muted")
+            choices[i] = r
+            return r
+        end
+        -- Any item for the slot: its ID, a link or a Wowhead address, as on Near your level.
+        addBox = Style.Field(choiceCard, inner - 28 - 70 - 8)
+        addBox.hint = Style.Text(addBox.well, 12, "muted")
+        addBox.hint:SetPoint("LEFT", 8, 0)
+        addBox.hint:SetText("Add an item: its ID, a link or a Wowhead URL")
+        addBox:SetScript("OnTextChanged", function(self) addBox.hint:SetShown(self:GetText() == "" and not self:HasFocus()) end)
+        addBox:SetScript("OnEditFocusGained", function() addBox.hint:Hide() end)
+        addBox:SetScript("OnEditFocusLost", function(self) addBox.hint:SetShown(self:GetText() == "") end)
+        addSaid = Style.Text(choiceCard, 12, "gold")
+        local function Add()
+            local said = onAdd(addBox:GetText())
+            addSaid:SetText(said or "")
+            if not said then addBox:SetText("") addBox:ClearFocus() end
+        end
+        local addButton = Style.Button(choiceCard, "Add", "plain", 70)
+        addButton:SetHeight(26)
+        addButton:SetPoint("LEFT", addBox.well, "RIGHT", 8, 0)
+        addButton:SetScript("OnClick", Add)
+        addBox:SetScript("OnEnterPressed", Add)
+        -- Shift-clicking an item while the box has the cursor puts its link there.
+        Style.TakesLinks(addBox, Gear)
+        col.addBox = addBox
     end
-    -- Any item for the slot: its ID, a link or a Wowhead address, as on Near your level.
-    local addBox = Style.Field(choiceCard, inner - 28 - 70 - 8)
-    addBox.hint = Style.Text(addBox.well, 12, "muted")
-    addBox.hint:SetPoint("LEFT", 8, 0)
-    addBox.hint:SetText("Add an item: its ID, a link or a Wowhead URL")
-    addBox:SetScript("OnTextChanged", function(self) addBox.hint:SetShown(self:GetText() == "" and not self:HasFocus()) end)
-    addBox:SetScript("OnEditFocusGained", function() addBox.hint:Hide() end)
-    addBox:SetScript("OnEditFocusLost", function(self) addBox.hint:SetShown(self:GetText() == "") end)
-    local addSaid = Style.Text(choiceCard, 12, "gold")
-    local function Add()
-        local said = onAdd(addBox:GetText())
-        addSaid:SetText(said or "")
-        if not said then addBox:SetText("") addBox:ClearFocus() end
-    end
-    local addButton = Style.Button(choiceCard, "Add", "plain", 70)
-    addButton:SetHeight(26)
-    addButton:SetPoint("LEFT", addBox.well, "RIGHT", 8, 0)
-    addButton:SetScript("OnClick", Add)
-    addBox:SetScript("OnEnterPressed", Add)
-    -- Shift-clicking an item while the box has the cursor puts its link there.
-    Style.TakesLinks(addBox, Gear)
-    col.addBox = addBox
     local function Choices(choice)
         local shown = choice ~= nil
+        if shown then MakeChoices() end
+        if not choiceHead then
+            head.title:SetText("RUN NEXT")
+            head.note:SetText(note)
+            back:Hide()
+            return 0
+        end
         choiceHead:SetShown(shown)
         choiceCard:SetShown(shown)
         weighed:SetShown(shown and choice.set ~= nil and not choice.own)
@@ -744,7 +772,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
         local pick = shown and (choice.row.pick or choice.row.goal)
         local n = shown and (#choice.others + (pick and 1 or 0)) or 0
         head.title:SetText(shown and (choice.row.label:upper() .. " · " .. n .. (n == 1 and " PICK" or " PICKS")) or "RUN NEXT")
-        head.note:SetText(shown and "" or "ranked by the pieces left for you")
+        head.note:SetText(shown and "" or note)
         back:SetShown(shown)
         if not shown then
             for _, r in ipairs(choices) do r:Hide() end
@@ -856,6 +884,14 @@ local function Runs(view, width, height, onUse, onAdd, onBack)
     end
     return col
 end
+
+-- At 60's pieces and sizes, for Near your level, laid out the same way: its slots' lines down
+-- the left, and Run next at the right.
+Gear.GoalParts = {
+    SlotList = SlotList, Runs = Runs, Words = Words, IconBox = IconBox,
+    TOP = TOP, HERO_H = HERO_H, HERO_GAP = HERO_GAP, LEFT_W = LEFT_W, COL_GAP = COL_GAP, HEAD_H = HEAD_H,
+    FOOT = FOOT, NAME_X = NAME_X, ICON_X = ICON_X, PLACES = PLACES,
+}
 
 ---------------------------------------------------------------------------
 -- The view, and the tabs that choose it. The Gear page calls this as it's
