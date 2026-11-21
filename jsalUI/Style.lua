@@ -748,6 +748,31 @@ function Style.ItemLines(order, fn)
     end
 end
 
+---------------------------------------------------------------------------
+-- Text boxes that take a shift-clicked item: while one has the cursor, a
+-- shift-click on an item anywhere (bags, chat, a tooltip's link) puts its
+-- link there, as the game does for the chat box. One hook for every such
+-- box; each box's part guards its own. Only the box with the cursor takes
+-- it, so a link meant for chat still goes to chat.
+---------------------------------------------------------------------------
+local linkBoxes, linksHooked = {}, false
+local function TakeLink(link)
+    if type(link) ~= "string" or not link:find("|Hitem:") then return end
+    for _, take in ipairs(linkBoxes) do take(link) end
+end
+
+-- `box` takes a shift-clicked item link while it has the cursor; `module` is
+-- the part it belongs to, whose guard it runs under.
+function Style.TakesLinks(box, module)
+    linkBoxes[#linkBoxes + 1] = ns.Safe(module, function(link)
+        if box:HasFocus() then box:SetText(link) end
+    end)
+    if linksHooked or not (ChatFrameUtil and ChatFrameUtil.InsertLink) then return end
+    linksHooked = true
+    -- The game's shift-click calls ChatFrameUtil.InsertLink by that name.
+    hooksecurefunc(ChatFrameUtil, "InsertLink", function(link) xpcall(TakeLink, ns.Report, link) end)
+end
+
 function Style.ItemTip(frame, more, radius, pad)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
