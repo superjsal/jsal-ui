@@ -194,7 +194,11 @@ end
 function Gear.TooltipLines(tooltip, id)
     if not (id and tooltip and tooltip.AddLine) or Compare(tooltip) then return end
     local share = Gear.TooltipShare(id)
-    if share then tooltip:AddLine(Gear.MARK .. " " .. ns.Style.Tint("green") .. share .. "|r") end
+    -- A blank line first, so it isn't read as part of the block above it.
+    if share then
+        tooltip:AddLine(" ")
+        tooltip:AddLine(Gear.MARK .. " " .. ns.Style.Tint("green") .. share .. "|r")
+    end
     local starred = Gear.Starred()[id]
     if starred then
         tooltip:AddLine(Gear.STAR .. " Starred in your gear plan", 0.89, 0.69, 0.29)
