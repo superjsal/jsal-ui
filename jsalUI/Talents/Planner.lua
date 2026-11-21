@@ -193,8 +193,9 @@ Window.Page("build", function(page)
     edit:SetPoint("LEFT", follow, "RIGHT", 6, 0)
     rename:SetPoint("LEFT", edit, "RIGHT", 6, 0)
     delete:SetPoint("LEFT", export, "RIGHT", 6, 0)
-    -- A build can go while the class has another to show in its place: one of your own, or a
-    -- suggested one. Greyed, Delete says why when pointed at.
+    -- A build can go while the class has another to show in its place: one of your own, a
+    -- suggested one or a build for 60 (Tree.Suggested lists both). Greyed, Delete says why when
+    -- pointed at.
     local function Deletable()
         return #Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0
     end

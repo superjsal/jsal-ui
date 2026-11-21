@@ -545,12 +545,19 @@ function Tree.Select(classID, build)
     ns.db.selectedBuild[classID] = build.id
 end
 
+-- With the deleted build chosen, the class shows the first build left: your own, else a
+-- suggested levelling one, else its first build for 60. Tree.Selected alone would make a new
+-- empty build for a class with only builds for 60.
 function Tree.Delete(build)
     local all = Tree.AllBuilds()
     for i, b in ipairs(all) do
         if b == build then table.remove(all, i); break end
     end
-    if ns.db.selectedBuild[build.class] == build.id then ns.db.selectedBuild[build.class] = nil end
+    local classID = build.class
+    if ns.db.selectedBuild[classID] == build.id then
+        local left = Tree.ClassBuilds(classID)[1] or FirstLevelling(classID) or Tree.Suggested(classID)[1]
+        ns.db.selectedBuild[classID] = left and left.id or nil
+    end
 end
 
 -- Your talent group: 1, or 2 on your second spec where the game has dual spec.
