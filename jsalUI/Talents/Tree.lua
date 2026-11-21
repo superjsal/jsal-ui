@@ -471,10 +471,15 @@ function Tree.ClassBuilds(classID)
     return list
 end
 
+-- A new build is "Build N", N the lowest no build of the class's is named: after a delete the
+-- count's next number could already be taken. A renamed one frees its number.
 function Tree.NewBuild(classID)
     local all = Tree.AllBuilds()
-    local count = #Tree.ClassBuilds(classID)
-    local build = { id = Tree.NewID(), name = "Build " .. (count + 1), class = classID, order = {} }
+    local taken = {}
+    for _, b in ipairs(Tree.ClassBuilds(classID)) do taken[b.name or ""] = true end
+    local n = 1
+    while taken["Build " .. n] do n = n + 1 end
+    local build = { id = Tree.NewID(), name = "Build " .. n, class = classID, order = {} }
     all[#all + 1] = build
     ns.db.selectedBuild[classID] = build.id
     return build
