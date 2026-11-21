@@ -445,6 +445,7 @@ function Road.PaintNow(card, line, first, skill, trainer)
     card.sum:SetText(("%d material%s, %s"):format(shown, shown == 1 and "" or "s", short == 0 and "all in hand" or (short .. " short")))
     card.tall = shown > 0 and (y + NOW_STRIP) or NOW_TOP
     card:SetHeight(card.tall)
+    if Style.Retip then Style.Retip(card) end
     return shown
 end
 
@@ -556,6 +557,7 @@ function Road.PaintStop(s, step, trainer)
     local per = select(4, Costs(recipe, step.crafts, step.to - step.from))
     if per then facts[#facts + 1] = PointFact(per) end
     s.facts = facts
+    if Style.Retip then Style.Retip(s) end
 end
 
 -- Learning the next rank, a gold stop where the road reaches its skill:

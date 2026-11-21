@@ -1144,6 +1144,10 @@ local function PaintList()
     frame.clear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, -(y + 2))
     frame.clear:SetShown(not empty)
     frame:SetHeight(y + 26 + PAD)
+    -- A row's tooltip that's up follows what the row now says.
+    if Style.Retip then
+        for i = 1, used do Style.Retip(rows[i]) end
+    end
 end
 
 -- Every change to the list (a row's less or more, Clear, an add) paints it,
