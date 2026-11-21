@@ -280,6 +280,17 @@ local function Pct(id)
 end
 Gear.Pct = Pct
 
+-- Rings and trinkets that can be worn only once (Unique, or Unique-Equipped): from GearData's
+-- `unique` (Wowhead's lists), read once.
+local uniqueOf
+function Gear.Unique(id)
+    if not uniqueOf then
+        uniqueOf = {}
+        for n in ((ns.GearData and ns.GearData.unique) or ""):gmatch("%d+") do uniqueOf[tonumber(n)] = true end
+    end
+    return id ~= nil and uniqueOf[id] == true
+end
+
 -- `quiet`: never ask the game to load the item (for a tooltip, which shows
 -- only what's loaded).
 local function Stats(item, quiet)
@@ -405,21 +416,46 @@ end
 -- A plan's first upgrade: its first option that's better than what you
 -- wear. A piece you starred, added or carry comes first whatever it scores,
 -- so this is the one to see to first, for the slot's line.
-function Gear.Best(plan)
+function Gear.Best(plan, skip)
     for _, o in ipairs(plan and plan.options or {}) do
-        if o.better then return o end
+        if o.better and o.id ~= skip then return o end
     end
 end
 
 -- A plan's best upgrade for you: the option better than what you wear that
 -- adds the most, the first of those in the list on a tie. The one tagged
 -- "best for you", wherever the list puts it.
-function Gear.Top(plan)
+function Gear.Top(plan, skip)
     local top
     for _, o in ipairs(plan and plan.options or {}) do
-        if o.better and (not top or (o.share or 0) > (top.share or 0)) then top = o end
+        if o.better and o.id ~= skip and (not top or (o.share or 0) > (top.share or 0)) then top = o end
     end
     return top
+end
+
+-- Each place's upgrade for its line (`pick`: Gear.Top, the default, or Gear.Best), by its row's
+-- key; `rows` are the page's places ({ key, slot }), `plans` their plans by key. Where both places
+-- of a pair would take the same ring or trinket that can be worn only once, it's the upgrade of
+-- the place where it adds most (the weaker piece worn there), and the other takes its next.
+function Gear.Tops(rows, plans, pick)
+    pick = pick or Gear.Top
+    local tops, pairsOf = {}, {}
+    for _, row in ipairs(rows) do
+        tops[row.key] = plans[row.key] and pick(plans[row.key]) or nil
+        if #row.slot.equip > 1 then
+            pairsOf[row.slot.key] = pairsOf[row.slot.key] or {}
+            table.insert(pairsOf[row.slot.key], row)
+        end
+    end
+    for _, pair in pairs(pairsOf) do
+        local a, b = pair[1], pair[2]
+        local ta, tb = a and tops[a.key], b and tops[b.key]
+        if ta and tb and ta.id == tb.id and Gear.Unique(ta.id) then
+            local other = (tb.share or 0) > (ta.share or 0) and a or b
+            tops[other.key] = pick(plans[other.key], ta.id)
+        end
+    end
+    return tops
 end
 
 ---------------------------------------------------------------------------
@@ -976,6 +1012,16 @@ function Gear.Plan(slot, spec, only)
         if not worn or score < worn.score then worn = { link = link, equip = equip, stats = stats, score = score or 0 } end
     end
     local wornID = worn.link and tonumber(worn.link:match("item:(%d+)"))
+    -- A ring or trinket that can be worn only once, worn in the pair's other place, isn't an
+    -- upgrade for this one.
+    local otherID
+    if only and #slot.equip > 1 then
+        for _, equip in ipairs(slot.equip) do
+            local link = equip ~= only and GetInventoryItemLink and GetInventoryItemLink("player", equip)
+            if link then otherID = tonumber(link:match("item:(%d+)")) end
+        end
+        if otherID and not Gear.Unique(otherID) then otherID = nil end
+    end
     t = Spent("weights and what you wear", t)
     local stars, added = Gear.Starred(), Gear.Added()
     local options, waiting, seen = {}, 0, {}
@@ -1002,7 +1048,7 @@ function Gear.Plan(slot, spec, only)
     t = Spent("your bags and added items", t)
     local asking = 0
     for _, c in ipairs(candidates) do
-        if c.id ~= wornID and not seen[c.id] then
+        if c.id ~= wornID and c.id ~= otherID and not seen[c.id] then
             seen[c.id] = true
             c.held = held[c.id] or nil
             -- One you added counts as added wherever it comes first: the plan's own copy, no

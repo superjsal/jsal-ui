@@ -491,13 +491,15 @@ def main():
     by_slot, quests = {}, {}
     kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4, "PvP": 5}
     reagents, raid = craft_reagents(), []
-    pct = {}
+    pct, unique = {}, []
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
         side = side or quartermaster_side(item)
         short = percents(item[12] if len(item) > 12 else None)
         if short:
             pct[item_id] = short
+        if len(item) > 13 and item[13]:
+            unique.append(item_id)
         kind, place = where(item, zones)
         quest = only_quest(item)
         if kind != "Drop" and raid_only(item, reagents):
@@ -563,6 +565,9 @@ def main():
         "    -- Crit and hit an \"Equip:\" line gives as a percent, which the game's item stats leave out:",
         "    -- \"item ID:\" then c (a weapon's crit), sc (a spell's), h and sh (hit) with the percent.",
         "    pct = " + lua_string(";".join(f"{i}:{v}" for i, v in sorted(pct.items()))) + ",",
+        "    -- Rings and trinkets that can be worn only once (Unique, or Unique-Equipped), by item ID,",
+        "    -- separated by \";\": one is the upgrade of only one place of the pair.",
+        "    unique = " + lua_string(";".join(str(i) for i in unique)) + ",",
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,
@@ -571,7 +576,7 @@ def main():
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
+    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent, {len(unique)} unique ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
 
 
 if __name__ == "__main__":

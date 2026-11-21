@@ -267,12 +267,14 @@ end
 local function PaintNearLines(lines, slotRows, plans, chosen, P)
     local G = ns.Gear
     local better, slots, checking, counts = 0, 0, false, {}
+    -- Each place's upgrade; a ring or trinket worn only once is the upgrade of one place of a pair.
+    local tops = G.Tops(slotRows, plans)
     for i, r in ipairs(lines.rows) do
         local row = slotRows[i]
         r:SetShown(row ~= nil)
         if row then
             local plan = plans[row.key]
-            local top = G.Top(plan)
+            local top = tops[row.key]
             local g = lines.GroupOf(row)
             counts[g] = counts[g] or { 0, 0 }
             if not plan.twoHand then
@@ -347,9 +349,10 @@ end
 local function NearRuns(slotRows, plans)
     local G, Goal = ns.Gear, ns.GearGoal
     local rows = {}
+    local tops = G.Tops(slotRows, plans)
     for _, row in ipairs(slotRows) do
         local plan = plans[row.key]
-        local top = plan and not plan.twoHand and G.Top(plan)
+        local top = plan and not plan.twoHand and tops[row.key]
         if top then
             rows[#rows + 1] = { label = row.label, slot = row.slot, equip = row.equip,
                                 goal = { id = top.id, e = top }, gains = top.gains, share = top.share }
@@ -802,7 +805,9 @@ Window.Page("gear", function(page)
         local count = filter.count:GetText() or ""
         listHead.title:SetText(row.label:upper() .. (count ~= "" and (" · " .. count:upper()) or ""))
         local shown = 0
-        local top = G.Top(plan)
+        -- "best for you" is the slot's own upgrade: a unique ring or trinket that's the pair's
+        -- other place's is listed, untagged.
+        local top = G.Tops(slotRows, plans)[chosen]
         for i, o in ipairs(options) do
             local r = Row(i)
             r:ClearAllPoints()
