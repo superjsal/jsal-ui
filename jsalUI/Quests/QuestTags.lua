@@ -391,12 +391,19 @@ local function MakeTag(parent)
 end
 QuestTags.MakeTag = MakeTag
 
--- Nothing to fight leaves the minutes out; a quest that also stands alone gets no pill at all.
-function QuestTags.Fill(tag, questID)
+-- What a quest's tag says: whether it says anything, then its place in a chain, its minutes and
+-- their colour. Nothing to fight leaves the minutes out; a quest that also stands alone says
+-- nothing, and gets no pill.
+function QuestTags.Says(questID)
     local step, minutes, colour = QuestTags.Tags(questID)
     if minutes == "-" then minutes = nil end
+    return (step or minutes) and true or false, step, minutes, colour
+end
+
+function QuestTags.Fill(tag, questID)
+    local any, step, minutes, colour = QuestTags.Says(questID)
     tag.questID = questID
-    if not (step or minutes) then
+    if not any then
         tag:Hide()
         return
     end

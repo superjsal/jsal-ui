@@ -6,8 +6,9 @@
 -- here as beside the tracker. They sit left of the window, outside its scrolling list, which
 -- hides anything drawn outside it; so each pill is jsal.ui's own frame that follows its step's
 -- row: where the window goes, they go, and a pill is out of sight while its row is scrolled
--- away. A step's quest is the one it has you accept, else the one it has you complete; a step
--- that only turns one in has no tag, as there's nothing left to decide.
+-- away. A step's quest is the one it has you accept; when that one's tag has nothing to say, the
+-- first it has you complete whose tag does; a step that only turns one in has no tag, as there's
+-- nothing left to decide.
 --
 -- RestedXP's window is its own: nothing of it is changed, only read. It has two windows. The
 -- newer one keeps a row for each step in guideSteps.items, each with its frame and the step's
@@ -26,16 +27,36 @@ local EDGE = 4            -- between a pill and the window's left edge
 local LOOK = 0.2          -- seconds between looks at where the rows are
 local FILL = 1            -- seconds between readings of a pill's quest
 
--- The quest a step is about: the first it has you accept, else the first it has you complete.
-function GuideTags.QuestOf(step)
-    local doing
+-- The quests a step is about, in the order their tags are wanted: the first it has you accept,
+-- then each it has you complete. Nil for a step with neither.
+function GuideTags.QuestsOf(step)
+    local accept, doing = nil, {}
     for _, element in ipairs(type(step) == "table" and type(step.elements) == "table" and step.elements or {}) do
         if type(element) == "table" and type(element.questId) == "number" then
-            if element.tag == "accept" then return element.questId end
-            if element.tag == "complete" and not doing then doing = element.questId end
+            if element.tag == "accept" and not accept then accept = element.questId end
+            if element.tag == "complete" then doing[#doing + 1] = element.questId end
         end
     end
-    return doing
+    if accept then table.insert(doing, 1, accept) end
+    return doing[1] and doing or nil
+end
+
+-- Of those, the one whose tag is shown: the first whose tag has something to say, else the first.
+-- What a tag says changes as quests are taken, so this is asked again at each reading.
+function GuideTags.Pick(list)
+    if not list then return nil end
+    local Q = ns.QuestTags
+    if list[2] and Q then
+        for _, quest in ipairs(list) do
+            if Q.Says(quest) then return quest end
+        end
+    end
+    return list[1]
+end
+
+-- The quest a step's tag is for now.
+function GuideTags.QuestOf(step)
+    return GuideTags.Pick(GuideTags.QuestsOf(step))
 end
 
 local function Usable(frame)
@@ -89,7 +110,7 @@ local function InView(row, view)
 end
 
 local tags = {}           -- [row] = its pill
-local quests = setmetatable({}, { __mode = "k" })   -- [step] = its quest ID, or false
+local quests = setmetatable({}, { __mode = "k" })   -- [step] = its quests (QuestsOf), or false
 
 local function Hide(tag)
     if tag.seen then
@@ -103,12 +124,12 @@ end
 local function Place(entry, view, now)
     local row, step = entry.row, entry.step
     local tag = tags[row]
-    local quest = step and quests[step]
-    if step and quest == nil then
-        quest = GuideTags.QuestOf(step) or false
-        quests[step] = quest
+    local list = step and quests[step]
+    if step and list == nil then
+        list = GuideTags.QuestsOf(step) or false
+        quests[step] = list
     end
-    if not (quest and InView(row, view)) then
+    if not (list and InView(row, view)) then
         if tag then Hide(tag) end
         return
     end
@@ -117,10 +138,10 @@ local function Place(entry, view, now)
         tag = Q.MakeTag(UIParent)
         tags[row] = tag
     end
-    -- Read again when the row has a new quest, comes back into sight, or a second has gone by.
-    if tag.quest ~= quest or not tag.seen or not tag.filled or now - tag.filled >= FILL then
-        tag.quest, tag.filled = quest, now
-        Q.Fill(tag, quest)      -- shows the pill, or hides it when the quest has nothing to say
+    -- Read again when the row has a new step, comes back into sight, or a second has gone by.
+    if tag.list ~= list or not tag.seen or not tag.filled or now - tag.filled >= FILL then
+        tag.list, tag.filled = list, now
+        Q.Fill(tag, GuideTags.Pick(list))   -- shows the pill, or hides it when the quest has nothing to say
         tag.seen = true
     end
     local left, vleft = Corner(row, "left"), Corner(view, "left")
@@ -216,13 +237,16 @@ ns.Command("guidetags", function()
     for _, entry in ipairs(list) do
         if InView(entry.row, view) then
             seen = seen + 1
-            local quest = GuideTags.QuestOf(entry.step)
+            local list = GuideTags.QuestsOf(entry.step)
+            local quest = GuideTags.Pick(list)
             local says = entry.step and "no quest to take or do: no tag" or "jsal.ui couldn't find this step in the guide"
             if quest and Q then
-                local step, minutes = Q.Tags(quest)
-                if minutes == "-" then minutes = nil end
-                says = ("quest %d: %s"):format(quest, (step or minutes) and ("tag " .. (step or "") .. ((step and minutes) and " " or "") .. (minutes or ""))
+                local any, step, minutes = Q.Says(quest)
+                says = ("quest %d: %s"):format(quest, any and ("tag " .. (step or "") .. ((step and minutes) and " " or "") .. (minutes or ""))
                     or "nothing to say, so no tag")
+                if quest ~= list[1] then
+                    says = says .. (", as quest %d, the first on the step, has nothing to say"):format(list[1])
+                end
             elseif quest then
                 says = ("quest %d, but Quest tags' own file isn't loaded"):format(quest)
             end
