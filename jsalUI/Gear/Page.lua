@@ -150,6 +150,8 @@ local MUTED = "|cff9a9688"
 -- after it.
 local WORN_X, ARROW_X, UP_X, UP_NAME_X = 78, 110, 130, 164
 local LINE_GAIN_R, LINE_GAIN_W = 30, 48
+-- Where the upgrade is from, in a column of its own whose right edge is this far from the line's.
+local LINE_SOURCE_R = LINE_GAIN_R + LINE_GAIN_W + 8
 
 -- Where an item comes from, in two parts: how it's got (crafted, a quest, who drops it), and
 -- where or from whom. Profession gear says who can wear it, in red when you can't (yet). And
@@ -221,8 +223,9 @@ local function NearHero(view, width, P)
 end
 
 -- A slot's line, led by pictures: what you wear's picture (with its own tooltip), a small arrow,
--- the upgrade's picture and name (with the upgrade's tooltip), what it adds at the right, and a
--- quiet ›. Where it's from is on the right: in Run next, or the slot's upgrades once picked.
+-- the upgrade's picture and name (with the upgrade's tooltip), where it's from in a word or two,
+-- what it adds at the right, and a quiet ›. The whole source is on the right: where to go, or the
+-- slot's upgrades once picked.
 local function NearLineParts(lines)
     for _, r in ipairs(lines.rows) do
         r.worn = Style.HotArea(r, PieceTip)
@@ -242,6 +245,10 @@ local function NearLineParts(lines)
         r.gain:ClearAllPoints()
         r.gain:SetPoint("RIGHT", -LINE_GAIN_R, 0)
         r.gain:SetJustifyH("RIGHT")
+        r.source = Style.Text(r, 12, "muted")
+        r.source:SetPoint("RIGHT", -LINE_SOURCE_R, 0)
+        r.source:SetJustifyH("RIGHT")
+        r.source:SetWordWrap(false)
         r.hot:ClearAllPoints()
         r.hot:SetPoint("LEFT", UP_X, 0)
         -- The upgrade's tooltip covers its picture and its name as written.
@@ -253,8 +260,22 @@ local function NearLineParts(lines)
     end
 end
 
+-- Where an upgrade is from, short: the place for a drop (the dungeon, or the zone), else the
+-- kind; then the kind alone, for a line with less room. Nothing where it isn't known.
+local KIND_WORD = { crafted = "Crafted", quest = "Quest", vendor = "Vendor", world = "World drop", pvp = "PvP" }
+local function ShortSource(o)
+    local from = ns.GearGoal.From(o)
+    local run = from.kind == "run" and from.runs[1]
+    if run then return run.name, run.raid and "Raid" or "Dungeon" end
+    if from.kind == "zone" then
+        local zone = from.text ~= "Drop" and (from.text:match(" \194\183 (.*)$") or from.text) or nil
+        return zone or "Zone drop", "Zone drop"
+    end
+    return KIND_WORD[from.kind], KIND_WORD[from.kind]
+end
+
 -- Paints the slots' lines: what you wear and each slot's best upgrade (the most it adds), with
--- what it adds; the chosen one lit. Gives how many can be better, of how many slots, and whether
+-- where it's from and what it adds; the chosen one lit. Gives how many can be better, of how many slots, and whether
 -- any is still waiting on the game.
 local function PaintNearLines(lines, slotRows, plans, chosen, P)
     local G = ns.Gear
@@ -321,6 +342,17 @@ local function PaintNearLines(lines, slotRows, plans, chosen, P)
             r.name:SetWidth(0)
             local room = P.LEFT_W - LINE_GAIN_R - LINE_GAIN_W - 10 - (up and UP_NAME_X or (WORN_X + 36))
             r.name:SetWidth(math.min(Style.Wide(r.name, 200), room))
+            -- Its source between the name and what it adds; the name keeps its room, and the
+            -- source gives way whole: to its kind, else nothing.
+            r.source:SetText("")
+            if up then
+                local place, kind = ShortSource(top)
+                local free = P.LEFT_W - LINE_SOURCE_R - (UP_NAME_X + (r.name:GetWidth() or 0) + 12)
+                for _, words in ipairs({ place or "", kind or "", "" }) do
+                    r.source:SetText(words)
+                    if words == "" or Style.Wide(r.source, #words * 6.5) <= free then break end
+                end
+            end
             r:Fit()
         end
     end
