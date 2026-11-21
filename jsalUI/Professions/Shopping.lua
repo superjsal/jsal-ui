@@ -226,8 +226,8 @@ local function Needs()
     -- What's made comes off what's to get; what you have of it is still used.
     local making = {}
     for item, crafts in pairs(made) do
-        making[item] = { item = item, recipe = opens[item], crafts = crafts, held = held[item] }
         local have = Compat.ItemCount(item, true)
+        making[item] = { item = item, recipe = opens[item], crafts = crafts, held = held[item], have = have, need = need[item] or 0 }
         need[item] = have > 0 and math.min(have, need[item] or 0) or nil
     end
     for item, count in pairs(s.items) do need[item] = (need[item] or 0) + count end
@@ -341,6 +341,7 @@ local function RowTip(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     if self.item then GameTooltip:SetItemByID(self.item) elseif self.spell then GameTooltip:SetSpellByID(self.spell) end
     if self.note then GameTooltip:AddLine(self.note, Style.Color("text")) end
+    for _, line in ipairs(self.notes or {}) do GameTooltip:AddLine(line, Style.Color("text")) end
     if self.drop then GameTooltip:AddLine(self.dropTip or "Right-click to take it off the list", Style.Color("muted")) end
     GameTooltip:Show()
 end
@@ -848,7 +849,7 @@ local function PaintList()
         r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
         r.name:SetPoint("RIGHT", worked and r.buy or (counted and r.status or r.bar), "LEFT", -8, 0)
         r.name:SetTextColor(Style.Color(worked and "muted" or "text"))
-        r.drop, r.note, r.dropTip = nil, nil, nil
+        r.drop, r.note, r.notes, r.dropTip = nil, nil, nil, nil
         -- The light under the pointer: past the row's ends, or within its card.
         if r.glow then
             r.glow:ClearAllPoints()
@@ -917,9 +918,17 @@ local function PaintList()
             r.name:SetText((r.item and Compat.ItemName(r.item)) or (Compat.SpellInfo(c.spell)) or "...")
             r.status:SetText("")
             if c.made then
-                local item = c.made.item
-                r.made:SetText(c.count)
-                r.note = c.made.held and "Made for the crafts above, from what you have."
+                -- What to do, in crafts; the tooltip has the items, and where a craft
+                -- makes more than one, what the crafts come to.
+                local m, makes = c.made, math.max(1, c.recipe.makes or 1)
+                local item = m.item
+                r.made:SetText(("make %d"):format(c.count))
+                r.note = ("You have %d of %d."):format(m.have, m.need)
+                r.notes = {}
+                if makes > 1 then
+                    r.notes[1] = ("%d craft%s make%s %d."):format(c.count, c.count == 1 and "" or "s", c.count == 1 and "s" or "", c.count * makes)
+                end
+                r.notes[#r.notes + 1] = m.held and "Made for the crafts above, from what you have."
                     or "Made for the crafts above: what it takes is under Still to get."
                 r.drop, r.dropTip = function() Buy(item, true) end, "Right-click to buy it instead"
                 r.buy:SetScript("OnClick", r.drop)
