@@ -5,8 +5,7 @@
 -- purple loot, deaths, profession ranks, guild changes. It also keeps a
 -- line on every character of the account for the Characters tab. Forever
 -- keeps the combat log from addons, so nothing here reads it. Nothing is
--- shared. What the character wears is kept too, one list replaced at each
--- save.
+-- shared.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -133,81 +132,13 @@ local function Characters()
 end
 Journal.Characters = Characters
 
--- What this character wears, in the paper doll's order: a slot's name, the
--- item's ID, name and quality. The list is replaced whole at each save, so
--- it never grows, and an empty slot has no entry. A reading with nothing
--- in any slot is the game not answering (as you leave, or loading), so it
--- never replaces a list.
-local WORN = { { "head", 1 }, { "neck", 2 }, { "shoulder", 3 }, { "shirt", 4 }, { "chest", 5 },
-               { "waist", 6 }, { "legs", 7 }, { "feet", 8 }, { "wrist", 9 }, { "hands", 10 },
-               { "finger1", 11 }, { "finger2", 12 }, { "trinket1", 13 }, { "trinket2", 14 },
-               { "back", 15 }, { "mainhand", 16 }, { "offhand", 17 }, { "ranged", 18 }, { "tabard", 19 } }
-local function Hex(color)
-    if type(color) ~= "table" or type(color.r) ~= "number" then return nil end
-    local function Byte(v) return math.floor(math.max(0, math.min(1, v or 0)) * 255 + 0.5) end
-    return ("%02x%02x%02x"):format(Byte(color.r), Byte(color.g), Byte(color.b))
-end
-
--- A worn item's tooltip as the game shows it: each line's words, left and
--- right, and their colours as six hex digits. The name line, blank lines
--- and the sell price (a coin picture, no words) are left out.
-local function Tooltip(equip, name)
-    local get = C_TooltipInfo and C_TooltipInfo.GetInventoryItem
-    if not get then return nil end
-    local ok, data = pcall(get, "player", equip)
-    if not (ok and type(data) == "table" and type(data.lines) == "table") then return nil end
-    local lines = {}
-    for i, line in ipairs(data.lines) do
-        local left = type(line.leftText) == "string" and line.leftText or ""
-        local right = type(line.rightText) == "string" and line.rightText ~= "" and line.rightText or nil
-        if (left ~= "" or right) and not line.price and not (i == 1 and left == name) then
-            lines[#lines + 1] = { left = left, leftColor = Hex(line.leftColor),
-                                  right = right, rightColor = right and Hex(line.rightColor) or nil }
-        end
-    end
-    return lines[1] and lines or nil
-end
-
-function Journal.SaveWorn()
-    if not GetInventoryItemLink then return end
-    -- A tooltip the game hasn't sent yet keeps the one saved for that item.
-    local before = {}
-    local was = type(ns.char.equipped) == "table" and ns.char.equipped.items
-    for _, item in ipairs(type(was) == "table" and was or {}) do before[item.slot] = item end
-    local items = {}
-    for _, slot in ipairs(WORN) do
-        local link = GetInventoryItemLink("player", slot[2])
-        local id = type(link) == "string" and tonumber(link:match("item:(%d+)"))
-        if id then
-            local name, old = link:match("%[(.-)%]"), before[slot[1]]
-            items[#items + 1] = { slot = slot[1], id = id, name = name,
-                                  quality = ns.Dungeons and ns.Dungeons.LinkQuality(link) or nil,
-                                  tip = Tooltip(slot[2], name) or (old and old.id == id and old.tip) or nil }
-        end
-    end
-    if #items == 0 and type(ns.char.equipped) == "table" then return end
-    ns.char.equipped = { at = Compat.ServerTime(), items = items }
-end
-
--- Changing a set fires one event a slot: one save a moment after the last.
-local wornDue
-local function WornChanged()
-    if wornDue then return end
-    wornDue = true
-    Compat.After(1, ns.Safe(Journal, function()
-        wornDue = nil
-        Journal.SaveWorn()
-    end))
-end
-
 -- `leaving`: you're logging out, or reloading. The game then answers with
--- nothing (no gold, an XP bar of 0, no rested XP, no professions, no gear),
--- and saving that wiped the character's line: every character but the one
--- you were on read "none", "none yet" and "not known yet". So as you leave,
+-- nothing (no gold, an XP bar of 0, no rested XP, no professions), and
+-- saving that wiped the character's line: every character but the one you
+-- were on read "none", "none yet" and "not known yet". So as you leave,
 -- what was last known is kept, and only when you were last on it is noted;
 -- the line is saved once a minute as you play, so it's never far behind.
 function Journal.SaveCharacter(leaving)
-    if not leaving then Journal.SaveWorn() end
     local name = Compat.MyName()
     if not name then return end
     if leaving then
@@ -558,8 +489,7 @@ function Journal:OnEnable()
                              "NAME_PLATE_UNIT_ADDED", "SKILL_LINES_CHANGED", "PLAYER_GUILD_UPDATE",
                              "MERCHANT_SHOW", "MERCHANT_CLOSED", "MAIL_SHOW", "MAIL_CLOSED",
                              "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED", "TRADE_SHOW", "TRADE_CLOSED",
-                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE",
-                             "PLAYER_EQUIPMENT_CHANGED" }) do
+                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE" }) do
         pcall(f.RegisterEvent, f, event)
     end
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
@@ -611,8 +541,6 @@ function Journal:OnEnable()
             CheckRanks()
         elseif event == "PLAYER_GUILD_UPDATE" then
             Journal.GuildChanged()
-        elseif event == "PLAYER_EQUIPMENT_CHANGED" then
-            WornChanged()
         elseif windows[event] then
             window = windows[event]
         elseif closes[event] then
