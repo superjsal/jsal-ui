@@ -1,8 +1,7 @@
-# jsal.ui 0.3.59
+# jsal.ui 0.3.60
 
-- Restart the game once for this version: its files changed.
-- Layers: taken out. The game no longer lets addons read your layer.
-- Dungeon guide: a Map tab for 33 dungeons and raids, Forever's own drawn by Santiago Reyes, with the bosses that have gear or a quest for you marked.
-- Jsal's Pals: a new pal, and a new egg to find.
-- Games: three cards across, and officers can set the Guild Word.
-- Talent helper: off until you switch it on in Settings, and its note no longer spends a point.
+- Build Planner: Learn your next points right on the next point's card. It asks first, and says when they're learned.
+- Build Planner: the build you follow is tagged, and with dual spec each spec's build is.
+- Food reminder: back after dying takes your Well Fed.
+- Jsal's Pals: the pal nearer the front is drawn in front.
+- And a few smaller fixes.
