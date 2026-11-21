@@ -843,7 +843,8 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
             local r = PieceRow(choiceCard, inner)
             -- The piece into the set (a change that waits to be saved): "Switch" for the piece in
             -- the place, "Choose" where the place is empty.
-            r.use = Words(r, "Switch", function(self) onUse(self.id) end)
+            -- A piece that can't go here says why on the add box's line, as the box does.
+            r.use = Words(r, "Switch", function(self) addSaid:SetText(onUse(self.id) or "") end)
             r.use:SetPoint("RIGHT", -14, 0)
             r.against = Style.Text(r, 13, "muted")
             choices[i] = r
@@ -1050,9 +1051,20 @@ function Gear.GoalView(page, width, height)
     end
     -- An item for the chosen slot. Into a set (WoWSims' or yours) it's a change that waits to be
     -- saved over your set, saved as a new one, or undone; with no set, a new set of yours.
+    -- A ring or trinket worn only once can't be in both places of the pair: what Use says instead.
+    local PAIR = { [11] = 12, [12] = 11, [13] = 14, [14] = 13 }
+    local function Refused(id)
+        local other = PAIR[chosen]
+        if other and Gear.Unique and Gear.Unique(id) and Current()[other] == id then
+            return ("That can be worn only once, and it's in your set's other %s slot already."):format(chosen <= 12 and "ring" or "trinket")
+        end
+    end
+    -- Puts a piece in the chosen place; returns why not, where it can't go.
     local function Use(id)
         local set = last and last.set
         if not (chosen and id) then return end
+        local no = Refused(id)
+        if no then return no end
         if not set then
             local key = Goal.NewSet(Current(), nil)
             Keep().build = key
@@ -1090,12 +1102,7 @@ function Gear.GoalView(page, width, height)
             return "Looking that item up... press Add again in a moment."
         end
         if not fits then return "That doesn't go in this slot." end
-        -- A ring or trinket worn only once can't be in both places of the pair.
-        local other = ({ [11] = 12, [12] = 11, [13] = 14, [14] = 13 })[chosen]
-        if other and Gear.Unique and Gear.Unique(id) and Current()[other] == id then
-            return ("That can be worn only once, and it's in your set's other %s slot already."):format(chosen <= 12 and "ring" or "trinket")
-        end
-        Use(id)
+        return Use(id)
     end
     local function Sets(what, key, words)
         if what == "choose" then
