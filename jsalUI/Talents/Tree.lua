@@ -514,14 +514,20 @@ local function Find(classID, id)
 end
 
 -- The build selected for a class: the one last picked, or else your first
--- own build, or else the first suggested one. A class with neither gets a
--- new, empty build.
+-- own build, or else the first suggested levelling one (a build for 60 is
+-- only ever picked). A class with neither gets a new, empty build.
+local function FirstLevelling(classID)
+    for _, build in ipairs(Tree.Suggested(classID)) do
+        if not build.raid then return build end
+    end
+end
+
 function Tree.Selected(classID)
     -- Sets up the saved lists first: a player who has never made a build
     -- has none yet.
     Tree.AllBuilds()
     local build = Find(classID, ns.db.selectedBuild[classID])
-        or Tree.ClassBuilds(classID)[1] or Tree.Suggested(classID)[1]
+        or Tree.ClassBuilds(classID)[1] or FirstLevelling(classID)
     if build then
         ns.db.selectedBuild[classID] = build.id
         return build

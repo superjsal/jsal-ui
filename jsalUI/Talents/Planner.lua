@@ -105,7 +105,24 @@ Window.Page("build", function(page)
     ownEmpty:SetText("None yet. Start a new build, or copy a suggested one.")
     local suggestHead = Style.Section(page, LIST_W)
     suggestHead.title:SetText("SUGGESTED")
+    -- Builds for 60: WoWSims Forever's own talents for each build it sims, under the levelling ones.
+    local raidHead = Style.Section(page, LIST_W)
+    raidHead.title:SetText("FOR 60 · WOWSIMS")
     local rows = {}
+
+    -- The WoWSims build your At 60 set is, with At 60 on: a build for 60 simmed with it is YOUR SET.
+    local function SetKey()
+        local Goal = ns.GearGoal
+        if not (Goal and Goal.SetKey and ns.ModuleWanted(Goal)) then return nil end
+        return Goal.SetKey()
+    end
+    local function ForYourSet(b)
+        local key = b.raid and SetKey()
+        for _, s in ipairs(key and b.sets or {}) do
+            if s == key then return true end
+        end
+        return false
+    end
 
     local function BuildRow()
         local row = CreateFrame("Button", nil, page)
@@ -408,7 +425,8 @@ Window.Page("build", function(page)
         -- A suggested build says where it's from, above its plan.
         local shift = builtin and SOURCE_H or 0
         source:SetShown(builtin)
-        source:SetText(builtin and ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source) or "")
+        source:SetText(builtin and (build.raid and ("For 60, from |cffece6d6%s|r: the talents it sims %s with. Copy it to change anything."):format(build.source, build.name)
+            or ("Suggested, from |cffece6d6%s|r. Copy it to change anything."):format(build.source)) or "")
         cols:ClearAllPoints()
         cols:SetPoint("TOPLEFT", 0, -(MAIN_TOP - BODY_TOP + shift))
         nextCard:ClearAllPoints()
@@ -442,14 +460,18 @@ Window.Page("build", function(page)
         if learned.build ~= build or ready or (learned.fresh and taken < learned.fresh) then learned.fresh = nil end
         learned.build, learned.group, learned.taken, learned.open = build, group, data.own and taken or nil, true
         local fresh = data.own and learned.fresh
+        -- A build for 60, on your own class: A BUILD FOR 60 while you don't follow it, and RESPEC
+        -- FIRST (gold, not OFF THE PLAN) while you follow it with points it doesn't have.
+        local forSixty = build.raid and data.own and not fresh and (not following or off > 0)
         local nextAt = fresh or (data.own and nextIndex or (#kept > 0 and 1 or nil))
+        if forSixty then nextAt = #kept > 0 and 1 or nil end
         local nextID = nextAt and kept[nextAt]
         local node = nextID and data.nodes[nextID]
         nextCard:SetShown(node ~= nil)
         if node then
             local rank = 0
             for k = 1, nextAt do if kept[k] == nextID then rank = rank + 1 end end
-            local tone = fresh and "green" or off > 0 and "red" or "gold"
+            local tone = fresh and "green" or (off > 0 and not forSixty) and "red" or "gold"
             Style.SetBorder({ nextCard.box.line }, tone)
             Style.SetBorder(iconFrame.line, tone)
             nextCard.title:SetTextColor(Style.Color(tone))
@@ -473,18 +495,41 @@ Window.Page("build", function(page)
             end
             nextCard.text:SetText(says)
             local tall = Style.Wide and nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
+            if forSixty then
+                -- The build's name and where its points go, then what following it takes.
+                nextCard.title:SetText(following and "RESPEC FIRST" or "A BUILD FOR 60")
+                nextCard.level:SetText("WoWSims")
+                nextCard.name:SetText(build.name or "")
+                local Goal = ns.GearGoal
+                local setName = ForYourSet(build) and Goal and select(2, Goal.SetKey())
+                nextCard.sub:SetText(setName and ("The talents WoWSims sims your %s set with"):format(setName)
+                    or ("WoWSims Forever's %s talents"):format(build.spec or ""))
+                local _, _, treePoints = Tree.Replay(data, build.order or {})
+                local split = {}
+                for i, t in ipairs(data.trees) do split[#split + 1] = ("%d %s"):format(treePoints[i] or 0, t.name or "") end
+                local className = UnitClass("player") or ""
+                local how = following and ("%d of your points are where this build doesn't have them. Reset your talents at a %s trainer: then Learn %d puts every point where this build has them.")
+                        :format(off, className:lower(), #kept)
+                    or spent > 0 and ("Your %d points are in other talents. Follow this build, reset your talents at a %s trainer, and Learn %d puts them all where this build has them.")
+                        :format(spent, className:lower(), #kept)
+                    or ("Follow this build, and Learn puts your points where it has them.")
+                nextCard.text:SetText(table.concat(split, "  ·  ") .. "\n\n" .. how)
+                tall = nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
+            end
             local h = 94 + (type(tall) == "number" and tall or 0) + 18
             -- Its foot: Learn, with how many points there are to spend; or, learned, what's next.
             local after = fresh and nextIndex
             local afterID = after and kept[after]
             local afterNode = afterID and data.nodes[afterID]
-            local other = data.own and not following and not fresh and off == 0
-            nextCard.foot:SetShown((ready or fresh or off > 0 or other) and true or false)
+            local other = data.own and not following and not fresh and (off == 0 or forSixty)
+            nextCard.foot:SetShown((ready or fresh or (off > 0 and not forSixty) or other) and true or false)
             learn:SetShown(ready and true or false)
             cardFollow:SetShown(other and true or false)
             nextCard.footText:SetWidth(NEXT_W - 32 - (ready and 96 or other and 136 or 0))
-            nextCard.footText:SetTextColor(Style.Color(off > 0 and "red" or "muted"))
-            if off > 0 then
+            nextCard.footText:SetTextColor(Style.Color((off > 0 and not forSixty) and "red" or "muted"))
+            if forSixty and other then
+                nextCard.footText:SetText("From WoWSims Forever")
+            elseif off > 0 then
                 nextCard.footText:SetText(("%d of your points %s off this plan, so Learn is off. Respec, or follow a build that has them.")
                     :format(off, off == 1 and "is" or "are"))
             elseif other then
@@ -824,9 +869,14 @@ Window.Page("build", function(page)
         if not data then return end
         kept, ranks, spent = Tree.Replay(data, build.order or {})
 
-        local builds, suggested = Tree.ClassBuilds(classID), Tree.Suggested(classID)
+        local builds, suggested, raid = Tree.ClassBuilds(classID), {}, {}
+        for _, b in ipairs(Tree.Suggested(classID)) do
+            local list = b.raid and raid or suggested
+            list[#list + 1] = b
+        end
         listHead.count:SetText(#builds)
         suggestHead.count:SetText(#suggested)
+        raidHead.count:SetText(#raid)
         local used, y = 0, BODY_TOP + 24
         local function Place(b)
             used = used + 1
@@ -858,6 +908,11 @@ Window.Page("build", function(page)
                     followed, ours = true, true
                     row.tag:Say("FOLLOWING")
                 end
+            end
+            -- Not followed, a build for 60 simmed with your At 60 set says so, in grey.
+            if not followed and ForYourSet(b) then
+                followed = true
+                row.tag:Say("YOUR SET")
             end
             row.tag:Tone(ours and "gold" or "plain")
             row.tag:SetShown(followed)
@@ -895,6 +950,11 @@ Window.Page("build", function(page)
         suggestHead:SetPoint("TOPLEFT", 0, -(y + 12))
         y = y + 36
         for _, b in ipairs(suggested) do Place(b) end
+        raidHead:SetShown(#raid > 0)
+        raidHead:ClearAllPoints()
+        raidHead:SetPoint("TOPLEFT", 0, -(y + 12))
+        if #raid > 0 then y = y + 36 end
+        for _, b in ipairs(raid) do Place(b) end
         for i = used + 1, #rows do rows[i]:Hide() end
 
         view:SetShown(not editing)

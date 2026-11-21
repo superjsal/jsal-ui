@@ -728,6 +728,23 @@ function Goal.ChosenSet()
     return IdsOf(chosen, keptChoice.cheap, Side()), chosen.name
 end
 
+-- The WoWSims build your At 60 set is (or a set of yours started from), and its name: for the
+-- Build Planner's YOUR SET. nil for a set of yours started empty, or a tree with no set.
+function Goal.SetKey()
+    local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
+    local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
+    local _, classFile = UnitClass("player")
+    local builds, start = Goal.Builds(classFile, Gear.Spec())
+    local key = own and own.from or keptChoice.build
+    for _, b in ipairs(builds or {}) do
+        if b.key == key then return b.key, b.name end
+    end
+    if own then return nil end
+    for _, b in ipairs(builds or {}) do
+        if b.key == start then return b.key, b.name end
+    end
+end
+
 -- Whether an item is in your set and not worn: the slot it's for ("Trinket 1"), else nil. For
 -- the drop alert: worked out again only when the plans change.
 local wantedStamp, wanted

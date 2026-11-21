@@ -1,0 +1,279 @@
+{
+  "source": "github.com/wowsims/forever (MIT licence), ui/specs/*/presets.ts and builds/, the talents each build is simmed with",
+  "commit": "bfd4d29e25a0741de0208ed20c83a764cd8cdf64",
+  "builds": [
+    {
+      "class": "warrior",
+      "name": "Arms",
+      "talents": "30303213132215201-55050000002-2",
+      "sets": [
+        "arms"
+      ]
+    },
+    {
+      "class": "warrior",
+      "name": "Fury",
+      "talents": "30303213002-050530045122100231",
+      "sets": [
+        "fury"
+      ]
+    },
+    {
+      "class": "warrior",
+      "name": "Prot offensive",
+      "talents": "3-0505000501-050032120331021351",
+      "sets": [
+        "offensive"
+      ]
+    },
+    {
+      "class": "warrior",
+      "name": "Prot balanced",
+      "talents": "05-05050005-150531120300001351",
+      "sets": [
+        "balanced"
+      ]
+    },
+    {
+      "class": "paladin",
+      "name": "Unsealed Wrath",
+      "talents": "050250002-501-05233011201301351",
+      "sets": []
+    },
+    {
+      "class": "paladin",
+      "name": "Holy Shock",
+      "talents": "05025210221001--0523330110130035",
+      "sets": []
+    },
+    {
+      "class": "hunter",
+      "name": "SV Weave",
+      "talents": "-00530501114-530200230050220151",
+      "sets": [
+        "weave"
+      ]
+    },
+    {
+      "class": "hunter",
+      "name": "MM",
+      "talents": "5-0053452511522051-5",
+      "sets": [
+        "turret"
+      ]
+    },
+    {
+      "class": "hunter",
+      "name": "BM",
+      "talents": "5320001505101251-00530502014",
+      "sets": [
+        "turret"
+      ]
+    },
+    {
+      "class": "hunter",
+      "name": "SV",
+      "talents": "3-00510503113-52225303000021004",
+      "sets": [
+        "turret"
+      ]
+    },
+    {
+      "class": "hunter",
+      "name": "SV Melee",
+      "talents": "53200005001-005005-5302002300500221",
+      "sets": [
+        "melee"
+      ]
+    },
+    {
+      "class": "rogue",
+      "name": "Asn Muti",
+      "talents": "00530311231251031-32030302020103-001",
+      "sets": []
+    },
+    {
+      "class": "rogue",
+      "name": "Combat SS",
+      "talents": "00530320201-3200132202012321551",
+      "sets": []
+    },
+    {
+      "class": "rogue",
+      "name": "Combat BS",
+      "talents": "005303002-3203030202012321351-005",
+      "sets": []
+    },
+    {
+      "class": "rogue",
+      "name": "Subtlety Hemo",
+      "talents": "00530301-320003-305230031321001151",
+      "sets": []
+    },
+    {
+      "class": "rogue",
+      "name": "Combat Venom",
+      "talents": "00530320241001-320013220201232115",
+      "sets": []
+    },
+    {
+      "class": "rogue",
+      "name": "Hemo Seal Fate",
+      "talents": "0053031121135102-02-0352000313210001",
+      "sets": []
+    },
+    {
+      "class": "priest",
+      "name": "Shadow",
+      "talents": "00530300103-3-50042201251302051",
+      "sets": []
+    },
+    {
+      "class": "priest",
+      "name": "Smite",
+      "talents": "525235031030001001-30515100002-3",
+      "sets": []
+    },
+    {
+      "class": "priest",
+      "name": "Disc",
+      "talents": "005025021330011531-335001030301",
+      "sets": [
+        "healer"
+      ]
+    },
+    {
+      "class": "priest",
+      "name": "Holy",
+      "talents": "00520101133-33505003030121531",
+      "sets": [
+        "healer"
+      ],
+      "leftOut": "three Holy talents in Discipline's third row come before ten points above them, which Forever's trees don't allow"
+    },
+    {
+      "class": "shaman",
+      "name": "Elemental",
+      "talents": "5500331023001351-05500001-053",
+      "sets": []
+    },
+    {
+      "class": "shaman",
+      "name": "Elemental, Mana Tide",
+      "talents": "5500331013001351-04-053150001001",
+      "sets": []
+    },
+    {
+      "class": "shaman",
+      "name": "Enhancement",
+      "talents": "053303102-053030310051002251-03",
+      "sets": []
+    },
+    {
+      "class": "mage",
+      "name": "Arcane",
+      "talents": "050205223101311531-5500003-003",
+      "sets": [
+        "arcane"
+      ]
+    },
+    {
+      "class": "mage",
+      "name": "Arcane Fire",
+      "talents": "050205203100311531-525000012001-003",
+      "sets": [
+        "arcane"
+      ]
+    },
+    {
+      "class": "mage",
+      "name": "FFB",
+      "talents": "-5550000123011303-2035010311013002",
+      "sets": [
+        "arcane"
+      ]
+    },
+    {
+      "class": "mage",
+      "name": "Fire",
+      "talents": "0502052001001-55500001230133031-003",
+      "sets": [
+        "fire"
+      ]
+    },
+    {
+      "class": "mage",
+      "name": "Frost Incin",
+      "talents": "203205-5-053500011121331251",
+      "sets": [
+        "frost"
+      ]
+    },
+    {
+      "class": "mage",
+      "name": "Frost Med",
+      "talents": "2032250100003--053500001121331251",
+      "sets": [
+        "frost"
+      ]
+    },
+    {
+      "class": "warlock",
+      "name": "Demo (Fire Brand)",
+      "talents": "011-0305003201220301351-0050055003",
+      "sets": []
+    },
+    {
+      "class": "warlock",
+      "name": "Demo (Shadow Brand)",
+      "talents": "011-0005003231220301351-0550005003",
+      "sets": []
+    },
+    {
+      "class": "warlock",
+      "name": "Destro",
+      "talents": "2550002013--0050355103101351",
+      "sets": []
+    },
+    {
+      "class": "warlock",
+      "name": "SM/Ruin",
+      "talents": "2550002013520105--0550205003",
+      "sets": []
+    },
+    {
+      "class": "warlock",
+      "name": "Aff (Wrack)",
+      "talents": "25500020135201351-0050203001-05",
+      "sets": []
+    },
+    {
+      "class": "druid",
+      "name": "Moonkin",
+      "talents": "5232220115501351--5053",
+      "sets": [
+        "balance"
+      ]
+    },
+    {
+      "class": "druid",
+      "name": "Cat",
+      "talents": "050021-53200032123012125001-055",
+      "sets": [
+        "feral"
+      ]
+    },
+    {
+      "class": "druid",
+      "name": "Bear",
+      "talents": "050022-5023030212310112501-055",
+      "sets": []
+    },
+    {
+      "class": "druid",
+      "name": "Hybrid",
+      "talents": "050012-50230302123110125011-055",
+      "sets": []
+    }
+  ]
+}
