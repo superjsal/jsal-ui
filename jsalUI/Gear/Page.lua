@@ -34,23 +34,31 @@ local function Colored(name, quality)
     return ("|cff%s%s|r"):format(Style.Quality(quality), name or "...")
 end
 
-local function Tooltip(frame)
-    frame:SetScript("OnEnter", function(self)
-        if not (self.item or self.equip or self.note) then return end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if self.item then
-            GameTooltip:SetItemByID(self.item)
-        elseif self.equip then
-            GameTooltip:SetInventoryItem("player", self.equip)
-        else
-            GameTooltip:SetText(self.title or "")
-        end
-        -- A slot names its best upgrade under what you wear.
-        if self.note then GameTooltip:AddLine(self.note, Style.Color("green")) end
+-- A piece's own tooltip, on its picture and name: the item (with the game's compare against
+-- what you wear, and jsal.ui's lines), or what you wear there, alone. Nothing where there's no
+-- piece.
+local function PieceTip(hot)
+    if not (hot.item or hot.equip) then return end
+    GameTooltip:SetOwner(hot, "ANCHOR_RIGHT")
+    if hot.item then
+        GameTooltip:SetItemByID(hot.item)
         GameTooltip:Show()
-    end)
-    frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Style.Hover(frame)
+        return
+    end
+    GameTooltip:SetInventoryItem("player", hot.equip)
+    GameTooltip:Show()
+    -- What you wear isn't compared with itself.
+    for _, compare in ipairs({ ShoppingTooltip1 or false, ShoppingTooltip2 or false }) do
+        if compare then compare:Hide() end
+    end
+end
+
+-- A hot area's width: from where its line starts to the end of the name as written, no wider
+-- than the name's column.
+local function Reach(hot, from, text)
+    local room = text:GetWidth() or 0
+    local wide = text:GetStringWidth() or 0
+    hot:SetWidth(from + math.max(0, room > 0 and math.min(wide, room) or wide))
 end
 
 -- An icon in a framed box, so an empty slot still shows where it is.
@@ -420,7 +428,16 @@ Window.Page("gear", function(page)
         Style.Rule(b, "BOTTOM", "line")
         b.slot, b.row = slot, row
         b.equip = row.equip
-        Tooltip(b)
+        -- The line lights under the pointer and a click picks it; its pieces each have their
+        -- own tooltip: what you wear on its picture and name, the best upgrade on its name and
+        -- where it's from.
+        Style.Hover(b)
+        b.wornHot = Style.HotArea(b, PieceTip)
+        b.wornHot:SetPoint("LEFT")
+        b.wornHot:SetHeight(SLOT_H)
+        b.bestHot = Style.HotArea(b, PieceTip)
+        b.bestHot:SetPoint("LEFT", UP_X, 0)
+        b.bestHot:SetHeight(SLOT_H)
         b:SetScript("OnClick", function(self)
             chosen = self.row.key
             Paint()
@@ -611,8 +628,11 @@ Window.Page("gear", function(page)
             end
         end
         r:Named(false)
-        r:EnableMouse(true)
-        Tooltip(r)
+        -- The piece's tooltip on its picture and name only; the star has its own.
+        r.hot = Style.HotArea(r, PieceTip)
+        r.hot:SetPoint("LEFT")
+        r.hot:SetHeight(card and OPT_H or ROW_H)
+        r.hotFrom = (card and 10 or 0) + 36 + 10
         rows[i] = r
         return r
     end
@@ -731,6 +751,7 @@ Window.Page("gear", function(page)
             local plan = plans[key]
             local worn = plan.worn
             b.equip = worn.link and worn.equip or nil
+            b.wornHot.equip = b.equip
             b.title = b.row.label
             local best = G.Best(plan)
             if worn.link then
@@ -758,13 +779,16 @@ Window.Page("gear", function(page)
                 b.best:SetText(Colored(name, quality or best.quality))
                 local how, place = Where(best)
                 b.from:SetText(best.unknown and "where it's from isn't known yet" or (how .. (place ~= "" and (", " .. place) or "")))
-                b.note = "Best upgrade: " .. (name or "...")
+                b.bestHot.item = best.id
             else
+                b.bestHot.item = nil
                 b.gain:SetText("")
                 b.best:SetText(plan.twoHand and "" or (plan.waiting > 0 and "|cff9a9688checking...|r" or "|cff5d5b55nothing better yet|r"))
                 b.from:SetText("")
-                b.note = nil
             end
+            Reach(b.wornHot, 6 + ICON + 8, b.worn)
+            local longer = (b.from:GetStringWidth() or 0) > (b.best:GetStringWidth() or 0) and b.from or b.best
+            Reach(b.bestHot, 0, longer)
             -- With nothing under it, a line sits in the middle of the row.
             b.best:ClearAllPoints()
             b.best:SetPoint("TOPLEFT", b, "TOPLEFT", UP_X, best and -5 or -13)
@@ -817,6 +841,8 @@ Window.Page("gear", function(page)
         wornRow.level:SetText("")
         wornRow.star:Hide()
         wornRow:Adds(nil, "")
+        wornRow.hot.item, wornRow.hot.equip = nil, wornRow.equip
+        Reach(wornRow.hot, wornRow.hotFrom, wornRow.name)
         wornRow:Show()
         -- The upgrades of the kinds chosen; the chips and the count are painted with them.
         local options = filter:Show(plan.options)
@@ -835,6 +861,8 @@ Window.Page("gear", function(page)
             local how, place, needs = Where(o)
             r.how:SetText(how)
             r.where:SetText(place)
+            r.hot.item, r.hot.equip = o.id, nil
+            Reach(r.hot, r.hotFrom, r.name)
             r.level:SetText(needs)
             -- The gold tag is the plan's best upgrade, the most it adds, which the chips may
             -- have hidden; a piece you starred or carry comes first whatever it scores. One you
