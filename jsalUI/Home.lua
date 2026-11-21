@@ -12,7 +12,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 local NEWS = {
     { "Build Planner: Learn on the next point", "Open the Build Planner", "build" },
     { "Dual spec: a tag for each spec's build", "Open the Build Planner", "build" },
-    { "Dungeon maps, with your gear on them", "Open the Dungeon guide", "dungeons" },
+    { "Food reminder after dying, thanks Yari", "Open Settings", "settings" },
 }
 
 local function NewsWanted()
