@@ -295,6 +295,9 @@ StopRun = function(after)
     end
 end
 
+-- Whether a run of several crafts is under way.
+function Window.Running() return run ~= nil end
+
 local function StartRun(recipeID, count)
     count = tonumber(count) or 1
     if not Window.On("timer") or count < 2 or not recipeID then return end

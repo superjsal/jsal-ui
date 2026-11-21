@@ -291,6 +291,84 @@ local function Step(i)
     return steps[i]
 end
 
+---------------------------------------------------------------------------
+-- Making the step in hand from the card's foot: a gold "Craft N", N the
+-- step's crafts or as many as there are materials for, the fewer, counted
+-- as the game's own Create All counts them. Only for a recipe you know that's
+-- a craft; it makes the step itself and nothing it's made from. While a craft
+-- is under way, or in a fight, it's greyed and says why, and a click does
+-- nothing: the game has no call to stop a run, and one run mustn't start
+-- over another.
+---------------------------------------------------------------------------
+local function CanMake(recipe)
+    local ui = C_TradeSkillUI
+    local info = ui and ui.GetRecipeInfo and ui.GetRecipeInfo(recipe.spell)
+    if type(info) == "table" and type(info.numAvailable) == "number" then return info.numAvailable end
+    local n
+    for _, reagent in ipairs(recipe.reagents or {}) do
+        local can = math.floor((Compat.ItemCount(reagent.item, false) or 0) / math.max(1, reagent.count))
+        n = n and math.min(n, can) or can
+    end
+    return n or 0
+end
+
+local function Crafting()
+    if ns.ProfWindow and ns.ProfWindow.Running and ns.ProfWindow.Running() then return true end
+    if not UnitCastingInfo then return false end
+    -- Its sixth answer says whether the cast is a craft; the game can hide it.
+    local trade = Compat.Plain((select(6, UnitCastingInfo("player"))))
+    return trade == true
+end
+
+local function PaintCraft(card)
+    local b, step = card.craft, card.craftStep
+    local n = (b and step) and math.min(step.crafts, CanMake(step.recipe)) or 0
+    card.add:ClearAllPoints()
+    if n < 1 then
+        if b then b:Hide() end
+        card.add:SetPoint("RIGHT", -13, 0)
+        return
+    end
+    local why = (Crafting() and "Already crafting") or (Compat.InCombat() and "Not in a fight") or nil
+    b.n, b.why = n, why
+    local words = why == "Already crafting" and "Crafting" or ("Craft %d"):format(n)
+    b:SetLabel(words)
+    b:SetWidth(Style.Wide(b.label, #words * 7) + 24)
+    if why then b:Disable() else b:Enable() end
+    b:Show()
+    card.add:SetPoint("RIGHT", b, "LEFT", -10, 0)
+end
+
+local function CraftButton(card)
+    if card.craft then return card.craft end
+    local b = Style.Button(card.strip, "Craft", "primary", 80)
+    b:SetHeight(24)
+    b:SetPoint("RIGHT", -13, 0)
+    b:HookScript("OnEnter", function(self)
+        PaintCraft(card)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        if self.why then
+            GameTooltip:AddLine(self.why, Style.Color("muted"))
+        else
+            GameTooltip:AddLine(("Make %d with what's in your bags"):format(self.n or 0), Style.Color("text"))
+        end
+        GameTooltip:Show()
+    end)
+    b:HookScript("OnLeave", function() GameTooltip:Hide() end)
+    b:SetScript("OnClick", ns.Safe(Panel, function(self)
+        local step = card.craftStep
+        if not step or Compat.InCombat() or Crafting() then return PaintCraft(card) end
+        local n = math.min(step.crafts, CanMake(step.recipe))
+        if n < 1 or not (C_TradeSkillUI and C_TradeSkillUI.CraftRecipe) then return PaintCraft(card) end
+        C_TradeSkillUI.CraftRecipe(step.recipe.spell, n)
+        self:SetLabel("Crafting")
+        self:Disable()
+    end))
+    b:Hide()
+    card.craft = b
+    return b
+end
+
 local function Card()
     if not panel.card then panel.card = Road.NowCard(panel, WIDTH - PAD * 2) end
     return panel.card
@@ -744,6 +822,11 @@ function Paint()
             card.add:SetShown(shop and true or false)
             card.add:SetScript("OnClick", function() ns.Shopping.TopUp({ first }) end)
             if shop then ns.Shopping.Track(card.add, { first }) end
+            -- Made from the card's foot: a known recipe that's a craft.
+            local makes = not (first.learn or first.buy or recipe.vein) and recipe.reagents and #recipe.reagents > 0
+            if makes then CraftButton(card) end
+            card.craftStep = makes and first or nil
+            PaintCraft(card)
         elseif panel.card then
             panel.card:Hide()
         end
@@ -1151,6 +1234,17 @@ function Panel:OnEnable()
         end)
     end)
     self.events = events
+    -- The Craft button follows a craft starting and ending, and a fight.
+    local casts = CreateFrame("Frame")
+    for _, event in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_SUCCEEDED",
+                             "UNIT_SPELLCAST_INTERRUPTED", "UNIT_SPELLCAST_FAILED", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }) do
+        pcall(casts.RegisterEvent, casts, event)
+    end
+    casts:SetScript("OnEvent", ns.Safe(self, function(_, event, unit)
+        if event:find("^UNIT_") and Compat.Plain(unit) ~= "player" then return end
+        if panel and panel.card and panel.card:IsShown() and panel.card.craftStep then PaintCraft(panel.card) end
+    end))
+    self.casts = casts
     Hook()
 end
 
