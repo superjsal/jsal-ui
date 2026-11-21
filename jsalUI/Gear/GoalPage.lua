@@ -54,21 +54,13 @@ local function Tip(hot)
 end
 -- The tooltip belongs to a row's picture and name, as wide as the name is written (`from`
 -- is where the name starts): over the rest of the row it covered the rows under the pointer
--- on its way down the list. `Fit` sets its width once the name is written.
+-- on its way down the list (Style.HotArea, which passes a click to the row, so a line is picked
+-- by a click anywhere on it). `Fit` sets its width once the name is written.
 local function Tipped(row, from)
-    local hot = CreateFrame("Frame", nil, row)
+    local hot = Style.HotArea(row, Tip)
     hot.row = row
     hot:SetPoint("LEFT")
     hot:SetSize(from, row:GetHeight())
-    hot:EnableMouse(true)
-    hot:SetScript("OnEnter", Tip)
-    hot:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    -- It takes the mouse for its tooltip, so a click on it is the row's click: a line is picked
-    -- by a click anywhere on it, its picture and name too.
-    hot:SetScript("OnMouseUp", function(self, button)
-        local click = self.row:GetScript("OnMouseUp")
-        if click then click(self.row, button) end
-    end)
     row.hot = hot
     function row:Fit()
         local room = self.name:GetWidth() or 0
