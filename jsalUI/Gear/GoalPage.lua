@@ -18,7 +18,7 @@ local PLACES = 17                       -- the most slots there are: fifteen, wi
 local FULL_BAR = 100                    -- the chance that fills a piece's bar: a bar reads as the share it is
 -- A finished slot's mark: the game's check, tinted gold (as the road tints it green).
 local CHECK = "Interface\\Buttons\\UI-CheckBox-Check"
-local GOLD_TICK = "|T" .. CHECK .. ":14:14:0:0:32:32:0:32:0:32:227:176:75|t"
+local GOLD_TICK = "|T" .. CHECK .. ":12:12:0:0:32:32:0:32:0:32:227:176:75|t"
 local MUTED, DIM = "|cff9a9688", "|cff5d5b55"
 
 local function ItemInfo(id)
@@ -407,15 +407,15 @@ local LINE_WHERE_R = LINE_GAIN_R + LINE_GAIN_W + 8
 -- time a line is finished.
 local function Badge(r)
     if r.badge then return r.badge end
-    local dot = Style.Dot(r.box, 12, "OVERLAY")
-    dot:SetPoint("CENTER", r.box, "BOTTOMRIGHT", -2, 2)
+    local dot = Style.Dot(r.box, 13, "OVERLAY")
+    dot:SetPoint("CENTER", r.box, "BOTTOMRIGHT", -1.5, 1.5)
     dot:Paint("gold")
     dot.tick = r.box:CreateTexture(nil, "OVERLAY", nil, 7)
     dot.tick:SetTexture(CHECK)
-    dot.tick:SetSize(12, 12)
+    dot.tick:SetSize(9, 9)
     dot.tick:SetPoint("CENTER", dot, "CENTER", 0, 0)
     dot.tick:SetDesaturated(true)
-    dot.tick:SetVertexColor(Style.Color("window"))
+    dot.tick:SetVertexColor(Style.Color("onGold"))
     function dot:SetShown(on)
         if on then self:Show() self.tick:Show() else self:Hide() self.tick:Hide() end
     end
