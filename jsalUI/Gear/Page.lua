@@ -118,7 +118,7 @@ local function SourceFilter(list, listW, top, Repaint)
         self.count:SetText(#options == 0 and "" or #shown < #options and ("%d of %d upgrade%s"):format(#shown, #options, s)
             or ("%d upgrade%s"):format(#options, s))
         self.row:SetShown(#options > 0)
-        local x = 0
+        local showing = {}
         for _, b in ipairs(self.chips) do
             local all = b.key == "all"
             local n = all and #options or counts[b.key] or 0
@@ -129,16 +129,37 @@ local function SourceFilter(list, listW, top, Repaint)
             b:SetShown(show)
             if show then
                 b.countText:SetText(tostring(n))
-                local w = math.floor(Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) + 12 + 0.5)
-                b:SetWidth(w)
-                b:ClearAllPoints()
-                b:SetPoint("TOPLEFT", x, 0)
                 b:SetSelected(on)
                 b.kindText:SetTextColor(Style.Color(on and "text" or "secondary"))
                 b.countText:SetTextColor(Style.Color(on and "gold" or "muted"))
-                x = x + w + 5
+                showing[#showing + 1] = b
             end
         end
+        -- Whole chips within the row: as they are while they fit; else closer together, then
+        -- a little narrower inside; then on as many rows as they take.
+        local room = self.row:GetWidth() or 0
+        local function Inner(b) return Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) end
+        local function Total(gap, pad)
+            local total = 0
+            for _, b in ipairs(showing) do total = total + math.floor(Inner(b) + pad * 2 + 0.5) end
+            return total + gap * math.max(0, #showing - 1)
+        end
+        local gap, pad = 5, 6
+        if Total(gap, pad) > room then gap = 3 end
+        if Total(gap, pad) > room then pad = 4 end
+        local x, y, lines = 0, 0, 1
+        for _, b in ipairs(showing) do
+            local w = math.floor(Inner(b) + pad * 2 + 0.5)
+            if x > 0 and x + w > room then x, y, lines = 0, y - (FILTER_H - 4), lines + 1 end
+            b:SetWidth(w)
+            b:ClearAllPoints()
+            b:SetPoint("TOPLEFT", x, y)
+            b.kindText:SetPoint("LEFT", pad, 0)
+            b.countText:SetPoint("RIGHT", -pad, 0)
+            x = x + w + gap
+        end
+        self.lines = lines
+        self.row:SetHeight(FILTER_H - 8 + (lines - 1) * (FILTER_H - 4))
         return shown
     end
     return F
@@ -634,6 +655,7 @@ Window.Page("gear", function(page)
     card:SetSize(rightW, bodyH - LIST_TOP - NOTE_H)
     Style.Box(card, 6, "well", "cardLine")
     local viewH = bodyH - LIST_TOP - NOTE_H - ADD_H
+    local VIEW_H = viewH
     local scroll, optList = Style.Scroller(card, rightW, viewH, nil, 0, OPT_H)
     scroll:SetPoint("TOPLEFT", 0, 0)
     local empty = Style.Text(card, 13, "muted")
@@ -802,6 +824,13 @@ Window.Page("gear", function(page)
     local function PaintList(plans)
         local row, plan = byKey[chosen], plans[chosen]
         local options = filter:Show(plan.options)
+        -- Chips on a second row push the list down by it, and its view is that much shorter.
+        local extra = ((filter.lines or 1) - 1) * (FILTER_H - 4)
+        card:ClearAllPoints()
+        card:SetPoint("TOPLEFT", 0, -(LIST_TOP + extra))
+        card:SetHeight(bodyH - LIST_TOP - extra - NOTE_H)
+        viewH = VIEW_H - extra
+        scroll:SetHeight(viewH)
         local count = filter.count:GetText() or ""
         listHead.title:SetText(row.label:upper() .. (count ~= "" and (" · " .. count:upper()) or ""))
         local shown = 0
