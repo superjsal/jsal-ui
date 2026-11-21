@@ -469,7 +469,8 @@ end
 
 -- A step onto the shopping list, at the end of its row down a road: a muted
 -- +, gold under the pointer and lit, as tall as the row; once the list has
--- the step, the game's check mark, muted, and a click only opens the list.
+-- the step, the game's check mark in green, drawn near the room's width so
+-- it reads as a tick, and a click only opens the list.
 function Road.StepAdd(parent)
     local b = CreateFrame("Button", nil, parent)
     b:SetSize(ADD_W, Road.STOP_H)
@@ -478,11 +479,11 @@ function Road.StepAdd(parent)
     b.plus:SetPoint("CENTER")
     b.plus:SetText("+")
     b.tick = b:CreateTexture(nil, "OVERLAY")
-    b.tick:SetSize(14, 14)
+    b.tick:SetSize(20, 20)
     b.tick:SetPoint("CENTER")
     b.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
     b.tick:SetDesaturated(true)
-    b.tick:SetVertexColor(Style.Color("muted"))
+    b.tick:SetVertexColor(Style.Color("green"))
     function b:SetListed(on)
         self.listed = on and true or false
         self.plus:SetShown(not self.listed)

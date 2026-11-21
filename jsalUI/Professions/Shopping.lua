@@ -377,8 +377,8 @@ local function Row(i)
     r.count:SetPoint("CENTER")
     r.minus = Sign(r.step, "-", "LEFT")
     r.plus = Sign(r.step, "+", "RIGHT")
-    -- A row you added can be taken off with the x at its end, muted and lit
-    -- under the pointer, as a right-click does.
+    -- A row you added can be taken off with the x at its end, as a right-click
+    -- does: muted, and red and lit under the pointer.
     r.x = CreateFrame("Button", nil, r)
     r.x:SetSize(X_W, ROW_H)
     r.x:SetPoint("RIGHT", 6, 0)
@@ -387,7 +387,7 @@ local function Row(i)
     r.x.text:SetText("×")
     r.x:SetScript("OnClick", function() if r.drop then r.drop() end end)
     r.x:SetScript("OnEnter", function(self)
-        self.text:SetTextColor(Style.Color("text"))
+        self.text:SetTextColor(Style.Color("red"))
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine("Take it off the list", Style.Color("text"))
         GameTooltip:Show()
