@@ -362,7 +362,7 @@ local function CheckRanks()
             -- so, where it said to train it and named a trainer who can't.
             local what, about, who
             if Professions.RankFrom then what, about, who = Professions.RankFrom(p.line, rank.next) end
-            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. p.line, (index or 1) + 1)) or nil
+            local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. p.line, (index or 1) + 1, at)) or nil
             local place = trainer and ns.Trainers.Zone(trainer)
             local where = trainer and ("%s%s"):format(trainer.name, place and (", " .. place) or "")
             if what then

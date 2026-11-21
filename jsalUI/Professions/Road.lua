@@ -135,7 +135,7 @@ end
 function Road.PaintRank(r, line, rank, rankIndex, rankAt, skill)
     local what, about, who
     if Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
-    local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
+    local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1, rankAt)) or nil
     local place = trainer and ns.Trainers.Zone(trainer)
     r.trainer = trainer
     local doing = what or (rank.next and ("train " .. rank.next)) or ""
@@ -168,18 +168,22 @@ local ADD_W = 24
 Road.ACROSS_H = 150
 local NOW_TOP, NOW_MAT, NOW_STRIP = 64, 30, 34
 
--- The nearest trainer who'll teach a step's recipe when you come to it: one
--- whose rank reaches the skill it's learned at, and who takes a student at
--- the skill the step starts from. Nil for a step that isn't learned, or when
--- no trainer known teaches it: nobody is named rather than the wrong one.
+-- The nearest trainer who'll teach a step's recipe when you come to it, and
+-- takes a student at the skill the step starts from: one players were seen to
+-- be taught it by, or one never opened whose title reaches it. How far a title
+-- reaches is the least any trainer of that title was seen to teach, in every
+-- profession: a Journeyman trainer to recipes learned at 50, an Expert one to
+-- 150, an Artisan one to 190, a Master all of them; so a title alone never
+-- names one too low. Nil for a step that isn't learned, or when no trainer
+-- known teaches it: nobody is named rather than the wrong one.
+local REACH = { 50, 150, 190, 300 }
 function Road.TrainerFor(line, step)
     if not (step and step.learn and ns.Trainers) then return nil end
-    local ranks = Professions.RANKS
-    local need = #ranks
-    for i, rank in ipairs(ranks) do
-        if step.recipe.learn <= rank.cap then need = i break end
+    local need = #REACH
+    for i, reach in ipairs(REACH) do
+        if step.recipe.learn <= reach then need = i break end
     end
-    return ns.Trainers.Nearest("skill" .. line, need, step.from)
+    return ns.Trainers.Nearest("skill" .. line, need, step.from, step.recipe.spell)
 end
 
 -- What a step asks of you before you can make it, and that in a word for a
@@ -606,7 +610,7 @@ end
 function Road.PaintRankStop(r, line, rank, rankIndex, rankAt, skill)
     local what, about, who
     if Professions.RankFrom then what, about, who = Professions.RankFrom(line, rank.next) end
-    local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1)) or nil
+    local trainer = who or (not what and ns.Trainers and ns.Trainers.Nearest("skill" .. line, rankIndex + 1, rankAt)) or nil
     r.trainer = trainer
     r.level:SetText(rankAt)
     local doing = what or (rank.next and ("train " .. rank.next)) or ""
