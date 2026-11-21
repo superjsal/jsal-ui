@@ -530,6 +530,19 @@ function Professions.Plan(line, skill, target, known, breakAt)
             recipes[#recipes + 1] = recipe
         end
     end
+    -- The step in hand, as the last road had it, until the skill reaches its end: the road
+    -- starts on it and keeps it unless another beats it by STAY, the rule a road already keeps
+    -- to from one point to the next. So two near-equal steps don't trade places from one look to
+    -- the next, or across a /reload. One that's grey, no longer known or no longer priced isn't
+    -- among what the road may take, and is let go.
+    local hands = type(ns.char) == "table" and type(ns.char.roadHand) == "table" and ns.char.roadHand or nil
+    local hand = hands and type(hands[line]) == "table" and hands[line] or nil
+    local held
+    if hand and type(hand.to) == "number" and hand.to > skill then
+        for _, recipe in ipairs(recipes) do
+            if recipe.spell == hand.spell then held = recipe break end
+        end
+    end
     local totals = {}
     -- What's in your bags and bank comes off a craft's cost until the road has used it up: by
     -- the rough worth nearly all of it, priced only the auction house's cut (LetOff). Not
@@ -566,7 +579,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
         local steps = {}
         local s = skill
-        local staying
+        local staying = held
         while s < target do
             local best, bestCost
             local fair, fairCost
@@ -727,5 +740,11 @@ function Professions.Plan(line, skill, target, known, breakAt)
     end
     for item, need in pairs(made) do totals[item] = (totals[item] or 0) + need end
     priced = false
+    -- What's in hand now, for the next road: one a profession.
+    if type(ns.char) == "table" then
+        local first = steps[1]
+        ns.char.roadHand = hands or {}
+        ns.char.roadHand[line] = first and first.recipe.spell and { spell = first.recipe.spell, to = first.to } or nil
+    end
     return steps, totals, s < target and s or nil, made
 end
