@@ -773,6 +773,32 @@ function Style.TakesLinks(box, module)
     hooksecurefunc(ChatFrameUtil, "InsertLink", function(link) xpcall(TakeLink, ns.Report, link) end)
 end
 
+-- A piece's tooltip belongs to its picture and name, not its whole line: over
+-- the rest of a line it covered what's under the pointer, and a line with two
+-- pieces on it showed one piece's tooltip over the other's name. A hot area
+-- is made once on its line (`owner`) and placed and sized by its line; under
+-- the pointer it shows `tip(hot)`, lights its line as the line itself does,
+-- and passes a click to it, so a line is picked by a click anywhere on it.
+function Style.HotArea(owner, tip)
+    local hot = CreateFrame("Frame", nil, owner)
+    hot:EnableMouse(true)
+    hot:SetScript("OnEnter", function(self)
+        local enter = owner:GetScript("OnEnter")
+        if enter then enter(owner) end
+        tip(self)
+    end)
+    hot:SetScript("OnLeave", function()
+        local leave = owner:GetScript("OnLeave")
+        if leave then leave(owner) end
+        GameTooltip:Hide()
+    end)
+    hot:SetScript("OnMouseUp", function(_, button)
+        local click = owner:GetScript("OnClick") or owner:GetScript("OnMouseUp")
+        if click then click(owner, button) end
+    end)
+    return hot
+end
+
 function Style.ItemTip(frame, more, radius, pad)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
