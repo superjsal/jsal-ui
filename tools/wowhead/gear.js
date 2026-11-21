@@ -7,6 +7,8 @@
 // Each item also keeps the percent crit and hit an "Equip:" line gives it ("Improves your chance
 // to get a critical strike by 1%"): the game's item stats leave those out, and Wowhead's own item
 // data on the page names them apart from rating (mlecritstrkpct, splhitpct...).
+// And which rings and trinkets can be worn only once (Unique, or Unique-Equipped): Wowhead's
+// item data doesn't say, but its lists filter on it, four short pages more.
 const Q = '/quality:2:3:4';
 const urls = [];
 for (const a of ['cloth', 'leather', 'mail', 'plate'])
@@ -18,12 +20,15 @@ for (const w of ['one-handed-axes', 'two-handed-axes', 'bows', 'guns', 'one-hand
   'polearms', 'one-handed-swords', 'two-handed-swords', 'staves', 'fist-weapons', 'daggers', 'thrown',
   'crossbows', 'wands'])
   urls.push(`/forever/items/weapons/${w}${Q}`);
+const UNIQUE = [];
+for (const slug of ['rings', 'trinkets'])
+  for (const cr of [15, 83]) UNIQUE.push(`/forever/items/armor/${slug}${Q}?filter=${cr};1;0`);
 const FETCHED = new Date().toISOString().slice(0, 10);
 window.__gear = { done: false, log: [], err: null };
 (async () => {
   let store;
   try { store = JSON.parse(localStorage.getItem('jsalGear') || '{}'); } catch (e) { store = {}; }
-  for (const u of urls) {
+  for (const u of [...urls, ...UNIQUE]) {
     if (store[u]) { __gear.log.push(u + ' (saved)'); continue; }
     try {
       const r = await fetch(u);
@@ -41,7 +46,8 @@ window.__gear = { done: false, log: [], err: null };
         const found = e.match(/"(?:mle|rgd|spl)?(?:critstrk|hit)pct":[\d.]+/g);
         if (found) pct[g[1]] = Object.fromEntries(found.map(f => { const [k, v] = f.split(':'); return [k.slice(1, -1), +v]; }));
       }
-      store[u] = arr.map(o => [o.id, o.name, o.quality, o.reqlevel || 0, o.level || 0, o.slot, o.classs, o.subclass,
+      if (UNIQUE.includes(u)) store[u] = arr.map(o => o.id);
+      else store[u] = arr.map(o => [o.id, o.name, o.quality, o.reqlevel || 0, o.level || 0, o.slot, o.classs, o.subclass,
         o.side || 0, o.reqclass || 0, o.source || [],
         (o.sourcemore || []).map(s => [s.n || '', s.t || 0, s.ti || 0, s.z || 0, s.c || 0]), pct[o.id] || 0]);
       localStorage.setItem('jsalGear', JSON.stringify(store));
@@ -52,11 +58,12 @@ window.__gear = { done: false, log: [], err: null };
   __gear.done = true;
   if (__gear.err) return;
   const by = new Map();
-  for (const list of Object.values(store)) for (const i of list) if (!by.has(i[0])) by.set(i[0], i);
-  const items = [...by.values()].map(i => [...i.slice(0, 11), (i[11] || []).slice(0, 3), i[12] || 0]);
+  const unique = new Set(UNIQUE.flatMap(u => store[u] || []));
+  for (const u of urls) for (const i of store[u] || []) if (!by.has(i[0])) by.set(i[0], i);
+  const items = [...by.values()].map(i => [...i.slice(0, 11), (i[11] || []).slice(0, 3), i[12] || 0, unique.has(i[0]) ? 1 : 0]);
   const out = JSON.stringify({ fetched: FETCHED,
     fields: ['id', 'name', 'quality', 'reqlevel', 'itemlevel', 'slot', 'class', 'subclass', 'side', 'reqclass',
-      'source', 'sourcemore[name,type,id,zone,c]', 'pct'], items });
+      'source', 'sourcemore[name,type,id,zone,c]', 'pct', 'unique'], items });
   location.href = 'http://127.0.0.1:8799/#' + encodeURIComponent(out);
 })();
-'started: ' + urls.length + ' lists; watch window.__gear'
+'started: ' + (urls.length + UNIQUE.length) + ' lists; watch window.__gear'
