@@ -193,6 +193,18 @@ Window.Page("build", function(page)
     edit:SetPoint("LEFT", follow, "RIGHT", 6, 0)
     rename:SetPoint("LEFT", edit, "RIGHT", 6, 0)
     delete:SetPoint("LEFT", export, "RIGHT", 6, 0)
+    -- A build can go while the class has another to show in its place: one of your own, or a
+    -- suggested one. Greyed, Delete says why when pointed at.
+    local function Deletable()
+        return #Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0
+    end
+    delete:HookScript("OnEnter", function(self)
+        if self:IsEnabled() then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine("Your only build: make another first.", Style.Color("muted"))
+        GameTooltip:Show()
+    end)
+    delete:HookScript("OnLeave", function() GameTooltip:Hide() end)
     local source = Style.Text(view, 11, "muted")
     source:SetPoint("TOPLEFT", 0, -64)
     source:SetWidth(rightW)
@@ -439,7 +451,7 @@ Window.Page("build", function(page)
                 before = b
             end
         end
-        delete:SetEnabled(#Tree.ClassBuilds(classID) > 1 or #Tree.Suggested(classID) > 0)
+        delete:SetEnabled(Deletable())
         -- "Sure?" is asked of one build: with another showing, the button reads Delete again.
         if delete.armedFor ~= build then
             delete.armedFor = nil
@@ -1125,7 +1137,7 @@ Window.Page("build", function(page)
     -- clicked on (kept on the button, where the page's painting can see it). It was armed for
     -- the page: "Sure?" on one build, another picked in those seconds, and one click deleted that.
     delete:SetScript("OnClick", function()
-        if build.builtin or (#Tree.ClassBuilds(classID) <= 1 and #Tree.Suggested(classID) == 0) then return end
+        if build.builtin or not Deletable() then return end
         if delete.armedFor ~= build or GetTime() > (delete.armedTill or 0) then
             delete.armedFor, delete.armedTill = build, GetTime() + 3
             delete:SetLabel("Sure?")
