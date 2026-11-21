@@ -161,6 +161,8 @@ end
 -- pattern is sold) is in its tooltip.
 ---------------------------------------------------------------------------
 Road.STOP_H, Road.SIGN = 50, 38
+-- The + at the end of a stop down a road.
+local ADD_W = 24
 -- A stop on a road that runs across the page has what it teaches under its
 -- sign: this tall in all.
 Road.ACROSS_H = 150
@@ -453,7 +455,8 @@ function Road.Stop(parent, width, across)
     else
         s.icon:SetSize(26, 26)
         s.icon:SetPoint("LEFT", Road.SIGN + 12, 0)
-        s.count:SetPoint("RIGHT")
+        s.add = Road.StepAdd(s)
+        s.count:SetPoint("RIGHT", -ADD_W, 0)
         s.count:SetJustifyH("RIGHT")
         s.name:SetPoint("LEFT", Road.SIGN + 12 + 26 + 10, 0)
         s.name:SetJustifyH("LEFT")
@@ -462,6 +465,43 @@ function Road.Stop(parent, width, across)
     end
     Style.ItemTip(s, Road.Needs)
     return s
+end
+
+-- A step onto the shopping list, at the end of its row down a road: a muted
+-- +, gold under the pointer and lit, as tall as the row; once the list has
+-- the step, the game's check mark, muted, and a click only opens the list.
+function Road.StepAdd(parent)
+    local b = CreateFrame("Button", nil, parent)
+    b:SetSize(ADD_W, Road.STOP_H)
+    b:SetPoint("RIGHT")
+    b.plus = Style.Text(b, 16, "muted", nil, true)
+    b.plus:SetPoint("CENTER")
+    b.plus:SetText("+")
+    b.tick = b:CreateTexture(nil, "OVERLAY")
+    b.tick:SetSize(14, 14)
+    b.tick:SetPoint("CENTER")
+    b.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+    b.tick:SetDesaturated(true)
+    b.tick:SetVertexColor(Style.Color("muted"))
+    function b:SetListed(on)
+        self.listed = on and true or false
+        self.plus:SetShown(not self.listed)
+        self.tick:SetShown(self.listed)
+    end
+    b:SetScript("OnEnter", function(self)
+        if not self.listed then self.plus:SetTextColor(Style.Color("gold")) end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(self.listed and "On your shopping list" or "Add to shopping list", Style.Color("text"))
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function(self)
+        self.plus:SetTextColor(Style.Color("muted"))
+        GameTooltip:Hide()
+    end)
+    Style.Hover(b)
+    b:SetListed(false)
+    b:Hide()
+    return b
 end
 
 function Road.PaintStop(s, step, trainer)
@@ -481,7 +521,7 @@ function Road.PaintStop(s, step, trainer)
         s.count:ClearAllPoints()
         s.count:SetPoint("TOP", s, "TOP", word and -(s.tag.wide + 6) / 2 or 0, -(Road.SIGN + 12 + 36 + 6 + 34))
     else
-        Fit(s.name, Road.RecipeName(recipe), s.width - (Road.SIGN + 48) - 44 - (word and s.tag.wide + 8 or 0))
+        Fit(s.name, Road.RecipeName(recipe), s.width - (Road.SIGN + 48) - 44 - ADD_W - (word and s.tag.wide + 8 or 0))
     end
     -- In its tooltip: the skill it covers, what to do first, and what a
     -- point costs.

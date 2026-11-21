@@ -23,6 +23,8 @@ local MAX_CRAFTS, MAX_ITEMS, MAX_BUY, MAX_ENOUGH = 8, 8, 12, 9
 -- A count's pill; a group's card: its heading's height, and how far in its
 -- rows start; the bar beside how many more.
 local STEP_W, HEAD_H, CARD_PAD, BAR_W = 84, 30, 13, 48
+-- The x after a row you added, that takes it off.
+local X_W = 22
 
 ---------------------------------------------------------------------------
 -- The list, per character: crafts by recipe and other items by item.
@@ -369,12 +371,32 @@ local function Row(i)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.step = CreateFrame("Frame", nil, r)
     r.step:SetSize(STEP_W, 22)
-    r.step:SetPoint("RIGHT")
+    r.step:SetPoint("RIGHT", -X_W, 0)
     Style.PillBox(r.step, "titleBar", "lineStrong")
     r.count = Style.Text(r.step, 13, "text", nil, true)
     r.count:SetPoint("CENTER")
     r.minus = Sign(r.step, "-", "LEFT")
     r.plus = Sign(r.step, "+", "RIGHT")
+    -- A row you added can be taken off with the x at its end, muted and lit
+    -- under the pointer, as a right-click does.
+    r.x = CreateFrame("Button", nil, r)
+    r.x:SetSize(X_W, ROW_H)
+    r.x:SetPoint("RIGHT", 6, 0)
+    r.x.text = Style.Text(r.x, 14, "muted")
+    r.x.text:SetPoint("CENTER")
+    r.x.text:SetText("×")
+    r.x:SetScript("OnClick", function() if r.drop then r.drop() end end)
+    r.x:SetScript("OnEnter", function(self)
+        self.text:SetTextColor(Style.Color("text"))
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine("Take it off the list", Style.Color("text"))
+        GameTooltip:Show()
+    end)
+    r.x:SetScript("OnLeave", function(self)
+        self.text:SetTextColor(Style.Color("muted"))
+        GameTooltip:Hide()
+    end)
+    Style.Hover(r.x)
     r.status = Style.Text(r, 12, "muted")
     r.status:SetPoint("RIGHT", r.step, "LEFT", -10, 0)
     r.status:SetJustifyH("RIGHT")
@@ -837,6 +859,7 @@ local function PaintList()
         used = used + 1
         local r = Row(used)
         r.step:SetShown(counted and not worked)
+        r.x:SetShown(counted and not worked)
         r.status:SetShown(counted and not worked)
         r.made:SetShown(worked and true or false)
         r.buy:SetShown(worked and true or false)
