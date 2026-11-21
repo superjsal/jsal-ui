@@ -133,15 +133,11 @@ local function Characters()
 end
 Journal.Characters = Characters
 
--- `leaving`: you're logging out, or reloading. The game then answers with
--- nothing (no gold, an XP bar of 0, no rested XP, no professions), and
--- saving that wiped the character's line: every character but the one you
--- were on read "none", "none yet" and "not known yet". So as you leave,
--- what was last known is kept, and only when you were last on it is noted;
--- the line is saved once a minute as you play, so it's never far behind.
 -- What this character wears, in the paper doll's order: a slot's name, the
 -- item's ID, name and quality. The list is replaced whole at each save, so
--- it never grows, and an empty slot has no entry.
+-- it never grows, and an empty slot has no entry. A reading with nothing
+-- in any slot is the game not answering (as you leave, or loading), so it
+-- never replaces a list.
 local WORN = { { "head", 1 }, { "neck", 2 }, { "shoulder", 3 }, { "shirt", 4 }, { "chest", 5 },
                { "waist", 6 }, { "legs", 7 }, { "feet", 8 }, { "wrist", 9 }, { "hands", 10 },
                { "finger1", 11 }, { "finger2", 12 }, { "trinket1", 13 }, { "trinket2", 14 },
@@ -157,6 +153,7 @@ function Journal.SaveWorn()
                                   quality = ns.Dungeons and ns.Dungeons.LinkQuality(link) or nil }
         end
     end
+    if #items == 0 and type(ns.char.equipped) == "table" then return end
     ns.char.equipped = { at = Compat.ServerTime(), items = items }
 end
 
@@ -171,8 +168,14 @@ local function WornChanged()
     end))
 end
 
+-- `leaving`: you're logging out, or reloading. The game then answers with
+-- nothing (no gold, an XP bar of 0, no rested XP, no professions, no gear),
+-- and saving that wiped the character's line: every character but the one
+-- you were on read "none", "none yet" and "not known yet". So as you leave,
+-- what was last known is kept, and only when you were last on it is noted;
+-- the line is saved once a minute as you play, so it's never far behind.
 function Journal.SaveCharacter(leaving)
-    Journal.SaveWorn()
+    if not leaving then Journal.SaveWorn() end
     local name = Compat.MyName()
     if not name then return end
     if leaving then
