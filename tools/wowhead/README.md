@@ -11,7 +11,7 @@ same script again carries on. Never try to get past the check another way.
 
 ## Steps (in this repo, on the `beta` branch)
 
-1. **Gear (53 pages, about 11 minutes):**
+1. **Gear (57 pages, about 12 minutes):**
    - Start the receiver in the background:
      `python -I tools/wowhead/receive.py data/gear/wowhead-items.json`
    - Open `https://www.wowhead.com/forever` in the browser pane. With javascript_tool, run
