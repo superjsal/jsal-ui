@@ -523,6 +523,7 @@ local function SlotList(view, rowH, onPick, bare)
             local count = #others + ((row and (row.pick or row.goal)) and 1 or 0)
             r.picks:SetText(r.pickable and (count .. (count == 1 and " pick " or " picks ") .. "\226\128\186") or "")
             r.gain:SetText("")
+            r.gain:SetTextColor(Style.Color("green"))
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
@@ -543,6 +544,14 @@ local function SlotList(view, rowH, onPick, bare)
                     r.gain:SetText(row.share and row.share > 0 and ("+%d%%"):format(math.max(1, math.floor(row.share * 100 + 0.5))) or "")
                     r.where:SetText(Gear.GoalSources(from, stage)[1] or "")
                     r.item, r.adds, r.lines = row.goal.id, row.gains, Gear.GoalSources(from, stage)
+                    -- WoWSims' own pick that the weights put at or below what you wear: its worth
+                    -- is an effect they can't see (a proc, a weapon's swing), so it says whose
+                    -- pick it is instead of a gain. A piece of your own set doesn't: it's yours.
+                    if row.share and row.share <= 0 and row.base and row.base.id == row.goal.id then
+                        r.gain:SetText("sims' pick")
+                        r.gain:SetTextColor(Style.Color("muted"))
+                        r.lines[#r.lines + 1] = "WoWSims' sims count what this piece does; the weights can't."
+                    end
                 elseif row.done then
                     local name, quality, texture = ItemInfo(row.worn.id)
                     r.box.icon:SetTexture(texture)
