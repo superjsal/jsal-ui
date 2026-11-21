@@ -405,6 +405,9 @@ local function OpenOwn(page, spent)
         local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
         local f = Style.Panel(name, own.width, own.height, page.label)
         f.jsalRoomy = true
+        -- As the hub does: its own size, shrunk evenly only on a screen too small to hold it.
+        -- Scaled before anything is drawn on it, so its 1px lines start crisp.
+        f:SetScale(math.min(1, (UIParent:GetWidth() - 40) / own.width, (UIParent:GetHeight() - 40) / own.height))
         local inner = CreateFrame("Frame", nil, f)
         inner:SetPoint("TOPLEFT", PANEL_PAD, -(BAR_H + 16))
         inner:SetPoint("BOTTOMRIGHT", -PANEL_PAD, 18)
