@@ -331,8 +331,11 @@ function Road.NowCard(parent, width)
     Style.Rule(card.strip, "TOP", "cardLine")
     card.sum = Style.Text(card.strip, 12, "muted")
     card.sum:SetPoint("LEFT", 13, 0)
+    card.sum:SetWordWrap(false)
     card.add = Road.ShopLink(card.strip, "Add to shopping list", "On your shopping list", 130)
     card.add:SetPoint("RIGHT", -13, 0)
+    -- What's along the foot gives way to the link and the button at its right.
+    card.sum:SetPoint("RIGHT", card.add, "LEFT", -10, 0)
     Style.ItemTip(card, Road.Needs, 6)
     return card
 end
