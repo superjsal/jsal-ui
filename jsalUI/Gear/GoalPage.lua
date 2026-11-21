@@ -18,7 +18,20 @@ local PLACES = 17                       -- the most slots there are: fifteen, wi
 local FULL_BAR = 100                    -- the chance that fills a piece's bar: a bar reads as the share it is
 -- A finished slot's mark: the game's check, tinted gold (as the road tints it green).
 local CHECK = "Interface\\Buttons\\UI-CheckBox-Check"
-local GOLD_TICK = "|T" .. CHECK .. ":12:12:0:0:32:32:0:32:0:32:227:176:75|t"
+-- Before a finished slot's "at goal" and a worn pick's "worn": the check as a picture of its own,
+-- 16 across. Drawn inline in the words at their size it read as a thin "v"; the check fills about
+-- two thirds of its picture, so at 16 the tick stands a little taller than the words' capitals.
+local function GoldTick(owner, words)
+    if owner.goldTick then return owner.goldTick end
+    local t = owner:CreateTexture(nil, "OVERLAY")
+    t:SetTexture(CHECK)
+    t:SetSize(16, 16)
+    t:SetDesaturated(true)
+    t:SetVertexColor(Style.Color("gold"))
+    t:SetPoint("RIGHT", words, "LEFT", 0, 0)
+    owner.goldTick = t
+    return t
+end
 local MUTED, DIM = "|cff9a9688", "|cff5d5b55"
 
 local function ItemInfo(id)
@@ -585,6 +598,7 @@ local function SlotList(view, rowH, onPick, bare)
             r.gain:SetText("")
             r.gain:SetTextColor(Style.Color("green"))
             if r.badge then r.badge:SetShown(false) end
+            if r.goldTick then r.goldTick:Hide() end
             r.box.icon:SetDesaturated(false)
             r.box:SetAlpha(1)
             if row then
@@ -625,8 +639,9 @@ local function SlotList(view, rowH, onPick, bare)
                     r.box.icon:SetTexture(texture)
                     r.name:SetText(Colored(name, quality))
                     r.where:SetText("")
-                    r.gain:SetText(GOLD_TICK .. " at goal")
+                    r.gain:SetText("at goal")
                     r.gain:SetTextColor(Style.Color("gold"))
+                    GoldTick(r, r.gain):Show()
                     Badge(r):SetShown(true)
                     r.equip = row.equip
                 else
@@ -886,7 +901,9 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
             local from = Goal.From(o.piece.e)
             local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
             r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or o.base and "WoWSims' pick · " or "") .. where, nil)
-            r.against:SetText(o.pick and (choice.row.done and (GOLD_TICK .. " |cffe3b04bworn|r") or "|cffe3b04bpick|r") or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
+            local worn = o.pick and choice.row.done
+            if worn then GoldTick(r, r.against):Show() elseif r.goldTick then r.goldTick:Hide() end
+            r.against:SetText(o.pick and (worn and "|cffe3b04bworn|r" or "|cffe3b04bpick|r") or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))
             r.use.id = o.piece.id
             r.use.text:SetText(pick and "Switch" or "Choose")
             r.use:SetWidth(Style.Wide(r.use.text, 48))
@@ -921,6 +938,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
     end
     function col:Paint(s, stage, choice)
         local y, used = Choices(choice), 0
+        local start = y
         for i, run in ipairs(s.runs) do
             if not cards[i] then cards[i] = RunCard(child, inner) end
             local card = cards[i]
@@ -974,10 +992,24 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
             more:SetText(("+ %d more"):format(s.unknown))
             y = y + 24
         end
-        empty:SetShown(y == 0 and not choice)
-        if y == 0 then
+        -- Nothing to go for: said under the heading, wherever it stands (under a slot's picks too).
+        local none = y == start
+        empty:SetShown(none)
+        if none then
+            local open = false
+            for _, row in ipairs(s.rows or {}) do
+                if row.open then open = true end
+            end
             empty:SetText(s.slots > 0 and s.done == s.slots and "Every slot is at your goal."
+                or open and "Choose pieces for your empty slots to see where to go."
                 or "Nothing to go and get that we know of yet.")
+            empty:ClearAllPoints()
+            if start > 0 then
+                empty:SetPoint("TOPLEFT", child, "TOPLEFT", 0, -(start + 4))
+                y = y + 24
+            else
+                empty:SetPoint("TOPLEFT", 0, -(HEAD_H + 16))
+            end
         end
         child:SetHeight(math.max(1, y))
         scroll:UpdateScrollChildRect()
