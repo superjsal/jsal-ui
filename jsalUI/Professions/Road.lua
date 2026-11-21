@@ -168,14 +168,33 @@ local ADD_W = 24
 Road.ACROSS_H = 150
 local NOW_TOP, NOW_MAT, NOW_STRIP = 64, 30, 34
 
+-- The nearest trainer who'll teach a step's recipe when you come to it: one
+-- whose rank reaches the skill it's learned at, and who takes a student at
+-- the skill the step starts from. Nil for a step that isn't learned, or when
+-- no trainer known teaches it: nobody is named rather than the wrong one.
+function Road.TrainerFor(line, step)
+    if not (step and step.learn and ns.Trainers) then return nil end
+    local ranks = Professions.RANKS
+    local need = #ranks
+    for i, rank in ipairs(ranks) do
+        if step.recipe.learn <= rank.cap then need = i break end
+    end
+    return ns.Trainers.Nearest("skill" .. line, need, step.from)
+end
+
 -- What a step asks of you before you can make it, and that in a word for a
--- pill: buy its pattern, or learn it at the trainer.
-local function Todo(step)
+-- pill: buy its pattern, or learn it from the trainer who teaches it, by
+-- name where one is known. The place is last, so it's what a narrow line cuts.
+local function Todo(step, trainer)
     local recipe = step.recipe
     if step.buy then
         local note = ns.RecipeSourceText and ns.RecipeSourceText.BuyNote(recipe.spell)
         return note or ("Buy the pattern from a vendor, from %d"):format(recipe.learn), "pattern"
     elseif step.learn then
+        if trainer and ns.Trainers then
+            local place = ns.Trainers.Zone(trainer)
+            return ("Learn it from %s%s"):format(trainer.name, place and (", " .. place) or ""), "learn"
+        end
         return ("Learn it at the trainer, from %d"):format(recipe.learn), "learn"
     end
 end
@@ -355,7 +374,7 @@ function Road.PaintNow(card, line, first, skill, trainer)
     -- Under the name, the one thing to know: what to do before you can
     -- make it; else what a point of skill costs; else how surely a craft
     -- gives one. The others are in the tooltip.
-    local todo = Todo(first)
+    local todo = Todo(first, trainer)
     local priced, cost, sells, per, missing = Costs(recipe, first.crafts, first.to - first.from)
     local pointLine = per and (Compat.Money(per) .. " a point") or nil
     local sure = Sure(recipe, skill)

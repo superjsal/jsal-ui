@@ -71,10 +71,24 @@ function Trainers.Distance(spot)
     return 1e9
 end
 
+-- Whether a profession's trainer takes a student at a skill. One whose title
+-- puts it at the top of the ladder (a "Master", who teaches Artisan) turns
+-- away anyone below the skill Artisan is trained at, with no trainer window,
+-- whatever else it would teach; the ranks below teach from the first recipe.
+local function Takes(trainer, skill)
+    if not skill then return true end
+    local rank, ladder = TeachesRank(trainer.tag)
+    if not (ladder and rank == 4) then return true end
+    local ranks = ns.Professions and ns.Professions.RANKS
+    return skill >= (ranks and ranks[3] and ranks[3].at or 200)
+end
+Trainers.Takes = Takes
+
 -- The nearest trainer for key ("class3" for hunters, "skill197" for
--- tailoring), teaching at least rank (1 to 4) for a profession. Returns the
--- trainer ({ npc, name, tag, map, x, y }) or nil.
-function Trainers.Nearest(key, rank)
+-- tailoring), teaching at least rank (1 to 4) for a profession, and, given a
+-- skill, one who takes a student at it. Returns the trainer ({ npc, name,
+-- tag, map, x, y }) or nil.
+function Trainers.Nearest(key, rank, skill)
     local list = ns.TrainerData and ns.TrainerData[key]
     if not list then return nil end
     local map, px, py = Compat.PlayerPosition()
@@ -92,7 +106,7 @@ function Trainers.Nearest(key, rank)
     local plain = titled and 2 or PLAIN[key] or 4
     local best, bestDistance
     for _, t in ipairs(list) do
-        if Friendly(t) and (not rank or (TeachesRank(t.tag) or plain) >= rank) then
+        if Friendly(t) and (not rank or (TeachesRank(t.tag) or plain) >= rank) and Takes(t, skill) then
             local continent, wx, wy = World(t.map, t.x, t.y)
             -- Another continent, or no position (an instance), counts as far.
             local d = 1e9
