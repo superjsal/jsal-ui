@@ -129,6 +129,7 @@ end
 -- place.
 ---------------------------------------------------------------------------
 local MENU_W, MENU_ROW = 220, 24
+local LIT = { gold = "goldHover", red = "red" }
 local function SetsMenu(parent, act)
     local menu = CreateFrame("Frame", nil, parent)
     menu:SetWidth(MENU_W)
@@ -143,7 +144,11 @@ local function SetsMenu(parent, act)
         b:SetSize(MENU_W - 16, MENU_ROW)
         b.text = Style.Text(b, 13, "secondary")
         b.text:SetPoint("LEFT", 6, 0)
-        b:SetScript("OnEnter", function(self) if self.what then self.text:SetTextColor(Style.Color("text")) end end)
+        -- Under the pointer a line lights; the set you're on stays gold, a shade lighter, and Delete
+        -- stays red. (The menu opens under the pill, where the pointer already is.)
+        b:SetScript("OnEnter", function(self)
+            if self.what then self.text:SetTextColor(Style.Color(LIT[self.tone] or "text")) end
+        end)
         b:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color(self.tone or "secondary")) end)
         b:SetScript("OnClick", function(self)
             if not self.what then return end
