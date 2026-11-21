@@ -394,7 +394,7 @@ local function Waiting(view, width, height)
     return cover
 end
 
-local function SlotList(view, rowH, onPick)
+local function SlotList(view, rowH, onPick, bare)
     local list = CreateFrame("Frame", nil, view)
     list:SetSize(LEFT_W, #GROUPS * HEAD_H + PLACES * rowH)
     list:SetPoint("TOPLEFT", 0, -(HERO_H + HERO_GAP))
@@ -418,10 +418,13 @@ local function SlotList(view, rowH, onPick)
         r.name:SetWordWrap(false)
         r.gain = Style.Text(r, 12, "green", nil, true)
         r.gain:SetPoint("LEFT", r.name, "RIGHT", 10, 0)
-        r.where = Style.Text(r, 12, "muted")
-        r.where:SetPoint("LEFT", r.gain, "RIGHT", 10, 0)
-        r.where:SetJustifyH("LEFT")
-        r.where:SetWordWrap(false)
+        -- Where the piece is from, after what it adds; a `bare` list (Near your level's) has none.
+        if not bare then
+            r.where = Style.Text(r, 12, "muted")
+            r.where:SetPoint("LEFT", r.gain, "RIGHT", 10, 0)
+            r.where:SetJustifyH("LEFT")
+            r.where:SetWordWrap(false)
+        end
         r.picks = Style.Text(r, 12, "secondary", nil, true)
         r.picks:SetPoint("RIGHT", -6, 0)
         r.picks:SetJustifyH("RIGHT")
@@ -596,7 +599,7 @@ local function PieceRow(parent, width)
         local name, quality, texture = ItemInfo(row.goal.id)
         self.box.icon:SetTexture(texture)
         self.name:SetText(Colored(name, quality or row.goal.e.quality))
-        self.sub:SetText(sub)
+        self.full = sub
         self.item, self.adds, self.lines = row.goal.id, row.gains, Gear.GoalSources(Goal.From(row.goal.e), stage)
         self.track:SetShown(chance and true or false)
         self.fill:SetShown(chance and true or false)
@@ -609,9 +612,20 @@ local function PieceRow(parent, width)
         end
         self:Room(act and (Style.Wide(self.act.text, 130) + 24) or (chance and 110 or (chance == false and 100 or 14)))
     end
-    -- The line under the name stops `right` short of the row's right edge, clear of what's there.
+    -- The line beside the name stops `right` short of the row's right edge, clear of what's
+    -- there. Where it doesn't fit, it gives way whole from its end, a part at a time ("Hands ·
+    -- Crafted, Leatherworking", then "Hands · Crafted", then "Hands"), never cut mid-word.
     function r:Room(right)
-        self.sub:SetWidth(math.max(40, width - 46 - Style.Wide(self.name, 150) - 10 - right))
+        local room = math.max(0, width - 46 - Style.Wide(self.name, 150) - 10 - right)
+        local text = self.full or ""
+        self.sub:SetWidth(0)
+        while true do
+            self.sub:SetText(text)
+            if text == "" or Style.Wide(self.sub, #text * 6.5) <= room then break end
+            local comma, dot = text:match("^(.*), .-$"), text:match("^(.*) \194\183 .-$")
+            text = (comma and dot and (#comma > #dot and comma or dot)) or comma or dot or ""
+        end
+        self.sub:SetWidth(math.max(1, room))
         self:Fit()
     end
     return r
@@ -1011,7 +1025,7 @@ function Gear.GoalView(page, width, height)
             base = base or (set and not set.own and set.name) or nil
             menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, base)
         end, Draft)
-        list = SlotList(view, math.max(24, math.min(32, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
+        list = SlotList(view, math.max(24, math.min(38, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
             if page.Refresh then page.Refresh() end
         end)

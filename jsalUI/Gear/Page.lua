@@ -9,7 +9,7 @@
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local WINDOW_W, WINDOW_H = 1240, 860
+local WINDOW_W, WINDOW_H = 1240, 960
 local OPT_H = 48               -- an upgrade's line in the picked slot's card
 local GAIN_W = 118             -- room for what an upgrade adds ("+14 AP, +3 Sta")
 local LEVEL_W = 36             -- an upgrade's level column
@@ -145,8 +145,11 @@ local function SourceFilter(list, listW, top, Repaint)
 end
 
 local MUTED = "|cff9a9688"
--- On a slot's line: the room its count of upgrades takes at the right, and what's added's.
-local LINE_PICKS_W, LINE_GAIN_W = 96, 48
+-- On a slot's line, from the left: what you wear's picture, a small arrow, the upgrade's picture
+-- and its name; what it adds stands in a column that ends this far from the right, a quiet ›
+-- after it.
+local WORN_X, ARROW_X, UP_X, UP_NAME_X = 78, 110, 130, 164
+local LINE_GAIN_R, LINE_GAIN_W = 30, 48
 
 -- Where an item comes from, in two parts: how it's got (crafted, a quest, who drops it), and
 -- where or from whom. Profession gear says who can wear it, in red when you can't (yet). And
@@ -217,40 +220,42 @@ local function NearHero(view, width, P)
     return card
 end
 
--- What a slot's line has beyond At 60's: what you wear, small, under the upgrade's name, with
--- its own picture and its own tooltip.
-local function NearLineParts(lines, P)
+-- A slot's line, led by pictures: what you wear's picture (with its own tooltip), a small arrow,
+-- the upgrade's picture and name (with the upgrade's tooltip), what it adds at the right, and a
+-- quiet ›. Where it's from is on the right: in Run next, or the slot's upgrades once picked.
+local function NearLineParts(lines)
     for _, r in ipairs(lines.rows) do
-        r.wornIcon = r:CreateTexture(nil, "ARTWORK")
-        r.wornIcon:SetSize(11, 11)
-        r.wornIcon:SetPoint("TOPLEFT", P.NAME_X, -19)
-        r.wornIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        r.wornText = Style.Text(r, 11, "text")
-        r.wornText:SetPoint("LEFT", r.wornIcon, "RIGHT", 4, 0)
-        r.wornText:SetJustifyH("LEFT")
-        r.wornText:SetWordWrap(false)
-        r.wornHot = Style.HotArea(r, PieceTip)
-        r.wornHot:SetPoint("TOPLEFT", P.NAME_X, -16)
-        r.wornHot:SetHeight(16)
+        r.worn = Style.HotArea(r, PieceTip)
+        r.worn:SetSize(24, 24)
+        r.worn:SetPoint("LEFT", WORN_X, 0)
+        -- Its line alone: there is always a picture in it, or the window's colour where nothing is worn.
+        Style.Lined(r.worn, "lineStrong")
+        r.worn.icon = r.worn:CreateTexture(nil, "ARTWORK")
+        r.worn.icon:SetPoint("TOPLEFT", 1, -1)
+        r.worn.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        r.worn.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        r.arrow = Style.Text(r, 13, "muted")
+        r.arrow:SetPoint("LEFT", ARROW_X, 0)
+        r.arrow:SetText("\226\134\146")
+        r.box:ClearAllPoints()
+        r.box:SetPoint("LEFT", UP_X, 0)
+        r.gain:ClearAllPoints()
+        r.gain:SetPoint("RIGHT", -LINE_GAIN_R, 0)
+        r.gain:SetJustifyH("RIGHT")
+        r.hot:ClearAllPoints()
+        r.hot:SetPoint("LEFT", UP_X, 0)
+        -- The upgrade's tooltip covers its picture and its name as written.
+        function r:Fit()
+            local room = self.name:GetWidth() or 0
+            local wide = self.name:GetStringWidth() or 0
+            self.hot:SetWidth(UP_NAME_X - UP_X + math.max(0, room > 0 and math.min(wide, room) or wide))
+        end
     end
 end
 
--- A slot's line's source: in full where it fits ("Quest, Badlands"), else its key word ("Quest",
--- or the dungeon), else nothing; never cut short.
-local function LineSource(r, o, room)
-    local G, Goal = ns.Gear, ns.GearGoal
-    local from = Goal.From(o)
-    local short = G.GoalPlace(from, Goal.BEFORE)
-    local full = from.kind == "run" and short or (from.text ~= "" and from.text or short)
-    for _, words in ipairs({ full, short, "" }) do
-        r.where:SetText(words)
-        if words == "" or Style.Wide(r.where, #words * 6.5) <= room then break end
-    end
-end
-
--- Paints the slots' lines: each slot's best upgrade (the most it adds), what it adds and where
--- it's from, what you wear under it, and how many upgrades it has; the chosen one lit. Gives how
--- many can be better, of how many slots, and whether any is still waiting on the game.
+-- Paints the slots' lines: what you wear and each slot's best upgrade (the most it adds), with
+-- what it adds; the chosen one lit. Gives how many can be better, of how many slots, and whether
+-- any is still waiting on the game.
 local function PaintNearLines(lines, slotRows, plans, chosen, P)
     local G = ns.Gear
     local better, slots, checking, counts = 0, 0, false, {}
@@ -275,55 +280,48 @@ local function PaintNearLines(lines, slotRows, plans, chosen, P)
             r.bar:SetShown(on)
             r.slot:SetText(row.label:upper())
             r.slot:SetTextColor(Style.Color(on and "gold" or "muted"))
-            r.picks:SetTextColor(Style.Color(on and "gold" or "secondary"))
-            local n = #plan.options
-            r.picks:SetText(n > 0 and (n .. (n == 1 and " upgrade " or " upgrades ") .. "\226\128\186") or "")
+            r.picks:SetTextColor(Style.Color(on and "gold" or "muted"))
+            r.picks:SetText(#plan.options > 0 and "\226\128\186" or "")
             r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
             r.gain:SetText("")
-            r.where:SetText("")
-            local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(row.empty)
+            -- What you wear: its picture, or an empty square where nothing is; under a
+            -- two-hander, the two-hander's, greyed.
             local worn = plan.worn
-            r.wornHot.equip = worn.link and worn.equip or nil
-            if worn.link then
-                local name, _, quality, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
-                r.wornIcon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
-                r.wornText:SetText(MUTED .. "you wear|r " .. Colored(name, quality))
+            local hand = plan.twoHand and GetInventoryItemTexture and GetInventoryItemTexture("player", 16)
+            r.worn.item, r.worn.equip = nil, nil
+            r.worn.icon:SetDesaturated(plan.twoHand and true or false)
+            r.worn:SetAlpha(plan.twoHand and 0.4 or 1)
+            if hand then
+                r.worn.icon:SetTexture(hand)
+                r.worn.equip = 16
+            elseif worn.link and not plan.twoHand then
+                local _, _, _, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
+                r.worn.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
+                r.worn.equip = worn.equip
             else
-                r.wornIcon:SetTexture(emptyTexture)
-                r.wornText:SetText(MUTED .. "nothing worn|r")
+                r.worn.icon:SetColorTexture(Style.Color("window"))
             end
-            -- Under a two-hander the off hand says so, on a line of its own.
-            r.wornIcon:SetShown(not plan.twoHand)
-            r.wornText:SetShown(not plan.twoHand)
-            r.wornHot:SetShown(not plan.twoHand)
+            local up = top and not plan.twoHand
+            r.arrow:SetShown(up and true or false)
+            r.box:SetShown(up and true or false)
             r.name:ClearAllPoints()
-            r.name:SetPoint(plan.twoHand and "LEFT" or "TOPLEFT", P.NAME_X, plan.twoHand and 0 or -3)
-            if plan.twoHand then
-                r.box.icon:SetTexture(emptyTexture)
-                r.name:SetText(MUTED .. "Taken by your two-hander|r")
-            elseif top then
+            r.name:SetPoint("LEFT", up and UP_NAME_X or (WORN_X + 36), 0)
+            if up then
                 local name, _, quality, texture = ItemInfo(top.id)
                 r.box.icon:SetTexture(texture or Compat.ItemIcon(top.id))
                 r.name:SetText(Colored(name, quality or top.quality))
                 r.gain:SetText(G.ShareText(top.share) or "")
                 r.item, r.adds = top.id, top.gains
+            elseif plan.twoHand then
+                r.name:SetText(MUTED .. "Taken by your two-hander|r")
             else
-                r.box.icon:SetTexture(emptyTexture)
-                r.name:SetText(MUTED .. (plan.waiting > 0 and "checking..." or "nothing better yet") .. "|r")
+                r.name:SetText(MUTED .. (plan.waiting > 0 and "Checking..." or "Nothing better yet") .. "|r")
             end
-            -- The name as wide as it's written, up to the room the line leaves it; the source
-            -- has what's left before the count, and gives way whole.
+            -- The name as wide as it's written, up to the column of what it adds.
             r.name:SetWidth(0)
-            local room = P.LEFT_W - P.NAME_X - LINE_GAIN_W - LINE_PICKS_W - 110
+            local room = P.LEFT_W - LINE_GAIN_R - LINE_GAIN_W - 10 - (up and UP_NAME_X or (WORN_X + 36))
             r.name:SetWidth(math.min(Style.Wide(r.name, 200), room))
-            if top and not plan.twoHand then
-                LineSource(r, top, P.LEFT_W - P.NAME_X - r.name:GetWidth() - Style.Wide(r.gain, 40) - 20 - LINE_PICKS_W - 10)
-            end
-            r.where:SetWidth(math.max(1, P.LEFT_W - P.NAME_X - r.name:GetWidth() - Style.Wide(r.gain, 40) - 20 - LINE_PICKS_W))
-            r.wornText:SetWidth(P.LEFT_W - P.NAME_X - 15 - LINE_PICKS_W - 10)
             r:Fit()
-            local wide = r.wornText:GetStringWidth() or 0
-            r.wornHot:SetWidth(15 + math.min(wide, r.wornText:GetWidth() or wide))
         end
     end
     lines:Arrange(slotRows, function(g)
@@ -575,7 +573,7 @@ Window.Page("gear", function(page)
     view:SetSize(width, height - P.TOP)
     local hero = NearHero(view, width, P)
     local bodyH = height - P.TOP - P.HERO_H - P.HERO_GAP - P.FOOT
-    local rowH = math.max(28, math.min(34, math.floor((bodyH - 3 * P.HEAD_H) / P.PLACES)))
+    local rowH = math.max(28, math.min(38, math.floor((bodyH - 3 * P.HEAD_H) / P.PLACES)))
     -- A line for every place an item goes: both rings and both trinkets get their own,
     -- numbered, as the character pane shows them.
     local slotRows, byKey, firstRow = {}, {}, {}
@@ -586,7 +584,6 @@ Window.Page("gear", function(page)
                 slot = s, equip = equip,
                 key = pair and (s.key .. n) or s.key,
                 label = pair and ("%s %d"):format(s.label, n) or s.label,
-                empty = pair and s.empty:gsub("0Slot$", (n - 1) .. "Slot") or s.empty,
             }
             slotRows[#slotRows + 1] = row
             byKey[row.key] = row
@@ -598,8 +595,8 @@ Window.Page("gear", function(page)
         local key = slotRows[i] and slotRows[i].key
         chosen = chosen ~= key and key or nil
         Paint()
-    end)
-    NearLineParts(lines, P)
+    end, true)
+    NearLineParts(lines)
     local rightW = width - P.LEFT_W - P.COL_GAP
     local runs = P.Runs(view, rightW, bodyH, nil, nil, function() chosen = nil Paint() end, "ranked by the upgrades for you")
 
