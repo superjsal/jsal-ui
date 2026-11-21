@@ -279,7 +279,7 @@ Window.Page("professions", function(page)
                 if item.kind == "step" or item.kind == "passed" then
                     used = used + 1
                     stop = Step(used)
-                    Road.PaintStop(stop, item.step, o.trainer)
+                    Road.PaintStop(stop, item.step, Road.TrainerFor(o.line, item.step))
                     -- Behind you, the sign stays solid over the gold (faded, the gold showed through
                     -- it); its line and number are quieter, its picture and words faded.
                     local behind = item.kind == "passed"
@@ -554,7 +554,7 @@ Window.Page("professions", function(page)
         -- ready for it: a step that's learned at a trainer pins them, and so
         -- does the line under the right card.
         local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
-        local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+        local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed, skill)
 
         -- The left card, down from its top: `at`.
         local at = 0
@@ -585,7 +585,7 @@ Window.Page("professions", function(page)
         end
         if first then
             local recipe = first.recipe
-            Road.PaintNow(card, line, first, skill, trainer)
+            Road.PaintNow(card, line, first, skill, Road.TrainerFor(line, first))
             PlaceNow(card, at)
             at = at + card.tall
             -- The step's crafts onto the shopping list, from the card's foot.

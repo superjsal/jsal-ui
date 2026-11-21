@@ -710,7 +710,7 @@ function Paint()
     -- you're ready for it: a step that's learned at a trainer pins them,
     -- and so does the line at the panel's foot.
     local needed = (rankAt and skill >= rankAt) and rankIndex + 1 or rankIndex
-    local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed)
+    local trainer = ns.Trainers and ns.Trainers.Nearest("skill" .. line, needed, skill)
     if view == "road" then
         local crafts = 0
         for _, step in ipairs(road) do crafts = crafts + step.crafts end
@@ -736,7 +736,7 @@ function Paint()
         if first then
             local card = Card()
             local recipe = first.recipe
-            mats = Road.PaintNow(card, line, first, skill, trainer)
+            mats = Road.PaintNow(card, line, first, skill, Road.TrainerFor(line, first))
             Place(card, y)
             y = y + card:GetHeight() + 8
             -- The step's crafts onto the shopping list, from the card's foot.
@@ -778,7 +778,7 @@ function Paint()
             if not ranked and rankAt and step.from >= rankAt then y = y + RankAt(y) end
             shown = i - 1
             local s = Step(shown)
-            Road.PaintStop(s, step, trainer)
+            Road.PaintStop(s, step, Road.TrainerFor(line, step))
             -- Its + puts this step alone on the shopping list.
             local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
             s.add:SetShown(shop and true or false)
