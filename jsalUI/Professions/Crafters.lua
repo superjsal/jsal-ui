@@ -419,7 +419,7 @@ end
 ---------------------------------------------------------------------------
 -- Item tooltips: who in the guild makes it.
 ---------------------------------------------------------------------------
-local function AddLines(tooltip, item)
+local function AddLines(lines, item, tooltip)
     if not Crafters.running or not item then return end
     if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip then return end
     local people = Crafters.ForItem(item)
@@ -428,27 +428,18 @@ local function AddLines(tooltip, item)
     for _, p in ipairs(people) do
         if p.online then on[#on + 1] = p.name elseif #off < 3 then off[#off + 1] = p.name end
     end
-    tooltip:AddLine(" ")
-    tooltip:AddLine("Guild crafters", 0.89, 0.69, 0.29)
-    if #on > 0 then tooltip:AddLine(table.concat(on, ", ", 1, math.min(#on, 5)) .. (#on > 5 and (" and " .. (#on - 5) .. " more") or ""), 1, 1, 1, true) end
-    if #off > 0 then tooltip:AddLine(table.concat(off, ", ") .. " (offline)", 0.6, 0.59, 0.53, true) end
+    lines:AddLine("Guild crafters", 0.89, 0.69, 0.29)
+    if #on > 0 then lines:AddLine(table.concat(on, ", ", 1, math.min(#on, 5)) .. (#on > 5 and (" and " .. (#on - 5) .. " more") or ""), 1, 1, 1, true) end
+    if #off > 0 then lines:AddLine(table.concat(off, ", ") .. " (offline)", 0.6, 0.59, 0.53, true) end
 end
+Crafters.TooltipLines = AddLines
 
+-- In jsal.ui's section of an item's tooltip, after the Gear plan's lines.
 local hooked = false
 local function HookTooltips()
-    if hooked then return end
+    if hooked or not (ns.Style and ns.Style.ItemLines) then return end
     hooked = true
-    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
-            xpcall(AddLines, ns.Report, tooltip, data and data.id)
-        end)
-    elseif GameTooltip and GameTooltip.HookScript then
-        GameTooltip:HookScript("OnTooltipSetItem", function(tooltip)
-            local _, link = tooltip:GetItem()
-            local item = link and tonumber(link:match("item:(%d+)"))
-            xpcall(AddLines, ns.Report, tooltip, item)
-        end)
-    end
+    ns.Style.ItemLines(2, AddLines)
 end
 
 function Crafters:OnEnable()
