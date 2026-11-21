@@ -322,14 +322,35 @@ def only_quest(item):
     return None
 
 
+def percents(pct):
+    """An item's crit and hit given as a percent by an "Equip:" line, which the game's item stats
+    leave out, in GearData's short form: "c" a weapon's crit (melee or ranged, the larger), "sc" a
+    spell's, "h" and "sh" the same for hit. A percent for both counts for each. "" for none."""
+    if not pct:
+        return ""
+    def larger(*keys):
+        return max((pct.get(k, 0) for k in keys), default=0)
+    parts = {
+        "c": larger("mlecritstrkpct", "rgdcritstrkpct", "critstrkpct"),
+        "sc": larger("splcritstrkpct", "critstrkpct"),
+        "h": larger("mlehitpct", "rgdhitpct", "hitpct"),
+        "sh": larger("splhitpct", "hitpct"),
+    }
+    return ",".join(f"{k}{v:g}" for k, v in parts.items() if v)
+
+
 def main():
     data = json.loads((SRC / "wowhead-items.json").read_text(encoding="utf-8"))
     zones = json.loads((SRC / "zones.json").read_text(encoding="utf-8"))
     places, place_index = [], {}
     by_slot, quests = {}, {}
     kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4}
+    pct = {}
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
+        short = percents(item[12] if len(item) > 12 else None)
+        if short:
+            pct[item_id] = short
         kind, place = where(item, zones)
         quest = only_quest(item)
         if quest:
@@ -378,6 +399,9 @@ def main():
         "    -- Items whose one source is a quest, \"item ID:quest ID\" separated by \";\": once the quest",
         "    -- is done, its reward can't be had again.",
         "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
+        "    -- Crit and hit an \"Equip:\" line gives as a percent, which the game's item stats leave out:",
+        "    -- \"item ID:\" then c (a weapon's crit), sc (a spell's), h and sh (hit) with the percent.",
+        "    pct = " + lua_string(";".join(f"{i}:{v}" for i, v in sorted(pct.items()))) + ",",
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,
@@ -386,7 +410,7 @@ def main():
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
+    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,9 @@
 // it in the pane) running it again carries on where it stopped. When every list is in, it sends
 // the result to tools/wowhead/receive.py (start that first). To start afresh next month:
 // localStorage.removeItem('jsalGear').
+// Each item also keeps the percent crit and hit an "Equip:" line gives it ("Improves your chance
+// to get a critical strike by 1%"): the game's item stats leave those out, and Wowhead's own item
+// data on the page names them apart from rating (mlecritstrkpct, splhitpct...).
 const Q = '/quality:2:3:4';
 const urls = [];
 for (const a of ['cloth', 'leather', 'mail', 'plate'])
@@ -28,9 +31,19 @@ window.__gear = { done: false, log: [], err: null };
       if (r.status !== 200 || t.includes('<title>Human Verification')) { __gear.err = 'blocked at ' + u; break; }
       const m = t.match(/var listviewitems = (\[[\s\S]*?\]);\n/);
       const arr = m ? JSON.parse(m[1].replace(/([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')) : [];
+      const pct = {};
+      const re = /"(\d+)":\{"name_enus":"(?:[^"\\]|\\.)*"/g;
+      let g;
+      while ((g = re.exec(t))) {
+        const j = t.indexOf('"jsonequip":{', g.index);
+        if (j < 0 || j - g.index > 400) continue;
+        const e = t.slice(j + 13, t.indexOf('}', j + 13));
+        const found = e.match(/"(?:mle|rgd|spl)?(?:critstrk|hit)pct":[\d.]+/g);
+        if (found) pct[g[1]] = Object.fromEntries(found.map(f => { const [k, v] = f.split(':'); return [k.slice(1, -1), +v]; }));
+      }
       store[u] = arr.map(o => [o.id, o.name, o.quality, o.reqlevel || 0, o.level || 0, o.slot, o.classs, o.subclass,
         o.side || 0, o.reqclass || 0, o.source || [],
-        (o.sourcemore || []).map(s => [s.n || '', s.t || 0, s.ti || 0, s.z || 0, s.c || 0])]);
+        (o.sourcemore || []).map(s => [s.n || '', s.t || 0, s.ti || 0, s.z || 0, s.c || 0]), pct[o.id] || 0]);
       localStorage.setItem('jsalGear', JSON.stringify(store));
       __gear.log.push(u + ' ' + arr.length);
     } catch (e) { __gear.err = u + ': ' + e; break; }
@@ -40,10 +53,10 @@ window.__gear = { done: false, log: [], err: null };
   if (__gear.err) return;
   const by = new Map();
   for (const list of Object.values(store)) for (const i of list) if (!by.has(i[0])) by.set(i[0], i);
-  const items = [...by.values()].map(i => [...i.slice(0, 11), (i[11] || []).slice(0, 3)]);
+  const items = [...by.values()].map(i => [...i.slice(0, 11), (i[11] || []).slice(0, 3), i[12] || 0]);
   const out = JSON.stringify({ fetched: FETCHED,
     fields: ['id', 'name', 'quality', 'reqlevel', 'itemlevel', 'slot', 'class', 'subclass', 'side', 'reqclass',
-      'source', 'sourcemore[name,type,id,zone,c]'], items });
+      'source', 'sourcemore[name,type,id,zone,c]', 'pct'], items });
   location.href = 'http://127.0.0.1:8799/#' + encodeURIComponent(out);
 })();
 'started: ' + urls.length + ' lists; watch window.__gear'
