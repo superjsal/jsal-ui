@@ -114,14 +114,8 @@ Window.Page("professions", function(page)
     Style.Rule(needStrip, "TOP", "cardLine")
     local needSum = Style.Text(needStrip, 12, "muted")
     needSum:SetPoint("LEFT", 13, 0)
-    local addRoad = CreateFrame("Button", nil, needStrip)
-    addRoad.text = Style.Text(addRoad, 12, "gold", nil, true)
-    addRoad.text:SetPoint("RIGHT")
-    addRoad.text:SetText("Add the road to my shopping list")
-    addRoad:SetSize(Style.Wide(addRoad.text, 200), 22)
+    local addRoad = Road.ShopLink(needStrip, "Add the road to my shopping list", "The road is on your shopping list", 200)
     addRoad:SetPoint("RIGHT", -13, 0)
-    addRoad:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("goldHover")) end)
-    addRoad:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
     local where = Style.Text(page, 12, "muted")
     where:SetWidth(CARD_W - 90)
     where:SetJustifyH("LEFT")
@@ -598,6 +592,7 @@ Window.Page("professions", function(page)
             local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
             card.add:SetShown(shop and true or false)
             card.add:SetScript("OnClick", function() ns.Shopping.TopUp({ first }) end)
+            if shop then ns.Shopping.Track(card.add, { first }) end
         end
 
         -- The right card: everything the road needs, the biggest shortfall
@@ -637,6 +632,7 @@ Window.Page("professions", function(page)
             addRoad:SetScript("OnClick", function()
                 ns.Shopping.TopUp(crafting)
             end)
+            if shop then ns.Shopping.Track(addRoad, crafting) end
             local tall = 7 + math.ceil(shown / 2) * NEED_H + 7 + 34
             needBox:SetHeight(tall)
             PlaceRight(needBox, ry)

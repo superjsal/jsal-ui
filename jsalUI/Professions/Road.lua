@@ -250,6 +250,27 @@ local function Fit(text, words, room)
     if Style.Wide(text, #words * 7) > room then text:SetWidth(room) end
 end
 
+-- Words along a card's foot that put something on the shopping list: gold,
+-- lit under the pointer. Once the list has all of it, they say so in muted
+-- words and aren't lit; a click then only opens the list.
+function Road.ShopLink(parent, action, done, wide)
+    local b = CreateFrame("Button", nil, parent)
+    b.text = Style.Text(b, 12, "gold", nil, true)
+    b.text:SetPoint("RIGHT")
+    function b:SetListed(on)
+        self.listed = on and true or false
+        self.text:SetText(on and done or action)
+        self.text:SetTextColor(Style.Color(on and "muted" or "gold"))
+        self:SetSize(Style.Wide(self.text, wide), 22)
+    end
+    b:SetScript("OnEnter", function(self)
+        if not self.listed then self.text:SetTextColor(Style.Color("goldHover")) end
+    end)
+    b:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color(self.listed and "muted" or "gold")) end)
+    b:SetListed(false)
+    return b
+end
+
 function Road.NowCard(parent, width)
     local card = CreateFrame("Button", nil, parent)
     card:SetScript("OnClick", Pin)
@@ -285,14 +306,8 @@ function Road.NowCard(parent, width)
     Style.Rule(card.strip, "TOP", "cardLine")
     card.sum = Style.Text(card.strip, 12, "muted")
     card.sum:SetPoint("LEFT", 13, 0)
-    card.add = CreateFrame("Button", nil, card.strip)
-    card.add.text = Style.Text(card.add, 12, "gold", nil, true)
-    card.add.text:SetPoint("RIGHT")
-    card.add.text:SetText("Add to shopping list")
-    card.add:SetSize(Style.Wide(card.add.text, 130), 22)
+    card.add = Road.ShopLink(card.strip, "Add to shopping list", "On your shopping list", 130)
     card.add:SetPoint("RIGHT", -13, 0)
-    card.add:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("goldHover")) end)
-    card.add:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
     Style.ItemTip(card, Road.Needs, 6)
     return card
 end
