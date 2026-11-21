@@ -687,6 +687,17 @@ end
 -- `radius` is a round card's, for a light that follows its corners; `pad`
 -- is how far the light reaches past a row's sides, 6 unless given (none for
 -- a row inside a card, whose sides are the card's).
+-- A tooltip that's up for a frame is built again from what the frame now
+-- says, for a frame painted afresh while it's pointed at (a craft landing
+-- changes its counts). Only on a paint that happens anyway, and only for the
+-- frame the tooltip belongs to.
+function Style.Retip(frame)
+    if GameTooltip:IsShown() and GameTooltip:IsOwned(frame) then
+        local enter = frame:GetScript("OnEnter")
+        if enter then enter(frame) end
+    end
+end
+
 function Style.ItemTip(frame, more, radius, pad)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
