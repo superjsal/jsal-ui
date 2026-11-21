@@ -765,6 +765,33 @@ local function PaintRoamer(r)
     r.body:SetPoint("TOPLEFT", ui.pen, "TOPLEFT", math.floor(w.x + 0.5), -math.floor(w.y + 0.5))
 end
 
+-- Who's drawn over whom: a pal nearer the front (its feet lower in the pen) over one behind it,
+-- whichever way they walk. In the pen the visitor goes over or under yours (whose nest rim and
+-- hiding place stay over it); in the paddock, its companions by where they stand. A level
+-- changes only when the order does.
+local function Foot(w, size) return (w.y or 0) + (size or w.size or 64) end
+function Pet.Layer()
+    local pen = ui.pen:GetFrameLevel() or 1
+    if ui.yard then
+        local list = {}
+        for _, r in ipairs(ui.roamers) do
+            if r.record and r.walk then list[#list + 1] = r end
+        end
+        table.sort(list, function(a, b) return Foot(a.walk) < Foot(b.walk) end)
+        for i, r in ipairs(list) do
+            local want = pen + 2 + i
+            if r.level ~= want then r.level = want; r.body:SetFrameLevel(want) end
+        end
+        return
+    end
+    local v = ui.visitor
+    if v and v.on and v.walk and ui.walk then
+        local mine = ui.body:GetFrameLevel() or (pen + 3)
+        local want = Foot(v.walk, v.size) > Foot(ui.walk, ui.walk.size) and mine + 3 or mine - 1
+        if v.level ~= want then v.level = want; v.body:SetFrameLevel(want) end
+    end
+end
+
 -- A settled companion's time in the paddock, with no drawing in it: it
 -- wanders as the one in the pen does, and each time it gets somewhere it may
 -- sit down, look about, show off what its kind can do, yawn, dig, or lie down

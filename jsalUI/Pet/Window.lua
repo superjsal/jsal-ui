@@ -176,6 +176,8 @@ local function BuildPen()
     -- The creature: click it for a pat.
     ui.body = CreateFrame("Button", nil, ui.pen)
     ui.body:SetSize(SIZE, SIZE)
+    -- A few levels over the pen, so a visitor behind it has a level of its own under it (Pet.Layer).
+    ui.body:SetFrameLevel((ui.pen:GetFrameLevel() or 1) + 3)
     ui.sprite = ui.body:CreateTexture(nil, "ARTWORK")
     ui.sprite:SetAllPoints()
     Compat.Crisp(ui.sprite)
@@ -272,6 +274,7 @@ local function BuildPen()
                     PaintRoamer(r)
                 end
             end
+            Pet.Layer()
             return
         end
         -- Dusk and dawn: the day goes, or comes back, a little each frame.
@@ -332,6 +335,7 @@ local function BuildPen()
         PaintWalk()
         Pet.PlayStep(dt)
         Pet.RoamVisitor(dt)
+        Pet.Layer()
         Pet.Hatching(dt)
         -- Its needs move slowly: look again twice a minute.
         since = since + elapsed
