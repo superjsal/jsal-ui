@@ -693,10 +693,10 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
     col:SetPoint("TOPLEFT", LEFT_W + COL_GAP, -(HERO_H + HERO_GAP))
     local head = Style.Section(col, width)
     head:SetPoint("TOPLEFT")
-    head.title:SetText("RUN NEXT")
+    head.title:SetText("WHERE TO GO")
     head.note:SetText(note)
     -- With a slot's picks showing, the way back to what to run, at the heading's right.
-    local back = Words(col, "\226\128\185 Run next", onBack)
+    local back = Words(col, "\226\128\185 BACK", onBack)
     back:SetPoint("RIGHT", head, "RIGHT", 0, 0)
     back:Hide()
     local inner = width - 10
@@ -734,7 +734,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
         weighed:SetJustifyH("LEFT")
         weighed:SetText("The % come from your stat weights, a rough guide. WoWSims' set comes from full sims: where they disagree, go by the set.")
         runsHead = Style.Section(child, inner)
-        runsHead.title:SetText("RUN NEXT")
+        runsHead.title:SetText("WHERE TO GO")
         runsHead.note:SetText(note)
         Choice = function(i)
             if choices[i] then return choices[i] end
@@ -774,7 +774,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
         local shown = choice ~= nil
         if shown then MakeChoices() end
         if not choiceHead then
-            head.title:SetText("RUN NEXT")
+            head.title:SetText("WHERE TO GO")
             head.note:SetText(note)
             back:Hide()
             return 0
@@ -785,7 +785,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
         runsHead:SetShown(shown)
         local pick = shown and (choice.row.pick or choice.row.goal)
         local n = shown and (#choice.others + (pick and 1 or 0)) or 0
-        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. n .. (n == 1 and " PICK" or " PICKS")) or "RUN NEXT")
+        head.title:SetText(shown and (choice.row.label:upper() .. " · " .. n .. (n == 1 and " PICK" or " PICKS")) or "WHERE TO GO")
         head.note:SetText(shown and "" or note)
         back:SetShown(shown)
         if not shown then
