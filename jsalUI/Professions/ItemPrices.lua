@@ -78,11 +78,25 @@ end
 ItemPrices.useAuctionator = false
 local CALLER = "jsal.ui"
 
+-- How many times Auctionator's prices have changed since the game loaded: a
+-- full scan, or a search it priced. Its own RegisterForDBUpdate calls back
+-- once for each, so a road worked out from its prices is worked out again
+-- once, the next time it's shown, and never for a price at a time.
+ItemPrices.scans = 0
+local listening = false
+
 local function AuctionatorAPI()
     if not ItemPrices.useAuctionator then return nil end
     local a = Auctionator
     local api = type(a) == "table" and type(a.API) == "table" and a.API.v1
-    if type(api) == "table" and type(api.GetAuctionPriceByItemID) == "function" then return api end
+    if type(api) == "table" and type(api.GetAuctionPriceByItemID) == "function" then
+        if not listening and type(api.RegisterForDBUpdate) == "function" then
+            listening = true
+            local function Heard() ItemPrices.scans = ItemPrices.scans + 1 end
+            pcall(api.RegisterForDBUpdate, CALLER, (ns.Safe and ns.CraftProfit) and ns.Safe(ns.CraftProfit, Heard) or Heard)
+        end
+        return api
+    end
 end
 
 function ItemPrices.HasAuctionator()

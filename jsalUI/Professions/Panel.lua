@@ -652,7 +652,7 @@ function Paint()
     -- the next rank is trained at, so that has a place of its own on it.
     local prices = ns.ItemPrices
     local key = table.concat({ skill, cap, tostring(rankAt), #mind.saved, tostring(Professions.Priced and Professions.Priced()),
-        prices and prices.seen or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
+        prices and prices.seen or 0, prices and prices.scans or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
     local kept = plans[line]
     local road, totals, stuck, made
     if kept and kept.key == key then
