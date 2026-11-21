@@ -702,8 +702,8 @@ function Goal.Fits(id, i)
 end
 
 -- The set that's your goal before raids, as the view chooses it: one of yours, or WoWSims'
--- build (the one kept for the character, else the tree's own; full or cheap). Its 17 IDs and
--- its name; nil with none.
+-- build (the one kept for the character, else your default, else the tree's own; full or
+-- cheap). Its 17 IDs and its name; nil with none.
 -- A WoWSims build's set (full or cheap) as 17 IDs, each from your side's quartermaster.
 local function IdsOf(build, cheap, side)
     local ids = {}
@@ -718,8 +718,9 @@ function Goal.ChosenSet()
     local _, classFile = UnitClass("player")
     local builds, start = Goal.Builds(classFile, Gear.Spec())
     local chosen
+    local want = keptChoice.build or keptChoice.base
     for _, b in ipairs(builds or {}) do
-        if b.key == keptChoice.build then chosen = b end
+        if b.key == want then chosen = b end
     end
     for _, b in ipairs(chosen and {} or builds or {}) do
         if b.key == start then chosen = b end
@@ -735,7 +736,7 @@ function Goal.SetKey()
     local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
     local _, classFile = UnitClass("player")
     local builds, start = Goal.Builds(classFile, Gear.Spec())
-    local key = own and own.from or keptChoice.build
+    local key = own and own.from or keptChoice.build or keptChoice.base
     for _, b in ipairs(builds or {}) do
         if b.key == key then return b.key, b.name end
     end

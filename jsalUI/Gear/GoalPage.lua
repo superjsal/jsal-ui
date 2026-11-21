@@ -936,8 +936,9 @@ function Gear.GoalView(page, width, height)
         elseif what == "rename" then
             Goal.RenameSet(key, words)
         elseif what == "delete" then
+            -- Only the set you're on can be deleted; you're back on your default.
             Goal.DeleteSet(key)
-            Keep().build = nil
+            Keep().build = Keep().base
         end
         if what ~= "rename" then draft = nil end
         Refresh()
@@ -1009,7 +1010,8 @@ function Gear.GoalView(page, width, height)
         shownFor = spec
         -- A change waits only on the set, spec and cheap or full it was made on.
         if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
-        local read = Goal.Read(spec, kept.build, kept.cheap, draft and draft.ids)
+        -- No set chosen (an older save, or one whose set was deleted): your default.
+        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids)
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
         ns.Timed("Gear goal, working out", started)
