@@ -96,17 +96,20 @@ Window.Page("build", function(page)
         classButtons[i] = b
     end
 
-    -- The builds list: your own builds, then the class's suggested ones.
-    local listHead = Style.Section(page, LIST_W)
-    listHead:SetPoint("TOPLEFT", 0, -BODY_TOP)
+    -- The builds list: your own builds, then the class's suggested ones, then its builds for 60.
+    -- It scrolls with the wheel once it's longer than the page (a mage has seven ready-made).
+    local listScroll, listBox = Style.Scroller(page, LIST_W, height - BODY_TOP, nil, 9, ROW_H)
+    listScroll:SetPoint("TOPLEFT", 0, -BODY_TOP)
+    local listHead = Style.Section(listBox, LIST_W)
+    listHead:SetPoint("TOPLEFT", 0, 0)
     listHead.title:SetText("BUILDS")
-    local ownEmpty = Style.Text(page, 11, "muted")
+    local ownEmpty = Style.Text(listBox, 11, "muted")
     ownEmpty:SetWidth(LIST_W - 12)
     ownEmpty:SetText("None yet. Start a new build, or copy a suggested one.")
-    local suggestHead = Style.Section(page, LIST_W)
+    local suggestHead = Style.Section(listBox, LIST_W)
     suggestHead.title:SetText("SUGGESTED")
     -- Builds for 60: WoWSims Forever's own talents for each build it sims, under the levelling ones.
-    local raidHead = Style.Section(page, LIST_W)
+    local raidHead = Style.Section(listBox, LIST_W)
     raidHead.title:SetText("FOR 60 · WOWSIMS")
     local rows = {}
 
@@ -125,7 +128,7 @@ Window.Page("build", function(page)
     end
 
     local function BuildRow()
-        local row = CreateFrame("Button", nil, page)
+        local row = CreateFrame("Button", nil, listBox)
         row:SetSize(LIST_W, 44)
         row.bg = Style.Fill(row, "well")
         row.mark = row:CreateTexture(nil, "ARTWORK")
@@ -877,7 +880,7 @@ Window.Page("build", function(page)
         listHead.count:SetText(#builds)
         suggestHead.count:SetText(#suggested)
         raidHead.count:SetText(#raid)
-        local used, y = 0, BODY_TOP + 24
+        local used, y = 0, 24
         local function Place(b)
             used = used + 1
             rows[used] = rows[used] or BuildRow()
@@ -956,6 +959,14 @@ Window.Page("build", function(page)
         if #raid > 0 then y = y + 36 end
         for _, b in ipairs(raid) do Place(b) end
         for i = used + 1, #rows do rows[i]:Hide() end
+        listBox:SetHeight(math.max(1, y))
+        -- Another class's list starts at its top.
+        if listScroll.forClass ~= classID then
+            listScroll.forClass = classID
+            listScroll:SetVerticalScroll(0)
+        end
+        listScroll:UpdateScrollChildRect()
+        listScroll:Place()
 
         view:SetShown(not editing)
         editor:SetShown(editing)
