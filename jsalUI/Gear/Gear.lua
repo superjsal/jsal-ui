@@ -259,7 +259,9 @@ local function Mark(id)
         tries[id] = (tries[id] or 0) + 1
     end
 end
-local function Stats(item)
+-- `quiet`: never ask the game to load the item (for a tooltip, which shows
+-- only what's loaded).
+local function Stats(item, quiet)
     if type(item) == "number" and (statsOf[item] or Waiting(item) or Gear.GivenUp(item)) then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
@@ -273,7 +275,7 @@ local function Stats(item)
         if type(item) == "number" then statsOf[item] = out end
         return out
     end
-    if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
+    if not quiet and type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
         Mark(item)
         C_Item.RequestLoadItemDataByID(item)
     end
@@ -826,7 +828,7 @@ function Gear.WornTotal(weights)
     return total
 end
 
-function Gear.Better(id, equipLoc, classID, subclassID)
+function Gear.Better(id, equipLoc, classID, subclassID, quiet)
     local invType = Gear.INVTYPE[equipLoc or ""]
     local slot = invType and Gear.SlotOf(invType)
     if not slot then return nil end
@@ -836,7 +838,7 @@ function Gear.Better(id, equipLoc, classID, subclassID)
     -- Nothing goes in the off hand under a two-hander.
     if slot.key == "off" and Gear.TwoHander() then return false end
     local weights = Gear.Weights()
-    local stats = weights and Stats(id)
+    local stats = weights and Stats(id, quiet)
     if not stats then return nil end
     for _, equip in ipairs(slot.equip) do
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
