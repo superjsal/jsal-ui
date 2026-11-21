@@ -743,6 +743,7 @@ function Paint()
             local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
             card.add:SetShown(shop and true or false)
             card.add:SetScript("OnClick", function() ns.Shopping.TopUp({ first }) end)
+            if shop then ns.Shopping.Track(card.add, { first }) end
         elseif panel.card then
             panel.card:Hide()
         end
@@ -873,10 +874,16 @@ function Paint()
                 if not panel.addRoad then
                     panel.addRoad = Style.Button(panel, "Add the road to my shopping list", "plain", 232)
                     panel.addRoad:SetHeight(26)
+                    -- Once the list has the whole road it says so, quiet and unlit.
+                    function panel.addRoad:SetListed(on)
+                        self:SetLabel(on and "The road is on your shopping list" or "Add the road to my shopping list")
+                        self:SetKind(on and "done" or "plain")
+                    end
                 end
                 panel.addRoad:SetScript("OnClick", function()
                     ns.Shopping.TopUp(crafting)
                 end)
+                ns.Shopping.Track(panel.addRoad, crafting)
                 PlaceRight(panel.addRoad, y + 1)
             elseif panel.addRoad then
                 panel.addRoad:Hide()

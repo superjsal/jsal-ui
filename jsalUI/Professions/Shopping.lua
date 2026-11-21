@@ -54,17 +54,41 @@ end
 -- left as it is where the list already has that many or more. So the step
 -- in hand and then the whole road, or either one twice, list each craft
 -- once, and a count raised by hand is kept. The list opens once.
-function Shopping.TopUp(steps)
+local function Want(steps)
     local want = {}
     for _, step in ipairs(steps) do
         local spell = step.recipe.spell
         want[spell] = (want[spell] or 0) + math.max(1, math.floor(tonumber(step.crafts) or 1))
     end
+    return want
+end
+
+function Shopping.TopUp(steps)
     local crafts = List().crafts
-    for spell, count in pairs(want) do
+    for spell, count in pairs(Want(steps)) do
         crafts[spell] = math.max(crafts[spell] or 0, count)
     end
     Shopping.Open(true)
+end
+
+-- Whether the list already has every craft of these steps at what they
+-- need or more, so TopUp would change nothing.
+function Shopping.Listed(steps)
+    local crafts, any = List().crafts, false
+    for spell, count in pairs(Want(steps)) do
+        if (crafts[spell] or 0) < count then return false end
+        any = true
+    end
+    return any
+end
+
+-- The buttons that put a road's steps on the list, each with its steps:
+-- each says whether the list has them all, and says it again whenever the
+-- list changes. A button has SetListed(on).
+local tracked = {}
+function Shopping.Track(button, steps)
+    tracked[button] = steps
+    button:SetListed(Shopping.Listed(steps))
 end
 
 function Shopping.AddItem(item, count)
@@ -1096,6 +1120,9 @@ end
 Paint = function()
     PaintList()
     if PaintVendor then PaintVendor() end
+    for button, steps in pairs(tracked) do
+        if button:IsShown() then button:SetListed(Shopping.Listed(steps)) end
+    end
 end
 
 -- beside: opened by adding from a profession window. A list that's

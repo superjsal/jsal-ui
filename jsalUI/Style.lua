@@ -749,6 +749,8 @@ end
 -- "tab" is one of a row of choices (a page's tabs, a filter, a spec), a pill:
 -- the chosen one, set with SetSelected, has gold words on a dim gold fill in
 -- a gold line, so a gold fill stays the mark of the main action.
+-- "done" says something is already done: muted words in a quiet line, not
+-- lit under the pointer, though a click still does what it says.
 -- A tone overrides the kind for a game's answer buttons: "right" is gold,
 -- "wrong" is dimmed.
 local function PaintButton(b)
@@ -760,6 +762,8 @@ local function PaintButton(b)
         fill, line, text = "gold", "gold", "onGold"
     elseif b.tone == "wrong" then
         fill, line, text = "line", "line", "muted"
+    elseif b.kind == "done" then
+        fill, line, text = "well", "line", "muted"
     elseif b.kind == "primary" and enabled then
         fill = (b.hover and not b.down) and "goldHover" or "gold"
         line, text = fill, "onGold"
