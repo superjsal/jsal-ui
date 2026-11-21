@@ -711,13 +711,15 @@ Window.Page("gear", function(page)
             for part, ms in pairs(G.spent) do ns.NoteTime("Gear plan, upgrades: " .. part, ms) end
         end
         local better, checking = 0, false
+        -- Each place's upgrade; a ring or trinket worn only once is the upgrade of one place of a pair.
+        local bests = G.Tops(slotRows, plans, G.Best)
         for key, b in pairs(slotFrames) do
             local plan = plans[key]
             local worn = plan.worn
             b.equip = worn.link and worn.equip or nil
             b.wornHot.equip = b.equip
             b.title = b.row.label
-            local best = G.Best(plan)
+            local best = bests[key]
             if worn.link then
                 local name, _, quality, texture = ItemInfo(tonumber(worn.link:match("item:(%d+)")))
                 b.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
