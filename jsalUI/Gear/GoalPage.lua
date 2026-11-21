@@ -403,6 +403,16 @@ local GROUPS = {
 local LINE_GAIN_R, LINE_GAIN_W = 30, 60
 local LINE_WHERE_R = LINE_GAIN_R + LINE_GAIN_W + 8
 
+-- The goal's main-hand piece where it's a two-hander: the set's pick, the goal, or what you wear
+-- there when that's already the goal. nil where it isn't known.
+local function TwoHander(rows)
+    for _, row in ipairs(rows) do
+        if row.equip == 16 then
+            return (row.pick and row.pick.id) or (row.goal and row.goal.id) or (row.done and row.worn and row.worn.id) or nil
+        end
+    end
+end
+
 -- A finished slot's badge: a gold disc with the check on the corner of its picture. Made the first
 -- time a line is finished.
 local function Badge(r)
@@ -575,12 +585,19 @@ local function SlotList(view, rowH, onPick, bare)
             r.gain:SetText("")
             r.gain:SetTextColor(Style.Color("green"))
             if r.badge then r.badge:SetShown(false) end
+            r.box.icon:SetDesaturated(false)
+            r.box:SetAlpha(1)
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
                 local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(row.slot.empty)
                 if row.taken then
-                    r.box.icon:SetTexture(emptyTexture)
+                    -- The goal's two-hander, greyed, as Near your level shows the one you wear.
+                    local hand = TwoHander(rows)
+                    local texture = hand and select(3, ItemInfo(hand))
+                    r.box.icon:SetTexture(texture or emptyTexture)
+                    r.box.icon:SetDesaturated(hand ~= nil)
+                    r.box:SetAlpha(hand and 0.4 or 1)
                     r.name:SetText(MUTED .. "Taken by your two-hander|r")
                     r.where:SetText("")
                 elseif row.open then

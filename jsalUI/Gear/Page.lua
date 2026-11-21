@@ -149,7 +149,8 @@ local MUTED = "|cff9a9688"
 -- and its name; what it adds stands in a column that ends this far from the right, a quiet ›
 -- after it.
 local WORN_X, ARROW_X, UP_X, UP_NAME_X = 78, 110, 130, 164
-local LINE_GAIN_R, LINE_GAIN_W = 30, 48
+-- The same columns as At 60's lines, so the two tabs line up.
+local LINE_GAIN_R, LINE_GAIN_W = 30, 60
 -- Where the upgrade is from, in a column of its own whose right edge is this far from the line's.
 local LINE_SOURCE_R = LINE_GAIN_R + LINE_GAIN_W + 8
 
