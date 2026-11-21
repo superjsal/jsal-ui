@@ -90,10 +90,11 @@ local function Recipe(spell)
 end
 
 -- A recipe you know in one of your own professions that makes an item, where
--- making it is how you'd come by it (not a leather that's skinned as it is).
-local function KnownMaker(mine, item)
+-- making it is how you'd come by it (not a leather that's skinned as it is);
+-- `gathered`: any that makes it, a leather from the one below it too.
+local function KnownMaker(mine, item, gathered)
     for _, p in ipairs(mine) do
-        local recipe = Professions.Makes(p.line, item)
+        local recipe = (gathered and Professions.MadeBy or Professions.Makes)(p.line, item)
         if recipe then
             local seen = Professions.Remembered(p.line)
             if (type(seen) == "table" and type(seen.known) == "table" and seen.known[recipe.spell])
@@ -169,10 +170,39 @@ local function Needs()
         end
         if not changed then break end
     end
+    -- A leather that's skinned as it is is bought, unless what you hold of the
+    -- leather it's made from covers all that's short of it, once everything
+    -- else has taken what it needs of that: then it's made, and never from
+    -- leather bought for it. All of it or none, so it's on one line; one
+    -- level, as the leather below is only ever what you hold.
+    local held = {}
+    local gathered = ns.ProfessionData.gathered or {}
+    local short = {}
+    for item in pairs(need) do
+        if gathered[item] and not made[item] then short[#short + 1] = item end
+    end
+    table.sort(short)
+    for _, item in ipairs(short) do
+        mine = mine or Professions.Mine()
+        local recipe = KnownMaker(mine, item, true)
+        local crafts = recipe and math.ceil(math.max(0, need[item] - Have(item, recipe)) / math.max(1, recipe.makes or 1)) or 0
+        local covered = crafts > 0
+        for _, reagent in ipairs(covered and recipe.reagents or {}) do
+            if Compat.ItemCount(reagent.item, true) - (need[reagent.item] or 0) < reagent.count * crafts then covered = false break end
+        end
+        if covered and bought[item] then
+            buying[item] = true
+        elseif covered then
+            made[item], opens[item], held[item] = crafts, recipe, true
+            for _, reagent in ipairs(recipe.reagents) do
+                need[reagent.item] = (need[reagent.item] or 0) + reagent.count * crafts
+            end
+        end
+    end
     -- What's made comes off what's to get; what you have of it is still used.
     local making = {}
     for item, crafts in pairs(made) do
-        making[item] = { item = item, recipe = opens[item], crafts = crafts }
+        making[item] = { item = item, recipe = opens[item], crafts = crafts, held = held[item] }
         local have = Compat.ItemCount(item, true)
         need[item] = have > 0 and math.min(have, need[item] or 0) or nil
     end
@@ -865,7 +895,8 @@ local function PaintList()
             if c.made then
                 local item = c.made.item
                 r.made:SetText(c.count)
-                r.note = "Made for the crafts above: what it takes is under Still to get."
+                r.note = c.made.held and "Made for the crafts above, from what you have."
+                    or "Made for the crafts above: what it takes is under Still to get."
                 r.drop, r.dropTip = function() Buy(item, true) end, "Right-click to buy it instead"
                 r.buy:SetScript("OnClick", r.drop)
             else
