@@ -779,6 +779,13 @@ function Paint()
             shown = i - 1
             local s = Step(shown)
             Road.PaintStop(s, step, trainer)
+            -- Its + puts this step alone on the shopping list.
+            local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
+            s.add:SetShown(shop and true or false)
+            if shop then
+                s.add:SetScript("OnClick", function() ns.Shopping.TopUp({ step }) end)
+                ns.Shopping.Track(s.add, { step })
+            end
             local capSign = reached and i == #road
             s.disc:Paint("well", capSign and "gold" or "lineStrong")
             s.level:SetTextColor(Style.Color(capSign and "gold" or "text"))
