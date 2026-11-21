@@ -252,6 +252,27 @@ Window.Page("build", function(page)
     nextCard.name:SetWordWrap(false)
     nextCard.sub = Style.Text(nextCard, 12, "muted")
     nextCard.sub:SetPoint("TOPLEFT", nextCard.name, "BOTTOMLEFT", 0, -6)
+    nextCard.sub:SetWidth(NEXT_W - 16 - 40 - 12 - 16)
+    nextCard.sub:SetJustifyH("LEFT")
+    nextCard.sub:SetWordWrap(false)
+    -- A build for 60's points in each tree: three boxes across the card, a number over the
+    -- tree's name, the main tree's number gold.
+    nextCard.trees = {}
+    local treeW = (NEXT_W - 32 - 16) / 3
+    for i = 1, 3 do
+        local t = CreateFrame("Frame", nil, nextCard)
+        t:SetSize(treeW, 44)
+        t:SetPoint("TOPLEFT", 16 + (i - 1) * (treeW + 8), -94)
+        Style.Box(t, 5, "titleBar", "line")
+        t.points = Style.Text(t, 17, "text", nil, true)
+        t.points:SetPoint("TOP", 0, -6)
+        t.name = Style.Text(t, 10, "muted")
+        t.name:SetPoint("BOTTOM", 0, 6)
+        t.name:SetWidth(treeW - 8)
+        t.name:SetWordWrap(false)
+        t:Hide()
+        nextCard.trees[i] = t
+    end
     nextCard.text = Style.Text(nextCard, 13, "secondary")
     nextCard.text:SetPoint("TOPLEFT", 16, -94)
     nextCard.text:SetWidth(NEXT_W - 32)
@@ -497,6 +518,9 @@ Window.Page("build", function(page)
                 Compat.After(1, function() if view:IsVisible() then Paint() end end)
             end
             nextCard.text:SetText(says)
+            nextCard.text:ClearAllPoints()
+            nextCard.text:SetPoint("TOPLEFT", 16, -94)
+            for _, t in ipairs(nextCard.trees) do t:Hide() end
             local tall = Style.Wide and nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
             if forSixty then
                 -- The build's name and where its points go, then what following it takes.
@@ -505,19 +529,33 @@ Window.Page("build", function(page)
                 nextCard.name:SetText(build.name or "")
                 local Goal = ns.GearGoal
                 local setName = ForYourSet(build) and Goal and select(2, Goal.SetKey())
-                nextCard.sub:SetText(setName and ("The talents WoWSims sims your %s set with"):format(setName)
-                    or ("WoWSims Forever's %s talents"):format(build.spec or ""))
+                -- Whole words that fit its line: a long set or spec name gives way to fewer words.
+                local room = NEXT_W - 16 - 40 - 12 - 16
+                local said = setName and ("Simmed with your %s set"):format(setName) or ("WoWSims' %s talents"):format(build.spec or "")
+                nextCard.sub:SetText(said)
+                if Style.Wide(nextCard.sub, #said * 6.5) > room then
+                    nextCard.sub:SetText(setName and "Simmed with your own set" or "WoWSims' talents for 60")
+                end
                 local _, _, treePoints = Tree.Replay(data, build.order or {})
-                local split = {}
-                for i, t in ipairs(data.trees) do split[#split + 1] = ("%d %s"):format(treePoints[i] or 0, t.name or "") end
+                local most = 0
+                for i = 1, 3 do most = math.max(most, treePoints[i] or 0) end
+                for i, t in ipairs(nextCard.trees) do
+                    local n, tree = treePoints[i] or 0, data.trees[i]
+                    t.points:SetText(n)
+                    t.points:SetTextColor(Style.Color((n > 0 and n == most) and "gold" or n > 0 and "text" or "muted"))
+                    t.name:SetText(tree and tree.name or "")
+                    t:SetShown(tree ~= nil)
+                end
                 local className = UnitClass("player") or ""
                 local how = following and ("%d of your points are where this build doesn't have them. Reset your talents at a %s trainer: then Learn %d puts every point where this build has them.")
                         :format(off, className:lower(), #kept)
                     or spent > 0 and ("Your %d points are in other talents. Follow this build, reset your talents at a %s trainer, and Learn %d puts them all where this build has them.")
                         :format(spent, className:lower(), #kept)
                     or ("Follow this build, and Learn puts your points where it has them.")
-                nextCard.text:SetText(table.concat(split, "  ·  ") .. "\n\n" .. how)
-                tall = nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0
+                nextCard.text:SetText(how)
+                nextCard.text:ClearAllPoints()
+                nextCard.text:SetPoint("TOPLEFT", 16, -(94 + 44 + 12))
+                tall = 44 + 12 + (nextCard.text.GetStringHeight and nextCard.text:GetStringHeight() or 0)
             end
             local h = 94 + (type(tall) == "number" and tall or 0) + 18
             -- Its foot: Learn, with how many points there are to spend; or, learned, what's next.
@@ -880,13 +918,14 @@ Window.Page("build", function(page)
         listHead.count:SetText(#builds)
         suggestHead.count:SetText(#suggested)
         raidHead.count:SetText(#raid)
-        local used, y = 0, 24
+        local used, y, chosenAt = 0, 24, nil
         local function Place(b)
             used = used + 1
             rows[used] = rows[used] or BuildRow()
             local row = rows[used]
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", 0, -y)
+            if b == build then chosenAt = y end
             y = y + ROW_H
             row.build = b
             row.name:SetText(b.name)
@@ -965,7 +1004,19 @@ Window.Page("build", function(page)
             listScroll.forClass = classID
             listScroll:SetVerticalScroll(0)
         end
+        -- While editing, the list ends above the editor's level-by-level strip, which runs the
+        -- page's width; out of it, it has the page's height. The build being edited stays in view.
+        local listH = height - BODY_TOP - (editing and LEVELS or 0)
+        listScroll:SetHeight(listH)
         listScroll:UpdateScrollChildRect()
+        if chosenAt then
+            local at = listScroll:GetVerticalScroll() or 0
+            if chosenAt < at then
+                listScroll:SetVerticalScroll(chosenAt)
+            elseif chosenAt + ROW_H > at + listH then
+                listScroll:SetVerticalScroll(math.min(listScroll:GetVerticalScrollRange() or 0, chosenAt + ROW_H - listH))
+            end
+        end
         listScroll:Place()
 
         view:SetShown(not editing)
