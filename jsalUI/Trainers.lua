@@ -84,11 +84,26 @@ local function Takes(trainer, skill)
 end
 Trainers.Takes = Takes
 
+-- Whether a trainer teaches a spell: by what players were seen to be taught by
+-- it, where it was opened (`teaches`, from EG Link); nil when that isn't known.
+local function Teaches(trainer, spell)
+    local list = trainer.teaches
+    if type(list) ~= "table" then return nil end
+    if not trainer.taught then
+        trainer.taught = {}
+        for _, id in ipairs(list) do trainer.taught[id] = true end
+    end
+    return trainer.taught[spell] == true
+end
+Trainers.Teaches = Teaches
+
 -- The nearest trainer for key ("class3" for hunters, "skill197" for
 -- tailoring), teaching at least rank (1 to 4) for a profession, and, given a
--- skill, one who takes a student at it. Returns the trainer ({ npc, name,
--- tag, map, x, y }) or nil.
-function Trainers.Nearest(key, rank, skill)
+-- skill, one who takes a student at it. Given a spell, a trainer players have
+-- opened must have been seen to teach it, whatever its title says; one never
+-- opened goes by its title. Returns the trainer ({ npc, name, tag, map, x, y })
+-- or nil.
+function Trainers.Nearest(key, rank, skill, spell)
     local list = ns.TrainerData and ns.TrainerData[key]
     if not list then return nil end
     local map, px, py = Compat.PlayerPosition()
@@ -106,7 +121,9 @@ function Trainers.Nearest(key, rank, skill)
     local plain = titled and 2 or PLAIN[key] or 4
     local best, bestDistance
     for _, t in ipairs(list) do
-        if Friendly(t) and (not rank or (TeachesRank(t.tag) or plain) >= rank) and Takes(t, skill) then
+        local seen = spell and Teaches(t, spell)
+        local fits = seen or (seen == nil and (not rank or (TeachesRank(t.tag) or plain) >= rank))
+        if Friendly(t) and fits and Takes(t, skill) then
             local continent, wx, wy = World(t.map, t.x, t.y)
             -- Another continent, or no position (an instance), counts as far.
             local d = 1e9
