@@ -698,6 +698,56 @@ function Style.Retip(frame)
     end
 end
 
+---------------------------------------------------------------------------
+-- jsal.ui's lines on an item's tooltip, wherever it shows (bags, loot,
+-- vendors, the auction house, a chat link): one section at the foot, under
+-- jsal.ui's mark and name, so it's plain where they come from; each part's
+-- lines in a set order, and none at all when no part has anything to say.
+-- A part adds itself with Style.ItemLines(order, fn): fn(lines, id, tooltip)
+-- puts its lines in `lines` with lines:AddLine(text, r, g, b, wrap), as on a
+-- tooltip. The game's compare tooltips (what you wear, beside the one you
+-- point at) get none.
+---------------------------------------------------------------------------
+Style.MARK = "|TInterface\\AddOns\\jsalUI\\Media\\Logo:14:14|t"
+local itemParts, itemHooked = {}, false
+
+local function ItemSection(tooltip, id)
+    if not (id and tooltip and tooltip.AddLine) then return end
+    if tooltip == ShoppingTooltip1 or tooltip == ShoppingTooltip2 then return end
+    local got = {}
+    local lines = { AddLine = function(_, text, r, g, b, wrap) got[#got + 1] = { text, r, g, b, wrap } end }
+    for _, part in ipairs(itemParts) do xpcall(part.fn, ns.Report, lines, id, tooltip) end
+    if #got == 0 then return end
+    local mr, mg, mb = Style.Color("muted")
+    tooltip:AddLine(" ")
+    tooltip:AddLine(Style.MARK .. " jsal.ui", mr, mg, mb)
+    for _, l in ipairs(got) do tooltip:AddLine(l[1], l[2], l[3], l[4], l[5]) end
+    if tooltip.Show then tooltip:Show() end
+end
+Style.ItemSection = ItemSection
+
+function Style.ItemLines(order, fn)
+    itemParts[#itemParts + 1] = { order = order, fn = fn }
+    table.sort(itemParts, function(a, b) return a.order < b.order end)
+    if itemHooked then return end
+    itemHooked = true
+    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
+        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
+            -- In a dungeon the item's ID can come hidden; a hidden one is nil here.
+            ItemSection(tooltip, Compat.Plain(data and data.id))
+        end)
+    elseif GameTooltip and GameTooltip.HookScript then
+        for _, tip in ipairs({ GameTooltip, ItemRefTooltip }) do
+            if tip then
+                tip:HookScript("OnTooltipSetItem", function(tooltip)
+                    local _, link = tooltip:GetItem()
+                    ItemSection(tooltip, link and tonumber(link:match("item:(%d+)")))
+                end)
+            end
+        end
+    end
+end
+
 function Style.ItemTip(frame, more, radius, pad)
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
