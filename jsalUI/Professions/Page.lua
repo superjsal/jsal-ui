@@ -597,7 +597,7 @@ Window.Page("professions", function(page)
             -- The step's crafts onto the shopping list, from the card's foot.
             local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
             card.add:SetShown(shop and true or false)
-            card.add:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
+            card.add:SetScript("OnClick", function() ns.Shopping.TopUp({ first }) end)
         end
 
         -- The right card: everything the road needs, the biggest shortfall
@@ -635,7 +635,7 @@ Window.Page("professions", function(page)
             local shop = ns.Shopping and ns.Shopping.running and #crafting > 0
             addRoad:SetShown(shop and true or false)
             addRoad:SetScript("OnClick", function()
-                for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
+                ns.Shopping.TopUp(crafting)
             end)
             local tall = 7 + math.ceil(shown / 2) * NEED_H + 7 + 34
             needBox:SetHeight(tall)
