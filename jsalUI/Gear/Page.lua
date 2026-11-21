@@ -122,7 +122,7 @@ local function SourceFilter(list, listW, top, Repaint)
         self.count:SetText(#options == 0 and "" or #shown < #options and ("%d of %d upgrade%s"):format(#shown, #options, s)
             or ("%d upgrade%s"):format(#options, s))
         self.row:SetShown(#options > 0)
-        local x = 0
+        local showing = {}
         for _, b in ipairs(self.chips) do
             local all = b.key == "all"
             local n = all and #options or counts[b.key] or 0
@@ -133,16 +133,37 @@ local function SourceFilter(list, listW, top, Repaint)
             b:SetShown(show)
             if show then
                 b.countText:SetText(tostring(n))
-                local w = math.floor(Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) + 12 + 0.5)
-                b:SetWidth(w)
-                b:ClearAllPoints()
-                b:SetPoint("TOPLEFT", x, 0)
                 b:SetSelected(on)
                 b.kindText:SetTextColor(Style.Color(on and "text" or "secondary"))
                 b.countText:SetTextColor(Style.Color(on and "gold" or "muted"))
-                x = x + w + 5
+                showing[#showing + 1] = b
             end
         end
+        -- Whole chips within the row: as they are while they fit; else closer together, then
+        -- a little narrower inside; then on as many rows as they take.
+        local room = self.row:GetWidth() or 0
+        local function Inner(b) return Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) end
+        local function Total(gap, pad)
+            local total = 0
+            for _, b in ipairs(showing) do total = total + math.floor(Inner(b) + pad * 2 + 0.5) end
+            return total + gap * math.max(0, #showing - 1)
+        end
+        local gap, pad = 5, 6
+        if Total(gap, pad) > room then gap = 3 end
+        if Total(gap, pad) > room then pad = 4 end
+        local x, y, lines = 0, 0, 1
+        for _, b in ipairs(showing) do
+            local w = math.floor(Inner(b) + pad * 2 + 0.5)
+            if x > 0 and x + w > room then x, y, lines = 0, y - (FILTER_H - 4), lines + 1 end
+            b:SetWidth(w)
+            b:ClearAllPoints()
+            b:SetPoint("TOPLEFT", x, y)
+            b.kindText:SetPoint("LEFT", pad, 0)
+            b.countText:SetPoint("RIGHT", -pad, 0)
+            x = x + w + gap
+        end
+        self.lines = lines
+        self.row:SetHeight(FILTER_H - 8 + (lines - 1) * (FILTER_H - 4))
         return shown
     end
     return F
@@ -494,7 +515,8 @@ Window.Page("gear", function(page)
     -- thin bar on the right when there are more than fit.
     local ADD_H = 58
     local OPT_TOP = 18 + ROW_H + 14 + FILTER_H + 18 + 6
-    local VIEW_H = (height - top - FOOT) - OPT_TOP - ADD_H
+    local FULL_H = (height - top - FOOT) - OPT_TOP - ADD_H
+    local VIEW_H = FULL_H
     local scroll, optList = Style.Scroller(list, listW, VIEW_H, nil, 0, OPT_H + OPT_GAP)
     scroll:SetPoint("TOPLEFT", 0, -OPT_TOP)
 
@@ -812,7 +834,12 @@ Window.Page("gear", function(page)
         wornRow:Show()
         -- The upgrades of the kinds chosen; the chips and the count are painted with them.
         local options = filter:Show(plan.options)
-        cols:SetShown(#options > 0)
+        -- Chips on a second row push what's under them down by it, and the view is that much shorter.
+        local extra = ((filter.lines or 1) - 1) * (FILTER_H - 4)
+        cols:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 14 + FILTER_H + extra))
+        scroll:SetPoint("TOPLEFT", 0, -(OPT_TOP + extra))
+        VIEW_H = FULL_H - extra
+        scroll:SetHeight(VIEW_H)
         local shown = 0
         local top = G.Top(plan)
         for i, o in ipairs(options) do
@@ -864,7 +891,7 @@ Window.Page("gear", function(page)
         scroll:Place()
         empty:ClearAllPoints()
         -- Under the chips, when the slot has upgrades and the chips hide them all.
-        empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16 + (#plan.options > 0 and FILTER_H or 0)))
+        empty:SetPoint("TOPLEFT", 14, -(18 + ROW_H + 16 + (#plan.options > 0 and (FILTER_H + extra) or 0)))
         if shown == 0 then
             empty:SetText(plan.twoHand and "Your two-hander takes both hands, so nothing goes in the off hand. Wear a one-handed weapon to see what could."
                 or #plan.options > 0 and ("None of this slot's upgrades is of a kind you've chosen: %d hidden. Click All to see everything."):format(#plan.options)
