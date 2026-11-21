@@ -47,6 +47,24 @@ function Shopping.AddCraft(spell, count)
     Shopping.Open(true)
 end
 
+-- Steps of a profession's road onto the list: each recipe is raised to what
+-- the steps given need of it, summed where one recipe makes two steps, and
+-- left as it is where the list already has that many or more. So the step
+-- in hand and then the whole road, or either one twice, list each craft
+-- once, and a count raised by hand is kept. The list opens once.
+function Shopping.TopUp(steps)
+    local want = {}
+    for _, step in ipairs(steps) do
+        local spell = step.recipe.spell
+        want[spell] = (want[spell] or 0) + math.max(1, math.floor(tonumber(step.crafts) or 1))
+    end
+    local crafts = List().crafts
+    for spell, count in pairs(want) do
+        crafts[spell] = math.max(crafts[spell] or 0, count)
+    end
+    Shopping.Open(true)
+end
+
 function Shopping.AddItem(item, count)
     count = math.max(1, math.floor(tonumber(count) or 1))
     local items = List().items

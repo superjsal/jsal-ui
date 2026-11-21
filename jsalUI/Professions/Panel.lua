@@ -742,7 +742,7 @@ function Paint()
             -- The step's crafts onto the shopping list, from the card's foot.
             local shop = ns.Shopping and ns.Shopping.running and not recipe.vein
             card.add:SetShown(shop and true or false)
-            card.add:SetScript("OnClick", function() ns.Shopping.AddCraft(recipe.spell, first.crafts) end)
+            card.add:SetScript("OnClick", function() ns.Shopping.TopUp({ first }) end)
         elseif panel.card then
             panel.card:Hide()
         end
@@ -875,7 +875,7 @@ function Paint()
                     panel.addRoad:SetHeight(26)
                 end
                 panel.addRoad:SetScript("OnClick", function()
-                    for _, step in ipairs(crafting) do ns.Shopping.AddCraft(step.recipe.spell, step.crafts) end
+                    ns.Shopping.TopUp(crafting)
                 end)
                 PlaceRight(panel.addRoad, y + 1)
             elseif panel.addRoad then
