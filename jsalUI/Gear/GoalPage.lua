@@ -1090,6 +1090,11 @@ function Gear.GoalView(page, width, height)
             return "Looking that item up... press Add again in a moment."
         end
         if not fits then return "That doesn't go in this slot." end
+        -- A ring or trinket worn only once can't be in both places of the pair.
+        local other = ({ [11] = 12, [12] = 11, [13] = 14, [14] = 13 })[chosen]
+        if other and Gear.Unique and Gear.Unique(id) and Current()[other] == id then
+            return ("That can be worn only once, and it's in your set's other %s slot already."):format(chosen <= 12 and "ring" or "trinket")
+        end
         Use(id)
     end
     local function Sets(what, key, words)
