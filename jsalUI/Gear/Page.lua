@@ -135,27 +135,43 @@ local function SourceFilter(list, listW, top, Repaint)
                 showing[#showing + 1] = b
             end
         end
-        -- Whole chips within the row: as they are while they fit; else closer together, then
-        -- a little narrower inside; then on as many rows as they take.
+        -- Whole chips within the row. While they fit, as they are. A row a little too long closes
+        -- up only by what it's over: off the gaps first (evenly, none under 3), then off the
+        -- chips' insides (evenly, none under 4 a side), so it ends at the row's right edge. One
+        -- that can't fit even then takes as many rows as it needs, as roomy as ever.
         local room = self.row:GetWidth() or 0
-        local function Inner(b) return Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8) end
-        local function Total(gap, pad)
-            local total = 0
-            for _, b in ipairs(showing) do total = total + math.floor(Inner(b) + pad * 2 + 0.5) end
-            return total + gap * math.max(0, #showing - 1)
+        local n = #showing
+        local inner, natural = {}, 0
+        for i, b in ipairs(showing) do
+            inner[i] = Style.Wide(b.kindText, #b.word * 7) + 3 + Style.Wide(b.countText, 8)
+            natural = natural + inner[i] + 12
         end
-        local gap, pad = 5, 6
-        if Total(gap, pad) > room then gap = 3 end
-        if Total(gap, pad) > room then pad = 4 end
+        natural = natural + 5 * math.max(0, n - 1)
+        local gap, pad, wrap = 5, 6, false
+        local over = natural - room
+        if over > 0 then
+            local fromGaps = math.min(over, 2 * math.max(0, n - 1))
+            local fromPads = over - fromGaps
+            if fromPads > 4 * n then
+                wrap = true
+            else
+                if n > 1 then gap = 5 - fromGaps / (n - 1) end
+                pad = 6 - fromPads / (2 * n)
+            end
+        end
+        -- Each chip's edges on whole pixels: where it starts and ends worked out exactly, then each
+        -- rounded, so the row still ends within half a pixel of where it should.
+        local Round = function(v) return math.floor(v + 0.5) end
         local x, y, lines = 0, 0, 1
-        for _, b in ipairs(showing) do
-            local w = math.floor(Inner(b) + pad * 2 + 0.5)
-            if x > 0 and x + w > room then x, y, lines = 0, y - (FILTER_H - 4), lines + 1 end
-            b:SetWidth(w)
+        for i, b in ipairs(showing) do
+            local w = inner[i] + pad * 2
+            if wrap and x > 0 and x + w > room then x, y, lines = 0, y - (FILTER_H - 4), lines + 1 end
+            local left = Round(x)
+            b:SetWidth(Round(x + w) - left)
             b:ClearAllPoints()
-            b:SetPoint("TOPLEFT", x, y)
-            b.kindText:SetPoint("LEFT", pad, 0)
-            b.countText:SetPoint("RIGHT", -pad, 0)
+            b:SetPoint("TOPLEFT", left, y)
+            b.kindText:SetPoint("LEFT", Round(pad), 0)
+            b.countText:SetPoint("RIGHT", -Round(pad), 0)
             x = x + w + gap
         end
         self.lines = lines
