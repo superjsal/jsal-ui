@@ -160,14 +160,48 @@ function Gear.Tidy(equipSlot)
 end
 
 ---------------------------------------------------------------------------
--- The gold line on a starred item's tooltip, wherever it shows.
+-- On an item's tooltip, wherever it shows: how much better it is than what
+-- you wear where it goes, and the gold line on a starred one.
 ---------------------------------------------------------------------------
+-- jsal.ui's mark, small enough to sit in a line, so the share says whose it is.
+Gear.MARK = "|TInterface\\AddOns\\jsalUI\\Media\\Logo:14:14|t"
+
+-- What a piece adds over what you wear where it goes, as its Gear plan row
+-- says it ("+5%"): the plan's own row for it where it has one, else what the
+-- plan would make of it, a ring or trinket against the weaker of yours. Nil
+-- when it isn't better, is what you wear, isn't for you, or isn't loaded.
+-- From what's already known: nothing is asked of the game for it.
+function Gear.TooltipShare(id)
+    local instant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    if not (id and instant) then return nil end
+    local _, _, _, equipLoc, _, classID, subclassID = instant(id)
+    if not equipLoc or equipLoc == "" then return nil end
+    local better, share = Gear.Better(id, equipLoc, classID, subclassID, true)
+    if better == nil then return nil end
+    local slot = Gear.SlotOf(Gear.INVTYPE[equipLoc] or 0)
+    local plan = slot and Gear.SlotPlan(slot, true)
+    for _, o in ipairs(plan and plan.options or {}) do
+        if o.id == id then better, share = o.better, o.share break end
+    end
+    return better == true and Gear.ShareText(share) or nil
+end
+
+-- The game's compare tooltips (what you wear, beside the one you point at) get no line.
+local function Compare(tooltip)
+    return tooltip == ShoppingTooltip1 or tooltip == ShoppingTooltip2
+end
+
 function Gear.TooltipLines(tooltip, id)
-    if not (id and Gear.Starred()[id] and tooltip and tooltip.AddLine) then return end
-    tooltip:AddLine(Gear.STAR .. " Starred in your gear plan", 0.89, 0.69, 0.29)
-    local line = Gear.StarLine(id)
-    if line then tooltip:AddLine(line, 0.89, 0.69, 0.29, true) end
-    if tooltip.Show then tooltip:Show() end
+    if not (id and tooltip and tooltip.AddLine) or Compare(tooltip) then return end
+    local share = Gear.TooltipShare(id)
+    if share then tooltip:AddLine(Gear.MARK .. " " .. ns.Style.Tint("green") .. share .. "|r") end
+    local starred = Gear.Starred()[id]
+    if starred then
+        tooltip:AddLine(Gear.STAR .. " Starred in your gear plan", 0.89, 0.69, 0.29)
+        local line = Gear.StarLine(id)
+        if line then tooltip:AddLine(line, 0.89, 0.69, 0.29, true) end
+    end
+    if (share or starred) and tooltip.Show then tooltip:Show() end
 end
 
 local hooked = false
@@ -179,7 +213,8 @@ local function HookTooltips()
     end
     if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
-            Lines(tooltip, data and data.id)
+            -- In a dungeon the item's ID can come hidden; a hidden one is nil here.
+            Lines(tooltip, ns.Compat.Plain(data and data.id))
         end)
     elseif GameTooltip and GameTooltip.HookScript then
         for _, tip in ipairs({ GameTooltip, ItemRefTooltip }) do

@@ -259,7 +259,9 @@ local function Mark(id)
         tries[id] = (tries[id] or 0) + 1
     end
 end
-local function Stats(item)
+-- `quiet`: never ask the game to load the item (for a tooltip, which shows
+-- only what's loaded).
+local function Stats(item, quiet)
     if type(item) == "number" and (statsOf[item] or Waiting(item) or Gear.GivenUp(item)) then return statsOf[item] end
     local get = (C_Item and C_Item.GetItemStats) or GetItemStats
     if not get then return nil end
@@ -273,7 +275,7 @@ local function Stats(item)
         if type(item) == "number" then statsOf[item] = out end
         return out
     end
-    if type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
+    if not quiet and type(item) == "number" and C_Item and C_Item.RequestLoadItemDataByID then
         Mark(item)
         C_Item.RequestLoadItemDataByID(item)
     end
@@ -358,13 +360,24 @@ function Gear.Losses(stats, worn, weights, dpsKey)
     return Changes(stats, worn, weights, dpsKey, -1)
 end
 
--- A plan's best upgrade: its first option that's better than what you wear. A
--- piece you starred, added or carry comes first whatever it scores, and was
--- tagged "best for you" for it.
+-- A plan's first upgrade: its first option that's better than what you
+-- wear. A piece you starred, added or carry comes first whatever it scores,
+-- so this is the one to see to first, for the slot's line.
 function Gear.Best(plan)
     for _, o in ipairs(plan and plan.options or {}) do
         if o.better then return o end
     end
+end
+
+-- A plan's best upgrade for you: the option better than what you wear that
+-- adds the most, the first of those in the list on a tie. The one tagged
+-- "best for you", wherever the list puts it.
+function Gear.Top(plan)
+    local top
+    for _, o in ipairs(plan and plan.options or {}) do
+        if o.better and (not top or (o.share or 0) > (top.share or 0)) then top = o end
+    end
+    return top
 end
 
 ---------------------------------------------------------------------------
@@ -818,7 +831,7 @@ function Gear.WornTotal(weights)
     return total
 end
 
-function Gear.Better(id, equipLoc, classID, subclassID)
+function Gear.Better(id, equipLoc, classID, subclassID, quiet)
     local invType = Gear.INVTYPE[equipLoc or ""]
     local slot = invType and Gear.SlotOf(invType)
     if not slot then return nil end
@@ -828,7 +841,7 @@ function Gear.Better(id, equipLoc, classID, subclassID)
     -- Nothing goes in the off hand under a two-hander.
     if slot.key == "off" and Gear.TwoHander() then return false end
     local weights = Gear.Weights()
-    local stats = weights and Stats(id)
+    local stats = weights and Stats(id, quiet)
     if not stats then return nil end
     for _, equip in ipairs(slot.equip) do
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)

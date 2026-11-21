@@ -579,6 +579,11 @@ Window.Page("gear", function(page)
         local wide = r.best.text.GetStringWidth and r.best.text:GetStringWidth()
         r.best:SetSize(((type(wide) == "number" and wide > 0) and wide or 64) + 16, 18)
         r.best:Hide()
+        -- A piece in your bags that's better but isn't the best says so, quietly, in the
+        -- same place: put it on while you go for the best.
+        r.wear = Style.Tag(r, "wear it now", "green", true)
+        r.wear:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
+        r.wear:Hide()
         -- Where it's from, in a column of its own: how it's got, over
         -- where or from whom.
         r.how = Style.Text(r, 12, "text")
@@ -594,9 +599,10 @@ Window.Page("gear", function(page)
         r.level = Style.Text(r, 13, "secondary")
         r.level:SetPoint("RIGHT", -(46 + GAIN_W + 12), 0)
         r.level:SetJustifyH("RIGHT")
-        -- The name sits in the middle of the card, or over the tag.
+        -- The name sits in the middle of the card, or over its tag: "best" or "wear".
         function r:Named(tagged)
-            self.best:SetShown(tagged and true or false)
+            self.best:SetShown(tagged == "best")
+            self.wear:SetShown(tagged == "wear")
             self.name:ClearAllPoints()
             if tagged then
                 self.name:SetPoint("TOPLEFT", self.box, "TOPRIGHT", 10, 1)
@@ -819,6 +825,7 @@ Window.Page("gear", function(page)
         local options = filter:Show(plan.options)
         cols:SetShown(#options > 0)
         local shown = 0
+        local top = G.Top(plan)
         for i, o in ipairs(options) do
             local r = Row(i + 1)
             r:ClearAllPoints()
@@ -832,9 +839,10 @@ Window.Page("gear", function(page)
             r.how:SetText(how)
             r.where:SetText(place)
             r.level:SetText(needs)
-            -- The tag is the plan's best upgrade, which the chips may have hidden; a piece
-            -- you starred or carry comes first whatever it scores, and isn't tagged for it.
-            r:Named(o == G.Best(plan))
+            -- The gold tag is the plan's best upgrade, the most it adds, which the chips may
+            -- have hidden; a piece you starred or carry comes first whatever it scores. One you
+            -- carry that's better and isn't that one says to wear it now; a star says the rest.
+            r:Named((o == top and "best") or ((o.held and o.better and not o.starred) and "wear") or nil)
             -- With no second line, how it's got sits in the middle too.
             r.how:ClearAllPoints()
             r.how:SetPoint("TOPLEFT", WHERE_X, place ~= "" and -10 or -19)
