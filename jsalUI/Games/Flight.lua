@@ -47,6 +47,8 @@ end
 -- flight-speed bonus the bar doesn't see is a sixth off, which is outside it.
 -- Two flights of a route within a couple of seconds are averaged; further
 -- apart, the shorter stands, as a landing can be noticed late but never early.
+-- Guildmates' times are kept apart, and used for a route only until it's
+-- flown here.
 local KEPT_MOST, KEY_MOST = 300, 40   -- routes kept; the longest key kept
 local NEAR, AGREE = 0.12, 2           -- how far off the worked-out time; seconds apart that agree
 local LANDED_NEAR = 0.02              -- how near its flight point on the map a landing is
@@ -67,17 +69,22 @@ local function RouteKey(nodes, hops)
     return #key <= KEY_MOST and key or nil
 end
 
-local function Routes()
+local function Routes(part)
     local t = ns.db.flightTimes
-    return type(t) == "table" and type(t.own) == "table" and t.own or nil
+    return type(t) == "table" and type(t[part]) == "table" and t[part] or nil
 end
 
--- A kept route's flying seconds at normal speed, while it's still close to
--- what its legs work out at.
+local function Tenths(part, key)
+    local list = Routes(part)
+    local tenths = list and list[key]
+    return type(tenths) == "number" and tenths > 0 and tenths or nil
+end
+
+-- A kept route's flying seconds at normal speed, this account's own or else a
+-- guildmate's, while it's still close to what its legs work out at.
 local function Kept(key, yards)
-    local own = key and yards and Routes()
-    local tenths = own and own[key]
-    if type(tenths) ~= "number" or tenths <= 0 then return nil end
+    local tenths = key and yards and (Tenths("own", key) or Tenths("heard", key))
+    if not tenths then return nil end
     local seconds, worked = tenths / 10, yards / Speed()
     if math.abs(seconds - worked) / worked > NEAR then return nil end
     return seconds
@@ -93,24 +100,32 @@ local function Arrived(flight)
     return (x - dest[2]) ^ 2 + (y - dest[3]) ^ 2 <= LANDED_NEAR ^ 2
 end
 
-local function KeepTime(flight, seconds)
-    if not (flight.key and flight.yards) or Compat.Dead() or not Arrived(flight) then return end
-    local flying = (seconds - (flight.stops or 0)) * (flight.bonus or 1)
-    local worked = flight.yards / Speed()
-    if flying <= 0 or math.abs(flying - worked) / worked > NEAR then return end
+-- Puts a route's flying seconds into the account's own times or the ones
+-- heard, settled against what's there already. False when it's too far off
+-- what the legs work out at.
+local function Settle(part, key, flying, yards)
+    local worked = yards / Speed()
+    if flying <= 0 or math.abs(flying - worked) / worked > NEAR then return false end
     local t = type(ns.db.flightTimes) == "table" and ns.db.flightTimes or {}
-    local own = type(t.own) == "table" and t.own or {}
-    local before = type(own[flight.key]) == "number" and own[flight.key] / 10 or nil
+    local list = type(t[part]) == "table" and t[part] or {}
+    local before = type(list[key]) == "number" and list[key] / 10 or nil
     if before then
         flying = math.abs(flying - before) <= AGREE and (flying + before) / 2 or math.min(flying, before)
     else
         local count = 0
-        for _ in pairs(own) do count = count + 1 end
-        if count >= KEPT_MOST then own[next(own)] = nil end
+        for _ in pairs(list) do count = count + 1 end
+        if count >= KEPT_MOST then list[next(list)] = nil end
     end
-    own[flight.key] = math.floor(flying * 10 + 0.5)
-    t.own = own
+    list[key] = math.floor(flying * 10 + 0.5)
+    t[part] = list
     ns.db.flightTimes = t
+    return true
+end
+
+local function KeepTime(flight, seconds)
+    if not (flight.key and flight.yards) or Compat.Dead() or not Arrived(flight) then return end
+    local flying = (seconds - (flight.stops or 0)) * (flight.bonus or 1)
+    if Settle("own", flight.key, flying, flight.yards) then ns.db.flightTimes.last = flight.key end
 end
 
 -- A leg's path in the game's tables, and the yards its end saves when the
@@ -467,6 +482,34 @@ local function OnTakeTaxi(slot)
         dest = map and to.x and to.y and { map, to.x, to.y } or nil,
     }
     WaitForTakeoff(pending, 1)
+end
+
+-- The route this account flew last and its time, as "A43.6.2.19=6594", for
+-- the guild message that tells guildmates how today's games went; "" when
+-- there's none. Only this account's own flights, at normal speed.
+function Flight.Shared()
+    local t = ns.db.flightTimes
+    local key = type(t) == "table" and t.last
+    local tenths = type(key) == "string" and Tenths("own", key)
+    return tenths and (key .. "=" .. tenths) or ""
+end
+
+-- A guildmate's route and time, as Shared gives it: kept for a route this
+-- account hasn't flown, of its own faction, close to what its legs work out at.
+function Flight.Heard(text)
+    text = Compat.Plain(text)
+    if not Flight.running or type(text) ~= "string" or #text > KEY_MOST + 8 then return end
+    local key, tenths = text:match("^(%u[%d%.]+)=(%d+)$")
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    if not key or type(faction) ~= "string" or key:sub(1, 1) ~= faction:sub(1, 1) or Tenths("own", key) then return end
+    local nodes, hops = {}, {}
+    for id in key:sub(2):gmatch("[^%.]+") do
+        nodes[#nodes + 1] = { id = tonumber(id) }
+        if #nodes > 1 then hops[#hops + 1] = { #nodes - 1, #nodes } end
+    end
+    if RouteKey(nodes, hops) ~= key then return end
+    local yards = Legs(nodes, hops)
+    if yards then Settle("heard", key, tonumber(tenths) / 10, yards) end
 end
 
 -- Games finished mid-flight show as done on the bar.

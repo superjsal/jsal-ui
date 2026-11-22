@@ -294,22 +294,24 @@ function Guild.Members()
 end
 
 -- How today's games went, without a letter of any word, for the tooltip of a guildmate's row
--- on the Games page: "day;daily word grid;icon guess marks;guild word ID;guild word grid".
+-- on the Games page: "day;daily word grid;icon guess marks;guild word ID;guild word grid",
+-- then, when there is one, the last flight route this account timed ("A43.6.2.19=6594", the flight bar's).
 -- A grid is a row a guess of r, n and x (right, near, miss), the rows joined by dots; the
 -- marks are a 1 or 0 an icon. Its own message, so the scores' message keeps its room.
 local function Details()
     local word = Guild.Word()
+    local route = ns.Flight and ns.Flight.Shared and ns.Flight.Shared() or ""
     return table.concat({
         ns.Games and ns.Games.Today() or 0,
         ns.DailyWord and ns.DailyWord.Marks and ns.DailyWord.Marks() or "",
         ns.IconGuess and ns.IconGuess.Marks and ns.IconGuess.Marks() or "",
         word and word.id or 0,
         word and ns.DailyWord and ns.DailyWord.GuildMarks and ns.DailyWord.GuildMarks(word) or "",
-    }, ";")
+    }, ";") .. (route ~= "" and (";" .. route) or "")
 end
 
 local function HeardDetails(payload, name)
-    local day, word, icons, guildID, guild = strsplit(";", payload or "")
+    local day, word, icons, guildID, guild, route = strsplit(";", payload or "")
     local m = members[name]
     if not m then
         m = { seen = GetTime() }
@@ -321,6 +323,7 @@ local function HeardDetails(payload, name)
     m.iconMarks = type(icons) == "string" and #icons <= 10 and icons:match("^[01]+$") and icons or nil
     m.guildMarksID = tonumber(guildID)
     m.guildMarks = Grid(guild)
+    if ns.Flight and ns.Flight.Heard then ns.Flight.Heard(route) end
     Keep(name, m)
     Window.Refresh()
 end
