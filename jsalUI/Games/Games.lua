@@ -195,6 +195,7 @@ function Games.GuildToday()
             wordMarks = m.marksDay == today and m.wordMarks or nil,
             iconMarks = m.marksDay == today and m.iconMarks or nil,
             guildMarks = gw and m.guildMarksID == gw.id and m.guildMarks or nil,
+            person = m.person, seen = m.seen,
         }
         if e and (e.on or e.word or e.icons or e.run or e.guild) then list[#list + 1] = e end
     end
@@ -214,7 +215,9 @@ function Games.GuildToday()
         wordMarks = dw and dw.Marks and Marks(dw.Marks()) or nil,
         iconMarks = ig and ig.Marks and Marks(ig.Marks()) or nil,
         guildMarks = gw and dw and dw.GuildMarks and Marks(dw.GuildMarks(gw)) or nil,
+        person = guild.Person and guild.Person() or nil,
     }
+    list = Games.OneRowAPerson(list)
     local function Rank(e)
         if not e.word then return 99 end
         return e.word == "X" and 7 or tonumber(e.word) or 98
@@ -224,6 +227,46 @@ function Games.GuildToday()
         return a.name < b.name
     end)
     return list
+end
+
+-- One row a person: characters carrying one account's number are one row, named for yours, else the one
+-- on now, else the one heard from last. A game's result is the row's own where it has one, else the first
+-- of the others' (every game keeps a day's result for the account, so they agree). Characters with no
+-- number (a guildmate on an older version) stay a row each.
+local RESULTS = { { "word", "wordMarks" }, { "icons", "iconMarks" }, { "run", "pal" }, { "guild", "guildMarks" } }
+function Games.OneRowAPerson(list)
+    local groups, order = {}, {}
+    for _, e in ipairs(list) do
+        local key = e.person or e
+        if not groups[key] then
+            groups[key] = {}
+            order[#order + 1] = key
+        end
+        local g = groups[key]
+        g[#g + 1] = e
+    end
+    local out = {}
+    for _, key in ipairs(order) do
+        local g = groups[key]
+        if #g > 1 then
+            table.sort(g, function(a, b)
+                if (a.mine or false) ~= (b.mine or false) then return a.mine == true end
+                if (a.on or false) ~= (b.on or false) then return a.on == true end
+                if (a.seen or 0) ~= (b.seen or 0) then return (a.seen or 0) > (b.seen or 0) end
+                return a.name < b.name
+            end)
+            local lead = g[1]
+            for i = 2, #g do
+                for _, fields in ipairs(RESULTS) do
+                    if lead[fields[1]] == nil and g[i][fields[1]] ~= nil then
+                        for _, f in ipairs(fields) do lead[f] = g[i][f] end
+                    end
+                end
+            end
+        end
+        out[#out + 1] = g[1]
+    end
+    return out
 end
 
 -- A guildmate's day, shown beside their row on the Games page while it's pointed at: their name,
