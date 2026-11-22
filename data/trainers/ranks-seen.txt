@@ -18,6 +18,7 @@
 3001|Brek Stonehoof|4|Artisan Mining
 3007|Una|3|Expert Leatherworking
 3008|Mak|1|Apprentice Leatherworking
+3013|Komin Winterhoof|1|Apprentice Herbalism
 3026|Aska Mistrunner|2|Journeyman Cook
 3028|Kah Mistrunner|2|Journeyman Fishing
 3087|Crystal Boughman|2|Journeyman Cook
@@ -26,8 +27,9 @@
 3185|Mishiki|2|Journeyman Herbalism
 3191|Cook Torka|1|Apprentice Cook
 3345|Godan|2|Journeyman Enchanting
+3347|Yelmak|2|Journeyman Alchemist
 3355|Saru Steelfury|3|Expert Blacksmith
-3357|Makaru|2|Journeyman Mining
+3357|Makaru|4|Artisan Mining
 3363|Magar|2|Journeyman Tailoring
 3365|Karolek|2|Journeyman Leatherworking
 3373|Arnok|2|Journeyman First Aid
@@ -39,13 +41,17 @@
 3605|Nadyia Maneweaver|1|Apprentice Leatherworking
 3704|Mahani|2|Journeyman Tailoring
 3967|Aayndia Floralwind|2|Journeyman Leatherworking
+4212|Telonis|3|Expert Leatherworking
 4552|Eunice Burch|2|Journeyman Cook
 4573|Armand Cromwell|1|Apprentice Fishing
 4576|Josef Gregorian|3|Expert Tailoring
 4586|Graham Van Talen|1|Apprentice Engineer
 4591|Mary Edras|2|Journeyman First Aid
-4598|Brom Killian|4|Artisan Mining
+4596|James Van Brunt|2|Journeyman Blacksmith
+4598|Brom Killian|2|Journeyman Mining
 4605|Basil Frye|1|Apprentice Blacksmith
+4609|Doctor Marsh|2|Journeyman Alchemist
+4611|Doctor Herbert Halsey|3|Expert Alchemist
 4614|Martha Alliestar|1|Apprentice Herbalism
 4616|Lavinia Crowe|2|Journeyman Enchanting
 5482|Stephen Ryback|2|Journeyman Cook
@@ -68,30 +74,42 @@
 7087|Killian Hagey|3|Expert Skinning
 7088|Thuwd|4|Artisan Skinning
 7089|Mooranta|4|Artisan Skinning
+8128|Pikkle|4|Artisan Mining
 8144|Kulleg Stonehorn|4|Artisan Skinning
 8306|Duhng|2|Journeyman Cook
 11025|Mukdrak|1|Apprentice Engineer
 11026|Sprite Jumpsprocket|1|Apprentice Engineer
 11028|Jemma Quikswitch|1|Apprentice Engineer
+11031|Franklin Lloyd|2|Journeyman Engineer
+11046|Whuut|1|Apprentice Alchemist
+11047|Kray|1|Apprentice Alchemist
 11048|Victor Ward|1|Apprentice Tailoring
 11049|Rhiannon Davis|2|Journeyman Tailoring
 11066|Jhag|1|Apprentice Enchanting
 11067|Malcomb Wynn|1|Apprentice Enchanting
 11068|Betty Quin|1|Apprentice Enchanting
 11074|Hgarth|3|Expert Enchanting
+11081|Faldron|2|Journeyman Leatherworking
 11084|Tarn|2|Journeyman Leatherworking
 11096|Randal Worth|1|Apprentice Leatherworking
+12032|Lui'Mala|2|Journeyman Fishing
 247223|Nancy Songflower|1|Apprentice Herbalism
 247226|Kelsey Fargo|1|Apprentice Mining
 247227|Riley Peltskinner|1|Apprentice Skinning
-251905|Zerril Softbreeze|1|Apprentice Cook
+251905|Zerril Softbreeze|2|Journeyman Cook
+251992|Fenn Fairweather|2|Journeyman Fishing
 251993|Indari Sunseam|1|Apprentice Leatherworking
+252376|Emerii Tallgust|2|Journeyman Leatherworking
 256655|Gorg|2|Journeyman Cook
-257008|Baelann Swiftcurrent|1|Apprentice Fishing
+256658|Gur'dok|1|Apprentice Blacksmith
+257003|Ishlee Breezewhisper|2|Journeyman Skinning
+257006|Nyalah Brightfire|2|Journeyman Cook
+257007|Melasa Fairmend|2|Journeyman First Aid
+257008|Baelann Swiftcurrent|2|Journeyman Fishing
 257018|Naleeia Tattermend|2|Journeyman First Aid
 257019|Nyassa Swiftdraught|1|Apprentice Alchemist
 257021|Halassa Fernbreeze|1|Apprentice Herbalism
-257024|Mendalass Tattermend|3|Expert Skinning
+257024|Mendalass Tattermend|2|Journeyman Skinning
 260558|Krix|2|Journeyman Fishing
 265944|William Pickman|1|Apprentice Cook
 266881|Pa'zula|1|Apprentice Enchanting
