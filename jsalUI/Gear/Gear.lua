@@ -877,7 +877,8 @@ Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
 Gear.RETRY = RETRY
-function Gear.SlotPlan(slot, lazy, only)
+-- The plans kept now, with the moment: a fresh set when what they're made from has changed.
+local function KeptNow()
     if Gear.bagsMoved then
         Gear.bagsMoved = nil
         local wearable = Gear.BagsWearable()
@@ -893,12 +894,63 @@ function Gear.SlotPlan(slot, lazy, only)
         kept = { at = now, stamp = Gear.planStamp, level = level }
         Gear.slotPlans = kept
     end
+    return kept, now
+end
+-- A place's plan's name among the kept ones: the slot's own, or one place of a pair's.
+local function PlaceKey(slot, only)
     if only and #slot.equip < 2 then only = nil end
-    local key = only and (slot.key .. ":" .. only) or slot.key
+    return only and (slot.key .. ":" .. only) or slot.key, only
+end
+-- Whether a kept plan is to be made again: it's waiting on items, and one of them has come or
+-- they can be asked for again.
+local function Due(plan, now)
+    return (plan.waiting or 0) > 0 and plan.madeAt ~= now
+        and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY)
+end
+
+-- A place's plan as it's kept, making nothing: nil when there's none yet, and true beside it when
+-- it's to be made again. For a page that works its places out a few a frame.
+function Gear.KeptPlan(slot, only)
+    local kept, now = KeptNow()
+    local plan = kept[(PlaceKey(slot, only))]
+    if not plan then return nil end
+    return plan, Due(plan, now)
+end
+
+-- What a place shows before its plan is made: what you wear there, and still checking; the off
+-- hand under a two-hander, that it's taken, as its plan will say.
+function Gear.Pending(slot, only)
+    if slot.key == "off" then
+        local both = Gear.TwoHander()
+        if both then return { worn = { stats = {}, score = 0 }, options = {}, waiting = 0, twoHand = both, pending = true } end
+    end
+    local equip = only or slot.equip[1]
+    local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
+    return { worn = { link = link, equip = equip, stats = {}, score = 0 }, options = {}, waiting = 1, pending = true }
+end
+
+-- Every plan worth keeping ahead: each slot's (for tooltips and the dungeon guide), and each place
+-- of a pair's (for the Gear plan's lines). { slot, only } each, in the slots' order. Made once for the slots.
+local places
+function Gear.Places()
+    if places and places.from == Gear.SLOTS then return places end
+    places = { from = Gear.SLOTS }
+    for _, slot in ipairs(Gear.SLOTS) do
+        places[#places + 1] = { slot = slot }
+        if #slot.equip > 1 then
+            for _, equip in ipairs(slot.equip) do places[#places + 1] = { slot = slot, only = equip } end
+        end
+    end
+    return places
+end
+
+function Gear.SlotPlan(slot, lazy, only)
+    local kept, now = KeptNow()
+    local key
+    key, only = PlaceKey(slot, only)
     local plan = kept[key]
     local why
-    if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now
-        and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+    if plan and Due(plan, now) then
         if lazy and Gear.Refill() then return plan end
         plan, why = nil, "waiting"
     end
@@ -910,6 +962,7 @@ function Gear.SlotPlan(slot, lazy, only)
         local started = debugprofilestop()
         plan = Gear.Plan(slot, nil, only)
         plan.madeAt, plan.arrived = now, Gear.arrived
+        plan.slot, plan.only = slot, only
         kept[key] = plan
         Gear.everMade = Gear.everMade or {}
         why = why or (Gear.everMade[key] and "changed" or "first")
@@ -1267,9 +1320,11 @@ Gear.CharacterButton = Button
 
 -- The lists the Gear plan keeps (the items near your level, and their stats) are too slow to
 -- fill in the one frame of its first open after logging in or a level up. So they're filled
--- ahead, a slot every few frames, starting a while after you log in or level, and waiting out
--- a fight. Each slot's plan is kept as its Gear.SlotPlan, which the dungeon guide asks for.
--- The page fills anything still missing.
+-- ahead, a plan every few frames, starting a while after you log in or level, and waiting out
+-- a fight: each slot's (the dungeon guide and tooltips ask for those) and each ring's and
+-- trinket's place (the Gear plan's lines). Then the ones still waiting on items the game is
+-- sending are made again as the items come (Gear.Refill), so a first open finds them made.
+-- The page works out anything still missing, a few places a frame.
 local WARM_AFTER, WARM_STEP = 8, 0.25
 local warmRun = 0
 function Gear.Warm(after)
@@ -1279,45 +1334,50 @@ function Gear.Warm(after)
         if run ~= warmRun or not Gear.running then return end
         if Compat.InCombat() then return Compat.After(5, Step) end
         i = i + 1
-        local slot = Gear.SLOTS[i]
-        if not slot then return end
+        local place = Gear.Places()[i]
+        if not place then
+            Gear.Refill()
+            return
+        end
         local started = debugprofilestop()
-        -- Kept as the dungeon guide's slot plans too, so its first open finds them made.
-        xpcall(Gear.SlotPlan, ns.Report, slot)
-        ns.Timed("Gear plan, filled ahead: " .. slot.label, started)
+        xpcall(Gear.SlotPlan, ns.Report, place.slot, false, place.only)
+        ns.Timed("Gear plan, filled ahead: " .. place.slot.label .. (place.only and (" " .. place.only) or ""), started)
         Compat.After(WARM_STEP, Step)
     end
     Compat.After(after or WARM_AFTER, Step)
 end
 
--- The kept plans still waiting on items, made again behind the page: one slot a step, a step
+-- The kept plans still waiting on items, made again behind the page: one plan a step, a step
 -- every REFILL_STEP seconds, until none is waiting (an item never sent is given up on after a
--- few asks). True when that's under way, false where it can't be.
-local REFILL_STEP = 0.5
+-- few asks), and not in a fight. True when that's under way, false where it can't be. It stops
+-- after REFILL_MOST steps whatever is left: the next ask for a plan starts it again.
+local REFILL_STEP, REFILL_MOST = 0.5, 120
 function Gear.Refill()
     local Compat = ns.Compat
     -- Only while the module runs: that is when an item never sent is given up on, and this ends.
     if not (Compat and Compat.After and Gear.running) then return false end
     if Gear.refilling then return true end
     Gear.refilling = true
+    local steps = 0
     local function Step()
+        steps = steps + 1
         if Compat.InCombat and Compat.InCombat() then return Compat.After(5, Step) end
         local kept = Gear.slotPlans or {}
         local now = GetTime and GetTime()
         local any
-        for _, slot in ipairs(Gear.SLOTS) do
-            local plan = kept[slot.key]
+        for _, place in ipairs(Gear.Places()) do
+            local plan = kept[(PlaceKey(place.slot, place.only))]
             if plan and (plan.waiting or 0) > 0 then
                 any = true
-                if plan.madeAt ~= now and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
+                if Due(plan, now) then
                     local started = debugprofilestop()
-                    xpcall(Gear.SlotPlan, ns.Report, slot)
-                    ns.Timed("Gear plan, made again for items still to come: " .. slot.label, started)
+                    xpcall(Gear.SlotPlan, ns.Report, place.slot, false, place.only)
+                    ns.Timed("Gear plan, made again for items still to come: " .. place.slot.label, started)
                     break
                 end
             end
         end
-        if not any or not Gear.running then
+        if not any or not Gear.running or steps >= REFILL_MOST then
             Gear.refilling = nil
             return
         end
