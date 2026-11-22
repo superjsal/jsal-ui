@@ -229,7 +229,8 @@ local function Scored(slot, ctx)
             local need = false
             if stage and e.skilled then need = Gear.SkillNeed(e.id) end
             if stage and need == nil then
-                ctx.waiting = ctx.waiting + 1
+                -- A piece the game never sent is given up on, as the slots' own are, and left out.
+                if not Gear.GivenUp(e.id) then ctx.waiting = ctx.waiting + 1 end
             elseif stage and not (need and not Have(need.name)) and not (e.kind == "Quest" and Gear.RewardTaken(e.id)) then
                 local stats = Gear.Stats(e.id)
                 if stats then
@@ -434,7 +435,8 @@ end
 
 ---------------------------------------------------------------------------
 -- The goal, both stages: kept until something it's worked out from changes
--- (Gear.PlansChanged), and worked out again while items are still arriving.
+-- (Gear.PlansChanged), and while items are still arriving worked out again once one of them has
+-- come, or when they can be asked for again (Gear.RETRY seconds on), as the slots' plans are.
 ---------------------------------------------------------------------------
 local function Side()
     local faction = UnitFactionGroup and UnitFactionGroup("player")
@@ -839,12 +841,14 @@ function Goal.Read(spec, build, cheap, draft)
     local drafted = draft and table.concat(draft, ",") or ""
     local now = GetTime and GetTime()
     if kept and kept.stamp == Gear.planStamp and kept.spec == spec and kept.build == build and kept.cheap == cheap and kept.drafted == drafted
-        and now and kept.at and now - kept.at < KEEP and (kept.waiting == 0 or kept.at == now) then
+        and now and kept.at and now - kept.at < KEEP
+        and (kept.waiting == 0 or kept.at == now or (kept.arrived == Gear.arrived and now - kept.at < (Gear.RETRY or 0))) then
         return kept
     end
     local weights = Gear.Weights(spec)
     local _, classFile, classID = UnitClass("player")
-    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = drafted, at = now, waiting = 0 }
+    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = drafted, at = now, waiting = 0,
+                  arrived = Gear.arrived }
     kept = out
     if not (weights and ns.GearData) then
         out.noWeights = true

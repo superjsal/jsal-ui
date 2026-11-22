@@ -481,9 +481,11 @@ local function SkillPattern()
 end
 
 -- { name = "Engineering", skill = 210 }, false when it needs none, nil
--- while the game hasn't loaded the item.
+-- while the game hasn't loaded the item, or once it's given up on (Gear.GivenUp): an item the
+-- game never sends isn't asked for again.
 function Gear.SkillNeed(id)
     if needs[id] ~= nil then return needs[id] end
+    if Gear.GivenUp(id) then return nil end
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     local tip = C_TooltipInfo and C_TooltipInfo.GetItemByID
     -- Asked once while it loads, as an item's stats are: each pass asked
