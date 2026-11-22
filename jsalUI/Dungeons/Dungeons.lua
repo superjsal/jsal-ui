@@ -70,13 +70,32 @@ function Dungeons.GameKills()
     return out
 end
 
+-- A statistic the game counts for another boss than the one it's named for, by the faction: "Bazzalan kills
+-- (Ragefire Chasm)" counts a kill of Bazzalan or of Hall of Thanes' Durgen Dirgehammer (its criteria take either
+-- creature), and Durgen's own statistic counts nothing. Ragefire Chasm is the Horde's alone, so for the Alliance
+-- that statistic is Durgen's.
+local STAT_FOR = { ["bazzalan"] = { Alliance = "durgen dirgehammer" } }
+local function StatOwner(name, faction)
+    for named, by in pairs(STAT_FOR) do
+        if by[faction] and name:find(named, 1, true) then return by[faction] end
+    end
+end
+
 -- A boss's kills, by its encounter's name; the statistics may use the
 -- boss's own name instead.
 function Dungeons.KillCount(boss, game, ownName)
     local key, own = Key(boss), Key(ownName)
     local n = Kills()[key] or 0
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
     for _, stat in ipairs(game or {}) do
-        if stat[1]:find(key, 1, true) or (own and stat[1]:find(own, 1, true)) then n = math.max(n, stat[2]) end
+        local owner = StatOwner(stat[1], faction)
+        local mine
+        if owner then
+            mine = owner == key or owner == own
+        else
+            mine = stat[1]:find(key, 1, true) or (own and stat[1]:find(own, 1, true))
+        end
+        if mine then n = math.max(n, stat[2]) end
     end
     return n
 end
