@@ -179,8 +179,8 @@ end
 
 -- The Gear plan's lines in jsal.ui's section of an item's tooltip: how much
 -- better it is than what you wear, then the gold lines of a starred one. On
--- the quest reward the star is on, the same line in gold with the star, as
--- the best of the rewards: the section says it once, with nothing added below.
+-- the quest reward with the gold arrow, the same line in gold with the arrow,
+-- as the best of the rewards: the section says it once, with nothing added below.
 function Gear.TooltipLines(lines, id, tooltip)
     if not (id and lines and lines.AddLine) then return end
     local share = Gear.TooltipShare(id)
@@ -188,7 +188,7 @@ function Gear.TooltipLines(lines, id, tooltip)
         local R = ns.RewardStar
         if R and R.Best and R.Best(tooltip, id) then
             local r, g, b = ns.Style.Color("gold")
-            lines:AddLine(Gear.STAR .. " Best of these: " .. share .. " better than equipped", r, g, b)
+            lines:AddLine(R.ARROW .. " Best of these: " .. share .. " better than equipped", r, g, b)
         else
             local r, g, b = ns.Style.Color("green")
             lines:AddLine(share .. " better than equipped", r, g, b)

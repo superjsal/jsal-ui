@@ -1022,7 +1022,7 @@ end
 
 -- Whether a piece is better than what you wear, and its share, as its Gear plan row says it: the
 -- plan's own row where it has one, else Gear.Better. Nil while the item isn't loaded. The item's
--- tooltip and the quest reward star both read this, so the star's reward and its tooltip's
+-- tooltip and the quest reward arrows both read this, so a reward's arrow and its tooltip's
 -- number can't disagree.
 function Gear.ItemShare(id, equipLoc, classID, subclassID, quiet)
     local better, share = Gear.Better(id, equipLoc, classID, subclassID, quiet)
