@@ -446,9 +446,9 @@ function Compat.PlayerPosition()
     return map, x, y
 end
 
--- Where the player stands in the world, in yards, and the continent, as the
--- game's flight tables give places; nil where the game won't say (in an
--- instance).
+-- Where the player stands in the world: two horizontal coordinates in yards,
+-- in the order the game gives them, and the continent; nil where the game
+-- won't say (in an instance).
 function Compat.WorldPosition()
     if not UnitPosition then return nil end
     local x, y, _, continent = UnitPosition("player")

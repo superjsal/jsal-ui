@@ -104,7 +104,12 @@ local function Arrived(flight)
     if type(spot) ~= "table" then return true end
     local x, y, continent = Compat.WorldPosition()
     if not (x and y) then return true end
-    return continent == spot[3] and (x - spot[1]) ^ 2 + (y - spot[2]) ^ 2 <= LANDED_NEAR ^ 2
+    if continent ~= nil and continent ~= spot[3] then return false end
+    -- The game's two horizontal coordinates are matched to the tables' both ways round, as nothing
+    -- here can confirm their order; only a spot within reach of the point's mirror image could pass
+    -- by mistake, and no summon or teleport lands there.
+    local near = LANDED_NEAR ^ 2
+    return (x - spot[1]) ^ 2 + (y - spot[2]) ^ 2 <= near or (y - spot[1]) ^ 2 + (x - spot[2]) ^ 2 <= near
 end
 
 -- Puts a route's flying seconds into the account's own times or the ones
