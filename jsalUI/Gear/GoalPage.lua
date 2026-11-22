@@ -1042,6 +1042,11 @@ function Gear.GoalView(page, width, height)
         return ns.char.prebis
     end
     local function Refresh() if page.Refresh then page.Refresh() end end
+    -- The set you're on changed: this page, and the dashboard's page if it's open (Endgame's goal, build and
+    -- raid night, Home's gear and top cards), are drawn again, once; a page that isn't open is drawn when it opens.
+    local function SetChanged()
+        if Window.Refresh then Window.Refresh() else Refresh() end
+    end
     -- The goal's items as they stand before raids, for a new set: the set's, the weights', what you wear.
     local function Current()
         local ids = {}
@@ -1070,7 +1075,7 @@ function Gear.GoalView(page, width, height)
             local key = Goal.NewSet(Current(), nil)
             Keep().build = key
             Goal.SetSlot(key, chosen, id)
-            return Refresh()
+            return SetChanged()
         end
         draft = draft or { ids = Current(), labels = {}, spec = shownFor, build = Keep().build or "", cheap = Keep().cheap or false }
         draft.ids[chosen] = id
@@ -1085,14 +1090,17 @@ function Gear.GoalView(page, width, height)
     -- What the top card's buttons do with a change.
     local function Draft(what)
         local set = last and last.set
+        local changed = false
         if draft and set and what == "save" and set.own then
             Goal.SaveSet(set.key, draft.ids)
+            changed = true
         elseif draft and set and what == "new" then
             local mine = set.own and Goal.OwnSet(set.key)
             Keep().build = Goal.NewSet(draft.ids, mine and mine.from or (not set.own and set.key) or nil)
+            changed = true
         end
         draft = nil
-        Refresh()
+        if changed then SetChanged() else Refresh() end
     end
     local function AddItem(text)
         local id = Gear.ParseItem and Gear.ParseItem(text)
@@ -1123,7 +1131,7 @@ function Gear.GoalView(page, width, height)
             Keep().build = Keep().base
         end
         if what ~= "rename" then draft = nil end
-        Refresh()
+        SetChanged()
     end
     local hero, list, runs, none, waiting
     local tabs = Style.Tabs(page, { { "near", "Near your level" }, { "goal", "At " .. Goal.LEVEL } }, function(key)
@@ -1146,7 +1154,7 @@ function Gear.GoalView(page, width, height)
             -- A WoWSims build chosen is your default set from then on.
             if build then Keep().build, Keep().base = build, build end
             if cheap ~= nil then Keep().cheap = cheap end
-            Refresh()
+            SetChanged()
         end, function(bar)
             menu = menu or SetsMenu(view, Sets)
             local set = last and last.set

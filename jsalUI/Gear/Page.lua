@@ -427,7 +427,8 @@ Window.Page("gear", function(page)
         b:SetScript("OnClick", function()
             Settle()
             G.SetSpec(i)
-            Paint()
+            -- The spec picks the set at 60 too: the dashboard's page, if it's open, follows.
+            if Window.Refresh then Window.Refresh() else Paint() end
         end)
         specButtons[i] = b
     end
