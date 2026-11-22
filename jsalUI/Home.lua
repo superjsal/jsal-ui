@@ -11,7 +11,7 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- (a page's key, or "welcome"). They show once per version, until put away.
 local NEWS = {
     { "Cheaper roads", "Open Professions", "professions" },
-    { "Unique rings offered once", "Open Gear plan", "gear" },
+    { "Tooltips say how much better", "Open Gear plan", "gear" },
     { "Craft from the road's card", "Open Professions", "professions" },
 }
 
