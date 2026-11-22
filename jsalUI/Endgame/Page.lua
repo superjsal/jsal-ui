@@ -67,19 +67,22 @@ Window.Page("endgame", function(page)
 
     local function BeforeSixty(level)
         set:Hide()
-        goal:Show() build:Show() fold:Show()
+        goal:Show() build:Show()
         At(goal, 0, 0)
         local y = goal.Paint(level) + GAP
-        At(fold, 0, y)
-        fold.Paint()
-        y = y + fold:GetHeight() + GAP
         ns.RaidNight.Sync()
         local _, nightList = ns.RaidNight.Spec()
+        -- One RAID NIGHT: folded, the line with Show; opened, the card in the line's place, with Hide.
         local open = ns.RaidNight.Saved().open == true and nightList ~= nil
+        fold:SetShown(not open)
         night:SetShown(open)
         if open then
             At(night, 0, y)
             y = y + ns.EndgameNightPaint(night, parts, 10000) + GAP
+        else
+            At(fold, 0, y)
+            fold.Paint()
+            y = y + fold:GetHeight() + GAP
         end
         At(build, 2 * (colW + GAP), 0)
         local right = build.Paint(level) + GAP

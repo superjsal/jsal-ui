@@ -77,10 +77,22 @@ function ns.EndgameNight(parent, width, changed)
     local whose = Style.Text(card, 12, "muted")
     whose:SetPoint("TOPRIGHT", -PAD, -14)
     whose:SetJustifyH("RIGHT")
+    -- Below 60, where the card opens from its folded line, "Hide ‹" at the heading's right folds it back.
+    local hide = CreateFrame("Button", nil, card)
+    hide.text = Style.Text(hide, 13, "gold", nil, true)
+    hide.text:SetPoint("RIGHT")
+    hide.text:SetText("Hide ‹")
+    hide:SetSize(Style.Wide(hide.text, 40), 20)
+    hide:SetPoint("TOPRIGHT", -PAD, -10)
+    hide:SetScript("OnEnter", function(self) self.text:SetTextColor(Style.Color("text")) end)
+    hide:SetScript("OnLeave", function(self) self.text:SetTextColor(Style.Color("gold")) end)
+    hide:SetScript("OnClick", function()
+        RN.Saved().open = nil
+        Changed()
+    end)
+    hide:Hide()
     local rule = card:CreateTexture(nil, "ARTWORK")
     rule:SetColorTexture(Style.Color("line"))
-    rule:SetPoint("TOPLEFT", PAD, -38)
-    rule:SetPoint("TOPRIGHT", -PAD, -38)
     rule:SetHeight(1)
     local intro = Style.Text(card, 12, "muted")
     intro:SetWidth(inner)
@@ -250,7 +262,7 @@ function ns.EndgameNight(parent, width, changed)
         heads = { headFor, headGet, headCost }, enoughLabel = enoughLabel, enough = enough, enoughMore = enoughMore,
         totalRule = totalRule, total = total, switchRule = switchRule, switch = switch, switchLabel = switchLabel,
         switchNote = switchNote, none = none, intro = intro, whose = whose, toGet = toGet, inner = inner, choice = choice,
-        nameW = nameW,
+        nameW = nameW, title = title, hide = hide, rule = rule,
     }
 end
 
@@ -298,6 +310,25 @@ function ns.EndgameNightPaint(card, p, room)
     local below = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) < 60
     local whose = setName and ("WoWSims' " .. setName) or (spec and ("WoWSims' " .. RN.ListWords(spec))) or ""
     p.whose:SetText(list and (whose .. " · " .. (saved.max and "max DPS" or "simple")) or whose)
+    -- The heading: RAID NIGHT, then whose list at the right; below 60 "Hide ‹" takes the right and
+    -- whose list sits left of it, or on a line of its own under the heading where both wouldn't fit whole.
+    p.hide:SetShown(below)
+    p.whose:ClearAllPoints()
+    local head = 0
+    if not below then
+        p.whose:SetPoint("TOPRIGHT", card, "TOPRIGHT", -PAD, -14)
+        p.whose:SetJustifyH("RIGHT")
+    elseif Style.Wide(p.title, 72) + 12 + Style.Wide(p.whose, 150) + 12 + p.hide:GetWidth() <= p.inner then
+        p.whose:SetPoint("RIGHT", p.hide, "LEFT", -12, 0)
+        p.whose:SetJustifyH("RIGHT")
+    else
+        p.whose:SetPoint("TOPLEFT", card, "TOPLEFT", PAD, -34)
+        p.whose:SetJustifyH("LEFT")
+        head = 20
+    end
+    p.rule:ClearAllPoints()
+    p.rule:SetPoint("TOPLEFT", PAD, -(38 + head))
+    p.rule:SetPoint("TOPRIGHT", -PAD, -(38 + head))
     local parts = { p.stockFor, p.nights, p.nightWord, p.aNight, p.hours, p.hourWord, p.toGet, p.totalRule, p.total,
                     p.switchRule, p.switch, p.switchLabel, p.switchNote, p.heads[1], p.heads[2], p.heads[3], p.choice }
     if not list then
@@ -312,7 +343,7 @@ function ns.EndgameNightPaint(card, p, room)
     end
     p.none:Hide()
     for _, r in ipairs(parts) do r:Show() end
-    local y = 50
+    local y = 50 + head
     local function At(region, x, dy)
         region:ClearAllPoints()
         region:SetPoint("TOPLEFT", card, "TOPLEFT", PAD + (x or 0), -(y + (dy or 0)))
