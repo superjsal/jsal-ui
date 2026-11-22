@@ -8,7 +8,9 @@
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
-local PAD, ROW, GET_W, COST_W, X_W = 16, 26, 44, 64, 16
+-- A row is 26 tall, or 42 for a name that takes two lines; the count's column is 40 wide (its - and + inside
+-- it), the price's 72, room for "123g 45s" with its coins.
+local PAD, ROW, TALL, GET_W, COST_W, X_W = 16, 26, 42, 40, 72, 16
 local MAX_ENOUGH = 10
 local MUTED, GOLD = "|cff9a9688", "|cffe3b04b"
 
@@ -245,7 +247,16 @@ function ns.EndgameNight(parent, width, changed)
         heads = { headFor, headGet, headCost }, enoughLabel = enoughLabel, enough = enough, enoughMore = enoughMore,
         totalRule = totalRule, total = total, switchRule = switchRule, switch = switch, switchLabel = switchLabel,
         switchNote = switchNote, none = none, intro = intro, whose = whose, toGet = toGet, inner = inner, choice = choice,
+        nameW = nameW,
     }
+end
+
+-- A cost as the card writes it: to the silver once it's a gold or more, to the gold from a hundred, so it
+-- fits its column whole.
+function ns.EndgameNightRounded(copper)
+    if copper >= 1000000 then return math.floor(copper / 10000 + 0.5) * 10000 end
+    if copper >= 10000 then return math.floor(copper / 100 + 0.5) * 100 end
+    return copper
 end
 
 -- The words of a line's price: what the short ones cost, "you cook it" / "you make it", or
@@ -258,7 +269,7 @@ function ns.EndgameNightCost(line)
     local price = ns.ItemPrices and ns.ItemPrices.Of(line.item)
     if not price then return MUTED .. "no price|r", nil end
     local cost = price * line.short
-    return Compat.Money(cost), cost
+    return Compat.Money(ns.EndgameNightRounded(cost)), cost
 end
 
 -- What a line's tooltip adds: how long it lasts and what a night takes, and what you have.
@@ -282,7 +293,7 @@ function ns.EndgameNightPaint(card, p, room)
     local saved = RN.Saved()
     local spec, list, setName = RN.Spec()
     local below = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) < 60
-    local whose = setName and ("WoWSims' " .. setName) or (spec and RN.SpecWords(spec)) or ""
+    local whose = setName and ("WoWSims' " .. setName) or (spec and ("WoWSims' " .. RN.ListWords(spec))) or ""
     p.whose:SetText(list and (whose .. " · " .. (saved.max and "max DPS" or "simple")) or whose)
     local parts = { p.stockFor, p.nights, p.nightWord, p.aNight, p.hours, p.hourWord, p.toGet, p.totalRule, p.total,
                     p.switchRule, p.switch, p.switchLabel, p.switchNote, p.heads[1], p.heads[2], p.heads[3], p.choice }
@@ -306,7 +317,8 @@ function ns.EndgameNightPaint(card, p, room)
     p.intro:SetShown(below)
     if below then
         At(p.intro)
-        p.intro:SetText(("What WoWSims' %s sims take to a raid. Most of it keeps: stock up as you go."):format(setName or RN.SpecWords(spec)))
+        p.intro:SetText(("What %s take to a raid. Most of it keeps: stock up as you go."):format(
+            setName and ("WoWSims' " .. setName .. " sims") or ("WoWSims' sims for " .. RN.SpecWords(spec))))
         y = y + 40
     end
     -- Simple or Max DPS.
@@ -342,44 +354,52 @@ function ns.EndgameNightPaint(card, p, room)
     -- What fits: the rows, then the lines under them (taken off, enough, the total, the switch).
     local under = (#off > 0 and 24 or 0) + (#full > 0 and 30 or 0) + 44 + 92
     local shownOff = p.showOff() and off or {}
-    local fit = math.max(1, math.floor((room - y - under - 16) / ROW))
+    local limit = room - under - 16
+    -- A line's name on one line, or on two when it's wider than its room: whole words, never cut.
+    local function Name(r, text)
+        r.name:SetText(text)
+        local two = Style.Wide(r.name, #text * 6.6) > p.nameW
+        r.name:SetWordWrap(two)
+        r:SetHeight(two and TALL or ROW)
+        return two and TALL or ROW
+    end
     local total, unpriced, toGet = 0, 0, 0
     local n = 0
     for _, line in ipairs(short) do
         toGet = toGet + line.short
         local words, cost, made = ns.EndgameNightCost(line)
         if cost then total = total + cost elseif not made then unpriced = unpriced + 1 end
-        if n < fit then
+        local r = p.Row(n + 1)
+        local h = Name(r, Compat.ItemName(line.item) or "...")
+        if y + h <= limit then
             n = n + 1
-            local r = p.Row(n)
             r.line, r.back, r.item, r.per = { line.item, line.kind, line.lasts }, nil, line.item, line.per
             r:SetAlpha(1)
             r.icon:SetTexture(Compat.ItemIcon(line.item))
-            r.name:SetText(Compat.ItemName(line.item) or "...")
             r.get:SetText(line.short)
             r.cost:SetText(words)
             r.notes = ns.EndgameNightNotes(line, saved.hours)
             r.Hover(false)
             At(r)
             r:Show()
-            y = y + ROW
+            y = y + h
         end
     end
     for _, item in ipairs(shownOff) do
-        if n < fit then
+        local r = p.Row(n + 1)
+        local h = Name(r, Compat.ItemName(item) or "...")
+        if y + h <= limit then
             n = n + 1
-            local r = p.Row(n)
             r.line, r.back, r.item, r.per = nil, true, item, 0
             r:SetAlpha(0.5)
             r.icon:SetTexture(Compat.ItemIcon(item))
-            r.name:SetText(Compat.ItemName(item) or "...")
             r.get:SetText("")
             r.cost:SetText(GOLD .. "put back|r")
             r.notes = { "Taken off. Click to put it back." }
             r.Hover(false)
             At(r)
             r:Show()
-            y = y + ROW
+            y = y + h
         end
     end
     for i = n + 1, #card.rows do card.rows[i]:Hide() end

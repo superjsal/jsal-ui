@@ -211,6 +211,8 @@ function ns.EndgameSet(parent, width)
     local function PaintRun(s, at60)
         nextHead:SetText(at60 and "NEXT" or "FIRST STOP")
         local run, piece = s.runs and s.runs[1], s.other and s.other[1]
+        -- A run is only ever named for its pieces: one with none isn't shown.
+        if run and #(run.pieces or {}) == 0 then run = nil end
         local done = s.of > 0 and s.at >= s.of
         local ids = {}
         if not (s.empty or done) then
@@ -246,31 +248,39 @@ function ns.EndgameSet(parent, width)
             runName:SetText(piece.label)
             local from = ns.GearGoal.From(piece.goal.e)
             Fits(runLine, { from.text or "", "" }, inner)
+        elseif (s.unknown or 0) > 0 then
+            runName:SetText("")
+            Fits(runLine, { ("%d piece%s with no known source yet"):format(s.unknown, s.unknown == 1 and "" or "s") }, inner)
         else
             runName:SetText("")
-            Fits(runLine, { ("%d piece%s with no known source yet"):format(s.unknown or 0, (s.unknown or 0) == 1 and "" or "s") }, inner)
+            runLine:SetText("")
         end
     end
 
-    local function PaintBuild(at60)
+    -- The build for 60 that goes with your set; Open Build opens the Build Planner on it, or as it is when none
+    -- does. Below 60, the levelling build you follow until then.
+    local function PaintBuild(at60, s)
         local Goal = ns.GearGoal
         local key, setName = Goal.SetKey()
         local build = key and BuildFor(key)
         card.build = build
-        buildOpen:SetShown(build ~= nil)
+        local followed = ns.TalentTree and ns.TalentTree.Active and ns.TalentTree.Active()
+        local levelling = followed and followed ~= build and followed.name
+        local untilThen = { levelling and ("Until then you follow " .. levelling) or "Until then, your levelling build", "Until then, your levelling build" }
         if not build then
-            buildName:SetText("No build for 60 for this set")
-            buildLine:SetText("WoWSims sims none with it")
+            Fits(buildName, s.own and { "No build for 60 goes with a set of your own", "No build for 60 for a set of yours" }
+                or { "No build for 60 goes with this set" }, inner)
+            if at60 then buildLine:SetText("") else Fits(buildLine, untilThen, inner) end
             return
         end
         buildName:SetText(build.name .. ", a build for 60")
-        local followed = ns.TalentTree and ns.TalentTree.Active and ns.TalentTree.Active()
         if at60 then
-            local words = ("Simmed with your %s set"):format(setName or "")
-            Fits(buildLine, { words .. ((followed == build) and (MUTED .. " · you follow it|r") or ""), words, "Simmed with your set" }, inner)
+            local words = s.own and ("Simmed with WoWSims' %s set, which yours began as"):format(setName or "")
+                or ("Simmed with your %s set"):format(setName or "")
+            Fits(buildLine, { words .. ((followed == build) and (MUTED .. " · you follow it|r") or ""), words,
+                              s.own and ("Simmed with WoWSims' %s set"):format(setName or "") or "Simmed with your set" }, inner)
         else
-            local name = followed and followed ~= build and followed.name
-            Fits(buildLine, { name and ("Until then you follow " .. name) or "Until then, your levelling build", "Until then, your levelling build" }, inner)
+            Fits(buildLine, untilThen, inner)
         end
     end
 
@@ -298,7 +308,7 @@ function ns.EndgameSet(parent, width)
         setLine:Show()
         PaintTop(s, at60)
         PaintRun(s, at60)
-        PaintBuild(at60)
+        PaintBuild(at60, s)
         card:SetHeight(300)
         return 300
     end

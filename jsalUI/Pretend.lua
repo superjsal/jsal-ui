@@ -20,6 +20,8 @@ local LEVEL = 60
 -- What's in the bags while pretending: a night's flasks and Greater Mageblood, four of a night's
 -- steaks, a stack of Major Mana Potions.
 local HELD = { [274274] = 2, [250341] = 6, [250072] = 4, [13444] = 5 }
+-- Three pre-raid pieces for the made-up next run when your set gives none: a back, a neck and a ring.
+local FALLBACK = { { 13340, "Back" }, { 15411, "Neck" }, { 18500, "Finger 1" } }
 -- The slots of a set, in its order, for the made-up next run's pieces.
 local SLOTS = { "Head", "Neck", "Shoulder", "Back", "Chest", "Wrist", "Hands", "Waist", "Legs", "Feet", "Finger 1", "Finger 2",
                 "Trinket 1", "Trinket 2", "Main hand", "Off hand", "Ranged" }
@@ -79,13 +81,28 @@ function Pretend.GoalSummary()
     if not Pretend.on then
         return Goal and Goal.running and Goal.Summary and Goal.Summary() or nil
     end
-    local ids, name
-    if Goal and Goal.ChosenSet then ids, name = Goal.ChosenSet() end
-    local pieces = {}
-    for i, id in ipairs(ids or {}) do
-        if id > 0 and #pieces < 3 then pieces[#pieces + 1] = { row = { label = SLOTS[i], goal = { id = id } } } end
+    -- Your own set as it is (its name, whether it's one of yours, the pieces you don't wear yet), at 60 with
+    -- about nine in sixteen worn, and the next run made of three of the pieces still to get.
+    local real
+    if Goal and Goal.Summary then
+        local ok, s = pcall(Goal.Summary)
+        if ok then real = s end
     end
-    return { at = 9, of = 16, name = name or "Pre-raid", rows = {}, other = {}, unknown = 0,
+    local pieces = {}
+    for _, row in ipairs(real and real.rows or {}) do
+        if #pieces < 3 and row.goal and tonumber(row.goal.id) then pieces[#pieces + 1] = { row = { label = row.label, goal = { id = row.goal.id } } } end
+    end
+    if #pieces == 0 and Goal and Goal.ChosenSet then
+        local ids = Goal.ChosenSet()
+        for i, id in ipairs(ids or {}) do
+            id = tonumber(id)
+            if id and id > 0 and #pieces < 3 then pieces[#pieces + 1] = { row = { label = SLOTS[i], goal = { id = id } } } end
+        end
+    end
+    for i, id in ipairs(#pieces == 0 and FALLBACK or {}) do pieces[i] = { row = { label = id[2], goal = { id = id[1] } } } end
+    local of = real and (real.of or 0) > 0 and real.of or 16
+    return { at = math.max(0, math.min(of - #pieces, math.floor(of * 9 / 16 + 0.5))), of = of,
+             name = real and real.name or "Pre-raid", own = real and real.own or nil, rows = {}, other = {}, unknown = 0,
              runs = { { name = "Stratholme", any = 0.12, pieces = pieces } } }
 end
 

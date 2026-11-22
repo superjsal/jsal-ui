@@ -63,11 +63,20 @@ function RaidNight.Spec()
     return spec, spec and data.lists[spec] or nil, name
 end
 
--- A spec's key as words: "paladin/retribution" -> "Retribution paladins".
+-- WoWSims' spec folders as a player names the spec; "dps" is a whole class's, and says only the class.
+local TREE_WORDS = { dps = "", feralcat = "Feral", feralbear = "Bear", healer = "Healing" }
+
+-- A spec's key as words: "paladin/retribution" -> "Retribution paladins", "hunter/dps" -> "hunters".
 function RaidNight.SpecWords(spec)
     local class, tree = (spec or ""):match("^(%a+)/(%a+)")
     if not class then return "your spec" end
-    return tree:sub(1, 1):upper() .. tree:sub(2) .. " " .. class .. "s"
+    local word = TREE_WORDS[tree] or (tree:sub(1, 1):upper() .. tree:sub(2))
+    return (word ~= "" and (word .. " ") or "") .. class .. "s"
+end
+
+-- The same as a list's name: "hunter list", "Retribution paladin list".
+function RaidNight.ListWords(spec)
+    return (RaidNight.SpecWords(spec):gsub("s$", "")) .. " list"
 end
 
 -- How many one night takes of a consumable { item, kind, seconds }.
