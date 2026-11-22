@@ -58,6 +58,15 @@ local function Reach(hot, from, text)
     hot:SetWidth(from + math.max(0, room > 0 and math.min(wide, room) or wide))
 end
 
+-- The game's own picture of an empty place, the character pane's (a grey head, a ring), by the
+-- place's name ("Finger1Slot"). The function is looked for first and then called, as
+-- `X and f(...)` would keep only its first value, the place's number.
+local function EmptyPicture(slotName)
+    if not GetInventorySlotInfo then return nil end
+    local _, texture = GetInventorySlotInfo(slotName)
+    return texture
+end
+
 -- An icon in a framed box, so an empty slot still shows where it is.
 local function IconBox(parent, size)
     local box = CreateFrame("Frame", nil, parent)
@@ -763,8 +772,7 @@ Window.Page("gear", function(page)
                 b.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
                 b.worn:SetText(Colored(name, quality))
             else
-                local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(b.row.empty)
-                b.icon:SetTexture(emptyTexture)
+                b.icon:SetTexture(EmptyPicture(b.row.empty))
                 -- An empty slot with something to put in it is the easiest win.
                 b.worn:SetText(best and "|cffe3b04bEmpty|r" or "|cff9a9688Empty|r")
                 -- The off hand, under a two-hander: it isn't empty to fill.
@@ -829,7 +837,8 @@ Window.Page("gear", function(page)
             wornRow.icon:SetTexture(texture)
             wornRow.name:SetText(Colored(name, quality))
         else
-            local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(slot.empty)
+            -- The chosen place's own picture: the second ring's, for Finger 2.
+            local emptyTexture = EmptyPicture(byKey[chosen].empty)
             wornRow.icon:SetTexture(emptyTexture)
             wornRow.name:SetText("|cff9a9688Nothing|r")
             -- Under a two-hander: that's what holds the hand, by name.
