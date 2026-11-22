@@ -918,6 +918,10 @@ Window.Page("gear", function(page)
     end
 
     local retrying
+    -- The items the page last painted (each place's upgrades and what you wear), and how many items
+    -- asked for had come then (Gear.arrived): an item that's neither, arriving, changes nothing here.
+    -- None while At 60 is showing, which paints items of its own.
+    local seen, seenArrived
     Paint = function()
         local level = UnitLevel("player") or 1
         local spec = G.Spec()
@@ -933,7 +937,10 @@ Window.Page("gear", function(page)
         local goal = false
         if page.Goal then goal = select(2, page.Goal(spec)) end
         page.near:SetShown(not goal)
-        if goal then return end
+        if goal then
+            seen = nil
+            return
+        end
 
         -- Timed apart from the drawing, so /jsal perf says which is slow.
         local started = debugprofilestop()
@@ -942,6 +949,12 @@ Window.Page("gear", function(page)
         -- The plans kept between paints (Gear.SlotPlan): a click, a chip or a look again with nothing
         -- changed works nothing out, and a slot still waiting on items is made again alone.
         for _, row in ipairs(slotRows) do plans[row.key] = G.SlotPlan(row.slot, false, row.equip) end
+        seen, seenArrived = {}, G.arrived
+        for _, plan in pairs(plans) do
+            for _, o in ipairs(plan.options or {}) do seen[o.id] = true end
+            local worn = plan.worn and plan.worn.link and tonumber(plan.worn.link:match("item:(%d+)"))
+            if worn then seen[worn] = true end
+        end
         ns.Timed("Gear plan, working out upgrades", started)
         -- A slow pass: its parts too, each as one line ("Gear plan, upgrades: item stats").
         if debugprofilestop() - started >= 10 then
@@ -976,22 +989,32 @@ Window.Page("gear", function(page)
     if G.GoalView then G.GoalView(page, width, height) end
 
     -- Items the game hadn't loaded arrive one by one, and gear changes: the
-    -- page repaints once for a batch.
-    local waiting
+    -- page repaints once for a batch. The game sends every item anything asks
+    -- for (a tooltip, a chat link, another addon), so a batch of items the
+    -- page doesn't show, none of them asked for by a plan, is let go. Weighed
+    -- when the batch is done, once every frame has heard the items come.
+    local waiting, came, other = nil, {}, false
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     page:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-    page:SetScript("OnEvent", ns.Safe(G, function()
+    page:SetScript("OnEvent", ns.Safe(G, function(_, event, id)
+        id = Compat.Plain(id)
         if pending and page:IsVisible() then
             local text = pending
             pending = nil
             box:SetText(text)
             Add()
         end
-        if waiting or not page:IsVisible() then return end
+        if not page:IsVisible() then return end
+        if event == "GET_ITEM_INFO_RECEIVED" then came[#came + 1] = id else other = true end
+        if waiting then return end
         waiting = true
         Compat.After(0.3, ns.Safe(G, function()
-            waiting = nil
-            if page:IsVisible() then Paint() end
+            local due = other or not seen or G.arrived ~= seenArrived
+            for _, item in ipairs(came) do
+                if seen and seen[item] then due = true end
+            end
+            waiting, came, other = nil, {}, false
+            if due and page:IsVisible() then Paint() end
         end))
     end))
 end, { width = WINDOW_W, height = WINDOW_H })
