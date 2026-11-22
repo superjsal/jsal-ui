@@ -1,10 +1,11 @@
 -- Quest reward star: when a quest lets you choose a reward, a gold star on
 -- the corner of the one the gear plan scores the biggest upgrade for your
--- spec, in the quest window, the quest log and the map. Pointing at a reward
--- that's an upgrade adds a line to its tooltip saying by how much.
+-- spec, in the quest window, the quest log and the map. The starred reward's
+-- tooltip says so in jsal.ui's own section, where every item's tooltip says
+-- how much better it is (Gear.TooltipLines asks RewardStar.Best).
 --
--- Each reward is scored by the gear plan's own Gear.Better, as the dungeon
--- guide's "+N% for you" is, so a reward and a boss's loot can't disagree. A
+-- Each reward is scored by Gear.ItemShare, the same reading as that section's
+-- "better than equipped", so the star and the tooltip's number can't disagree. A
 -- reward you can't wear, or one no better than what you wear, gets nothing;
 -- when no reward is better, no star shows. The game lays rewards out inside
 -- QuestInfo_Display (QuestInfo_ShowRewards can't be hooked: its templates
@@ -24,7 +25,6 @@ local RewardStar = ns.NewModule("rewardstar", {
 ns.RewardStar = RewardStar
 
 local STAR = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1"
-local GOLD, GREEN = "|cffe3b04b", "|cff6fcf6f"
 -- Looks again as items arrive, up to this many times for one window.
 local LOOKS = 8
 
@@ -56,7 +56,7 @@ function RewardStar.Judge(id)
     local _, _, _, equipLoc, _, classID, subclassID = C_Item.GetItemInfoInstant(id)
     if not equipLoc then return "wait" end
     if not Gear.INVTYPE[equipLoc] then return "no" end
-    local better, share = Gear.Better(id, equipLoc, classID, subclassID)
+    local better, share = Gear.ItemShare(id, equipLoc, classID, subclassID)
     if better == nil then return "wait" end
     if better then return "better", share or 0 end
     return "no"
@@ -80,7 +80,7 @@ function RewardStar.Score(buttons)
         local id = ItemID(ChoiceItem(button))
         local verdict, share = "wait", nil
         if id then verdict, share = RewardStar.Judge(id) end
-        found[button] = { verdict = verdict, share = share }
+        found[button] = { id = id, verdict = verdict, share = share }
         if verdict == "wait" then
             waiting = true
             if id then awaited[id] = true end
@@ -133,7 +133,7 @@ local function HideAll()
     for _, star in pairs(stars) do star:Hide() end
 end
 
-local Look, HookEnter
+local Look
 
 local function WaitForItems()
     if not waiter then
@@ -160,8 +160,7 @@ function Look()
     looks = looks + 1
     local rewards = QuestInfoFrame and QuestInfoFrame.rewardsFrame
     if not (rewards and rewards.RewardButtons) then return end
-    local best, waiting, choices = RewardStar.Score(rewards.RewardButtons)
-    for _, button in ipairs(choices or {}) do HookEnter(button) end
+    local best, waiting = RewardStar.Score(rewards.RewardButtons)
     if best then
         local star = Star(best)
         Raise(star, best)
@@ -177,35 +176,19 @@ local function Shown()
     Look()
 end
 
--- The line a reward's tooltip gets: the best, or another that's better.
-function RewardStar.Line(button)
-    local f = found[button]
-    if not (RewardStar.running and f and f.verdict == "better") then return nil end
-    local pct = math.floor((f.share or 0) * 100 + 0.5)
-    local amount = pct < 1 and "under 1%" or ("+" .. pct .. "%")
-    if f.best then
-        return ("%s|T%s:0|t Best of these for you: %s (Gear plan)|r"):format(GOLD, STAR, amount)
+-- Whether this tooltip is the starred reward's: the game's tooltip, held by
+-- the reward button the star is on, showing that reward's item. Read each time
+-- the tooltip is built, from what was worked out when the window opened. The
+-- game builds a reward's tooltip afresh every moment the pointer rests on it,
+-- calling the button's own OnEnter method rather than its script, so a line
+-- added from a hook on the script is gone at once; jsal.ui's section is built
+-- with the tooltip each time, so the word goes there.
+function RewardStar.Best(tooltip, id)
+    if not (RewardStar.running and id and tooltip and tooltip == GameTooltip and tooltip.GetOwner) then
+        return false
     end
-    return ("%s%s for you (Gear plan)|r"):format(GREEN, amount)
-end
-
-local function OnEnter(button)
-    if not (button and button.type == "choice") then return end
-    local line = RewardStar.Line(button)
-    if line and GameTooltip:IsOwned(button) then
-        GameTooltip:AddLine(line)
-        GameTooltip:Show()
-    end
-end
-
--- Each reward button gets the line from a hook on its own OnEnter, once. Forever has no global
--- QuestInfoRewardItemCodeTemplate_OnEnter to hook (the name is only in its XML): hooking it
--- stopped the star turning on at all.
-local entered = setmetatable({}, { __mode = "k" })
-function HookEnter(button)
-    if entered[button] or not button.HookScript then return end
-    entered[button] = true
-    button:HookScript("OnEnter", ns.Safe(RewardStar, OnEnter))
+    local f = found[tooltip:GetOwner()]
+    return (f and f.best and f.id == id) and true or false
 end
 
 local hooked = false
@@ -218,5 +201,6 @@ end
 
 function RewardStar:OnDisable()
     HideAll()
+    for button in pairs(found) do found[button] = nil end
     if waiter then waiter:UnregisterAllEvents() end
 end

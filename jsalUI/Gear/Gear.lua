@@ -1020,6 +1020,21 @@ function Gear.Better(id, equipLoc, classID, subclassID, quiet)
     return plan.Would(stats)
 end
 
+-- Whether a piece is better than what you wear, and its share, as its Gear plan row says it: the
+-- plan's own row where it has one, else Gear.Better. Nil while the item isn't loaded. The item's
+-- tooltip and the quest reward star both read this, so the star's reward and its tooltip's
+-- number can't disagree.
+function Gear.ItemShare(id, equipLoc, classID, subclassID, quiet)
+    local better, share = Gear.Better(id, equipLoc, classID, subclassID, quiet)
+    if better == nil then return nil end
+    local slot = Gear.SlotOf(Gear.INVTYPE[equipLoc or ""] or 0)
+    local plan = slot and Gear.SlotPlan(slot, true)
+    for _, o in ipairs(plan and plan.options or {}) do
+        if o.id == id then return o.better, o.share end
+    end
+    return better, share
+end
+
 -- The pieces in your bags that go in a slot and that you can wear: their
 -- item IDs. A piece you took off, or a quest's reward you've had, is in no
 -- list of upgrades to go and get, but it's the easiest one to put on. The

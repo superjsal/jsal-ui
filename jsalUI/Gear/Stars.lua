@@ -173,24 +173,26 @@ function Gear.TooltipShare(id)
     if not (id and instant) then return nil end
     local _, _, _, equipLoc, _, classID, subclassID = instant(id)
     if not equipLoc or equipLoc == "" then return nil end
-    local better, share = Gear.Better(id, equipLoc, classID, subclassID, true)
-    if better == nil then return nil end
-    local slot = Gear.SlotOf(Gear.INVTYPE[equipLoc] or 0)
-    local plan = slot and Gear.SlotPlan(slot, true)
-    for _, o in ipairs(plan and plan.options or {}) do
-        if o.id == id then better, share = o.better, o.share break end
-    end
+    local better, share = Gear.ItemShare(id, equipLoc, classID, subclassID, true)
     return better == true and Gear.ShareText(share) or nil
 end
 
 -- The Gear plan's lines in jsal.ui's section of an item's tooltip: how much
--- better it is than what you wear, then the gold lines of a starred one.
-function Gear.TooltipLines(lines, id)
+-- better it is than what you wear, then the gold lines of a starred one. On
+-- the quest reward the star is on, the same line in gold with the star, as
+-- the best of the rewards: the section says it once, with nothing added below.
+function Gear.TooltipLines(lines, id, tooltip)
     if not (id and lines and lines.AddLine) then return end
     local share = Gear.TooltipShare(id)
     if share then
-        local r, g, b = ns.Style.Color("green")
-        lines:AddLine(share .. " better than equipped", r, g, b)
+        local R = ns.RewardStar
+        if R and R.Best and R.Best(tooltip, id) then
+            local r, g, b = ns.Style.Color("gold")
+            lines:AddLine(Gear.STAR .. " Best of these: " .. share .. " better than equipped", r, g, b)
+        else
+            local r, g, b = ns.Style.Color("green")
+            lines:AddLine(share .. " better than equipped", r, g, b)
+        end
     end
     if Gear.Starred()[id] then
         lines:AddLine(Gear.STAR .. " Starred in your gear plan", 0.89, 0.69, 0.29)
@@ -203,8 +205,8 @@ local hooked = false
 local function HookTooltips()
     if hooked or not (ns.Style and ns.Style.ItemLines) then return end
     hooked = true
-    ns.Style.ItemLines(1, function(lines, id)
-        if Gear.running then Gear.TooltipLines(lines, id) end
+    ns.Style.ItemLines(1, function(lines, id, tooltip)
+        if Gear.running then Gear.TooltipLines(lines, id, tooltip) end
     end)
 end
 
