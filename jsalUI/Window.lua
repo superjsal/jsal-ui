@@ -412,7 +412,16 @@ local function OpenOwn(page, spent)
         f.jsalRoomy = true
         -- As the hub does: its own size, shrunk evenly only on a screen too small to hold it.
         -- Scaled before anything is drawn on it, so its 1px lines start crisp.
-        f:SetScale(math.min(1, (UIParent:GetWidth() - 40) / own.width, (UIParent:GetHeight() - 40) / own.height))
+        local scale = math.min(1, (UIParent:GetWidth() - 40) / own.width, (UIParent:GetHeight() - 40) / own.height)
+        f:SetScale(scale)
+        -- A window shrunk to fit has only a little room round it, so it opens in the middle, the
+        -- same room above as below: a little above the middle would press its title bar against
+        -- the top. One at its own size keeps the panel's place. A place the player
+        -- dragged it to is theirs.
+        if scale < 1 and not (f.IsUserPlaced and f:IsUserPlaced()) then
+            f:ClearAllPoints()
+            f:SetPoint("CENTER")
+        end
         local inner = CreateFrame("Frame", nil, f)
         inner:SetPoint("TOPLEFT", PANEL_PAD, -(BAR_H + 16))
         inner:SetPoint("BOTTOMRIGHT", -PANEL_PAD, 18)
