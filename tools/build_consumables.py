@@ -3,8 +3,8 @@ Endgame page's RAID NIGHT card.
 
 From WoWSims Forever (github.com/wowsims/forever, MIT) at the commit in
 data/gear/wowsims-forever/consumables/COMMIT: each spec's `consumables:` in its defaults.siml, else
-its presets.ts's DefaultConsumables (with what it spreads in from another preset), and the item IDs
-in consumables_auto_gen.ts. A set of the At 60 view whose presets have their own list (the Arms
+its presets.ts's DefaultConsumables (with what it spreads in from another preset), else the
+`player.consumables` of its builds/default.build.json, and the item IDs in consumables_auto_gen.ts. A set of the At 60 view whose presets have their own list (the Arms
 warrior's ArmsConsumables) gets that one.
 
 How long each lasts is the game's own (data/spells and data/professions, as CSV from wago.tools):
@@ -18,6 +18,7 @@ Run: python -I tools/build_consumables.py
 """
 
 import csv
+import json
 import pathlib
 import re
 
@@ -130,6 +131,17 @@ def ts_objects(path, ids, files):
     return objects
 
 
+def build_list(path):
+    """A build file's `player.consumables` (flaskId, elixirIds...), as [(kind, item)] in KINDS' order. Its
+    `potions` and `conjuredItems` are what the sim can choose from, not what the build uses: they're no kind."""
+    chosen = json.loads(path.read_text(encoding="utf-8")).get("player", {}).get("consumables") or {}
+    fields = {}
+    for field, value in chosen.items():
+        items = value if isinstance(value, list) else [value]
+        fields[snake(field)] = [int(i) for i in items if isinstance(i, int) and i > 0]
+    return [(kind, item) for kind, _ in KINDS for item in fields.get(kind, [])]
+
+
 def durations():
     seconds = {int(r["ID"]): int(r["Duration"]) // 1000 for r in rows(SPELLS / "SpellDuration.csv")}
     aura = {int(r["SpellID"]): seconds.get(int(r["DurationIndex"]), 0) for r in rows(SPELLS / "SpellMisc.csv") if r["DifficultyID"] == "0"}
@@ -198,6 +210,8 @@ def main():
             ship(spec, found)
         elif "DefaultConsumables" in objects:
             ship(spec, objects["DefaultConsumables"]["list"])
+        elif (SRC / f"{cls}_{name}_default.build.json").exists():
+            ship(spec, build_list(SRC / f"{cls}_{name}_default.build.json"))
         for cls_file, sets in SETS.items():
             for set_key, set_spec in sets.items():
                 own = objects.get(set_key.capitalize() + "Consumables")

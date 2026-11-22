@@ -190,6 +190,11 @@ def main():
     if head["sha"] != have:
         compare = github(f"repos/wowsims/forever/compare/{have}...{head['sha']}")
         files = [f["filename"] for f in compare.get("files", [])]
+        if len(files) >= 300:
+            # A compare lists at most 300 files: past that, the two commits' whole trees are compared.
+            trees = [{t["path"]: t["sha"] for t in github(f"repos/wowsims/forever/git/trees/{sha}?recursive=1")["tree"]
+                      if t["type"] == "blob"} for sha in (have, head["sha"])]
+            files = sorted(p for p in set(trees[0]) | set(trees[1]) if trees[0].get(p) != trees[1].get(p))
         # The presets (talents, gear, rotations) the weights were worked out on.
         weighty = [f for f in files if re.search(r"/presets/|/apls?/|preset", f, re.I)]
         sims.append(f"{compare.get('ahead_by', '?')} new commits since the weights were worked out "
@@ -200,7 +205,7 @@ def main():
             sims.append("Worth re-running its Stat Weights tool for the trees whose presets changed")
             changed.append("WoWSims")
         # Each spec's consumables, which the Endgame page's RAID NIGHT lists.
-        consumed = [f for f in files if re.search(r"defaults\.siml$|presets\.ts$|consumables_auto_gen\.ts$", f)]
+        consumed = [f for f in files if re.search(r"defaults\.siml$|presets\.ts$|consumables_auto_gen\.ts$|/builds/default\.build\.json$", f)]
         if consumed:
             sims.append(f"{len(consumed)} files that name consumables changed: {', '.join(consumed[:5])}. Fetch them into "
                         "data/gear/wowsims-forever/consumables and run tools/build_consumables.py")

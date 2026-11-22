@@ -8,6 +8,9 @@ simple:
   aura retribution_aura
   assigned_judgement judgement_of_the_crusader
   pull_range 25
+  uw_soc_stacks 3
+  uw_sor_stacks 1
+  uw_sof_stacks 1
 
 encounter:
   duration 180
@@ -17,7 +20,6 @@ encounter:
   targets(id=31146,
       name="Raid Target",
       level=63,
-      mob_type=mechanical,
       stats(attack_power=320, block_value=54, armor=3731, health=1428900),
       min_base_damage=2601,
       damage_spread=0.5,

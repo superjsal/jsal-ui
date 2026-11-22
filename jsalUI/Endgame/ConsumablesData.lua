@@ -118,12 +118,20 @@ ns.ConsumablesData = {
         },
         ["shaman/enhancement"] = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
+            { 250343, "elixir", 1800 },   -- Elixir of Nature Power
+            { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
+            { 250351, "elixir", 1800 },   -- Elixir of the Grizzly
+            { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
+            { 250337, "elixir", 1800 },   -- Elixir of the Owl
+            { 250338, "elixir", 1800 },   -- Elixir of Sages
+            { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
+            { 12820, "elixir", 1200 },   -- Winterfall Firewater
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
-            { 18262, "weapon", 1800 },   -- Elemental Sharpening Stone
+            { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13444, "potion", 0 },   -- Major Mana Potion
             { 12662, "rune", 0 },   -- Demonic Rune
-            { 260817, "explosive", 0 },   -- EZ-Thro Dark Bomb
-            { 10646, "extra", 0 },   -- Goblin Sapper Charge
+            { 12217, "extra", 600 },   -- Dragonbreath Chili
+            { 8410, "extra", 3600 },   -- R.O.I.D.S.
         },
         ["shaman/restoration"] = {
             { 250066, "food", 900 },   -- Soaring Pamplona
@@ -131,8 +139,11 @@ ns.ConsumablesData = {
         },
         ["warlock/dps"] = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
-            { 13931, "food", 900 },   -- Nightfin Soup
+            { 9264, "elixir", 1800 },   -- Elixir of Shadow Power
+            { 6373, "elixir", 1800 },   -- Elixir of Fire Power
+            { 13935, "food", 900 },   -- Baked Salmon
             { 20749, "weapon", 1800 },   -- Brilliant Wizard Oil
+            { 13701, "weapon", 0 },   -- Major Firestone
             { 250937, "potion", 0 },   -- Major Spellblasting Potion
             { 12662, "rune", 0 },   -- Demonic Rune
             { 18588, "explosive", 0 },   -- Ez-Thro Dynamite II
@@ -145,7 +156,7 @@ ns.ConsumablesData = {
             { 12643, "weapon", 1800 },   -- Dense Weightstone
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13442, "potion", 0 },   -- Mighty Rage Potion
-            { 260817, "explosive", 0 },   -- EZ-Thro Dark Bomb
+            { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
         },
         ["warrior/dps:arms"] = {
@@ -155,12 +166,12 @@ ns.ConsumablesData = {
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13442, "potion", 0 },   -- Mighty Rage Potion
-            { 260817, "explosive", 0 },   -- EZ-Thro Dark Bomb
+            { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
         },
         ["warrior/protection"] = {
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
-            { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
+            { 12643, "weapon", 1800 },   -- Dense Weightstone
             { 250943, "potion", 0 },   -- Major Frenzy Potion
             { 9421, "rune", 0 },   -- Major Healthstone
             { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite

@@ -68,7 +68,7 @@ The Endgame page's RAID NIGHT card lists WoWSims Forever's consumables for your 
 (`jsalUI\Endgame\ConsumablesData.lua`), built by `python -I tools\build_consumables.py`. Its sources are in
 `data\gear\wowsims-forever\consumables\`, fetched at the commit in its `COMMIT`: each spec's `defaults.siml`
 (`consumables:`) where it has one, else its `presets.ts` (`DefaultConsumables`, and a set's own such as
-`ArmsConsumables`), named `<class>_<spec>_...` as under `ui/specs/`, and `consumables_auto_gen.ts` for the item IDs.
+`ArmsConsumables`), else its `builds/default.build.json` (`player.consumables`, as `<class>_<spec>_default.build.json`), named `<class>_<spec>_...` as under `ui/specs/`, and `consumables_auto_gen.ts` for the item IDs.
 How long each lasts is the game's: the item's use spell (`ItemXItemEffect`, `ItemEffect`), the aura it or a spell
 it sets off puts on you (`data\spells\SpellMisc.csv`, cut to ID, DifficultyID, DurationIndex and SpellID and to the
 rows with a duration, and `SpellDuration.csv`), or a weapon stone's or oil's seconds (`SpellEffect` 54). Potions,

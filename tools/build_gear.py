@@ -67,7 +67,9 @@ SPECS = {
 
 # Where WoWSims Forever has a preset for a tree: its file in data/gear/wowsims-forever and the preset.
 # None: WoWSims Classic's, from SPECS. Pre-raid sets where there's a choice, nearer leveling gear.
-PLATE_TANK = ("warrior_protection", "PreBiSEpWeights")
+# A plate tank takes the Protection warrior's Balanced weights: WoWSims' own default for that tree, and
+# the set that tree starts on (PREBIS below).
+PLATE_TANK = ("warrior_protection", "PreBiSBalancedEpWeights")
 # WoWSims Forever simulates no healer (every one is a "Gear Planner"), so there's nothing to work out;
 # its healing priest's preset is the one healer set made for Forever, and the other healers take it.
 # (John, 14 Nov 2026: "healers are historically hard to sim. lets go with the forever set".)
