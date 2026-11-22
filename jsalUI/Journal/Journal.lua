@@ -71,6 +71,7 @@ local function Add(stat, amount)
         row[stat] = (row[stat] or 0) + (amount or 1)
     end
 end
+Journal.Add = Add
 
 -- XP gained, across a level-up too: what was left of the old level plus
 -- what's into the new one.
@@ -104,7 +105,8 @@ local function Zone()
 end
 
 -- A moment for the story: kind is level, kill, boss, loot, death, prof,
--- guild, duel, start or pet (your companion's milestones).
+-- guild, duel, start, pet (your companion's milestones) or night (a night in a
+-- dungeon or raid, Journal\Nights.lua).
 function Journal.Note(kind, text, extra)
     local events = Book().events
     local e = { t = Compat.ServerTime(), k = kind, s = text, z = Zone() }
@@ -122,6 +124,7 @@ local function First(key)
     seen[key] = true
     return true
 end
+Journal.First = First
 
 ---------------------------------------------------------------------------
 -- The account's characters.
@@ -243,6 +246,8 @@ local function Tick(_, elapsed)
     end
     local j = Book()
     Add("seconds", seconds)
+    -- A night in a dungeon: its time.
+    if Journal.Nights then Journal.Nights.Tick(seconds) end
     CountKills()
     RareDied("target")
     local zone = Zone()
@@ -277,6 +282,7 @@ local function MoneyChanged()
     local source = window or ((GetTime() - questAt < 2) and "quests") or "loot"
     local m = Book().money
     m[source] = (m[source] or 0) + gained
+    if source == "loot" and Journal.Nights then Journal.Nights.Gold(gained) end
 end
 
 -- Loot of blue quality or better: the first of each item makes the story.
@@ -299,10 +305,20 @@ local function Looted(text)
     local item = tonumber(text:match("|Hitem:(%d+)"))
     local name = text:match("|h%[(.-)%]|h")
     if not item then return end
+    Journal.Won(item, name)
+end
+
+-- An item that's yours now, from the chat line or (when that comes hidden in a dungeon) the boss's loot:
+-- blue and better, the first of each, makes the story; it and a piece of your set go on the night's list.
+function Journal.Won(item, name)
     local quality = C_Item and C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(item)
+    local Nights = Journal.Nights
+    local set = Nights and Nights.InSet(item) or nil
+    if Nights and ((quality and quality >= 3) or set) then Nights.Won(item) end
     if quality and quality >= 3 and First("item:" .. item) then
         local label = quality >= 5 and "First legendary" or quality == 4 and "First epic" or "New blue"
-        Journal.Note("loot", ("%s: %s"):format(label, name or "an item"), { item = item, q = quality })
+        name = name or (C_Item and C_Item.GetItemNameByID and Compat.Plain(C_Item.GetItemNameByID(item)))
+        Journal.Note("loot", ("%s: %s"):format(label, name or "an item"), { item = item, q = quality, set = set or nil })
     end
 end
 
@@ -369,6 +385,9 @@ local function Dead()
     if diedAt and now - diedAt < 5 then return end
     diedAt = now
     Add("deaths")
+    local Nights = Journal.Nights
+    local boss = Nights and Nights.Fighting()
+    if Nights then Nights.Died() end
     if UnitExists and UnitExists("target") and UnitCanAttack and UnitCanAttack("player", "target")
         and not (UnitIsDead and UnitIsDead("target")) then
         local name = Compat.Name("target")
@@ -377,7 +396,7 @@ local function Dead()
             killers[name] = (killers[name] or 0) + 1
         end
     end
-    Journal.Note("death", "Died")
+    Journal.Note("death", "Died", { vs = boss })
 end
 
 -- Guild changes. The guild's name loads a little after login, so while
@@ -426,13 +445,30 @@ function Journal.Stat(name)
 end
 
 -- The story, newest first, of one kind group or all: rows of events.
-local GROUPS = { levels = { level = true }, kills = { kill = true, boss = true }, loot = { loot = true },
+local GROUPS = { nights = { night = true }, levels = { level = true }, kills = { kill = true, boss = true }, loot = { loot = true },
                  deaths = { death = true }, pals = { pet = true },
                  more = { prof = true, guild = true, duel = true, start = true } }
 function Journal.Story(group)
     local out, events, only = {}, Book().events, GROUPS[group]
+    local nights = false
     for i = #events, 1, -1 do
-        if not only or only[events[i].k] then out[#out + 1] = events[i] end
+        local e = events[i]
+        if not only or only[e.k] then
+            out[#out + 1] = e
+            if e.k == "night" then nights = true end
+        end
+    end
+    -- A night stands where it ended, over the moments it holds; the rest keep their order.
+    if nights then
+        local at = {}
+        for i, e in ipairs(out) do at[e] = i end
+        table.sort(out, function(a, b)
+            local ta, tb = a.till or a.t or 0, b.till or b.t or 0
+            if ta ~= tb then return ta > tb end
+            -- In the same second, the night first: what happened in it goes under it.
+            if (a.k == "night") ~= (b.k == "night") then return a.k == "night" end
+            return at[a] < at[b]
+        end)
     end
     return out
 end
@@ -489,7 +525,8 @@ function Journal:OnEnable()
                              "NAME_PLATE_UNIT_ADDED", "SKILL_LINES_CHANGED", "PLAYER_GUILD_UPDATE",
                              "MERCHANT_SHOW", "MERCHANT_CLOSED", "MAIL_SHOW", "MAIL_CLOSED",
                              "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED", "TRADE_SHOW", "TRADE_CLOSED",
-                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE" }) do
+                             "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE",
+                             "ENCOUNTER_START", "PLAYER_ENTERING_WORLD", "ENCOUNTER_LOOT_RECEIVED" }) do
         pcall(f.RegisterEvent, f, event)
     end
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
@@ -529,14 +566,17 @@ function Journal:OnEnable()
             if type(a) == "string" then Looted(a) end
         elseif event == "CHAT_MSG_SYSTEM" then
             if type(a) == "string" then SystemLine(a) end
+        elseif event == "ENCOUNTER_START" then
+            -- encounterID, encounterName: a boss fight begins (Journal\Nights.lua).
+            Journal.Nights.Start(a, b)
         elseif event == "ENCOUNTER_END" then
-            if e == 1 and b then
-                Add("bosses")
-                if First("boss:" .. tostring(a)) then
-                    local instance = GetInstanceInfo and Compat.Plain((GetInstanceInfo()))
-                    Journal.Note("boss", ("Defeated %s%s"):format(b, instance and (" in " .. instance) or ""))
-                end
-            end
+            -- encounterID, encounterName, difficultyID, groupSize, success.
+            Journal.Nights.End(a, b, e)
+        elseif event == "ENCOUNTER_LOOT_RECEIVED" then
+            -- encounterID, itemID, itemLink, quantity, playerName: a boss's loot, yours when it's your name.
+            if b and e and IsMe(e) then Journal.Won(tonumber(b)) end
+        elseif event == "PLAYER_ENTERING_WORLD" then
+            Journal.Nights.Where()
         elseif event == "SKILL_LINES_CHANGED" then
             CheckRanks()
         elseif event == "PLAYER_GUILD_UPDATE" then
@@ -546,11 +586,15 @@ function Journal:OnEnable()
         elseif closes[event] then
             window = nil
         else
-            -- Logging out, a new zone or resting changed: the Characters line.
+            -- Logging out, a new zone or resting changed: the Characters line; a new zone can be a
+            -- dungeon gone into, or left.
+            if event == "ZONE_CHANGED_NEW_AREA" then Journal.Nights.Where() end
             Journal.SaveCharacter(event == "PLAYER_LOGOUT")
         end
     end))
     f:SetScript("OnUpdate", ns.Safe(self, Tick))
+    -- Already in a dungeon (a reload inside one): its night carries on.
+    Journal.Nights.Where()
     if hooksecurefunc and JumpOrAscendStart then
         hooksecurefunc("JumpOrAscendStart", function() if Journal.running then Add("jumps") end end)
     end

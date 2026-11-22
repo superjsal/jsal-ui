@@ -1,6 +1,7 @@
--- The Journal page, in four tabs: Summary (who you are, how far to the
--- next level, your levels as a chart, your numbers and favourites), Story (the moments by day, newest first, by kind), By level
--- (what each level took, and brought) and Characters
+-- The Journal page, in five tabs: Summary (who you are, how far to the
+-- next level, your levels as a chart, your numbers and favourites; at 60, your nights since), Story (the moments by day,
+-- newest first, by kind, a night in a dungeon as one row), By level (what each level took, and brought), By boss
+-- (each dungeon's bosses, Journal\ByBoss.lua) and Characters
 -- (every character on the account, a card each: level, where it is, its
 -- gold, its professions and its rested XP).
 local _, ns = ...
@@ -98,7 +99,7 @@ Window.Page("journal", function(page)
     end
 
     local Paint
-    local tabs = Style.Tabs(page, { { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "characters", "Characters" } },
+    local tabs = Style.Tabs(page, { { "summary", "Summary" }, { "story", "Story" }, { "levels", "By level" }, { "bosses", "By boss" }, { "characters", "Characters" } },
         function(key)
             current = key
             Paint()
@@ -108,7 +109,8 @@ Window.Page("journal", function(page)
     -- A moment's colour, by its kind: the Story's rows and filters wear it,
     -- and the Summary's latest moments.
     local TINT = { level = { Style.Color("gold") }, kill = { Style.Color("red") }, boss = { Style.Color("red") },
-                   loot = { 0.30, 0.62, 1 }, death = { Style.Color("muted") }, pet = { 0.94, 0.42, 0.54 } }
+                   loot = { 0.30, 0.62, 1 }, death = { Style.Color("muted") }, pet = { 0.94, 0.42, 0.54 },
+                   night = { 0.62, 0.54, 0.96 } }
     local OTHER = { 0.36, 0.76, 0.69 }
 
     -----------------------------------------------------------------
@@ -159,6 +161,17 @@ Window.Page("journal", function(page)
             if row then xp, seconds = xp + (row.xp or 0), seconds + (row.seconds or 0) end
         end
         return seconds >= 600 and xp > 0 and xp / seconds or nil
+    end
+    -- At 60, where the pace was: how long 60 took, in time played ("reached in 6d 22h played"), when
+    -- the Journal saw it from level 1; else the part of it on record.
+    function M.Reached(levels, book)
+        local seconds = 0
+        for lv, row in pairs(levels) do if lv < 60 then seconds = seconds + (row.seconds or 0) end end
+        if seconds <= 0 then return "" end
+        local d, h = math.floor(seconds / 86400), math.floor(seconds % 86400 / 3600)
+        local words = d > 0 and ("%dd %dh"):format(d, h) or Hours(seconds)
+        if (book.startLevel or 1) <= 1 then return ("reached in %s played"):format(words) end
+        return ("%s of it on record"):format(words)
     end
     -- How far to the next level, and how long that is at your pace.
     M.track = CreateFrame("Frame", nil, summary)
@@ -258,6 +271,7 @@ Window.Page("journal", function(page)
             GameTooltip:SetOwner(self, "ANCHOR_TOP")
             GameTooltip:SetText(self.tip[1])
             GameTooltip:AddLine(self.tip[2], 1, 1, 1)
+            if self.tip[3] then GameTooltip:AddLine(self.tip[3], 0.77, 0.75, 0.69) end
             GameTooltip:Show()
         end)
         b:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -385,7 +399,10 @@ Window.Page("journal", function(page)
         local book = J.Book()
         local levels = book.levels or {}
         local className, classFile = UnitClass("player")
-        local level = UnitLevel("player") or 1
+        -- (Pretend.Level is the game's level unless /jsal pretend 60 is on; so are the nights.)
+        local level = (ns.Pretend and ns.Pretend.Level()) or UnitLevel("player") or 1
+        local life = (ns.Pretend and ns.Pretend.JournalData()) or (type(J.Nights) == "table" and J.Nights.Data()) or {}
+        local at60 = level >= 60 and ns.JournalSince60 ~= nil
         model:SetUnit("player")
         model:SetRotation(0.35)
         -- The camera a little closer than the game's default, so the
@@ -398,8 +415,16 @@ Window.Page("journal", function(page)
 
         -- To the next level: how far, and how long at your pace (M.Pace).
         local xp, max = UnitXP and UnitXP("player") or 0, UnitXPMax and UnitXPMax("player") or 0
-        for _, region in ipairs({ M.track, M.toNext, M.pace }) do region:SetShown(max > 0) end
-        if max > 0 then
+        if at60 then
+            -- At 60 the bar is full, and says since when and how long it took.
+            for _, region in ipairs({ M.track, M.toNext, M.pace }) do region:Show() end
+            M.fill:SetWidth(M.heroW)
+            M.toNext:SetText(life.since60 and ("Level 60 since %s"):format((date("%d %B", life.since60):gsub("^0", ""))) or "Level 60")
+            M.pace:SetText(M.Reached(levels, book))
+        else
+            for _, region in ipairs({ M.track, M.toNext, M.pace }) do region:SetShown(max > 0) end
+        end
+        if max > 0 and not at60 then
             local part = math.max(0, math.min(1, xp / max))
             M.fill:SetWidth(math.max(1, M.heroW * part))
             M.toNext:SetText(("%d%% of the way to %d"):format(math.floor(part * 100), level + 1))
@@ -436,6 +461,9 @@ Window.Page("journal", function(page)
         end
         since:SetText(table.concat(extras, "  ·  "))
 
+        M.chartHead:SetText("YOUR LEVELS")
+        M.legend:SetText("time on each level")
+        M.dotText:SetText("died on it")
         -- The chart: every level up to yours, the ones the Journal has a
         -- row for as tall as the time they took.
         local top, last, sum, fastest, longest = 0, level, { seconds = 0, foes = 0, quests = 0, n = 0 }, nil, nil
@@ -472,12 +500,15 @@ Window.Page("journal", function(page)
         for i = last + 1, #M.bars do M.bars[i]:Hide() end
         M.records:SetText((fastest and longest and fastest ~= longest)
             and ("fastest: %d in %s   ·   longest: %d in %s"):format(fastest, Hours(levels[fastest].seconds), longest, Hours(levels[longest].seconds)) or "")
+        -- At 60 it's SINCE 60 instead: a bar a day, as tall as its time in dungeons (Journal\Since60.lua).
+        if at60 then ns.JournalSince60.Chart(M, width, life) end
 
         -- The numbers. The game's own totals cover the whole life of the
         -- character; a rate beside one is from the Journal's own counting,
         -- over the time it has counted.
         local source = J.MoneySource()
         local bosses = J.Bosses()
+        if at60 then bosses = math.max(bosses, ns.JournalSince60.Kills(life)) end
         local duelsWon, duelsLost = J.Total("duelsWon"), J.Total("duelsLost")
         local hours = seconds / 3600
         local function Rate(n, per, unit)
@@ -488,8 +519,11 @@ Window.Page("journal", function(page)
             { Count(J.Total("foes")), "Foes defeated", sum.seconds >= 3600 and Rate(sum.foes, sum.seconds / 3600, " an hour") or "" },
             { Miles(J.Stat("yards")), "Travelled", hours >= 1 and ("%.1f mph"):format(J.Stat("yards") / 1760 / hours) or "" },
             { Count(J.Total("quests")), "Quests done", sum.n >= 2 and Rate(sum.quests, sum.n, " a level") or "" },
-            { Count(bosses), bosses == 1 and "Dungeon boss" or "Dungeon bosses", "" },
-            { Count(J.Total("flights")), "Flights taken", "" },
+            { Count(bosses), bosses == 1 and "Dungeon boss" or "Dungeon bosses",
+              at60 and ("%d first kill%s at 60"):format(ns.JournalSince60.FirstKills(life), ns.JournalSince60.FirstKills(life) == 1 and "" or "s") or "" },
+            at60 and { Count(ns.JournalSince60.NightsSince(life)), ns.JournalSince60.NightsSince(life) == 1 and "Night" or "Nights",
+                       life.since60 and ("since " .. (date("%d %B", life.since60):gsub("^0", ""))) or "" }
+                or { Count(J.Total("flights")), "Flights taken", "" },
             { Count(deaths), "Deaths", "" },
             { Gold(J.Total("earned")), "Gold earned", source and ("most from " .. source) or "" },
             { ("%d-%d"):format(duelsWon, duelsLost), "Duels won and lost", "" },
@@ -501,6 +535,7 @@ Window.Page("journal", function(page)
             t.label:SetText(data[i][2])
             t.note:SetText(data[i][3])
         end
+        M.tiles[5].icon:SetTexture(M.ICONS .. (at60 and "Spell_Nature_Starfall" or M.TILE_ICON[5]))
         FillList(usedRows, spells, Count, "Nothing cast yet")
         FillList(zoneRows, zones, Hours, "Nowhere yet")
         -- The latest moments: today's by the clock, an older one by its day.
@@ -512,7 +547,8 @@ Window.Page("journal", function(page)
             r.text:ClearAllPoints()
             r.text:SetPoint("LEFT", e and 84 or 0, 0)
             r.text:SetWidth(M.halfW - (e and 84 or 0))
-            r.text:SetText(e and (e.s or "") or "Nothing yet. It fills in as you play.")
+            r.text:SetText(e and ((e.k == "night" and ns.JournalSince60) and ("%s: %s"):format(e.s or "", ns.JournalSince60.Bosses(e.b)) or (e.s or ""))
+                or "Nothing yet. It fills in as you play.")
             r.text:SetTextColor(Style.Color(e and "text" or "muted"))
             r.when:SetText(e and (date("%Y%m%d", e.t or 0) == today and Clock(e.t or 0) or (date("%d %b", e.t or 0):gsub("^0", ""))) or "")
             if e then
@@ -540,6 +576,8 @@ Window.Page("journal", function(page)
     S.W = width - S.X
     S.room = height - 52 - 24
     S.TINT, S.OTHER = TINT, OTHER
+    -- A night's words, and its line of facts (Journal\Since60.lua).
+    if ns.JournalSince60 then S.NightText, S.NightMore = ns.JournalSince60.StoryText, ns.JournalSince60.StoryMore end
 
     -- A row of the column at the left: a word, and a count at its right.
     -- Its word lights under the pointer, and stays lit while it's chosen.
@@ -562,7 +600,7 @@ Window.Page("journal", function(page)
     local showHead = Style.Text(story, 11, "gold", nil, true)
     showHead:SetPoint("TOPLEFT", 10, -10)
     showHead:SetText("SHOW")
-    for i, f in ipairs({ { nil, "All" }, { "levels", "Levels", "level" }, { "kills", "Kills", "kill" }, { "loot", "Loot", "loot" },
+    for i, f in ipairs({ { nil, "All" }, { "nights", "Nights", "night" }, { "levels", "Levels", "level" }, { "kills", "Kills", "kill" }, { "loot", "Loot", "loot" },
                          { "deaths", "Deaths", "death" }, { "pals", "Pals", "pet" }, { "more", "More", "other" } }) do
         local b = S.RailRow(34 + (i - 1) * S.KIND_H, S.KIND_H, 13)
         b.fill = Style.Round(b, 5, "well")
@@ -583,7 +621,7 @@ Window.Page("journal", function(page)
     -- The days, newest first, each with how many moments it has: a click
     -- brings that day to the top. The last row stands for all the days
     -- past those listed.
-    S.daysY = 34 + 7 * S.KIND_H + 24
+    S.daysY = 34 + 8 * S.KIND_H + 24
     local jumpHead = Style.Text(story, 11, "gold", nil, true)
     jumpHead:SetPoint("TOPLEFT", 10, -S.daysY)
     jumpHead:SetText("JUMP TO")
@@ -627,8 +665,9 @@ Window.Page("journal", function(page)
     -- many moments the day has, for the column's list of days.
     function S.Items(list)
         local items, day, head, byText, top = {}, nil, nil, nil, nil
+        local night
         for _, e in ipairs(list) do
-            local t = e.t or 0
+            local t = e.till or e.t or 0
             local d = date("%Y%m%d", t)
             if d ~= day then
                 day, head, byText = d, S.DayHead(t), {}
@@ -636,7 +675,14 @@ Window.Page("journal", function(page)
                 items[#items + 1] = top
             end
             top.moments = top.moments + 1
-            local key = tostring(e.k) .. ":" .. tostring(e.s)
+            -- A night holds the moments from when it began to when it ended.
+            if e.k == "night" then
+                night = e
+            elseif night and not ((e.t or 0) >= (night.t or 0) and (e.t or 0) <= (night.till or night.t or 0) + 60) then
+                night = nil
+            end
+            local key = tostring(e.k) .. ":" .. tostring(e.s) .. (e.k == "night" and (":" .. tostring(e.night)) or "")
+                .. ((night and e.k ~= "night") and ":night" or "")
             local same = byText[key]
             if same then
                 same.n = same.n + 1
@@ -650,7 +696,9 @@ Window.Page("journal", function(page)
                     local first, rest = text:match("^(.-[%.!]) (.+)$")
                     if first then text, more = first, rest end
                 end
-                local it = { e = e, n = 1, day = head, text = text, more = more, places = { e.z }, seen = {},
+                local inNight = night ~= nil and e.k ~= "night" and night or nil
+                if e.k == "night" then more = S.NightMore and S.NightMore(e) or nil end
+                local it = { e = e, n = 1, day = head, text = text, more = more, places = { e.z }, seen = {}, inNight = inNight,
                              h = more and S.TALL_H or S.ROW_H }
                 if e.z then it.seen[e.z] = true end
                 byText[key] = it
@@ -701,6 +749,12 @@ Window.Page("journal", function(page)
         r.where:SetWidth(230)
         r.where:SetJustifyH("RIGHT")
         r.where:SetWordWrap(false)
+        -- A night's line, from its square down through the moments it holds.
+        r.link = r:CreateTexture(nil, "ARTWORK")
+        r.link:SetWidth(1)
+        r.link:SetColorTexture(Style.Color("lineStrong"))
+        r.setTag = Style.Tag(r, "piece of your set", "gold", true)
+        r.setTag:SetPoint("LEFT", r.text, "RIGHT", 10, 0)
         S.rows[i] = r
         return r
     end
@@ -778,17 +832,27 @@ Window.Page("journal", function(page)
                 r:ClearAllPoints()
                 r:SetPoint("TOPLEFT", S.X, -y)
                 r:SetHeight(it.h)
-                r.time:SetText(S.Clock(e.t or 0))
+                r.time:SetText(S.Clock(e.till or e.t or 0))
                 local c = S.TINT[e.k] or S.OTHER
                 r.mark:SetColorTexture(c[1], c[2], c[3])
-                local text = it.text
+                local text = S.NightText and S.NightText(it) or it.text
+                -- The line through a night: down from its square, and through each of its moments.
+                local nextIt = items[at + 1]
+                local held = nextIt and nextIt.inNight ~= nil and (e.k == "night" or it.inNight ~= nil)
+                r.link:ClearAllPoints()
+                r.link:SetPoint("TOP", r, "TOPLEFT", 80, (e.k == "night") and -16 or 0)
+                r.link:SetPoint("BOTTOM", r, "BOTTOMLEFT", 80, held and 0 or (it.h - 16))
+                r.link:SetShown(e.k == "night" and held or it.inNight ~= nil)
+                r.setTag:SetShown(it.inNight ~= nil and e.set == true)
                 if e.k == "level" then text = "|cffe3b04b" .. text .. "|r" .. (e.photo and "  |cff9a9688photo taken|r" or "") end
                 if e.k == "loot" and e.q then
-                    text = text:gsub(": (.+)$", ": |cff" .. Style.Quality(e.q) .. "%1|r")
+                    text = text:gsub(": ([^|]+)$", ": |cff" .. Style.Quality(e.q) .. "%1|r")
                 end
                 -- Where it was, unless the words already name the place.
                 local place = table.concat(it.places, ", ")
                 if #it.places == 1 and it.text:find(it.places[1], 1, true) then place = "" end
+                -- A night names its place, and so do the moments it holds.
+                if e.k == "night" or it.inNight then place = "" end
                 r.where:SetText(place)
                 -- Its own width first: a row is used again, and a line cut
                 -- to the last one's width would measure no wider than that.
@@ -1128,6 +1192,9 @@ Window.Page("journal", function(page)
         levelFoot:SetText(table.concat(notes, "  "))
     end
 
+    -- By boss: built the first time it's opened (Journal\ByBoss.lua).
+    local bossView, PaintBosses = View("bosses"), nil
+
     -----------------------------------------------------------------
     -- Characters: every character of yours the Journal has seen.
     -----------------------------------------------------------------
@@ -1337,6 +1404,9 @@ Window.Page("journal", function(page)
         if current == "summary" then PaintSummary()
         elseif current == "story" then PaintStory()
         elseif current == "levels" then PaintLevels()
+        elseif current == "bosses" then
+            PaintBosses = PaintBosses or ns.JournalByBoss(bossView, width, height, Paint)
+            PaintBosses()
         else PaintCharacters() end
     end
     page.Refresh = function() xpcall(Paint, ns.Report) end

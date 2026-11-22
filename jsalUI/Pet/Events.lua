@@ -69,7 +69,8 @@ function Pet:OnEnable()
             -- A beta build says what the game called the fight, so the numbers
             -- the boss eggs go by can be checked on a kill ("hidden": the game
             -- kept it back, and no egg can come of it).
-            if Pet.Trials(ns.version) then
+            -- (The Journal says the same, with more, while it's on: one line a fight.)
+            if Pet.Trials(ns.version) and not (ns.Journal and ns.Journal.running and ns.Journal.Nights) then
                 ns.Print(("Boss fight %s (%s): %s."):format(tostring(text or "hidden"), tostring(Compat.Plain((...)) or "hidden"), won and "won" or "not won"))
             end
             if boss and won then Pet.Found(boss) end

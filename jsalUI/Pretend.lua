@@ -1,6 +1,6 @@
 -- Pretend to be level 60, in a beta only (a version that says "beta"; a release has no such
 -- command): /jsal pretend 60 and /jsal pretend off. While it's on, the pages that show what's
--- built for level 60 (Endgame, Home's top card, the Journal's Characters tab) draw made-up answers
+-- built for level 60 (Endgame, Home's top card, the Journal's Summary and Characters tabs) draw made-up answers
 -- in the game's own fonts and layout: this character at 60 with 9 of 16 slots of its set, two
 -- made-up alts with raids saved and cooldowns ready and running, some raid consumables held.
 --
@@ -106,6 +106,47 @@ function Pretend.GoalSummary()
              runs = { { name = "Stratholme", any = 0.12, pieces = pieces } } }
 end
 
+-- The Journal's nights and bosses (Journal\Nights.lua's shape): the saved ones; while pretending,
+-- three weeks at 60 made up, a dungeon night every day or two with made-up groupmates.
+local madeJournal
+local GROUP = { "Odrin", "Maelis", "Fenwick", "Sorrel", "Brannoc", "Ysolde", "Wren" }
+local RUNS = { { "Stratholme", 9 }, { "Lower Blackrock Spire", 7 }, { "Scholomance", 8 }, { "Upper Blackrock Spire", 5 } }
+function Pretend.JournalData()
+    local N = ns.Journal and ns.Journal.Nights
+    if not Pretend.on then return N and N.Data() or { nights = {}, bosses = {} } end
+    if madeJournal then return madeJournal end
+    local now = Compat.ServerTime()
+    local byName = {}
+    for _, d in ipairs(ns.DungeonData or {}) do byName[d.name] = d end
+    local since = now - 21 * 86400
+    local nights, bosses = {}, {}
+    for day = 20, 0, -1 do
+        if day % 2 == 0 or day == 0 or day == 1 then
+            local run = RUNS[(day % #RUNS) + 1]
+            local d = byName[run[1]]
+            local at = now - day * 86400 - 2 * 3600
+            local n = { at = at, place = run[1], map = d and d.map, secs = 3600 + (day * 397) % 4000, kills = 0, bosses = {},
+                        wipes = (day * 7) % 4, deaths = day % 5 == 0 and 1 or 0, gold = 180000 + day * 3100, items = {}, left = at + 5000,
+                        lv = LEVEL, with = { GROUP[(day % 7) + 1], GROUP[((day + 2) % 7) + 1], GROUP[((day + 4) % 7) + 1],
+                                             GROUP[((day + 5) % 7) + 1], others = 4, guild = 2, hidden = 0 } }
+            for k, b in ipairs(d and d.bosses or {}) do
+                if k <= run[2] - (day % 3) then
+                    n.kills = n.kills + 1
+                    n.bosses[#n.bosses + 1] = b[1]
+                    local rec = bosses[b[1]] or { kills = 0, wipes = 0, first = at + k * 600, fight = 50 + (k * 37) % 140, lv = LEVEL,
+                                                    with = { n.with[1], n.with[2], n.with[3], n.with[4], others = 4, guild = 2, hidden = 0 } }
+                    rec.kills, rec.last = rec.kills + 1, at + k * 600
+                    if k == 3 and n.wipes > 0 then rec.wipes = rec.wipes + 1 end
+                    bosses[b[1]] = rec
+                end
+            end
+            nights[#nights + 1] = n
+        end
+    end
+    madeJournal = { nights = nights, bosses = bosses, since60 = since }
+    return madeJournal
+end
+
 -- Raid night's own choices: the saved ones, or while pretending, ones kept in memory.
 local night = {}
 function Pretend.RaidNight()
@@ -126,7 +167,7 @@ end
 
 function Pretend.Set(on)
     Pretend.on = on and true or false
-    made, night = nil, {}
+    made, night, madeJournal = nil, {}, nil
     if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
 end
 
