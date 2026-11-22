@@ -1,7 +1,8 @@
 -- The flight bar: while you fly, the route, the time left and today's games.
 -- The game doesn't tell addons how long a flight takes, but its own flight
 -- tables give each path's length (FlightData.lua). A flight's time is the
--- length of its legs over the flight speed, plus any stops along the way.
+-- length of its legs over the flight speed, plus any stops along the way;
+-- at a flight point passed through, less the approach and climb not flown.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -25,9 +26,11 @@ local function Speed()
     return sum / #list
 end
 
+-- Only a flight of one leg teaches the speed: how a flight through other points
+-- is joined is fitted, not measured.
 local function LearnSpeed(flight, seconds)
     local flying = seconds - (flight.stops or 0)
-    if not flight.yards or flying <= 0 then return end
+    if not flight.yards or flight.legs ~= 1 or flying <= 0 then return end
     local speed = flight.yards / flying / (flight.bonus or 1)
     if math.abs(speed - BASE_SPEED) / BASE_SPEED > TRUST then return end
     local list = type(ns.db.flightSpeeds) == "table" and ns.db.flightSpeeds or {}
@@ -36,30 +39,44 @@ local function LearnSpeed(flight, seconds)
     ns.db.flightSpeeds = list
 end
 
+-- A leg's path in the game's tables, and the yards its end saves when the
+-- flight goes on through it to the next leg's point instead of landing (the
+-- join's third part, by that point; none when it lands there).
+local function Leg(nodes, hops, i)
+    local from, to = nodes[hops[i][1]], nodes[hops[i][2]]
+    local path = from and to and from.id and to.id and ns.FlightPaths[from.id * 10000 + to.id]
+    if not path then return nil, 0 end
+    local after = hops[i + 1] and nodes[hops[i + 1][2]]
+    local saves = after and after.id and type(path[3]) == "table" and path[3][after.id] or 0
+    return path, saves
+end
+
 -- Yards and stop seconds for a flight, leg by leg, or nil when a leg isn't
 -- in the game's tables.
 local function Legs(nodes, hops)
     local yards, stops = 0, 0
-    for _, hop in ipairs(hops) do
-        local from, to = nodes[hop[1]], nodes[hop[2]]
-        local path = from and to and from.id and to.id and ns.FlightPaths[from.id * 10000 + to.id]
+    for i = 1, #hops do
+        local path, saves = Leg(nodes, hops, i)
         if not path then return nil end
-        yards, stops = yards + path[1], stops + path[2]
+        yards, stops = yards + path[1] - saves, stops + path[2]
     end
     if #hops == 0 then return nil end
     return yards, stops
 end
 
--- The flight points a flight passes before its last: each one's name, and
--- the yards and stop seconds flown by the time it's reached (no yards when
--- a leg isn't in the game's tables).
+-- The flight points a flight passes before its last: each one's name, the
+-- yards and stop seconds flown by the time it's reached when landing there
+-- (the leg flown whole to the perch), and how many yards before that the
+-- flight leaves its path when it goes on, after which it's too late to ask
+-- (half what passing through saves). No yards when a leg isn't in the tables.
 local function Via(nodes, hops)
     local list, yards, stops = {}, 0, 0
     for i = 1, #hops - 1 do
-        local from, to = nodes[hops[i][1]], nodes[hops[i][2]]
-        local path = yards and from and to and from.id and to.id and ns.FlightPaths[from.id * 10000 + to.id]
-        yards = path and (yards + path[1]) or nil
-        list[i] = { name = to and to.name, yards = yards, stops = stops }
+        local to = nodes[hops[i][2]]
+        local path, saves = Leg(nodes, hops, i)
+        local reached = path and yards and (yards + path[1]) or nil
+        list[i] = { name = to and to.name, yards = reached, stops = stops, leaves = saves / 2 }
+        yards = reached and (reached - saves) or nil
         stops = stops + (path and path[2] or 0)
     end
     return list
@@ -76,7 +93,7 @@ local function NextStop(flight, elapsed)
     for _, stop in ipairs(flight.via) do
         if not stop.yards then return true end
         local at = stop.yards / speed + stop.stops
-        if at > elapsed + LAND_NOTICE then return true, stop.name, at end
+        if at - (stop.leaves or 0) / speed > elapsed + LAND_NOTICE then return true, stop.name, at end
     end
     return false
 end
@@ -364,6 +381,7 @@ local function OnTakeTaxi(slot)
         to = to.name,
         yards = yards,
         stops = stops or 0,
+        legs = #hops,
         bonus = Compat.FlightSpeedBonus(),
     }
     WaitForTakeoff(pending, 1)
@@ -427,9 +445,10 @@ function Flight:OnEnable()
             end
         end))
     end
-    -- Speeds measured before flights were timed to the moment are dropped.
-    if ns.db.flightTiming ~= 2 then
-        ns.db.flightSpeeds, ns.db.flightTiming = nil, 2
+    -- Speeds measured before flights were timed to the moment, and before a
+    -- flight through other points stopped teaching the speed, are dropped once.
+    if ns.db.flightTiming ~= 3 then
+        ns.db.flightSpeeds, ns.db.flightTiming = nil, 3
     end
     loaded = Compat.Now()
     local saved = ns.char.flight
