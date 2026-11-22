@@ -18,6 +18,17 @@ local PLACES = 17                       -- the most slots there are: fifteen, wi
 local FULL_BAR = 100                    -- the chance that fills a piece's bar: a bar reads as the share it is
 -- A finished slot's mark: the game's check, tinted gold (as the road tints it green).
 local CHECK = "Interface\\Buttons\\UI-CheckBox-Check"
+-- The game's own picture of an empty place, the character pane's (a grey head, a ring), for the
+-- slot's place `equip`: the second of a pair is "Finger1Slot", the first "Finger0Slot". The function
+-- is looked for first and then called, as `X and f(...)` would keep only its first value.
+local function EmptyPicture(slot, equip)
+    if not GetInventorySlotInfo then return nil end
+    local name = slot.empty
+    if #slot.equip > 1 and equip == slot.equip[2] then name = name:gsub("0Slot$", "1Slot") end
+    local _, texture = GetInventorySlotInfo(name)
+    return texture
+end
+
 -- Before a finished slot's "at goal" and a worn pick's "worn": the check as a picture of its own,
 -- 16 across. Drawn inline in the words at their size it read as a thin "v"; the check fills about
 -- two thirds of its picture, so at 16 the tick stands a little taller than the words' capitals.
@@ -604,7 +615,7 @@ local function SlotList(view, rowH, onPick, bare)
             if row then
                 r.slot:SetText(row.label:upper())
                 r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
-                local _, emptyTexture = GetInventorySlotInfo and GetInventorySlotInfo(row.slot.empty)
+                local emptyTexture = EmptyPicture(row.slot, row.equip)
                 if row.taken then
                     -- The goal's two-hander, greyed, as Near your level shows the one you wear.
                     local hand = TwoHander(rows)
