@@ -60,10 +60,36 @@ local function WordPayload()
     return ("%d;%s;%s"):format(saved.id, saved.code, saved.setter or "")
 end
 
+-- This account's own number: random, made once and kept account-wide, so a guildmate's Games page
+-- shows one row for one player's characters. Nothing about the account, its characters or realm goes
+-- into it; it rides only on what is told to the guild channel, and is never shown.
+local PERSON_LEN = 10
+local function Person()
+    local p = ns.db.person
+    if type(p) ~= "string" or #p ~= PERSON_LEN or not p:match("^%w+$") then
+        local digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+        local made = {}
+        for i = 1, PERSON_LEN do
+            local k = math.random(1, #digits)
+            made[i] = digits:sub(k, k)
+        end
+        p = table.concat(made)
+        ns.db.person = p
+    end
+    return p
+end
+Guild.Person = Person
+
+-- A number heard from a guildmate, or nil for none or one not of its shape.
+local function HeardPerson(p)
+    return type(p) == "string" and #p == PERSON_LEN and p:match("^%w+$") and p or nil
+end
+
 -- What a player tells the guild: "version;wordDay;wordScore;iconDay;iconScore;
 -- guildWordID;guildWordScore;wordAverage;wordsSolved". Older versions send
--- the first seven, and the rest read as missing.
-local function Status()
+-- the first seven, and the rest read as missing. `whisper`: it's an answer to
+-- one guildmate, which carries no number.
+local function Status(whisper)
     local wordDay, wordScore = ns.DailyWord.Result()
     local iconDay, iconScore = ns.IconGuess.Result()
     local word = Guild.Word()
@@ -89,6 +115,8 @@ local function Status()
         ns.Orders and ns.Orders.Signature() or "",
         -- Today's Pal run: its day, this player's best time and their pal's name, "day:steps:name".
         ns.PalRun and ns.PalRun.Signature() or "",
+        -- This account's number, on the guild channel only.
+        whisper and "" or Person(),
     }, ";")
 end
 
@@ -157,6 +185,7 @@ local KEPT = {
     { "wordDay", "wordScore" }, { "iconDay", "iconScore" }, { "runDay", "runSteps", "runPal" },
     { "marksDay", "wordMarks", "iconMarks" }, { "guildID", "guildScore" }, { "guildMarksID", "guildMarks" },
 }
+-- With them, the guildmate's account number when they sent one, so a reload still shows one row a player.
 
 local function Worth(r, today, word)
     return (r.wordDay == today and r.wordScore ~= nil) or (r.iconDay == today and r.iconScore ~= nil)
@@ -198,6 +227,7 @@ local function Keep(name, m)
             for _, field in ipairs(group) do r[field] = m[field] end
         end
     end
+    r.person = m.person or r.person
     book.names[name] = Worth(r, today, word) and r or nil
 end
 
@@ -214,7 +244,7 @@ function Guild.Day()
 end
 
 local function Store(payload, name, sender)
-    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, _, restartSince, loot, orders, run = strsplit(";", payload or "")
+    local version, wordDay, wordScore, iconDay, iconScore, guildID, guildScore, average, solved, reports, recipes, _, restartSince, loot, orders, run, person = strsplit(";", payload or "")
     local runDay, runSteps, runPal = (run or ""):match("^(%d+):(%d+):(.*)$")
     if ns.Crafters then ns.Crafters.HeardHello(name, recipes, sender or name) end
     if ns.GuildLoot then ns.GuildLoot.HeardHello(name, loot, sender or name) end
@@ -239,6 +269,7 @@ local function Store(payload, name, sender)
         runDay = tonumber(runDay),
         runSteps = tonumber(runSteps),
         runPal = ns.PalRun and ns.PalRun.Clean and ns.PalRun.Clean(runPal) or nil,
+        person = HeardPerson(person) or before.person,
         seen = GetTime(),
     }
     Keep(name, members[name])
@@ -374,7 +405,7 @@ function Guild:OnEnable()
         if ns.Reports then ns.Reports.Heard(name) end
         if name ~= Compat.MyName() and (answered[name] or -30) + 30 < GetTime() then
             answered[name] = GetTime()
-            Comms.Send("ME", Status(), "WHISPER", sender)
+            Comms.Send("ME", Status(true), "WHISPER", sender)
             Comms.Send("GD", Details(), "WHISPER", sender)
             local word = WordPayload()
             if word then Comms.Send("GW", word, "WHISPER", sender) end
