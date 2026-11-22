@@ -86,9 +86,18 @@ function Facts.Read(s)
     return out
 end
 
+-- An item's name as the Endgame page draws it: the game's (the gear data ships none), or nil while the
+-- game hasn't loaded the item. Each one drawn without is noted, and the page draws again when it comes in.
+ns.EndgameMissing = ns.EndgameMissing or {}
+function ns.EndgameItemName(id)
+    local name = Compat.ItemName(id)
+    if not name and id then ns.EndgameMissing[id] = true end
+    return name
+end
+
 -- An item's name, or "a piece" while the game hasn't loaded it.
 local function Named(id)
-    return Compat.ItemName(id) or "a piece"
+    return ns.EndgameItemName(id) or "a piece"
 end
 
 -- How far the first piece is, in one sentence, from what can be had now: "The first is 8 levels away:

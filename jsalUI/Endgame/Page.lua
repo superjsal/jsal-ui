@@ -88,16 +88,22 @@ Window.Page("endgame", function(page)
     end
 
     Paint = function()
+        for id in pairs(ns.EndgameMissing) do ns.EndgameMissing[id] = nil end
         local level = ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 1
         local tall = level >= 60 and AtSixty() or BeforeSixty(level)
         area:SetHeight(math.max(1, tall))
     end
     page.Refresh = function() xpcall(Paint, ns.Report) end
 
-    -- Bags read again a moment after they change, while the page shows.
+    -- Bags read again a moment after they change, while the page shows; and an item whose name the page
+    -- drew without (the game hadn't loaded it yet, as after a restart) draws it again when it comes in.
+    -- Once for a batch.
+    local ITEM_IN = { GET_ITEM_INFO_RECEIVED = true, ITEM_DATA_LOAD_RESULT = true }
     local events = CreateFrame("Frame")
     local waiting = false
-    events:SetScript("OnEvent", function()
+    events:SetScript("OnEvent", function(_, event, item)
+        item = ns.Compat.Plains(item)
+        if ITEM_IN[event] and not (item and ns.EndgameMissing[item]) then return end
         if waiting then return end
         waiting = true
         ns.Compat.After(0.5, function()
@@ -105,7 +111,12 @@ Window.Page("endgame", function(page)
             if page:IsVisible() then page.Refresh() end
         end)
     end)
-    page:HookScript("OnShow", function() pcall(events.RegisterEvent, events, "BAG_UPDATE_DELAYED") end)
+    local function Listen()
+        for _, event in ipairs({ "BAG_UPDATE_DELAYED", "GET_ITEM_INFO_RECEIVED", "ITEM_DATA_LOAD_RESULT" }) do
+            pcall(events.RegisterEvent, events, event)
+        end
+    end
+    page:HookScript("OnShow", Listen)
     page:HookScript("OnHide", function() events:UnregisterAllEvents() end)
-    if page:IsVisible() then pcall(events.RegisterEvent, events, "BAG_UPDATE_DELAYED") end
+    if page:IsVisible() then Listen() end
 end, nil, true)

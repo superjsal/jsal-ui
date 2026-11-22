@@ -233,14 +233,15 @@ function ns.EndgameGoal(parent, width)
             local left = opts.item and 22 or 0
             r.name:ClearAllPoints()
             r.name:SetPoint("TOPLEFT", left, -3)
-            local room = colW - left - (right ~= "" and 30 or 0)
+            -- The words at the right first: the name keeps clear of them, never under them.
+            r.right:SetText(right)
+            local room = colW - left - (right ~= "" and math.max(30, Style.Wide(r.right, #right * 7) + 10) or 0)
             r.name:SetWidth(room)
             r.name:SetText(words)
             r.name:SetTextColor(Style.Color("text"))
             local plain = words:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
             local two = Style.Wide(r.name, #plain * 6.6) > room
             r.name:SetWordWrap(two)
-            r.right:SetText(right)
             local h = two and TALL or LINE
             r:SetSize(colW, h)
             r:Show()
@@ -256,7 +257,7 @@ function ns.EndgameGoal(parent, width)
             return 20
         end
         local function Piece(x, y, p, right)
-            return Line(x, y, Hex(p.quality) .. (Compat.ItemName(p.id) or "...") .. "|r", right, { item = p.id, quality = p.quality, how = p.how })
+            return Line(x, y, Hex(p.quality) .. (ns.EndgameItemName(p.id) or "...") .. "|r", right, { item = p.id, quality = p.quality, how = p.how })
         end
         local bottoms = {}
         -- DUNGEONS

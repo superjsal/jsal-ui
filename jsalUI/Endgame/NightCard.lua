@@ -370,7 +370,7 @@ function ns.EndgameNightPaint(card, p, room)
         local words, cost, made = ns.EndgameNightCost(line)
         if cost then total = total + cost elseif not made then unpriced = unpriced + 1 end
         local r = p.Row(n + 1)
-        local h = Name(r, Compat.ItemName(line.item) or "...")
+        local h = Name(r, ns.EndgameItemName(line.item) or "...")
         if y + h <= limit then
             n = n + 1
             r.line, r.back, r.item, r.per = { line.item, line.kind, line.lasts }, nil, line.item, line.per
@@ -387,7 +387,7 @@ function ns.EndgameNightPaint(card, p, room)
     end
     for _, item in ipairs(shownOff) do
         local r = p.Row(n + 1)
-        local h = Name(r, Compat.ItemName(item) or "...")
+        local h = Name(r, ns.EndgameItemName(item) or "...")
         if y + h <= limit then
             n = n + 1
             r.line, r.back, r.item, r.per = nil, true, item, 0
