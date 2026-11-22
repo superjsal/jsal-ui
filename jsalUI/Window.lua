@@ -323,8 +323,10 @@ local function Build()
     Style.Cap(menu, 6, "titleBar", "BOTTOMLEFT")
     Style.Rule(menu, "RIGHT", "line")
     local y, below = 18, 0
+    -- The entries at the menu's foot that show, so the last sits at the foot
+    -- with no room left for one that doesn't.
     for _, page in ipairs(PAGES) do
-        if page.bottom then below = below + 1 end
+        if page.bottom and not (page.when and not page.when()) then below = below + 1 end
     end
     for _, page in ipairs(PAGES) do
         MenuButton(menu, page)
