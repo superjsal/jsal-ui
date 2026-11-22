@@ -919,8 +919,11 @@ local function Hero(page, width)
         elseif piece then
             local from = ns.GearGoal.From(piece.goal.e)
             Fits(nextRow.line, { { piece.label, " \194\183 " .. (from.text or "") }, { piece.label, "" } }, lineRoom)
+        elseif (s.unknown or 0) > 0 then
+            Fits(nextRow.line, { { "", ("%d piece%s with no known source yet"):format(s.unknown, s.unknown == 1 and "" or "s") } }, lineRoom)
         else
-            Fits(nextRow.line, { { "", ("%d piece%s with no known source yet"):format(s.unknown or 0, (s.unknown or 0) == 1 and "" or "s") } }, lineRoom)
+            -- Every piece chosen is worn; a set of yours has places still empty.
+            Fits(nextRow.line, { { "", "Choose the rest of its pieces in the Gear plan" }, { "", "Choose the rest in the Gear plan" } }, lineRoom)
         end
         return true
     end

@@ -772,7 +772,8 @@ end
 -- of the set's pieces you wear, and where the rest are got. Nothing is scored and no item is asked
 -- of the game; places are counted as the At 60 view counts them. Kept until the plans or the set
 -- chosen change. nil for a tree WoWSims has no set for.
--- { at, of, name, own, empty (a set of yours with no pieces yet), runs, other, unknown }
+-- { at, of, chosen (the slots with a piece chosen; the rest of `of` are a set of yours' empty places), name,
+-- own, empty (a set of yours with no pieces yet), runs, other, unknown }
 local summary, summaryKey
 function Goal.Summary()
     local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
@@ -817,6 +818,7 @@ function Goal.Summary()
         end
     end
     out.empty = pieces == 0
+    out.chosen = pieces
     out.runs, out.other, out.unknown = Goal.Runs(out.rows, Goal.BEFORE)
     summary = out
     return out

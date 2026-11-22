@@ -22,12 +22,15 @@ local function ByLevel(a, b)
     return a.id < b.id
 end
 
--- The goal from a summary: { name, own, of, at, empty, pieces = { { id, e, req, quality, label, from, how } },
+-- The goal from a summary: { name, own, of, at, empty, chosen, open (slots with no piece chosen),
+-- pieces = { { id, e, req, quality, label, from, how } },
 -- dungeons = { { name, level, dungeon, pieces } }, quests, crafted, vendors = { { name, level, pieces } },
 -- elsewhere, unknown }. A piece with no known level stands at 60.
 function Facts.Read(s)
     local Goal = ns.GearGoal
+    local chosen = s.chosen or s.of or 0
     local out = { name = s.name, own = s.own, of = s.of or 0, at = s.at or 0, empty = s.empty, pieces = {},
+                  chosen = chosen, open = math.max(0, (s.of or 0) - chosen),
                   dungeons = {}, quests = {}, crafted = {}, vendors = {}, elsewhere = {}, unknown = {} }
     local dungeons, vendors = {}, {}
     for _, row in ipairs(s.rows or {}) do
@@ -107,7 +110,20 @@ function Facts.Sentence(g, level, link)
     link = link or function(_, name) return name end
     if g.empty then return "Your set has no pieces yet: choose them in the Gear plan." end
     local pieces = g.pieces
-    if #pieces == 0 then return "You wear every piece of it." end
+    local open = g.open or 0
+    -- A set of yours with places still empty says so, and where to fill them.
+    local rest = open > 0 and (" %d slot%s still empty: choose %s in the Gear plan."):format(open, open == 1 and " is" or "s are",
+        open == 1 and "its piece" or "their pieces") or ""
+    if #pieces == 0 then
+        if open == 0 then return "You wear every piece of it." end
+        local chosen = g.chosen or 0
+        return ("You wear the %s chosen."):format(chosen == 1 and "piece" or (chosen .. " pieces")) .. rest
+    end
+    return Facts.SentenceOf(g, pieces, level, link) .. rest
+end
+
+-- The sentence for the pieces still to get.
+function Facts.SentenceOf(g, pieces, level, link)
     local now, later = {}, {}
     for _, p in ipairs(pieces) do
         if p.req <= level then now[#now + 1] = p else later[#later + 1] = p end

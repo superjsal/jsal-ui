@@ -253,6 +253,10 @@ function ns.EndgameSet(parent, width)
         elseif (s.unknown or 0) > 0 then
             runName:SetText("")
             Fits(runLine, { ("%d piece%s with no known source yet"):format(s.unknown, s.unknown == 1 and "" or "s") }, inner)
+        elseif (s.chosen or s.of) < s.of then
+            -- Every piece chosen is worn; a set of yours has places still empty.
+            runName:SetText("")
+            Fits(runLine, { "Choose the rest of its pieces in the Gear plan", "Choose the rest in the Gear plan" }, inner)
         else
             runName:SetText("")
             runLine:SetText("")

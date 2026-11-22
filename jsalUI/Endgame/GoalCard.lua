@@ -333,7 +333,12 @@ function ns.EndgameGoal(parent, width)
         local g = F.Read(s)
         card.facts = g
         name:SetText(g.own and (g.name or "Your set") or ("WoWSims' " .. (g.name or "") .. " set"))
-        about:SetText(("before raids · %d piece%s"):format(g.of, g.of == 1 and "" or "s"))
+        if g.open > 0 then
+            about:SetText(("before raids · %d piece%s chosen, %d slot%s empty"):format(g.chosen, g.chosen == 1 and "" or "s",
+                g.open, g.open == 1 and "" or "s"))
+        else
+            about:SetText(("before raids · %d piece%s"):format(g.of, g.of == 1 and "" or "s"))
+        end
         sentence:SetText(F.Sentence(g, level, function(id, words)
             local p
             for _, q in ipairs(g.pieces) do if q.id == id then p = q end end
