@@ -271,17 +271,18 @@ Window.Page("build", function(page)
     -- A build for 60's points in each tree: three boxes across the card, a number over the
     -- tree's name, the main tree's number gold.
     nextCard.trees = {}
-    local treeW = (NEXT_W - 32 - 16) / 3
+    -- (boxW, not treeW: that's the trees' width in the editor, which Layout reads further down)
+    local boxW = (NEXT_W - 32 - 16) / 3
     for i = 1, 3 do
         local t = CreateFrame("Frame", nil, nextCard)
-        t:SetSize(treeW, 44)
-        t:SetPoint("TOPLEFT", 16 + (i - 1) * (treeW + 8), -94)
+        t:SetSize(boxW, 44)
+        t:SetPoint("TOPLEFT", 16 + (i - 1) * (boxW + 8), -94)
         Style.Box(t, 5, "titleBar", "line")
         t.points = Style.Text(t, 17, "text", nil, true)
         t.points:SetPoint("TOP", 0, -6)
         t.name = Style.Text(t, 10, "muted")
         t.name:SetPoint("BOTTOM", 0, 6)
-        t.name:SetWidth(treeW - 8)
+        t.name:SetWidth(boxW - 8)
         t.name:SetWordWrap(false)
         t:Hide()
         nextCard.trees[i] = t

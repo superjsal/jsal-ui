@@ -224,8 +224,8 @@ for _, event in ipairs({ "PLAYER_ENTERING_WORLD", "UPDATE_INSTANCE_INFO", "TRADE
                          "UNIT_SPELLCAST_SUCCEEDED", "BAG_UPDATE_COOLDOWN" }) do
     pcall(frame.RegisterEvent, frame, event)
 end
-frame:SetScript("OnEvent", ns.Safe(ns.Journal, function(_, event, a, b, c)
-    a, b, c = Compat.Plains(a, b, c)
+frame:SetScript("OnEvent", ns.Safe(ns.Journal, function(_, event, a, _, c)
+    a, c = Compat.Plains(a, c)
     if not (ns.Journal and ns.Journal.running) then return end
     if event == "PLAYER_ENTERING_WORLD" then
         -- At login only; the game's own lists are ready a few seconds in.

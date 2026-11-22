@@ -416,8 +416,8 @@ function ns.EndgameNightPaint(card, p, room)
     -- The pictures start after the words, as many as fit with room for "+N" after them.
     p.enoughLabel:SetShown(#full > 0)
     local start = math.floor(Style.Wide(p.enoughLabel, 112) + 10)
-    local room = math.max(1, math.floor((p.inner - start - 28) / 22))
-    local shown = math.min(#full, room, #p.enough)
+    local fits = math.max(1, math.floor((p.inner - start - 28) / 22))
+    local shown = math.min(#full, fits, #p.enough)
     for i, t in ipairs(p.enough) do
         local line = full[i]
         t:SetShown(i <= shown)
