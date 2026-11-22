@@ -3,6 +3,7 @@
 -- tables give each path's length (FlightData.lua). A flight's time is the
 -- length of its legs over the flight speed, plus any stops along the way;
 -- at a flight point passed through, less the approach and climb not flown.
+-- A route flown before is timed by how long it took then.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -37,6 +38,79 @@ local function LearnSpeed(flight, seconds)
     list[#list + 1] = speed
     while #list > KEEP do table.remove(list, 1) end
     ns.db.flightSpeeds = list
+end
+
+-- How long routes took when flown, account-wide: by faction and the chain of
+-- flight points flown (from, each point passed, to), the flying part's tenths
+-- of a second at normal speed, stops apart. A route is kept only from a whole
+-- flight that landed where it was going, close to its worked-out time: a
+-- flight-speed bonus the bar doesn't see is a sixth off, which is outside it.
+-- Two flights of a route within a couple of seconds are averaged; further
+-- apart, the shorter stands, as a landing can be noticed late but never early.
+local KEPT_MOST, KEY_MOST = 300, 40   -- routes kept; the longest key kept
+local NEAR, AGREE = 0.12, 2           -- how far off the worked-out time; seconds apart that agree
+local LANDED_NEAR = 0.02              -- how near its flight point on the map a landing is
+
+-- "A43.6.2.19": the faction's first letter and the flight points' node IDs.
+-- Nil when a point has no ID or the hops don't follow on from each other.
+local function RouteKey(nodes, hops)
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local first = hops[1] and nodes[hops[1][1]]
+    if type(faction) ~= "string" or not (first and first.id) then return nil end
+    local ids = { first.id }
+    for i, hop in ipairs(hops) do
+        local to = nodes[hop[2]]
+        if not (to and to.id) or (i > 1 and hop[1] ~= hops[i - 1][2]) then return nil end
+        ids[#ids + 1] = to.id
+    end
+    local key = faction:sub(1, 1) .. table.concat(ids, ".")
+    return #key <= KEY_MOST and key or nil
+end
+
+local function Routes()
+    local t = ns.db.flightTimes
+    return type(t) == "table" and type(t.own) == "table" and t.own or nil
+end
+
+-- A kept route's flying seconds at normal speed, while it's still close to
+-- what its legs work out at.
+local function Kept(key, yards)
+    local own = key and yards and Routes()
+    local tenths = own and own[key]
+    if type(tenths) ~= "number" or tenths <= 0 then return nil end
+    local seconds, worked = tenths / 10, yards / Speed()
+    if math.abs(seconds - worked) / worked > NEAR then return nil end
+    return seconds
+end
+
+-- Whether a flight came down by its own flight point. A spot the game can't
+-- give doesn't stand in the way.
+local function Arrived(flight)
+    local dest = flight.dest
+    if type(dest) ~= "table" then return true end
+    local x, y = Compat.PlayerOn(dest[1])
+    if not (x and y and dest[2] and dest[3]) then return true end
+    return (x - dest[2]) ^ 2 + (y - dest[3]) ^ 2 <= LANDED_NEAR ^ 2
+end
+
+local function KeepTime(flight, seconds)
+    if not (flight.key and flight.yards) or Compat.Dead() or not Arrived(flight) then return end
+    local flying = (seconds - (flight.stops or 0)) * (flight.bonus or 1)
+    local worked = flight.yards / Speed()
+    if flying <= 0 or math.abs(flying - worked) / worked > NEAR then return end
+    local t = type(ns.db.flightTimes) == "table" and ns.db.flightTimes or {}
+    local own = type(t.own) == "table" and t.own or {}
+    local before = type(own[flight.key]) == "number" and own[flight.key] / 10 or nil
+    if before then
+        flying = math.abs(flying - before) <= AGREE and (flying + before) / 2 or math.min(flying, before)
+    else
+        local count = 0
+        for _ in pairs(own) do count = count + 1 end
+        if count >= KEPT_MOST then own[next(own)] = nil end
+    end
+    own[flight.key] = math.floor(flying * 10 + 0.5)
+    t.own = own
+    ns.db.flightTimes = t
 end
 
 -- A leg's path in the game's tables, and the yards its end saves when the
@@ -89,7 +163,7 @@ end
 local LAND_NOTICE = 2
 local function NextStop(flight, elapsed)
     if type(flight.via) ~= "table" then return false end
-    local speed = Speed() * (flight.bonus or 1)
+    local speed = (flight.speed or Speed()) * (flight.bonus or 1)
     for _, stop in ipairs(flight.via) do
         if not stop.yards then return true end
         local at = stop.yards / speed + stop.stops
@@ -336,7 +410,9 @@ function Flight.Land()
     -- One picked back up after a /reload doesn't count either: its landing may have been
     -- noticed late.
     if flight and not flight.early and not flight.resumed then
-        LearnSpeed(flight, Compat.Now() - flight.start)
+        local seconds = Compat.Now() - flight.start
+        LearnSpeed(flight, seconds)
+        KeepTime(flight, seconds)
     end
 end
 
@@ -347,7 +423,11 @@ local function Start(plan)
     current = plan
     current.start = Compat.Now()
     if plan.yards then
-        current.expected = plan.yards / (Speed() * plan.bonus) + plan.stops
+        -- A route flown before goes at the speed that took the time kept for it,
+        -- so the points passed keep their share of it.
+        local kept = Kept(plan.key, plan.yards)
+        plan.speed = kept and plan.yards / kept or nil
+        current.expected = plan.yards / ((plan.speed or Speed()) * plan.bonus) + plan.stops
     end
     -- Saved per character, so a /reload mid-flight picks the bar back up.
     ns.char.flight = current
@@ -370,7 +450,7 @@ end
 
 local function OnTakeTaxi(slot)
     if not Flight.running then return end
-    local nodes, here = Compat.TaxiNodes()
+    local nodes, here, map = Compat.TaxiNodes()
     local to = nodes[slot]
     if not to then return end
     local hops = Compat.TaxiHops(slot)
@@ -383,6 +463,8 @@ local function OnTakeTaxi(slot)
         stops = stops or 0,
         legs = #hops,
         bonus = Compat.FlightSpeedBonus(),
+        key = RouteKey(nodes, hops),
+        dest = map and to.x and to.y and { map, to.x, to.y } or nil,
     }
     WaitForTakeoff(pending, 1)
 end

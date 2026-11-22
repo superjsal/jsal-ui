@@ -270,8 +270,9 @@ function Compat.TargetRare()
     return kind == "rare" or kind == "rareelite"
 end
 
--- The flight master's map: each slot's node ID (when the client gives one)
--- and name, which slot is where the player stands, and the map's ID.
+-- The flight master's map: each slot's node ID (when the client gives one),
+-- name and spot on the map (0 to 1 across), which slot is where the player
+-- stands, and the map's ID.
 function Compat.TaxiNodes()
     local mapID = GetTaxiMapID and GetTaxiMapID() or nil
     local nodes, here = {}, nil
@@ -279,7 +280,8 @@ function Compat.TaxiNodes()
     if C_TaxiMap and C_TaxiMap.GetAllTaxiNodes and mapID then
         for _, node in ipairs(C_TaxiMap.GetAllTaxiNodes(mapID) or {}) do
             if node.slotIndex then
-                nodes[node.slotIndex] = { id = node.nodeID, name = node.name }
+                local at = node.position
+                nodes[node.slotIndex] = { id = node.nodeID, name = node.name, x = at and at.x, y = at and at.y }
                 if node.state == currentState then here = node.slotIndex end
             end
         end
@@ -444,6 +446,15 @@ function Compat.PlayerPosition()
     if not pos then return nil end
     local x, y = pos:GetXY()
     return map, x, y
+end
+
+-- Where the player stands on a given map, 0 to 1 across, or nil when the
+-- game can't place them on it.
+function Compat.PlayerOn(map)
+    if not (map and C_Map and C_Map.GetPlayerMapPosition) then return nil end
+    local pos = C_Map.GetPlayerMapPosition(map, "player")
+    if not pos then return nil end
+    return pos:GetXY()
 end
 
 -- Puts the game's own map pin on a spot and tracks it. False when the
