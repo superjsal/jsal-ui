@@ -3,8 +3,12 @@
 -- (one that outlasts it, one); one used in the moment (a potion, a rune, an explosive) is a plain
 -- five a night. A count you set is yours, a night's, and no longer follows the length.
 --
--- Kept per character: the nights, the night's length in hours, the lines taken off and the counts
--- set by hand. Whether it's on the shopping list is the list's own: a stock named "raid" there.
+-- Simple, the start, is the list's main slots by the kind WoWSims gives each: the flask, elixirs,
+-- food, weapon stone or oil, potions and rune. Max DPS adds what it files as extras and explosives.
+--
+-- Kept per character: Simple or Max DPS, the nights, the night's length in hours, the lines taken
+-- off and the counts set by hand. Whether it's on the shopping list is the list's own: a stock
+-- named "raid" there.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -15,19 +19,23 @@ RaidNight.HOURS, RaidNight.MIN_HOURS, RaidNight.MAX_HOURS = 3, 1, 8
 RaidNight.MAX_NIGHTS = 9
 RaidNight.MOMENT = 5      -- a night's worth of what's used in the moment
 RaidNight.STOCK = "raid"  -- its name on the shopping list
+-- The kinds Simple keeps.
+RaidNight.SIMPLE = { flask = true, elixir = true, food = true, weapon = true, potion = true, rune = true }
 
 local function Clamp(n, low, high, default)
     n = math.floor(tonumber(n) or default)
     return math.max(low, math.min(high, n))
 end
 
--- This character's choices: { nights, hours, off = { [item] = true }, counts = { [item] = n } }.
+-- This character's choices: { max (Max DPS; absent for Simple), nights, hours, off = { [item] = true },
+-- counts = { [item] = n } }.
 function RaidNight.Saved()
     local s = ns.char.raidNight
     if type(s) ~= "table" then
         s = {}
         ns.char.raidNight = s
     end
+    s.max = s.max == true or nil
     s.nights = Clamp(s.nights, 1, RaidNight.MAX_NIGHTS, 1)
     s.hours = Clamp(s.hours, RaidNight.MIN_HOURS, RaidNight.MAX_HOURS, RaidNight.HOURS)
     s.off = type(s.off) == "table" and s.off or {}
@@ -78,7 +86,9 @@ function RaidNight.Lines()
     local saved = RaidNight.Saved()
     local lines, off = {}, {}
     for _, c in ipairs(list or {}) do
-        if saved.off[c[1]] then
+        if not RaidNight.Chosen(c, saved) then
+            -- An extra while Simple is chosen: not on the card at all.
+        elseif saved.off[c[1]] then
             off[#off + 1] = c[1]
         else
             local per = RaidNight.PerNight(c, saved)
@@ -122,6 +132,19 @@ function RaidNight.SetListed(on)
     else
         ns.Shopping.Unstock(RaidNight.STOCK)
     end
+end
+
+-- Whether a consumable { item, kind, seconds } is in the list chosen: all of it with Max DPS,
+-- Simple's kinds without.
+function RaidNight.Chosen(c, saved)
+    saved = saved or RaidNight.Saved()
+    return saved.max == true or RaidNight.SIMPLE[c[2]] == true
+end
+
+-- Max DPS (all of WoWSims' list) or Simple.
+function RaidNight.SetMax(on)
+    RaidNight.Saved().max = on and true or nil
+    RaidNight.Sync()
 end
 
 function RaidNight.SetNights(n)

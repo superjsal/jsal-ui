@@ -83,6 +83,11 @@ function ns.EndgameNight(parent, width, changed)
     local intro = Style.Text(card, 12, "muted")
     intro:SetWidth(inner)
     intro:SetJustifyH("LEFT")
+    -- Simple (the list's main slots) or Max DPS (all of it).
+    local choice = Style.Tabs(card, { { "simple", "Simple" }, { "max", "Max DPS" } }, function(key)
+        RN.SetMax(key == "max")
+        Changed()
+    end, nil, true)
 
     -- Stock for [− 1 +] nights · N to get; a night is [− 3 +] hours.
     local stockFor = Style.Text(card, 13, "text")
@@ -232,13 +237,14 @@ function ns.EndgameNight(parent, width, changed)
     none:SetWidth(inner)
     none:SetJustifyH("LEFT")
     card.rows, card.parts = rows, { switch = switch, total = total, toGet = toGet, offLink = offLink, enough = enough,
-                                     whose = whose, none = none, intro = intro, switchNote = switchNote, enoughLabel = enoughLabel }
+                                     whose = whose, none = none, intro = intro, switchNote = switchNote, enoughLabel = enoughLabel,
+                                     choice = choice }
     return card, {
         Row = Row, offLink = offLink, setShowOff = function(on) showOff = on end, showOff = function() return showOff end,
         stockFor = stockFor, nights = nights, nightWord = nightWord, aNight = aNight, hours = hours, hourWord = hourWord,
         heads = { headFor, headGet, headCost }, enoughLabel = enoughLabel, enough = enough, enoughMore = enoughMore,
         totalRule = totalRule, total = total, switchRule = switchRule, switch = switch, switchLabel = switchLabel,
-        switchNote = switchNote, none = none, intro = intro, whose = whose, toGet = toGet, inner = inner,
+        switchNote = switchNote, none = none, intro = intro, whose = whose, toGet = toGet, inner = inner, choice = choice,
     }
 end
 
@@ -276,9 +282,10 @@ function ns.EndgameNightPaint(card, p, room)
     local saved = RN.Saved()
     local spec, list, setName = RN.Spec()
     local below = (UnitLevel("player") or 0) < 60
-    p.whose:SetText(setName and ("WoWSims' " .. setName) or (spec and RN.SpecWords(spec)) or "")
+    local whose = setName and ("WoWSims' " .. setName) or (spec and RN.SpecWords(spec)) or ""
+    p.whose:SetText(list and (whose .. " · " .. (saved.max and "max DPS" or "simple")) or whose)
     local parts = { p.stockFor, p.nights, p.nightWord, p.aNight, p.hours, p.hourWord, p.toGet, p.totalRule, p.total,
-                    p.switchRule, p.switch, p.switchLabel, p.switchNote, p.heads[1], p.heads[2], p.heads[3] }
+                    p.switchRule, p.switch, p.switchLabel, p.switchNote, p.heads[1], p.heads[2], p.heads[3], p.choice }
     if not list then
         for _, r in ipairs(parts) do r:Hide() end
         for _, r in ipairs(card.rows) do r:Hide() end
@@ -302,6 +309,10 @@ function ns.EndgameNightPaint(card, p, room)
         p.intro:SetText(("What WoWSims' %s sims take to a raid. Most of it keeps: stock up as you go."):format(setName or RN.SpecWords(spec)))
         y = y + 40
     end
+    -- Simple or Max DPS.
+    At(p.choice)
+    p.choice:Pick(saved.max and "max" or "simple")
+    y = y + 36
     -- The nights and the length.
     p.stockFor:ClearAllPoints()
     p.stockFor:SetPoint("LEFT", card, "TOPLEFT", PAD, -(y + 11))
