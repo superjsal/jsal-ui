@@ -413,6 +413,20 @@ function Gear.Losses(stats, worn, weights, dpsKey)
     return Changes(stats, worn, weights, dpsKey, -1)
 end
 
+-- A plan's option says its gains and losses (`gains`, `losses`, as above) when first asked: a slot
+-- can have hundreds of options, and a page shows a few of them. Worked out from `changesFrom`, the
+-- plan's { worn stats, weights, weapon place }, then kept on the option. A piece that's better has
+-- no losses.
+local LAZY_CHANGES = { __index = function(o, key)
+    if key ~= "gains" and key ~= "losses" then return nil end
+    local from = rawget(o, "changesFrom")
+    if not from or (key == "losses" and rawget(o, "better")) then return nil end
+    local text = key == "gains" and Gear.Gains(rawget(o, "stats"), from.worn, from.weights, from.dps)
+        or Gear.Losses(rawget(o, "stats"), from.worn, from.weights, from.dps)
+    rawset(o, key, text)
+    return text
+end }
+
 -- A plan's first upgrade: its first option that's better than what you
 -- wear. A piece you starred, added or carry comes first whatever it scores,
 -- so this is the one to see to first, for the slot's line.
@@ -1070,6 +1084,7 @@ function Gear.Plan(slot, spec, only)
     end
     t = Spent("your bags and added items", t)
     local asking = 0
+    local changesFrom = { worn = worn.stats, weights = weights, dps = slot.dps }
     for _, c in ipairs(candidates) do
         if c.id ~= wornID and c.id ~= otherID and not seen[c.id] then
             seen[c.id] = true
@@ -1088,8 +1103,8 @@ function Gear.Plan(slot, spec, only)
                 if c.added or score > worn.score + 0.01 then
                     c.score, c.stats = score, stats
                     c.better = score > worn.score + 0.01
-                    c.gains = Gear.Gains(stats, worn.stats, weights, slot.dps)
-                    c.losses = not c.better and Gear.Losses(stats, worn.stats, weights, slot.dps) or nil
+                    c.changesFrom = changesFrom
+                    setmetatable(c, LAZY_CHANGES)
                     c.soon = (c.req or 0) > level
                     c.starred = stars[c.id] == true
                     if c.added and c.kind == "" then c.kind = "Added by you" end
