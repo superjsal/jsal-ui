@@ -40,7 +40,7 @@ local function Stepper(parent, get, set)
     Style.PillBox(s, "titleBar", "lineStrong")
     s.count = Style.Text(s, 13, "text", nil, true)
     s.count:SetPoint("CENTER")
-    s.minus = Sign(s, "−")
+    s.minus = Sign(s, "-")
     s.minus:SetPoint("LEFT", 4, 0)
     s.plus = Sign(s, "+")
     s.plus:SetPoint("RIGHT", -4, 0)
@@ -126,7 +126,7 @@ function ns.EndgameNight(parent, width, changed)
         r.name:SetJustifyH("LEFT")
         r.get = Style.Text(r, 13, "text", nil, true)
         r.get:SetPoint("CENTER", r, "RIGHT", -(COST_W + 6 + GET_W / 2), 0)
-        r.minus = Sign(r, "−")
+        r.minus = Sign(r, "-")
         r.minus:SetPoint("RIGHT", r, "RIGHT", -(COST_W + 6 + GET_W - 14), 0)
         r.plus = Sign(r, "+")
         r.plus:SetPoint("LEFT", r, "RIGHT", -(COST_W + 6 + 14), 0)
@@ -266,7 +266,7 @@ function ns.EndgameNightNotes(line, hours)
         notes[1] = ("Used in the moment: %d a night."):format(line.per)
     end
     notes[2] = ("You have %d of %d."):format(line.have, line.want)
-    notes[3] = MUTED .. "− and + change a night's count; the x takes it off.|r"
+    notes[3] = MUTED .. "- and + change a night's count; the x takes it off.|r"
     return notes
 end
 
@@ -382,22 +382,26 @@ function ns.EndgameNightPaint(card, p, room)
         At(p.offLink)
         y = y + 24
     end
+    -- The pictures start after the words, as many as fit with room for "+N" after them.
     p.enoughLabel:SetShown(#full > 0)
+    local start = math.floor(Style.Wide(p.enoughLabel, 112) + 10)
+    local room = math.max(1, math.floor((p.inner - start - 28) / 22))
+    local shown = math.min(#full, room, #p.enough)
     for i, t in ipairs(p.enough) do
         local line = full[i]
-        t:SetShown(line ~= nil)
-        if line then
+        t:SetShown(i <= shown)
+        if i <= shown then
             t:SetTexture(Compat.ItemIcon(line.item))
             t:ClearAllPoints()
-            t:SetPoint("TOPLEFT", card, "TOPLEFT", PAD + 112 + (i - 1) * 22, -(y - 2))
+            t:SetPoint("TOPLEFT", card, "TOPLEFT", PAD + start + (i - 1) * 22, -(y - 2))
         end
     end
-    p.enoughMore:SetShown(#full > #p.enough)
+    p.enoughMore:SetShown(#full > shown)
     if #full > 0 then
         At(p.enoughLabel, 0, 1)
-        if #full > #p.enough then
-            p.enoughMore:SetText(("+%d"):format(#full - #p.enough))
-            At(p.enoughMore, 112 + #p.enough * 22, 1)
+        if #full > shown then
+            p.enoughMore:SetText(("+%d"):format(#full - shown))
+            At(p.enoughMore, start + shown * 22, 1)
         end
         y = y + 30
     end

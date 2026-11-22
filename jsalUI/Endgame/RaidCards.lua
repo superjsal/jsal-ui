@@ -5,7 +5,7 @@
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
-local R = { PAD = 16, HEAD = 38, LINE = 22, BLOCK = 10, NAME = 84, PIP = 8, PIPS = 10, GAP = 16, FOOT = 34 }
+local R = { PAD = 16, HEAD = 38, LINE = 22, BLOCK = 10, NAME = 84, PIP = 8, PIPS = 10, GAP = 16 }
 
 local function ClassColor(classFile)
     local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
@@ -276,7 +276,7 @@ function ns.RaidCards(parent, width)
         cdsCard.note:SetText(ready > 0 and ("%d ready"):format(ready) or "")
         cdsCard.note:SetTextColor(Style.Color("gold"))
         cdsCard.foot:SetShown(count > 0)
-        local reserve = count > 0 and R.FOOT or 0
+        local reserve = count > 0 and (NoteHeight(cdsCard.foot:GetText() or "") + 18) or 0
         local cdsH = math.floor(math.min(room - raidsH - R.GAP, Wanted(cdBlocks, cdNotes, reserve)))
         cdsCard:SetHeight(cdsH)
         cdsCard:ClearAllPoints()
