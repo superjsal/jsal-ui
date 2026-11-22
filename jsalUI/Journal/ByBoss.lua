@@ -4,7 +4,8 @@
 -- group it was with (all of them when pointed at), how long that fight took, kills, wipes, the last kill. A boss not yet killed is grey, "not yet". A raid has a "raid" tag. At 60
 -- the dungeons you've been in at 60 come first, with a total line, then the dungeons of the climb. A
 -- kill from before the Journal kept bosses is counted, from the game's statistics, without a date.
--- Only open dungeons' rows are drawn; the tab is built when first opened.
+-- Only open dungeons' rows are drawn; the tab is built when first opened. A dungeon for the other faction
+-- alone (Ragefire Chasm for an Alliance character) is never listed or counted.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -29,10 +30,12 @@ end
 function B.Places(life, game)
     local D = ns.Dungeons
     local bosses, since = life.bosses or {}, life.since60
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
     local out = {}
     for _, d in ipairs(ns.DungeonData or {}) do
         local p = { d = d, bosses = {}, killed = 0, kills = 0, wipes = 0, last = nil, at60 = false, any = false }
-        for _, b in ipairs(d.bosses or {}) do
+        if d.faction and d.faction ~= faction then p.bosses = nil end
+        for _, b in ipairs(p.bosses and d.bosses or {}) do
             local rec = bosses[b[1]]
             local kills = rec and rec.kills or 0
             if game and D and D.KillCount then kills = math.max(kills, D.KillCount(b[2], game, b[3]) or 0) end
@@ -45,7 +48,7 @@ function B.Places(life, game)
             if seen and (not p.last or seen > p.last) then p.last = seen end
             if since and rec and ((rec.first or 0) >= since or (rec.last or 0) >= since or (rec.lv or 0) >= 60) then p.at60 = true end
         end
-        if p.any then out[#out + 1] = p end
+        if p.any and p.bosses then out[#out + 1] = p end
     end
     table.sort(out, function(a, b)
         if a.at60 ~= b.at60 then return a.at60 end
@@ -71,14 +74,19 @@ function B.Group(w)
     return lines
 end
 
--- The four records, from the places' bosses.
+-- The four records, from the places' bosses. First kills: below 60, every boss killed at least once, the
+-- kills counted from before the Journal kept bosses too; at 60, those first killed at 60.
 function B.Records(places, life)
     local r = { first = 0, of = 0 }
     for _, p in ipairs(places) do
         if p.at60 or not life.since60 then r.of = r.of + #p.bosses end
         for _, b in ipairs(p.bosses) do
             local rec = b.rec
-            if rec and rec.first and (not life.since60 or (rec.lv or 0) >= 60) then r.first = r.first + 1 end
+            if life.since60 then
+                if rec and rec.first and (rec.lv or 0) >= 60 then r.first = r.first + 1 end
+            elseif b.kills > 0 or (rec and rec.first) then
+                r.first = r.first + 1
+            end
             if rec and rec.fight and rec.fight > 0 and (not r.quick or rec.fight < r.quick.n) then r.quick = { name = b.name, n = rec.fight } end
             if b.kills > 0 and (not r.most or b.kills > r.most.n) then r.most = { name = b.name, n = b.kills } end
             if rec and (rec.wipes or 0) > 0 and (not r.hard or rec.wipes > r.hard.n) then r.hard = { name = b.name, n = rec.wipes } end
@@ -198,8 +206,7 @@ function ns.JournalByBoss(view, width, height, Repaint)
     function W.Pip(r, k)
         local t = r.pips[k]
         if not t then
-            t = r:CreateTexture(nil, "ARTWORK")
-            t:SetSize(B.PIP_W, 10)
+            t = Style.Dot(r, B.PIP_W, "ARTWORK")
             r.pips[k] = t
         end
         return t
@@ -238,12 +245,16 @@ function ns.JournalByBoss(view, width, height, Repaint)
         cards[1].big:SetText(tostring(rec.first))
         cards[1].value:SetText(rec.of > 0 and ("of %d"):format(rec.of) or "")
         cards[1].value:SetTextColor(Style.Color("text"))
-        for i, held in ipairs({ false, rec.quick, rec.most, rec.hard }) do
-            if i > 1 then
-                cards[i].under:SetText(held and held.name or "none yet")
-                cards[i].value:SetText(not held and "" or (i == 2 and Clock(held.n)) or (i == 3 and ("×%d"):format(held.n))
-                    or ("%d wipe%s"):format(held.n, held.n == 1 and "" or "s"))
-            end
+        -- A record with nothing to show says what fills it: a fight's time and its wipes come from the
+        -- bosses fought from this version on, the kills from before too.
+        local waiting = { false, "from your next boss", "from your next boss", rec.quick and "no wipes yet" or "from your next boss" }
+        -- Counted, not ipairs: a record not held is nil, and ipairs would stop at it and leave the rest unpainted.
+        local records = { false, rec.quick, rec.most, rec.hard }
+        for i = 2, 4 do
+            local held = records[i]
+            cards[i].under:SetText(held and held.name or waiting[i])
+            cards[i].value:SetText(not held and "" or (i == 2 and Clock(held.n)) or (i == 3 and ("×%d"):format(held.n))
+                or ("%d wipe%s"):format(held.n, held.n == 1 and "" or "s"))
         end
         -- The lines: a dungeon a line, and under an open one a row a boss. The first starts open.
         local items, total, dividedAt = {}, { killed = 0, of = 0, kills = 0, wipes = 0 }, nil
@@ -306,7 +317,7 @@ function ns.JournalByBoss(view, width, height, Repaint)
                     local pip = W.Pip(r, k)
                     pip:ClearAllPoints()
                     pip:SetPoint("LEFT", W.X.pips + (k - 1) * (B.PIP_W + B.PIP_GAP), 0)
-                    pip:SetColorTexture(Style.Color(b.kills > 0 and "gold" or "lineStrong"))
+                    pip:Paint(b.kills > 0 and "gold" or "lineStrong")
                     pip:Show()
                 end
                 r.fight:SetText("")
