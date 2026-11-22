@@ -204,6 +204,17 @@ function Pet.BedSpot(size)
     return N.x + 64 - size / 2, PEN_H - N.y - 42 - size
 end
 
+-- Already asleep as it's drawn: lying in its nest's hollow if that's its bed, else where it stands, with
+-- no walk there. ToBed's walk and lying down are for falling asleep while you watch.
+function Pet.Abed(walk)
+    if ui.nestBack and ui.nestBack:IsShown() and Rules.Bed(Pet.State()) then
+        walk.x, walk.y = Pet.BedSpot(walk.size)
+        walk.facing = "left"
+    end
+    walk.tx, walk.ty, walk.act, walk.errand, walk.doting = walk.x, walk.y, nil, nil, nil
+    walk.frame, walk.wait = "sleep", math.max(walk.wait or 0, 0.5)
+end
+
 -- Bedtime, each frame it's asleep or napping: with a nest for a bed, it
 -- goes there first, and settles down in it. True while it's on its way.
 function Pet.ToBed(dt)

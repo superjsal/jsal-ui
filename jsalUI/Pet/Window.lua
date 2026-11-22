@@ -744,6 +744,7 @@ function Pet.Open()
     Pet.letting, Pet.lifting = nil, nil
     ui.pen.shade = nil     -- opened, it's day or night at once, with no fade
     Pet.Layout()            -- as it was left: a window, the pen alone, or out with you
+    ui.opening = true       -- what it's doing now is drawn as already done (asleep: in bed)
     Refresh()
     ui.window:Show()
 end

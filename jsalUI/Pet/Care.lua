@@ -161,7 +161,8 @@ local function Refresh()
     -- Out with you, every form is at the art's own size, and keeps to its strip.
     local size, strip = SIZES[Form()] or SIZE, nil
     if ui.window.out then size, strip = ui.outSize, ui.stripW end
-    if not ui.walk or ui.walk.size ~= size or ui.walk.strip ~= strip then
+    local anew = not ui.walk or ui.walk.size ~= size or ui.walk.strip ~= strip
+    if anew then
         local was = ui.walk
         ui.walk = Pet.NewWalk(math.random, size, strip)
         -- Changing under the light it grows in: it stays where it stands, its
@@ -174,6 +175,10 @@ local function Refresh()
         end
     end
     Pet.KeepOffNest()
+    -- Asleep already as its window opens, or as it's drawn anew (back from out with you, or after a
+    -- /reload): it's in bed, lying down, not stood up to walk there.
+    if s.asleep and (anew or ui.opening) and not (ui.walk.act and ui.walk.act.name == "grow") then Pet.Abed(ui.walk) end
+    ui.opening = nil
     -- One that hatched in its nest a moment ago is put there, and has hatched already.
     local hatched = Pet.PlaceHatchling()
     if fresh and not ui.looking and not hatched and Pet.Play(ui.walk, Sheet(), "hatch") then Pet.Sound("hatch") end
