@@ -38,7 +38,7 @@ function Facts.Read(s)
         if e and e.id then
             local from = Goal and Goal.From and Goal.From(e) or { kind = "unknown", runs = {} }
             local p = { id = e.id, e = e, req = tonumber(e.req) or Facts.CAP, quality = tonumber(e.quality) or 1,
-                        label = row.label, from = from }
+                        label = row.label, equip = row.equip, from = from }
             out.pieces[#out.pieces + 1] = p
             local place = e.place or ""
             if from.kind == "run" then

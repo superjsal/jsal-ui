@@ -1191,8 +1191,11 @@ function Gear.GoalView(page, width, height)
             return 0, false
         end
         tabs:Show()
-        -- Opened from Home's card at 60: on At 60, before raids.
+        -- Opened from Home's card at 60: on At 60, before raids; from a piece on Endgame's goal card (its slot's
+        -- place, a number), with that slot chosen.
+        local wantPlace
         if Gear.openAt60 then
+            wantPlace = type(Gear.openAt60) == "number" and Gear.openAt60 or nil
             Gear.openAt60, showing, stage = nil, true, Goal.BEFORE
         end
         tabs:Pick(showing and "goal" or "near")
@@ -1208,6 +1211,9 @@ function Gear.GoalView(page, width, height)
         local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids)
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
+        for i, row in ipairs(wantPlace and read[Goal.BEFORE] and read[Goal.BEFORE].rows or {}) do
+            if row.equip == wantPlace then chosen = i end
+        end
         ns.Timed("Gear goal, working out", started)
         local has = not read.noWeights
         hero:SetShown(has)

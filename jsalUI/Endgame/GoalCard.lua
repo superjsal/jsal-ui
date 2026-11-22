@@ -2,7 +2,8 @@
 -- one sentence on how far the first piece is, FROM HERE TO 60 (a road from your level to 60, each piece's
 -- picture standing at the level it needs), then where they come from in three columns: DUNGEONS (each with
 -- the level it's tuned to), QUESTS and CRAFTED, VENDORS, and anything else. Every piece's picture and name
--- carry the item's tooltip; a dungeon's name opens its guide. The facts are GoalFacts.lua's.
+-- carry the item's tooltip; a click on one goes where it's got (Go, below), and a dungeon's name opens its guide.
+-- The facts are GoalFacts.lua's.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -12,6 +13,47 @@ local MUTED = "|cff9a9688"
 local function Hex(q)
     return "|cff" .. Style.Quality(q or 1)
 end
+
+-- Where a piece goes on a click, worked out only then: a dungeon's piece to the Dungeon guide at its boss; a
+-- crafted one to Guild crafts, as the Gear plan's "Order from your guild"; a quest's to the guide's Quests tab
+-- when the quest's place is a dungeon with quests in the guide; else the Gear plan's At 60 on its slot (a
+-- vendor's too: where a vendor of gear stands isn't in jsal.ui's data). Returns the kind, then the dungeon and
+-- the boss.
+local function Target(p)
+    local from = p.from or {}
+    if from.kind == "run" then
+        local run = from.runs and from.runs[1]
+        if run and run.dungeon then return "guide", run.dungeon, run.boss end
+    elseif from.kind == "crafted" then
+        return "crafts"
+    elseif from.kind == "quest" then
+        local place = p.e and p.e.place
+        for _, d in ipairs(ns.DungeonData or {}) do
+            if d.name == place and ns.DungeonQuests and ns.DungeonQuests[d.id] then return "quests", d end
+        end
+    end
+    return "gear"
+end
+local GOES = { guide = "Click for the Dungeon guide", quests = "Click for its quests in the Dungeon guide",
+               crafts = "Click for Guild crafts", gear = "Click for the Gear plan" }
+
+local function Go(p)
+    local kind, d, boss = Target(p)
+    if (kind == "guide" or kind == "quests") and ns.Dungeons then
+        ns.Dungeons.want = d
+        if kind == "quests" then ns.Dungeons.wantTab = "quests" end
+        for k, b in ipairs(boss and d.bosses or {}) do
+            if b[2] == boss or b[3] == boss then ns.Dungeons.wantBoss = k end
+        end
+        Window.Open("dungeons")
+    elseif kind == "crafts" then
+        Window.Open("guildcrafts")
+    else
+        if ns.Gear then ns.Gear.openAt60 = p.equip or true end
+        Window.Open("gear")
+    end
+end
+ns.EndgameGoalGo, ns.EndgameGoalTarget = Go, Target
 
 -- A small item picture in a thin frame of its quality's colour, with the item's tooltip.
 local function Pic(parent, size)
@@ -27,11 +69,16 @@ local function Pic(parent, size)
         if not self.item then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetItemByID(self.item)
+        if self.piece then GameTooltip:AddLine(GOES[Target(self.piece)], Style.Color("muted")) end
         GameTooltip:Show()
     end)
     f:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    function f:Item(id, q)
-        self.item = id
+    -- A piece's picture goes where its line does.
+    f:SetScript("OnMouseUp", function(self, button)
+        if self.piece and (button == nil or button == "LeftButton") then Go(self.piece) end
+    end)
+    function f:Item(id, q, piece)
+        self.item, self.piece = id, piece
         self.icon:SetTexture(Compat.ItemIcon(id))
         local hex = Style.Quality(q or 1)
         local r, g, b = tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
@@ -143,6 +190,7 @@ function ns.EndgameGoal(parent, width)
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                 GameTooltip:SetItemByID(self.item)
                 if self.how then GameTooltip:AddLine(self.how, Style.Color("text")) end
+                if self.piece then GameTooltip:AddLine(GOES[Target(self.piece)], Style.Color("muted")) end
                 GameTooltip:Show()
             elseif self.dungeon then
                 self.name:SetTextColor(Style.Color("gold"))
@@ -153,11 +201,19 @@ function ns.EndgameGoal(parent, width)
             if self.dungeon then self.name:SetTextColor(Style.Color("text")) end
         end)
         r:SetScript("OnClick", function(self)
-            if self.dungeon and ns.Dungeons then
+            if self.piece then
+                Go(self.piece)
+            elseif self.dungeon and ns.Dungeons then
                 ns.Dungeons.want = self.dungeon
                 Window.Open("dungeons")
+            elseif self.vendor then
+                -- A vendor's own line: where it stands isn't known, so the Gear plan's At 60.
+                if ns.Gear then ns.Gear.openAt60 = true end
+                Window.Open("gear")
             end
         end)
+        -- A line that goes somewhere is lit faintly under the pointer, as the addon's rows are.
+        Style.Hover(r)
         rows[i] = r
         return r
     end
@@ -173,7 +229,7 @@ function ns.EndgameGoal(parent, width)
             local f = RoadPic(i)
             f:ClearAllPoints()
             f:SetPoint("TOPLEFT", road, "TOPLEFT", at.x, -at.y)
-            f:Item(at.piece.id, at.piece.quality)
+            f:Item(at.piece.id, at.piece.quality, at.piece)
             f:Show()
         end
         for i = #placed + 1, #pics do pics[i]:Hide() end
@@ -227,9 +283,9 @@ function ns.EndgameGoal(parent, width)
             local r = Row(used)
             r:ClearAllPoints()
             r:SetPoint("TOPLEFT", card, "TOPLEFT", x, -y)
-            r.item, r.how, r.dungeon = opts.item, opts.how, opts.dungeon
+            r.item, r.how, r.dungeon, r.piece, r.vendor = opts.item, opts.how, opts.dungeon, opts.piece, opts.vendor
             r.pic:SetShown(opts.item ~= nil)
-            if opts.item then r.pic:Item(opts.item, opts.quality) end
+            if opts.item then r.pic:Item(opts.item, opts.quality, opts.piece) end
             local left = opts.item and 22 or 0
             r.name:ClearAllPoints()
             r.name:SetPoint("TOPLEFT", left, -3)
@@ -257,7 +313,8 @@ function ns.EndgameGoal(parent, width)
             return 20
         end
         local function Piece(x, y, p, right)
-            return Line(x, y, Hex(p.quality) .. (ns.EndgameItemName(p.id) or "...") .. "|r", right, { item = p.id, quality = p.quality, how = p.how })
+            return Line(x, y, Hex(p.quality) .. (ns.EndgameItemName(p.id) or "...") .. "|r", right,
+                { item = p.id, quality = p.quality, how = p.how, piece = p })
         end
         local bottoms = {}
         -- DUNGEONS
@@ -286,7 +343,7 @@ function ns.EndgameGoal(parent, width)
         if #g.vendors > 0 then
             y = y + Heading(x, y, "VENDORS")
             for _, v in ipairs(g.vendors) do
-                y = y + Line(x, y, v.name, ("at %d"):format(v.level), { how = v.place }) + 2
+                y = y + Line(x, y, v.name, ("at %d"):format(v.level), { how = v.place, vendor = true }) + 2
                 for _, p in ipairs(v.pieces) do y = y + Piece(x, y, p, "") end
                 y = y + 8
             end
