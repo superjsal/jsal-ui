@@ -1184,6 +1184,12 @@ function Gear.GoalView(page, width, height)
             .. "Items, bosses and chances are from Wowhead Forever, and are still filling in at level 60.")
         about:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", 0, 0)
     end
+    -- The goal is worked out a few steps a frame when it isn't kept (Goal.Read's `later`): until it's
+    -- in, the view's body waits, and a slot asked for (`waitPlace`) is chosen once it is.
+    local waitPlace
+    local function Ready()
+        if view:IsVisible() and page.Refresh then page.Refresh() end
+    end
     page.Goal = function(spec)
         if not Goal.running then
             tabs:Hide()
@@ -1193,7 +1199,7 @@ function Gear.GoalView(page, width, height)
         tabs:Show()
         -- Opened from Home's card at 60: on At 60, before raids; from a piece on Endgame's goal card (its slot's
         -- place, a number), with that slot chosen.
-        local wantPlace
+        local wantPlace = waitPlace
         if Gear.openAt60 then
             wantPlace = type(Gear.openAt60) == "number" and Gear.openAt60 or nil
             Gear.openAt60, showing, stage = nil, true, Goal.BEFORE
@@ -1208,13 +1214,23 @@ function Gear.GoalView(page, width, height)
         -- A change waits only on the set, spec and cheap or full it was made on.
         if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
         -- No set chosen (an older save, or one whose set was deleted): your default.
-        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids)
+        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready)
+        ns.Timed("Gear goal, working out", started)
+        if not read then
+            waitPlace = wantPlace
+            hero:Hide()
+            list:Hide()
+            runs:Hide()
+            none:Hide()
+            waiting:Hide()
+            return tabs:GetWidth() + 18, true
+        end
+        waitPlace = nil
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
         for i, row in ipairs(wantPlace and read[Goal.BEFORE] and read[Goal.BEFORE].rows or {}) do
             if row.equip == wantPlace then chosen = i end
         end
-        ns.Timed("Gear goal, working out", started)
         local has = not read.noWeights
         hero:SetShown(has)
         list:SetShown(has)

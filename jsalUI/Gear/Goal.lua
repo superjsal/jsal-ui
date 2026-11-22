@@ -828,40 +828,8 @@ end
 
 local kept
 local KEEP = 600
--- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
--- { noWeights = true } for a spec with no weights. A stage: { rows, done, slots, runs, other,
--- unknown }; a row: { slot, label, equip, worn, goal, done, taken, none, unknown, gains, share,
--- pick (a set's piece) }. `build` and `cheap` choose the set (the tree's own build, full, by
--- default); `set` says which it is: { builds, key, name, cheap, hasCheap }, nil with none.
--- `draft`, where given, is 17 IDs in the sets' order: a change to the set not yet saved, read in
--- the set's place.
-function Goal.Read(spec, build, cheap, draft)
-    spec = spec or Gear.Spec()
-    cheap = cheap and true or false
-    local drafted = draft and table.concat(draft, ",") or ""
-    local now = GetTime and GetTime()
-    if kept and kept.stamp == Gear.planStamp and kept.spec == spec and kept.build == build and kept.cheap == cheap and kept.drafted == drafted
-        and now and kept.at and now - kept.at < KEEP
-        and (kept.waiting == 0 or kept.at == now or (kept.arrived == Gear.arrived and now - kept.at < (Gear.RETRY or 0))) then
-        return kept
-    end
-    local weights = Gear.Weights(spec)
-    local _, classFile, classID = UnitClass("player")
-    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = drafted, at = now, waiting = 0,
-                  arrived = Gear.arrived }
-    kept = out
-    if not (weights and ns.GearData) then
-        out.noWeights = true
-        return out
-    end
-    local class = Gear.CLASS_GEAR[classFile or ""]
-    local ctx = { data = ns.GearData, weights = weights, classFile = classFile, classID = classID, side = Side(), waiting = 0,
-                  dual = (class and class.dualWield and Goal.LEVEL >= class.dualWield) or Gear.DualWields(classFile, Goal.LEVEL) }
-    ctx.key = table.concat({ classFile or "", classID or 0, ctx.side, ctx.dual and 1 or 0 }, ":")
-    ctx.ceiling = Ceiling(ctx)
-    ctx.total = Gear.WornTotal(weights)
-    local lists = {}
-    for _, slot in ipairs(Gear.SLOTS) do lists[slot.key] = { slot = slot, list = Scored(slot, ctx) } end
+-- The rest of a goal once each slot's pieces are scored: the set's rows or the weights', the raids'.
+local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
     out.lists = lists
     local builds, start = Goal.Builds(classFile, spec)
     -- The build asked for, or the tree's own when it's none of WoWSims' (a set of yours, or one deleted).
@@ -911,5 +879,125 @@ function Goal.Read(spec, build, cheap, draft)
         if changed then raids.runs, raids.other, raids.unknown = Goal.Runs(raids.rows, Goal.RAIDS) end
     end
     out.waiting, out.ceiling = ctx.waiting, ctx.ceiling
-    return out
+end
+
+-- Working a goal out, as steps run in order: each slot type's pieces read out of GearData, the
+-- item level dungeons go up to, each slot's pieces scored, then the rest (Finish). Run in one go,
+-- or a few a frame (Goal.Read with `later`). { key, out, steps, i }; nil steps for a goal there's
+-- nothing to work out for (no weights).
+local function Job(spec, build, cheap, draft, key, now)
+    local weights = Gear.Weights(spec)
+    local _, classFile, classID = UnitClass("player")
+    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = key.drafted, at = now, waiting = 0,
+                  arrived = Gear.arrived }
+    local job = { key = key, out = out, i = 1 }
+    if not (weights and ns.GearData) then
+        out.noWeights = true
+        return job
+    end
+    local class = Gear.CLASS_GEAR[classFile or ""]
+    local ctx = { data = ns.GearData, weights = weights, classFile = classFile, classID = classID, side = Side(), waiting = 0,
+                  dual = (class and class.dualWield and Goal.LEVEL >= class.dualWield) or Gear.DualWields(classFile, Goal.LEVEL) }
+    ctx.key = table.concat({ classFile or "", classID or 0, ctx.side, ctx.dual and 1 or 0 }, ":")
+    local steps, lists, types = {}, {}, {}
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, list in ipairs({ slot.types, Types(slot, ctx) }) do
+            for _, invType in ipairs(list) do
+                if not types[invType] then
+                    types[invType] = true
+                    steps[#steps + 1] = function() Pool(ctx, invType) end
+                end
+            end
+        end
+    end
+    steps[#steps + 1] = function()
+        ctx.ceiling = Ceiling(ctx)
+        ctx.total = Gear.WornTotal(weights)
+    end
+    for _, slot in ipairs(Gear.SLOTS) do
+        steps[#steps + 1] = function() lists[slot.key] = { slot = slot, list = Scored(slot, ctx) } end
+    end
+    steps[#steps + 1] = function() Finish(out, ctx, lists, spec, build, cheap, draft, classFile) end
+    job.steps = steps
+    return job
+end
+
+-- Runs a job's steps: all of them, or while `ms` haven't gone (one at least). True once it's done.
+local function Run(job, ms)
+    local started = debugprofilestop()
+    local steps = job.steps or {}
+    while job.i <= #steps do
+        steps[job.i]()
+        job.i = job.i + 1
+        if ms and debugprofilestop() - started >= ms then break end
+    end
+    return job.i > #steps
+end
+
+-- Whether a goal (or a job's key) is for what `key` asks: the same plans, spec, set and change.
+local function Same(read, key)
+    return read and read.stamp == key.stamp and read.spec == key.spec and read.build == key.build and read.cheap == key.cheap
+        and read.drafted == key.drafted
+end
+
+-- The goal being worked out a few steps a frame, and those to tell when it's done.
+local job, told
+local SPREAD_MS = 6
+
+-- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, ceiling, set, lists }, or
+-- { noWeights = true } for a spec with no weights. A stage: { rows, done, slots, runs, other,
+-- unknown }; a row: { slot, label, equip, worn, goal, done, taken, none, unknown, gains, share,
+-- pick (a set's piece) }. `build` and `cheap` choose the set (the tree's own build, full, by
+-- default); `set` says which it is: { builds, key, name, cheap, hasCheap }, nil with none.
+-- `draft`, where given, is 17 IDs in the sets' order: a change to the set not yet saved, read in
+-- the set's place.
+--
+-- With `later` (a function), a goal that isn't kept is worked out a few steps a frame, SPREAD_MS
+-- at most a frame, rather than in the asking: what's kept for the same set meanwhile is given (one
+-- still waiting on items), or nil when there's none, and `later` is called once it's done. A goal
+-- in one go was 30 to 60 ms in one frame.
+function Goal.Read(spec, build, cheap, draft, later)
+    spec = spec or Gear.Spec()
+    cheap = cheap and true or false
+    local key = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = draft and table.concat(draft, ",") or "" }
+    local now = GetTime and GetTime()
+    if Same(kept, key) and now and kept.at and now - kept.at < KEEP
+        and (kept.waiting == 0 or kept.at == now or (kept.arrived == Gear.arrived and now - kept.at < (Gear.RETRY or 0))) then
+        return kept
+    end
+    if not (job and Same(job.key, key)) then
+        job, told = Job(spec, build, cheap, draft, key, now), {}
+    end
+    local Compat = ns.Compat
+    if not (later and Compat and Compat.After) then
+        Run(job)
+        kept, job = job.out, nil
+        return kept
+    end
+    told[#told + 1] = later
+    if not job.going then
+        job.going = true
+        local mine = job
+        local function Step()
+            if job ~= mine then return end
+            local started = debugprofilestop()
+            local done = Run(mine, SPREAD_MS)
+            if ns.Timed then ns.Timed("Gear goal, working out", started) end
+            if not done then return Compat.After(0, Step) end
+            kept, job = mine.out, nil
+            local list = told
+            told = {}
+            -- Each asker once, however often it asked meanwhile.
+            local called = {}
+            for _, fn in ipairs(list) do
+                if not called[fn] then
+                    called[fn] = true
+                    fn()
+                end
+            end
+        end
+        Compat.After(0, Step)
+    end
+    if Same(kept, key) then return kept end
+    return nil
 end
