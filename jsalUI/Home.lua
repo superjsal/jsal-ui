@@ -827,7 +827,10 @@ local function Hero(page, width)
     -- show (the gear goal off, a tree WoWSims has no set for), for the level's card as before.
     local function PaintGoal(room)
         local Goal = ns.GearGoal
-        local ok, s = pcall(function() return Goal and Goal.running and Goal.Summary and Goal.Summary() end)
+        local ok, s = pcall(function()
+            if ns.Pretend then return ns.Pretend.GoalSummary() end
+            return Goal and Goal.running and Goal.Summary and Goal.Summary()
+        end)
         if not ok then ns.Report(s) end
         if not (ok and s) then
             if goal then goal:Hide() goal.next:Hide() end
@@ -919,7 +922,7 @@ local function Hero(page, width)
         end
         if SetPortraitTexture then SetPortraitTexture(face.picture, "player") end
         name:SetText(UnitName("player") or "")
-        who:SetText(("Level %d %s"):format(UnitLevel("player") or 0, UnitClass("player") or ""))
+        who:SetText(("Level %d %s"):format(ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0, UnitClass("player") or ""))
         money:SetText(Compat.Money(GetMoney and GetMoney() or 0))
         day:SetText(DateText())
     end
@@ -1010,7 +1013,7 @@ local function Hero(page, width)
         local room = width - WHO_W - (hasPal and PAL_W or 0) - 48
         level:SetWidth(room + 48)
         -- At the last level, where your set stands takes the level's place.
-        local atGoal = (UnitLevel("player") or 0) >= LAST_LEVEL and PaintGoal(room)
+        local atGoal = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) >= LAST_LEVEL and PaintGoal(room)
         now:SetShown(not atGoal)
         if atGoal then
             soon:Hide()

@@ -1234,9 +1234,16 @@ Window.Page("journal", function(page)
     local charFoot = Style.Text(chars, 11, "muted")
 
     local function PaintCharacters()
-        J.SaveCharacter()
+        -- This character saved afresh, then all of them: as Pretend gives them.
+        local known
+        if ns.Pretend then
+            known = ns.Pretend.Characters()
+        else
+            J.SaveCharacter()
+            known = J.Characters()
+        end
         local list, total = {}, 0
-        for _, c in pairs(J.Characters()) do
+        for _, c in pairs(known) do
             list[#list + 1] = c
             total = total + (c.money or 0)
         end

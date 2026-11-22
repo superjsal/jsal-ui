@@ -276,9 +276,12 @@ function ns.EndgameSet(parent, width)
 
     function card.Paint()
         local Goal = ns.GearGoal
-        local ok, s = pcall(function() return Goal and Goal.running and Goal.Summary and Goal.Summary() end)
+        local ok, s = pcall(function()
+            if ns.Pretend then return ns.Pretend.GoalSummary() end
+            return Goal and Goal.running and Goal.Summary and Goal.Summary()
+        end)
         if not ok then ns.Report(s) end
-        local at60 = (UnitLevel("player") or 0) >= (Goal and Goal.LEVEL or 60)
+        local at60 = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) >= (Goal and Goal.LEVEL or 60)
         local has = ok and s ~= nil
         off:SetShown(not has)
         open:SetShown(has)

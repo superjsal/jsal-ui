@@ -281,7 +281,7 @@ function ns.EndgameNightPaint(card, p, room)
     local RN = ns.RaidNight
     local saved = RN.Saved()
     local spec, list, setName = RN.Spec()
-    local below = (UnitLevel("player") or 0) < 60
+    local below = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) < 60
     local whose = setName and ("WoWSims' " .. setName) or (spec and RN.SpecWords(spec)) or ""
     p.whose:SetText(list and (whose .. " · " .. (saved.max and "max DPS" or "simple")) or whose)
     local parts = { p.stockFor, p.nights, p.nightWord, p.aNight, p.hours, p.hourWord, p.toGet, p.totalRule, p.total,
@@ -436,14 +436,16 @@ function ns.EndgameNightPaint(card, p, room)
     p.switchRule:SetPoint("TOPRIGHT", card, "TOPRIGHT", -PAD, -y)
     y = y + 12
     local shopping = ns.Shopping
-    local can = shopping ~= nil and shopping.running == true
+    local pretend = ns.Pretend ~= nil and not ns.Pretend.Listable()
+    local can = shopping ~= nil and shopping.running == true and not pretend
     local on = can and RN.Listed()
     p.switch:SetOn(on)
     p.switch:SetEnabled(can)
     p.switch:SetAlpha(can and 1 or 0.5)
     At(p.switch)
     y = y + 28
-    p.switchNote:SetText(not can and "The shopping list is switched off in Settings."
+    p.switchNote:SetText(pretend and "Pretending to be 60: the shopping list is left as it is."
+        or not can and "The shopping list is switched off in Settings."
         or on and "What's short is on the list now, and what a raid uses comes back on it."
         or "When it's on, what's short goes on the list and comes back as you use it.")
     At(p.switchNote)

@@ -96,7 +96,7 @@ function Window.Header(page, width)
     return title, sub
 end
 
-local frame, content, current, crumb
+local frame, content, current, crumb, pretendMark
 
 -- A title bar's button: a small well with its word, lit under the pointer.
 -- A gold one is a page's main action.
@@ -296,6 +296,9 @@ local function Build()
     crumb = Style.Text(bar, 13, "text", nil, true)
     crumb:SetPoint("LEFT", divider, "RIGHT", 16, 0)
     crumb:SetJustifyV("MIDDLE")
+    -- While a beta pretends to be level 60 (/jsal pretend 60), a muted word after the name says so.
+    pretendMark = Style.Text(bar, 12, "muted")
+    pretendMark:SetPoint("LEFT", crumb, "RIGHT", 12, 0)
     local close = Style.CloseButton(bar, TITLE_HEIGHT, function() frame:Hide() end)
     close:SetPoint("TOPRIGHT")
     local reload = Window.ReloadButton(bar, "jsalUIReloadButton", "Reload", 72)
@@ -490,6 +493,7 @@ function Window.Open(key, direct)
     end
     current = page.key
     crumb:SetText(page.label)
+    pretendMark:SetText(ns.Pretend and ns.Pretend.Words() or "")
     PaintMenu()
     local t = debugprofilestop()
     PaintBadges()
@@ -560,6 +564,7 @@ end
 function Window.Refresh()
     if frame and frame:IsShown() and current then
         PaintBadges()
+        pretendMark:SetText(ns.Pretend and ns.Pretend.Words() or "")
         Refresh(byKey[current])
     end
     for _, page in ipairs(PAGES) do

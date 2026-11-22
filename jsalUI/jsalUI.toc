@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.61-beta.7
+## Version: 0.3.61-beta.8
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -22,6 +22,7 @@ Errors.lua
 Comms.lua
 Style.lua
 Window.lua
+Pretend.lua
 # Where trainers stand, and the nearest one.
 TrainerData.lua
 Trainers.lua

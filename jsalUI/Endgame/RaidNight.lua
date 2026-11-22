@@ -30,7 +30,7 @@ end
 -- This character's choices: { max (Max DPS; absent for Simple), nights, hours, off = { [item] = true },
 -- counts = { [item] = n } }.
 function RaidNight.Saved()
-    local s = ns.char.raidNight
+    local s = ns.Pretend and ns.Pretend.RaidNight() or ns.char.raidNight
     if type(s) ~= "table" then
         s = {}
         ns.char.raidNight = s
@@ -93,7 +93,7 @@ function RaidNight.Lines()
         else
             local per = RaidNight.PerNight(c, saved)
             local want = per * saved.nights
-            local have = Compat.ItemCount(c[1], true)
+            local have = ns.Pretend and ns.Pretend.ItemCount(c[1], true) or Compat.ItemCount(c[1], true)
             lines[#lines + 1] = { item = c[1], kind = c[2], lasts = c[3], per = per, want = want, have = have,
                                   short = math.max(0, want - have), own = saved.counts[c[1]] ~= nil }
         end
@@ -115,7 +115,7 @@ end
 
 -- What the list holds follows a change here (nights, the length, a count, a line on or off).
 function RaidNight.Sync()
-    if not RaidNight.Listed() then return end
+    if not RaidNight.Listed() or (ns.Pretend and not ns.Pretend.Listable()) then return end
     local want, held = RaidNight.Wants(), ns.Shopping.Stocked(RaidNight.STOCK)
     local same = true
     for item, n in pairs(want) do if held[item] ~= n then same = false end end
@@ -125,7 +125,7 @@ end
 
 -- Puts it on the shopping list, or takes it off.
 function RaidNight.SetListed(on)
-    if not ns.Shopping then return end
+    if not ns.Shopping or (ns.Pretend and not ns.Pretend.Listable()) then return end
     if on then
         ns.Shopping.Stock(RaidNight.STOCK, RaidNight.Wants())
         ns.Shopping.Open()

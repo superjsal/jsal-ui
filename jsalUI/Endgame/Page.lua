@@ -21,10 +21,18 @@ Window.Page("endgame", function(page)
     local column = ns.RaidCards(page, colW)
     page.set, page.night, page.nightParts, page.column = set, night, parts, column
 
-    -- Every character the Journal has seen, the highest first.
+    -- Every character the Journal has seen, the highest first: this one saved afresh first, as
+    -- Pretend gives them.
     local function Characters()
+        local known
+        if ns.Pretend then
+            known = ns.Pretend.Characters()
+        else
+            if ns.Journal and ns.Journal.SaveCharacter then ns.Journal.SaveCharacter() end
+            known = ns.Journal and ns.Journal.Characters() or {}
+        end
         local list = {}
-        for _, c in pairs(ns.Journal and ns.Journal.Characters() or {}) do list[#list + 1] = c end
+        for _, c in pairs(known) do list[#list + 1] = c end
         table.sort(list, function(a, b)
             if (a.level or 0) ~= (b.level or 0) then return (a.level or 0) > (b.level or 0) end
             return (a.name or "") < (b.name or "")
@@ -33,7 +41,6 @@ Window.Page("endgame", function(page)
     end
 
     Paint = function()
-        if ns.Journal and ns.Journal.SaveCharacter then ns.Journal.SaveCharacter() end
         set.Paint()
         ns.RaidNight.Sync()
         ns.EndgameNightPaint(night, parts, height)
