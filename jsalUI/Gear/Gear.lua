@@ -1351,12 +1351,47 @@ for _, event in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "BAG_UPDATE_DELAYED", "PLAY
     "QUEST_TURNED_IN", "CHARACTER_POINTS_CHANGED", "TRAIT_CONFIG_UPDATED", "PLAYER_ENTERING_WORLD" }) do
     levels:RegisterEvent(event)
 end
-function Gear.Changed(event)
+-- What a change of skills can change in a plan: which professions you have (a profession's gear
+-- is a goal for you alone) and whether you dual wield. A weapon skill going up changes neither,
+-- and the game says skills changed for that too.
+local function Skills()
+    local parts = { Gear.DualWields(ClassFile(), UnitLevel and UnitLevel("player") or 1) and "dual wield" or "" }
+    local P = ns.Professions
+    local ok, mine = pcall(function() return P and P.Mine and P.Mine() end)
+    for _, p in ipairs(ok and mine or {}) do parts[#parts + 1] = tostring(p.name) end
+    table.sort(parts)
+    return table.concat(parts, ",")
+end
+-- Whether a quest's reward is in the lists (GearData's quests): turning one in takes its reward
+-- off them. Read once.
+local rewardQuests
+local function RewardQuest(id)
+    if not rewardQuests then
+        rewardQuests = {}
+        for quest in ((ns.GearData and ns.GearData.quests) or ""):gmatch("%d+:(%d+)") do rewardQuests[tonumber(quest)] = true end
+    end
+    return rewardQuests[id] == true
+end
+-- `a`: the event's first value (for QUEST_TURNED_IN, the quest).
+function Gear.Changed(event, a)
     if event == "BAG_UPDATE_DELAYED" then
         Gear.bagsMoved = true
         return
     end
+    if event == "SKILL_LINES_CHANGED" then
+        local now = Skills()
+        if now == Gear.skillsSeen then return end
+        Gear.skillsSeen = now
+    elseif event == "QUEST_TURNED_IN" and tonumber(a) and not RewardQuest(tonumber(a)) then
+        return
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        -- Where skills stand as you come in, so the first skill change after is weighed against it.
+        Gear.skillsSeen = Skills()
+    end
     Gear.PlansChanged()
     if event == "PLAYER_LEVEL_UP" and Gear.running then Gear.Warm(3) end
 end
-levels:SetScript("OnEvent", function(_, event) Gear.Changed(event) end)
+levels:SetScript("OnEvent", function(_, event, a)
+    a = ns.Compat.Plain(a)
+    Gear.Changed(event, a)
+end)
