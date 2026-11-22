@@ -19,11 +19,13 @@ function Installer.HasProfile()
 end
 
 -- Where things stand, as one state the Install page and the Home card share.
+-- With no look in this version, that comes first: nothing then speaks of
+-- EllesmereUI being missing, off or old.
 function Installer.State()
+    if not Installer.HasProfile() then return "noProfile" end
     if not Compat.AddOnExists(EUI) then return "missing" end
     if not Compat.IsAddOnLoaded(EUI) then return "off" end
     if not (EllesmereUI and EllesmereUI.ImportProfileSilent) then return "old" end
-    if ns.Profile.string == "" then return "noProfile" end
     local done = ns.db.installed
     if not done then return "ready" end
     if (done.version or 0) < ns.Profile.version then return "update" end

@@ -524,9 +524,18 @@ ns.Command("perf", function()
     end
 end)
 
-for _, page in ipairs({ "home", "install", "games", "settings" }) do
+for _, page in ipairs({ "home", "games", "settings" }) do
     ns.Command(page, function() ns.Window.Open(page) end)
 end
+-- /jsal install opens the Install page in a version with a look to install;
+-- in one without, it says so in a line instead of opening anything.
+ns.Command("install", function()
+    if ns.Installer and ns.Installer.HasProfile and ns.Installer.HasProfile() then
+        ns.Window.Open("install")
+    else
+        ns.Print("jsal.ui has no look of its own to install. It works with whatever UI you use.")
+    end
+end)
 -- /jsal guild opens the Games page, where the guild's day is.
 ns.Command("guild", function() ns.Window.Open("games") end)
 
