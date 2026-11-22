@@ -8,7 +8,8 @@ the old file was, so a diff shows only what the game changed:
   - wago's own quoting, or none where the old file had none (and no comma needs it);
   - the old rows in their old order by ID, a changed row in its place, new rows after them (wago
     can send the same rows in another order);
-  - the old file's line endings.
+  - the old file's line endings;
+  - only the rows a cut table keeps (CUT below: SpellMisc keeps the rows with a duration).
 A table whose new build lacks one of the old columns is left as it was, and said.
 
 Then it sets BUILD in tools/build_dungeons.py and runs tools/build_spells.py, build_talents.py,
@@ -32,6 +33,8 @@ BUILDS = ["build_spells.py", "build_talents.py", "build_dungeons.py", "build_tax
 OUTPUTS = ["jsalUI/Training/SpellData.lua", "jsalUI/Talents/TalentData.lua", "jsalUI/Dungeons/DungeonData.lua",
            "jsalUI/Dungeons/DungeonLoot.lua", "jsalUI/Games/FlightData.lua"]
 AGENT = "jsal-ui data refresh"
+# Tables kept to some of their rows: the file's name, the column, and the value a row is left out for.
+CUT = {"SpellMisc.csv": ("DurationIndex", "0")}
 
 
 def fetch(name, build):
@@ -92,6 +95,10 @@ def refresh(path, build):
         return f"{path.name}: the build has no column {', '.join(missing)}; left as it was"
     at = [names.index(c) for c in header]
     unquoted = '"' not in old
+    if path.name in CUT:
+        column, dropped = CUT[path.name]
+        j = names.index(column)
+        new = new[:1] + [r for r in new[1:] if len(r) != len(names) or bare(r[j]) != dropped]
     lines = {}
     order = []
     for r in new[1:]:
