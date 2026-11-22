@@ -851,10 +851,17 @@ end
 -- bags once: the plans go only when the wearable pieces there aren't the ones they were. Thrown
 -- away on every bag change, the plans were rarely there for a boss list to use: its upgrade
 -- checks took 14 ms of a paint, 33 at worst.
+--
+-- The Gear plan page asks for its plans here too, one for each place (`only`): a ring or a
+-- trinket is measured against the one in that place, so each of a pair's places has a plan of its
+-- own, kept beside the slot's (which measures against the weaker of the two). A slot with one
+-- place shares the slot's. Kept for the level they were made at too: the level-up event can come
+-- before the game gives the new level.
 Gear.planStamp = 0
 function Gear.PlansChanged() Gear.planStamp = Gear.planStamp + 1 end
 local PLAN_KEEP = 600
-function Gear.SlotPlan(slot, lazy)
+Gear.RETRY = RETRY
+function Gear.SlotPlan(slot, lazy, only)
     if Gear.bagsMoved then
         Gear.bagsMoved = nil
         local wearable = Gear.BagsWearable()
@@ -864,12 +871,15 @@ function Gear.SlotPlan(slot, lazy)
         end
     end
     local now = GetTime and GetTime()
+    local level = UnitLevel and UnitLevel("player") or 1
     local kept = Gear.slotPlans
-    if not (kept and now and kept.at and kept.stamp == Gear.planStamp and now - kept.at < PLAN_KEEP) then
-        kept = { at = now, stamp = Gear.planStamp }
+    if not (kept and now and kept.at and kept.stamp == Gear.planStamp and kept.level == level and now - kept.at < PLAN_KEEP) then
+        kept = { at = now, stamp = Gear.planStamp, level = level }
         Gear.slotPlans = kept
     end
-    local plan = kept[slot.key]
+    if only and #slot.equip < 2 then only = nil end
+    local key = only and (slot.key .. ":" .. only) or slot.key
+    local plan = kept[key]
     local why
     if plan and (plan.waiting or 0) > 0 and plan.madeAt ~= now
         and (plan.arrived ~= Gear.arrived or not (now and plan.madeAt) or now - plan.madeAt >= RETRY) then
@@ -882,12 +892,12 @@ function Gear.SlotPlan(slot, lazy)
         -- is a slot's first plan since the game loaded, "changed" one after something it's worked
         -- out from changed, "waiting" one made again for items still to come.
         local started = debugprofilestop()
-        plan = Gear.Plan(slot)
+        plan = Gear.Plan(slot, nil, only)
         plan.madeAt, plan.arrived = now, Gear.arrived
-        kept[slot.key] = plan
+        kept[key] = plan
         Gear.everMade = Gear.everMade or {}
-        why = why or (Gear.everMade[slot.key] and "changed" or "first")
-        Gear.everMade[slot.key] = true
+        why = why or (Gear.everMade[key] and "changed" or "first")
+        Gear.everMade[key] = true
         Gear.made = Gear.made or {}
         Gear.made[why] = (Gear.made[why] or 0) + debugprofilestop() - started
     end

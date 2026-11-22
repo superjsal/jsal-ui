@@ -939,7 +939,9 @@ Window.Page("gear", function(page)
         local started = debugprofilestop()
         G.spent = {}
         local plans = {}
-        for _, row in ipairs(slotRows) do plans[row.key] = G.Plan(row.slot, spec, row.equip) end
+        -- The plans kept between paints (Gear.SlotPlan): a click, a chip or a look again with nothing
+        -- changed works nothing out, and a slot still waiting on items is made again alone.
+        for _, row in ipairs(slotRows) do plans[row.key] = G.SlotPlan(row.slot, false, row.equip) end
         ns.Timed("Gear plan, working out upgrades", started)
         -- A slow pass: its parts too, each as one line ("Gear plan, upgrades: item stats").
         if debugprofilestop() - started >= 10 then
