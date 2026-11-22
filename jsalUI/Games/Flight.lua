@@ -52,7 +52,7 @@ end
 -- flown here.
 local KEPT_MOST, KEY_MOST = 300, 40   -- routes kept; the longest key kept
 local NEAR, AGREE = 0.12, 2           -- how far off the worked-out time; seconds apart that agree
-local LANDED_NEAR = 0.02              -- how near its flight point on the map a landing is
+local LANDED_NEAR = 40                -- yards from its flight point a landing comes down within
 
 -- "A43.6.2.19": the faction's first letter and the flight points' node IDs.
 -- Nil when a point has no ID or the hops don't follow on from each other.
@@ -94,14 +94,17 @@ local function Kept(key, yards)
     return seconds, whose
 end
 
--- Whether a flight came down by its own flight point. A spot the game can't
--- give doesn't stand in the way.
+-- Whether a flight came down by its own flight point: where the character
+-- stands in the world against where the game's tables put that point. Every
+-- path to a flight point ends within 15 yards of it; a summon or a teleport
+-- puts the character somewhere else. A point not in the tables, or a position
+-- the game can't give, doesn't stand in the way.
 local function Arrived(flight)
-    local dest = flight.dest
-    if type(dest) ~= "table" then return true end
-    local x, y = Compat.PlayerOn(dest[1])
-    if not (x and y and dest[2] and dest[3]) then return true end
-    return (x - dest[2]) ^ 2 + (y - dest[3]) ^ 2 <= LANDED_NEAR ^ 2
+    local spot = ns.FlightPoints and ns.FlightPoints[flight.dest]
+    if type(spot) ~= "table" then return true end
+    local x, y, continent = Compat.WorldPosition()
+    if not (x and y) then return true end
+    return continent == spot[3] and (x - spot[1]) ^ 2 + (y - spot[2]) ^ 2 <= LANDED_NEAR ^ 2
 end
 
 -- Puts a route's flying seconds into the account's own times or the ones
@@ -439,7 +442,7 @@ end
 -- legs' yards and stops, the flight-speed bonus, the route's key and where it
 -- comes down. Nil for a slot that isn't on the map.
 local function Plan(slot)
-    local nodes, here, map = Compat.TaxiNodes()
+    local nodes, here = Compat.TaxiNodes()
     local to = nodes[slot]
     if not to then return nil end
     local hops = Compat.TaxiHops(slot)
@@ -453,7 +456,7 @@ local function Plan(slot)
         legs = #hops,
         bonus = Compat.FlightSpeedBonus(),
         key = RouteKey(nodes, hops),
-        dest = map and to.x and to.y and { map, to.x, to.y } or nil,
+        dest = to.id,
     }
 end
 

@@ -270,9 +270,8 @@ function Compat.TargetRare()
     return kind == "rare" or kind == "rareelite"
 end
 
--- The flight master's map: each slot's node ID (when the client gives one),
--- name and spot on the map (0 to 1 across), which slot is where the player
--- stands, and the map's ID.
+-- The flight master's map: each slot's node ID (when the client gives one)
+-- and name, and which slot is where the player stands.
 function Compat.TaxiNodes()
     local mapID = GetTaxiMapID and GetTaxiMapID() or nil
     local nodes, here = {}, nil
@@ -280,8 +279,7 @@ function Compat.TaxiNodes()
     if C_TaxiMap and C_TaxiMap.GetAllTaxiNodes and mapID then
         for _, node in ipairs(C_TaxiMap.GetAllTaxiNodes(mapID) or {}) do
             if node.slotIndex then
-                local at = node.position
-                nodes[node.slotIndex] = { id = node.nodeID, name = node.name, x = at and at.x, y = at and at.y }
+                nodes[node.slotIndex] = { id = node.nodeID, name = node.name }
                 if node.state == currentState then here = node.slotIndex end
             end
         end
@@ -292,7 +290,7 @@ function Compat.TaxiNodes()
             if TaxiNodeGetType(slot) == "CURRENT" then here = slot end
         end
     end
-    return nodes, here, mapID
+    return nodes, here
 end
 
 -- A flight's hops, as pairs of flight map slots: where each leg starts and ends.
@@ -448,13 +446,13 @@ function Compat.PlayerPosition()
     return map, x, y
 end
 
--- Where the player stands on a given map, 0 to 1 across, or nil when the
--- game can't place them on it.
-function Compat.PlayerOn(map)
-    if not (map and C_Map and C_Map.GetPlayerMapPosition) then return nil end
-    local pos = C_Map.GetPlayerMapPosition(map, "player")
-    if not pos then return nil end
-    return pos:GetXY()
+-- Where the player stands in the world, in yards, and the continent, as the
+-- game's flight tables give places; nil where the game won't say (in an
+-- instance).
+function Compat.WorldPosition()
+    if not UnitPosition then return nil end
+    local x, y, _, continent = UnitPosition("player")
+    return x, y, continent
 end
 
 -- Puts the game's own map pin on a spot and tracks it. False when the

@@ -5,9 +5,11 @@ The tables come from the game's files for the build jsal.ui targets, as CSV
   data/taxi/TaxiPath.csv      each direct path: ID, FromTaxiNode, ToTaxiNode
   data/taxi/TaxiPathNode.csv  each path's waypoints: PathID, NodeIndex,
                               ContinentID, Loc_0..2, Flags, Delay
+  data/taxi/TaxiNodes.csv     each flight point: ID, Pos_0..1, ContinentID, Flags
 Fetch them again after a patch, for example:
   https://wago.tools/db2/TaxiPath/csv?build=1.60.1.70790
   https://wago.tools/db2/TaxiPathNode/csv?build=1.60.1.70790
+  https://wago.tools/db2/TaxiNodes/csv?build=1.60.1.70790
 
 Each path's length is the distance along its waypoints, in yards, skipping
 jumps between continents; waypoint delays (seconds the flight stops) are
@@ -42,6 +44,11 @@ Elsewhere what's left over differs by the way in and the way out, so it can't
 be one number for the point: through Ironforge it's 1 to 10 seconds by route.
 JOINED holds what flights measured beyond the rule for one join, the path in
 and the path out, and every other join there is priced by the rule alone.
+
+Each flight point a flight can be booked to also gets its place in the world
+(x, y and continent, as the game's own player position gives them), which
+tells a flight that came down there from a summon or a teleport: every path
+to such a point ends within 15 yards of it.
 
 Run: python -I tools/build_taxi.py 1.60.1.70790
 """
@@ -146,6 +153,12 @@ def main():
             int(r["Delay"]),
         ))
 
+    # Flight points a player can be flown to (Alliance or Horde ones), where a path ends.
+    spots = {}
+    for r in rows("TaxiNodes"):
+        if int(r["Flags"]) & 3:
+            spots[int(r["ID"])] = (round(float(r["Pos_0"])), round(float(r["Pos_1"])), int(r["ContinentID"]))
+
     routes, kept = {}, {}
     for path_id, (src, dst) in paths.items():
         pts = sorted(points.get(path_id, []))
@@ -185,9 +198,17 @@ def main():
         on = joins.get(key)
         more = (", { " + ", ".join(f"[{d}] = {n}" for d, n in sorted(on.items())) + " }") if on else ""
         lines.append(f"    [{key}] = {{ {yards}, {delay}{more} }},")
+    lines += [
+        "}",
+        "",
+        "-- Each flight point a flight can end at: where it stands in the world (x, y, continent).",
+        "ns.FlightPoints = {",
+    ]
+    ends = sorted({dst for (_, dst) in kept} & set(spots))
+    lines += [f"    [{n}] = {{ {spots[n][0]}, {spots[n][1]}, {spots[n][2]} }}," for n in ends]
     lines += ["}", ""]
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    print(f"{len(routes)} paths, {sum(len(j) for j in joins.values())} joins -> {OUT.relative_to(ROOT)}")
+    print(f"{len(routes)} paths, {sum(len(j) for j in joins.values())} joins, {len(ends)} flight points -> {OUT.relative_to(ROOT)}")
     print(f"  Aerie Peak > Ironforge > Stormwind saves {joins.get(430006, {}).get(2)}, Stormwind > Ironforge > Aerie Peak {joins.get(20006, {}).get(43)},"
           f" Ironforge > Stormwind > Booty Bay {joins.get(60002, {}).get(19)}")
     for key in (20004, 40002):
