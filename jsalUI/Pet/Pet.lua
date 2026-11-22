@@ -439,9 +439,14 @@ Pet.SHEETS = SHEETS
 -- right to keep off. `corner`: the right edge and top of the hiding place
 -- (x, y), not to stop behind: standing there is hide and seek, when a click
 -- finds it.
-local function Spot(random, size, strip, keep, corner)
-    -- Out with you, it only walks to and fro, along the bottom of its strip.
-    if strip then return random(0, strip - size), STRIP_TOP end
+local function Spot(random, size, strip, keep, corner, lo, hi)
+    -- Out with you, it only walks to and fro, along the bottom of its strip, on the part of it that's on the
+    -- screen (`lo` to `hi`, Pet.KeepOnScreen).
+    if strip then
+        local from = math.max(0, math.floor(lo or 0))
+        local to = math.max(from, math.min(strip - size, math.floor(hi or (strip - size))))
+        return random(from, to), STRIP_TOP
+    end
     -- Its feet are near the bottom of its picture: high enough up the pen
     -- and a small one would be standing on the fence.
     local top = math.max(0, math.floor(GRASS - size * 0.92))
@@ -536,7 +541,7 @@ function Pet.Step(walk, dt, random)
         walk.wait = walk.wait - dt
         walk.frame = "stand"
         if walk.wait <= 0 then
-            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep, walk.corner)
+            walk.tx, walk.ty = Spot(random, walk.size or SIZE, walk.strip, walk.keep, walk.corner, walk.lo, walk.hi)
             -- With an egg to look after, one stroll in three is back to the
             -- nest's side, where it stays a while, facing it.
             if walk.keep and random(1, 3) == 1 then

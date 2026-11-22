@@ -50,6 +50,8 @@ function Pet.Layout()
     ui.pen:SetClipsChildren(not out)
     ui.pen:EnableMouse(not out)
     ui.window:EnableMouse(not out)
+    -- The window keeps to the screen; out with you, its creature's picture does instead (Pet.KeepOnScreen).
+    ui.window:SetClampedToScreen(not out)
     ui.window:SetFrameStrata(out and "LOW" or "HIGH")
     ui.pen:ClearAllPoints()
     -- As large as suits this screen, with a strip and a shadow to match.

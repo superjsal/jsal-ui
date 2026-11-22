@@ -165,6 +165,7 @@ local function Refresh()
     if anew then
         local was = ui.walk
         ui.walk = Pet.NewWalk(math.random, size, strip)
+        if strip then Pet.KeepOnScreen() end
         -- Changing under the light it grows in: it stays where it stands, its
         -- feet where they were, and goes on with what it was about.
         if was and was.act and was.act.name == "grow" and was.strip == strip then
@@ -488,9 +489,35 @@ local function Tend(sheet, dt)
     Chase(sheet, dt)
 end
 
+-- Out with you, only the creature's own picture keeps to the screen, right up to each edge: its strip may run
+-- off one, and its buttons and "z z z" with it. The strip is moved back just far enough for the picture to be on
+-- the screen, and it walks to and fro only on the part of the strip that's on it. Worked out where it's placed,
+-- not as it walks.
+function Pet.KeepOnScreen()
+    local walk = ui.walk
+    if not (ui.window and ui.window.out and walk and walk.strip and UIParent) then return end
+    local left, bottom = ui.window:GetLeft(), ui.window:GetBottom()
+    local wide = UIParent.GetWidth and UIParent:GetWidth()
+    local high = UIParent.GetHeight and UIParent:GetHeight()
+    if not (left and bottom and wide and high and wide > 0 and high > 0) then return end
+    local size = walk.size
+    local x = left + walk.x
+    local dx = (x < 0 and -x) or (x + size > wide and wide - (x + size)) or 0
+    local dy = (bottom < 0 and -bottom) or (bottom + size > high and high - (bottom + size)) or 0
+    if dx ~= 0 or dy ~= 0 then
+        left, bottom = left + dx, bottom + dy
+        ui.window:ClearAllPoints()
+        ui.window:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    end
+    walk.lo = math.max(0, math.ceil(-left))
+    walk.hi = math.max(walk.lo, math.floor(math.min(walk.strip, wide - left) - size))
+    walk.tx = math.max(walk.lo, math.min(walk.hi, walk.tx))
+end
+
 -- Where you dragged it to is kept.
 local function Dropped()
     ui.window:StopMovingOrSizing()
+    Pet.KeepOnScreen()
     local point, _, relative, x, y = ui.window:GetPoint(1)
     -- The window and the creature out with you each have a place of their own.
     if point then ns.db[ui.window.out and "petOutAt" or "petAt"] = { point, relative, x, y } end
@@ -511,6 +538,7 @@ local function Place()
     else
         ui.window:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
     end
+    Pet.KeepOnScreen()
 end
 
 -- Out with you, it's one of the pieces Unlock Mode moves (/jsal unlock):
