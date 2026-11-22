@@ -1,7 +1,7 @@
 -- The Journal's By boss tab, By level's sibling: four records (first kills, the quickest fight, the boss
 -- killed most, the hardest by wipes), then a line a dungeon or raid, the one you were in last first and
--- open, each with a pip a boss; open, a row a boss: its first kill, who with, how long that fight took,
--- kills, wipes, the last kill. A boss not yet killed is grey, "not yet". A raid has a "raid" tag. At 60
+-- open, its count of bosses killed with a pip a boss beside it; open, a row a boss: its first kill, the
+-- group it was with (all of them when pointed at), how long that fight took, kills, wipes, the last kill. A boss not yet killed is grey, "not yet". A raid has a "raid" tag. At 60
 -- the dungeons you've been in at 60 come first, with a total line, then the dungeons of the climb. A
 -- kill from before the Journal kept bosses is counted, from the game's statistics, without a date.
 -- Only open dungeons' rows are drawn; the tab is built when first opened.
@@ -55,6 +55,22 @@ function B.Places(life, game)
     return out
 end
 
+-- A first kill's group as the tooltip lists it: the names kept, a line each, then "and N more" for those
+-- only counted (a name the game kept back, or past the four kept); a raid, its two counts. Nil for none.
+function B.Group(w)
+    if type(w) ~= "table" then return nil end
+    local N = type(ns.Journal.Nights) == "table" and ns.Journal.Nights or nil
+    if w.raid or #w == 0 then
+        local said = N and N.With(w)
+        return said and { said } or nil
+    end
+    local lines = {}
+    for i = 1, #w do lines[i] = w[i] end
+    local more = (w.others or #w) - #w
+    if more > 0 then lines[#lines + 1] = ("and %d more"):format(more) end
+    return lines
+end
+
 -- The four records, from the places' bosses.
 function B.Records(places, life)
     local r = { first = 0, of = 0 }
@@ -73,7 +89,9 @@ end
 
 function ns.JournalByBoss(view, width, height, Repaint)
     local W = { rows = {}, open = {}, offset = 0, records = {} }
-    W.X = { name = 12, first = 330, with = 356, pips = 356, fight = 650, kills = 740, wipes = 830, last = width - 8 }
+    -- A dungeon's pips start just after its count and end before GROUP at the most bosses any dungeon
+    -- has (Blackrock Depths' 21: 208 across, so 340 to 548).
+    W.X = { name = 12, first = 330, pips = 340, with = 566, fight = 720, kills = 800, wipes = 880, last = width - 8 }
     W.room = height - 52 - B.TOP - (B.LINE_H + 14) - 40
     W.max = math.max(1, math.floor(W.room / B.ROW_H))
 
@@ -106,7 +124,7 @@ function ns.JournalByBoss(view, width, height, Repaint)
     header:SetSize(width, 20)
     header:SetPoint("TOPLEFT", 0, -(B.TOP - 24))
     Style.Rule(header, "BOTTOM", "lineStrong")
-    for _, col in ipairs({ { "BOSS", "name", true }, { "FIRST KILL", "first" }, { "WITH", "with", true }, { "FIGHT", "fight" },
+    for _, col in ipairs({ { "BOSS", "name", true }, { "FIRST KILL", "first" }, { "GROUP", "with", true }, { "FIGHT", "fight" },
                            { "KILLS", "kills" }, { "WIPES", "wipes" }, { "LAST", "last" } }) do
         local t = Style.Text(header, 10, "muted", nil, true)
         if col[3] then
@@ -153,6 +171,20 @@ function ns.JournalByBoss(view, width, height, Repaint)
         r.with:SetWidth(W.X.fight - W.X.with - 50)
         r.with:SetWordWrap(false)
         r.with:SetJustifyH("LEFT")
+        -- Pointed at, the group in full: the names kept (four at most), then how many more; a raid's counts.
+        r.withHot = CreateFrame("Frame", nil, r)
+        r.withHot:SetPoint("LEFT", W.X.with, 0)
+        r.withHot:SetHeight(B.ROW_H)
+        r.withHot:EnableMouse(true)
+        r.withHot:SetScript("OnEnter", function(self)
+            local lines = self.lines
+            if not lines then return end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("First kill with")
+            for _, line in ipairs(lines) do GameTooltip:AddLine(line, 1, 1, 1) end
+            GameTooltip:Show()
+        end)
+        r.withHot:SetScript("OnLeave", function() GameTooltip:Hide() end)
         r.fight, r.kills, r.wipes, r.last = Right(r, W.X.fight), Right(r, W.X.kills), Right(r, W.X.wipes), Right(r, W.X.last)
         r.pips = {}
         r:SetScript("OnClick", function(self)
@@ -269,6 +301,7 @@ function ns.JournalByBoss(view, width, height, Repaint)
                 r.first:SetText(("%d of %d"):format(p.killed, #p.bosses))
                 r.first:SetTextColor(Style.Color("text"))
                 r.with:SetText("")
+                r.withHot:Hide()
                 for k, b in ipairs(p.bosses) do
                     local pip = W.Pip(r, k)
                     pip:ClearAllPoints()
@@ -295,6 +328,9 @@ function ns.JournalByBoss(view, width, height, Repaint)
                 r.first:SetTextColor(Style.Color((first and Day(first) == "today") and "gold" or ((first and "secondary") or "muted")))
                 local N = type(ns.Journal.Nights) == "table" and ns.Journal.Nights or nil
                 r.with:SetText(recd and N and N.With(recd.with, true) or "")
+                r.withHot.lines = recd and B.Group(recd.with) or nil
+                r.withHot:SetShown(r.withHot.lines ~= nil)
+                if r.withHot.lines then r.withHot:SetWidth(math.max(20, Style.Wide(r.with, #(r.with:GetText() or "") * 6.6))) end
                 r.fight:SetText(recd and recd.fight and Clock(recd.fight) or "")
                 r.kills:SetText(killed and tostring(b.kills) or "")
                 local wipes = recd and recd.wipes or 0
