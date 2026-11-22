@@ -689,7 +689,9 @@ Window.Page("gear", function(page)
     empty:SetJustifyH("LEFT")
     local order = Style.Text(list, 12, "muted")
     order:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 0, -6)
-    order:SetText("Starred, in your bags and added first, then by what they add.")
+    -- One line under the card: the shorter words where the longer would run past it.
+    order:SetText("Best for you, then starred, in your bags and added, then what you can wear, by what they add.")
+    if Style.Wide(order, 0) > rightW then order:SetText("Best for you, then starred, in your bags and added, then by what they add.") end
 
     local rows = {}
     -- An upgrade: its picture, its name with its tag beside it (best for you, wear it now), how
@@ -862,6 +864,17 @@ Window.Page("gear", function(page)
         -- "best for you" is the slot's own upgrade: a unique ring or trinket that's the pair's
         -- other place's is listed, untagged.
         local top = G.Tops(slotRows, plans)[chosen]
+        -- It leads the list, whether or not you can wear it yet; the rest keep the plan's order.
+        -- `options` is the filter's own list, so the plan's (which Gear.Best reads) stays as it is.
+        if top and options[1] ~= top then
+            for i = 2, #options do
+                if options[i] == top then
+                    table.remove(options, i)
+                    table.insert(options, 1, top)
+                    break
+                end
+            end
+        end
         for i, o in ipairs(options) do
             local r = Row(i)
             r:ClearAllPoints()
@@ -877,8 +890,8 @@ Window.Page("gear", function(page)
             r.where:SetText(place)
             r.level:SetText(needs)
             -- The gold tag is the plan's best upgrade, the most it adds, which the chips may have
-            -- hidden; a piece you starred or carry comes first whatever it scores. One you carry
-            -- that's better and isn't that one says to wear it now; a star says the rest.
+            -- hidden; after it, a piece you starred or carry comes first whatever it scores. One you
+            -- carry that's better and isn't that one says to wear it now; a star says the rest.
             r:Named((o == top and "best") or ((o.held and o.better and not o.starred) and "wear") or nil)
             r.hot.item, r.hot.equip = o.id, nil
             Reach(r.hot, r.hotFrom, r.name)
