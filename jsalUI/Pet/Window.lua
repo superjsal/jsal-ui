@@ -12,6 +12,7 @@ local STRIP_TOP, FRAME, NEED_NAME, SHEETS = inner.STRIP_TOP, inner.FRAME, inner.
 local NameBox, TakeName, HEAP_AT, Sheet = inner.NameBox, inner.TakeName, inner.HEAP_AT, inner.Sheet
 local Sky, PaintWalk, PaintRoamer, Refresh = inner.Sky, inner.PaintWalk, inner.PaintRoamer, inner.Refresh
 local Do, Tend, Dropped, Place, Escapes = inner.Do, inner.Tend, inner.Dropped, inner.Place, inner.Escapes
+local Asleep = inner.Asleep
 local PaintMute = inner.PaintMute
 
 -- The whole window, or just the pen with its creature: the small button in
@@ -255,8 +256,8 @@ local function BuildPen()
                 ui.sizeButton:SetShown(over)
             end
             -- Standing about, it turns to look at the pointer when that comes near;
-            -- not while it's being stroked, when it keeps facing your hand.
-            if over and ui.walk and ui.walk.wait > 0 and not ui.walk.act and not ui.walk.nap
+            -- not while it's being stroked, when it keeps facing your hand, nor asleep.
+            if over and ui.walk and ui.walk.wait > 0 and not ui.walk.act and not Asleep()
                 and not (ui.play.rub and ui.play.rub.facing) then
                 local x = Compat.Cursor(ui.pen)
                 if x then ui.walk.facing = x < ui.walk.x + ui.walk.size / 2 and "left" or "right" end

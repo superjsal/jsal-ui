@@ -706,7 +706,14 @@ function Pet.Wants()
     return { key = key, title = title, sub = sub, texture = Art(sprites[s.grewFrom or s.form] or sprites[1]) }
 end
 
+-- Asleep for the night, or napping while you're away: lying down, it takes no notice of the pointer (it
+-- doesn't turn to look at it or feel it stroke) until it wakes.
+local function Asleep()
+    return (Pet.State().asleep or (ui.walk and ui.walk.nap)) and true or false
+end
+
 -- For the pet's other files.
+inner.Asleep = Asleep
 inner.Art, inner.PAD, inner.SIZE, inner.PEN_H, inner.PEN_W, inner.EGG_W = Art, PAD, SIZE, PEN_H, PEN_W, EGG_W
 inner.YARD_MAX, inner.BOOK_ROWS, inner.BOOK_PAGE, inner.SIZES = YARD_MAX, BOOK_ROWS, BOOK_PAGE, SIZES
 inner.GRASS, inner.WIN_W, inner.WIN_H, inner.HEAP_W, inner.DUSK = GRASS, WIN_W, WIN_H, HEAP_W, DUSK

@@ -9,7 +9,7 @@ local inner = Pet.inner
 local ui = inner.ui
 local Art, PEN_H, PEN_W, BUBBLES, SCENES = inner.Art, inner.PEN_H, inner.PEN_W, inner.BUBBLES, inner.SCENES
 local Now, Sheet, Refresh, IsOpen = inner.Now, inner.Sheet, inner.Refresh, inner.IsOpen
-local ZoneName = inner.ZoneName
+local ZoneName, Asleep = inner.ZoneName, inner.Asleep
 
 -- `stroke`: how far the pointer goes one way before turning back, in
 -- pixels, for that to be a stroke; `strokes`, how many make a proper fuss
@@ -104,7 +104,7 @@ end
 function Pet.Stroking(sheet, dt)
     local play, s = ui.play, Pet.State()
     local x, y
-    if not (ui.pen.held or ui.pen.toss or ui.walk.errand or play.hide or ui.pen.hatching or ui.yard or s.unchosen or s.asleep or ui.walk.nap)
+    if not (ui.pen.held or ui.pen.toss or ui.walk.errand or play.hide or ui.pen.hatching or ui.yard or s.unchosen or Asleep())
         and ui.pen:IsMouseOver() then
         x, y = Compat.CursorAt(ui.pen)
     end
