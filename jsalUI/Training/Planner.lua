@@ -620,7 +620,8 @@ Window.Page("training", function(page)
     -- What a pet ability's picture says when pointed at: how it's got, what
     -- it's waiting on, and that a right-click skips it.
     local function PetEntry(row, pet)
-        local need, hint = row.spell.level, nil
+        local need = row.spell.level
+        local hint
         local low = (pet.level or 0) < need
         if row.state == "known" then
             hint = "Your pet knows it."

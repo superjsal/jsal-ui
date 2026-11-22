@@ -208,13 +208,13 @@ DailyWord.ShareLines = ShareLines
 
 -- A finished game's grid without its letters, for guildmates: a row a guess, each tile
 -- r (right), n (near) or x (miss), the rows joined by dots ("xnxxr.rnxrr.rrrrr").
-local TILE = { right = "r", near = "n", miss = "x" }
+local MARK = { right = "r", near = "n", miss = "x" }
 local function Marks(game, answer)
     if type(game) ~= "table" or not game.finished or not answer then return "" end
     local rows = {}
     for i, guess in ipairs(game.guesses or {}) do
         local scored, row = Score(guess, answer), {}
-        for c = 1, #answer do row[c] = TILE[scored[c]] or "x" end
+        for c = 1, #answer do row[c] = MARK[scored[c]] or "x" end
         rows[i] = table.concat(row)
     end
     return table.concat(rows, ".")

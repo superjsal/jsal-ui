@@ -459,7 +459,7 @@ function Journal:OnEnable()
     for name in pairs(Book().spells) do
         if name:match("^[%u_%d]+$") then Book().spells[name] = nil end
     end
-    local j = Book()
+    j = Book()
     if #j.events == 0 then
         Journal.Note("start", ("This journal begins, at level %d"):format(UnitLevel("player")))
     end
@@ -494,9 +494,9 @@ function Journal:OnEnable()
     end
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
     local closes = { MERCHANT_CLOSED = true, MAIL_CLOSED = true, AUCTION_HOUSE_CLOSED = true, TRADE_CLOSED = true }
-    f:SetScript("OnEvent", ns.Safe(self, function(_, event, a, b, c, d, e)
+    f:SetScript("OnEvent", ns.Safe(self, function(_, event, a, b, c, _, e)
         -- In a dungeon a chat line, a boss's name or a spell can be hidden.
-        a, b, c, d, e = Compat.Plains(a, b, c, d, e)
+        a, b, c, e = Compat.Plains(a, b, c, e)
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
             -- Only spells you know: the game also "casts" hidden effects,
             -- such as one at login, and items' own spells.
