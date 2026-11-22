@@ -10,7 +10,9 @@ It compares each source the data comes from with what jsal.ui ships, and reads n
   - EG Link (github.com/JIVESCORP/eg-link-output-wowf): its newest commit against the revision
     data/trainers/eglink-trainers.json was refreshed from (tools/refresh_eglink.py).
   - WoWSims Forever (github.com/wowsims/forever): its newest commit against
-    data/gear/wowsims-forever/COMMIT, which the stat weights were worked out from.
+    data/gear/wowsims-forever/COMMIT, which the stat weights were worked out from, and which the
+    Endgame page's consumables (data/gear/wowsims-forever/consumables, tools/build_consumables.py)
+    were read at.
 And what's still missing in what ships (not a change, a to-do): bosses with no loot, gear with no
 known source. Those come from Wowhead Forever, which is read by hand in the browser.
 
@@ -197,6 +199,13 @@ def main():
         if weighty:
             sims.append("Worth re-running its Stat Weights tool for the trees whose presets changed")
             changed.append("WoWSims")
+        # Each spec's consumables, which the Endgame page's RAID NIGHT lists.
+        consumed = [f for f in files if re.search(r"defaults\.siml$|presets\.ts$|consumables_auto_gen\.ts$", f)]
+        if consumed:
+            sims.append(f"{len(consumed)} files that name consumables changed: {', '.join(consumed[:5])}. Fetch them into "
+                        "data/gear/wowsims-forever/consumables and run tools/build_consumables.py")
+            if "WoWSims" not in changed:
+                changed.append("WoWSims")
     else:
         sims.append("No change")
     sections.append(("WoWSims Forever (stat weights)", sims))

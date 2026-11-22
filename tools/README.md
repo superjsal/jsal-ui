@@ -62,6 +62,20 @@ reduced here to each trainer's name, spots, services, levels and costs (`data\tr
 kept by `tools\refresh_eglink.py`). `tools\build_spells.py` and `tools\build_trainers.py` read it; the second
 also writes `data\trainers\ranks-seen.txt`, the highest profession rank each trainer was seen to sell.
 
+## Raid night consumables
+
+The Endgame page's RAID NIGHT card lists WoWSims Forever's consumables for your spec
+(`jsalUI\Endgame\ConsumablesData.lua`), built by `python -I tools\build_consumables.py`. Its sources are in
+`data\gear\wowsims-forever\consumables\`, fetched at the commit in its `COMMIT`: each spec's `defaults.siml`
+(`consumables:`) where it has one, else its `presets.ts` (`DefaultConsumables`, and a set's own such as
+`ArmsConsumables`), named `<class>_<spec>_...` as under `ui/specs/`, and `consumables_auto_gen.ts` for the item IDs.
+How long each lasts is the game's: the item's use spell (`ItemXItemEffect`, `ItemEffect`), the aura it or a spell
+it sets off puts on you (`data\spells\SpellMisc.csv`, cut to ID, DifficultyID, DurationIndex and SpellID and to the
+rows with a duration, and `SpellDuration.csv`), or a weapon stone's or oil's seconds (`SpellEffect` 54). Potions,
+runes, explosives and anything under two minutes are used in the moment. Which spec each talent tree and each At 60
+set is sits at the top of the tool. A spec WoWSims gives no list for has none (Retribution paladins' are per build
+file; Elemental shamans have none). `tools\what_changed.py` says when files that name consumables change upstream.
+
 ## Long profession cooldowns
 
 The Journal's Characters tab lists each character's long cooldowns (`jsalUI\Journal\CooldownData.lua`), built by
