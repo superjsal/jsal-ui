@@ -261,16 +261,22 @@ function ns.RaidCards(parent, width)
         return blocks, notes, ready, #cds
     end
 
-    function column.Paint(list, x, top, room)
+    -- `noRaids`: COOLDOWNS alone, at the top (below level 60, where raids aren't for you yet). Returns where
+    -- the column ends.
+    function column.Paint(list, x, top, room, noRaids)
         local now = Compat.ServerTime()
-        local blocks, notes, sixties = RaidBlocks(list, now)
-        raidsCard.note:SetText(sixties > 0 and ("your %d at 60"):format(sixties) or "")
-        -- Raids take what they need, up to three fifths of the room.
-        local raidsH = math.floor(math.min(room * 0.6, Wanted(blocks, notes, 0)))
-        raidsCard:SetHeight(raidsH)
-        raidsCard:ClearAllPoints()
-        raidsCard:SetPoint("TOPLEFT", x, -top)
-        Fill(raidsCard, blocks, notes, raidsH, 0)
+        local raidsH = -R.GAP
+        raidsCard:SetShown(not noRaids)
+        if not noRaids then
+            local blocks, notes, sixties = RaidBlocks(list, now)
+            raidsCard.note:SetText(sixties > 0 and ("your %d at 60"):format(sixties) or "")
+            -- Raids take what they need, up to three fifths of the room.
+            raidsH = math.floor(math.min(room * 0.6, Wanted(blocks, notes, 0)))
+            raidsCard:SetHeight(raidsH)
+            raidsCard:ClearAllPoints()
+            raidsCard:SetPoint("TOPLEFT", x, -top)
+            Fill(raidsCard, blocks, notes, raidsH, 0)
+        end
 
         local cdBlocks, cdNotes, ready, count = CooldownBlocks(list, now)
         cdsCard.note:SetText(ready > 0 and ("%d ready"):format(ready) or "")
@@ -282,6 +288,7 @@ function ns.RaidCards(parent, width)
         cdsCard:ClearAllPoints()
         cdsCard:SetPoint("TOPLEFT", x, -(top + raidsH + R.GAP))
         Fill(cdsCard, cdBlocks, cdNotes, cdsH, reserve)
+        return top + raidsH + R.GAP + cdsH
     end
     return column
 end

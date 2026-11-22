@@ -78,6 +78,8 @@ local function BuildFor(key)
         end
     end
 end
+-- The BUILD FOR 60 card below 60 asks the same.
+ns.EndgameBuildFor = BuildFor
 
 -- A dungeon's level, from the dungeon guide, by its name.
 local function LevelOf(name)
