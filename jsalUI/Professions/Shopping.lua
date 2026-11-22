@@ -39,6 +39,9 @@ local function List()
     s.items = type(s.items) == "table" and s.items or {}
     -- Materials you'd rather buy than make, by item: absent on a list that has none.
     s.bought = type(s.bought) == "table" and next(s.bought) and s.bought or nil
+    -- Stocks kept on the list by name (the Endgame page's raid night): how many of each item
+    -- to hold, by item. Absent on a list that has none.
+    s.stock = type(s.stock) == "table" and next(s.stock) and s.stock or nil
     return s
 end
 
@@ -148,6 +151,10 @@ local function Needs()
         for _, reagent in ipairs(recipe and recipe.reagents or {}) do
             base[reagent.item] = (base[reagent.item] or 0) + reagent.count * count
         end
+    end
+    -- A stock's items are wanted as a craft's materials are: made where you make them.
+    for _, want in pairs(s.stock or {}) do
+        for item, count in pairs(want) do base[item] = (base[item] or 0) + count end
     end
     -- Each material looked at once a call. One made from something made from
     -- it isn't made: a loop has nowhere to start.
@@ -299,6 +306,51 @@ end
 ---------------------------------------------------------------------------
 local frame, box, qty
 local rows = {}
+
+-- A stock kept on the list under a name: how many of each item to hold, by item. What's
+-- short of it is worked out as a road's materials are (bags and bank counted, made where you
+-- make it), so what's used comes back onto the list by itself. Unstock takes it off, and
+-- nothing else on the list with it.
+function Shopping.Stock(name, want)
+    local s = List()
+    local copy = {}
+    for item, count in pairs(want or {}) do
+        count = math.floor(tonumber(count) or 0)
+        if count > 0 then copy[item] = count end
+    end
+    s.stock = s.stock or {}
+    s.stock[name] = next(copy) and copy or nil
+    if not next(s.stock) then s.stock = nil end
+    if frame and frame:IsShown() then Paint() end
+end
+
+function Shopping.Unstock(name)
+    local s = List()
+    if s.stock then
+        s.stock[name] = nil
+        if not next(s.stock) then s.stock = nil end
+    end
+    if frame and frame:IsShown() then Paint() end
+end
+
+-- What a stock on the list holds by item, or nil when it isn't on the list.
+function Shopping.Stocked(name)
+    return List().stock and List().stock[name] or nil
+end
+
+-- The recipe of yours that makes an item, where making it is how you'd come by it, and its
+-- profession's line; nil when none. The list's own way of choosing, for a page that says "you
+-- make it".
+function Shopping.MakerOf(item)
+    for _, p in ipairs(Professions.Mine()) do
+        local recipe = KnownMaker({ p }, item)
+        if recipe then return recipe, p.line end
+    end
+end
+
+-- Each stock's line on the list: its name and picture, and what's said when its x is pressed,
+-- by name. Given by the part that keeps the stock.
+Shopping.stockLines = {}
 
 -- A quiet link: words that light up under the pointer. `under` draws a
 -- thin line beneath them, for one that's read on a hover.
@@ -966,14 +1018,42 @@ local function PaintList()
         frame.craftsHead:Hide()
     end
 
-    -- Other items, with what you have.
+    -- Other items, with what you have; first, a line for each stock kept on the list, with an x
+    -- that takes it off.
     local items = {}
     for item, count in pairs(s.items) do items[#items + 1] = { item = item, count = count } end
     table.sort(items, function(a, b) return a.item < b.item end)
-    if #items > 0 then
-        frame.itemsHead.note:SetText(#items)
+    local stocks = {}
+    for name, want in pairs(s.stock or {}) do
+        local n = 0
+        for _ in pairs(want) do n = n + 1 end
+        stocks[#stocks + 1] = { name = name, count = n }
+    end
+    table.sort(stocks, function(a, b) return a.name < b.name end)
+    if #items + #stocks > 0 then
+        frame.itemsHead.note:SetText(#items + #stocks)
         Place(frame.itemsHead, y)
         y = y + 22
+        for _, st in ipairs(stocks) do
+            local line = Shopping.stockLines[st.name] or {}
+            local r = Next(true)
+            Place(r, y)
+            r.item, r.spell = nil, nil
+            r.step:Hide()
+            r.icon:SetTexture(line.icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+            r.name:SetText(line.title or st.name)
+            r.status:SetText("")
+            r.made:SetText((line.count or "%d items"):format(st.count))
+            r.made:Show()
+            r.note = line.note
+            local name = st.name
+            r.drop = function()
+                Shopping.Unstock(name)
+                if line.dropped then line.dropped() end
+                Paint()
+            end
+            y = y + ROW_H
+        end
         for i, e in ipairs(items) do
             if i > MAX_ITEMS then break end
             local r = Next(true)
@@ -1117,7 +1197,7 @@ local function PaintList()
     for i = mores + 1, #frame.more do frame.more[i]:Hide() end
     for i = used + 1, #rows do rows[i]:Hide() end
 
-    local empty = #crafts == 0 and #items == 0
+    local empty = #crafts == 0 and #items == 0 and #stocks == 0
     frame.empty:SetShown(empty)
     if empty then
         Place(frame.empty, y)

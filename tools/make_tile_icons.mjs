@@ -8,9 +8,12 @@
 //   pals    a paw             Jsal's Pals (the paw its Settings card has)
 //   crafts  an order sheet    Guild Crafts
 //   run     a flag on a pole  Pal run
+//   endgame a crown           the Endgame page
 //
 // Uses Playwright from jsal.io's build tools to draw the shapes, as make_menu_icons.mjs does.
-// Run from the repo root: node tools/make_tile_icons.mjs
+// Run from the repo root: node tools/make_tile_icons.mjs [name ...]. With names, only those are drawn:
+// the browser draws a shape's edges a little differently from one run to the next, so the others
+// are left as they are.
 import { createRequire } from 'module';
 import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
@@ -31,6 +34,9 @@ const ICONS = {
   crafts: `<path fill-rule="evenodd" fill="${GOLD}" d="M5.5 2.5h9L19 7v14.5H5.5zM8 9.6v2h8.5v-2zm0 3.9v2h8.5v-2zm0 3.9v2h5v-2z"/>`,
   // A pennant on its pole: the flag a run ends at.
   run: `<path fill="${GOLD}" d="M6 3h2.2v18H6zM9.2 4l10.3 4-10.3 4z"/>`,
+  // A crown, three points with a ball on each, over its band: the Endgame page, for level 60.
+  endgame: `<path fill="${GOLD}" d="M3.5 17.2h17v3H3.5zM3.5 15.8L2.6 7.4l5.2 4.2L12 5.2l4.2 6.4 5.2-4.2-.9 8.4z"/>`
+    + `<circle cx="2.6" cy="6.4" r="1.5" fill="${GOLD}"/><circle cx="12" cy="4" r="1.6" fill="${GOLD}"/><circle cx="21.4" cy="6.4" r="1.5" fill="${GOLD}"/>`,
 };
 
 const icons = join(dirname(fileURLToPath(import.meta.url)), '..', 'jsalUI', 'Media', 'Icons');
@@ -70,7 +76,9 @@ for (let y = 8; y < 56; y++) {
 
 const browser = await chromium.launch({ channel: 'msedge' });
 const page = await browser.newPage();
+const only = process.argv.slice(2);
 for (const [name, shape] of Object.entries(ICONS)) {
+  if (only.length && !only.includes(name)) continue;
   const pixels = await page.evaluate(async ({ shape, size, tile }) => {
     // 24 units in the middle 40 of 64 pixels.
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="-7.2 -7.2 38.4 38.4">${shape}</svg>`;

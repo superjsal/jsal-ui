@@ -1,4 +1,4 @@
--- Raid lockouts and long profession cooldowns, every character's, for the Journal's Characters tab.
+-- Raid lockouts and long profession cooldowns, every character's, for the Endgame page.
 --
 -- Each is saved on its character as the moment it ends (the server's clock), so nothing ticks:
 -- a lockout past its reset is no longer drawn and is dropped at the next login, and a cooldown

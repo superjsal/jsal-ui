@@ -78,7 +78,7 @@ file; Elemental shamans have none). `tools\what_changed.py` says when files that
 
 ## Long profession cooldowns
 
-The Journal's Characters tab lists each character's long cooldowns (`jsalUI\Journal\CooldownData.lua`), built by
+The Endgame page lists each character's long cooldowns (`jsalUI\Journal\CooldownData.lua`), built by
 `python -I tools\build_cooldowns.py <version>` from `data\spells\` and `data\professions\` (SpellCooldowns,
 SpellCategories cut to the rows with a category and to ID, DifficultyID, Category and SpellID, SpellEffect,
 SpellReagents, ItemEffect, ItemXItemEffect and ItemSparse). A cooldown counts at 20 hours or more (the game's

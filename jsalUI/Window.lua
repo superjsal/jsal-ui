@@ -32,6 +32,8 @@ local PAGES = {
     { key = "training", label = "Training Planner", short = "Training", icon = OWN .. "training" },
     { key = "gear", label = "Gear plan", short = "Gear", icon = OWN .. "gear" },
     { key = "dungeons", label = "Dungeons", icon = OWN .. "dungeons" },
+    -- Level 60: your set, raid night, and every character's raids and cooldowns.
+    { key = "endgame", label = "Endgame", icon = OWN .. "endgame" },
     { key = "professions", label = "Professions", icon = OWN .. "professions", group = "CRAFT" },
     { key = "craftprofit", label = "Crafting profit", icon = OWN .. "profit",
       when = function() return ns.CraftProfit ~= nil and ns.CraftProfit.running == true end },
