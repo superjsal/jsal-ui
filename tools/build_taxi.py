@@ -74,6 +74,9 @@ JOINED = {
     (43, 6, 2): 202,
     # Stormwind > Ironforge > Aerie Peak: one flight read 7.0 s long.
     (2, 6, 43): 210,
+    # Menethil Harbor > Ironforge > Stormwind: one flight, Southshore to Booty Bay through all three, read
+    # 4.2 s long after Stormwind's; the recorded times put it all at Ironforge, none at Menethil Harbor.
+    (7, 6, 2): 126,
 }
 
 
