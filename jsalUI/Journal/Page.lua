@@ -373,6 +373,21 @@ Window.Page("journal", function(page)
     end
     M.foot = Style.Text(summary, 11, "muted")
     M.foot:SetPoint("TOPLEFT", 0, -(M.listY + 22 + 5 * M.LIST_H + 10))
+    -- A line in `room`, giving way whole: first its place ("Defeated X in Y" keeps "Defeated X"), then
+    -- its last words, one at a time; never a word cut short.
+    function M.Fit(text, line, room)
+        line:SetText(text)
+        local function Over() return Style.Wide(line, #text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") * 6.6) > room end
+        if Over() then
+            local short = text:match("^(.-) in [^:]+$")
+            if short then text = short; line:SetText(text) end
+        end
+        while Over() and text:find(" ", 1, true) do
+            text = text:gsub("%s*%S+$", "")
+            line:SetText(text)
+        end
+        return text
+    end
 
     local function FillList(rows, entries, format, empty)
         local most = entries[1] and entries[1].n or 0
@@ -547,10 +562,12 @@ Window.Page("journal", function(page)
             r.text:ClearAllPoints()
             r.text:SetPoint("LEFT", e and 84 or 0, 0)
             r.text:SetWidth(M.halfW - (e and 84 or 0))
-            r.text:SetText(e and ((e.k == "night" and ns.JournalSince60) and ("%s: %s"):format(e.s or "", ns.JournalSince60.Bosses(e.b)) or (e.s or ""))
-                or "Nothing yet. It fills in as you play.")
+            M.Fit(e and ((e.k == "night" and ns.JournalSince60) and ("%s: %s"):format(e.s or "", ns.JournalSince60.Bosses(e.b)) or (e.s or ""))
+                or "Nothing yet. It fills in as you play.", r.text, M.halfW - (e and 84 or 0))
             r.text:SetTextColor(Style.Color(e and "text" or "muted"))
-            r.when:SetText(e and (date("%Y%m%d", e.t or 0) == today and Clock(e.t or 0) or (date("%d %b", e.t or 0):gsub("^0", ""))) or "")
+            -- (A night's time is when it ended, as the Story has it.)
+            local at = e and (e.till or e.t) or 0
+            r.when:SetText(e and (date("%Y%m%d", at) == today and Clock(at) or (date("%d %b", at):gsub("^0", ""))) or "")
             if e then
                 local c = TINT[e.k] or OTHER
                 r.mark:SetColorTexture(c[1], c[2], c[3])
