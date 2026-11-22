@@ -23,6 +23,15 @@ one is taken back (so a corridor flown in and out again is flown once). What a
 join saves depends on both paths, so it's kept per path by the next flight
 point, where it's at least JOIN_MIN.
 
+That take-back only sees a corridor whose waypoints come within JOIN_RADIUS of
+each other right at the perch. Where the way in and the way out run together
+further out but part a little near the perch (Ironforge's gate, for one), the
+bird still flies the corridor only once: where CORRIDOR_RUN waypoints in a row
+of the path in lie within CORRIDOR yards of the path out's, retraced in the
+other order, it may cross from one to the other, and it takes whichever such
+crossing, or the rule above, makes the shorter route. Crossings are looked for
+in the half of each path nearest the point passed.
+
 Some flight points are flown through shorter than the rule makes them: their
 paths in and out run side by side for a few hundred yards, a hairpin the rule
 barely trims. PASSED holds what flights through such a point measured beyond
@@ -43,6 +52,8 @@ TAXI = ROOT / "data" / "taxi"
 OUT = ROOT / "jsalUI" / "Games" / "FlightData.lua"
 JOIN_RADIUS = 40   # yards from a flight point within which a path passed through is cut
 JOIN_MIN = 30      # yards a join must save to be kept (about a second)
+CORRIDOR = 60      # yards apart the way in and the way out may run and still be one corridor
+CORRIDOR_RUN = 4   # waypoints in a row that must run together for a crossing
 
 # Yards a flight through a point saves beyond the join rule, by flight point, measured
 # at 29.92 yards a second.
@@ -62,6 +73,31 @@ def length(pts):
 
 def far(a, b):
     return a[1] != b[1] or (a[2] - b[2]) ** 2 + (a[3] - b[3]) ** 2 > JOIN_RADIUS * JOIN_RADIUS
+
+
+def apart(a, b):
+    return math.inf if a[1] != b[1] else math.hypot(a[2] - b[2], a[3] - b[3])
+
+
+def along(pts):
+    """Yards flown to reach each waypoint of `pts`."""
+    out = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        out.append(out[-1] + (math.dist(a[2:5], b[2:5]) if a[1] == b[1] else 0))
+    return out
+
+
+def crossed(a, b):
+    """Yards flown from path `a` onto path `b` by the shortest crossing where they share a corridor, or None."""
+    ca, cb = along(a), along(b)
+    best = None
+    for i in range(len(a) - len(a) // 2, len(a) - 1):
+        for j in range(1, len(b) // 2):
+            if all(i + k < len(a) and j - k >= 0 and apart(a[i + k], b[j - k]) <= CORRIDOR for k in range(CORRIDOR_RUN)):
+                yards = ca[i] + math.dist(a[i][2:5], b[j][2:5]) + cb[-1] - cb[j]
+                if best is None or yards < best:
+                    best = yards
+    return best
 
 
 def joined(chain):
@@ -107,7 +143,11 @@ def main():
         for (via2, dst), b in kept.items():
             if via2 != via or dst == src or a[-1][1] != b[0][1]:
                 continue
-            saved = round(length(a) + length(b) - length(joined([a, b]))) + PASSED.get(via, 0)
+            flown = length(joined([a, b]))
+            corridor = crossed(a, b)
+            if corridor is not None and corridor < flown:
+                flown = corridor
+            saved = round(length(a) + length(b) - flown) + PASSED.get(via, 0)
             if saved >= JOIN_MIN:
                 joins.setdefault(src * 10000 + via, {})[dst] = saved
 
