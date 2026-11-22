@@ -732,12 +732,12 @@ function Paint()
     local key = table.concat({ skill, cap, tostring(rankAt), #mind.saved, tostring(Professions.Priced and Professions.Priced()),
         prices and prices.seen or 0, prices and prices.scans or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan) }, ";")
     local kept = plans[line]
-    local road, totals, stuck, made
+    local road, totals, stuck
     if kept and kept.key == key then
-        road, totals, stuck, made = kept.road, kept.totals, kept.stuck, kept.made
+        road, totals, stuck = kept.road, kept.totals, kept.stuck
     else
-        road, totals, stuck, made = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rankAt)
-        plans[line] = { key = key, road = road, totals = totals, stuck = stuck, made = made }
+        road, totals, stuck = Professions.Plan(line, skill, cap, function(spell) return known[spell] end, rankAt)
+        plans[line] = { key = key, road = road, totals = totals, stuck = stuck }
     end
 
     -- Recipes not learned yet, with where each comes from: starred ones

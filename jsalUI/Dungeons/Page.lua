@@ -1475,7 +1475,8 @@ Window.Page("dungeons", function(page)
         local function PaintCard(block)
             cards = cards + 1
             local c = Q.Card(cards)
-            local e, shown, count = block.list[1], nil, 0
+            local e, count = block.list[1], 0
+            local shown
             if block.tails then
                 shown = Folded(block.lead)
                 for _, tail in ipairs(block.tails) do

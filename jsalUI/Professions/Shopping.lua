@@ -1081,7 +1081,7 @@ local function PaintList()
     -- already have enough of is small pictures under them.
     local vendor, other, enough = {}, {}, {}
     local count = ns.ItemPrices.Counting()
-    local total, unpriced, vendorCost, auctionCost = 0, 0, 0, 0
+    local unpriced, vendorCost, auctionCost = 0, 0, 0
     for item, need in pairs(needs) do
         local have = Compat.ItemCount(item, true)
         local e = { item = item, need = need, have = have, short = math.max(0, need - have), buying = buying[item] }
@@ -1109,7 +1109,7 @@ local function PaintList()
         end
         vendorCost = vendorCost + math.floor(Shopping.VendorPrice(e.item, npc) * e.short + 0.5)
     end
-    total = vendorCost + auctionCost
+    local total = vendorCost + auctionCost
     local function Biggest(a, b)
         if a.short ~= b.short then return a.short > b.short end
         return a.item < b.item
