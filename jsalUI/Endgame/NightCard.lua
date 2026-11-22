@@ -148,48 +148,51 @@ function ns.EndgameNight(parent, width, changed)
         r.x.text = Style.Text(r.x, 14, "muted")
         r.x.text:SetPoint("CENTER")
         r.x.text:SetText("×")
-        -- Under the pointer (the row's or one of its buttons): the − and +, and the x in the
-        -- price's place.
-        local function Hover(on)
+        r.glow = r:CreateTexture(nil, "BACKGROUND", nil, 7)
+        r.glow:SetAllPoints()
+        local tr, tg, tb = Style.Color("text")
+        r.glow:SetColorTexture(tr, tg, tb, 0.06)
+        -- Lit while the pointer is on the row or one of its buttons: the row's light, the − and +, the x
+        -- (red under the pointer) in the price's place, and the line's tooltip. It is read from where the
+        -- pointer is, never from which enter or leave came last, so the same state results whatever order
+        -- the game sends them in. `may` is false where the row can't be lit: a redraw passes whether it
+        -- was lit, so a line that moves up under the pointer is lit for what it now holds, and a row
+        -- under another window, which the game sends nothing, stays dark.
+        local function Light(may)
+            local on = may and r:IsVisible() and r:IsMouseOver() or false
+            r.lit = on
             local live = on and r.line ~= nil
+            r.glow:SetShown(on)
             r.minus:SetShown(live)
             r.plus:SetShown(live)
             r.x:SetShown(live)
             r.cost:SetShown(not live)
+            r.x.text:SetTextColor(Style.Color(live and r.x:IsMouseOver() and "red" or "muted"))
+            if on and r.item then
+                GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
+                GameTooltip:SetItemByID(r.item)
+                for _, line in ipairs(r.notes or {}) do GameTooltip:AddLine(line, Style.Color("text")) end
+                GameTooltip:Show()
+            elseif GameTooltip:IsOwned(r) then
+                GameTooltip:Hide()
+            end
         end
-        r.Hover = Hover
-        local function Leave()
-            Hover(r.IsMouseOver and r:IsMouseOver() or false)
-            GameTooltip:Hide()
+        r.Light = Light
+        local function Pointer() Light(true) end
+        r:SetScript("OnEnter", Pointer)
+        r:SetScript("OnLeave", Pointer)
+        for _, b in ipairs({ r.minus, r.plus }) do
+            b:HookScript("OnEnter", Pointer)
+            b:HookScript("OnLeave", Pointer)
         end
-        r:SetScript("OnEnter", function(self)
-            Hover(true)
-            if not self.item then return end
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetItemByID(self.item)
-            for _, line in ipairs(self.notes or {}) do GameTooltip:AddLine(line, Style.Color("text")) end
-            GameTooltip:Show()
-        end)
-        r:SetScript("OnLeave", Leave)
-        for _, b in ipairs({ r.minus, r.plus, r.x }) do
-            b:HookScript("OnEnter", function() Hover(true) end)
-            b:HookScript("OnLeave", Leave)
-        end
+        r.x:SetScript("OnEnter", Pointer)
+        r.x:SetScript("OnLeave", Pointer)
         r.minus:SetScript("OnClick", function() if r.line then RN.SetCount(r.line, r.per - 1) Changed() end end)
         r.plus:SetScript("OnClick", function() if r.line then RN.SetCount(r.line, r.per + 1) Changed() end end)
         r.x:SetScript("OnClick", function() if r.item then RN.TakeOff(r.item, true) Changed() end end)
-        r.x:SetScript("OnEnter", function(self)
-            self.text:SetTextColor(Style.Color("red"))
-            Hover(true)
-        end)
-        r.x:SetScript("OnLeave", function(self)
-            self.text:SetTextColor(Style.Color("muted"))
-            Leave()
-        end)
         -- A line taken off: a click puts it back.
         r:SetScript("OnClick", function(self) if self.back then RN.TakeOff(self.item, false) Changed() end end)
-        if Style.Hover then Style.Hover(r) end
-        Hover(false)
+        Light(false)
         rows[i] = r
         return r
     end
@@ -379,9 +382,9 @@ function ns.EndgameNightPaint(card, p, room)
             r.get:SetText(line.short)
             r.cost:SetText(words)
             r.notes = ns.EndgameNightNotes(line, saved.hours)
-            r.Hover(false)
             At(r)
             r:Show()
+            r.Light(r.lit)
             y = y + h
         end
     end
@@ -396,9 +399,9 @@ function ns.EndgameNightPaint(card, p, room)
             r.get:SetText("")
             r.cost:SetText(GOLD .. "put back|r")
             r.notes = { "Taken off. Click to put it back." }
-            r.Hover(false)
             At(r)
             r:Show()
+            r.Light(r.lit)
             y = y + h
         end
     end
