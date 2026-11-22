@@ -14,6 +14,7 @@ local OPT_H = 48               -- an upgrade's line in the picked slot's card
 local GAIN_W = 118             -- room for what an upgrade adds ("+14 AP, +3 Sta")
 local LEVEL_W = 36             -- an upgrade's level column
 local FILTER_H = 34            -- the row of chips over the upgrades, and the room under it
+local EMPTY_ALPHA = 0.6         -- the game's picture of an empty place, dimmed to read as empty
 local RED = Style.Tint("red")
 
 local function ItemInfo(id)
@@ -269,7 +270,7 @@ local function NearLineParts(lines)
         r.worn = Style.HotArea(r, PieceTip)
         r.worn:SetSize(24, 24)
         r.worn:SetPoint("LEFT", WORN_X, 0)
-        -- Its line alone: there is always a picture in it, or the window's colour where nothing is worn.
+        -- Its line alone: there is always a picture in it, the game's empty place where nothing is worn.
         Style.Lined(r.worn, "lineStrong")
         r.worn.icon = r.worn:CreateTexture(nil, "ARTWORK")
         r.worn.icon:SetPoint("TOPLEFT", 1, -1)
@@ -331,13 +332,14 @@ local function PaintNearLines(lines, slotRows, plans, chosen, P)
             r.picks:SetText(#plan.options > 0 and "\226\128\186" or "")
             r.item, r.equip, r.adds, r.lines = nil, nil, nil, nil
             r.gain:SetText("")
-            -- What you wear: its picture, or an empty square where nothing is; under a
-            -- two-hander, the two-hander's, greyed.
+            -- What you wear: its picture, or the game's own picture of the empty place, dimmed,
+            -- where nothing is; under a two-hander, the two-hander's, greyed.
             local worn = plan.worn
             local hand = plan.twoHand and GetInventoryItemTexture and GetInventoryItemTexture("player", 16)
             r.worn.item, r.worn.equip = nil, nil
             r.worn.icon:SetDesaturated(plan.twoHand and true or false)
             r.worn:SetAlpha(plan.twoHand and 0.4 or 1)
+            r.worn.icon:SetAlpha(1)
             if hand then
                 r.worn.icon:SetTexture(hand)
                 r.worn.equip = 16
@@ -346,7 +348,13 @@ local function PaintNearLines(lines, slotRows, plans, chosen, P)
                 r.worn.icon:SetTexture(texture or (GetInventoryItemTexture and GetInventoryItemTexture("player", worn.equip)))
                 r.worn.equip = worn.equip
             else
-                r.worn.icon:SetColorTexture(Style.Color("window"))
+                local empty = G.EmptyPicture(row.slot, row.equip)
+                if empty then
+                    r.worn.icon:SetTexture(empty)
+                    r.worn.icon:SetAlpha(EMPTY_ALPHA)
+                else
+                    r.worn.icon:SetColorTexture(Style.Color("window"))
+                end
             end
             local up = top and not plan.twoHand
             r.arrow:SetShown(up and true or false)

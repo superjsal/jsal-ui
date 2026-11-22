@@ -103,14 +103,22 @@ function Today.Games()
     return list
 end
 
+-- Whether a slot's place counts: the off hand doesn't while a two-hander takes both hands.
+local function Counts(slot, twoHand)
+    return not (twoHand and slot.key == "off")
+end
+
 -- Gear slots with nothing in them, and how many items you've starred.
 function Today.Gear()
     local G = ns.Gear
     if not (G and G.running) then return nil end
     local empty, starred = 0, 0
+    local twoHand = G.TwoHander and G.TwoHander() ~= nil
     for _, slot in ipairs(G.SLOTS) do
-        for _, id in ipairs(slot.equip) do
-            if not GetInventoryItemLink("player", id) then empty = empty + 1 end
+        if Counts(slot, twoHand) then
+            for _, id in ipairs(slot.equip) do
+                if not GetInventoryItemLink("player", id) then empty = empty + 1 end
+            end
         end
     end
     for _ in pairs(G.Starred()) do starred = starred + 1 end
@@ -327,10 +335,12 @@ function Today.Queue(most)
 end
 
 -- What you wear, slot by slot in the Gear plan's order: its picture and
--- quality, or that it's empty, and whether something you've starred goes there.
+-- quality, or that it's empty (with the game's own picture of the empty place),
+-- and whether something you've starred goes there. No off hand under a two-hander.
 function Today.Slots()
     local G = ns.Gear
     if not (G and G.running) then return nil end
+    local twoHand = G.TwoHander and G.TwoHander() ~= nil
     local wanted = {}
     for _, star in pairs(G.Starred()) do
         if type(star) == "table" and star.t then wanted[star.t] = true end
@@ -339,12 +349,13 @@ function Today.Slots()
     for _, slot in ipairs(G.SLOTS) do
         local starred = false
         for _, kind in ipairs(slot.types or {}) do starred = starred or wanted[kind] == true end
-        for _, id in ipairs(slot.equip) do
+        for _, id in ipairs(Counts(slot, twoHand) and slot.equip or {}) do
             local worn = GetInventoryItemLink("player", id) ~= nil
             out[#out + 1] = {
                 empty = not worn, starred = starred,
                 texture = worn and GetInventoryItemTexture and GetInventoryItemTexture("player", id) or nil,
                 quality = worn and GetInventoryItemQuality and GetInventoryItemQuality("player", id) or nil,
+                picture = not worn and G.EmptyPicture and G.EmptyPicture(slot, id) or nil,
             }
         end
     end
@@ -1274,8 +1285,10 @@ local function GearCard(parent, width)
         c.empty:SetText(slots and "" or "Turned off. Switch the Gear plan on in Settings.")
         for i, slot in ipairs(slots or {}) do
             local s = Slot(i)
-            s.icon:SetShown(not slot.empty)
-            if not slot.empty then s:Set(slot.texture) end
+            -- An empty place: the game's own picture of it, dimmed, inside the red edge.
+            s.icon:SetShown(not slot.empty or slot.picture ~= nil)
+            s.icon:SetAlpha(slot.empty and 0.6 or 1)
+            if not slot.empty then s:Set(slot.texture) elseif slot.picture then s:Set(slot.picture) end
             s.star:SetShown(slot.starred)
             local r, g, b = Style.Color("red")
             if not slot.empty then r, g, b = Parts(Style.Quality(slot.quality)) end

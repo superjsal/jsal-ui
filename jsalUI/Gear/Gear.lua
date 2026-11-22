@@ -796,6 +796,17 @@ local function SideNumber()
     return faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
 end
 
+-- The game's own picture of an empty place, the character pane's (a grey head, a ring), for a slot's
+-- place `equip`: the second of a pair is "Finger1Slot", the first "Finger0Slot". The function is
+-- looked for first and then called, as `X and f(...)` would keep only its first value.
+function Gear.EmptyPicture(slot, equip)
+    if not GetInventorySlotInfo then return nil end
+    local name = slot.empty
+    if #slot.equip > 1 and equip == slot.equip[2] then name = name:gsub("0Slot$", "1Slot") end
+    local _, texture = GetInventorySlotInfo(name)
+    return texture
+end
+
 -- The two-hander in your main hand, when that's what is there: its link.
 function Gear.TwoHander()
     local link = GetInventoryItemLink and GetInventoryItemLink("player", 16)
