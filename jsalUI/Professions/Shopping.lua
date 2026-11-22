@@ -354,6 +354,14 @@ Shopping.stockLines = {}
 
 -- A quiet link: words that light up under the pointer. `under` draws a
 -- thin line beneath them, for one that's read on a hover.
+-- A guess at words' width where the game can't measure them yet: six a letter, a coin's picture 13, colour
+-- codes nothing.
+local function Guess(words)
+    local plain, pictures = words:gsub("|T.-|t", "")
+    plain = plain:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return #plain * 6 + pictures * 13
+end
+
 local function Link(parent, words, under)
     local b = CreateFrame("Button", nil, parent)
     b.text = Style.Text(b, 12, "muted")
@@ -1206,20 +1214,29 @@ local function PaintList()
     y = y + 6
     Place(frame.rule, y)
     y = y + 10
-    local text
+    -- The total, the longest of its wordings that leaves room for "about these prices" and Clear beside it:
+    -- it gives way whole ("in all", then "About", then the count not priced), never by letters.
+    local tries
     if total > 0 then
-        text = ("About |cffece6d6%s|r in all"):format(Compat.Money(total))
-        if unpriced > 0 then text = text .. (" · %d not priced"):format(unpriced) end
+        local money = ("|cffece6d6%s|r"):format(Compat.Money(total))
+        local notPriced = unpriced > 0 and (" · %d not priced"):format(unpriced) or ""
+        tries = { "About " .. money .. " in all" .. notPriced, money .. " in all" .. notPriced, money .. notPriced,
+                  "About " .. money .. " in all", money }
     elseif unpriced > 0 then
-        text = ("%d still to get, no price known yet"):format(unpriced)
+        tries = { ("%d still to get, no price known yet"):format(unpriced), ("%d with no price known yet"):format(unpriced),
+                  ("%d not priced"):format(unpriced) }
     else
-        text = "Nothing left to get"
+        tries = { "Nothing left to get" }
     end
-    frame.total:SetText(text)
-    Place(frame.total, y + 4)
     -- Where an auction price comes from is read on a hover.
     frame.about.tip = auctionCost > 0 and ("Auction prices are from %s."):format(ns.ItemPrices.From(count)) or nil
     frame.about:SetShown(auctionCost > 0)
+    local room = WIDTH - PAD * 2 - (empty and 0 or (frame.clear:GetWidth() + 12)) - (auctionCost > 0 and (frame.about:GetWidth() + 10) or 0)
+    for i, words in ipairs(tries) do
+        frame.total:SetText(words)
+        if i == #tries or Style.Wide(frame.total, Guess(words)) <= room then break end
+    end
+    Place(frame.total, y + 4)
     frame.clear:ClearAllPoints()
     frame.clear:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -PAD, -(y + 2))
     frame.clear:SetShown(not empty)
