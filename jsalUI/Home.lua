@@ -1014,6 +1014,8 @@ local function Hero(page, width)
         level:SetWidth(room + 48)
         -- At the last level, where your set stands takes the level's place.
         local atGoal = (ns.Pretend and ns.Pretend.Level() or UnitLevel("player") or 0) >= LAST_LEVEL and PaintGoal(room)
+        -- Below it (pretending 60 just switched off), whatever the set's place showed goes.
+        if not atGoal and goal then goal:Hide() goal.next:Hide() end
         now:SetShown(not atGoal)
         if atGoal then
             soon:Hide()
