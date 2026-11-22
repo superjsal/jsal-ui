@@ -923,6 +923,41 @@ Window.Page("gear", function(page)
     -- asked for had come then (Gear.arrived): an item that's neither, arriving, changes nothing here.
     -- None while At 60 is showing, which paints items of its own.
     local seen, seenArrived
+    -- A place whose plan isn't made yet (the first open after logging in, or after something it's
+    -- worked out from changed) shows what you wear and "Checking..." at once, and the places are
+    -- worked out a few a frame after: the picked slot first, then down the lines, at most FILL_MOST
+    -- a frame and no more once FILL_MS have gone. Each frame paints what's made; it stops when
+    -- every place is.
+    local FILL_MOST, FILL_MS = 3, 6
+    local filling = false
+    local function Due(row)
+        local plan, due = G.KeptPlan(row.slot, row.equip)
+        return plan == nil or due, plan
+    end
+    local function Fill()
+        filling = false
+        if not page:IsVisible() then return end
+        local started = debugprofilestop()
+        G.spent = {}
+        local made = 0
+        local order = {}
+        if chosen and byKey[chosen] then order[1] = byKey[chosen] end
+        for _, row in ipairs(slotRows) do
+            if row.key ~= chosen then order[#order + 1] = row end
+        end
+        for _, row in ipairs(order) do
+            if made >= FILL_MOST or (made > 0 and debugprofilestop() - started >= FILL_MS) then break end
+            if Due(row) then
+                G.SlotPlan(row.slot, false, row.equip)
+                made = made + 1
+            end
+        end
+        ns.Timed("Gear plan, working out upgrades", started)
+        if debugprofilestop() - started >= 10 then
+            for part, ms in pairs(G.spent) do ns.NoteTime("Gear plan, upgrades: " .. part, ms) end
+        end
+        if made > 0 then Paint() end
+    end
     Paint = function()
         local level = UnitLevel("player") or 1
         local spec = G.Spec()
@@ -943,23 +978,24 @@ Window.Page("gear", function(page)
             return
         end
 
-        -- Timed apart from the drawing, so /jsal perf says which is slow.
-        local started = debugprofilestop()
-        G.spent = {}
-        local plans = {}
         -- The plans kept between paints (Gear.SlotPlan): a click, a chip or a look again with nothing
-        -- changed works nothing out, and a slot still waiting on items is made again alone.
-        for _, row in ipairs(slotRows) do plans[row.key] = G.SlotPlan(row.slot, false, row.equip) end
+        -- changed works nothing out. One not made yet, or due to be made again for items that came,
+        -- is worked out a few a frame after this paint (Fill), shown meanwhile as it stands.
+        local plans, todo = {}, false
+        for _, row in ipairs(slotRows) do
+            local due, plan = Due(row)
+            todo = todo or due
+            plans[row.key] = plan or G.Pending(row.slot, row.equip)
+        end
+        if todo and not filling then
+            filling = true
+            Compat.After(0, ns.Safe(G, Fill))
+        end
         seen, seenArrived = {}, G.arrived
         for _, plan in pairs(plans) do
             for _, o in ipairs(plan.options or {}) do seen[o.id] = true end
             local worn = plan.worn and plan.worn.link and tonumber(plan.worn.link:match("item:(%d+)"))
             if worn then seen[worn] = true end
-        end
-        ns.Timed("Gear plan, working out upgrades", started)
-        -- A slow pass: its parts too, each as one line ("Gear plan, upgrades: item stats").
-        if debugprofilestop() - started >= 10 then
-            for part, ms in pairs(G.spent) do ns.NoteTime("Gear plan, upgrades: " .. part, ms) end
         end
         local better, slots, checking = PaintNearLines(lines, slotRows, plans, chosen, P)
         hero:Paint(better, slots, checking)
