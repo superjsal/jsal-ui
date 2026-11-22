@@ -62,6 +62,16 @@ reduced here to each trainer's name, spots, services, levels and costs (`data\tr
 kept by `tools\refresh_eglink.py`). `tools\build_spells.py` and `tools\build_trainers.py` read it; the second
 also writes `data\trainers\ranks-seen.txt`, the highest profession rank each trainer was seen to sell.
 
+## Long profession cooldowns
+
+The Journal's Characters tab lists each character's long cooldowns (`jsalUI\Journal\CooldownData.lua`), built by
+`python -I tools\build_cooldowns.py <version>` from `data\spells\` and `data\professions\` (SpellCooldowns,
+SpellCategories cut to the rows with a category and to ID, DifficultyID, Category and SpellID, SpellEffect,
+SpellReagents, ItemEffect, ItemXItemEffect and ItemSparse). A cooldown counts at 20 hours or more (the game's
+"daily" ones are 23); recipes that share a category are one line, named by what their names share before the
+colon ("Transmute"); an item counts when its own spell has such a cooldown and makes a profession's reagent (the
+Salt Shaker). After a patch, fetch SpellCategories and ItemXItemEffect again with the others and run it.
+
 ## Dungeons
 
 `data\dungeons\` holds LFGDungeons, DungeonEncounter, ContentTuning (cut to ID and MinLevelSquish) and

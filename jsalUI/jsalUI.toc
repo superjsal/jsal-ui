@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: Your road to 60, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: John Salvador
-## Version: 0.3.61-beta.5
+## Version: 0.3.61-beta.6
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
@@ -117,6 +117,8 @@ Helpers\PetFeed.lua
 
 # The Journal: each character's story and stats, and the account's characters.
 Journal\Journal.lua
+Journal\CooldownData.lua
+Journal\Lockouts.lua
 Journal\Page.lua
 Journal\Recap.lua
 

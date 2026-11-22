@@ -1,8 +1,9 @@
 -- The Journal page, in four tabs: Summary (who you are, how far to the
 -- next level, your levels as a chart, your numbers and favourites), Story (the moments by day, newest first, by kind), By level
 -- (what each level took, and brought) and Characters
--- (every character on the account, a row each: level, where it is, its
--- gold, its professions and its rested XP).
+-- (every character on the account, a card each: level, where it is, its
+-- gold, its professions and its rested XP; and at the right, the raids
+-- they're saved to and their long profession cooldowns).
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
@@ -1132,10 +1133,11 @@ Window.Page("journal", function(page)
     -- Characters: every character of yours the Journal has seen.
     -----------------------------------------------------------------
     local chars = View("characters")
-    -- A card a character, three across, the highest first: who it is and its
+    -- A card a character, two across, the highest first: who it is and its
     -- level, then where it is, its gold, its rested XP and its professions,
-    -- each in the same place on every card.
-    local C = { cards = {}, GAP = 16, H = 200, TOP = 42, PROFS = 3, TRACK = 96,
+    -- each in the same place on every card. The third column holds the
+    -- raids and cooldowns.
+    local C = { cards = {}, GAP = 16, H = 200, TOP = 42, PROFS = 3, TRACK = 96, ACROSS = 2,
                 CLASSES = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES" }
     C.W = math.floor((width - 2 * C.GAP) / 3)
     local charCount = Style.Text(chars, 17, "text", nil, true)
@@ -1143,10 +1145,10 @@ Window.Page("journal", function(page)
     local charGold = Style.Text(chars, 13, "muted")
     charGold:SetPoint("BOTTOMLEFT", charCount, "BOTTOMRIGHT", 12, 1)
     C.rows = math.max(1, math.floor((height - 52 - C.TOP - 30 + C.GAP) / (C.H + C.GAP)))
-    for i = 1, C.rows * 3 do
+    for i = 1, C.rows * C.ACROSS do
         local c = CreateFrame("Frame", nil, chars)
         c:SetSize(C.W, C.H)
-        c:SetPoint("TOPLEFT", ((i - 1) % 3) * (C.W + C.GAP), -(C.TOP + math.floor((i - 1) / 3) * (C.H + C.GAP)))
+        c:SetPoint("TOPLEFT", ((i - 1) % C.ACROSS) * (C.W + C.GAP), -(C.TOP + math.floor((i - 1) / C.ACROSS) * (C.H + C.GAP)))
         Style.Box(c, 6, "well", "cardLine")
         -- The one you're on has a gold edge and a tag.
         c.edge = c:CreateTexture(nil, "ARTWORK")
@@ -1187,6 +1189,7 @@ Window.Page("journal", function(page)
             local t = Style.Text(c, 12, "muted")
             t:SetPoint("TOPLEFT", 16, y)
             t:SetText(text)
+            return t
         end
         Label("Where", -82)
         c.where = Style.Text(c, 13, "text")
@@ -1197,7 +1200,7 @@ Window.Page("journal", function(page)
         c.gold = Style.Text(c, 13, "text", nil, true)
         c.gold:SetPoint("TOPRIGHT", -16, -81)
         c.gold:SetJustifyH("RIGHT")
-        Label("Rested", -106)
+        c.restLabel = Label("Rested", -106)
         c.track = CreateFrame("Frame", nil, c)
         c.track:SetSize(C.TRACK, 6)
         c.track:SetPoint("TOPLEFT", 80, -111)
@@ -1208,18 +1211,16 @@ Window.Page("journal", function(page)
         c.bar:SetColorTexture(Style.Color("blue"))
         c.rest = Style.Text(c, 12, "muted")
         -- Its professions, a line each: the name, a bar for how far through
-        -- the rank it is, and the skill.
+        -- the rank it is, and the skill. Placed when painted: at 60, with no
+        -- Rested line, they move up into its place.
         c.profs = {}
         for k = 1, C.PROFS do
             local p = { name = Style.Text(c, 12, "text"), skill = Style.Text(c, 12, "text"), track = CreateFrame("Frame", nil, c) }
-            local y = -134 - (k - 1) * 20
-            p.name:SetPoint("TOPLEFT", 16, y)
+            p.y = -134 - (k - 1) * 20
             p.name:SetWidth(112)
             p.name:SetJustifyH("LEFT")
             p.name:SetWordWrap(false)
-            p.skill:SetPoint("TOPRIGHT", -16, y)
             p.skill:SetJustifyH("RIGHT")
-            p.track:SetPoint("TOPLEFT", 136, y - 5)
             p.track:SetSize(C.W - 136 - 16 - 70, 6)
             Style.Fill(p.track, "window")
             p.bar = p.track:CreateTexture(nil, "ARTWORK")
@@ -1229,11 +1230,264 @@ Window.Page("journal", function(page)
             c.profs[k] = p
         end
         c.none = Style.Text(c, 12, "muted")
-        c.none:SetPoint("TOPLEFT", 16, -134)
         c.none:SetText("no professions yet")
         C.cards[i] = c
     end
     local charFoot = Style.Text(chars, 11, "muted")
+
+    -- The column at the right: RAIDS over COOLDOWNS, from the cards' top to
+    -- their last row's foot. Each is a card with a heading, a note at its
+    -- right and a rule, then blocks of lines: a raid or a cooldown, and who.
+    local R = { X = C.ACROSS * (C.W + C.GAP), PAD = 16, HEAD = 38, LINE = 22, BLOCK = 10, NAME = 84, PIP = 8, PIPS = 10 }
+    R.BOTTOM = C.TOP + C.rows * (C.H + C.GAP) - C.GAP
+    local function Column(heading)
+        local k = CreateFrame("Frame", nil, chars)
+        k:SetWidth(C.W)
+        Style.Box(k, 6, "well", "cardLine")
+        k.title = Style.Text(k, 12, "gold", nil, true)
+        k.title:SetPoint("TOPLEFT", R.PAD, -12)
+        k.title:SetText(heading:upper())
+        k.note = Style.Text(k, 12, "muted", nil, true)
+        k.note:SetPoint("TOPRIGHT", -R.PAD, -12)
+        k.note:SetJustifyH("RIGHT")
+        local rule = k:CreateTexture(nil, "ARTWORK")
+        rule:SetColorTexture(Style.Color("line"))
+        rule:SetPoint("TOPLEFT", R.PAD, -R.HEAD)
+        rule:SetPoint("TOPRIGHT", -R.PAD, -R.HEAD)
+        rule:SetHeight(1)
+        k.lines = {}
+        return k
+    end
+    -- A line of a column's card, made the first time it's needed and kept:
+    -- a block's title and its note at the right, or a name at the left with
+    -- the free names after it, pips, the words at the right and a tick before
+    -- them, or a muted note of a few lines.
+    local function Line(k, i)
+        local l = k.lines[i]
+        if l then return l end
+        l = { title = Style.Text(k, 14, "text", nil, true), small = Style.Text(k, 12, "muted"), left = Style.Text(k, 13, "text"),
+              names = Style.Text(k, 13, "text"), right = Style.Text(k, 13, "text"), note = Style.Text(k, 12, "muted"), pips = {} }
+        for _, fs in ipairs({ l.title, l.left, l.names }) do
+            fs:SetJustifyH("LEFT")
+            fs:SetWordWrap(false)
+        end
+        for _, fs in ipairs({ l.small, l.right }) do
+            fs:SetJustifyH("RIGHT")
+            fs:SetWordWrap(false)
+        end
+        l.note:SetJustifyH("LEFT")
+        l.note:SetWidth(C.W - 2 * R.PAD)
+        l.tick = k:CreateTexture(nil, "OVERLAY")
+        l.tick:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+        l.tick:SetSize(16, 16)
+        l.tick:SetDesaturated(true)
+        l.tick:SetVertexColor(Style.Color("green"))
+        l.tick:SetPoint("RIGHT", l.right, "LEFT", 0, 0)
+        for p = 1, R.PIPS do
+            local t = k:CreateTexture(nil, "ARTWORK")
+            t:SetSize(6, 10)
+            l.pips[p] = t
+        end
+        k.lines[i] = l
+        return l
+    end
+    local function HideLine(l)
+        for _, r in ipairs({ l.title, l.small, l.left, l.names, l.right, l.note, l.tick }) do r:Hide() end
+        for _, t in ipairs(l.pips) do t:Hide() end
+    end
+    local raidsCard, cdsCard = Column("Raids"), Column("Cooldowns")
+    cdsCard.foot = Style.Text(cdsCard, 12, "muted")
+    cdsCard.foot:SetPoint("BOTTOMLEFT", R.PAD, 12)
+    cdsCard.foot:SetWidth(C.W - 2 * R.PAD)
+    cdsCard.foot:SetJustifyH("LEFT")
+    cdsCard.foot:SetText("Each is as its character last saw it, counting down since.")
+    local FOOT_H = 34       -- the cooldowns card's foot line, and the room above it
+
+    -- A muted note of a few lines, as tall as its words.
+    local function NoteHeight(text)
+        local per = math.floor((C.W - 2 * R.PAD) / 6.2)
+        return math.max(1, math.ceil(#text / per)) * 16
+    end
+    -- Names in their class's colour, as many as fit `room`, then "and N more".
+    local function Names(fs, list, room)
+        local shown = #list
+        while true do
+            local words = {}
+            for i = 1, shown do words[i] = ClassColor(list[i].classFile) .. (list[i].name or "?") .. "|r" end
+            local text = table.concat(words, "|cff9a9688, |r")
+            if shown < #list then text = text .. ("|cff9a9688 and %d more|r"):format(#list - shown) end
+            fs:SetText(text)
+            local plain = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+            if shown <= 1 or Style.Wide(fs, #plain * 6.5) <= room then return end
+            shown = shown - 1
+        end
+    end
+
+    -- Lays out a column card's blocks from the top; a block that doesn't fit
+    -- in `height` and the ones after it become "And N more." Returns the
+    -- height the blocks wanted, all of them.
+    local function Fill(k, blocks, notes, height, reserve)
+        local y, n, wanted, stopped = R.HEAD + 4, 0, R.HEAD + 4, nil
+        for _, b in ipairs(blocks) do wanted = wanted + R.BLOCK + #b * R.LINE end
+        for _, text in ipairs(notes) do wanted = wanted + R.BLOCK + NoteHeight(text) end
+        wanted = wanted + 12 + reserve
+        if not height then return wanted end
+        local room = height - 12 - reserve
+        -- The widest name on a "who" line sets where the pips start.
+        local nameW = R.NAME
+        for _, b in ipairs(blocks) do
+            for _, row in ipairs(b) do
+                if row.who then
+                    local w = #(row.who.name or "") * 7.5 + 12
+                    if w > nameW then nameW = math.min(130, w) end
+                end
+            end
+        end
+        -- What's left from each block on: when all of it fits, it all goes
+        -- in; when not, a block goes in only with room after it for "And N more".
+        local rest, after = {}, 0
+        for _, text in ipairs(notes) do after = after + R.BLOCK + NoteHeight(text) end
+        for bi = #blocks, 1, -1 do
+            after = after + R.BLOCK + #blocks[bi] * R.LINE
+            rest[bi] = after
+        end
+        for bi, b in ipairs(blocks) do
+            local fitsAll = y + rest[bi] <= room
+            if not fitsAll and bi > 1 and y + R.BLOCK + #b * R.LINE + R.BLOCK + 18 > room then
+                stopped = #blocks - bi + 1
+                break
+            end
+            y = y + R.BLOCK
+            for _, row in ipairs(b) do
+                n = n + 1
+                local l = Line(k, n)
+                HideLine(l)
+                local mid = -(y + R.LINE / 2)
+                l.left:ClearAllPoints()
+                l.left:SetPoint("LEFT", k, "TOPLEFT", R.PAD, mid)
+                l.right:ClearAllPoints()
+                l.right:SetPoint("RIGHT", k, "TOPRIGHT", -R.PAD, mid)
+                if row.title then
+                    l.title:ClearAllPoints()
+                    l.title:SetPoint("LEFT", k, "TOPLEFT", R.PAD, mid)
+                    l.title:SetWidth(C.W - 2 * R.PAD - (row.note and 136 or 0))
+                    l.title:SetText(row.title)
+                    l.title:Show()
+                    l.small:ClearAllPoints()
+                    l.small:SetPoint("RIGHT", k, "TOPRIGHT", -R.PAD, mid)
+                    l.small:SetText(row.note or "")
+                    l.small:SetShown(row.note ~= nil)
+                elseif row.free then
+                    l.left:SetText("free")
+                    l.left:SetTextColor(Style.Color("muted"))
+                    l.left:SetWidth(nameW - 8)
+                    l.names:ClearAllPoints()
+                    l.names:SetPoint("LEFT", k, "TOPLEFT", R.PAD + nameW, mid)
+                    l.names:SetWidth(C.W - 2 * R.PAD - nameW)
+                    Names(l.names, row.free, C.W - 2 * R.PAD - nameW)
+                    l.names:Show()
+                    l.left:Show()
+                else
+                    l.left:SetText(ClassColor(row.who.classFile) .. (row.who.name or "?") .. "|r")
+                    l.left:SetTextColor(Style.Color("text"))
+                    l.left:SetWidth(nameW - 8)
+                    l.right:SetText(row.right or "")
+                    l.right:SetTextColor(Style.Color(row.ready and "green" or "text"))
+                    l.tick:SetShown(row.ready == true)
+                    if row.of then
+                        local of = math.min(R.PIPS, row.of)
+                        for p, t in ipairs(l.pips) do
+                            t:ClearAllPoints()
+                            t:SetPoint("LEFT", k, "TOPLEFT", R.PAD + nameW + (p - 1) * R.PIP, mid)
+                            t:SetColorTexture(Style.Color(p <= row.done and "gold" or "lineStrong"))
+                            t:SetShown(p <= of)
+                        end
+                    end
+                    l.left:Show()
+                    l.right:Show()
+                end
+                y = y + R.LINE
+            end
+        end
+        local lines = {}
+        if stopped then lines[#lines + 1] = ("And %d more."):format(stopped) end
+        for _, text in ipairs(notes) do lines[#lines + 1] = text end
+        for _, text in ipairs(lines) do
+            local h = NoteHeight(text)
+            if y + R.BLOCK + h > room then break end
+            y = y + R.BLOCK
+            n = n + 1
+            local l = Line(k, n)
+            HideLine(l)
+            l.note:ClearAllPoints()
+            l.note:SetPoint("TOPLEFT", k, "TOPLEFT", R.PAD, -(y + 2))
+            l.note:SetText(text)
+            l.note:Show()
+            y = y + h
+        end
+        for i = n + 1, #k.lines do HideLine(k.lines[i]) end
+        return wanted
+    end
+
+    -- "Molten Core or Zul'Gurub", "A, B or C".
+    local function Either(list)
+        if #list <= 1 then return list[1] or "" end
+        return table.concat(list, ", ", 1, #list - 1) .. " or " .. list[#list]
+    end
+
+    local function PaintColumn(list)
+        local L = ns.Lockouts
+        local now = Compat.ServerTime()
+        local raids, nobody, sixties = L.Raids(list, now)
+        local blocks, notes = {}, {}
+        for _, r in ipairs(raids) do
+            local b = { { title = r.name, note = ("resets %s · %s"):format(date("%a", r.ends), L.Left(r.ends - now)) } }
+            for _, s in ipairs(r.saved) do
+                b[#b + 1] = { who = s.c, done = s.done, of = s.of, right = ("%d |cff9a9688/ %d|r"):format(s.done, s.of) }
+            end
+            if #r.free > 0 then b[#b + 1] = { free = r.free } end
+            blocks[#blocks + 1] = b
+        end
+        if #raids == 0 then
+            notes[1] = "No one is saved to a raid. Once a character of yours is, the raid shows here with when it resets."
+        elseif #nobody > 0 then
+            notes[1] = ("No one is saved to %s."):format(Either(nobody))
+        end
+        raidsCard.note:SetText(sixties > 0 and ("your %d at 60"):format(sixties) or "")
+        local total = R.BOTTOM - C.TOP
+        -- Raids take what they need, between a few lines and three fifths.
+        local raidsWant = Fill(raidsCard, blocks, notes, nil, 0)
+        local raidsH = math.floor(math.max(110, math.min(total * 0.6, raidsWant)))
+        raidsCard:SetHeight(raidsH)
+        raidsCard:ClearAllPoints()
+        raidsCard:SetPoint("TOPLEFT", R.X, -C.TOP)
+        Fill(raidsCard, blocks, notes, raidsH, 0)
+
+        local cds, ready = L.Cooldowns(list, now)
+        blocks, notes = {}, {}
+        for _, cd in ipairs(cds) do
+            local b = { { title = cd.name } }
+            for _, row in ipairs(cd.rows) do
+                b[#b + 1] = { who = row.c, ready = row.left == 0,
+                              right = row.left == 0 and "ready" or (L.Left(row.left) .. " |cff9a9688left|r") }
+            end
+            blocks[#blocks + 1] = b
+        end
+        if #cds == 0 then
+            local names = {}
+            for _, cd in ipairs(ns.CooldownData or {}) do names[#names + 1] = cd.name end
+            notes[1] = "None of your characters has a long cooldown yet: " .. Either(names):gsub(" or ", " and ")
+                .. " show here once one does."
+        end
+        cdsCard.note:SetText(ready > 0 and ("%d ready"):format(ready) or "")
+        cdsCard.note:SetTextColor(Style.Color("gold"))
+        cdsCard.foot:SetShown(#cds > 0)
+        local cdsH = total - raidsH - C.GAP
+        cdsCard:SetHeight(cdsH)
+        cdsCard:ClearAllPoints()
+        cdsCard:SetPoint("TOPLEFT", R.X, -(C.TOP + raidsH + C.GAP))
+        Fill(cdsCard, blocks, notes, cdsH, #cds > 0 and FOOT_H or 0)
+    end
 
     local function PaintCharacters()
         J.SaveCharacter()
@@ -1274,9 +1528,24 @@ Window.Page("journal", function(page)
                 local money = c.money or 0
                 card.gold:SetText(money > 0 and Compat.Money(money) or "no gold")
                 card.gold:SetTextColor(Style.Color(money > 0 and "text" or "muted"))
-                -- Rested: a bar, and how much of a level it is. Nothing at
-                -- 60, where there's no level left to rest for.
+                -- Rested: a bar, and how much of a level it is. No line at
+                -- 60, where there's no level left to rest for, and the
+                -- professions move up into its place.
                 local rested = J.RestedNow(c)
+                local at60 = (c.level or 0) >= 60
+                card.restLabel:SetShown(not at60)
+                card.rest:SetShown(not at60)
+                local up = at60 and 25 or 0
+                card.none:ClearAllPoints()
+                card.none:SetPoint("TOPLEFT", 16, -134 + up)
+                for _, p in ipairs(card.profs) do
+                    p.name:ClearAllPoints()
+                    p.name:SetPoint("TOPLEFT", 16, p.y + up)
+                    p.skill:ClearAllPoints()
+                    p.skill:SetPoint("TOPRIGHT", -16, p.y + up)
+                    p.track:ClearAllPoints()
+                    p.track:SetPoint("TOPLEFT", 136, p.y + up - 5)
+                end
                 card.track:SetShown(rested ~= nil)
                 card.rest:ClearAllPoints()
                 if rested then
@@ -1302,8 +1571,11 @@ Window.Page("journal", function(page)
                 end
             end
         end
+        raidsCard:SetShown(ns.Lockouts ~= nil)
+        cdsCard:SetShown(ns.Lockouts ~= nil)
+        if ns.Lockouts then PaintColumn(list) end
         local shown = math.min(#list, #C.cards)
-        local lines = math.ceil(shown / 3)
+        local lines = math.ceil(shown / C.ACROSS)
         charFoot:ClearAllPoints()
         charFoot:SetPoint("TOPLEFT", 0, -(C.TOP + lines * (C.H + C.GAP) - C.GAP + 14))
         charFoot:SetText((#list > #C.cards and ("And %d more. "):format(#list - #C.cards) or "")
