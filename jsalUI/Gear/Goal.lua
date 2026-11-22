@@ -36,7 +36,7 @@ local function Guide()
     return by
 end
 
--- Every boss in the guide that drops an item: { boss, name (the dungeon's), dungeon, chance, raid }.
+-- Every boss in the guide that drops an item: { boss, name (the dungeon's), dungeon, chance, raid, encounter }.
 local drops
 local function Drops()
     if drops and drops.loot == ns.DungeonLoot and drops.data == ns.DungeonData then return drops.by end
@@ -47,7 +47,8 @@ local function Drops()
             for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
                 local list = by[drop[1]] or {}
                 by[drop[1]] = list
-                list[#list + 1] = { boss = b[3] or b[2], name = d.name, dungeon = d, chance = drop[2], raid = d.raid and true or false }
+                list[#list + 1] = { boss = b[3] or b[2], name = d.name, dungeon = d, chance = drop[2], raid = d.raid and true or false,
+                                    encounter = b[1] }
             end
         end
     end

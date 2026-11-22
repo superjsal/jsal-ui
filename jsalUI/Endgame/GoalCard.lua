@@ -17,13 +17,13 @@ end
 -- Where a piece goes on a click, worked out only then: a dungeon's piece to the Dungeon guide at its boss; a
 -- crafted one to Guild crafts, as the Gear plan's "Order from your guild"; a quest's to the guide's Quests tab
 -- when the quest's place is a dungeon with quests in the guide; else the Gear plan's At 60 on its slot (a
--- vendor's too: where a vendor of gear stands isn't in jsal.ui's data). Returns the kind, then the dungeon and
--- the boss.
+-- vendor's too: where a vendor of gear stands isn't in jsal.ui's data). Returns the kind, then the dungeon, the
+-- boss's name and its encounter (known when the drop is in the guide's own loot lists).
 local function Target(p)
     local from = p.from or {}
     if from.kind == "run" then
         local run = from.runs and from.runs[1]
-        if run and run.dungeon then return "guide", run.dungeon, run.boss end
+        if run and run.dungeon then return "guide", run.dungeon, run.boss, run.encounter end
     elseif from.kind == "crafted" then
         return "crafts"
     elseif from.kind == "quest" then
@@ -38,13 +38,27 @@ local GOES = { guide = "Click for the Dungeon guide", quests = "Click for its qu
                crafts = "Click for Guild crafts", gear = "Click for the Gear plan" }
 
 local function Go(p)
-    local kind, d, boss = Target(p)
+    local kind, d, boss, encounter = Target(p)
     if (kind == "guide" or kind == "quests") and ns.Dungeons then
         ns.Dungeons.want = d
         if kind == "quests" then ns.Dungeons.wantTab = "quests" end
-        for k, b in ipairs(boss and d.bosses or {}) do
-            if b[2] == boss or b[3] == boss then ns.Dungeons.wantBoss = k end
+        -- The boss by its encounter, else by either of its names (an encounter's and the boss's own can differ),
+        -- else by a name that begins the other (Wowhead's "Kirtonos the Herald" is the guide's "Kirtonos"); and
+        -- the piece, to be lit on its card.
+        local function Named(b, whole)
+            for i = 2, 3 do
+                local n = b[i]
+                if n and (n == boss or (not whole and #n >= 5 and #boss >= 5
+                    and (boss:sub(1, #n) == n or n:sub(1, #boss) == boss))) then return true end
+            end
         end
+        local found
+        for _, whole in ipairs({ true, false }) do
+            for k, b in ipairs((boss or encounter) and d.bosses or {}) do
+                if not found and ((encounter and b[1] == encounter) or (boss and Named(b, whole))) then found = k end
+            end
+        end
+        if found then ns.Dungeons.wantBoss, ns.Dungeons.wantItem = found, p.id end
         Window.Open("dungeons")
     elseif kind == "crafts" then
         Window.Open("guildcrafts")

@@ -664,13 +664,14 @@ Window.Page("dungeons", function(page)
         local listH = math.max(LIST_MIN, math.min(room, need))
         bossScroll:SetHeight(listH)
         local window = page.contentHeight and page:GetParent()
-        if type(window) ~= "table" or not window.SetHeight then return end
+        if type(window) ~= "table" or not window.SetHeight then return listH end
         local left, top = window:GetLeft(), window:GetTop()
         window:SetHeight(OWN_H - (room - listH))
         if left and top then
             window:ClearAllPoints()
             window:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
         end
+        return listH
     end
 
     -- A boss's card, half the list wide: its number in the order you meet
@@ -684,7 +685,7 @@ Window.Page("dungeons", function(page)
     B.sum:SetPoint("TOPLEFT", 0, -2)
     -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
     local mapPane = ns.DungeonMap and ns.DungeonMap.Build(right, rightW, function(k)
-        tab, B.jump = "bosses", k
+        tab, B.jump, B.jumpItem = "bosses", k, nil
         Paint()
     end)
     if mapPane then
@@ -697,8 +698,43 @@ Window.Page("dungeons", function(page)
     function B.Scroll(d, tab)
         local top = B.shown ~= d or B.tab ~= tab
         B.shown, B.tab = d, tab
+        if top then B.Let() end
         bossScroll:SetVerticalScroll(top and 0 or math.min(bossScroll:GetVerticalScroll(), bossScroll:GetVerticalScrollRange()))
     end
+    -- A boss asked for (a sign on the map, a piece on Endgame's goal card) is `B.aim`: its card is brought to
+    -- the top of the view, as near as the list's end allows, and held there until you scroll or pick another
+    -- dungeon or tab. Held, because the page settles after it is drawn: its items arrive and the cards grow,
+    -- and the game works out how far the list can scroll only once it has laid the list out, after the window
+    -- is shown, so a scroll set while painting is cut to the range the list had before. Each paint aims again,
+    -- in the range the page has just set; when the game's own range comes, the aim is set once more in it.
+    -- `B.mark` is a piece of that boss's lit as under the pointer, until the pointer leaves it.
+    function B.Aim(range)
+        local card = B.aim and bossRows[B.aim]
+        if not (card and card.at) then return end
+        bossScroll:SetVerticalScroll(math.max(0, math.min(card.at, range or 0)))
+    end
+    function B.Light()
+        if B.lit then B.lit:Hide() end
+        B.lit = nil
+        local card = B.mark and B.aim and bossRows[B.aim]
+        for _, it in ipairs(card and card.items or {}) do
+            if it.item == B.mark and it.glow and it:IsShown() then
+                it.glow:Show()
+                B.lit = it.glow
+                return
+            end
+        end
+    end
+    function B.Let()
+        if B.lit then B.lit:Hide() end
+        B.aim, B.mark, B.lit = nil, nil, nil
+    end
+    bossScroll:HookScript("OnScrollRangeChanged", function(self)
+        if not (B.aim and tab == "bosses") then return end
+        B.Aim(self:GetVerticalScrollRange() or 0)
+        self:Place()
+    end)
+    bossScroll:HookScript("OnMouseWheel", function() B.Let() end)
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
@@ -1056,7 +1092,11 @@ Window.Page("dungeons", function(page)
         it:EnableMouse(true)
         it:SetScript("OnEnter", DropTip)
         it:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        Style.Hover(it)
+        it.glow = Style.Hover(it)
+        -- The piece asked for stays lit until the pointer has been on it and left.
+        it:HookScript("OnLeave", function(self)
+            if B.lit and B.lit == self.glow then B.mark, B.lit = nil, nil end
+        end)
         card.items[i] = it
         return it
     end
@@ -1739,7 +1779,7 @@ Window.Page("dungeons", function(page)
         -- the one shown, on the tab asked for and with the boss asked for brought to the top, as from the map.
         if D.want then chosen, D.want = D.want, nil end
         if D.wantTab then tab, D.wantTab = D.wantTab, nil end
-        if D.wantBoss then B.jump, D.wantBoss = D.wantBoss, nil end
+        if D.wantBoss then B.jump, B.jumpItem, D.wantBoss, D.wantItem = D.wantBoss, D.wantItem, nil, nil end
         if not chosen then
             for _, d in ipairs(shown) do
                 if Fits(d, level) then chosen = d break end
@@ -1985,16 +2025,21 @@ Window.Page("dungeons", function(page)
         for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
         by = math.max(1, by - ROW_GAP)
         bossList:SetHeight(by)
-        Fit(by)
+        local listH = Fit(by)
         B.Scroll(d, tab)
         wait.drawn, wait.lacking = d, missed
         for why, ms in pairs(ns.Gear and ns.Gear.made or {}) do
             spent["bosses: of which, gear plans " .. (MADE[why] or why)] = ms
         end
-        -- Come from the map: the boss clicked there is brought to the top.
-        local to = B.jump and bossRows[B.jump]
-        B.jump = nil
-        if to and to.at then bossScroll:SetVerticalScroll(math.min(to.at, bossScroll:GetVerticalScrollRange())) end
+        -- A boss asked for is brought to the top (B.Aim), its piece lit, and both held while the page settles.
+        if B.jump then
+            B.Let()
+            B.aim, B.mark, B.jump, B.jumpItem = B.jump, B.jumpItem, nil, nil
+        end
+        if B.aim then
+            B.Aim(math.max(0, by - listH))
+            B.Light()
+        end
         NoteParts(started)
     end
 
