@@ -3,7 +3,8 @@
 -- tables give each path's length (FlightData.lua). A flight's time is the
 -- length of its legs over the flight speed, plus any stops along the way;
 -- at a flight point passed through, less the approach and climb not flown.
--- A route flown before is timed by how long it took then.
+-- A route flown before is timed by how long it took then. The flight map's
+-- tooltip says the same time for a place before you take off.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
@@ -81,13 +82,16 @@ local function Tenths(part, key)
 end
 
 -- A kept route's flying seconds at normal speed, this account's own or else a
--- guildmate's, while it's still close to what its legs work out at.
+-- guildmate's, while it's still close to what its legs work out at, and whose
+-- it is ("own" or "heard").
 local function Kept(key, yards)
-    local tenths = key and yards and (Tenths("own", key) or Tenths("heard", key))
+    if not (key and yards) then return nil end
+    local whose, tenths = "own", Tenths("own", key)
+    if not tenths then whose, tenths = "heard", Tenths("heard", key) end
     if not tenths then return nil end
     local seconds, worked = tenths / 10, yards / Speed()
     if math.abs(seconds - worked) / worked > NEAR then return nil end
-    return seconds
+    return seconds, whose
 end
 
 -- Whether a flight came down by its own flight point. A spot the game can't
@@ -431,19 +435,49 @@ function Flight.Land()
     end
 end
 
+-- A flight from here to a slot on the flight master's map: its route, its
+-- legs' yards and stops, the flight-speed bonus, the route's key and where it
+-- comes down. Nil for a slot that isn't on the map.
+local function Plan(slot)
+    local nodes, here, map = Compat.TaxiNodes()
+    local to = nodes[slot]
+    if not to then return nil end
+    local hops = Compat.TaxiHops(slot)
+    local yards, stops = Legs(nodes, hops)
+    return {
+        via = Via(nodes, hops),
+        from = nodes[here] and nodes[here].name,
+        to = to.name,
+        yards = yards,
+        stops = stops or 0,
+        legs = #hops,
+        bonus = Compat.FlightSpeedBonus(),
+        key = RouteKey(nodes, hops),
+        dest = map and to.x and to.y and { map, to.x, to.y } or nil,
+    }
+end
+
+-- How long a plan's flight takes in all, in seconds, and whose flight that
+-- comes from ("own", "heard", or nil when it's worked out from the legs); nil
+-- when a leg isn't in the game's tables. The one way a flight is timed: the
+-- bar at take-off and the flight map's tooltip both ask here. A route flown
+-- before goes at the speed that took the time kept for it, so the points
+-- passed keep their share of it.
+local function Price(plan)
+    if not plan.yards then return nil end
+    local kept, whose = Kept(plan.key, plan.yards)
+    plan.speed = kept and plan.yards / kept or nil
+    plan.expected = plan.yards / ((plan.speed or Speed()) * plan.bonus) + plan.stops
+    return plan.expected, kept and whose or nil
+end
+
 local pending
 
 local function Start(plan)
     pending = nil
     current = plan
     current.start = Compat.Now()
-    if plan.yards then
-        -- A route flown before goes at the speed that took the time kept for it,
-        -- so the points passed keep their share of it.
-        local kept = Kept(plan.key, plan.yards)
-        plan.speed = kept and plan.yards / kept or nil
-        current.expected = plan.yards / ((plan.speed or Speed()) * plan.bonus) + plan.stops
-    end
+    Price(plan)
     -- Saved per character, so a /reload mid-flight picks the bar back up.
     ns.char.flight = current
     Show()
@@ -465,23 +499,36 @@ end
 
 local function OnTakeTaxi(slot)
     if not Flight.running then return end
-    local nodes, here, map = Compat.TaxiNodes()
-    local to = nodes[slot]
-    if not to then return end
-    local hops = Compat.TaxiHops(slot)
-    local yards, stops = Legs(nodes, hops)
-    pending = {
-        via = Via(nodes, hops),
-        from = nodes[here] and nodes[here].name,
-        to = to.name,
-        yards = yards,
-        stops = stops or 0,
-        legs = #hops,
-        bonus = Compat.FlightSpeedBonus(),
-        key = RouteKey(nodes, hops),
-        dest = map and to.x and to.y and { map, to.x, to.y } or nil,
-    }
+    local plan = Plan(slot)
+    if not plan then return end
+    pending = plan
     WaitForTakeoff(pending, 1)
+end
+
+-- Pointing at a place on the flight map you can fly to: the game's tooltip
+-- (its name and the fare) gets jsal.ui's section under it, with the time the
+-- bar would say the flight takes in all if you took it now. Nothing on where
+-- you stand, a place you can't reach from here, or a route with a leg the
+-- tables don't have. The game builds the tooltip afresh each time the pointer
+-- comes onto a place, so the lines go on once a showing; a second call on a
+-- tooltip that already has them leaves it be.
+local FLOWN = { own = " · as you flew it", heard = " · as a guildmate flew it" }
+local tipped = {}   -- the place last added to, and the tooltip's lines after
+local function OnNodeEnter(button)
+    if not (Flight.running and button and button.GetID and GameTooltip:IsOwned(button)) then return end
+    if tipped[1] == button and tipped[2] == GameTooltip:NumLines() then return end
+    local slot = button:GetID()
+    if TaxiNodeGetType(slot) ~= "REACHABLE" then return end
+    local plan = Plan(slot)
+    if not plan then return end
+    local inAll, whose = Price(plan)
+    if not inAll then return end
+    local mr, mg, mb = Style.Color("muted")
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(Style.MARK .. " jsal.ui", mr, mg, mb)
+    GameTooltip:AddLine("Flight time " .. Clock(inAll) .. (FLOWN[whose] or ""), 1, 1, 1)
+    GameTooltip:Show()
+    tipped[1], tipped[2] = button, GameTooltip:NumLines()
 end
 
 -- The route this account flew last and its time, as "A43.6.2.19=6594", for
@@ -540,6 +587,9 @@ function Flight:OnEnable()
     if not hooked then
         hooked = true
         hooksecurefunc("TakeTaxiNode", ns.Safe(self, OnTakeTaxi))
+        -- The flight map's places are the game's taxi buttons, whose tooltip is
+        -- filled by this function on the pointer coming onto one.
+        hooksecurefunc("TaxiNodeOnButtonEnter", ns.Safe(self, OnNodeEnter))
         -- An early landing cuts the flight short, so it doesn't count
         -- toward the speed, and the bar counts down to the flight point
         -- it lands at instead. Asked for from any addon's button or the
