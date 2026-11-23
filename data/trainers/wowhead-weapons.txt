@@ -1,4 +1,8 @@
 # Weapon skills a weapon master teaches by Wowhead Forever's word where no player was seen buying them
-# there yet: each NPC page's "Teaches" tab, read 2026-11-23. npc|name|weapon skill spell IDs, joined to what
-# EG Link and the saved visits saw by tools/build_trainers.py.
+# there yet, read 2026-11-23: each NPC page's "Teaches" tab, and its guide to weapon trainers
+# (wowhead.com/forever/guide/classes/weapon-trainer-skill-locations), whose table of which master trains
+# each skill agrees with what players saw everywhere but Sayoc's Staves. npc|name|weapon skill spell IDs,
+# joined to what EG Link and the saved visits saw by tools/build_trainers.py: a weapon master lists only
+# what the class in front of it can still learn, so what players saw is the least it teaches.
 11870|Archibald|200,201,202,1180,5011
+11868|Sayoc|227

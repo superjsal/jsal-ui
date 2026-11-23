@@ -70,7 +70,7 @@ jsal.ui is a fan-made addon, not made or endorsed by Blizzard.
 Item lists, drop chances, quest links, recipe sources, trainer spots and the suggested leveling builds were read
 from [Wowhead](https://www.wowhead.com/forever) Forever's pages and leveling guides (`data/**/wowhead*.json`,
 `data/dungeons/quest-*.json`, `data/dungeons/class-quests.json`, `data/talents/suggested.json`,
-`data/trainers.txt`); hunter pet abilities from [Petopia](https://www.wow-petopia.com/forever/)
+`data/trainers.txt`, `data/trainers/wowhead-*.txt`); hunter pet abilities from [Petopia](https://www.wow-petopia.com/forever/)
 (`data/pets/petopia.json`, built into `jsalUI/Training/TameData.lua`). These are facts about the game as those
 sites record them. They are **not jsal's to license**, and jsal.ui's licence does not cover them.
 

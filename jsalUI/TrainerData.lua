@@ -437,7 +437,7 @@ ns.TrainerData = {
         { npc = 278680, name = "Gabbi Goodwhistle", tag = "Weapon Master", map = 1411, x = 0.428, y = 0.6815, a = false, h = true, teaches = { 201, 227, 1180 } },
         { npc = 2704, name = "Hanashi", tag = "Weapon Master", map = 1454, x = 0.8135, y = 0.1953, a = false, h = true, teaches = { 196, 197, 227, 264, 2567 } },
         { npc = 11866, name = "Ilyenia Moonfire", tag = "Weapon Master", map = 1457, x = 0.578, y = 0.465, a = true, h = false, teaches = { 227, 264, 1180, 2567, 15590 } },
-        { npc = 11868, name = "Sayoc", tag = "Weapon Master", map = 1454, x = 0.8153, y = 0.1955, a = false, h = true, teaches = { 196, 197, 264, 1180, 2567, 15590 } },
+        { npc = 11868, name = "Sayoc", tag = "Weapon Master", map = 1454, x = 0.8153, y = 0.1955, a = false, h = true, teaches = { 196, 197, 227, 264, 1180, 2567, 15590 } },
         { npc = 11867, name = "Woo Ping", tag = "Weapon Master", map = 1453, x = 0.6391, y = 0.6895, a = true, h = false, teaches = { 200, 201, 202, 227, 1180, 5011 } },
     },
 }

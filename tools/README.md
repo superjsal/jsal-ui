@@ -66,6 +66,10 @@ trainer players opened on Forever, in
 reduced here to each trainer's name, spots, services, levels and costs (`data\trainers\eglink-trainers.json`,
 kept by `tools\refresh_eglink.py`). `tools\build_spells.py` and `tools\build_trainers.py` read it; the second
 also writes `data\trainers\ranks-seen.txt`, the highest profession rank each trainer was seen to sell.
+The class trainers players opened outside the capitals come from it too. Two small files from Wowhead
+Forever fill what players haven't shown: `data\trainers\wowhead-sides.txt`, who a trainer on a map with no
+side trains (each NPC page's React line), and `data\trainers\wowhead-weapons.txt`, weapon skills a master
+teaches that nobody was seen buying there (its NPC pages and its guide to weapon trainers).
 
 ## Raid night consumables
 
