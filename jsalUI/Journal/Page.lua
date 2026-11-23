@@ -404,8 +404,8 @@ Window.Page("journal", function(page)
             end
             if r.icon then
                 r.icon:SetShown(e ~= nil)
-                -- A move's picture, by its name: the game knows the ones you know.
-                if e then r.icon:SetTexture(select(2, Compat.SpellInfo(e.key)) or (M.ICONS .. "INV_Misc_QuestionMark")) end
+                -- A move's picture, by the spell ID kept with its count.
+                if e then r.icon:SetTexture(J.SpellIcon(e.key) or (M.ICONS .. "INV_Misc_QuestionMark")) end
             end
         end
     end
@@ -452,7 +452,7 @@ Window.Page("journal", function(page)
         local killer = J.Top(book.killers, 1)[1]
         M.Card(1, "FAVOURITE MOVE", spells[1] and spells[1].key or "None yet",
             spells[1] and Counted(spells[1].n, "time") or "shows once you've cast a few",
-            spells[1] and select(2, Compat.SpellInfo(spells[1].key)) or nil)
+            spells[1] and J.SpellIcon(spells[1].key) or nil)
         M.Card(2, "HOME GROUND", zones[1] and zones[1].key or "Nowhere yet", zones[1] and (Hours(zones[1].n) .. " there") or "",
             M.ICONS .. "INV_Misc_Map_01")
         -- What you were fighting when you died, most often. Deaths from

@@ -37,6 +37,8 @@ local function Book()
     end
     j.stats = type(j.stats) == "table" and j.stats or {}
     j.spells = type(j.spells) == "table" and j.spells or {}
+    -- Each counted move's spell ID, by the name it's counted under, for its picture.
+    j.spellIDs = type(j.spellIDs) == "table" and j.spellIDs or {}
     j.zones = type(j.zones) == "table" and j.zones or {}
     j.killers = type(j.killers) == "table" and j.killers or {}
     j.money = type(j.money) == "table" and j.money or {}
@@ -115,6 +117,17 @@ function Journal.Note(kind, text, extra)
     while #events > MAX_EVENTS do table.remove(events, 1) end
     if ns.Window then ns.Window.Refresh() end
     return e
+end
+
+-- A counted move's picture: by the spell ID kept as it was counted, which
+-- the game answers whether or not the character knows the spell now; a move
+-- counted before IDs were kept is asked by its name, which the game answers
+-- only for a spell the character knows.
+function Journal.SpellIcon(name)
+    local id = Book().spellIDs[name]
+    local icon = id and select(2, Compat.SpellInfo(id))
+    if not icon and name then icon = select(2, Compat.SpellInfo(name)) end
+    return icon
 end
 
 -- Once per key, ever, for this character.
@@ -542,6 +555,7 @@ function Journal:OnEnable()
                 if name then
                     local spells = Book().spells
                     spells[name] = (spells[name] or 0) + 1
+                    Book().spellIDs[name] = c
                 end
             end
         elseif event == "PLAYER_TARGET_CHANGED" then
