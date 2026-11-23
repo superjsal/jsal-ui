@@ -92,7 +92,7 @@ function Professions.Remembered(line)
 end
 
 -- Your professions, from the game's own list: each one's skill line, name,
--- icon, skill and cap, for the ones jsal.ui has recipes for. `name` is the
+-- icon, skill and cap, for the ones jsal.ui has recipes for (and `pretend` on one a beta made up). `name` is the
 -- data's English name; `game` is the game's own, in the client's language,
 -- for matching what the game writes (a tooltip's "Requires Engineering (210)").
 -- The game's list has a place for each kind (two main ones, then fishing, cooking and
@@ -101,7 +101,10 @@ end
 -- whatever came after it.
 local function Places(...) return select("#", ...), { ... } end
 
-function Professions.Mine()
+-- `real`: the game's list even while a beta pretends a skill (Pretend.Professions), for what's kept.
+function Professions.Mine(real)
+    local pretend = not real and ns.Pretend and ns.Pretend.Professions and ns.Pretend.Professions()
+    if pretend then return pretend end
     local out = {}
     if not GetProfessions then return out end
     local count, places = Places(GetProfessions())
@@ -558,7 +561,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
     -- to from one point to the next. So two near-equal steps don't trade places from one look to
     -- the next, or across a /reload. One that's grey, no longer known or no longer priced isn't
     -- among what the road may take, and is let go.
-    -- Kept in memory instead while a beta pretends a side (Pretend.Kept).
+    -- Kept in memory instead while a beta pretends a side or a skill (Pretend.Kept).
     local pretendHands = ns.Pretend and ns.Pretend.Kept and ns.Pretend.Kept("roadHand")
     local hands = pretendHands or (type(ns.char) == "table" and type(ns.char.roadHand) == "table" and ns.char.roadHand or nil)
     local hand = hands and type(hands[line]) == "table" and hands[line] or nil

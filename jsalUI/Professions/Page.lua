@@ -162,7 +162,7 @@ Window.Page("professions", function(page)
     -- your skill reaches its end. A new rank starts the list again.
     local MIN_FILL, PASSED_MOST = 12, 40
     local function Passed(line, floor, skill, first)
-        -- Kept in memory instead while a beta pretends a side (Pretend.Kept).
+        -- Kept in memory instead while a beta pretends a side or a skill (Pretend.Kept).
         local all = ns.Pretend and ns.Pretend.Kept and ns.Pretend.Kept("profRoad")
         if not all then
             all = type(ns.char.profRoad) == "table" and ns.char.profRoad or {}
@@ -470,7 +470,9 @@ Window.Page("professions", function(page)
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
         local guildOn = ns.Crafters ~= nil and ns.Crafters.running == true and ns.GuildCrafts ~= nil
-        if not selected or not Professions.Name(selected) then
+        local listed = false
+        for _, p in ipairs(mine) do if p.line == selected then listed = true end end
+        if not selected or not Professions.Name(selected) or not listed then
             selected = mine[1] and mine[1].line or nil
         end
         -- The row of professions, with the guild's crafters last in it.
@@ -524,9 +526,9 @@ Window.Page("professions", function(page)
         sub:SetText(rank.name)
         local ahead = rankAt ~= nil and skill < rankAt
 
-        -- What you know: as last seen in its window, else every trainer
-        -- recipe up to your skill.
-        local seen = Professions.Remembered(line)
+        -- What you know: as last seen in its window, else (and for a skill a beta pretends) every
+        -- trainer recipe up to your skill.
+        local seen = not current.pretend and Professions.Remembered(line)
         local set = seen and seen.known
         if not set then
             set = {}

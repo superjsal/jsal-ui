@@ -437,6 +437,18 @@ end)
 -- /jsal opens the dashboard; a word after it goes to a page or a game.
 local commands = {}
 function ns.Command(word, fn) commands[word] = fn end
+-- A command with the player's own words after it ("pretend skill cooking 190"): fn is given the rest.
+local withWords = {}
+function ns.CommandWithWords(word, fn) withWords[word] = fn end
+local function WithWords(command)
+    for word, fn in pairs(withWords) do
+        if command == word or command:sub(1, #word + 1) == word .. " " then
+            fn(strtrim(command:sub(#word + 1)))
+            return true
+        end
+    end
+    return false
+end
 
 SLASH_JSALUI1 = "/jsal"
 SLASH_JSALUI2 = "/jsalui"
@@ -446,6 +458,8 @@ SlashCmdList.JSALUI = function(message)
         ns.Window.Toggle()
     elseif commands[command] then
         commands[command]()
+    elseif WithWords(command) then
+        return
     elseif command == "version" then
         ns.Print("version " .. ns.version)
     else

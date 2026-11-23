@@ -174,7 +174,7 @@ function Journal.SaveCharacter(leaving)
     local className, classFile = UnitClass("player")
     local profs = {}
     if ns.Professions then
-        for _, p in ipairs(ns.Professions.Mine()) do profs[#profs + 1] = { name = p.name, skill = p.skill, cap = p.cap } end
+        for _, p in ipairs(ns.Professions.Mine(true)) do profs[#profs + 1] = { name = p.name, skill = p.skill, cap = p.cap } end
     end
     local c = Characters()[name] or {}
     c.name, c.class, c.classFile = name, className, classFile
@@ -373,7 +373,7 @@ local function CheckRanks()
     if not ns.Professions then return end
     local j = Book()
     j.caps = type(j.caps) == "table" and j.caps or {}
-    for _, p in ipairs(ns.Professions.Mine()) do
+    for _, p in ipairs(ns.Professions.Mine(true)) do
         local was = j.caps[p.name]
         if was and p.cap > was then
             Journal.Note("prof", ("%s %s"):format(ns.Professions.Rank(p.cap).name, p.name))

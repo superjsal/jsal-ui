@@ -30,7 +30,7 @@ local X_W = 22
 -- The list, per character: crafts by recipe and other items by item.
 ---------------------------------------------------------------------------
 local function List()
-    -- While a beta pretends a side, a copy kept in memory (Pretend.ShoppingList).
+    -- While a beta pretends a side or a skill, a copy kept in memory (Pretend.ShoppingList).
     local s = ns.Pretend and ns.Pretend.ShoppingList and ns.Pretend.ShoppingList()
     if not s then s = ns.char.shopping end
     if type(s) ~= "table" then
@@ -127,9 +127,11 @@ local function KnownMaker(mine, item, gathered)
     for _, p in ipairs(mine) do
         local recipe = (gathered and Professions.MadeBy or Professions.Makes)(p.line, item)
         if recipe then
-            local seen = Professions.Remembered(p.line)
-            if (type(seen) == "table" and type(seen.known) == "table" and seen.known[recipe.spell])
-                or (Compat.KnowsRecipe and Compat.KnowsRecipe(recipe.spell)) then
+            -- A skill a beta pretends knows what its trainers teach up to it, and nothing else.
+            local seen = not p.pretend and Professions.Remembered(p.line)
+            if (p.pretend and recipe.how == 1 and recipe.learn <= p.skill)
+                or (type(seen) == "table" and type(seen.known) == "table" and seen.known[recipe.spell])
+                or (not p.pretend and Compat.KnowsRecipe and Compat.KnowsRecipe(recipe.spell)) then
                 return recipe
             end
         end

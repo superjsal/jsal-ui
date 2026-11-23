@@ -53,7 +53,7 @@ local function Copy()
     local name = Compat.MyName()
     if not name then return end
     local has
-    for _, p in ipairs(Professions.Mine and Professions.Mine() or {}) do
+    for _, p in ipairs(Professions.Mine and Professions.Mine(true) or {}) do
         has = has or {}
         has[p.line] = true
     end

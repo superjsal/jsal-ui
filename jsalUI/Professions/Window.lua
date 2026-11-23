@@ -353,7 +353,7 @@ local function CheckRanks()
     if not Window.On("rank") then return end
     ns.char.rankAlerts = type(ns.char.rankAlerts) == "table" and ns.char.rankAlerts or {}
     local level = UnitLevel("player")
-    for _, p in ipairs(Professions.Mine()) do
+    for _, p in ipairs(Professions.Mine(true)) do
         local rank = Professions.Rank(p.cap)
         local index
         for i, r in ipairs(Professions.RANKS) do if r == rank then index = i end end

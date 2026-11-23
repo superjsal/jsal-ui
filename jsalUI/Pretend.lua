@@ -16,11 +16,19 @@
 -- What is kept or sent asks the game (Compat.Faction(true)): the flight bar's times and what it
 -- shares or hears. The profession road's passed steps and step in hand, and the shopping list, are
 -- kept in memory while it's on. It goes with pretend 60, and /jsal pretend off or a /reload ends both.
+--
+-- /jsal pretend skill <profession> <skill> ("cooking 190", or the skill line's number, "185 190")
+-- makes Professions.Mine give that one profession at that skill, its rank's cap the next above it,
+-- knowing what its trainers teach up to there and nothing else; what's in your bags is your own. The
+-- Professions page, the road and the shopping list draw from it; what's kept (the Journal's
+-- characters and ranks, crafting profit's recipes, rank reminders) asks the game's list, and the
+-- road's steps and the shopping list are kept in memory as for a side. Off as the others are.
 local _, ns = ...
 local Compat = ns.Compat
 
 -- on: pretending to be level 60. faction: the side pretended ("Horde" or "Alliance"), else nil.
-local Pretend = { on = false, faction = nil }
+-- skill: the profession pretended, { line, skill, cap }, else nil.
+local Pretend = { on = false, faction = nil, skill = nil }
 ns.Pretend = Pretend
 
 local LEVEL = 60
@@ -167,14 +175,15 @@ function Pretend.Listable()
     return not Pretend.on
 end
 
--- What's kept in memory while pretending a side: the profession road's passed steps and the step in
--- hand, and the shopping list, so nothing worked out for the other side is saved.
+-- What's kept in memory while pretending a side or a skill: the profession road's passed steps and the
+-- step in hand, and the shopping list, so nothing worked out for what's pretended is saved.
 local kept = {}
+local function Aside() return Pretend.faction ~= nil or Pretend.skill ~= nil end
 
 -- A table kept in memory in place of the saved one of that name (ns.char.profRoad, ns.char.roadHand)
--- while pretending a side; nil otherwise, and the saved one is used.
+-- while pretending a side or a skill; nil otherwise, and the saved one is used.
 function Pretend.Kept(name)
-    if not Pretend.faction then return nil end
+    if not Aside() then return nil end
     kept[name] = kept[name] or {}
     return kept[name]
 end
@@ -186,21 +195,67 @@ local function Copy(t)
     return out
 end
 
--- The shopping list: nil (the saved one is used) unless pretending a side, then a copy of the saved
--- one made the first time it's asked for, changed in memory only.
+-- The shopping list: nil (the saved one is used) unless pretending a side or a skill, then a copy of
+-- the saved one made the first time it's asked for, changed in memory only.
 function Pretend.ShoppingList()
-    if not Pretend.faction then return nil end
+    if not Aside() then return nil end
     if not kept.shopping then
         kept.shopping = Copy(ns.char and type(ns.char.shopping) == "table" and ns.char.shopping or {})
     end
     return kept.shopping
 end
 
--- The title bar's words while pretending, else nil: "pretend 60", "pretend Horde", "pretend 60, Horde".
+-- The skill line a profession's name or number is ("cooking", "first aid", "185"), else nil.
+local function LineOf(word)
+    local data = ns.ProfessionData or {}
+    local n = tonumber(word)
+    if n and type(data[n]) == "table" then return n end
+    for line, p in pairs(data) do
+        if type(p) == "table" and type(p.name) == "string" and p.name:lower() == word then return line end
+    end
+end
+
+-- Each profession's name as the command takes it, in order.
+local function Names()
+    local out = {}
+    for _, p in pairs(ns.ProfessionData or {}) do
+        if type(p) == "table" and type(p.name) == "string" then out[#out + 1] = p.name:lower() end
+    end
+    table.sort(out)
+    return out
+end
+
+-- A spell of each profession that has its picture, for the made-up one's tile.
+local PICTURE = { [171] = 2259, [164] = 2018, [333] = 7411, [202] = 4036, [165] = 2108, [197] = 3908,
+                  [186] = 2575, [185] = 2550, [129] = 3273 }
+
+-- The professions to show while pretending a skill: the one pretended, else nil (the game's).
+function Pretend.Professions()
+    local s = Pretend.skill
+    if not s then return nil end
+    local data = ns.ProfessionData and ns.ProfessionData[s.line]
+    local icon
+    for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine(true) or {}) do
+        if p.line == s.line then icon = p.icon end
+    end
+    if not icon and PICTURE[s.line] and Compat.SpellInfo then
+        local _, picture = Compat.SpellInfo(PICTURE[s.line])
+        icon = picture
+    end
+    local name = data and data.name or tostring(s.line)
+    return { { line = s.line, name = name, game = name, icon = icon, skill = s.skill, cap = s.cap, pretend = true } }
+end
+
+-- The title bar's words while pretending, else nil: "pretend 60", "pretend Horde", "pretend 60, Horde",
+-- "pretend Cooking 190".
 function Pretend.Words()
     local parts = {}
     if Pretend.on then parts[#parts + 1] = "60" end
     if Pretend.faction then parts[#parts + 1] = Pretend.faction end
+    if Pretend.skill then
+        local data = ns.ProfessionData and ns.ProfessionData[Pretend.skill.line]
+        parts[#parts + 1] = (data and data.name or tostring(Pretend.skill.line)) .. " " .. Pretend.skill.skill
+    end
     if #parts == 0 then return nil end
     return "pretend " .. table.concat(parts, ", ")
 end
@@ -228,9 +283,34 @@ function Pretend.SetFaction(faction)
     Repaint()
 end
 
+-- A profession to pretend at a skill (1 to 300), its rank's cap the next one above the skill (300 at
+-- 300), or nil for the game's own. Returns false for a line the data hasn't or a skill out of reach.
+function Pretend.SetSkill(line, skill)
+    if line == nil then
+        if Pretend.skill then kept = {} end
+        Pretend.skill = nil
+        Repaint()
+        return true
+    end
+    skill = tonumber(skill)
+    if not (ns.ProfessionData and type(ns.ProfessionData[line]) == "table") or not skill or skill < 1 or skill > 300
+        or skill ~= math.floor(skill) then
+        return false
+    end
+    local cap = 300
+    for _, rank in ipairs(ns.Professions and ns.Professions.RANKS or {}) do
+        if rank.cap > skill then cap = rank.cap break end
+    end
+    local was = Pretend.skill
+    if not (was and was.line == line and was.skill == skill) then kept = {} end
+    Pretend.skill = { line = line, skill = skill, cap = cap }
+    Repaint()
+    return true
+end
+
 -- Everything pretended let go: pretend off.
 function Pretend.Off()
-    Pretend.on, Pretend.faction, kept = false, nil, {}
+    Pretend.on, Pretend.faction, Pretend.skill, kept = false, nil, nil, {}
     made, night, madeJournal = nil, {}, nil
     Repaint()
 end
@@ -247,6 +327,20 @@ if ns.IsBeta(ns.version) then
                 :format(side, side))
         end)
     end
+    local function SkillHelp()
+        ns.Print("Pretend which profession, at what skill? /jsal pretend skill <profession> <skill>, e.g. /jsal pretend skill cooking 190. Professions: "
+            .. table.concat(Names(), ", ") .. " (or its skill line number).")
+    end
+    -- (Core.lua's /jsal gives a command the words after it; a copy loaded on its own may lack it.)
+    local WithWords = ns.CommandWithWords or function() end
+    WithWords("pretend skill", function(rest)
+        local word, skill = (rest or ""):match("^(.-)%s+(%d+)$")
+        local line = word and LineOf(word)
+        if not line or not Pretend.SetSkill(line, tonumber(skill)) then return SkillHelp() end
+        local s = Pretend.skill
+        ns.Print(("Pretending to have %s at %d of %d until /jsal pretend off or a /reload, knowing what its trainers teach up to there. Nothing is saved meanwhile.")
+            :format(ns.ProfessionData[line].name, s.skill, s.cap))
+    end)
     ns.Command("pretend off", function()
         Pretend.Off()
         ns.Print("Pretending no more.")
