@@ -91,7 +91,7 @@ local function LearnNote(recipe)
     if recipe.how == 1 then return "trainer, " .. recipe.learn end
     if recipe.how == 2 then
         local sources = ns.RecipeSourceText
-        local vendor = sources and sources.Vendors and sources.Vendors(recipe.spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+        local vendor = sources and sources.Vendors and sources.Vendors(recipe.spell, Compat.Faction() or nil)[1]
         return vendor and vendor.copper and vendor.copper > 0 and ("pattern, " .. Money(vendor.copper)) or "pattern"
     end
     return HOW[recipe.how] or "other"
@@ -129,7 +129,7 @@ local function Tooltip(self)
     if row.known == false then
         GameTooltip:AddLine("None of your characters knows this yet.", 0.89, 0.69, 0.29)
         if ns.RecipeSourceText and ns.RecipeSourceText.Tooltip then
-            ns.RecipeSourceText.Tooltip(GameTooltip, row.spell, UnitFactionGroup and UnitFactionGroup("player") or nil)
+            ns.RecipeSourceText.Tooltip(GameTooltip, row.spell, Compat.Faction() or nil)
         end
         GameTooltip:AddLine(" ")
     end

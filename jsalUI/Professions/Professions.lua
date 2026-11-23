@@ -169,7 +169,7 @@ Professions.Priced = Priced
 local function PatternPrice(spell)
     local sources = ns.RecipeSourceText
     if not (sources and sources.Vendors) then return nil end
-    local vendor = sources.Vendors(spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+    local vendor = sources.Vendors(spell, Compat.Faction() or nil)[1]
     return vendor and vendor.copper and vendor.copper > 0 and vendor.copper or nil
 end
 
@@ -303,7 +303,7 @@ function Professions.RankFrom(line, name)
     -- The Horde's, where each side has its own; the one there is, where
     -- both share it.
     local who = from.a
-    if from.h and UnitFactionGroup and UnitFactionGroup("player") == "Horde" then who = from.h end
+    if from.h and Compat.Faction() == "Horde" then who = from.h end
     return from[1], from[2], who
 end
 
@@ -472,7 +472,7 @@ function Professions.Buyable(spell, faction)
     if not (entry and entry.v and entry.n == nil) then return false end
     local sources = ns.RecipeSourceText
     if not (sources and sources.Vendors) then return true end
-    if faction == nil then faction = UnitFactionGroup and UnitFactionGroup("player") or nil end
+    if faction == nil then faction = Compat.Faction() or nil end
     local side = faction == "Alliance" and "Alliance" or faction == "Horde" and "Horde" or "either"
     local kept = buyable[side]
     if not kept then kept = {} buyable[side] = kept end
@@ -579,7 +579,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
     end
     -- A recipe the road may take at a skill: one you know, or one a trainer teaches or a
     -- vendor of your side sells for coin, once your skill reaches it.
-    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
+    local faction = Compat.Faction() or nil
     local function Open(recipe, mine, at)
         return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell, faction))) and recipe.learn <= at)
     end

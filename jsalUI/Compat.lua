@@ -150,6 +150,14 @@ function Compat.MyName()
     return Ambiguate(whole, "none")
 end
 
+-- This character's side: the game's own token ("Alliance" or "Horde", never translated), or nil while
+-- the game has none to give. Every part asks here and nowhere else, so there is one place to change.
+function Compat.Faction()
+    if not UnitFactionGroup then return nil end
+    local token = UnitFactionGroup("player")
+    return token
+end
+
 -- The guild by name: true for those online now, and where each of them is.
 function Compat.GuildOnline()
     local online, zones = {}, {}

@@ -728,7 +728,7 @@ Window.Page("dungeons", function(page)
 
     function List.Paint()
         local level = UnitLevel("player") or 1
-        local faction = UnitFactionGroup and UnitFactionGroup("player")
+        local faction = Compat.Faction()
         List.dirty, List.shown = nil, chosen
         local members = {}
         for _, d in ipairs(InOrder(faction)) do
@@ -2217,7 +2217,7 @@ Window.Page("dungeons", function(page)
         local started = debugprofilestop()
         spent = {}
         local level = UnitLevel("player") or 1
-        local faction = UnitFactionGroup and UnitFactionGroup("player")
+        local faction = Compat.Faction()
         local game = D.GameKills()
         local t = Spent("boss kills from the game", started)
         -- A dungeon asked for from elsewhere (the Gear plan's "Open guide", a piece on Endgame's goal card) is

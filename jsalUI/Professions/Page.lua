@@ -538,7 +538,7 @@ Window.Page("professions", function(page)
         for _ in pairs(set) do knownCount = knownCount + 1 end
         local key = table.concat({ skill, cap, tostring(rankAt), seen and "seen" or "trainer", knownCount, tostring(Professions.Priced and Professions.Priced()),
             prices and prices.seen or 0, prices and prices.scans or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan),
-            tostring(UnitFactionGroup and UnitFactionGroup("player")) }, ";")
+            tostring(Compat.Faction()) }, ";")
         local kept = plans[line]
         local road, totals, stuck
         if kept and kept.key == key then

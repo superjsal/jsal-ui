@@ -114,7 +114,7 @@ end
 -- nothing known, so the road keeps its plain note.
 function Sources.BuyNote(spell)
     if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
-    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
+    local faction = Compat.Faction() or nil
     local v = Sources.Vendors(spell, faction)[1]
     if not v then return Sources.Line(spell, faction) end
     local note = "Buy the pattern from " .. With(v.name, v.area)
@@ -129,7 +129,7 @@ end
 -- side.
 function Sources.BuyFrom(spell)
     if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
-    local v = Sources.Vendors(spell, UnitFactionGroup and UnitFactionGroup("player") or nil)[1]
+    local v = Sources.Vendors(spell, Compat.Faction() or nil)[1]
     if not v then return nil end
     return With(v.name, v.area), v.copper > 0 and v.copper or nil, v.stock > 0
 end
@@ -139,7 +139,7 @@ end
 -- switch off.
 function Sources.Seller(spell)
     if not (ns.ProfWindow and ns.ProfWindow.On("sources")) then return nil end
-    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
+    local faction = Compat.Faction() or nil
     local v = Sources.Vendors(spell, faction)[1]
     if v and v.map and v.map > 0 and v.x then return v.name, faction end
     return nil

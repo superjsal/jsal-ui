@@ -44,7 +44,7 @@ Trainers.TeachesRank = TeachesRank
 local PLAIN = { skill185 = 2 }
 
 local function Friendly(trainer)
-    local faction = UnitFactionGroup("player")
+    local faction = Compat.Faction()
     if faction == "Alliance" then return trainer.a end
     if faction == "Horde" then return trainer.h end
     return trainer.a or trainer.h

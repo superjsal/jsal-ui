@@ -57,7 +57,7 @@ local LANDED_NEAR = 40                -- yards from its flight point a landing c
 -- "A43.6.2.19": the faction's first letter and the flight points' node IDs.
 -- Nil when a point has no ID or the hops don't follow on from each other.
 local function RouteKey(nodes, hops)
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = Compat.Faction()
     local first = hops[1] and nodes[hops[1][1]]
     if type(faction) ~= "string" or not (first and first.id) then return nil end
     local ids = { first.id }
@@ -555,7 +555,7 @@ function Flight.Heard(text)
     text = Compat.Plain(text)
     if not Flight.running or type(text) ~= "string" or #text > KEY_MOST + 8 then return end
     local key, tenths = text:match("^(%u[%d%.]+)=(%d+)$")
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = Compat.Faction()
     if not key or type(faction) ~= "string" or key:sub(1, 1) ~= faction:sub(1, 1) or Tenths("own", key) then return end
     local nodes, hops = {}, {}
     for id in key:sub(2):gmatch("[^%.]+") do

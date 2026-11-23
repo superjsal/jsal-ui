@@ -837,7 +837,7 @@ local WORDS = { [3] = "three", [4] = "four", [5] = "five", [6] = "six", [7] = "s
 function Shopping.Vendor(items)
     local data = ns.ProfessionData
     if not (data and type(data.sellers) == "table" and type(data.shops) == "table") or #items == 0 then return nil end
-    local faction = UnitFactionGroup("player")
+    local faction = Compat.Faction()
     local mine = faction == "Alliance" and 1 or faction == "Horde" and 2 or nil
     local has = {}
     for _, item in ipairs(items) do

@@ -735,7 +735,7 @@ function Paint()
     local prices = ns.ItemPrices
     local key = table.concat({ skill, cap, tostring(rankAt), #mind.saved, tostring(Professions.Priced and Professions.Priced()),
         prices and prices.seen or 0, prices and prices.scans or 0, tostring(prices and prices.useAuctionator), bags, tostring(Professions.Plan),
-            tostring(UnitFactionGroup and UnitFactionGroup("player")) }, ";")
+            tostring(Compat.Faction()) }, ";")
     local kept = plans[line]
     local road, totals, stuck
     if kept and kept.key == key then
@@ -753,7 +753,7 @@ function Paint()
     -- With "Where recipes come from" on: the ones your skill is high enough
     -- for come first, under their own heading, and each row names its source.
     local sources = wanted and ns.ProfWindow.On("sources") and ns.RecipeSourceText or nil
-    local faction = sources and UnitFactionGroup and UnitFactionGroup("player") or nil
+    local faction = sources and Compat.Faction() or nil
     local ready = 0
     local groups
     if wanted then

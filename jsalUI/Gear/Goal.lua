@@ -475,7 +475,7 @@ end
 ---------------------------------------------------------------------------
 local Context
 local function Side()
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = ns.Compat.Faction()
     return faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
 end
 

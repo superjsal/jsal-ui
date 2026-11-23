@@ -203,7 +203,7 @@ function Dungeons.KillCount(boss, game, ownName)
     local encounter = b and b[1]
     local kills = Kills()
     local n = (encounter and kills[encounter]) or kills[key] or 0
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = ns.Compat.Faction()
     local owners = StatOwners()
     for _, stat in ipairs(game or {}) do
         local byFaction = stat[3] and STAT_FOR_ID[stat[3]]
@@ -366,7 +366,7 @@ function Dungeons.Trash(d)
         end
     end
     if not any then return list end
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = ns.Compat.Faction()
     local mine = (faction == "Alliance" and "1") or (faction == "Horde" and "2") or nil
     local seen = {}
     if not (moreAt and moreAt.data == data) then

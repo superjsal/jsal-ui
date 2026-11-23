@@ -131,7 +131,7 @@ end
 function Today.Dungeons()
     if not (ns.Dungeons and ns.Dungeons.running) then return nil end
     local level = UnitLevel("player") or 1
-    local faction = UnitFactionGroup("player")
+    local faction = Compat.Faction()
     local fits, coming, place = {}, nil, {}
     local list = ns.Dungeons.InOrder and ns.Dungeons.InOrder(faction) or ns.DungeonData or {}
     for i, d in ipairs(list) do

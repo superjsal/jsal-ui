@@ -30,7 +30,7 @@ end
 function B.Places(life, game)
     local D = ns.Dungeons
     local bosses, since = life.bosses or {}, life.since60
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local faction = Compat.Faction()
     local out = {}
     for _, d in ipairs(ns.DungeonData or {}) do
         local p = { d = d, bosses = {}, killed = 0, kills = 0, wipes = 0, last = nil, at60 = false, any = false }
