@@ -45,3 +45,12 @@
 3063|Krang Stonehoof|Warrior Trainer||1|c1|1412|48.4|63.6|60
 3060|Gart Mistrunner|Druid Trainer||1|c11|1412|44.6|76.6|6
 3064|Gennia Runetotem|Druid Trainer||1|c11|1412|47.4|62.8|60
+3062|Meela Dawnstrider|Shaman Trainer||1|c7|1412|44.6|76.6|6
+3066|Narm Skychaser|Shaman Trainer||1|c7|1412|47.4|62.6|60
+262558|Palah Thunderhoof|Shaman Trainer||0|c7|1412|33.4|22.4|60
+2119|Dannal Stern|Warrior Trainer||1|c1|1420|32.4|65.4|6
+2131|Austil de Mon|Warrior Trainer||1|c1|1420|61.8|52.4|60
+2122|David Trias|Rogue Trainer||1|c4|1420|32.4|65.6|6
+2130|Marion Call|Rogue Trainer||1|c4|1420|61.6|52|60
+2126|Maximillion|Warlock Trainer||1|c9|1420|30.8|66.2|6
+2127|Rupert Boch|Warlock Trainer||1|c9|1420|61.6|52.4|60
