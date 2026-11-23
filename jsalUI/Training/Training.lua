@@ -190,20 +190,42 @@ local function Shipped(prices, source)
     end
 end
 
--- Grimoire prices by the ability and rank they teach, from every demon
--- trainer saved for this class ("Grimoire of Firebolt (Rank 2)"), then the
--- ones that ship with jsal.ui.
+-- Grimoire prices by the demon spell they teach: the ones that ship with
+-- jsal.ui, then every demon trainer saved for this class. A saved book has
+-- its spell, or (saved without one, on an English client) a name that says
+-- the ability and rank it teaches ("Grimoire of Firebolt (Rank 2)"), read
+-- against each demon spell's name in the game. A spell no book names takes
+-- the price of another with its name and rank.
 local function Grimoires(classID, source)
-    local out = {}
-    for key, cost in pairs(source.grimoires or {}) do out[key] = cost end
+    local out, byKey = {}, {}
+    for _, demon in ipairs(source.demons or {}) do
+        for _, entry in ipairs(demon.spells) do
+            local name = Compat.SpellInfo(entry[1])
+            if name then
+                local key = RankKey(name, entry[3] > 0 and entry[3] or nil)
+                byKey[key] = byKey[key] or {}
+                table.insert(byKey[key], entry[1])
+            end
+        end
+    end
+    for spell, cost in pairs(source.grimoires or {}) do out[spell] = cost end
     for _, shop in pairs(type(ns.db.grimoires) == "table" and ns.db.grimoires or {}) do
         if shop.class == classID and type(shop.rows) == "table" then
             for _, row in ipairs(shop.rows) do
-                local spell, rank = (row.name or ""):match("^Grimoire of (.-) %(Rank (%d+)%)$")
-                spell = spell or (row.name or ""):match("^Grimoire of (.+)$")
-                if spell then out[spell .. "|" .. (rank or "")] = row.cost end
+                if row.spell then
+                    out[row.spell] = row.cost
+                else
+                    local name, rank = (row.name or ""):match("^Grimoire of (.-) %(Rank (%d+)%)$")
+                    name = name or (row.name or ""):match("^Grimoire of (.+)$")
+                    for _, spell in ipairs(name and byKey[RankKey(name, rank)] or {}) do out[spell] = row.cost end
+                end
             end
         end
+    end
+    for _, spells in pairs(byKey) do
+        local cost
+        for _, spell in ipairs(spells) do cost = cost or out[spell] end
+        for _, spell in ipairs(spells) do out[spell] = out[spell] or cost end
     end
     return out
 end
@@ -384,7 +406,7 @@ local function ReadNow()
                 local rank = Rank(id, entry[3])
                 data.spells[#data.spells + 1] = {
                     id = id, level = level, name = name, icon = icon, rank = rank,
-                    cost = grimoires[name .. "|" .. (rank and rank:match("%d+") or "")],
+                    cost = grimoires[id],
                     known = petKnown[id] or IsSpellKnown(id, true), skipped = skips[id] == true,
                     source = "demon", group = demon.name,
                 }

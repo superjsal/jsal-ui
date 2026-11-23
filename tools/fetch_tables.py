@@ -9,7 +9,8 @@ the old file was, so a diff shows only what the game changed:
   - the old rows in their old order by ID, a changed row in its place, new rows after them (wago
     can send the same rows in another order);
   - the old file's line endings;
-  - only the rows a cut table keeps (CUT below: SpellMisc keeps the rows with a duration).
+  - only the rows a cut table keeps (CUT below: SpellMisc keeps the rows with a duration; KEEP:
+    SpellEffect keeps only the effects that teach a spell).
 A table whose new build lacks one of the old columns is left as it was, and said.
 
 Then it sets BUILD in tools/build_dungeons.py and runs tools/build_spells.py, build_talents.py,
@@ -35,6 +36,8 @@ OUTPUTS = ["jsalUI/Training/SpellData.lua", "jsalUI/Talents/TalentData.lua", "js
 AGENT = "jsal-ui data refresh"
 # Tables kept to some of their rows: the file's name, the column, and the value a row is left out for.
 CUT = {"SpellMisc.csv": ("DurationIndex", "0")}
+# Tables kept to the rows with one value in a column: the file's name, the column, the value kept.
+KEEP = {"SpellEffect.csv": ("Effect", "36")}
 
 
 def fetch(name, build):
@@ -99,6 +102,10 @@ def refresh(path, build):
         column, dropped = CUT[path.name]
         j = names.index(column)
         new = new[:1] + [r for r in new[1:] if len(r) != len(names) or bare(r[j]) != dropped]
+    if path.name in KEEP:
+        column, kept = KEEP[path.name]
+        j = names.index(column)
+        new = new[:1] + [r for r in new[1:] if len(r) != len(names) or bare(r[j]) == kept]
     lines = {}
     order = []
     for r in new[1:]:

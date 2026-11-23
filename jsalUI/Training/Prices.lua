@@ -211,16 +211,22 @@ local function Record()
 end
 
 -- A warlock's demon trainer sells Grimoires, books that teach a demon an
--- ability, from a vendor window. Their names say what they teach
--- ("Grimoire of Firebolt (Rank 2)"), so the list and prices are saved too.
+-- ability, from a vendor window, so the list and prices are saved too. A
+-- Grimoire is known by its item, which the spell list ties to the demon
+-- spell it teaches, and saved with that spell; else, on an English client,
+-- by its name ("Grimoire of Firebolt (Rank 2)"), which says what it teaches.
 local function RecordGrimoires()
     local _, classFile, classID = UnitClass("player")
     if classFile ~= "WARLOCK" then return end
+    local source = ns.SpellData and ns.SpellData[classID]
+    local byItem = source and source.grimoireItems or {}
     local books = {}
     for i = 1, Compat.MerchantCount() do
         local name, price = Compat.MerchantItem(i)
-        if name and name:find("^Grimoire of ") then
-            books[#books + 1] = { name = name, cost = price or 0 }
+        local item = GetMerchantItemID and GetMerchantItemID(i)
+        local spell = item and byItem[item]
+        if name and (spell or name:find("^Grimoire of ")) then
+            books[#books + 1] = { name = name, cost = price or 0, spell = spell }
         end
     end
     if #books == 0 then return end

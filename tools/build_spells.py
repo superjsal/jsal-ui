@@ -11,6 +11,10 @@ as CSV (https://wago.tools/db2/<Table>/csv?build=<version>), in data/spells/:
   CreatureFamily                  each hunter pet family's ID, its name and
                                   skill line: the game names a pet's family
                                   in the client's language, and gives its ID
+  ItemXItemEffect, ItemEffect,    which book teaches a warlock's demon which
+  SpellEffect                     ability: the item's spell, and the spell
+                                  that one teaches (SpellEffect is kept to
+                                  the effects that teach a spell)
 and data/talents/ for the talent spells, which come from talents instead.
 A talent ability's later ranks are sold by trainers, but only to someone who
 has the talent: each class's `talent` table names those, with the talent's
@@ -88,13 +92,28 @@ def others_price(service):
     return None
 
 
-def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=None):
+def GrimoireItems(demon_spells):
+    """{item: demon spell} for every book whose use teaches a demon one of its abilities: the item's
+    spell (ItemXItemEffect, ItemEffect), and the spell that one teaches (SpellEffect, effect 36). A
+    vendor's Grimoire is known by its item this way, whatever language the client names it in."""
+    item_spell = {int(r["ID"]): int(r["SpellID"]) for r in rows(SRC, "ItemEffect")}
+    teaches = {int(r["SpellID"]): int(r["EffectTriggerSpell"]) for r in rows(SRC, "SpellEffect")}
+    out = {}
+    for r in rows(SRC, "ItemXItemEffect"):
+        spell = teaches.get(item_spell.get(int(r["ItemEffectID"])))
+        if spell in demon_spells:
+            out[int(r["ItemID"])] = spell
+    return out
+
+
+def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=None, demon_by_key=None):
     """Writes the prices seen at this class's trainers in game (from
     data/prices/trainers.json): class spells by spell ID, anything else a
     class trainer teaches (Parry, Plate Mail...), weapon skills, a hunter's
     pet trainer (which lists the pet's spells; kept under the Beast Training
-    spell that teaches each) and a warlock's Grimoires. Returns how many of
-    the class's spells have a price."""
+    spell (kept under the Beast Training
+    spell that teaches each) and a warlock's Grimoires, by the demon's spell
+    each teaches. Returns how many of the class's spells have a price."""
     spells, extra, weapons, pet = {}, {}, {}, {}
     # A trainer charges less the better your standing with its faction, so
     # the same spell is saved at several prices. The highest seen is the
@@ -169,13 +188,21 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=N
             pet[beast] = seen
     if extra:
         lines.append("        extra = { " + ", ".join(f"{{ {s}, {l} }}" for s, l in sorted(extra.items(), key=lambda kv: (kv[1], kv[0]))) + " },")
-    grimoires = {}
+    # The Grimoire visits baked here were saved on an English client: each book's name says the
+    # ability and rank it teaches, and that's every demon spell of that name and rank.
+    grimoires, unknown = {}, []
     for shop in SAVED["grimoires"]:
         if shop["class"] == class_id:
             for r in shop["rows"]:
                 m = re.match(r"^Grimoire of (.+?)(?: \(Rank (\d+)\))?$", r.get("name") or "")
                 if m:
-                    grimoires[f"{m.group(1)}|{m.group(2) or ''}"] = r["cost"]
+                    found = (demon_by_key or {}).get((m.group(1), int(m.group(2) or 0)), [])
+                    for spell in found:
+                        grimoires[spell] = r["cost"]
+                    if not found:
+                        unknown.append(r["name"])
+    if unknown:
+        print(f"  class {class_id}: no demon spell for {len(unknown)} Grimoires: " + "; ".join(unknown))
     if spells:
         lines.append("        prices = { " + ", ".join(f"[{s}] = {c}" for s, c in sorted(spells.items())) + " },")
     if weapons:
@@ -183,7 +210,7 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=N
     if pet:
         lines.append("        petTrainer = { " + ", ".join(f"[{s}] = {{ {c}, {l} }}" for s, (c, l) in sorted(pet.items())) + " },")
     if grimoires:
-        lines.append("        grimoires = { " + ", ".join(f'["{k}"] = {c}' for k, c in sorted(grimoires.items())) + " },")
+        lines.append("        grimoires = { " + ", ".join(f"[{s}] = {c}" for s, c in sorted(grimoires.items())) + " },")
     return len(spell_ids & set(spells))
 
 
@@ -378,6 +405,7 @@ def main():
             lines.append("        talent = { " + ", ".join(
                 f"[{s}] = {{ {', '.join(str(t) for t in talent_ranks[s])} }}" for s in sorted(talent_ranks)) + " },")
         pet_to_beast = {}
+        demon_by_key = defaultdict(list)
         # A warlock's demons: each one's trainable abilities, rank by rank,
         # taught by Grimoires from a demon trainer.
         if class_id in DEMONS_FOR:
@@ -388,7 +416,12 @@ def main():
                     demon = skills[line_id]["DisplayName_lang"].replace("Pet - ", "")
                     lines.append(f'            {{ name = "{demon}", spells = {{ ' +
                                  ", ".join(f"{{ {s}, {l}, {RankNumber(ranks, s)} }}" for l, s in taught) + " } },")
+                    for _, s in taught:
+                        demon_by_key[(names[s], RankNumber(ranks, s))].append(s)
             lines.append("        },")
+            # Each Grimoire a demon trainer sells, by its item: the demon spell it teaches.
+            books = GrimoireItems({s for found in demon_by_key.values() for s in found})
+            lines.append("        grimoireItems = { " + ", ".join(f"[{i}] = {s}" for i, s in sorted(books.items())) + " },")
         # A hunter's Beast Training: every pet ability and rank. Most come from
         # taming, so only those a pet trainer lists are shown; this names them.
         if class_id in BEAST_FOR:
@@ -420,7 +453,7 @@ def main():
             ids = {i: name for i, name in family_ids.items() if name in families}
             lines.append("        familyIDs = { " + ", ".join(f'[{i}] = "{n}"' for i, n in sorted(ids.items())) + " },")
         priced = ShippedPrices(lines, class_id, {s for _, s, _, _ in spells}, set(weapon_spells), pet_to_beast,
-                               {(names[s], ranks.get(s, "")): s for _, s, _, _ in spells})
+                               {(names[s], ranks.get(s, "")): s for _, s, _, _ in spells}, demon_by_key)
         spell_ids = {s for _, s, _, _ in spells}
         taught = set()
         for trainer in SAVED["trainers"]:
