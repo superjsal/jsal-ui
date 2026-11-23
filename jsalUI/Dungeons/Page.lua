@@ -2,10 +2,11 @@
 -- left in level groups, the ones right for your level in green; the chosen
 -- one fills the rest of the window in three tabs. Bosses and loot: a card
 -- a boss, two across, numbered in the game's order and ticked once you've
--- killed it. A card has a line for each piece you starred in your Gear plan
--- and, four at most, for what's better than what you wear, the most first
--- (Wowhead's list with drop chances, and what you and the guild have seen it
--- drop); along its foot, small and grey, everything else it drops. A card
+-- killed it. A card has four lines at most for what you can equip (Wowhead's
+-- list with drop chances, and what you and the guild have seen it drop):
+-- what you starred in your Gear plan, past four if need be, then what's
+-- better than what you wear, the most first, then the likeliest drops;
+-- along its foot, small and grey, everything else it drops. A card
 -- with something for you has a gold edge. After the last boss, a Trash card
 -- for what the dungeon's ordinary creatures drop, where anything is known.
 -- Quests: the dungeon's quests for your faction, ticked once done, each with
@@ -25,8 +26,8 @@ local BOSS_H, ITEM_H, STRIP_H, SMALL, GRID_GAP, ROW_GAP = 36, 46, 40, 24, 24, 16
 -- The Trash card's heading: its name with a quiet line under it.
 local TRASH_H = 52
 local METER_W = 52                 -- the bar under a piece's drop chance
--- A card's lines for pieces better than what you wear, at most: a piece you
--- starred has its line past them.
+-- A card's lines for what you can equip, at most: a piece you starred has its
+-- line past them.
 local LINES = 4
 -- Under the name: a line of words, then the list; and under the list the
 -- link to where the numbers come from. The list is never shorter than LIST_MIN.
@@ -54,6 +55,7 @@ local RECIPE = 9
 local TAGS = {
     better = { nil, "green" },
     worse = { nil, "red" },
+    prof = { "your profession" },
 }
 
 -- Wowhead's quest sides: 1 Alliance, 2 Horde, 3 both.
@@ -1461,13 +1463,14 @@ Window.Page("dungeons", function(page)
     -- A boss's loot on its card: Wowhead's list with each item's drop
     -- chance, then anything you or the guild have seen it drop that the list
     -- doesn't have. Without Wowhead's chance, five or more guild kills give
-    -- one. A line each for what's on your gear plan, then for what's better
-    -- than what you wear, the most first, LINES of those at most: a starred
-    -- piece always has its line. Everything else is a small picture on the
-    -- strip along the card's foot: what you could use first, then what you
-    -- can't equip, what's for other classes only and recipes for professions
-    -- you don't have, each likeliest first. A piece the game hasn't sent yet
-    -- waits on the strip, so a line comes only once it's known to be better.
+    -- one. A line each for what's on your gear plan, then, LINES in all at
+    -- most, for what's better than what you wear, the most first, then for
+    -- what else you can equip, likeliest first: a starred piece always has
+    -- its line. Everything else is a small picture on the strip along the
+    -- card's foot: what you could use first, then what you can't equip,
+    -- what's for other classes only and recipes for professions you don't
+    -- have, each likeliest first. A piece the game hasn't sent yet waits on
+    -- the strip: whether you can equip it isn't known.
     -- `keep` is a piece asked for from elsewhere: it has a line while it's
     -- asked for, and is put on the card if the list doesn't have it. Returns
     -- the card's height, how many pieces are for you (on your gear plan, or
@@ -1533,7 +1536,7 @@ Window.Page("dungeons", function(page)
         local mine, others, forYou, sure = {}, {}, 0, 0
         for k, entry in ipairs(list) do
             local _, _, _, _, _, _, subclass, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
-            entry.at = k
+            entry.at, entry.known = k, classID ~= nil
             entry.starred = starredSet[entry.id] == true
             -- A piece on your gear plan is never put with what isn't for you.
             entry.cant = not entry.starred and CantEquip(classID, subclassID, equipLoc)
@@ -1559,8 +1562,9 @@ Window.Page("dungeons", function(page)
             local to = entry.away and others or mine
             to[#to + 1] = entry
         end
-        -- The lines: what you starred, as the list has them, then what's better, the most first, as many as
-        -- there's room for. The rest goes on the strip, what you could use before what you can't.
+        -- The lines: what you starred, as the list has them, then what's better, the most first, then what else
+        -- you can equip, as the list has them (likeliest first), as many as there's room for. The rest goes on the
+        -- strip, what you could use before what you can't.
         local lines, strip = m.lines, m.strip
         for _, entry in ipairs(mine) do if entry.starred then lines[#lines + 1] = entry end end
         local better = {}
@@ -1573,6 +1577,12 @@ Window.Page("dungeons", function(page)
             if #lines < LINES then lines[#lines + 1] = entry end
         end
         for _, entry in ipairs(lines) do entry.line = true end
+        for _, entry in ipairs(mine) do
+            if not entry.line and entry.known and #lines < LINES then
+                lines[#lines + 1] = entry
+                entry.line = true
+            end
+        end
         for _, entry in ipairs(mine) do if not entry.line then strip[#strip + 1] = entry end end
         for _, entry in ipairs(others) do strip[#strip + 1] = entry end
         -- The piece asked for is seen, on a line of its own.
@@ -1642,7 +1652,7 @@ Window.Page("dungeons", function(page)
             -- After its name: the star when it's on your gear plan, then how
             -- much better it is than what you wear, or, for a starred piece
             -- that no longer is, how much worse.
-            local kind, words = (entry.better and "better") or (entry.loss and "worse") or nil, "better"
+            local kind, words = (entry.better and "better") or (entry.loss and "worse") or (entry.prof and "prof") or nil, "better"
             if entry.better and entry.gain then
                 local pct = math.floor(entry.gain * 100 + 0.5)
                 words = pct < 1 and "under 1%" or ("+" .. pct .. "%")
