@@ -1217,9 +1217,10 @@ Window.Page("journal", function(page)
     -----------------------------------------------------------------
     local chars = View("characters")
     -- A card a character, three across, the highest first: who it is and its
-    -- level, then where it is, its gold, its rested XP and its professions,
-    -- each in the same place on every card.
-    local C = { cards = {}, GAP = 16, H = 200, TOP = 42, PROFS = 3, TRACK = 96, ACROSS = 3,
+    -- level, then where it is, its gold, its rested XP (at 60, the reputation
+    -- it shows as its XP bar) and its professions, each in the same place on
+    -- every card.
+    local C = { cards = {}, GAP = 16, H = 200, TOP = 42, PROFS = 3, TRACK = 96, REP = 56, ACROSS = 3,
                 CLASSES = "Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES" }
     C.W = math.floor((width - 2 * C.GAP) / 3)
     local charCount = Style.Text(chars, 17, "text", nil, true)
@@ -1292,13 +1293,33 @@ Window.Page("journal", function(page)
         c.bar:SetPoint("BOTTOMLEFT")
         c.bar:SetColorTexture(Style.Color("blue"))
         c.rest = Style.Text(c, 12, "muted")
+        -- At 60, in Rested's place: the reputation that character shows as
+        -- its XP bar. Its name where a profession's is, a small bar for how
+        -- far through the standing, and the standing at the right in its
+        -- colour. Placed and filled when painted.
+        c.repName = Style.Text(c, 12, "text")
+        c.repName:SetPoint("TOPLEFT", 16, -106)
+        c.repName:SetJustifyH("LEFT")
+        c.repName:SetWordWrap(false)
+        c.repTrack = CreateFrame("Frame", nil, c)
+        c.repTrack:SetSize(C.REP, 6)
+        Style.Fill(c.repTrack, "window")
+        c.repBar = c.repTrack:CreateTexture(nil, "ARTWORK")
+        c.repBar:SetPoint("TOPLEFT")
+        c.repBar:SetPoint("BOTTOMLEFT")
+        c.repWord = Style.Text(c, 12, "text")
+        c.repWord:SetPoint("TOPRIGHT", -16, -106)
+        c.repWord:SetJustifyH("RIGHT")
         -- Its professions, a line each: the name, a bar for how far through
-        -- the rank it is, and the skill. Placed when painted: at 60, with no
-        -- Rested line, they move up into its place.
+        -- the rank it is, and the skill. In the same place at every level,
+        -- so a card at 60 is the same shape as any other.
         c.profs = {}
         for k = 1, C.PROFS do
             local p = { name = Style.Text(c, 12, "text"), skill = Style.Text(c, 12, "text"), track = CreateFrame("Frame", nil, c) }
             p.y = -134 - (k - 1) * 20
+            p.name:SetPoint("TOPLEFT", 16, p.y)
+            p.skill:SetPoint("TOPRIGHT", -16, p.y)
+            p.track:SetPoint("TOPLEFT", 136, p.y - 5)
             p.name:SetWidth(112)
             p.name:SetJustifyH("LEFT")
             p.name:SetWordWrap(false)
@@ -1312,10 +1333,54 @@ Window.Page("journal", function(page)
             c.profs[k] = p
         end
         c.none = Style.Text(c, 12, "muted")
+        c.none:SetPoint("TOPLEFT", 16, -134)
         c.none:SetText("no professions yet")
         C.cards[i] = c
     end
     local charFoot = Style.Text(chars, 11, "muted")
+
+    -- A standing's colour, as the game's own bar has them: Hated and Hostile
+    -- red, Unfriendly amber, Neutral gold, Friendly to Exalted green.
+    C.REACTION = { "red", "red", "amber", "gold", "green", "green", "green", "green" }
+    -- At 60, Rested's line: the reputation that character showed as its XP
+    -- bar when it last saved. A record saved before reputations were kept
+    -- says the next login fills it; one saved with none shown says how to
+    -- show one.
+    function C.PaintRep(card, c, at60)
+        local rep = at60 and c.rep
+        local filled = type(rep) == "table" and C.REACTION[rep.reaction] ~= nil
+        card.repName:SetShown(at60)
+        card.repTrack:SetShown(filled)
+        card.repWord:SetShown(filled)
+        if not at60 then return end
+        card.repName:SetTextColor(Style.Color(filled and "text" or "muted"))
+        if not filled then
+            card.repName:SetWidth(C.W - 32)
+            card.repName:SetText(rep == false and "Show a reputation as your XP bar to see it here"
+                or ("Shows after your next login on %s"):format(c.name or "it"))
+            return
+        end
+        -- The standing's word is the game's own, in the player's language
+        -- and the character's form of it.
+        local colour, label, word = C.REACTION[rep.reaction], "FACTION_STANDING_LABEL" .. rep.reaction, nil
+        if GetText then
+            local ok, said = pcall(GetText, label, rep.sex or 2)
+            if ok and type(said) == "string" then word = said end
+        end
+        card.repWord:SetText(word or _G[label] or "")
+        card.repWord:SetTextColor(Style.Color(colour))
+        -- The bar ends where the professions' bars do, or sooner where the
+        -- word needs the room; the name has what's left, and a name too long
+        -- for it is cut at a letter, never run over the bar.
+        local right = math.min(C.W - 86, C.W - 16 - 10 - math.ceil(card.repWord:GetStringWidth() or 0))
+        local need = rep.need or 0
+        card.repTrack:ClearAllPoints()
+        card.repTrack:SetPoint("TOPLEFT", right - C.REP, -111)
+        card.repBar:SetWidth(math.max(1, C.REP * (need > 0 and math.max(0, math.min(1, (rep.have or 0) / need)) or 1)))
+        card.repBar:SetColorTexture(Style.Color(colour))
+        card.repName:SetWidth(right - C.REP - 10 - 16)
+        card.repName:SetText(rep.name or "")
+    end
 
     local function PaintCharacters()
         -- This character saved afresh, then all of them: as Pretend gives them.
@@ -1363,24 +1428,14 @@ Window.Page("journal", function(page)
                 local money = c.money or 0
                 card.gold:SetText(money > 0 and Compat.Money(money) or "no gold")
                 card.gold:SetTextColor(Style.Color(money > 0 and "text" or "muted"))
-                -- Rested: a bar, and how much of a level it is. No line at
-                -- 60, where there's no level left to rest for, and the
-                -- professions move up into its place.
+                -- Rested: a bar, and how much of a level it is. At 60, where
+                -- there's no level left to rest for, the reputation in its
+                -- place.
                 local rested = J.RestedNow(c)
                 local at60 = (c.level or 0) >= 60
                 card.restLabel:SetShown(not at60)
                 card.rest:SetShown(not at60)
-                local up = at60 and 25 or 0
-                card.none:ClearAllPoints()
-                card.none:SetPoint("TOPLEFT", 16, -134 + up)
-                for _, p in ipairs(card.profs) do
-                    p.name:ClearAllPoints()
-                    p.name:SetPoint("TOPLEFT", 16, p.y + up)
-                    p.skill:ClearAllPoints()
-                    p.skill:SetPoint("TOPRIGHT", -16, p.y + up)
-                    p.track:ClearAllPoints()
-                    p.track:SetPoint("TOPLEFT", 136, p.y + up - 5)
-                end
+                C.PaintRep(card, c, at60)
                 card.track:SetShown(rested ~= nil)
                 card.rest:ClearAllPoints()
                 if rested then
