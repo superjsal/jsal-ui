@@ -228,7 +228,7 @@ function Gear.StarsIn(dungeon)
             end
         end
         for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do Add(drop[1]) end
-        for id in pairs(learned[D.Key(b[2])] or {}) do Add(id) end
+        for id in pairs(learned[b[1]] or {}) do Add(id) end
     end
     return out
 end

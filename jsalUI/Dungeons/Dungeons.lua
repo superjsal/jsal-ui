@@ -22,25 +22,26 @@ local ROLL_WINDOW = 180
 local function Key(name) return type(name) == "string" and name:lower() or nil end
 Dungeons.Key = Key
 
--- Every boss by name, for the loot window: by its encounter's name and, when
--- the boss you see is named differently, by that too, each giving the boss
--- as { encounter ID, encounter name (which loot is kept under) }.
-local bosses
+-- Every boss by its English name, the guide's: by its encounter's name and,
+-- when the boss you see is named differently, by that too, each giving the
+-- boss as { encounter ID, encounter name }. And by encounter ID.
+local bosses, byId
 local function Bosses()
     if bosses then return bosses end
-    bosses = {}
+    bosses, byId = {}, {}
     for _, d in ipairs(ns.DungeonData or {}) do
         for _, b in ipairs(d.bosses) do
             bosses[Key(b[2])] = b
             if b[3] then bosses[Key(b[3])] = b end
+            byId[b[1]] = b
         end
     end
     return bosses
 end
 
--- Kills are kept by encounter ID, which is the same in every client language; they were
--- kept by the encounter's name, which the game sends in the client's own. A name the guide
--- knows moves to its boss's ID, added to what's there; one it doesn't know stays as it is.
+-- Kills and loot are kept by encounter ID, which is the same in every client language; they
+-- were kept by the encounter's name, which the game sends in the client's own. A name the
+-- guide knows moves to its boss's ID, added to what's there; one it doesn't know stays as it is.
 -- Once a table has none left this does nothing, so it's safe to run again.
 local function ByEncounter(t, Merge)
     local names
@@ -61,6 +62,18 @@ end
 local function AddKills(a, b)
     return (tonumber(a) or 0) + (tonumber(b) or 0)
 end
+local function AddLoot(have, old)
+    if type(have) ~= "table" then return old end
+    for id, item in pairs(type(old) == "table" and old or {}) do
+        local mine = have[id]
+        if type(mine) == "table" and type(item) == "table" then
+            mine.seen = (mine.seen or 0) + (item.seen or 0)
+        elseif mine == nil then
+            have[id] = item
+        end
+    end
+    return have
+end
 
 -- Kills by boss: { [encounter ID] = kills }.
 local killsMoved
@@ -78,11 +91,26 @@ local function Kills()
     return d.kills
 end
 
--- Loot by boss: { [boss] = { [item ID] = { n = name, q = quality, seen = times } } }.
+-- Loot by boss: { [encounter ID] = { [item ID] = { n = name, q = quality, seen = times } } }.
+local lootMoved
 function Dungeons.Loot()
     if type(ns.db.dungeonLoot) ~= "table" then ns.db.dungeonLoot = {} end
+    if lootMoved ~= ns.db.dungeonLoot then
+        ByEncounter(ns.db.dungeonLoot, AddLoot)
+        lootMoved = ns.db.dungeonLoot
+    end
     return ns.db.dungeonLoot
 end
+
+-- Where a boss's kills and loot are kept: its encounter ID, given or found from the guide's
+-- name for it; a name the guide doesn't know, lower case.
+local function RecordKey(boss)
+    if type(boss) == "number" then return boss end
+    local key = Key(boss)
+    local b = key and Bosses()[key]
+    return b and b[1] or key
+end
+Dungeons.RecordKey = RecordKey
 
 ---------------------------------------------------------------------------
 -- Kills: the game's Boss Kills statistics (kept since the character was
@@ -177,8 +205,9 @@ function Dungeons.LinkQuality(link)
     return color and QUALITY[color:lower()] or nil
 end
 
+-- `boss` is its encounter ID, or the guide's name for it.
 function Dungeons.Learn(boss, link)
-    local key = Key(boss)
+    local key = RecordKey(boss)
     if not (key and type(link) == "string") then return false end
     local id = tonumber(link:match("item:(%d+)"))
     local name = link:match("%[(.-)%]")
@@ -192,10 +221,20 @@ function Dungeons.Learn(boss, link)
     return true
 end
 
--- The boss you're looting: your target, dead, and one of the guide's.
+-- The encounters fought this session, by the name the game gave each, in the client's language: { [name] = encounter ID }.
+local heard = {}
+
+-- The boss you're looting: your target, dead, and one of the guide's. Found by the guide's
+-- English name for it, or by the name of an encounter fought this session: on a client in
+-- another language the target is named as the game names its encounter, not as the guide does.
 local function LootedBoss()
     if not (UnitExists and UnitExists("target") and UnitIsDead and UnitIsDead("target")) then return nil end
-    return Bosses()[Key(ns.Compat.Name("target"))]
+    local name = Key(ns.Compat.Name("target"))
+    if not name then return nil end
+    local b = Bosses()[name]
+    if b then return b end
+    local id = heard[name]
+    return id and byId[id] or nil
 end
 
 local recent, recentId, recentAt
@@ -213,6 +252,7 @@ local function OnEvent(_, event, a, b, _, _, e)
             local kills, id = Kills(), tonumber(a)
             local key = id or Key(b)
             kills[key] = (kills[key] or 0) + 1
+            if id then heard[Key(b)] = id end
             recent, recentId, recentAt = b, id, GetTime()
             if Guild() and recentId then Guild().Killed(recentId) end
             Changed()
@@ -227,14 +267,14 @@ local function OnEvent(_, event, a, b, _, _, e)
         local any
         for slot = 1, (GetNumLootItems and GetNumLootItems() or 0) do
             local link = GetLootSlotLink(slot)
-            if Dungeons.Learn(boss[2], link) then any = true end
+            if Dungeons.Learn(boss[1], link) then any = true end
             if Guild() then Guild().Dropped(boss[1], link) end
         end
         if any then Changed() end
     elseif event == "START_LOOT_ROLL" then
         if recent and GetTime() - recentAt <= ROLL_WINDOW and GetLootRollItemLink then
             local link = GetLootRollItemLink(a)
-            if Dungeons.Learn(recent, link) then Changed() end
+            if Dungeons.Learn(recentId or recent, link) then Changed() end
             if Guild() and recentId then Guild().Dropped(recentId, link) end
         end
     end
@@ -354,8 +394,9 @@ function Dungeons:OnEnable()
         pcall(f.RegisterEvent, f, event)
     end
     f:SetScript("OnEvent", ns.Safe(self, OnEvent))
-    -- Kills kept by name move to their encounter's ID now, at login.
+    -- Kills and loot kept by name move to their encounter's ID now, at login.
     if ns.char then Kills() end
+    if ns.db then Dungeons.Loot() end
 end
 
 function Dungeons:OnDisable()

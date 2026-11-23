@@ -413,7 +413,7 @@ local function BossGear(boss, pieces)
         if pieces and (mine or is) then pieces[#pieces + 1] = { id = id, star = mine, gain = is and (gain or 0) or nil } end
     end
     for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[boss[1]] or {}) do Look(drop[1]) end
-    for id in pairs(D.Loot()[D.Key(boss[2])] or {}) do Look(id) end
+    for id in pairs(D.Loot()[boss[1]] or {}) do Look(id) end
     return star, best
 end
 
@@ -1501,7 +1501,7 @@ Window.Page("dungeons", function(page)
             local entry = Add(e[1])
             entry.creature, entry.item.q = e[2], e[3]
         end
-        for id, item in pairs(boss and D.Loot()[D.Key(boss)] or {}) do Add(id).item = item end
+        for id, item in pairs(boss and D.Loot()[encounter or D.Key(boss)] or {}) do Add(id).item = item end
         local guild = encounter and ns.GuildLoot and ns.GuildLoot.On() and ns.GuildLoot.For(encounter)
         local guildKills = 0
         if guild then
