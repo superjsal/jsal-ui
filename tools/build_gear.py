@@ -37,7 +37,10 @@ A drop Wowhead names no one place for (an empty sourcemore: it drops from ordina
 more than one place) takes its dungeons from data/gear/wowhead-places.json when that file is there
 (tools/wowhead/places.js reads each item's "Dropped by" list): the dungeon alone where any of the
 dungeon's ordinary creatures drops it, or "boss · dungeon" where only one of its bosses does, as a
-zone drop or a boss drop is written. Its place in the lists is the dungeon where it drops most; the
+zone drop or a boss drop is written. A piece of an item set (the game's ItemSet table,
+data/gear/ItemSet.csv) takes every dungeon it drops in; any other piece only when it mostly drops in
+dungeons, and then only the dungeons with a real share of its drops (MOSTLY_IN_DUNGEONS and
+DUNGEON_SHARE below), so a world drop that a few dungeon creatures also drop stays a world drop. Its place in the lists is the dungeon where it drops most; the
 others, where there are any, go in GearData's `more`, read only by the Dungeon guide's Trash card.
 Outdoors, or nowhere read, it keeps no place.
 
@@ -440,6 +443,29 @@ def where(item, zones):
     return kind, place
 
 
+# A piece that isn't a set's takes dungeon places only when dungeon creatures drop more than this share
+# of it (John, 22 Nov 2026: set pieces, and "any other piece that mostly drops in dungeons").
+MOSTLY_IN_DUNGEONS = 0.5
+# And then only in a dungeon whose creatures drop at least this share of all of it, so one stray dungeon
+# creature among a world drop's many doesn't put it on that dungeon's Trash card. Tune after the full read
+# (place_items.py --why shows every read item's shares).
+DUNGEON_SHARE = 0.15
+
+
+def set_pieces():
+    """The item IDs that belong to an item set, from the game's ItemSet table (data/gear/ItemSet.csv)."""
+    path = SRC / "ItemSet.csv"
+    out = set()
+    if not path.exists():
+        return out
+    with open(path, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            for k, v in r.items():
+                if k.startswith("ItemID_") and v and int(v):
+                    out.add(int(v))
+    return out
+
+
 def dungeon_bosses():
     """Each dungeon's bosses by Wowhead's zone ID: the names its loot was read under
     (data/dungeons/wowhead.json) and the NPC names tools/wowhead/bosses.py's ALIAS gives them."""
@@ -497,21 +523,69 @@ def dungeon_places(read, zones, inside, bosses, levels=None):
     return [p for _rate, _level, p in places]
 
 
-def read_places(path, zones):
-    """Each placeless drop's dungeon places by item ID, from wowhead-places.json; {} without it."""
-    if not path.exists():
-        return {}
+def shares(read, zones, inside):
+    """How much of an item each dungeon's creatures drop, as shares of all its droppers: by Wowhead's
+    drop counts where the page gives any (a creature without one counts 0), else by how many creatures.
+    ({zone ID: share}, the dungeons' share together, "count" or "creatures")."""
+    npcs = (read or {}).get("npcs") or []
+    by_count = any((n.get("count") or 0) > 0 for n in npcs)
+    total, at = 0, {}
+    for n in npcs:
+        weight = max(n.get("count") or 0, 0) if by_count else 1
+        total += weight
+        z = next((z for z in n.get("zones") or [] if z in inside and zones.get(str(z))), None)
+        if z is not None:
+            at[z] = at.get(z, 0) + weight
+    if not total:
+        return {}, 0, "creatures"
+    each = {z: w / total for z, w in at.items()}
+    return each, sum(each.values()), "count" if by_count else "creatures"
+
+
+def placed(read, zones, inside, bosses, levels, set_piece):
+    """An item's dungeon places by the rule (see the top), and why: a set piece takes every dungeon it
+    drops in; any other piece, when its dungeons' share passes MOSTLY_IN_DUNGEONS, the dungeons with at
+    least DUNGEON_SHARE; otherwise none. (places, why)."""
+    every = dungeon_places(read, zones, inside, bosses, levels)
+    each, inside_share, by = shares(read, zones, inside)
+    why = {"set": set_piece, "share": inside_share, "by": by,
+           "dungeons": {zones[str(z)]: s for z, s in each.items()}}
+    if not every:
+        why["rule"] = "no dungeon creature"
+        return [], why
+    if set_piece:
+        why["rule"] = "set piece"
+        return every, why
+    if inside_share <= MOSTLY_IN_DUNGEONS:
+        why["rule"] = "mostly elsewhere"
+        return [], why
+    keep = {zones[str(z)] for z, s in each.items() if s >= DUNGEON_SHARE}
+    places = [p for p in every if p.split(" · ")[-1] in keep]
+    why["rule"] = "mostly in dungeons" if places else "no dungeon with a real share"
+    return places, why
+
+
+def place_context(zones):
+    """What placed() needs besides an item's read: the guide's dungeons by Wowhead zone, their bosses,
+    their levels, and the set pieces."""
     from build_dungeons import WOWHEAD_ZONE, dungeon_rows  # noqa: E402
     inside = set(WOWHEAD_ZONE.values())
     levels = {}
     for row in dungeon_rows():
         z = WOWHEAD_ZONE[row[3]]
         levels[z] = min(levels.get(z, row[1]), row[1])
-    bosses = dungeon_bosses()
+    return inside, dungeon_bosses(), levels, set_pieces()
+
+
+def read_places(path, zones):
+    """Each placeless drop's dungeon places by item ID, from wowhead-places.json; {} without it."""
+    if not path.exists():
+        return {}
+    inside, bosses, levels, sets = place_context(zones)
     read = json.loads(path.read_text(encoding="utf-8"))["items"]
     out = {}
     for item_id, entry in read.items():
-        places = dungeon_places(entry, zones, inside, bosses, levels)
+        places, _why = placed(entry, zones, inside, bosses, levels, int(item_id) in sets)
         if places:
             out[int(item_id)] = places
     return out

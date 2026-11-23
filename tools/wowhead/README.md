@@ -35,8 +35,15 @@ same script again carries on. Never try to get past the check another way.
      `30` reaches lower, `--quality 2` takes greens too, `--all` reads them all again.
    - `python -I tools/wowhead/merge_places.py <scratchpad>/places-fresh.json` folds it into
      `data/gear/wowhead-places.json` (items not in the batch keep their old read) and says how
-     many are still to read. Then `python -I tools/build_gear.py`, which says how many drops it
-     placed in a dungeon.
+     many are still to read.
+   - Everything on the list is read; which pieces get a dungeon place is the build's rule, so it
+     can change without reading again. A set piece (the game's ItemSet table,
+     `data/gear/ItemSet.csv`) takes every dungeon it drops in. Any other piece takes one only when
+     dungeon creatures drop more than half of it (by Wowhead's counts, else by how many creatures),
+     and then only the dungeons with at least `DUNGEON_SHARE` (15%) of its drops, so a world drop
+     a few dungeon creatures also drop stays a world drop. `python -I tools/wowhead/place_items.py --why`
+     prints each read item's rule and shares: show John that before it ships.
+   - Then `python -I tools/build_gear.py`, which says how many drops it placed in a dungeon.
 3. **Dungeons (about 100 pages with `--thin`; a full read is about 190):**
    - `python -I tools/wowhead/bosses.py --thin` prints a `window.__bosses = ...;` line: the
      bosses whose loot is still filling in, or was never read. Leave out `--thin` for a full read
@@ -132,5 +139,5 @@ same script again carries on. Never try to get past the check another way.
   zone's Drops tab names the boss.
 - `place_items.py`, `places.js`, `merge_places.py`: each placeless drop's item page, the creatures
   under "Dropped by" with their NPC IDs, zones and Wowhead's counts (`count` drops in `outof`
-  kills, kept as read). `build_gear.py` gives such an item a place in each dungeon one of them is
-  in: the dungeon alone, or "boss · dungeon" where only a boss drops it there.
+  kills, kept as read). `build_gear.py` gives such an item a place in each dungeon the rule above
+  allows: the dungeon alone, or "boss · dungeon" where only a boss drops it there.

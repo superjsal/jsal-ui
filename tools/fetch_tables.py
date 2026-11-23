@@ -1,7 +1,7 @@
 """Brings the game's own tables in data/ up to a Forever build, then rebuilds what's made from them.
 
 When tools/what_changed.py says the data is built from an older build than the newest, this is the
-one command. Each table in data/spells, data/talents, data/dungeons and data/taxi is fetched again
+one command. Each table in data/spells, data/talents, data/dungeons, data/taxi and data/gear is fetched again
 from wago.tools (https://wago.tools/db2/<Table>/csv?build=<build>), read as data, and saved the way
 the old file was, so a diff shows only what the game changed:
   - only the old file's columns, in its order (several are kept trimmed, Map and Spell among them);
@@ -28,7 +28,7 @@ import sys
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-FOLDERS = ["data/spells", "data/talents", "data/dungeons", "data/taxi"]
+FOLDERS = ["data/spells", "data/talents", "data/dungeons", "data/taxi", "data/gear"]
 BUILDS = ["build_spells.py", "build_talents.py", "build_dungeons.py", "build_taxi.py"]
 OUTPUTS = ["jsalUI/Training/SpellData.lua", "jsalUI/Talents/TalentData.lua", "jsalUI/Dungeons/DungeonData.lua",
            "jsalUI/Dungeons/DungeonLoot.lua", "jsalUI/Games/FlightData.lua"]
