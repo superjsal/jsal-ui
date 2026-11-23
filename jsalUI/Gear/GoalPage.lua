@@ -377,7 +377,9 @@ local function Hero(view, width, onStage, onSet, onSets, onDraft)
         elseif set and set.own then
             self.note:SetText("Your set \226\128\156" .. set.name .. "\226\128\157" .. (set.from and (", started from WoWSims' " .. set.from) or ""))
         elseif set then
-            self.note:SetText("WoWSims Forever's pre-raid set for " .. set.name .. (set.cheap and ", the cheap one" or "") .. ", from its sims")
+            local guessed = set.estimated or 0
+            self.note:SetText("WoWSims Forever's pre-raid set for " .. set.name .. (set.cheap and ", the cheap one" or "") .. ", from its sims"
+                .. (guessed > 0 and (", " .. guessed .. (guessed == 1 and " piece" or " pieces") .. " estimated") or ""))
         elseif stage == Goal.BEFORE then
             self.note:SetText("An estimate by your weights: WoWSims has no pre-raid set for this spec yet.")
         else
@@ -629,7 +631,15 @@ local function SlotList(view, rowH, onPick, bare)
                     -- WoWSims' own pick that the weights put at or below what you wear: its worth
                     -- is an effect they can't see (a proc, a weapon's swing), so it says whose
                     -- pick it is instead of a gain. A piece of your own set doesn't: it's yours.
-                    if row.share and row.share <= 0 and row.base and row.base.id == row.goal.id then
+                    if row.estimate then
+                        -- WoWSims' piece here is the other faction's only: the weights' best your
+                        -- side can get stands in, said as a spec with no set says it.
+                        if not (row.share and row.share > 0) then
+                            r.gain:SetText("estimate")
+                            r.gain:SetTextColor(Style.Color("muted"))
+                        end
+                        r.lines[#r.lines + 1] = "An estimate by your weights: WoWSims' piece for this slot is the other faction's."
+                    elseif row.share and row.share <= 0 and row.base and row.base.id == row.goal.id then
                         r.gain:SetText("sims' pick")
                         r.gain:SetTextColor(Style.Color("muted"))
                         r.lines[#r.lines + 1] = "WoWSims' sims count what this piece does; the weights can't."
@@ -902,7 +912,7 @@ local function Runs(view, width, height, onUse, onAdd, onBack, note)
             local r = Choice(k)
             local from = Goal.From(o.piece.e)
             local where = Gear.GoalSources(from, Goal.BEFORE)[1] or ""
-            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and "the pre-BiS pick · " or "your goal · ") or o.base and "WoWSims' pick · " or "") .. where, nil)
+            r:Set({ goal = o.piece, gains = nil }, Goal.BEFORE, (o.pick and ((choice.own or choice.draft) and "your pick · " or choice.set and (choice.row.estimate and "the weights' estimate · " or "the pre-BiS pick · ") or "your goal · ") or o.base and (o.estimate and "the weights' estimate · " or "WoWSims' pick · ") or "") .. where, nil)
             local worn = o.pick and choice.row.done
             if worn then GoldTick(r, r.against):Show() elseif r.goldTick then r.goldTick:Hide() end
             r.against:SetText(o.pick and (worn and "|cffe3b04bworn|r" or "|cffe3b04bpick|r") or (o.against and ("%+d%%"):format(math.floor(o.against * 100 + 0.5)) or ""))

@@ -124,6 +124,40 @@ local function Twin(id, side)
     return twinOf[side] and twinOf[side][id] or id
 end
 
+-- The side GearData gives a piece (1 Alliance, 2 Horde, 0 both), 0 for one it doesn't list. Read
+-- once a piece.
+local sideOf = {}
+local function SideOf(id)
+    local data = ns.GearData
+    if sideOf.data ~= data then sideOf = { data = data } end
+    local found = sideOf[id]
+    if found == nil then
+        found = 0
+        local key = id .. ","
+        for _, line in pairs(data and data.items or {}) do
+            local from = 1
+            while found == 0 do
+                local at = line:find(key, from, true)
+                if not at then break end
+                -- A whole ID: at the line's start or after a ";", not the end of a longer one.
+                if at == 1 or line:byte(at - 1) == 59 then
+                    found = tonumber(line:match("^%d+,%d+,%d+,%d+,%-?%d+,(%d+)", at)) or 0
+                end
+                from = at + 1
+            end
+            if found ~= 0 then break end
+        end
+        sideOf[id] = found
+    end
+    return found
+end
+
+-- Whether only the other side can get a piece: a quest or a vendor of theirs.
+local function OtherSides(id, side)
+    local its = id > 0 and side ~= 0 and SideOf(id) or 0
+    return its ~= 0 and its ~= side
+end
+
 -- The first stage a piece can be a goal in, nil for never. A boss the guide lists outside a
 -- raid is before raids; one in a raid waits for the raids, and so does a piece that needs a
 -- raid first by another road (up to the same item level: past it, it's a raid's still to
@@ -439,6 +473,7 @@ end
 -- (Gear.PlansChanged), and while items are still arriving worked out again once one of them has
 -- come, or when they can be asked for again (Gear.RETRY seconds on), as the slots' plans are.
 ---------------------------------------------------------------------------
+local Context
 local function Side()
     local faction = UnitFactionGroup and UnitFactionGroup("player")
     return faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
@@ -515,8 +550,9 @@ end
 -- set's piece; one you wear is done, in either place of a pair; an empty off hand under a
 -- two-hander is taken.
 -- `base`, where given, is WoWSims' set for the same places: each row keeps its piece (`base`),
--- the way back to it from a piece of yours.
-local function SetRows(ctx, ids, lists, own, base)
+-- the way back to it from a piece of yours. `estimated` and `baseEstimated` (place: true) mark
+-- the places of `ids` and of `base` that are the weights' estimate (IdsOf).
+local function SetRows(ctx, ids, lists, own, base, estimated, baseEstimated)
     local slotOf, worn = {}, {}
     for _, slot in ipairs(Gear.SLOTS) do
         for _, equip in ipairs(slot.equip) do slotOf[equip] = slot end
@@ -532,7 +568,9 @@ local function SetRows(ctx, ids, lists, own, base)
         local slot, id = slotOf[equip], ids[i] or 0
         local pair = #slot.equip > 1
         local row = { equip = equip, worn = worn[equip], slot = slot,
-                      label = pair and (slot.label .. " " .. (equip == slot.equip[1] and 1 or 2)) or slot.label }
+                      label = pair and (slot.label .. " " .. (equip == slot.equip[1] and 1 or 2)) or slot.label,
+                      estimate = id > 0 and estimated and estimated[i] or nil,
+                      baseEstimate = baseEstimated and baseEstimated[i] or nil }
         if id == 0 then
             -- A place of a set of yours left empty is one to fill: it counts, and has picks.
             if equip == 17 and twoHand then row.taken = true elseif own then row.open = true else row.none = true end
@@ -592,7 +630,7 @@ function Goal.Others(read, row, n, stage)
         skip[base.id] = true
         local name = get and get(base.id)
         if name then names[name] = true end
-        out[1] = { piece = base, base = true, against = pick and pick.score > 0 and (base.score - pick.score) / pick.score or nil }
+        out[1] = { piece = base, base = true, estimate = row.baseEstimate, against = pick and pick.score > 0 and (base.score - pick.score) / pick.score or nil }
     end
     local first = #out
     for _, c in ipairs(list.list) do
@@ -707,11 +745,74 @@ end
 -- The set that's your goal before raids, as the view chooses it: one of yours, or WoWSims'
 -- build (the one kept for the character, else your default, else the tree's own; full or
 -- cheap). Its 17 IDs and its name; nil with none.
--- A WoWSims build's set (full or cheap) as 17 IDs, each from your side's quartermaster.
-local function IdsOf(build, cheap, side)
-    local ids = {}
+-- The slot place `i` of a set is in (the sets' order).
+local function SlotOfPlace(i)
+    local equip = SET_EQUIP[i]
+    for _, slot in ipairs(Gear.SLOTS) do
+        for _, e in ipairs(slot.equip) do
+            if e == equip then return slot end
+        end
+    end
+end
+
+-- The weights' best piece before raids for place `i` of a set, from its slot's scored pieces
+-- (`list`, best first; your side's only), leaving out the set's other pieces and any of their
+-- names: one of a name can be worn once.
+local function BestFor(list, i, ids)
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local skip, names = {}, {}
+    for k, id in ipairs(ids) do
+        if k ~= i and id > 0 then
+            skip[id] = true
+            local name = get and get(id)
+            if name then names[name] = true end
+        end
+    end
+    for _, c in ipairs(list or {}) do
+        local name = get and get(c.id)
+        if c.stage <= Goal.BEFORE and not c.unknown and not skip[c.id] and not (name and names[name]) then return c.id end
+    end
+end
+
+-- For the set's IDs alone (Home, the Endgame cards, the drop alert), with no goal worked out: one
+-- slot's pieces scored, in a context kept until the plans or the spec change. A slot still waiting
+-- on the game is scored again when next asked.
+local light
+local function LightEstimate(i, ids)
+    local spec = Gear.Spec()
+    local stamp = Gear.planStamp .. ":" .. tostring(spec)
+    if not (light and light.stamp == stamp) then
+        local weights = Gear.Weights(spec)
+        if not (weights and ns.GearData) then return nil end
+        light = Context(weights)
+        light.stamp, light.lists = stamp, {}
+        light.ceiling = Ceiling(light)
+    end
+    local slot = SlotOfPlace(i)
+    local list = light.lists[slot.key]
+    if not list then
+        light.waiting = 0
+        list = Scored(slot, light)
+        if light.waiting == 0 then light.lists[slot.key] = list end
+    end
+    return BestFor(list, i, ids)
+end
+
+-- A WoWSims build's set (full or cheap) as 17 IDs, each from your side's quartermaster. WoWSims
+-- names one set for both sides; a piece of it only the other side can get, with no twin from yours,
+-- is the weights' best your side can get there, as a spec with no set has, and marked in the
+-- second table returned (place: true). `Estimate(i, ids)` picks it; IDs alone are scored by one
+-- slot (LightEstimate). With nothing to pick, the place is empty (0).
+local function IdsOf(build, cheap, side, Estimate)
+    local ids, estimated = {}, {}
     for n in ((cheap and build.cheap) or build.full or ""):gmatch("%d+") do ids[#ids + 1] = Twin(tonumber(n), side) end
-    return ids
+    for i, id in ipairs(ids) do
+        if OtherSides(id, side) then
+            estimated[i] = true
+            ids[i] = (Estimate or LightEstimate)(i, ids) or 0
+        end
+    end
+    return ids, estimated
 end
 
 function Goal.ChosenSet()
@@ -729,7 +830,8 @@ function Goal.ChosenSet()
         if b.key == start then chosen = b end
     end
     if not chosen then return nil end
-    return IdsOf(chosen, keptChoice.cheap, Side()), chosen.name
+    local ids, estimated = IdsOf(chosen, keptChoice.cheap, Side())
+    return ids, chosen.name, estimated
 end
 
 -- The WoWSims build your At 60 set is (or a set of yours started from), and its name: for the
@@ -842,6 +944,10 @@ local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
         if b.key == start then chosen = b end
     end
     local own = build and Goal.OwnSet(build)
+    local function Estimate(i, ids)
+        local slot = SlotOfPlace(i)
+        return BestFor(lists[slot.key] and lists[slot.key].list, i, ids)
+    end
     if own then
         local fromName
         for _, b in ipairs(builds or {}) do
@@ -856,12 +962,17 @@ local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
         for _, b in ipairs(from and {} or builds or {}) do
             if b.key == start then from = b end
         end
-        out[Goal.BEFORE] = SetRows(ctx, draft or own.ids, lists, true, from and IdsOf(from, false, ctx.side))
+        local baseIds, baseEstimated
+        if from then baseIds, baseEstimated = IdsOf(from, false, ctx.side, Estimate) end
+        out[Goal.BEFORE] = SetRows(ctx, draft or own.ids, lists, true, baseIds, nil, baseEstimated)
         chosen = own
     elseif chosen then
-        local ids = IdsOf(chosen, cheap, ctx.side)
-        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids }
-        out[Goal.BEFORE] = SetRows(ctx, draft or ids, lists, nil, ids)
+        local ids, estimated = IdsOf(chosen, cheap, ctx.side, Estimate)
+        local count = 0
+        for _ in pairs(estimated) do count = count + 1 end
+        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids,
+                    estimated = count }
+        out[Goal.BEFORE] = SetRows(ctx, draft or ids, lists, nil, ids, not draft and estimated or nil, estimated)
     else
         out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)
     end
@@ -882,6 +993,17 @@ local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
     out.waiting, out.ceiling = ctx.waiting, ctx.ceiling
 end
 
+-- What a goal is worked out with: the gear data, your weights, class and side, and whether a 60
+-- of the class dual wields.
+Context = function(weights)
+    local _, classFile, classID = UnitClass("player")
+    local class = Gear.CLASS_GEAR[classFile or ""]
+    local ctx = { data = ns.GearData, weights = weights, classFile = classFile, classID = classID, side = Side(), waiting = 0,
+                  dual = (class and class.dualWield and Goal.LEVEL >= class.dualWield) or Gear.DualWields(classFile, Goal.LEVEL) }
+    ctx.key = table.concat({ classFile or "", classID or 0, ctx.side, ctx.dual and 1 or 0 }, ":")
+    return ctx
+end
+
 -- Working a goal out, as steps run in order: each slot type's pieces read out of GearData, the
 -- item level dungeons go up to, each slot's pieces scored, then the rest (Finish). Run in one go,
 -- or a few a frame (Goal.Read with `later`). { key, out, steps, i }; nil steps for a goal there's
@@ -896,10 +1018,7 @@ local function Job(spec, build, cheap, draft, key, now)
         out.noWeights = true
         return job
     end
-    local class = Gear.CLASS_GEAR[classFile or ""]
-    local ctx = { data = ns.GearData, weights = weights, classFile = classFile, classID = classID, side = Side(), waiting = 0,
-                  dual = (class and class.dualWield and Goal.LEVEL >= class.dualWield) or Gear.DualWields(classFile, Goal.LEVEL) }
-    ctx.key = table.concat({ classFile or "", classID or 0, ctx.side, ctx.dual and 1 or 0 }, ":")
+    local ctx = Context(weights)
     local steps, lists, types = {}, {}, {}
     for _, slot in ipairs(Gear.SLOTS) do
         for _, list in ipairs({ slot.types, Types(slot, ctx) }) do

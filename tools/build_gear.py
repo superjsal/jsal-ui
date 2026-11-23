@@ -602,29 +602,50 @@ QUARTERMASTERS = {"Bryanna Embreeze": 1, "Creeg Bothunk": 2}
 
 
 def quartermaster_side(item):
-    """The side whose quartermaster alone sells `item`, else 0."""
-    sides = {QUARTERMASTERS.get(s[0], 0) for s in item[11]} if item[11] else {0}
+    """The side whose Barrens quartermaster alone sells `item`, else 0."""
+    return sold_by(item, QUARTERMASTERS)
+
+
+# Warsong Gulch's two quartermasters, each selling to one side only (Wowhead gives their pieces a side
+# already): the Silverwing Sentinels' to the Alliance, the Warsong Outriders' to the Horde. Their pieces
+# are paired as the Barrens' are, so a WoWSims set's piece from one is the other side's from the other.
+GULCH_QUARTERMASTERS = {"Illiyana Moonblaze": 1, "Kelm Hargunth": 2}
+
+
+def sold_by(item, quartermasters):
+    """The side whose quartermaster in `quartermasters` alone sells `item`, else 0."""
+    sides = {quartermasters.get(s[0], 0) for s in item[11]} if item[11] else {0}
     return sides.pop() if len(sides) == 1 else 0
 
 
 def twins(items):
-    """Each Horde quartermaster piece and its Alliance twin, "horde:alliance": the one piece of the
-    other quartermaster with the same slot, kind, quality, levels and classes (by name, past the
-    side's word, where several are alike)."""
-    by = {1: [], 2: []}
-    for x in items:
-        side = quartermaster_side(x)
-        if side:
-            by[side].append(x)
+    """Each Horde quartermaster piece and its Alliance twin, "horde:alliance", for the Barrens' pair
+    and Warsong Gulch's: the one piece of the other quartermaster of the pair with the same slot,
+    kind, quality, levels and classes (by name, past the side's word, where several are alike), and
+    only where each is the other's one match: a piece with two or more alike and no name to tell them
+    apart, or whose other side's piece isn't in the lists, has no twin."""
     key = lambda x: (x[5], x[6], x[7], x[2], x[4], x[3], str(x[9]))
-    bare = lambda n: n.replace("Darkspear ", "").replace("Theramore ", "").replace("Raider ", "")
-    out = []
-    for h in by[2]:
-        same = [a for a in by[1] if key(a) == key(h)]
+    words = ("Darkspear ", "Theramore ", "Raider ", "Outrider's ", "Sentinel's ")
+    def bare(n):
+        for w in words:
+            n = n.replace(w, "")
+        return n
+    def match(x, pool):
+        same = [y for y in pool if key(y) == key(x)]
         if len(same) > 1:
-            same = [a for a in same if bare(a[1]) == bare(h[1])]
-        if len(same) == 1:
-            out.append(f"{h[0]}:{same[0][0]}")
+            same = [y for y in same if bare(y[1]) == bare(x[1])]
+        return same[0] if len(same) == 1 else None
+    out = []
+    for quartermasters in (QUARTERMASTERS, GULCH_QUARTERMASTERS):
+        by = {1: [], 2: []}
+        for x in items:
+            side = sold_by(x, quartermasters)
+            if side:
+                by[side].append(x)
+        for h in by[2]:
+            a = match(h, by[1])
+            if a is not None and match(a, by[2]) is h:
+                out.append(f"{h[0]}:{a[0]}")
     return ";".join(sorted(out))
 
 
@@ -737,8 +758,8 @@ def main():
         "    quests = " + lua_string(";".join(f"{i}:{q}" for i, q in sorted(quests.items()))) + ",",
         "    -- Items got by a quest, a vendor or a craft that need a raid first, separated by \";\".",
         "    raid = " + lua_string(";".join(str(i) for i in sorted(raid))) + ",",
-        "    -- The Barrens' quartermasters' twin pieces, \"Horde:Alliance\", separated by \";\": a set's piece",
-        "    -- from the other side's is its twin from yours.",
+        "    -- The Barrens' and Warsong Gulch's quartermasters' twin pieces, \"Horde:Alliance\", separated by",
+        "    -- \";\": a set's piece from the other side's is its twin from yours.",
         "    twins = " + lua_string(twins(data["items"])) + ",",
         "    -- WoWSims Forever's pre-raid sets (its batch sims, MIT): by class, the build each talent tree",
         "    -- starts on (false: none), and each build's set, and its cheap one, as 17 item IDs in the order",
