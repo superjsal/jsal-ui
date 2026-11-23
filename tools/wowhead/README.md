@@ -21,7 +21,23 @@ same script again carries on. Never try to get past the check another way.
    - When every list is in, the tab goes to the receiver and the file is written.
    - Then: `python -I tools/build_gear.py` (writes `jsalUI/Gear/GearData.lua`; compare its item
      count with the last commit's).
-2. **Dungeons (about 100 pages with `--thin`; a full read is about 190):**
+2. **Where the placeless set pieces drop (91 item pages at level 50, about 15 minutes):**
+   - A drop Wowhead names no one place for (the dungeon set bracers and belts drop from ordinary
+     creatures in several dungeons) takes its dungeons from its own page's "Dropped by" list, for
+     the Dungeon guide's Trash card.
+   - Start the receiver writing to a scratch file:
+     `python -I tools/wowhead/receive.py <scratchpad>/places-fresh.json`
+   - In the pane on a wowhead.com/forever page: the `window.__placeIds` line
+     `python -I tools/wowhead/place_items.py` prints, then the whole of `places.js`. Watch
+     `window.__places` (`read`, `left`, `err`). On a block it sends what it read to the receiver:
+     merge it (below), John clears the check in the pane, and the receiver, a new
+     `place_items.py` line and `places.js` again carry on with what's left. `--min-level 40` or
+     `30` reaches lower, `--quality 2` takes greens too, `--all` reads them all again.
+   - `python -I tools/wowhead/merge_places.py <scratchpad>/places-fresh.json` folds it into
+     `data/gear/wowhead-places.json` (items not in the batch keep their old read) and says how
+     many are still to read. Then `python -I tools/build_gear.py`, which says how many drops it
+     placed in a dungeon.
+3. **Dungeons (about 100 pages with `--thin`; a full read is about 190):**
    - `python -I tools/wowhead/bosses.py --thin` prints a `window.__bosses = ...;` line: the
      bosses whose loot is still filling in, or was never read. Leave out `--thin` for a full read
      (every few months); `--zones 16550,1176` reads only those Wowhead zones. The bosses come from
@@ -58,7 +74,7 @@ same script again carries on. Never try to get past the check another way.
      `python -I tools/wowhead/merge_quests.py <scratchpad>/items.json --items` (it writes
      `data/dungeons/quest-items.json`). Repeat after a check until the list is empty, then run
      `build_dungeons.py` again.
-3. **Pet abilities (one page, from Petopia, not Wowhead; when a patch changes pets or beasts):**
+4. **Pet abilities (one page, from Petopia, not Wowhead; when a patch changes pets or beasts):**
    - Start the receiver: `python -I tools/wowhead/receive.py data/pets/petopia.json`
    - Open `https://www.wow-petopia.com/forever/abilities.php` in the pane and run the whole of
      `tools/petopia.js` there.
@@ -76,7 +92,7 @@ same script again carries on. Never try to get past the check another way.
      quest items from busy creatures (it counts kills by players without the quest), so the build only takes
      a creature's rate there when at least half its kills dropped the item. EG Link's quest-only counts
      (`build_quest_scores.py --egloot`) are the better source; refresh them with each of its builds.
-4. **Recipe sources (8 lists, then a few hundred vendor and recipe pages; one to two hours):**
+5. **Recipe sources (8 lists, then a few hundred vendor and recipe pages; one to two hours):**
    - Start the receiver: `python -I tools/wowhead/receive.py data/professions/wowhead-sources.json`
    - In the pane on a wowhead.com/forever page: `localStorage.removeItem('jsalRecipes')`, then the
      whole of `recipes.js`. Watch `window.__recipes` (`pages`, `left`, `err`); on a block, John
@@ -94,7 +110,7 @@ same script again carries on. Never try to get past the check another way.
      supplies are read first; those with only water, milk or wood come last, and
      `window.__supplyStop = true` sends what's read without them. Then
      `python -I tools/build_professions.py <build>` (the build in ProfessionData.lua's header).
-5. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
+6. **Check and commit:** run the tests (`private/jsal-ui/tests`, in the jsal.io folder), look at
    the gear plan and a dungeon in game if John can, and commit on `beta` as
    "Data: Wowhead refresh (date)". It goes out with the next
    release; tick the to-do on John's list.
@@ -114,3 +130,7 @@ same script again carries on. Never try to get past the check another way.
   Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). A drop is
   kept when it's uncommon or better and dropped in at least 2% of 10 or more kills, or when the
   zone's Drops tab names the boss.
+- `place_items.py`, `places.js`, `merge_places.py`: each placeless drop's item page, the creatures
+  under "Dropped by" with their NPC IDs, zones and Wowhead's counts (`count` drops in `outof`
+  kills, kept as read). `build_gear.py` gives such an item a place in each dungeon one of them is
+  in: the dungeon alone, or "boss · dungeon" where only a boss drops it there.
