@@ -13147,6 +13147,721 @@
    ]
   },
   {
+   "class": 1,
+   "npc": "Granis Swiftaxe",
+   "zone": "Dun Morogh",
+   "seen": 1795459699,
+   "rows": [
+    {
+     "spell": 6673,
+     "name": "Battle Shout",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 100,
+     "name": "Charge",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 772,
+     "name": "Rend",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 100,
+     "level": 6,
+     "kind": "used"
+    },
+    {
+     "spell": 6343,
+     "name": "Thunder Clap",
+     "cost": 100,
+     "level": 6,
+     "kind": "available"
+    },
+    {
+     "spell": 1715,
+     "name": "Hamstring",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 284,
+     "name": "Heroic Strike",
+     "cost": 200,
+     "level": 8,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2687,
+     "name": "Bloodrage",
+     "cost": 700,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6546,
+     "name": "Rend",
+     "cost": 700,
+     "level": 10,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5242,
+     "name": "Battle Shout",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7384,
+     "name": "Overpower",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 72,
+     "name": "Shield Bash",
+     "cost": 900,
+     "level": 12,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1160,
+     "name": "Demoralizing Shout",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6572,
+     "name": "Revenge",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1310185,
+     "name": "Tactical Mastery",
+     "cost": 1100,
+     "level": 14,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 285,
+     "name": "Heroic Strike",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 694,
+     "name": "Mocking Blow",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 2565,
+     "name": "Shield Block",
+     "cost": 1500,
+     "level": 16,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 676,
+     "name": "Disarm",
+     "cost": 3200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8198,
+     "name": "Thunder Clap",
+     "cost": 3200,
+     "level": 18,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 845,
+     "name": "Cleave",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 674,
+     "name": "Dual Wield",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6547,
+     "name": "Rend",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20230,
+     "name": "Retaliation",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1240193,
+     "name": "Slam",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 402927,
+     "name": "Victory Rush",
+     "cost": 3400,
+     "level": 20,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6192,
+     "name": "Battle Shout",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5246,
+     "name": "Intimidating Shout",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7405,
+     "name": "Sunder Armor",
+     "cost": 5500,
+     "level": 22,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6190,
+     "name": "Demoralizing Shout",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 5308,
+     "name": "Execute",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1608,
+     "name": "Heroic Strike",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6574,
+     "name": "Revenge",
+     "cost": 6400,
+     "level": 24,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1161,
+     "name": "Challenging Shout",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6178,
+     "name": "Charge",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7400,
+     "name": "Mocking Blow",
+     "cost": 7600,
+     "level": 26,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7887,
+     "name": "Overpower",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 871,
+     "name": "Shield Wall",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8204,
+     "name": "Thunder Clap",
+     "cost": 11000,
+     "level": 28,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 18499,
+     "name": "Berserker Rage",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7369,
+     "name": "Cleave",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6548,
+     "name": "Rend",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1464,
+     "name": "Slam",
+     "cost": 12000,
+     "level": 30,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11549,
+     "name": "Battle Shout",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20658,
+     "name": "Execute",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7372,
+     "name": "Hamstring",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11564,
+     "name": "Heroic Strike",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1671,
+     "name": "Shield Bash",
+     "cost": 13000,
+     "level": 32,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11554,
+     "name": "Demoralizing Shout",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7379,
+     "name": "Revenge",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8380,
+     "name": "Sunder Armor",
+     "cost": 14000,
+     "level": 34,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7402,
+     "name": "Mocking Blow",
+     "cost": 18000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1680,
+     "name": "Whirlwind",
+     "cost": 18000,
+     "level": 36,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6552,
+     "name": "Pummel",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8820,
+     "name": "Slam",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 8205,
+     "name": "Thunder Clap",
+     "cost": 19000,
+     "level": 38,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11608,
+     "name": "Cleave",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20660,
+     "name": "Execute",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11565,
+     "name": "Heroic Strike",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 750,
+     "name": "Plate Mail",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11572,
+     "name": "Rend",
+     "cost": 23000,
+     "level": 40,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11550,
+     "name": "Battle Shout",
+     "cost": 30000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20616,
+     "name": "Intercept",
+     "cost": 30000,
+     "level": 42,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11555,
+     "name": "Demoralizing Shout",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11584,
+     "name": "Overpower",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11600,
+     "name": "Revenge",
+     "cost": 31000,
+     "level": 44,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11578,
+     "name": "Charge",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20559,
+     "name": "Mocking Blow",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11604,
+     "name": "Slam",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11596,
+     "name": "Sunder Armor",
+     "cost": 32000,
+     "level": 46,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23892,
+     "name": "Bloodthirst",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20661,
+     "name": "Execute",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11566,
+     "name": "Heroic Strike",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21551,
+     "name": "Mortal Strike",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23923,
+     "name": "Shield Slam",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11580,
+     "name": "Thunder Clap",
+     "cost": 33000,
+     "level": 48,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11609,
+     "name": "Cleave",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1719,
+     "name": "Recklessness",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11573,
+     "name": "Rend",
+     "cost": 36000,
+     "level": 50,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11551,
+     "name": "Battle Shout",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20617,
+     "name": "Intercept",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 1672,
+     "name": "Shield Bash",
+     "cost": 39000,
+     "level": 52,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23893,
+     "name": "Bloodthirst",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11556,
+     "name": "Demoralizing Shout",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 7373,
+     "name": "Hamstring",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21552,
+     "name": "Mortal Strike",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11601,
+     "name": "Revenge",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23924,
+     "name": "Shield Slam",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11605,
+     "name": "Slam",
+     "cost": 40000,
+     "level": 54,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20662,
+     "name": "Execute",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11567,
+     "name": "Heroic Strike",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20560,
+     "name": "Mocking Blow",
+     "cost": 42000,
+     "level": 56,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6554,
+     "name": "Pummel",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11597,
+     "name": "Sunder Armor",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11581,
+     "name": "Thunder Clap",
+     "cost": 48000,
+     "level": 58,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23894,
+     "name": "Bloodthirst",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 20569,
+     "name": "Cleave",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 21553,
+     "name": "Mortal Strike",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11585,
+     "name": "Overpower",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 11574,
+     "name": "Rend",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 23925,
+     "name": "Shield Slam",
+     "cost": 49000,
+     "level": 60,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
    "class": 11,
    "npc": "Ilyenia Moonfire",
    "zone": "Darnassus",
@@ -18208,6 +18923,49 @@
      "cost": 100,
      "level": 4,
      "kind": "unavailable"
+    },
+    {
+     "spell": 3127,
+     "name": "Parry",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    },
+    {
+     "spell": 6343,
+     "name": "Thunder Clap",
+     "cost": 100,
+     "level": 6,
+     "kind": "unavailable"
+    }
+   ]
+  },
+  {
+   "class": 1,
+   "npc": "Thran Khorman",
+   "zone": "Anvilmar",
+   "seen": 1795458032,
+   "rows": [
+    {
+     "spell": 6673,
+     "name": "Battle Shout",
+     "cost": 10,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 100,
+     "name": "Charge",
+     "cost": 100,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 772,
+     "name": "Rend",
+     "cost": 100,
+     "level": 4,
+     "kind": "available"
     },
     {
      "spell": 3127,
