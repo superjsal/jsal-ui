@@ -1044,8 +1044,8 @@ Window.Page("dungeons", function(page)
         b.box = CreateFrame("Frame", nil, b.head)
         b.box:SetSize(16, 16)
         b.box:SetPoint("LEFT", 36, 0)
+        -- A green square: its line would be the fill's own colour, inside the fill, so it's the fill alone.
         b.boxFill = Style.Fill(b.box, "wordGreen")
-        b.boxEdges = Style.Border(b.box, "lineStrong")
         -- The game's own check mark, in white.
         b.tick = b.box:CreateTexture(nil, "OVERLAY")
         b.tick:SetSize(16, 16)
@@ -1734,7 +1734,6 @@ Window.Page("dungeons", function(page)
             else
                 card.name:SetPoint("LEFT", card.head, "LEFT", 36, 0)
             end
-            Style.SetBorder(card.boxEdges, "wordGreen")
             card.kills:SetText(m.kills)
         else
             B.TrashHead(card)
