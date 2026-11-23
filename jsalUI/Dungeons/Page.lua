@@ -1537,7 +1537,11 @@ Window.Page("dungeons", function(page)
         end
         local starredSet = ns.Gear and ns.Gear.Starred() or {}
         local trades = {}
-        for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine() or {}) do trades[p.name or ""] = true end
+        -- A recipe's kind is named in the client's language: your professions by the game's name too.
+        for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine() or {}) do
+            trades[p.name or ""] = true
+            if type(p.game) == "string" then trades[p.game] = true end
+        end
         local mine, others, forYou, sure = {}, {}, 0, 0
         for k, entry in ipairs(list) do
             local _, _, _, _, _, _, subclass, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
