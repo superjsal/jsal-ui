@@ -1,0 +1,6 @@
+# Class trainers in the starting areas and their first towns that neither Wowhead's class lists
+# (trainers.txt) nor players' openings (eglink-trainers.json) have, each from its own NPC page on
+# Wowhead Forever: npc|name|tag|alliance|horde|c<class>|uiMapID|x|y|top. The title, the "React" line
+# (1 friendly, -1 hostile, blank none, as in trainers.txt), the first map spot (0 to 100, on the uiMap
+# the page names) and top, the highest level on its Trainer tab. A row with no top (a page listing
+# nothing it teaches) is left out by tools/build_trainers.py, which prints it.

@@ -5,7 +5,9 @@ Trainers tab) and each trainer's first spot on the game's own maps (uiMapID and 
 page). The Trainers tabs also list quest givers and innkeepers, so a trainer only counts for a kind
 when the title over its head says so: "Hunter Trainer" for hunters, a tailoring word for tailoring;
 one with no title, for a profession players saw it teach (EG Link). The class pages list only the
-capitals' trainers, so the class trainers players opened elsewhere are added from EG Link.
+capitals' trainers, so the class trainers players opened elsewhere are added from EG Link, and
+the starting areas' and towns' that nobody opened from each one's own Wowhead NPC page
+(data/trainers/wowhead-starters.txt).
 Wowhead's spots are on Classic's maps; tools/maps.py puts them on Forever's, which draws Stormwind
 and three other zones differently.
 
@@ -123,6 +125,10 @@ OUT = ROOT / "jsalUI" / "TrainerData.lua"
 # Who a trainer on a map with no side trains (a shared zone, Moonglade, Ashenvale), from Wowhead
 # Forever's NPC pages.
 SIDES = ROOT / "data" / "trainers" / "wowhead-sides.txt"
+# Class trainers in the starting areas and their towns that neither Wowhead's class lists nor
+# players' openings have, from each one's own Wowhead Forever page, with the highest level its
+# Trainer tab lists as `top`.
+STARTERS = ROOT / "data" / "trainers" / "wowhead-starters.txt"
 # A trainer's class: the class whose spells are over this share of what it was seen to teach.
 CLASS_SHARE = 0.5
 
@@ -190,6 +196,24 @@ def class_trainers(listed, portal_npcs):
         top = max(int(s.get("level") or 0) for s in services.values())
         out.setdefault(f"class{best}", []).append(
             (npc, t["name"], map_id, round(spot["mapX"], 4), round(spot["mapY"], 4), a, h, top))
+    # Wowhead's starting-area and town trainers, after players' own: one players opened stays
+    # theirs, and one with no spells on its Trainer tab has no `top` to go by, so it's left out.
+    placed = {row[0] for rows in out.values() for row in rows}
+    if STARTERS.exists():
+        for line in STARTERS.read_text(encoding="utf-8").splitlines():
+            if not line or line.startswith("#"):
+                continue
+            npc, name, _, alliance, horde, kind, map_id, x, y, top = line.split("|")
+            npc, map_id = int(npc), int(map_id)
+            if npc in listed or npc in placed:
+                continue
+            if not top:
+                left.append(f"{name} ({npc}): its Wowhead page lists nothing it teaches")
+                continue
+            spot_x, spot_y = forever_spot(map_id, float(x), float(y))
+            out.setdefault("class" + kind[1:], []).append(
+                (npc, name, map_id, round(spot_x / 100, 4), round(spot_y / 100, 4),
+                 friendly(alliance), friendly(horde), int(top)))
     return out, left
 
 
