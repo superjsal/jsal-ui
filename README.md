@@ -1,8 +1,8 @@
 # jsal.ui
 
-Your road to 60 in WoW Forever, planned. Free, from [jsal.io](https://jsal.io/jsal-ui/).
+From level 1 to raid night in WoW Forever, planned. Free, from [jsal.io](https://jsal.io/jsal-ui/).
 
-![jsal.ui's dashboard](https://jsal.io/img/jsal-ui/store/cards/01-home.jpg)
+![jsal.ui's dashboard](https://jsal.io/img/jsal-ui/store/cards-0362/01-home.jpg)
 
 ## What's in it
 
