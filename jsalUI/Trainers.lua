@@ -85,37 +85,65 @@ local function Takes(trainer, skill)
 end
 Trainers.Takes = Takes
 
+-- A list of spell IDs as a set, made once and kept on the table that holds the list.
+local function Set(holder, field)
+    local set = holder[field .. "Set"]
+    if not set then
+        set = {}
+        for _, id in ipairs(holder[field] or {}) do set[id] = true end
+        holder[field .. "Set"] = set
+    end
+    return set
+end
+
 -- Whether a trainer teaches a spell: by what players were seen to be taught by
 -- it, where it was opened (`teaches`, from EG Link); nil when that isn't known.
-local function Teaches(trainer, spell)
-    local list = trainer.teaches
-    if type(list) ~= "table" then return nil end
-    if not trainer.taught then
-        trainer.taught = {}
-        for _, id in ipairs(list) do trainer.taught[id] = true end
-    end
-    return trainer.taught[spell] == true
+-- A class trainer seen selling its class's spells carries what of its class's
+-- list (`sells`, kept on the class's list of trainers) it wasn't seen to sell,
+-- up to its `top`: `lacks`.
+local function Teaches(trainer, spell, sells)
+    if type(trainer.teaches) == "table" then return Set(trainer, "teaches")[spell] == true end
+    if type(trainer.lacks) ~= "table" then return nil end
+    if Set(trainer, "lacks")[spell] then return false end
+    if sells and Set(sells, "sells")[spell] then return true end
+    return nil
 end
 Trainers.Teaches = Teaches
 
--- The level of the spells a class trainer is wanted for now: the highest of
--- those ready for you that a class trainer sells, else the next of them
--- your levels bring, else your level. One read of the Training Planner's
--- list, which is kept until a spell or a level changes.
+-- How many of the spells you need (a set of IDs) a class trainer seen selling
+-- its class's spells wasn't seen to sell: none for one never seen.
+local function Lacking(trainer, wanted)
+    local n = 0
+    for _, id in ipairs(trainer.lacks or {}) do
+        if wanted[id] then n = n + 1 end
+    end
+    return n
+end
+
+-- What a class trainer is wanted for now: the spells ready for you that a
+-- class trainer sells, else the next of them your levels bring; their highest
+-- level (your level when there are none), and the spells as a set of IDs (nil
+-- when there are none). One read of the Training Planner's list, which is kept
+-- until a spell or a level changes.
 local function ClassNeed()
     local level = UnitLevel("player") or 1
     local data = ns.Training and ns.Training.Read and ns.Training.Read()
-    local ready, soon
+    local ready, soon, now, later = nil, nil, {}, {}
     for _, spell in ipairs(data and data.spells or {}) do
         if not spell.known and not spell.skipped and not spell.via and not spell.source then
             if spell.level <= level then
                 ready = math.max(ready or 0, spell.level)
+                if spell.id then now[spell.id] = true end
             elseif not soon or spell.level < soon then
-                soon = spell.level
+                soon, later = spell.level, {}
+                if spell.id then later[spell.id] = true end
+            elseif spell.level == soon and spell.id then
+                later[spell.id] = true
             end
         end
     end
-    return ready or soon or level
+    if ready then return ready, now end
+    return soon or level, soon and later or nil
 end
 Trainers.ClassNeed = ClassNeed
 
@@ -126,8 +154,12 @@ Trainers.ClassNeed = ClassNeed
 -- opened goes by its title. A class trainer with a `top` (a starting area's
 -- teaches only the first few levels' spells) is passed over when its top is
 -- below the level of what you need from it: rank, for a class, is that
--- level, and is worked out from your spells when not given. Returns the
--- trainer ({ npc, name, tag, map, x, y }) or nil.
+-- level, and is worked out from your spells when not given. And when it is
+-- worked out, so are the spells themselves: a class trainer seen not selling
+-- one of them (`lacks`) gives way to one who sells them all, however far,
+-- and where nobody does, to the one lacking fewest; one never seen selling
+-- anything goes by its `top` alone, as before. Returns the trainer
+-- ({ npc, name, tag, map, x, y }) or nil.
 function Trainers.Nearest(key, rank, skill, spell)
     local list = ns.TrainerData and ns.TrainerData[key]
     if not list then return nil end
@@ -145,14 +177,16 @@ function Trainers.Nearest(key, rank, skill, spell)
     end
     local plain = titled and 2 or PLAIN[key] or 4
     local class = key:find("^class") ~= nil
-    local need = class and rank or nil
-    local best, bestDistance
+    local need, wanted = class and rank or nil, nil
+    local best, bestDistance, bestLacking
     for _, t in ipairs(list) do
-        local seen = spell and Teaches(t, spell)
+        local seen = spell and Teaches(t, spell, list)
         local fits
+        local lacking = 0
         if class then
-            if t.top and not need then need = ClassNeed() end
+            if (t.top or t.lacks) and not need then need, wanted = ClassNeed() end
             fits = seen ~= false and (not t.top or t.top >= need)
+            if fits and wanted and t.lacks then lacking = Lacking(t, wanted) end
         else
             fits = seen or (seen == nil and (not rank or (TeachesRank(t.tag) or plain) >= rank))
         end
@@ -163,7 +197,9 @@ function Trainers.Nearest(key, rank, skill, spell)
             if continent and here and continent == here then
                 d = (wx - hx) ^ 2 + (wy - hy) ^ 2
             end
-            if not best or d < bestDistance then best, bestDistance = t, d end
+            if not best or lacking < bestLacking or (lacking == bestLacking and d < bestDistance) then
+                best, bestDistance, bestLacking = t, d, lacking
+            end
         end
     end
     return best

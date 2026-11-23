@@ -131,6 +131,78 @@ SIDES = ROOT / "data" / "trainers" / "wowhead-sides.txt"
 STARTERS = ROOT / "data" / "trainers" / "wowhead-starters.txt"
 # A trainer's class: the class whose spells are over this share of what it was seen to teach.
 CLASS_SHARE = 0.5
+# What each class trainer's own Wowhead Forever page lists on its Trainer tab, by spell ID and level.
+WOWHEAD_TEACHES = ROOT / "data" / "trainers" / "wowhead-teaches.txt"
+SPELL_TABLES = ROOT / "data" / "spells"
+
+
+def class_book():
+    """The spells a class trainer is checked for, by class: {class: {spell: level}}. The class's
+    spells every race learns, and what else its trainers teach (`extra`: Parry, Plate Mail). Not a
+    race-only rank: a trainer shows it only to that race, so one opening says nothing of the others.
+    Nor a spell SpellData says comes from somewhere else (`elsewhere`: a quest, a book, a portal
+    trainer), which the planner never sends anyone to a class trainer for."""
+    import re
+    out = {}
+    parts = re.split(r"\n    \[(\d+)\] = \{", SPELLS.read_text(encoding="utf-8"))
+    for i in range(1, len(parts), 2):
+        body, book = parts[i + 1], {}
+        block = re.search(r"\n        spells = \{(.*?)\n        \}", body, re.S)
+        away = re.search(r"\n        elsewhere = \{([^\n]*)\}", body)
+        away = {int(s) for s, k in re.findall(r"\[(\d+)\] = \"(\w+)\"", away.group(1) if away else "") if k != "trainer"}
+        for spell, level, race in re.findall(r"\{ (\d+), (\d+), \d+, (-?\d+), \d+ \}", block.group(1) if block else ""):
+            if race == "0" and int(spell) not in away:
+                book[int(spell)] = int(level)
+        extra = re.search(r"\n        extra = \{([^\n]*)\}", body)
+        for spell, level in re.findall(r"\{ (\d+), (\d+) \}", extra.group(1) if extra else ""):
+            book.setdefault(int(spell), int(level))
+        out[int(parts[i])] = book
+    return out
+
+
+def same_spell(book):
+    """A function (class, spell) -> the class's own ID for it, or None. A trainer can sell a class
+    spell under another ID than the class's list has (one warrior trainer sells Slam Rank 2 as 1464,
+    another as 1310197): such an ID is the class's spell that the game's own tables give the same
+    name and rank, where only one of the class's spells has them. Done here, from the game's tables,
+    so the addon matches by ID alone."""
+    import csv
+    with open(SPELL_TABLES / "SpellName.csv", newline="", encoding="utf-8") as f:
+        names = {int(r["ID"]): r["Name_lang"] for r in csv.DictReader(f)}
+    with open(SPELL_TABLES / "Spell.csv", newline="", encoding="utf-8") as f:
+        ranks = {int(r["ID"]): r["NameSubtext_lang"] for r in csv.DictReader(f)}
+    mine = {}
+    for class_id, spells in book.items():
+        for spell in spells:
+            mine.setdefault((class_id, names.get(spell), ranks.get(spell, "")), []).append(spell)
+
+    def own(class_id, spell):
+        if spell in book[class_id]:
+            return spell
+        found = mine.get((class_id, names.get(spell), ranks.get(spell, "")), [])
+        return found[0] if len(found) == 1 and names.get(spell) else None
+    return own
+
+
+def class_seen():
+    """What each class trainer was seen to sell, from every source, by spell ID: EG Link's openings
+    and Wowhead's pages by NPC ({npc: set}), and the saved visits by trainer and the visitor's class
+    ({(name, class): set}). A trainer's window lists everything it teaches that class, learned or not."""
+    by_npc, by_name = {}, {}
+    if EGLINK.exists():
+        for npc, t in json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"].items():
+            if not t.get("tradeskill"):
+                by_npc.setdefault(int(npc), set()).update(int(s) for s in t.get("services") or {})
+    if WOWHEAD_TEACHES.exists():
+        for line in WOWHEAD_TEACHES.read_text(encoding="utf-8").splitlines():
+            if line and not line.startswith("#"):
+                npc, _, ability, other = line.split("|")
+                by_npc.setdefault(int(npc), set()).update(
+                    int(entry.split(":")[0]) for entry in (ability + "," + other).split(",") if entry)
+    if VISITS.exists():
+        for t in json.loads(VISITS.read_text(encoding="utf-8"))["trainers"]:
+            by_name.setdefault((t["npc"], t["class"]), set()).update(r["spell"] for r in t["rows"] if r.get("spell"))
+    return by_npc, by_name
 
 
 def class_spells():
@@ -275,6 +347,48 @@ def taught():
     return out
 
 
+def class_lists(by_key, others):
+    """What each class trainer was seen to sell, kept small: for each class, `sells`, the spells of
+    its class_book() most of its trainers were seen to sell; and for each trainer seen selling any,
+    `lacks`, what of that list up to its `top` (60 for one with none) it wasn't seen to sell. The
+    same list with each trainer's few exceptions is a tenth of the size of every trainer's whole
+    list, and a town's trainers mostly sell the same. A trainer nobody has seen sell anything has no
+    `lacks`. Returns ({key: set(spell)}, {npc: [spell]})."""
+    book = class_book()
+    own = same_spell(book)
+    by_npc, by_name = class_seen()
+    sells, lacks = {}, {}
+    for key in by_key:
+        if not key.startswith("class") or int(key[5:]) not in book:
+            continue
+        class_id = int(key[5:])
+        trainers = [(row[0], row[1], 60) for row in by_key[key]]
+        trainers += [(row[0], row[1], row[-1]) for row in others.get(key, [])]
+        lists = {}
+        for npc, name, top in trainers:
+            got = by_npc.get(npc, set()) | by_name.get((name, class_id), set())
+            mine = {spell for spell in (own(class_id, sp) for sp in got) if spell}
+            if mine:
+                lists[npc] = (mine, top)
+        # A spell is on the class's list when most of the trainers whose `top` reaches it were seen
+        # selling it. One only a few list (Lightwell's later ranks, on three Undercity pages of 25
+        # priest trainers) isn't held against the rest: the planner would send everyone to those few.
+        sells[key] = set()
+        for spell in set().union(*(mine for mine, _ in lists.values())):
+            reach = [mine for mine, top in lists.values() if book[class_id][spell] <= top]
+            if 2 * sum(1 for mine in reach if spell in mine) > len(reach):
+                sells[key].add(spell)
+        for npc, (mine, top) in lists.items():
+            lacks[npc] = sorted(sp for sp in sells[key] if book[class_id][sp] <= top and sp not in mine)
+    return sells, lacks
+
+
+def lua_lacks(lacks, npc):
+    if npc not in lacks:
+        return ""
+    return f", lacks = {{ {', '.join(str(sp) for sp in lacks[npc])} }}" if lacks[npc] else ", lacks = {}"
+
+
 def lua_string(text):
     return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
@@ -331,6 +445,10 @@ def main():
         "-- Efficient Games, CC BY 4.0). A class trainer with `top` is one players opened",
         "-- that Wowhead's lists leave out (EG Link), mostly in the starting areas and",
         "-- their towns: `top` is the highest level of anything it was seen to teach.",
+        "-- Each class's list has `sells`, the class spells (by ID) most of its trainers",
+        "-- were seen to sell, by players (EG Link), in visits and on each trainer's own",
+        "-- Wowhead Forever page; a class trainer seen selling any has `lacks`, what of",
+        "-- `sells` up to its `top` it wasn't seen to sell (`{}` for none).",
         "-- Regenerated by the build, not by hand.",
         "local _, ns = ...",
         "",
@@ -342,6 +460,7 @@ def main():
     others, left = class_trainers(listed, {p[0] for p in portals})
     for key in set(by_key) | set(others):
         by_key.setdefault(key, [])
+    sells, lacks = class_lists(by_key, others)
     for key in sorted(by_key):
         lines.append(f"    {key} = {{")
         skill = int(key[5:]) if key.startswith("skill") else None
@@ -349,10 +468,12 @@ def main():
             spells = seen.get(npc, {}).get(skill) if skill else None
             teaches = f", teaches = {{ {', '.join(str(sp) for sp in sorted(spells))} }}" if spells else ""
             lines.append(f"        {{ npc = {npc}, name = {lua_string(name)}, tag = {lua_string(tag)}, "
-                         f"map = {map_id}, x = {x}, y = {y}, a = {str(a).lower()}, h = {str(h).lower()}{teaches} }},")
+                         f"map = {map_id}, x = {x}, y = {y}, a = {str(a).lower()}, h = {str(h).lower()}{teaches}{lua_lacks(lacks, npc)} }},")
         for npc, name, map_id, x, y, a, h, top in sorted(others.get(key, [])):
             lines.append(f"        {{ npc = {npc}, name = {lua_string(name)}, map = {map_id}, x = {x}, y = {y}, "
-                         f"a = {str(a).lower()}, h = {str(h).lower()}, top = {top} }},")
+                         f"a = {str(a).lower()}, h = {str(h).lower()}, top = {top}{lua_lacks(lacks, npc)} }},")
+        if sells.get(key):
+            lines.append(f"        sells = {{ {', '.join(str(sp) for sp in sorted(sells[key]))} }},")
         lines.append("    },")
     # A mage's portal trainers, each with the teleports and portals it's been seen to teach.
     lines.append("    -- A mage's portal trainers players opened (Efficient Games' data, CC BY 4.0), and the")

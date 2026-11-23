@@ -78,6 +78,21 @@ draws differently, it matches where players found the same trainer), so unlike t
 isn't moved by `tools\maps.py`. A row with no `top` is left out, as is one players opened, whose
 spot and list stay theirs.
 
+What each class trainer sells: `data\trainers\wowhead-teaches.txt` holds, one row a trainer, the spell IDs
+and levels its own Wowhead Forever NPC page lists on its Trainer tab: the abilities, and the other lists
+beside them (a rogue's poisons and Pick Lock, Parry, Dual Wield, Mail, a mage's Comprehend Scroll). The
+IDs are taken from the page's own list, never from a name. The builder joins it with what players were
+seen buying at the same trainer (EG Link) and the saved visits, keeping everything any source saw. A
+trainer can sell a class spell under another ID than SpellData has (Slam Rank 2 is 1464 at one warrior
+trainer and 1310197 at another); the game's own tables, which give both the same name and rank, join
+them, so the addon matches by ID alone. Not checked: a race-only rank (a trainer shows it only to that
+race) and a spell SpellData says comes from a quest, a book or a portal trainer. Each class's list in
+`TrainerData.lua` gets `sells`, the spells most of its trainers sell, and each trainer with a list gets
+`lacks`, what of those (up to its `top`) it doesn't; a spell only a few trainers list isn't held against
+the rest. `Trainers.Nearest` passes over a trainer lacking a spell you need for one who sells them all.
+A fresh read is one NPC page at a time in the app's browser, a page a minute; one page's row replaces
+its old row.
+
 ## Raid night consumables
 
 The Endgame page's RAID NIGHT card lists WoWSims Forever's consumables for your spec
