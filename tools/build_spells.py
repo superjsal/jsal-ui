@@ -263,17 +263,20 @@ def Elsewhere(class_id, spells, names, ranks, taught_by_trainer):
         return name in entries or f"{name}|{rank}" in entries
 
     for level, spell, _, race in spells:
+        name, rank = Key(spell)
+        # First, as a visit to a portal trainer is saved like a class trainer's and would
+        # otherwise count its two spells as a class trainer's.
+        if class_id == 8 and (name.startswith("Teleport: ") or name.startswith("Portal: ")) and "Dalaran" not in name:
+            out[spell] = "portal"
+            continue
         if spell in taught_by_trainer:
             continue
-        name, rank = Key(spell)
         if Listed(QUESTS.get(class_id, []), spell):
             out[spell] = "quest"
         elif Listed(BOOKS.get(class_id, []), spell):
             out[spell] = "book"
         elif level >= 60 and name in sold_names and "Passive" not in rank:
             out[spell] = "book"
-        elif class_id == 8 and (name.startswith("Teleport: ") or name.startswith("Portal: ")) and "Dalaran" not in name:
-            out[spell] = "portal"
         elif class_id in RACIAL_TRAINER and race and rank.startswith("Rank ") and rank != "Rank 1":
             out[spell] = "trainer"
     return out

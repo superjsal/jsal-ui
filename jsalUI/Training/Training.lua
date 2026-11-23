@@ -65,6 +65,17 @@ function Training.WeaponMasters(seen)
     return table.concat(list, " or ")
 end
 
+-- The portal trainer of your side seen to teach a mage's teleport or portal, or nil where none
+-- has been. Each teaches its own city's pair, so a spell has one: it's that one, not the nearest.
+function Training.PortalTrainer(spellID)
+    local T = ns.Trainers
+    if not (T and T.Friendly and T.Teaches) then return nil end
+    for _, trainer in ipairs(ns.TrainerData and ns.TrainerData.portal or {}) do
+        if T.Friendly(trainer) and T.Teaches(trainer, spellID) then return trainer end
+    end
+    return nil
+end
+
 -- Sorts the saved trainers for this class into class trainers, pet trainers
 -- and weapon masters, by what their lists teach, and gathers each one's
 -- prices. A pet trainer opens the same window as a class trainer, but what
@@ -325,6 +336,7 @@ local function ReadNow()
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
                 cost = prices.bySpell[id] or prices.byName[RankKey(name, rank)],
                 known = Known(id, name, rank), skipped = skips[id] == true, via = via,
+                pin = via == "portal" and Training.PortalTrainer(id) or nil,
             }
         end
     end

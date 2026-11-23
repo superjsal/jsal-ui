@@ -1,4 +1,4 @@
-"""Builds jsalUI/TrainerData.lua: where each class, pet and profession trainer stands.
+"""Builds jsalUI/TrainerData.lua: where each class, pet, portal and profession trainer stands.
 
 From Wowhead Forever (data/trainers.txt): each class's and profession's trainers (from its page's
 Trainers tab) and each trainer's first spot on the game's own maps (uiMapID and x, y, from its NPC
@@ -111,6 +111,32 @@ def weapon_masters(seen_lines):
     return out
 OUT = ROOT / "jsalUI" / "TrainerData.lua"
 
+
+def portal_trainers():
+    """A mage's portal trainers players opened (EG Link): the ones whose services are the
+    teleports and portals SpellData marks as a portal trainer's, each with its first spot and
+    the spells it was seen to teach. Its side is its city's. Sorted by NPC."""
+    import json
+    import re
+    portal = set()
+    for inner in re.findall(r"\n        elsewhere = \{ ([^}]*) \}", SPELLS.read_text(encoding="utf-8")):
+        portal.update(int(x) for x in re.findall(r"\[(\d+)\] = \"portal\"", inner))
+    out = []
+    if not EGLINK.exists():
+        return out
+    for npc, t in json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"].items():
+        services = t.get("services") or {}
+        teaches = sorted(int(s) for s in services if int(s) in portal)
+        spot = (t.get("positions") or [{}])[0]
+        if not teaches or len(teaches) < len(services) or not spot.get("uiMap"):
+            continue
+        map_id = int(spot["uiMap"])
+        a, h = map_id in ALLIANCE_MAPS, map_id in HORDE_MAPS
+        if a or h:
+            out.append((int(npc), t["name"], map_id, round(spot["mapX"], 4), round(spot["mapY"], 4), a, h, teaches))
+    return sorted(out)
+
+
 # The words a profession trainer's title has.
 PROFESSION_WORDS = {
     171: ("Alchem",), 164: ("Blacksmith", "Armor Crafter", "Weaponsmith"), 333: ("Enchant",),
@@ -209,6 +235,16 @@ def main():
             lines.append(f"        {{ npc = {npc}, name = {lua_string(name)}, tag = {lua_string(tag)}, "
                          f"map = {map_id}, x = {x}, y = {y}, a = {str(a).lower()}, h = {str(h).lower()}{teaches} }},")
         lines.append("    },")
+    # A mage's portal trainers, each with the teleports and portals it's been seen to teach.
+    portals = portal_trainers()
+    lines.append("    -- A mage's portal trainers players opened (Efficient Games' data, CC BY 4.0), and the")
+    lines.append("    -- teleports and portals each was seen to teach (spell IDs): its own city's.")
+    lines.append("    portal = {")
+    for npc, name, map_id, x, y, a, h, teaches in portals:
+        lines.append(f"        {{ npc = {npc}, name = {lua_string(name)}, tag = \"Portal Trainer\", map = {map_id}, "
+                     f"x = {x}, y = {y}, a = {str(a).lower()}, h = {str(h).lower()}, "
+                     f"teaches = {{ {', '.join(str(sp) for sp in teaches)} }} }},")
+    lines.append("    },")
     # The weapon masters, each with the weapon skills it's been seen to teach.
     masters = weapon_masters(SEEN.read_text(encoding="utf-8").splitlines())
     lines.append("    -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from")
@@ -222,7 +258,7 @@ def main():
     lines.append("    },")
     lines += ["}", ""]
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    counts = ", ".join(f"{k} {len(v)}" for k, v in sorted(by_key.items())) + f", weapons {len(masters)}"
+    counts = ", ".join(f"{k} {len(v)}" for k, v in sorted(by_key.items())) + f", portal {len(portals)}, weapons {len(masters)}"
     ranks_seen()
     print(f"-> {OUT.relative_to(ROOT)}: {counts}")
 

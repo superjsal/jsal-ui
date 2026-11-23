@@ -382,6 +382,13 @@ ns.TrainerData = {
         { npc = 259287, name = "Melanie Sable", tag = "Expert Enchanter", map = 2548, x = 0.662, y = 0.832, a = true, h = false },
         { npc = 266881, name = "Pa'zula", tag = "Journeyman Enchanter", map = 1411, x = 0.564, y = 0.736, a = false, h = true, teaches = { 7420, 7426, 7454, 7457, 7748, 7771, 14293, 14807, 1230643 } },
     },
+    -- A mage's portal trainers players opened (Efficient Games' data, CC BY 4.0), and the
+    -- teleports and portals each was seen to teach (spell IDs): its own city's.
+    portal = {
+        { npc = 2492, name = "Lexington Mortaim", tag = "Portal Trainer", map = 1458, x = 0.84, y = 0.1577, a = false, h = true, teaches = { 3563, 11418 } },
+        { npc = 5957, name = "Birgitte Cranston", tag = "Portal Trainer", map = 1456, x = 0.2228, y = 0.1676, a = false, h = true, teaches = { 3566, 11420 } },
+        { npc = 5958, name = "Thuul", tag = "Portal Trainer", map = 1454, x = 0.3861, y = 0.8568, a = false, h = true, teaches = { 3567, 11417 } },
+    },
     -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from
     -- Efficient Games' data (CC BY 4.0) and visits in the game. A weapon master lists only
     -- what the class in front of it can still learn, so a list here may yet grow.

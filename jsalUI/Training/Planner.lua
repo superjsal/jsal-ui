@@ -55,6 +55,23 @@ local VIA = {
     portal = { card = "Portal trainer", tag = "Portal", hint = "Taught by a mage portal trainer, in a capital city." },
 }
 
+-- Where a spell from elsewhere is got, on its line and in its tooltip. A portal spell whose
+-- trainer is known (its `pin`) names the city on its line, where `city` asks for it, and the
+-- trainer in its tooltip; a picture on the road, which pins them when clicked, says so, as a
+-- weapon skill's does. Else the words above.
+local function ViaCard(spell, city)
+    local zone = city and spell.pin and ns.Trainers and ns.Trainers.Zone(spell.pin)
+    return VIA[spell.via].card .. (zone and (" · " .. zone) or "")
+end
+
+local function ViaHint(spell, click)
+    local trainer = spell.pin
+    if not trainer then return VIA[spell.via].hint end
+    local zone = ns.Trainers and ns.Trainers.Zone(trainer)
+    return ("Taught by %s, the portal trainer%s.%s"):format(trainer.name, zone and (" in " .. zone) or "",
+        click and " Click to show them on your map." or "")
+end
+
 -- Quest and book spells cost no gold, so they stay out of the totals.
 local function Free(spell)
     return spell.via == "quest" or spell.via == "book"
@@ -121,7 +138,7 @@ end
 -- that a right-click skips it.
 local function Hint(spell)
     return (spell.group and (spell.source == "demon" and spell.group .. "'s Grimoire. " or spell.group .. ". ") or "")
-        .. (spell.via and (VIA[spell.via].hint .. " ") or "")
+        .. (spell.via and (ViaHint(spell, true) .. " ") or "")
         .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
 end
 
@@ -963,13 +980,19 @@ Window.Page("training", function(page)
             if Style.Wide(c.name, 0) > room - (tagged and 44 or 0) then c.name:SetWidth(room - (tagged and 44 or 0)) end
             c.new:SetShown(tagged)
             -- A new ability says so in its tag; a higher rank says which.
-            local detail = not fresh and spell.rank or nil
-            if spell.source == "demon" then detail = spell.group .. " · Grimoire" .. (detail and (" · " .. detail) or "")
-            elseif spell.group then detail = spell.group .. (detail and (" · " .. detail) or "")
-            elseif spell.via then detail = VIA[spell.via].card .. (detail and (" · " .. detail) or "") end
-            if fresh and not tagged then detail = Style.Tint("gold") .. "new|r" .. (detail and (" · " .. detail) or "") end
-            c:SetDetail(detail)
-            c.hint = (spell.via and (VIA[spell.via].hint .. " ") or "") .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
+            -- A portal trainer's city gives way whole where the line has no room for it, never
+            -- cut short.
+            local function Detail(city)
+                local detail = not fresh and spell.rank or nil
+                if spell.source == "demon" then detail = spell.group .. " · Grimoire" .. (detail and (" · " .. detail) or "")
+                elseif spell.group then detail = spell.group .. (detail and (" · " .. detail) or "")
+                elseif spell.via then detail = ViaCard(spell, city) .. (detail and (" · " .. detail) or "") end
+                if fresh and not tagged then detail = Style.Tint("gold") .. "new|r" .. (detail and (" · " .. detail) or "") end
+                return detail
+            end
+            c:SetDetail(Detail(true))
+            if spell.pin and Style.Wide(c.sub, 0) > room then c:SetDetail(Detail(false)) end
+            c.hint = (spell.via and (ViaHint(spell) .. " ") or "") .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
             if spell.source == "beast" then
                 c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
             elseif Free(spell) then
