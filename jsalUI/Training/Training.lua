@@ -241,6 +241,9 @@ local function Grimoires(classID, source)
     return out
 end
 
+-- Tame Beast, which a hunter needs before any pet: the spell's ID, the same in every language.
+local TAME_BEAST = 1515
+
 -- Everything the page needs: each spell with its level, school, name, rank,
 -- icon, price (nil when no trainer has shown it yet), whether you know it,
 -- and whether you've chosen to skip it; and each weapon skill with its price
@@ -267,6 +270,9 @@ local function ReadNow()
     -- And each Beast Training spell's level and rank, from the spell list. A trainer's row can't
     -- be trusted for the level: it lists a rank you've learned at level 0, and visits are kept
     -- for the whole account, so one hunter's learned rank read as ready at any level on another.
+    -- The level is the higher of the Beast Training spell's, the one the hunter buys (`beast`),
+    -- and the pet's spell it teaches (`families`): Great Stamina's pet spell is level 1 and the
+    -- hunter's 10, and Forever's own abilities have a level only on the pet's spell.
     local beastLevel, beastRank = {}, {}
     for _, list in pairs(source.families or {}) do
         for _, entry in ipairs(list) do
@@ -275,6 +281,7 @@ local function ReadNow()
         end
     end
     for _, entry in ipairs(source.beast or {}) do
+        if entry[2] and entry[2] > (beastLevel[entry[1]] or 0) then beastLevel[entry[1]] = entry[2] end
         local name = Compat.SpellInfo(entry[1])
         if name then beastByName[RankKey(name, Rank(entry[1]))] = entry[1] end
     end
@@ -389,8 +396,22 @@ local function ReadNow()
     end
 
     -- A hunter's pet trainer: only what a pet trainer has listed, as most
-    -- pet abilities come from taming instead.
-    for id, taught in pairs(prices.pet) do
+    -- pet abilities come from taming instead. None before the hunter can have
+    -- a pet: Tame Beast comes from the hunter's quest at level 10. Knowing it
+    -- is one sign; a pet out, a pet seen before (ns.char.pet) or a pet-trainer
+    -- ability already learned are others, for a client that gives Tame Beast
+    -- another ID.
+    local tamer = false
+    if next(prices.pet) then
+        local tameName = Compat.SpellInfo(TAME_BEAST)
+        tamer = Known(TAME_BEAST, tameName) or type(ns.char.pet) == "table"
+        for id, taught in pairs(prices.pet) do
+            if tamer then break end
+            tamer = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or trained[id] or false
+        end
+        tamer = tamer or UnitExists("pet")
+    end
+    for id, taught in pairs(tamer and prices.pet or {}) do
         local name, icon = Compat.SpellInfo(id)
         if name then
             local rank = Rank(id, beastRank[id])
