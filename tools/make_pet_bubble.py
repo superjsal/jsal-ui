@@ -50,8 +50,7 @@ SIGNS = [
     # a bag
     ["..........", "...####...", "..#....#..", ".########.", ".#bbbbbb#.", ".#bb##bb#.", ".#bbbbbb#.", ".#bbbbbb#.", ".########.", ".........."],
     # a chat balloon in the game's whisper pink, three dots in it: someone has
-    # whispered you (it was three plain dots, like a thought: John, 16 Nov
-    # 2026, "lets find a different notification for whispers")
+    # whispered you
     ["..........", ".#######..", "#mmmmmmm#.", "#mWmWmWm#.", "#mmmmmmm#.", ".#mm####..", ".#m#......", ".##.......", "..........", ".........."],
     # a letter: mail has come
     ["..........", "..........", "##########", "#WWWWWWWW#", "##WWWWWW##", "#W##WW##W#", "#WWW##WWW#", "#WWWWWWWW#", "##########", ".........."],

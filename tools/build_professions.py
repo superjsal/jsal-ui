@@ -246,11 +246,11 @@ def main():
         # A pattern is found by the name of the recipe it teaches, and two recipes can share a
         # name: Forever's Enchant Bracer - Agility for +9 (Nexus Crystals, yellow at 320) and the
         # one for +5 (Vision Dust), whose formula needs 190. The +9 one, which Wowhead's lists
-        # leave out, took that formula: learned at 190, from a vendor (John, 18 Nov 2026: "seems
-        # wrong"). Where a name is shared, the copy Wowhead's lists leave out is left out here
+        # leave out, took that formula: learned at 190, from a vendor.
+        # Where a name is shared, the copy Wowhead's lists leave out is left out here
         # too: every such copy looked at says "This spell is not in game" on Wowhead Forever (the
         # +9 enchant, Golden Scale Boots, Black Grasp of the Destroyer, Icebane Breastplate,
-        # Sylvan Crown, Lesser Arcane Elixir; John: "Check wowhead forever as well"), as were the
+        # Sylvan Crown, Lesser Arcane Elixir), as were the
         # raid sets' copies (ice, Ahn'Qiraj) that had no pattern of their name and stayed out.
         by_name = {}
         for r in abilities:

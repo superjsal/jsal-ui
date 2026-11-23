@@ -23,7 +23,7 @@ SRC = ROOT / "data" / "trainers.txt"
 # Trainers Wowhead's lists left out, seen in the game: their spots are Forever's already.
 SEEN = ROOT / "data" / "trainers-seen.txt"
 # Weapon masters: who teaches which weapon skill. From every trainer players opened on Forever
-# (EG Link: data from Efficient Games, https://efficient.games, CC BY 4.0) and from John's own
+# (EG Link: data from Efficient Games, https://efficient.games, CC BY 4.0) and from the saved
 # visits (data/prices/trainers.json, by tools/bake_prices.py). A weapon master shows a class only
 # the weapons it can learn and hasn't, so each sighting is part of the list: they're joined.
 EGLINK = ROOT / "data" / "trainers" / "eglink-trainers.json"
@@ -89,7 +89,7 @@ def weapon_masters(seen_lines):
             # A weapon master's rows are weapon skills; a class trainer's mostly aren't.
             if teaches and len(teaches) * 2 > len(rows):
                 master(t["npc"])["teaches"] |= teaches
-    # Where one stands and who it trains, for the ones seen only in his visits.
+    # Where one stands and who it trains, for the ones seen only in the saved visits.
     for line in seen_lines:
         if not line or line.startswith("#"):
             continue

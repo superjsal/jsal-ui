@@ -67,12 +67,12 @@ def Trainable(abilities, names, ranks, levels):
 SAVED = json.loads(PRICES.read_text(encoding="utf-8")) if PRICES.exists() else {"trainers": [], "grimoires": []}
 # Every trainer players opened on Forever, from EG Link (data from Efficient Games,
 # https://efficient.games, CC BY 4.0; tools/refresh_eglink.py keeps it): each service's spell and
-# its cost at each standing seen. It prices what John's own visits don't reach.
+# its cost at each standing seen. It prices what the saved visits don't reach.
 EGLINK = ROOT / "data" / "trainers" / "eglink-trainers.json"
 SEEN_BY_OTHERS = json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"] if EGLINK.exists() else {}
 
 
-# Every spell seen for sale at a trainer, in John's visits or other players'.
+# Every spell seen for sale at a trainer, in the saved visits or other players'.
 SOLD = {r["spell"] for t in SAVED["trainers"] for r in t["rows"] if r.get("spell")}
 SOLD |= {int(spell) for t in SEEN_BY_OTHERS.values() for spell in (t.get("services") or {})}
 
@@ -147,7 +147,7 @@ def ShippedPrices(lines, class_id, spell_ids, weapon_ids, pet_to_beast, by_key=N
     # What other players' trainers charged, ONLY for what the visits above didn't price. Where
     # both have a spell the visits win: of 1,090 spells in both, 1,007 agree to the copper, and
     # the rest differ by no steady share (0.69 to 0.87, where a standing's discount is exactly
-    # 0.9), which reads as prices changed between builds; the visits are John's own game, now.
+    # 0.9), which reads as prices changed between builds; the saved visits are the game as it is now.
     # Among other players' own sightings the highest is the full price, as above. A class trainer
     # there isn't marked with its class, so a service counts for this class when its spell is one
     # of the class's.
@@ -387,7 +387,7 @@ def main():
         for skill in sorted(set(weapons[class_id])):
             teach = [int(r["Spell"]) for r in by_line[skill] if names.get(int(r["Spell"])) and r["AcquireMethod"] == "2"]
             # The files don't mark every weapon skill as a trainer's: Two-Handed Maces isn't,
-            # and weapon masters sell it (Buliwyf Stonehand listed it for John's shaman, and
+            # and weapon masters sell it (Buliwyf Stonehand listed it for a shaman, and
             # Ansekhwa for others). A skill seen for sale at a trainer counts as one.
             if not teach:
                 teach = [int(r["Spell"]) for r in by_line[skill] if names.get(int(r["Spell"])) and int(r["Spell"]) in SOLD]

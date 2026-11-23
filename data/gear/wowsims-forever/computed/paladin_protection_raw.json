@@ -1,5 +1,5 @@
 {
-  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/paladin/protection, game 1.60.1.70938), since its Protection paladin sim ships no weights. Its default talents and settings on its own default gear set (ui/specs/paladin/protection/gear_sets/default.gear.siml, imported as SIML), 25,000 iterations. Each column as the tool shows it: DPS and TPS EP with Strength = 1; DTPS and TMI EP with Armor = 1 (lower damage taken, lower TMI). Not used by the build yet: a tank's single set needs a choice of how to mix threat with survival. Run in John's Chrome on 14 Nov 2026 (US Central).",
+  "about": "Worked out with WoWSims Forever's own Stat Weights tool (wowsims.com/forever/paladin/protection, game 1.60.1.70938), since its Protection paladin sim ships no weights. Its default talents and settings on its own default gear set (ui/specs/paladin/protection/gear_sets/default.gear.siml, imported as SIML), 25,000 iterations. Each column as the tool shows it: DPS and TPS EP with Strength = 1; DTPS and TMI EP with Armor = 1 (lower damage taken, lower TMI). Not used by the build yet: a tank's single set needs a choice of how to mix threat with survival. Run in a browser on 14 Nov 2026 (US Central).",
   "spec": "paladin_protection",
   "columns": ["DPS EP", "TPS EP", "DTPS EP", "TMI EP"],
   "ep": {

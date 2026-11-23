@@ -12,8 +12,7 @@ it's that (data/gear/wowsims-forever/, LICENSE and the commit beside them; FOREV
 each). Forever's sims weigh crit, hit, dodge, parry and block per point of rating; the editor's are
 per 1%, so they're multiplied by Forever's ratings for 1% (RATING_PER_PERCENT). Where it has none
 (mage, warlock, and the paladin, shaman and druid healers; hunter until 15 Nov 2026), it's WoWSims Classic's
-(data/gear/wowsims/*.sim.ts, github.com/wowsims/classic, MIT). (John, 14 Nov 2026, after the three
-were set side by side with GearQuest's: "Yes, use Forever's".) Both are tuned for level 60, where
+(data/gear/wowsims/*.sim.ts, github.com/wowsims/classic, MIT). Both are tuned for level 60, where
 Stamina counts for little; for leveling, every spec's Stamina is at least STAMINA_SHARE of its top
 main stat, so a piece with more of it ranks a little higher.
 
@@ -29,9 +28,7 @@ One rule for Stamina, every class alike: damage and healing trees keep WoWSims' 
 least STAMINA_SHARE of the top main stat), and a tank tree takes a WoWSims tank set that weighs
 Stamina as a tank does. Neither WoWSims has a Protection paladin set that does (Classic's weighs it
 at 0, tuned for raid avoidance; Forever's has none), so a Protection paladin takes the warrior
-tank's, the other plate tank's. (John, 14 Nov 2026:
-"if someone does value stamina like a tank will it show it properly, but also not overvalue stamina
-for dps classes"; "lets keep it as universal as possible".)
+tank's, the other plate tank's.
 
 A drop Wowhead names no one place for (an empty sourcemore: it drops from ordinary creatures in
 more than one place) takes its dungeons from data/gear/wowhead-places.json when that file is there
@@ -86,7 +83,6 @@ SPECS = {
 PLATE_TANK = ("warrior_protection", "PreBiSBalancedEpWeights")
 # WoWSims Forever simulates no healer (every one is a "Gear Planner"), so there's nothing to work out;
 # its healing priest's preset is the one healer set made for Forever, and the other healers take it.
-# (John, 14 Nov 2026: "healers are historically hard to sim. lets go with the forever set".)
 HEALER = ("priest_healer", "HolySingleTargetEpWeights")
 FOREVER = {
     "WARRIOR": [("warrior_dps", "PreBiSArmsEpWeights"), ("warrior_dps", "PreBiSFuryEpWeights"), PLATE_TANK],
@@ -113,8 +109,7 @@ def school(name):
 SCHOOLS = ("Arcane", "Fire", "Frost", "Holy", "Nature", "Shadow")
 # Trees WoWSims Forever ships no weights for, worked out with its own Stat Weights tool on its own
 # preset talents and gear (data/gear/wowsims-forever/computed/*.json, each saying how). Rows are per 1%
-# for crit and hit, as the tool shows them. (John, 14 Nov 2026: "i feel we should be accurate as this
-# dictates what a player will want to roll for".)
+# for crit and hit, as the tool shows them.
 COMPUTED_KEYS = {
     "Strength": ["ITEM_MOD_STRENGTH_SHORT"],
     "Agility": ["ITEM_MOD_AGILITY_SHORT"],

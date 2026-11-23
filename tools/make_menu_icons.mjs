@@ -1,6 +1,6 @@
 // Writes jsalUI/Media/Icons/Menu/*.tga: the icons jsal.ui draws on the game's
 // menu bar buttons. Each is a white shape on a clear 64 x 64 square, drawn
-// from a 24-unit path like the mockup John picked; the game tints it gold
+// from a 24-unit path like the chosen mockup; the game tints it gold
 // (or grey while a button is off). Uses Playwright from jsal.io's build tools
 // to draw the shapes, then writes plain 32-bit TGA files the game reads.
 //
