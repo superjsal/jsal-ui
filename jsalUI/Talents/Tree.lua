@@ -606,6 +606,17 @@ function Tree.Active()
     local followed = Find(classID, ns.char.follow)
     if followed then return followed end
     local selected = Tree.Selected(classID)
+    -- The build selected is the class's for the whole account, the one last looked at on any
+    -- character: one for 60 looked at elsewhere isn't for this character to follow. Your first own
+    -- build, else the first levelling one, is followed then, and selected so the Build Planner
+    -- opens on it; the build for 60 only where the class has neither.
+    if selected and selected.raid then
+        local instead = Tree.ClassBuilds(classID)[1] or FirstLevelling(classID)
+        if instead then
+            selected = instead
+            Tree.Select(classID, instead)
+        end
+    end
     if selected and selected.id and ns.char then ns.char.follow = selected.id end
     return selected
 end
