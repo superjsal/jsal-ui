@@ -11,7 +11,9 @@ the old file was, so a diff shows only what the game changed:
   - the old file's line endings;
   - only the rows a cut table keeps (CUT below: SpellMisc keeps the rows with a duration; KEEP:
     SpellEffect keeps only the effects that teach a spell).
-A table whose new build lacks one of the old columns is left as it was, and said.
+A table whose new build lacks one of the old columns is left as it was, and said. A table in ADDED that
+a folder doesn't hold yet is fetched whole, in wago's own columns and quoting, with the line endings of
+the folder's other tables; from then on it's kept as the rest are.
 
 Then it sets BUILD in tools/build_dungeons.py and runs tools/build_spells.py, build_talents.py,
 build_dungeons.py and build_taxi.py for the build. Prices, EG Link and Wowhead are other tools'
@@ -38,6 +40,9 @@ AGENT = "jsal-ui data refresh"
 CUT = {"SpellMisc.csv": ("DurationIndex", "0")}
 # Tables kept to the rows with one value in a column: the file's name, the column, the value kept.
 KEEP = {"SpellEffect.csv": ("Effect", "36")}
+# Tables a folder holds, fetched whole when it doesn't have them yet: SpellTotems (the tool each
+# recipe needs, an enchant's rod) and TotemCategory (each kind of tool), for build_professions.py.
+ADDED = {"data/spells": ["SpellTotems", "TotemCategory"]}
 
 
 def fetch(name, build):
@@ -139,11 +144,29 @@ def refresh(path, build):
     return f"{path.parent.name}/{path.name}: {len(old_rows) - 1} -> {len(body)} rows"
 
 
+def add(folder, name, build):
+    """A table the folder doesn't hold yet, as wago sends it, with the folder's line endings."""
+    path = ROOT / folder / f"{name}.csv"
+    if path.exists():
+        return None
+    others = sorted((ROOT / folder).glob("*.csv"))
+    nl = "\r\n" if others and b"\r\n" in others[0].read_bytes() else "\n"
+    rows = fetch(name, build).replace("\r\n", "\n").rstrip("\n").split("\n")
+    path.write_bytes((nl.join(rows) + nl).encode("utf-8"))
+    return f"{folder.split('/')[-1]}/{path.name}: added, {len(rows) - 1} rows"
+
+
 def main():
     if len(sys.argv) < 2 or not re.fullmatch(r"\d+\.\d+\.\d+\.\d+", sys.argv[1]):
         raise SystemExit(__doc__)
     build = sys.argv[1]
     changed = []
+    for folder, names in ADDED.items():
+        for name in names:
+            said = add(folder, name, build)
+            if said:
+                changed.append(said)
+                print(said)
     for folder in FOLDERS:
         for path in sorted((ROOT / folder).glob("*.csv")):
             said = refresh(path, build)

@@ -143,6 +143,92 @@ local function MadeBy(line, item)
 end
 Professions.MadeBy = MadeBy
 
+-- Tools: the rod an enchant needs. Each recipe's kinds of tool, from the data, read once.
+local toolsOf
+local function ToolsOf(spell)
+    if not toolsOf then
+        toolsOf = {}
+        for kind, spells in pairs(Data.tools or {}) do
+            for _, needing in ipairs(spells) do
+                local list = toolsOf[needing] or {}
+                list[#list + 1] = kind
+                toolsOf[needing] = list
+            end
+        end
+    end
+    return spell and toolsOf[spell] or nil
+end
+
+-- Whether every bit set in `need` is set in `mask`.
+local function Holds(mask, need)
+    while need > 0 do
+        if need % 2 == 1 and mask % 2 ~= 1 then return false end
+        mask, need = math.floor(mask / 2), math.floor(need / 2)
+    end
+    return true
+end
+
+-- Whether a tool of one kind does the work of another: the same type, and its mask holds the
+-- other's (a Runed Golden Rod does a Copper or Silver one's).
+local function Does(kind, need)
+    local kinds = Data.toolKinds or {}
+    local a, b = kinds[kind], kinds[need]
+    return a ~= nil and b ~= nil and a[1] == b[1] and Holds(a[2], b[2])
+end
+
+-- Whether one of `kinds` does the work of `need`.
+local function Covered(kinds, need)
+    for _, kind in ipairs(kinds) do
+        if Does(kind, need) then return true end
+    end
+    return false
+end
+
+-- The kinds of tool in your bags and bank. A rod in the bank counts: making a second would waste it.
+function Professions.ToolsHeld()
+    local held = {}
+    for item, kind in pairs(Data.toolItems or {}) do
+        if (Compat.ItemCount(item, true) or 0) > 0 then held[#held + 1] = kind end
+    end
+    return held
+end
+
+-- Whether what you hold does the work of every tool a recipe needs. `held` is ToolsHeld's, or
+-- it's looked at now.
+function Professions.HasTools(recipe, held)
+    local needs = ToolsOf(recipe and recipe.spell)
+    if not needs then return true end
+    held = held or Professions.ToolsHeld()
+    for _, need in ipairs(needs) do
+        if not Covered(held, need) then return false end
+    end
+    return true
+end
+
+-- The recipe of a profession that makes the lowest tool doing the work of `need` (the least
+-- mask), or nil when none of its recipes makes one. Kept per profession.
+local toolMakers = {}
+local function ToolMaker(line, need)
+    local mine = toolMakers[line]
+    if not mine then
+        mine = {}
+        toolMakers[line] = mine
+    end
+    local found = mine[need]
+    if found == nil then
+        found = false
+        local least
+        for _, recipe in ipairs(Professions.Recipes(line) or {}) do
+            local kind = recipe.item and Data.toolItems and Data.toolItems[recipe.item]
+            local mask = kind and Does(kind, need) and Data.toolKinds[kind][2]
+            if mask and (not least or mask < least) then found, least = recipe, mask end
+        end
+        mine[need] = found
+    end
+    return found or nil
+end
+Professions.ToolMaker = ToolMaker
+
 -- What an item is worth, in copper: a vendor's price for thread or dye, the worth the data
 -- gives every other material, or what it's made from where that's less (a bolt from cloth, a
 -- bar from ore). Materials used to count one each, so the road went through forty hides, sixty
@@ -245,7 +331,10 @@ end
 -- 105 Heavy Leather and 588 Medium and 444 Light for the same crafts.
 local function Makes(line, item)
     if Data.gathered and Data.gathered[item] then return nil end
-    return MadeBy(line, item)
+    local recipe = MadeBy(line, item)
+    -- Nor is one made with a tool you don't hold: a Mote of Magic is made with the rod it goes into.
+    if recipe and not Professions.HasTools(recipe) then return nil end
+    return recipe
 end
 Professions.Makes = Makes
 
@@ -530,6 +619,54 @@ function Professions.Needs(recipe)
     return Data.needs and recipe.spell and Data.needs[recipe.spell] or nil
 end
 
+-- The tools a road makes. Where a step needs a tool that nothing you hold (`held`), and no tool made
+-- earlier on the road, does the work of, the lowest tool that does is made first: a step of its own
+-- in front of it, marked `tool` (its kind). Put in once the cheapest road is found, so no other step
+-- moves. While it's orange there it gives a point, and the step it's in front of starts a point
+-- later; past that it counts none, from and to the same skill. `toolFor` is how far the road needs
+-- it: the end of the last step needing it before the road makes a higher one.
+local function AddTools(line, steps, known, held)
+    if not Data.tools then return steps end
+    local have, out = {}, {}
+    for i, kind in ipairs(held) do have[i] = kind end
+    for _, step in ipairs(steps) do
+        for _, need in ipairs(ToolsOf(step.recipe.spell) or {}) do
+            local tool = not Covered(have, need) and ToolMaker(line, need)
+            if tool then
+                local at = step.from
+                local point = Chance(tool, at) >= 1 and 1 or 0
+                -- The Runed Copper Rod's recipe comes with the profession: nothing to learn.
+                local learn = not known(tool.spell) and tool.how ~= 0
+                local kind = Data.toolItems[tool.item]
+                out[#out + 1] = { from = at, to = at + point, recipe = tool, exact = 1, spread = 0, learn = learn,
+                                  buy = learn and tool.how == 2, tool = kind }
+                have[#have + 1] = kind
+                if point == 1 then
+                    local chance = Chance(step.recipe, at)
+                    step.from = at + 1
+                    step.exact = math.max(0, step.exact - 1 / chance)
+                    step.spread = math.max(0, step.spread - (1 - chance) / (chance * chance))
+                end
+            end
+        end
+        if step.from < step.to then out[#out + 1] = step end
+    end
+    for i, step in ipairs(out) do
+        if step.tool then
+            local to = step.to
+            for j = i + 1, #out do
+                local later = out[j]
+                if later.tool then break end
+                for _, need in ipairs(ToolsOf(later.recipe.spell) or {}) do
+                    if Does(step.tool, need) then to = later.to end
+                end
+            end
+            step.toolFor = to
+        end
+    end
+    return out
+end
+
 -- The road from skill to target. known(spell) says whether a recipe is
 -- learned; trainer recipes can be learned along the way, and a pattern a
 -- vendor sells for coin can be bought (it counts as half again as costly,
@@ -541,7 +678,7 @@ end
 -- learn, buy }: crafts is how many it takes on average, safe how many
 -- cover nine times in ten), each reagent's total, the skill where it
 -- stopped short if it did, and the materials added for bolts and bars
--- you're short of.
+-- you're short of. A tool a step needs (an enchant's rod) is a step of its own (AddTools).
 function Professions.Plan(line, skill, target, known, breakAt)
     local pricing = Priced()
     priced, seen, whole = pricing, pricing and {} or nil, {}
@@ -571,6 +708,16 @@ function Professions.Plan(line, skill, target, known, breakAt)
             if recipe.spell == hand.spell then held = recipe break end
         end
     end
+    -- A recipe that needs a tool you'd have to make is open only from the skill that tool is
+    -- learned at: some of Enchanting's are learned before the Arcanite rod they need.
+    local holding = Professions.ToolsHeld()
+    local toolFrom = {}
+    for _, recipe in ipairs(recipes) do
+        for _, need in ipairs(ToolsOf(recipe.spell) or {}) do
+            local tool = not Covered(holding, need) and ToolMaker(line, need)
+            if tool and not known(tool.spell) then toolFrom[recipe] = math.max(toolFrom[recipe] or 0, tool.learn) end
+        end
+    end
     local totals = {}
     -- What's in your bags and bank comes off a craft's cost until the road has used it up: by
     -- the rough worth nearly all of it, priced only the auction house's cut (LetOff). Not
@@ -586,6 +733,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
     -- vendor of your side sells for coin, once your skill reaches it.
     local faction = Compat.Faction() or nil
     local function Open(recipe, mine, at)
+        if (toolFrom[recipe] or 0) > at then return false end
         return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell, faction))) and recipe.learn <= at)
     end
     -- The road a point at a time from `stock`: its steps, the skill it reached, and whether
@@ -747,6 +895,7 @@ function Professions.Plan(line, skill, target, known, breakAt)
             if Spend(plain, mode) < Spend(steps, mode) then steps, s = plain, plainAt end
         end
     end
+    steps = AddTools(line, steps, known, holding)
     for _, step in ipairs(steps) do
         step.crafts = math.ceil(step.exact - 0.01)
         -- Enough for nine tries in ten: the average and 1.28 spreads more.
@@ -769,8 +918,14 @@ function Professions.Plan(line, skill, target, known, breakAt)
     end
     for item, need in pairs(made) do totals[item] = (totals[item] or 0) + need end
     priced = false
-    -- What's in hand now, for the next road: one a profession.
-    local first = steps[1]
+    -- What's in hand now, for the next road: one a profession. Never a tool: it's put in afresh.
+    local first
+    for _, step in ipairs(steps) do
+        if not step.tool then
+            first = step
+            break
+        end
+    end
     local inHand = first and first.recipe.spell and { spell = first.recipe.spell, to = first.to } or nil
     if pretendHands then
         pretendHands[line] = inHand
