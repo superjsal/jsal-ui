@@ -558,7 +558,9 @@ function Professions.Plan(line, skill, target, known, breakAt)
     -- to from one point to the next. So two near-equal steps don't trade places from one look to
     -- the next, or across a /reload. One that's grey, no longer known or no longer priced isn't
     -- among what the road may take, and is let go.
-    local hands = type(ns.char) == "table" and type(ns.char.roadHand) == "table" and ns.char.roadHand or nil
+    -- Kept in memory instead while a beta pretends a side (Pretend.Kept).
+    local pretendHands = ns.Pretend and ns.Pretend.Kept and ns.Pretend.Kept("roadHand")
+    local hands = pretendHands or (type(ns.char) == "table" and type(ns.char.roadHand) == "table" and ns.char.roadHand or nil)
     local hand = hands and type(hands[line]) == "table" and hands[line] or nil
     local held
     if hand and type(hand.to) == "number" and hand.to > skill then
@@ -765,10 +767,13 @@ function Professions.Plan(line, skill, target, known, breakAt)
     for item, need in pairs(made) do totals[item] = (totals[item] or 0) + need end
     priced = false
     -- What's in hand now, for the next road: one a profession.
-    if type(ns.char) == "table" then
-        local first = steps[1]
+    local first = steps[1]
+    local inHand = first and first.recipe.spell and { spell = first.recipe.spell, to = first.to } or nil
+    if pretendHands then
+        pretendHands[line] = inHand
+    elseif type(ns.char) == "table" then
         ns.char.roadHand = hands or {}
-        ns.char.roadHand[line] = first and first.recipe.spell and { spell = first.recipe.spell, to = first.to } or nil
+        ns.char.roadHand[line] = inHand
     end
     return steps, totals, s < target and s or nil, made
 end

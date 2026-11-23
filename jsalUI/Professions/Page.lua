@@ -162,8 +162,12 @@ Window.Page("professions", function(page)
     -- your skill reaches its end. A new rank starts the list again.
     local MIN_FILL, PASSED_MOST = 12, 40
     local function Passed(line, floor, skill, first)
-        local all = type(ns.char.profRoad) == "table" and ns.char.profRoad or {}
-        ns.char.profRoad = all
+        -- Kept in memory instead while a beta pretends a side (Pretend.Kept).
+        local all = ns.Pretend and ns.Pretend.Kept and ns.Pretend.Kept("profRoad")
+        if not all then
+            all = type(ns.char.profRoad) == "table" and ns.char.profRoad or {}
+            ns.char.profRoad = all
+        end
         local r = all[line]
         if type(r) ~= "table" or r.floor ~= floor or type(r.passed) ~= "table" then
             r = { floor = floor, passed = {} }

@@ -151,8 +151,12 @@ function Compat.MyName()
 end
 
 -- This character's side: the game's own token ("Alliance" or "Horde", never translated), or nil while
--- the game has none to give. Every part asks here and nowhere else, so there is one place to change.
-function Compat.Faction()
+-- the game has none to give. Every part asks here and nowhere else. While a beta pretends to be the
+-- other side (/jsal pretend horde), the pages are given the pretended one; what is kept or sent to the
+-- guild asks with `real` and always gets the game's.
+function Compat.Faction(real)
+    local pretend = not real and ns.Pretend and ns.Pretend.faction
+    if pretend then return pretend end
     if not UnitFactionGroup then return nil end
     local token = UnitFactionGroup("player")
     return token

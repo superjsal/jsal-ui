@@ -10,10 +10,17 @@
 -- the made-up answers are kept in memory, raid night's choices too, the shopping list is left
 -- alone, and none of it goes to the guild (nothing here is ever sent). It's off again after a
 -- /reload, and the dashboard's title bar says "pretend 60" while it's on.
+--
+-- /jsal pretend horde (or alliance) makes Compat.Faction give the pages that side: the dungeon
+-- guide's order, the gear plan's sets, recipe labels and the profession road, the nearest trainer.
+-- What is kept or sent asks the game (Compat.Faction(true)): the flight bar's times and what it
+-- shares or hears. The profession road's passed steps and step in hand, and the shopping list, are
+-- kept in memory while it's on. It goes with pretend 60, and /jsal pretend off or a /reload ends both.
 local _, ns = ...
 local Compat = ns.Compat
 
-local Pretend = { on = false }
+-- on: pretending to be level 60. faction: the side pretended ("Horde" or "Alliance"), else nil.
+local Pretend = { on = false, faction = nil }
 ns.Pretend = Pretend
 
 local LEVEL = 60
@@ -160,15 +167,72 @@ function Pretend.Listable()
     return not Pretend.on
 end
 
--- The title bar's word while pretending, else nil.
+-- What's kept in memory while pretending a side: the profession road's passed steps and the step in
+-- hand, and the shopping list, so nothing worked out for the other side is saved.
+local kept = {}
+
+-- A table kept in memory in place of the saved one of that name (ns.char.profRoad, ns.char.roadHand)
+-- while pretending a side; nil otherwise, and the saved one is used.
+function Pretend.Kept(name)
+    if not Pretend.faction then return nil end
+    kept[name] = kept[name] or {}
+    return kept[name]
+end
+
+local function Copy(t)
+    if type(t) ~= "table" then return t end
+    local out = {}
+    for k, v in pairs(t) do out[k] = Copy(v) end
+    return out
+end
+
+-- The shopping list: nil (the saved one is used) unless pretending a side, then a copy of the saved
+-- one made the first time it's asked for, changed in memory only.
+function Pretend.ShoppingList()
+    if not Pretend.faction then return nil end
+    if not kept.shopping then
+        kept.shopping = Copy(ns.char and type(ns.char.shopping) == "table" and ns.char.shopping or {})
+    end
+    return kept.shopping
+end
+
+-- The title bar's words while pretending, else nil: "pretend 60", "pretend Horde", "pretend 60, Horde".
 function Pretend.Words()
-    return Pretend.on and "pretend 60" or nil
+    local parts = {}
+    if Pretend.on then parts[#parts + 1] = "60" end
+    if Pretend.faction then parts[#parts + 1] = Pretend.faction end
+    if #parts == 0 then return nil end
+    return "pretend " .. table.concat(parts, ", ")
+end
+
+-- Every open page and window drawn again, once, with what's worked out for the old answers let go.
+local function Repaint()
+    if ns.Gear and ns.Gear.PlansChanged then ns.Gear.PlansChanged() end
+    local panel = ns.modules and ns.modules.professionpanel
+    if panel and panel.Forget then panel.Forget() end
+    if panel and panel.Refresh then panel.Refresh() end
+    if ns.Shopping and ns.Shopping.Refresh then ns.Shopping.Refresh() end
+    if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
 end
 
 function Pretend.Set(on)
     Pretend.on = on and true or false
     made, night, madeJournal = nil, {}, nil
-    if ns.Window and ns.Window.Refresh then ns.Window.Refresh() end
+    Repaint()
+end
+
+-- A side to pretend ("Horde" or "Alliance"), or nil for the game's own.
+function Pretend.SetFaction(faction)
+    if faction ~= Pretend.faction then kept = {} end
+    Pretend.faction = faction
+    Repaint()
+end
+
+-- Everything pretended let go: pretend off.
+function Pretend.Off()
+    Pretend.on, Pretend.faction, kept = false, nil, {}
+    made, night, madeJournal = nil, {}, nil
+    Repaint()
 end
 
 if ns.IsBeta(ns.version) then
@@ -176,8 +240,15 @@ if ns.IsBeta(ns.version) then
         Pretend.Set(true)
         ns.Print("Pretending to be level 60 until /jsal pretend off or a /reload. Nothing is saved meanwhile.")
     end)
+    for word, side in pairs({ horde = "Horde", alliance = "Alliance" }) do
+        ns.Command("pretend " .. word, function()
+            Pretend.SetFaction(side)
+            ns.Print(("Pretending to be %s until /jsal pretend off or a /reload. Pages show what a %s character sees; what's saved and what your guild hears stay your own side's.")
+                :format(side, side))
+        end)
+    end
     ns.Command("pretend off", function()
-        Pretend.Set(false)
+        Pretend.Off()
         ns.Print("Pretending no more.")
     end)
 end

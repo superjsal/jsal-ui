@@ -30,7 +30,9 @@ local X_W = 22
 -- The list, per character: crafts by recipe and other items by item.
 ---------------------------------------------------------------------------
 local function List()
-    local s = ns.char.shopping
+    -- While a beta pretends a side, a copy kept in memory (Pretend.ShoppingList).
+    local s = ns.Pretend and ns.Pretend.ShoppingList and ns.Pretend.ShoppingList()
+    if not s then s = ns.char.shopping end
     if type(s) ~= "table" then
         s = {}
         ns.char.shopping = s
@@ -1274,6 +1276,11 @@ function Shopping.Open(beside)
     end
     frame:Show()
     xpcall(Paint, ns.Report)
+end
+
+-- Paints the list again, if it is up.
+function Shopping.Refresh()
+    if frame and frame:IsShown() then xpcall(Paint, ns.Report) end
 end
 
 function Shopping.Toggle()
