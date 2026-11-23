@@ -26,6 +26,7 @@ function Pet:OnEnable()
     -- Where you are now, so that only going somewhere else counts as a trip.
     local zone = ZoneName()
     Pet.where = zone
+    Pet.whereScene = { zone = zone, scene = Pet.SceneHere(zone) }
     local fished = 0
     local events = CreateFrame("Frame")
     events:RegisterEvent("LOOT_READY")
@@ -110,6 +111,7 @@ function Pet:OnEnable()
             local moved = now and zone and now ~= zone
             zone = now or zone
             Pet.where = zone
+            Pet.whereScene = { zone = zone, scene = Pet.SceneHere(zone) }
             if ui.window and ui.window:IsShown() then Refresh() end
             if moved then
                 Pet.Did("zone")

@@ -234,7 +234,55 @@ for scene, zones in pairs({
     for _, zone in ipairs(zones) do ZONE_SCENE[zone:lower()] = scene end
 end
 Pet.SCENES = SCENES
+-- From here to the line after it: tools/build_pet_scenes.py writes it, from the game's tables.
+-- Each zone's map IDs and each instance's map ID, with the zone's English name above: where you are,
+-- found by ID on any client language (Pet.SceneHere).
+local SCENE_MAPS = {
+    [1411] = "Durotar", [1413] = "The Barrens", [1416] = "Alterac Mountains", [1418] = "Badlands",
+    [1419] = "Blasted Lands", [1420] = "Tirisfal Glades", [1421] = "Silverpine Forest",
+    [1422] = "Western Plaguelands", [1423] = "Eastern Plaguelands", [1426] = "Dun Morogh", [1427] = "Searing Gorge",
+    [1428] = "Burning Steppes", [1430] = "Deadwind Pass", [1431] = "Duskwood", [1434] = "Stranglethorn Vale",
+    [1435] = "Swamp of Sorrows", [1436] = "Westfall", [1437] = "Wetlands", [1439] = "Darkshore",
+    [1441] = "Thousand Needles", [1443] = "Desolace", [1444] = "Feralas", [1445] = "Dustwallow Marsh",
+    [1446] = "Tanaris", [1447] = "Azshara", [1448] = "Felwood", [1449] = "Un'Goro Crater", [1451] = "Silithus",
+    [1452] = "Winterspring", [1454] = "Orgrimmar", [1455] = "Ironforge", [1458] = "Undercity",
+}
+local SCENE_INSTANCES = {
+    [30] = "Alterac Valley", [33] = "Shadowfang Keep", [36] = "The Deadmines", [43] = "Wailing Caverns",
+    [47] = "Razorfen Kraul", [48] = "Blackfathom Deeps", [70] = "Uldaman", [90] = "Gnomeregan",
+    [109] = "Sunken Temple", [129] = "Razorfen Downs", [189] = "Scarlet Monastery", [209] = "Zul'Farrak",
+    [229] = "Blackrock Spire", [230] = "Blackrock Depths", [249] = "Onyxia's Lair", [289] = "Scholomance",
+    [309] = "Zul'Gurub", [329] = "Stratholme", [349] = "Maraudon", [389] = "Ragefire Chasm", [409] = "Molten Core",
+    [429] = "Dire Maul", [469] = "Blackwing Lair", [509] = "Ruins of Ahn'Qiraj", [533] = "Naxxramas",
+    [2853] = "Deadwind Pass", [2921] = "Naxxramas",
+}
+-- (End of what tools/build_pet_scenes.py writes.)
+-- Where you are as an English client names it, found by the game's map IDs so it's the same on any client:
+-- inside an instance, the instance's own; outside, the zone's, up from a cave's or a town's map to the zone
+-- it's in. Nil when the place has no scene of its own here, or the game doesn't say.
+local function HereByID()
+    if GetInstanceInfo then
+        local _, kind, _, _, _, _, _, map = GetInstanceInfo()
+        if kind and kind ~= "none" then return SCENE_INSTANCES[map] end
+    end
+    local map = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    for _ = 1, 8 do
+        if not map then return nil end
+        if SCENE_MAPS[map] then return SCENE_MAPS[map] end
+        local info = C_Map.GetMapInfo and C_Map.GetMapInfo(map)
+        map = info and info.parentMapID ~= 0 and info.parentMapID or nil
+    end
+end
+-- The scene for where you are now: by map ID first, then by the zone's name, as before.
+function Pet.SceneHere(zone)
+    local english = HereByID()
+    return english and ZONE_SCENE[english:lower()] or ZONE_SCENE[tostring(zone or ""):lower()] or "meadow"
+end
+-- A zone's scene. The zone you arrived in has the one found by ID then (`Pet.whereScene`: that zone and
+-- its scene); any other goes by its name.
 function Pet.Scene(zone)
+    local here = Pet.whereScene
+    if zone ~= nil and here and here.zone == zone then return here.scene end
     return ZONE_SCENE[tostring(zone or ""):lower()] or "meadow"
 end
 -- And the hour is the realm's: how far the day has gone by its clock, 0 by
