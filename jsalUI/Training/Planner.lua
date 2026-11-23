@@ -57,15 +57,14 @@ local VIA = {
 
 -- Where a spell from elsewhere is got, on its line and in its tooltip. A portal spell whose
 -- trainer is known (its `pin`) names the city on its line, where `city` asks for it, and the
--- trainer in its tooltip, a line a fact: who, then what they are and where under it; a picture
--- on the road, which pins them when clicked, says so, as a weapon skill's does. Else the words
--- above, as one line.
+-- trainer in its tooltip, a line a fact: who, then what they are and where under it. Else the
+-- words above, as one line.
 local function ViaCard(spell, city)
     local zone = city and spell.pin and ns.Trainers and ns.Trainers.Zone(spell.pin)
     return VIA[spell.via].card .. (zone and (" · " .. zone) or "")
 end
 
-local function ViaHint(lines, spell, click)
+local function ViaHint(lines, spell)
     local trainer = spell.pin
     if not trainer then
         lines[#lines + 1] = { VIA[spell.via].hint }
@@ -74,11 +73,14 @@ local function ViaHint(lines, spell, click)
     local zone = ns.Trainers and ns.Trainers.Zone(trainer)
     lines[#lines + 1] = { "Taught by " .. trainer.name }
     lines[#lines + 1] = { VIA[spell.via].card .. (zone and (", " .. zone) or "") }
-    if click then lines[#lines + 1] = { "Click to show them on your map" } end
 end
 
--- A spell's tooltip ends on what a right-click does to it.
-local function SkipLine(lines, spell)
+-- A spell's tooltip ends on what a click and a right-click do to it, under one blank line that
+-- keeps them apart from its facts; with no facts above, they stand alone. `click`: a click
+-- shows its trainer on the map (a picture with a `pin`), and the tooltip says so.
+local function SkipLine(lines, spell, click)
+    if #lines > 0 then lines[#lines + 1] = { " " } end
+    if click then lines[#lines + 1] = { "Click to show them on your map" } end
     lines[#lines + 1] = { spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
     return lines
 end
@@ -181,8 +183,8 @@ end
 local function Hint(spell)
     local lines = {}
     if spell.group then lines[1] = { spell.source == "demon" and spell.group .. "'s Grimoire" or spell.group } end
-    if spell.via then ViaHint(lines, spell, true) end
-    return SkipLine(lines, spell)
+    if spell.via then ViaHint(lines, spell) end
+    return SkipLine(lines, spell, spell.via and spell.pin)
 end
 
 -- A quiet button of words (Skip, Unskip) that light up under the pointer:
@@ -745,16 +747,14 @@ Window.Page("training", function(page)
         for k, w in ipairs(weapons) do
             local master = Master(w.id)
             -- Its tooltip a line a fact, as a road step's is: who teaches it, with its cost at the
-            -- right; each master and where under it; what a click does last.
+            -- right; each master and where under it; then what a click and a right-click do.
             local hint = { { "Taught by", w.cost and Compat.Money(w.cost) or nil, "text" } }
             if w.at then
                 for who in (w.at .. " or "):gmatch("(.-) or ") do hint[#hint + 1] = { (who:gsub(" in ", ", ", 1)) } end
             else
                 hint[#hint + 1] = { "No weapon master seen teaching it yet: visit one and jsal.ui remembers." }
             end
-            hint[#hint + 1] = { " " }   -- a gap after who teaches it, as before it
-            if master then hint[#hint + 1] = { "Click to show them on your map" } end
-            hint[#hint + 1] = { w.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
+            SkipLine(hint, w, master)
             list[k] = { id = w.id, icon = w.icon, skipped = w.skipped, fresh = false, pin = master, hint = hint }
             if not w.skipped then
                 n = n + 1
