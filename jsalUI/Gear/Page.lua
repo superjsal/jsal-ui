@@ -883,8 +883,7 @@ Window.Page("gear", function(page)
             r.item = o.id
             local name, _, quality, texture = ItemInfo(o.id)
             r.icon:SetTexture(texture or Compat.ItemIcon(o.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
-            -- Lighter armor than yours says what it is, after its name.
-            r.name:SetText(Colored(name, quality or o.quality) .. (o.lighter and ("  |cff9a9688" .. o.lighter:lower() .. "|r") or ""))
+            r.name:SetText(Colored(name, quality or o.quality))
             local how, place, needs = Where(o)
             r.how:SetText(how)
             r.where:SetText(place)
