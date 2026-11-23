@@ -24,3 +24,14 @@
 1226|Maxan Anvol|Priest Trainer|1||c5|1426|47.2|52.2|60
 944|Marryk Nurribit|Mage Trainer|1||c8|1426|28.6|66.4|6
 1228|Magis Sparkmantle|Mage Trainer|1||c8|1426|47.4|52|60
+460|Alamar Grimm|Warlock Trainer|1||c9|1426|28.6|66.2|6
+5612|Gimrizz Shadowcog|Warlock Trainer|1||c9|1426|47.2|53.4|60
+257446|Teo Hammerstorm|Shaman Trainer|1||c7|1426|28.8|66.2|6
+258113|Ingrid Dunwald|Shaman Trainer|1||c7|1426|47.4|52|60
+3593|Alyissia|Warrior Trainer|1||c1|1438|59.4|38.6|6
+3598|Kyra Windblade|Warrior Trainer|1||c1|1438|56.2|59.2|60
+3594|Frahun Shadewhisper|Rogue Trainer|1||c4|1438|59.4|38.8|6
+3599|Jannok Breezesong|Rogue Trainer|1||c4|1438|56.2|60|60
+3595|Shanda|Priest Trainer|1||c5|1438|59.2|40.4|6
+3600|Laurna Morninglight|Priest Trainer|1||c5|1438|55.4|56.8|60
+3597|Mardant Strongoak|Druid Trainer|1||c11|1438|58.6|40.4|6

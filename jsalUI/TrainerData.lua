@@ -33,6 +33,8 @@ ns.TrainerData = {
         { npc = 913, name = "Lyria Du Lac", map = 1429, x = 0.41, y = 0.658, a = true, h = false, top = 60 },
         { npc = 1229, name = "Granis Swiftaxe", map = 1426, x = 0.472, y = 0.524, a = true, h = false, top = 60 },
         { npc = 3153, name = "Frang", map = 1411, x = 0.4291, y = 0.6938, a = false, h = true, top = 6 },
+        { npc = 3593, name = "Alyissia", map = 1438, x = 0.594, y = 0.386, a = true, h = false, top = 6 },
+        { npc = 3598, name = "Kyra Windblade", map = 1438, x = 0.562, y = 0.592, a = true, h = false, top = 60 },
     },
     class11 = {
         { npc = 3033, name = "Turak Runetotem", tag = "Druid Trainer", map = 1456, x = 0.764, y = 0.274, a = false, h = true },
@@ -45,6 +47,7 @@ ns.TrainerData = {
         { npc = 5505, name = "Theridran", tag = "Druid Trainer", map = 1453, x = 0.361, y = 0.651, a = true, h = false },
         { npc = 5506, name = "Maldryn", tag = "Druid Trainer", map = 1453, x = 0.342, y = 0.651, a = true, h = false },
         { npc = 252359, name = "Lotheluum Starbreeze", tag = "Druid Trainer", map = 2521, x = 0.64, y = 0.75, a = true, h = true },
+        { npc = 3597, name = "Mardant Strongoak", map = 1438, x = 0.586, y = 0.404, a = true, h = false, top = 6 },
         { npc = 12042, name = "Loganaar", map = 1450, x = 0.5245, y = 0.4036, a = true, h = true, top = 60 },
         { npc = 251373, name = "Xyton Silverwind", map = 2521, x = 0.417, y = 0.2335, a = true, h = true, top = 6 },
         { npc = 254081, name = "Naeluna Swiftmend", map = 2521, x = 0.4517, y = 0.4432, a = true, h = true, top = 60 },
@@ -111,6 +114,8 @@ ns.TrainerData = {
         { npc = 917, name = "Keryn Sylvius", map = 1429, x = 0.438, y = 0.658, a = true, h = false, top = 60 },
         { npc = 1234, name = "Hogral Bakkan", map = 1426, x = 0.474, y = 0.524, a = true, h = false, top = 60 },
         { npc = 3155, name = "Rwag", map = 1411, x = 0.413, y = 0.6808, a = false, h = true, top = 6 },
+        { npc = 3594, name = "Frahun Shadewhisper", map = 1438, x = 0.594, y = 0.388, a = true, h = false, top = 6 },
+        { npc = 3599, name = "Jannok Breezesong", map = 1438, x = 0.562, y = 0.6, a = true, h = false, top = 60 },
     },
     class5 = {
         { npc = 376, name = "High Priestess Laurena", tag = "Priest Trainer", map = 1453, x = 0.494, y = 0.447, a = true, h = false },
@@ -138,6 +143,8 @@ ns.TrainerData = {
         { npc = 1226, name = "Maxan Anvol", map = 1426, x = 0.472, y = 0.522, a = true, h = false, top = 60 },
         { npc = 2123, name = "Dark Cleric Duesten", map = 1420, x = 0.3108, y = 0.661, a = false, h = true, top = 6 },
         { npc = 2129, name = "Dark Cleric Beryl", map = 1420, x = 0.6165, y = 0.5223, a = false, h = true, top = 60 },
+        { npc = 3595, name = "Shanda", map = 1438, x = 0.592, y = 0.404, a = true, h = false, top = 6 },
+        { npc = 3600, name = "Laurna Morninglight", map = 1438, x = 0.554, y = 0.568, a = true, h = false, top = 60 },
     },
     class7 = {
         { npc = 3030, name = "Siln Skychaser", tag = "Shaman Trainer", map = 1456, x = 0.23, y = 0.204, a = false, h = true },
@@ -150,6 +157,8 @@ ns.TrainerData = {
         { npc = 3157, name = "Shikrik", map = 1411, x = 0.4241, y = 0.6903, a = false, h = true, top = 6 },
         { npc = 3173, name = "Swart", map = 1411, x = 0.5435, y = 0.4264, a = false, h = true, top = 60 },
         { npc = 251374, name = "Windshaper Boro", map = 2521, x = 0.4279, y = 0.2364, a = true, h = true, top = 6 },
+        { npc = 257446, name = "Teo Hammerstorm", map = 1426, x = 0.288, y = 0.662, a = true, h = false, top = 6 },
+        { npc = 258113, name = "Ingrid Dunwald", map = 1426, x = 0.474, y = 0.52, a = true, h = false, top = 60 },
     },
     class8 = {
         { npc = 3047, name = "Archmage Shymm", tag = "Mage Trainer", map = 1456, x = 0.224, y = 0.154, a = false, h = true },
@@ -189,9 +198,11 @@ ns.TrainerData = {
         { npc = 5495, name = "Ursula Deline", tag = "Warlock Trainer", map = 1453, x = 0.398, y = 0.845, a = true, h = false },
         { npc = 5496, name = "Sandahl", tag = "Warlock Trainer", map = 1453, x = 0.393, y = 0.851, a = true, h = false },
         { npc = 459, name = "Drusilla La Salle", map = 1429, x = 0.498, y = 0.426, a = true, h = false, top = 6 },
+        { npc = 460, name = "Alamar Grimm", map = 1426, x = 0.286, y = 0.662, a = true, h = false, top = 6 },
         { npc = 906, name = "Maximillian Crowe", map = 1429, x = 0.444, y = 0.66, a = true, h = false, top = 60 },
         { npc = 3156, name = "Nartok", map = 1411, x = 0.4063, y = 0.6844, a = false, h = true, top = 6 },
         { npc = 3172, name = "Dhugru Gorelust", map = 1411, x = 0.5433, y = 0.4128, a = false, h = true, top = 60 },
+        { npc = 5612, name = "Gimrizz Shadowcog", map = 1426, x = 0.472, y = 0.534, a = true, h = false, top = 60 },
     },
     pet = {
         { npc = 2879, name = "Karrina Mekenda", tag = "Pet Trainer", map = 1453, x = 0.673, y = 0.367, a = true, h = false },
