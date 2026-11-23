@@ -8,6 +8,9 @@ as CSV (https://wago.tools/db2/<Table>/csv?build=<version>), in data/spells/:
                                   learned (0 = from a trainer)
   SpellLevels                     the level each spell (each rank) needs
   SpellName                       names, only to leave out unnamed spells
+  CreatureFamily                  each hunter pet family's ID, its name and
+                                  skill line: the game names a pet's family
+                                  in the client's language, and gives its ID
 and data/talents/ for the talent spells, which come from talents instead.
 A talent ability's later ranks are sold by trainers, but only to someone who
 has the talent: each class's `talent` table names those, with the talent's
@@ -269,6 +272,14 @@ def main():
     levels = {int(r["SpellID"]): int(r["SpellLevel"]) or int(r["BaseLevel"])
               for r in rows(SRC, "SpellLevels") if r["DifficultyID"] == "0"}
     ranks = {int(r["ID"]): r["NameSubtext_lang"] for r in rows(SRC, "Spell")}
+    # Each pet family's skill line, by the family's English name and its ID: UnitCreatureFamily
+    # gives both, the name in the client's own language and the ID the same in every one. The
+    # family's own name is the key, as the game's skill lines spell one differently ("Pet -
+    # Crocilisk" for the Crocolisk family).
+    family_of_line, family_ids = {}, {}
+    for r in rows(SRC, "CreatureFamily"):
+        family_of_line.setdefault(int(r["SkillLine_0"]), r["Name_lang"])
+        family_ids[int(r["ID"])] = r["Name_lang"]
 
     # Spells that come from talents, not trainers (a talent's first rank).
     talent_spells = {int(r["SpellID"]) for r in rows(TALENTS, "TraitDefinition")}
@@ -393,7 +404,7 @@ def main():
                 label = line["DisplayName_lang"]
                 if line["CategoryID"] != CLASS_SCHOOLS or not label.startswith("Pet - ") or line_id in DEMON_LINES:
                     continue
-                family = "*" if label == "Pet - Generic" else label.replace("Pet - ", "")
+                family = "*" if label == "Pet - Generic" else family_of_line.get(line_id, label.replace("Pet - ", ""))
                 for level, spell in Trainable(by_line[line_id], names, ranks, levels):
                     beast = beast_by_key.get((names[spell], ranks.get(spell, "")))
                     if beast:
@@ -405,6 +416,9 @@ def main():
                 lines.append(f'            ["{family}"] = {{ ' +
                              ", ".join(f"{{ {s}, {b}, {l}, {RankNumber(ranks, s)} }}" for l, s, b in learn) + " },")
             lines.append("        },")
+            # Each family's ID to its key above, for a client that names the family in its own language.
+            ids = {i: name for i, name in family_ids.items() if name in families}
+            lines.append("        familyIDs = { " + ", ".join(f'[{i}] = "{n}"' for i, n in sorted(ids.items())) + " },")
         priced = ShippedPrices(lines, class_id, {s for _, s, _, _ in spells}, set(weapon_spells), pet_to_beast,
                                {(names[s], ranks.get(s, "")): s for _, s, _, _ in spells})
         spell_ids = {s for _, s, _, _ in spells}

@@ -391,9 +391,20 @@ for _, event in ipairs({ "SPELLS_CHANGED", "SKILL_LINES_CHANGED", "PLAYER_LEVEL_
 end
 forget:SetScript("OnEvent", Training.Forget)
 
+-- The pet out now's family, as the spell list keys it: by the family's ID,
+-- which is the same in every language, else by the name the game gives it,
+-- which matches only on an English client ("Katze" is a Cat). Nil with no
+-- pet out, or where the game hides it.
+local function PetFamily(source)
+    if not UnitExists("pet") then return nil end
+    local name, id = Compat.Family("pet")
+    local key = id and source.familyIDs and source.familyIDs[id]
+    return key or name
+end
+
 -- A hunter's pet as last seen: its family, level and the abilities it knows.
 local function NotePet(source)
-    local family = UnitExists("pet") and Compat.Family("pet")
+    local family = PetFamily(source)
     if not family then return end
     -- The pet's spellbook shows each ability once, at the rank it knows.
     local book = Compat.PetSpellbook()
@@ -479,7 +490,7 @@ function PetNow()
     NotePet(source)
     local pet = type(ns.char.pet) == "table" and ns.char.pet or nil
     if not pet then return { none = true } end
-    local here = UnitExists("pet") and Compat.Family("pet") == pet.family
+    local here = PetFamily(source) == pet.family
     local beast = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
     local listed = beast and beast.rows or {}
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}

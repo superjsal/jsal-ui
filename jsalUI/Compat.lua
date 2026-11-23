@@ -56,7 +56,13 @@ end
 
 function Compat.GUID(unit) return Compat.Plain(UnitGUID(unit)) end
 function Compat.Name(unit) return Compat.Plain((UnitName(unit))) end
-function Compat.Family(unit) return Compat.Plain((UnitCreatureFamily(unit))) end
+-- A creature's family: its name, in the client's own language, and its ID,
+-- the same in every language.
+function Compat.Family(unit)
+    local name, id = UnitCreatureFamily(unit)
+    name, id = Compat.Plains(name, id)
+    return name, id
+end
 
 function Compat.ServerTime()
     return GetServerTime()
