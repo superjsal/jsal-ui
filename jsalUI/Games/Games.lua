@@ -276,7 +276,7 @@ end
 -- Made the first time it's wanted.
 local TILES = { r = "green", n = "gold", x = "lineStrong", ["1"] = "green", ["0"] = "lineStrong" }
 local DAY_PAD, DAY_GAP, DAY_HEAD, DAY_SCORE = 12, 12, 3, 6   -- the card's edge; between games; under a heading; under a score
--- A touch bigger than first drawn ("can make tiny bit bigger overall"): the words a size up, the tiles 16.
+-- A touch bigger than first drawn: the words a size up, the tiles 16.
 local day
 local function DayCard()
     if day then return day end

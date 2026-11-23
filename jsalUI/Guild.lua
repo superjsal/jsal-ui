@@ -462,8 +462,7 @@ end
 
 -- Which jsal.ui each guildmate has, for /jsal versions: those on now first, the newest version
 -- first, then those seen before, the most recently seen first. The Guild page's VERSION column
--- went when it was folded into Games (John, 19 Nov 2026: "what is the command to show all the
--- guildies versions now?").
+-- went when it was folded into Games.
 function Guild.Versions()
     if not Compat.GuildName() then
         ns.Print("You're not in a guild.")

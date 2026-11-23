@@ -356,7 +356,7 @@ end)
 Window.Page("report", function(page)
     -- Across the dashboard's whole width: the box to write in at the left,
     -- with Send under it; at the right, what's added for you, and the way
-    -- to send it from outside John's guild.
+    -- to send it from outside jsal's guild.
     local width = Window.fullWidth
     local SIDE_W, GAP, LABEL_W = 372, 24, 96
     local boxW, sideX = width - SIDE_W - GAP, width - SIDE_W
@@ -393,7 +393,7 @@ Window.Page("report", function(page)
     status:SetJustifyH("LEFT")
 
     -- What's added for you, a row each: the version, the character, where
-    -- it is, the reports still waiting to reach John, and the last errors.
+    -- it is, the reports still waiting to reach jsal, and the last errors.
     local added = Style.Card(page, "Added for you")
     added:SetPoint("TOPLEFT", lead, "BOTTOMLEFT", sideX, -14)
     added:SetWidth(SIDE_W)
@@ -414,7 +414,7 @@ Window.Page("report", function(page)
     end
     local addedText = rows[5].value
 
-    -- Outside John's guild: the report to copy and post on the Discord, or email.
+    -- Outside jsal's guild: the report to copy and post on the Discord, or email.
     local other = Style.Text(page, 13, "muted")
     other:SetPoint("TOPLEFT", added, "BOTTOMLEFT", 0, -18)
     other:SetWidth(SIDE_W)

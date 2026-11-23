@@ -694,13 +694,13 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end
         return total
     end
-    -- Spending what you have as soon as a recipe can use it isn't always where it saves most:
-    -- at 158 Leatherworking took 34 Thick Leather you had for Thick Armor Kit at 175, while
+    -- Spending what you have as soon as a recipe can use it isn't always where it saves most: at
+    -- 158 Leatherworking took 34 Thick Leather you had for Thick Armor Kit at 175, while
     -- Guardian Gloves still gave a point a craft, went back to the Gloves, then bought Thick
-    -- Leather for the same Kits at 194 (John, 19 Nov 2026: "see why its like that"). So where
-    -- what you have changed the road and it goes back to a recipe it left, the road is found
-    -- again as if you had nothing, and the one that comes to less, counting what you have either
-    -- way, is kept. Only then: finding it twice every time took twice as long.
+    -- Leather for the same Kits at 194. So where what you have changed the road and it goes back
+    -- to a recipe it left, the road is found again as if you had nothing, and the one that comes
+    -- to less, counting what you have either way, is kept. Only then: finding it twice every
+    -- time took twice as long.
     local steps, s, used = Walk(Stock(true))
     local back = false
     if used then

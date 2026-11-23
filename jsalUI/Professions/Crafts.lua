@@ -234,8 +234,7 @@ local function Pill(parent)
 end
 
 -- A material: a thin pill with "16 Medium Leather" in it, round all the way as the tags beside
--- it are (John, 19 Nov 2026, of square boxes beside the round "YOU NEED THE MATERIALS": "A, a
--- pill"). Pointed at, it shows the game's own tooltip for the item, with whatever the game and
+-- it are. Pointed at, it shows the game's own tooltip for the item, with whatever the game and
 -- other addons add to one: its vendor and auction prices among them.
 local function Chip(parent)
     local c = CreateFrame("Frame", nil, parent)

@@ -164,8 +164,7 @@ end
 -- screen. A small piece's tab is wider than the piece, so two side by side
 -- had their names drawn over each other ("Food reminder" and "Pet
 -- feeding"); from left to right, a tab that would lie on one already placed
--- goes to the other side of its piece, if that's clear and on the screen
--- (John, 19 Nov 2026: "A, below").
+-- goes to the other side of its piece, if that's clear and on the screen.
 local TAB_H, TAB_GAP = 20, 4
 local function Sides()
     local W, H = Screen()

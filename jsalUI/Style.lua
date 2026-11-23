@@ -815,8 +815,7 @@ end
 -- them): one quiet link, "About these numbers", read when it's pointed at
 -- and not printed on the page. `note` is its words, a paragraph a line, or
 -- a function that gives them; `about.note` can be set later. A blank line
--- parts one paragraph from the next, so each reads on its own (John, 19 Nov
--- 2026: "add a space between so it reads cleaner").
+-- parts one paragraph from the next, so each reads on its own.
 function Style.About(parent, note)
     local b = CreateFrame("Button", nil, parent)
     b.note = note
