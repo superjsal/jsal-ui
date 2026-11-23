@@ -62,7 +62,7 @@ def why(path):
               f"  [dungeons {w['share']:.0%} by {w['by']}, of {len(entry.get('npcs') or [])} creatures"
               f"{': ' + each if each else ''}]")
     print(f"// {len(read)} read: " + ", ".join(f"{n} {r}" for r, n in sorted(rules.items())))
-    print(f"// a non-set piece needs more than {build_gear.MOSTLY_IN_DUNGEONS:.0%} in dungeons, "
+    print(f"// a non-set piece needs at least {build_gear.MOSTLY_IN_DUNGEONS:.0%} in dungeons, "
           f"and {build_gear.DUNGEON_SHARE:.0%} in a dungeon for its place there")
 
 

@@ -39,7 +39,8 @@ same script again carries on. Never try to get past the check another way.
    - Everything on the list is read; which pieces get a dungeon place is the build's rule, so it
      can change without reading again. A set piece (the game's ItemSet table,
      `data/gear/ItemSet.csv`) takes every dungeon it drops in. Any other piece takes one only when
-     dungeon creatures drop more than half of it (by Wowhead's counts, else by how many creatures),
+     dungeon creatures drop at least 90% of it (`MOSTLY_IN_DUNGEONS`; by Wowhead's counts, else by how many
+     creatures),
      and then only the dungeons with at least `DUNGEON_SHARE` (15%) of its drops, so a world drop
      a few dungeon creatures also drop stays a world drop. `python -I tools/wowhead/place_items.py --why`
      prints each read item's rule and shares: show John that before it ships.

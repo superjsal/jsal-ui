@@ -38,7 +38,7 @@ more than one place) takes its dungeons from data/gear/wowhead-places.json when 
 (tools/wowhead/places.js reads each item's "Dropped by" list): the dungeon alone where any of the
 dungeon's ordinary creatures drops it, or "boss · dungeon" where only one of its bosses does, as a
 zone drop or a boss drop is written. A piece of an item set (the game's ItemSet table,
-data/gear/ItemSet.csv) takes every dungeon it drops in; any other piece only when it mostly drops in
+data/gear/ItemSet.csv) takes every dungeon it drops in; any other piece only when nearly all of it drops in
 dungeons, and then only the dungeons with a real share of its drops (MOSTLY_IN_DUNGEONS and
 DUNGEON_SHARE below), so a world drop that a few dungeon creatures also drop stays a world drop. Its place in the lists is the dungeon where it drops most; the
 others, where there are any, go in GearData's `more`, read only by the Dungeon guide's Trash card.
@@ -443,9 +443,11 @@ def where(item, zones):
     return kind, place
 
 
-# A piece that isn't a set's takes dungeon places only when dungeon creatures drop more than this share
-# of it (John, 22 Nov 2026: set pieces, and "any other piece that mostly drops in dungeons").
-MOSTLY_IN_DUNGEONS = 0.5
+# A piece that isn't a set's takes dungeon places only when dungeon creatures drop at least this share of
+# it. The full read of 22 Nov 2026 set it: a true dungeon drop comes from a handful of creatures, all of
+# them in dungeons (99% and up), while a world drop comes from 50 to 150 creatures of which most of the
+# highest are in dungeons anyway (30% to 87%), and at half, 24 world drops stood on Trash cards.
+MOSTLY_IN_DUNGEONS = 0.9
 # And then only in a dungeon whose creatures drop at least this share of all of it, so one stray dungeon
 # creature among a world drop's many doesn't put it on that dungeon's Trash card. Tune after the full read
 # (place_items.py --why shows every read item's shares).
@@ -556,7 +558,7 @@ def placed(read, zones, inside, bosses, levels, set_piece):
     if set_piece:
         why["rule"] = "set piece"
         return every, why
-    if inside_share <= MOSTLY_IN_DUNGEONS:
+    if inside_share < MOSTLY_IN_DUNGEONS:
         why["rule"] = "mostly elsewhere"
         return [], why
     keep = {zones[str(z)] for z, s in each.items() if s >= DUNGEON_SHARE}
