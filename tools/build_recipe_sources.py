@@ -2,7 +2,11 @@
 
 From data/professions/wowhead-sources.json (read from Wowhead Forever with tools/wowhead/recipes.js:
 the recipe lists, and every vendor's page) and the game's own tables for which spell a pattern
-teaches (matched by name inside its profession, as build_professions.py does).
+teaches (matched by name inside its profession, as build_professions.py does). Then every vendor
+players opened on Forever who sells a pattern Wowhead's pages don't give them, from EG Link
+(data/vendors/eglink-vendors.json: data from Efficient Games, https://efficient.games, CC BY 4.0),
+matched by the pattern's item ID. Wowhead's vendor pages miss many of a side's sellers, and a
+pattern sold on both sides read as one side's only.
 
 Run: python -I tools/build_recipe_sources.py
 """
@@ -20,6 +24,19 @@ from maps import forever_spot  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPELLS = ROOT / "data" / "spells"
 SRC = ROOT / "data" / "professions" / "wowhead-sources.json"
+EGLINK = ROOT / "data" / "vendors" / "eglink-vendors.json"
+SUPPLIES = ROOT / "data" / "vendors" / "wowhead-supplies.json"
+ASSIGN = ROOT / "data" / "maps" / "UiMapAssignment.csv"
+# Whose land a map is, for an EG Link vendor Wowhead gives no reaction for (EG Link records no
+# faction): the same lists build_professions.py uses for the supply vendors. On any other map, a
+# contested or a Forever zone, such a vendor's side can't be told, and they're left out: a town
+# there may be either side's, and a pattern counted as sold to you is one the path sends you to buy.
+ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433, 1437}
+HORDE_MAPS = {1454, 1456, 1458, 1411, 1412, 1420, 1421, 1413}
+# What EG Link's player paid at each standing with the vendor's faction (4 neutral, 5 friendly,
+# 6 honored), as a share of the full price: its own rows have neutral and friendly paying the
+# same and honored a tenth less.
+STANDING_SHARE = {"4": 1.0, "5": 1.0, "6": 0.9}
 OUT = ROOT / "jsalUI" / "Professions" / "RecipeSources.lua"
 
 LINES = {"alchemy": 171, "blacksmithing": 164, "enchanting": 333, "engineering": 202, "leatherworking": 165,
@@ -49,6 +66,67 @@ def side(react):
     return 0
 
 
+def map_areas():
+    """Each map's zone, as an area ID the game names: its first assignment's."""
+    out = {}
+    with open(ASSIGN, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r["OrderIndex"] == "0" and int(r["AreaID"]) > 0:
+                out.setdefault(int(r["UiMapID"]), int(r["AreaID"]))
+    return out
+
+
+def eglink_sellers(items, known, sellers):
+    """EG Link's vendors of the patterns in `items` whom Wowhead's pages don't already give for that
+    pattern: {item: [(npc, (copper, stock, other cost, standing))]} and each one's (name, zone,
+    side, spot). Their name, reaction and zone are Wowhead's where it has the NPC (its vendor pages,
+    else its supply lists), since EG Link keeps the name in its player's language; one with no
+    English name, or whose side can't be told, is left out. The price is the full one: EG Link
+    keeps what its player paid at their standing, which is less from honored up."""
+    if not EGLINK.exists():
+        return {}, {}
+    supplies = json.loads(SUPPLIES.read_text(encoding="utf-8")) if SUPPLIES.exists() else {}
+    seen = {}
+    for sold_by in (supplies.get("items") or {}).values():
+        for npc, name, react, zones, _copper in sold_by:
+            seen.setdefault(str(npc), (name, react, zones))
+    areas = map_areas()
+    added, npcs = {}, {}
+    for npc_id, v in sorted(json.loads(EGLINK.read_text(encoding="utf-8"))["vendors"].items(), key=lambda kv: int(kv[0])):
+        spot = (v.get("positions") or [{}])[0]
+        ui_map = int(spot.get("uiMap") or 0)
+        for item, sale in sorted((v.get("sells") or {}).items(), key=lambda kv: int(kv[0])):
+            item = int(item)
+            if item not in items or int(npc_id) in {n for n, _ in sellers.get(item, [])}:
+                continue
+            if int(npc_id) not in npcs:
+                wowhead, supply = known.get(npc_id), seen.get(npc_id)
+                name = (wowhead or {}).get("n") or (supply and supply[0]) or v.get("name") or ""
+                if not name or not name.isascii():
+                    print(f"  left out: EG Link vendor {npc_id}, no English name")
+                    break
+                react = (wowhead or {}).get("react") or (supply and supply[1])
+                if react:
+                    vendor_side = side(react)
+                elif ui_map in ALLIANCE_MAPS:
+                    vendor_side = 1
+                elif ui_map in HORDE_MAPS:
+                    vendor_side = 2
+                else:
+                    print(f"  left out: EG Link vendor {npc_id} ({name}), no side known on map {ui_map}")
+                    break
+                zone = ZONE_FIX.get(int(npc_id)) or ((wowhead or {}).get("loc") or [0])[0] or areas.get(ui_map, 0)
+                at = (ui_map, round(spot["mapX"] * 100, 1), round(spot["mapY"] * 100, 1)) if ui_map and "mapX" in spot else None
+                npcs[int(npc_id)] = (name, zone, vendor_side, at)
+            costs = sale.get("costs") or {}
+            full = [paid / STANDING_SHARE[at] for at, paid in costs.items() if at in STANDING_SHARE]
+            copper = int(round(max(full))) if full else max(costs.values(), default=0)
+            stock = sale.get("stockMax", 0) if sale.get("limited") else 0
+            other = bool(sale.get("costItems")) or copper == 0
+            added.setdefault(item, []).append((int(npc_id), (copper, stock, other, 0)))
+    return added, npcs
+
+
 def main():
     data = json.loads(SRC.read_text(encoding="utf-8"))
     names = {int(r["ID"]): r["Name_lang"] for r in rows("SpellName")}
@@ -63,6 +141,11 @@ def main():
     for npc_id, npc in data["npcs"].items():
         for item, sale in npc["sells"].items():
             sellers.setdefault(int(item), []).append((int(npc_id), sale))
+
+    patterns = {item for items in data["lists"].values() for item, *_ in items}
+    added, eglink = eglink_sellers(patterns, data["npcs"], sellers)
+    for item, more in added.items():
+        sellers.setdefault(item, []).extend(more)
 
     recipes, used, unmatched = {}, set(), 0
     counts = {"vendor": 0, "quest": 0, "mob": 0, "world": 0}
@@ -108,7 +191,8 @@ def main():
     lines = [
         "-- Where each recipe comes from, by name: who sells it and for how much, the",
         "-- quest that gives it, the mob that drops it. From Wowhead's WoW Forever",
-        f"-- recipe lists and vendor pages (read {data.get('fetched', '?')}); regenerated by the build,",
+        f"-- recipe lists and vendor pages (read {data.get('fetched', '?')}), and the vendors players",
+        "-- opened on Forever, from EG Link (Efficient Games, CC BY 4.0); regenerated by the build,",
         "-- not by hand.",
         "local _, ns = ...",
         "",
@@ -118,13 +202,22 @@ def main():
         "    npcs = {",
     ]
     for npc_id in sorted(used):
-        npc = data["npcs"][str(npc_id)]
-        zone = ZONE_FIX.get(npc_id) or (npc["loc"][0] if npc["loc"] else 0)
-        parts = [lua_string(npc["n"]), str(zone), str(side(npc["react"]))]
-        if len(npc["spot"]) == 3 and npc["spot"][0]:
-            # Wowhead's spot is on Classic's map; Forever draws a few zones differently.
-            spot_x, spot_y = forever_spot(npc["spot"][0], npc["spot"][1], npc["spot"][2])
-            parts += [str(npc["spot"][0]), f"{spot_x:g}", f"{spot_y:g}"]
+        npc = data["npcs"].get(str(npc_id))
+        if npc:
+            zone = ZONE_FIX.get(npc_id) or (npc["loc"][0] if npc["loc"] else 0)
+            parts = [lua_string(npc["n"]), str(zone), str(side(npc["react"]))]
+            if len(npc["spot"]) == 3 and npc["spot"][0]:
+                # Wowhead's spot is on Classic's map; Forever draws a few zones differently.
+                spot_x, spot_y = forever_spot(npc["spot"][0], npc["spot"][1], npc["spot"][2])
+                parts += [str(npc["spot"][0]), f"{spot_x:g}", f"{spot_y:g}"]
+            elif eglink.get(npc_id) and eglink[npc_id][3]:
+                parts += [str(x) if i == 0 else f"{x:g}" for i, x in enumerate(eglink[npc_id][3])]
+        else:
+            # Known only from EG Link: its spot is where the player stood, on Forever's own map.
+            name, zone, npc_side, at = eglink[npc_id]
+            parts = [lua_string(name), str(zone), str(npc_side)]
+            if at:
+                parts += [str(at[0]), f"{at[1]:g}", f"{at[2]:g}"]
         lines.append(f"        [{npc_id}] = {{ " + ", ".join(parts) + " },")
     lines += [
         "    },",
