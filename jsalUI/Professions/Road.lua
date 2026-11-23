@@ -219,11 +219,23 @@ local function Way(step, trainer)
     end
 end
 
+-- Where a step is on the road: "125 to 126", or "at 50" for one that gives no point (a rod past
+-- orange, made for the enchants after it).
+function Road.Span(step, joiner)
+    if step.to > step.from then return ("%d" .. joiner .. "%d"):format(step.from, step.to) end
+    return ("at %d"):format(step.from)
+end
+
+-- A step that counts no point: a tool the road makes where it's past orange.
+local function NoPoint(step)
+    return step.tool ~= nil and step.to <= step.from
+end
+
 -- A step's first facts for its tooltip: the skill it covers, then what it
 -- asks of you first, with who sells or teaches it on a line of their own.
 local function Facts(step, trainer)
     local recipe = step.recipe
-    local facts = { { "On your road", ("%d to %d"):format(step.from, step.to), tone = "gold" } }
+    local facts = { { "On your road", Road.Span(step, " to "), tone = "gold" } }
     if step.buy then
         local sources = ns.RecipeSourceText
         local who, copper, limited
@@ -266,6 +278,22 @@ local function Sure(recipe, skill)
     if skill < recipe.yellow then return ("a point every craft until %d"):format(recipe.yellow) end
     local odds = Professions.Chance and math.max(1, math.floor(Professions.Chance(recipe, skill) * 10 + 0.5)) or 10
     return odds >= 10 and "a point from nearly every craft" or ("a point from about %d crafts in 10"):format(odds)
+end
+
+-- Under the name of a tool that's grey where the road makes it.
+local NO_POINT = "Gives no point, but the next enchants need it"
+
+-- Whether a craft of it at this skill gives no point at all.
+local function Grey(recipe, skill)
+    return not Professions.Chance or Professions.Chance(recipe, skill) <= 0
+end
+
+-- A tool's facts where it counts no point: how surely a craft of it gives one there (grey: none),
+-- and how far the road's enchants need it.
+local function ToolFacts(step, facts)
+    local sure = not Grey(step.recipe, step.from) and Sure(step.recipe, step.from)
+    facts[#facts + 1] = { "Gives a point", sure and sure:match("^a point (.+)$") or "no, it's grey" }
+    if step.toolFor then facts[#facts + 1] = { "Needed for", ("your enchants to %d"):format(step.toolFor) } end
 end
 
 -- A name as wide as its words, cut short at `room`.
@@ -382,9 +410,11 @@ function Road.PaintNow(card, line, first, skill, trainer)
     -- make it; else what a point of skill costs; else how surely a craft
     -- gives one. The others are in the tooltip.
     local todo = Todo(first, trainer)
+    local idle = NoPoint(first)
     local priced, cost, sells, per, missing = Costs(recipe, first.crafts, first.to - first.from)
-    local pointLine = per and (Compat.Money(per) .. " a point") or nil
+    local pointLine = per and not idle and (Compat.Money(per) .. " a point") or nil
     local sure = Sure(recipe, skill)
+    if idle and Grey(recipe, skill) then sure = NO_POINT end
     local said = todo or pointLine or sure or ""
     card.detail:SetText(said)
     card.detail:SetTextColor(Style.Color(todo and "gold" or "muted"))
@@ -393,12 +423,14 @@ function Road.PaintNow(card, line, first, skill, trainer)
     if cost then
         facts[#facts + 1] = { "To make", Compat.Money(cost) }
         facts[#facts + 1] = { "Sells for", sells and Compat.Money(sells) or "no price yet" }
-        facts[#facts + 1] = PointFact(per)
+        if not idle then facts[#facts + 1] = PointFact(per) end
     elseif priced then
         facts[#facts + 1] = { "No price yet for " .. (Compat.ItemName(missing) or "a material"), tone = "muted" }
     end
     local gives = sure and sure:match("^a point (.+)$")
-    if gives then
+    if idle then
+        ToolFacts(first, facts)
+    elseif gives then
         facts[#facts + 1] = { "Gives a point", gives }
     elseif sure then
         facts[#facts + 1] = { sure, tone = "muted" }
@@ -418,6 +450,9 @@ function Road.PaintNow(card, line, first, skill, trainer)
         m.icon:SetTexture(Compat.ItemIcon(reagent.item))
         m.count:SetText(("|cff%s%d|r / %d"):format(have >= need and Style.hex.green or Style.hex.red, have, need))
         local price = Professions.IsVendor(reagent.item)
+        -- Made with a tool you don't hold, it can't be made yet: a Mote of Magic needs the rod it goes into.
+        local maker = not price and Professions.MadeBy and Professions.MadeBy(line, reagent.item)
+        if maker and Professions.HasTools and not Professions.HasTools(maker) then maker = nil end
         -- What's in your bank counts as yours, and is said to be there:
         -- enough of four hides that are all in the bank reads as four in
         -- your bags.
@@ -429,7 +464,7 @@ function Road.PaintNow(card, line, first, skill, trainer)
             m.note = "You have enough."
         elseif price then
             words, m.note = "vendor", ("%d more from a vendor, for %s."):format(need - have, Compat.Money((need - have) * price))
-        elseif Professions.MadeBy and Professions.MadeBy(line, reagent.item) then
+        elseif maker then
             words, m.note = "make", ("%d short: you can make it."):format(need - have)
         else
             m.note = ("%d short."):format(need - have)
@@ -554,8 +589,12 @@ function Road.PaintStop(s, step, trainer)
     -- In its tooltip: the skill it covers, what to do first, and what a
     -- point costs.
     local facts = Facts(step, trainer)
-    local per = select(4, Costs(recipe, step.crafts, step.to - step.from))
-    if per then facts[#facts + 1] = PointFact(per) end
+    if NoPoint(step) then
+        ToolFacts(step, facts)
+    else
+        local per = select(4, Costs(recipe, step.crafts, step.to - step.from))
+        if per then facts[#facts + 1] = PointFact(per) end
+    end
     s.facts = facts
     if Style.Retip then Style.Retip(s) end
 end
