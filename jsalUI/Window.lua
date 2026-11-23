@@ -642,3 +642,134 @@ if ns.Command then ns.Command("pieces", function()
         print(("  %s: %d   (%d, %d, %d)"):format(c.label, c.all, c.frames, c.pictures, c.texts))
     end
 end) end
+
+-- /jsal snap [a few words]: a snapshot of what jsal.ui shows, kept in the saved file, for checking
+-- what's on screen without a picture. It holds each of jsal.ui's windows and pieces that is shown
+-- (where, how big, its scale and fade), and every line of text shown on the dashboard's open page and
+-- in any page's own window: what it says, where it sits in its page, and whether the game cut it
+-- short. Taken only when typed, nothing watches for it; the newest few are kept for the account.
+-- /jsal snap clear empties them. jsal.ui's own errors are kept beside them already (Errors.lua).
+local SNAPS_KEPT, SNAP_LINES, SNAP_TEXT = 10, 400, 120
+
+local function Tenth(n) return type(n) == "number" and math.floor(n * 10 + 0.5) / 10 or nil end
+
+-- Left, bottom, width and height, from `from`'s bottom left corner when given; nil where the game
+-- hasn't placed it.
+local function Rect(r, from)
+    local left, bottom = r:GetLeft(), r:GetBottom()
+    if not (left and bottom) then return nil end
+    local x, y = 0, 0
+    if from then x, y = from:GetLeft() or 0, from:GetBottom() or 0 end
+    return { Tenth(left - x), Tenth(bottom - y), Tenth(r:GetWidth()), Tenth(r:GetHeight()) }
+end
+
+-- A line as it reads: colours, pictures and links taken out, on one line, cut at SNAP_TEXT
+-- characters (never inside a letter).
+local function Words(text)
+    text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[^:|]*:", ""):gsub("|r", "")
+        :gsub("|T.-|t", ""):gsub("|A.-|a", ""):gsub("|H.-|h(.-)|h", "%1"):gsub("|n", " "):gsub("%s*\n%s*", " ")
+    if #text <= SNAP_TEXT then return text end
+    local cut = SNAP_TEXT
+    while cut > 0 and (text:byte(cut + 1) or 0) >= 128 and (text:byte(cut + 1) or 0) < 192 do cut = cut - 1 end
+    return text:sub(1, cut) .. "..."
+end
+
+-- Every text shown in f, its shown children's too, in the order /jsal pieces counts them.
+local function Lines(f, page, into)
+    for _, r in ipairs({ f:GetRegions() }) do
+        if r:IsShown() and r:GetObjectType() == "FontString" then
+            local raw = r:GetText()
+            local text = Compat.Plain(raw)
+            if raw ~= nil and text ~= "" then
+                into.count = into.count + 1
+                if into.count <= SNAP_LINES then
+                    local line = { t = text and Words(tostring(text)) or "(hidden by the game)", at = Rect(r, page) }
+                    if r.IsTruncated and r:IsTruncated() then line.cut = true end
+                    into.lines[#into.lines + 1] = line
+                end
+            end
+        end
+    end
+    for _, child in ipairs({ f:GetChildren() }) do
+        if child:IsShown() then Lines(child, page, into) end
+    end
+end
+
+local function NameOf(f) return f:GetName() end
+
+-- jsal.ui's shown windows and pieces: the dashboard, the pages in windows of their own, the pieces
+-- Unlock Mode moves (by their keys there), and then any other of its frames on the screen, by name.
+local function Shown()
+    local out, seen = {}, {}
+    local function Add(name, f)
+        if not f or seen[f] or not f:IsShown() then return end
+        seen[f] = true
+        out[#out + 1] = { name = name, at = Rect(f), scale = math.floor(f:GetScale() * 1000 + 0.5) / 1000,
+                          alpha = math.floor(f:GetAlpha() * 100 + 0.5) / 100 }
+    end
+    Add("dashboard", frame)
+    for _, page in ipairs(PAGES) do
+        if page.own then Add(page.key, page.own.frame) end
+    end
+    local movable = ns.Unlock and ns.Unlock.Pieces and ns.Unlock.Pieces() or {}
+    local keys = {}
+    for key in pairs(movable) do keys[#keys + 1] = key end
+    table.sort(keys)
+    for _, key in ipairs(keys) do
+        local get = movable[key].frame
+        if get then
+            local ok, f = pcall(get)
+            if ok then Add(key, f) end
+        end
+    end
+    for _, f in ipairs({ UIParent:GetChildren() }) do
+        local ok, name = pcall(NameOf, f)
+        if ok and type(name) == "string" and name:find("^jsalUI") then Add(name:sub(7), f) end
+    end
+    return out
+end
+
+local function Snapshot(label)
+    local _, class = UnitClass("player")
+    local snap = {
+        at = date("%Y-%m-%d %H:%M:%S"), server = Compat.ServerTime(), version = ns.version,
+        class = class, level = UnitLevel("player"), zone = Compat.Plain(GetRealZoneText()),
+        label = label ~= "" and label or nil,
+        screen = { Tenth(UIParent:GetWidth()), Tenth(UIParent:GetHeight()) },
+        pieces = Shown(), pages = {}, timings = {},
+    }
+    local into = { count = 0, lines = nil }
+    local function Page(key, where, f)
+        into.lines = {}
+        local before = into.count
+        Lines(f, f, into)
+        local kept = #into.lines
+        local more = (into.count - before) - kept
+        snap.pages[#snap.pages + 1] = { key = key, where = where, at = Rect(f), lines = into.lines, more = more > 0 and more or nil }
+    end
+    if frame and frame:IsShown() and current and byKey[current].frame then
+        snap.open = current
+        Page(current, "dashboard", byKey[current].frame)
+    end
+    for _, page in ipairs(PAGES) do
+        if page.own and page.own.frame and page.own.frame:IsShown() and page.frame then Page(page.key, "own window", page.frame) end
+    end
+    for k, v in pairs(ns.timings or {}) do
+        if type(v) == "number" then snap.timings[k] = Tenth(v) end
+    end
+    return snap
+end
+
+if ns.CommandWithWords then ns.CommandWithWords("snap", function(words)
+    if words == "clear" then
+        ns.db.snaps = {}
+        return ns.Print("Cleared the saved snapshots.")
+    end
+    local ok, snap = xpcall(function() return Snapshot(words) end, ns.Report)
+    if not ok then return ns.Print("That snapshot hit an error. BugSack has the details.") end
+    ns.db.snaps = type(ns.db.snaps) == "table" and ns.db.snaps or {}
+    local kept = ns.db.snaps
+    kept[#kept + 1] = snap
+    while #kept > SNAPS_KEPT do table.remove(kept, 1) end
+    ns.Print(("Saved what jsal.ui shows now (%d kept). It's written to your saved files at your next /reload."):format(#kept))
+end) end

@@ -34,6 +34,9 @@ function Unlock.Add(piece)
     pieces[piece.key] = piece
 end
 
+-- Every piece added, by key (/jsal snap lists the ones shown).
+function Unlock.Pieces() return pieces end
+
 ---------------------------------------------------------------------------
 -- jsal.ui's own Unlock Mode.
 ---------------------------------------------------------------------------
