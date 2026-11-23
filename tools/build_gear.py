@@ -33,17 +33,28 @@ tank's, the other plate tank's. (John, 14 Nov 2026:
 "if someone does value stamina like a tank will it show it properly, but also not overvalue stamina
 for dps classes"; "lets keep it as universal as possible".)
 
-Run: python -I tools/build_gear.py
+A drop Wowhead names no one place for (an empty sourcemore: it drops from ordinary creatures in
+more than one place) takes its dungeons from data/gear/wowhead-places.json when that file is there
+(tools/wowhead/places.js reads each item's "Dropped by" list): the dungeon alone where any of the
+dungeon's ordinary creatures drops it, or "boss · dungeon" where only one of its bosses does, as a
+zone drop or a boss drop is written. Its place in the lists is the dungeon where it drops most; the
+others, where there are any, go in GearData's `more`, read only by the Dungeon guide's Trash card.
+Outdoors, or nowhere read, it keeps no place.
+
+Run: python -I tools/build_gear.py [--places <file>] [--out <file>]
 """
 
 import csv
+import ast
 import json
 import pathlib
 import re
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "gear"
 OUT = ROOT / "jsalUI" / "Gear" / "GearData.lua"
+PLACES = SRC / "wowhead-places.json"
 
 STAMINA_SHARE = 0.1
 MAIN_STATS = ("ITEM_MOD_STRENGTH_SHORT", "ITEM_MOD_AGILITY_SHORT", "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT",
@@ -429,6 +440,83 @@ def where(item, zones):
     return kind, place
 
 
+def dungeon_bosses():
+    """Each dungeon's bosses by Wowhead's zone ID: the names its loot was read under
+    (data/dungeons/wowhead.json) and the NPC names tools/wowhead/bosses.py's ALIAS gives them."""
+    tree = ast.parse((ROOT / "tools" / "wowhead" / "bosses.py").read_text(encoding="utf-8"))
+    alias = next(ast.literal_eval(n.value) for n in tree.body
+                 if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "ALIAS")
+    zones = json.loads((ROOT / "data" / "dungeons" / "wowhead.json").read_text(encoding="utf-8"))["zones"]
+    out = {}
+    for z, zone in zones.items():
+        names = set()
+        for boss in zone.get("loot", {}):
+            names.add(boss)
+            names.update(alias.get(boss, []))
+        out[int(z)] = names
+    return out
+
+
+def is_boss(name, bosses):
+    """A boss by name, or by a name of five letters or more that begins the other (as the guide
+    finds one: Dungeons.lua's IsBoss)."""
+    for n in bosses:
+        if n == name or (len(n) >= 5 and len(name) >= 5 and (name.startswith(n) or n.startswith(name))):
+            return True
+    return False
+
+
+def dungeon_places(read, zones, inside, bosses, levels=None):
+    """An item's places from what places.js read of it: one for each of the guide's dungeons where
+    a creature drops it, the dungeon's name where any ordinary creature does, "boss · dungeon"
+    where only bosses do (the one that drops it most often); [] when no creature in a dungeon was
+    read. The dungeon where it drops most comes first: by the best count / outof of a creature there
+    that Wowhead gives both numbers for, and on a tie, or where the numbers are missing, the
+    lowest-level dungeon (`levels`, by zone ID), then the name, so the order is the same each build."""
+    levels = levels or {}
+    best = {}
+    for npc in (read or {}).get("npcs") or []:
+        count, outof = npc.get("count") or 0, npc.get("outof") or 0
+        rate = count / outof if count > 0 and outof > 0 else 0
+        for z in npc.get("zones") or []:
+            if z not in inside or not zones.get(str(z)):
+                continue
+            boss = is_boss(npc["name"], bosses.get(z, ()))
+            here = best.setdefault(z, {"trash": None, "boss": None})
+            key = "boss" if boss else "trash"
+            if here[key] is None or rate > here[key][0]:
+                here[key] = (rate, npc["name"])
+    places = []
+    for z, here in best.items():
+        level = levels.get(z, 999)
+        if here["trash"]:
+            places.append((here["trash"][0], level, zones[str(z)]))
+        else:
+            places.append((here["boss"][0], level, here["boss"][1] + " · " + zones[str(z)]))
+    places.sort(key=lambda p: (-p[0], p[1], p[2]))
+    return [p for _rate, _level, p in places]
+
+
+def read_places(path, zones):
+    """Each placeless drop's dungeon places by item ID, from wowhead-places.json; {} without it."""
+    if not path.exists():
+        return {}
+    from build_dungeons import WOWHEAD_ZONE, dungeon_rows  # noqa: E402
+    inside = set(WOWHEAD_ZONE.values())
+    levels = {}
+    for row in dungeon_rows():
+        z = WOWHEAD_ZONE[row[3]]
+        levels[z] = min(levels.get(z, row[1]), row[1])
+    bosses = dungeon_bosses()
+    read = json.loads(path.read_text(encoding="utf-8"))["items"]
+    out = {}
+    for item_id, entry in read.items():
+        places = dungeon_places(entry, zones, inside, bosses, levels)
+        if places:
+            out[int(item_id)] = places
+    return out
+
+
 def only_quest(item):
     """The quest ID when an item's one source is a single known quest, else None."""
     sources, more = item[10] or [], item[11] or []
@@ -487,8 +575,18 @@ def percents(pct):
 
 
 def main():
+    global OUT
+    args = sys.argv[1:]
+    places_file = PLACES
+    if "--places" in args:
+        places_file = pathlib.Path(args[args.index("--places") + 1])
+    if "--out" in args:
+        OUT = pathlib.Path(args[args.index("--out") + 1])
+    sys.path.insert(0, str(ROOT / "tools"))
     data = json.loads((SRC / "wowhead-items.json").read_text(encoding="utf-8"))
     zones = json.loads((SRC / "zones.json").read_text(encoding="utf-8"))
+    dungeons_of = read_places(places_file, zones)
+    placed, to_boss, more = 0, 0, {}
     places, place_index = [], {}
     by_slot, quests = {}, {}
     kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4, "PvP": 5}
@@ -503,6 +601,13 @@ def main():
         if len(item) > 13 and item[13]:
             unique.append(item_id)
         kind, place = where(item, zones)
+        if kind == "Drop" and place == "" and item_id in dungeons_of:
+            place, *others = dungeons_of[item_id]
+            placed += 1
+            if " · " in place:
+                to_boss += 1
+            if others:
+                more[item_id] = others
         quest = only_quest(item)
         if kind != "Drop" and raid_only(item, reagents):
             raid.append(item_id)
@@ -513,6 +618,13 @@ def main():
             places.append(place)
         by_slot.setdefault(slot, []).append(
             f"{item_id},{req},{ilvl},{cls},{sub},{side},{reqclass},{quality},{kinds[kind]},{place_index[place] + 1}")
+    # The other dungeons' places by number; one not already named goes at the end, so no line's moves.
+    for item_id, others in more.items():
+        for other in others:
+            if other not in place_index:
+                place_index[other] = len(places)
+                places.append(other)
+        more[item_id] = [place_index[o] + 1 for o in others]
     rows = [f"[{slot}] = {lua_string(';'.join(entries))}" for slot, entries in sorted(by_slot.items())]
     spec_lines = []
     for class_file, trees in SPECS.items():
@@ -570,6 +682,11 @@ def main():
         "    -- Rings and trinkets that can be worn only once (Unique, or Unique-Equipped), by item ID,",
         "    -- separated by \";\": one is the upgrade of only one place of the pair.",
         "    unique = " + lua_string(";".join(str(i) for i in unique)) + ",",
+        *([
+            "    -- A drop's other dungeons, past the one place in its line (the dungeon where it drops most):",
+            "    -- \"item ID:\" then places by number, separated by \",\"; items by \";\". For the Dungeon guide's Trash card.",
+            "    more = " + lua_string(";".join(f"{i}:" + ",".join(str(n) for n in ns) for i, ns in sorted(more.items()))) + ",",
+        ] if more else []),
         "    -- Each class's talent trees, in order: what one point of each stat is worth.",
         "    specs = {",
         *spec_lines,
@@ -578,7 +695,9 @@ def main():
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent, {len(unique)} unique ->{OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
+    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent, {len(unique)} unique ->{OUT.name} ({OUT.stat().st_size // 1024} KB)")
+    if dungeons_of:
+        print(f"{placed} drops placed in a dungeon from {places_file.name} ({to_boss} on a boss), {len(more)} in more than one")
 
 
 if __name__ == "__main__":

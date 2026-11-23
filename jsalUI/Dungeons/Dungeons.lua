@@ -187,7 +187,8 @@ Dungeons.OnEvent = OnEvent
 -- boss of the guide lists, from a creature that isn't one of the dungeon's bosses (by either of a boss's names, or a name that begins the
 -- other, as the Endgame goal finds a boss), and that your side can get. { { id, creature (nil where none is named),
 -- quality } }, found the first time a dungeon is shown and kept. Wowhead names Sunken Temple by the temple's own name.
--- No drop chance is known for them.
+-- No drop chance is known for them. A drop in several dungeons has its other dungeons in GearData's `more`, read the
+-- first time a Trash card is built and kept.
 local ALSO_CALLED = { ["Sunken Temple"] = "The Temple of Atal'Hakkar" }
 local SEP = " \194\183 "
 local trash, bossDrop = {}, nil
@@ -200,6 +201,7 @@ local function IsBoss(d, name)
     end
     return false
 end
+local moreAt
 function Dungeons.Trash(d)
     local data = ns.GearData
     if trash[d] and trash[d].data == data then return trash[d].list end
@@ -229,6 +231,16 @@ function Dungeons.Trash(d)
     local faction = UnitFactionGroup and UnitFactionGroup("player")
     local mine = (faction == "Alliance" and "1") or (faction == "Horde" and "2") or nil
     local seen = {}
+    if not (moreAt and moreAt.data == data) then
+        moreAt = { data = data, at = {} }
+        for id, nums in (data.more or ""):gmatch("(%d+):([%d,]+)") do
+            for n in nums:gmatch("%d+") do
+                n = tonumber(n)
+                moreAt.at[n] = moreAt.at[n] or {}
+                moreAt.at[n][tonumber(id)] = true
+            end
+        end
+    end
     -- An item's entry ends in its source kind and place: ",1,<place>" for a drop there, then ";" or the line's end.
     for _, line in pairs(data.items) do
         for place, creature in pairs(want) do
@@ -250,6 +262,25 @@ function Dungeons.Trash(d)
                     end
                 end
                 from = stop
+            end
+        end
+        -- A drop whose other dungeons (`more`) include this one: its entry found by its ID, at an entry's start.
+        for place, creature in pairs(want) do
+            for id in pairs(moreAt.at[place] or {}) do
+                local key, from = id .. ",", 1
+                while true do
+                    local at = line:find(key, from, true)
+                    if not at then break end
+                    if at == 1 or line:byte(at - 1) == 59 then
+                        local stop = line:find(";", at, true)
+                        local side, q = line:sub(at, (stop or 0) - 1):match("^%d+,%d+,%d+,%-?%d+,%-?%d+,(%d+),%d+,(%d+),1,%d+$")
+                        if side and not seen[id] and not bossDrop[id] and (side == "0" or side == mine) then
+                            seen[id] = true
+                            list[#list + 1] = { id, creature ~= true and creature or nil, tonumber(q) }
+                        end
+                    end
+                    from = at + 1
+                end
             end
         end
     end
