@@ -58,7 +58,15 @@ local function Go(p)
                 if not found and ((encounter and b[1] == encounter) or (boss and Named(b, whole))) then found = k end
             end
         end
-        if found then ns.Dungeons.wantBoss, ns.Dungeons.wantItem = found, p.id end
+        if found then
+            ns.Dungeons.wantBoss, ns.Dungeons.wantItem = found, p.id
+        elseif kind == "guide" and not encounter then
+            -- Dropped by a creature of the dungeon that isn't one of its bosses (`boss` is the creature's
+            -- name, nil when any creature there drops it): the bosses' tab says so above its cards.
+            ns.Dungeons.wantTab = "bosses"
+            ns.Dungeons.wantFrom = { dungeon = d, item = p.id, quality = p.quality or (p.e and tonumber(p.e.quality)),
+                                     creature = boss }
+        end
         Window.Open("dungeons")
     elseif kind == "crafts" then
         Window.Open("guildcrafts")

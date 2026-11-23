@@ -23,6 +23,8 @@ local METER_W = 52                 -- the bar under a piece's drop chance
 -- Under the picker: a line of words, then the list; and under the list the
 -- link to where the numbers come from. The list is never shorter than LIST_MIN.
 local TOP_H, FOOT_H, LIST_MIN = 34, 26, 140
+-- Under the line that says why no boss was brought to the top, before the first cards.
+local WHY_GAP = 12
 -- The window: its size when a dungeon needs all of it.
 local OWN_W, OWN_H = 1000, 860
 -- The game's item class for recipes (patterns, plans, schematics).
@@ -727,14 +729,53 @@ Window.Page("dungeons", function(page)
     end
     function B.Let()
         if B.lit then B.lit:Hide() end
-        B.aim, B.mark, B.lit = nil, nil, nil
+        B.aim, B.mark, B.lit, B.why = nil, nil, nil, nil
     end
     bossScroll:HookScript("OnScrollRangeChanged", function(self)
         if not (B.aim and tab == "bosses") then return end
         B.Aim(self:GetVerticalScrollRange() or 0)
         self:Place()
     end)
-    bossScroll:HookScript("OnMouseWheel", function() B.Let() end)
+    -- Why no boss was brought to the top: a piece asked for that drops from a creature of the dungeon that
+    -- isn't one of its bosses (`B.whyNext` until the bosses' tab is drawn with it, then `B.why`). One line in
+    -- the secondary colour, the item's name in its quality's, above the cards; the cards move down by its
+    -- height. It goes as the aim does (B.Let), and when the guide closes. Returns the room it takes.
+    function B.Say(why)
+        B.whyShown = nil
+        if not why then
+            if B.whyText then B.whyText:Hide() end
+            return 0
+        end
+        local text = B.whyText or Style.Text(bossList, 13, "secondary")
+        B.whyText = text
+        text:SetWidth(rightW)
+        text:SetWordWrap(true)
+        text:ClearAllPoints()
+        text:SetPoint("TOPLEFT", 0, 0)
+        local name = ("|cff%s%s|r"):format(Style.Quality(why.quality or 1),
+            (Compat.ItemName and Compat.ItemName(why.item)) or "This piece")
+        if why.creature then
+            text:SetText(("%s drops from %s, one of the creatures here, not a boss."):format(name, why.creature))
+        else
+            text:SetText(("%s can drop from any creature here, not from a boss."):format(name))
+        end
+        text:Show()
+        local h = text:GetStringHeight()
+        if not (type(h) == "number" and h > 0) then h = 16 end
+        B.whyShown = math.ceil(h) + WHY_GAP
+        return B.whyShown
+    end
+    -- A turn of the wheel lets the boss go, and the line: the list is drawn again without it, the view
+    -- moved up by the line's room so the cards stay where they were on screen.
+    bossScroll:HookScript("OnMouseWheel", function()
+        B.Let()
+        local shown = B.whyShown
+        if not shown then return end
+        local v = bossScroll:GetVerticalScroll() - shown
+        Paint()
+        bossScroll:SetVerticalScroll(math.max(0, v))
+    end)
+    page:HookScript("OnHide", function() B.why, B.whyNext = nil, nil end)
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
@@ -1777,6 +1818,11 @@ Window.Page("dungeons", function(page)
         end
         -- A dungeon asked for from elsewhere (the Gear plan's "Open guide", a piece on Endgame's goal card) is
         -- the one shown, on the tab asked for and with the boss asked for brought to the top, as from the map.
+        if D.wantFrom then
+            B.whyNext, D.wantFrom = D.wantFrom, nil
+        elseif D.want then
+            B.why, B.whyNext = nil, nil
+        end
         if D.want then chosen, D.want = D.want, nil end
         if D.wantTab then tab, D.wantTab = D.wantTab, nil end
         if D.wantBoss then B.jump, B.jumpItem, D.wantBoss, D.wantItem = D.wantBoss, D.wantItem, nil, nil end
@@ -1905,6 +1951,7 @@ Window.Page("dungeons", function(page)
         for _, region in ipairs({ Q.sum, Q.more, Q.low, Q.cols }) do region:Hide() end
         for _, row in ipairs(bossRows) do row:Hide() end
         B.sum:Hide()
+        B.Say(nil)
         meta:ClearAllPoints()
         meta:SetPoint("TOPLEFT", 0, -3)
         none:Hide()
@@ -1938,6 +1985,7 @@ Window.Page("dungeons", function(page)
             end, function(k) return BossGear(d.bosses[k]) end, (D.BossQuests(d)), function(tip, k) D.BossTip(tip, d, k) end)
             wait.drawn, wait.lacking = d, missed
             Fit(mapPane.height)
+            B.whyNext = nil
             B.Scroll(d, tab)
             NoteParts(started)
             return
@@ -1956,6 +2004,7 @@ Window.Page("dungeons", function(page)
             end
             bossList:SetHeight(math.max(1, by))
             Fit(by)
+            B.whyNext = nil
             B.Scroll(d, tab)
             NoteParts(started)
             return
@@ -2006,6 +2055,9 @@ Window.Page("dungeons", function(page)
             meta:ClearAllPoints()
             meta:SetPoint("LEFT", B.sum, "RIGHT", 14, 0)
         end
+        -- Why no boss was brought to the top, when that's so: a line above the cards.
+        local asked = B.whyNext or B.why
+        by = B.Say(asked and asked.dungeon == d and asked or nil)
         -- Two across: each pair starts level, the next pair under the
         -- taller of the two.
         for k = 1, #d.bosses, 2 do
@@ -2027,6 +2079,7 @@ Window.Page("dungeons", function(page)
         bossList:SetHeight(by)
         local listH = Fit(by)
         B.Scroll(d, tab)
+        if B.whyNext then B.why, B.whyNext = B.whyNext, nil end
         wait.drawn, wait.lacking = d, missed
         for why, ms in pairs(ns.Gear and ns.Gear.made or {}) do
             spent["bosses: of which, gear plans " .. (MADE[why] or why)] = ms
