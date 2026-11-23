@@ -54,6 +54,21 @@ ns.SuggestedBuilds = {
         },
     },
     {
+        id = "wowhead-rogue-combat", class = 4,
+        name = "Combat leveling", spec = "Combat",
+        source = "Wowhead's Combat Rogue leveling guide",
+        link = "https://www.wowhead.com/forever/talent-calc/rogue/vkndmh02510320201-3200330112012321551_t0/1B0B1AffEjKfhPQsRntVwtttt0cccFccGJdm",
+        order = {
+            105741, 105741, 105723, 105723, 105708, 105708, 105708, 105737,
+            105737, 105738, 105738, 105738, 105735, 105759, 105759, 105737,
+            105736, 105726, 105726, 105730, 105730, 105730, 105728, 113635,
+            113635, 108100, 105727, 105740, 105740, 105740, 105740, 105740,
+            105724, 105727, 105727, 105727, 105727, 105722, 105722, 105722,
+            105739, 105739, 105739, 105722, 105722, 105720, 105720, 105716,
+            105716, 105721, 105715,
+        },
+    },
+    {
         id = "wowhead-priest-shadow", class = 5,
         name = "Shadow leveling", spec = "Shadow",
         source = "Wowhead's Shadow Priest leveling guide",

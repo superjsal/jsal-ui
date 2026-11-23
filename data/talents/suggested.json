@@ -18,6 +18,12 @@
     "link": "https://www.wowhead.com/forever/talent-calc/hunter/v25320001505101251-0053052001-4_t0_r4/0ACbbbghhhhmhkkkpQkkRs1CFDGk2aaaa"
   },
   {
+    "id": "wowhead-rogue-combat", "class": "rogue", "name": "Combat leveling", "spec": "Combat",
+    "source": "Wowhead's Combat Rogue leveling guide",
+    "guide": "https://www.wowhead.com/forever/guide/classes/rogue/combat/dps-leveling-tips",
+    "link": "https://www.wowhead.com/forever/talent-calc/rogue/vkndmh02510320201-3200330112012321551_t0/1B0B1AffEjKfhPQsRntVwtttt0cccFccGJdm"
+  },
+  {
     "id": "wowhead-priest-shadow", "class": "priest", "name": "Shadow leveling", "spec": "Shadow",
     "source": "Wowhead's Shadow Priest leveling guide",
     "guide": "https://www.wowhead.com/forever/guide/classes/priest/shadow/dps-leveling-tips",
