@@ -73,7 +73,9 @@ teaches that nobody was seen buying there (its NPC pages and its guide to weapon
 `data\trainers\wowhead-starters.txt`, class trainers in the starting areas and their towns that neither
 the class lists nor players' openings have. A zone page's NPCs tab names them by title; each one's own
 NPC page gives its React line, its first spot and the uiMap that spot is on, and its Trainer tab, whose
-highest level is the row's `top`. A row with no `top` is left out, as is one players opened, whose
+highest level is the row's `top`. That spot is already on Forever's own map (on Mulgore, which Forever
+draws differently, it matches where players found the same trainer), so unlike the class lists' spots it
+isn't moved by `tools\maps.py`. A row with no `top` is left out, as is one players opened, whose
 spot and list stay theirs.
 
 ## Raid night consumables
