@@ -48,6 +48,38 @@ ns.startedVersion = Compat.Metadata(addonName, "Version") or ns.codeVersion
 ns.needsRestart = ns.Newer(ns.restartSince, ns.startedVersion)
 ns.version = (not ns.needsRestart and ns.Newer(ns.codeVersion, ns.startedVersion)) and ns.codeVersion or ns.startedVersion
 
+-- Text in the game is UTF-8: a letter of another alphabet is two bytes, of Korean or Chinese three, and Lua
+-- counts and cuts bytes. These count and cut letters, so a name is never left with half a letter.
+-- How many letters: each starts with a byte that doesn't carry on the one before.
+function ns.Letters(text)
+    return select(2, tostring(text or ""):gsub("[^\128-\191]", ""))
+end
+-- At most `max` bytes, cut between letters (for what's sent, where bytes are the limit).
+function ns.Cut(text, max)
+    text = tostring(text or "")
+    if #text <= max then return text end
+    local stop = max
+    while stop > 0 do
+        local nextByte = text:byte(stop + 1)
+        if nextByte < 0x80 or nextByte >= 0xC0 then break end
+        stop = stop - 1
+    end
+    return text:sub(1, stop)
+end
+-- At most `max` letters (for a name a box lets you type that many letters of).
+function ns.CutLetters(text, max)
+    text = tostring(text or "")
+    local seen = 0
+    for i = 1, #text do
+        local b = text:byte(i)
+        if b < 0x80 or b >= 0xC0 then
+            seen = seen + 1
+            if seen > max then return text:sub(1, i - 1) end
+        end
+    end
+    return text
+end
+
 function ns.Print(...)
     print("|cffe3b04bjsal.ui|r", ...)
 end

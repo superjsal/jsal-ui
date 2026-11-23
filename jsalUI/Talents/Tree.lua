@@ -272,7 +272,7 @@ function Tree.Decode(text)
         order[#order + 1] = list[n]
     end
     name = strtrim(name or "")
-    return { id = Tree.NewID(), class = classID, name = name ~= "" and name:sub(1, 24) or "Imported build", order = order }
+    return { id = Tree.NewID(), class = classID, name = name ~= "" and ns.CutLetters(name, 24) or "Imported build", order = order }
 end
 
 -- Wowhead's Forever talent calculator links carry a whole build: after the
@@ -502,7 +502,7 @@ end
 function Tree.Copy(build)
     local order = {}
     for i, id in ipairs(build.order or {}) do order[i] = id end
-    local copy = { id = Tree.NewID(), class = build.class, name = ("Copy of " .. build.name):sub(1, 24), order = order }
+    local copy = { id = Tree.NewID(), class = build.class, name = ns.CutLetters("Copy of " .. build.name, 24), order = order }
     Tree.Add(copy)
     return copy
 end

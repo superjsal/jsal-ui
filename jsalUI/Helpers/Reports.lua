@@ -156,22 +156,10 @@ function Reports.Heard(name)
     end
 end
 
--- Cuts text to at most max bytes, never inside a letter.
-local function Cut(text, max)
-    if #text <= max then return text end
-    local stop = max
-    while stop > 0 do
-        local nextByte = text:byte(stop + 1)
-        if nextByte < 0x80 or nextByte >= 0xC0 then break end
-        stop = stop - 1
-    end
-    return text:sub(1, stop)
-end
-
 -- Keeps a report to send and tries at once. Returns false with why when
 -- there's nothing to send.
 function Reports.Submit(text)
-    text = Cut(Clean(text), MAX_TEXT)
+    text = ns.Cut(Clean(text), MAX_TEXT)
     if text == "" then return false, "Say what happened first." end
     local out = Out()
     out[#out + 1] = {

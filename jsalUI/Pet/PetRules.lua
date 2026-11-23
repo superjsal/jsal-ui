@@ -133,8 +133,10 @@ end
 -- and why not.
 function Rules.Rename(s, text)
     text = tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")
-    if #text < 2 then return false, "A name needs at least two letters." end
-    if #text > 16 then return false, "That's too long for a name: sixteen letters at most." end
+    -- Letters, not bytes: a letter of another alphabet is two or three bytes, and the box takes sixteen letters.
+    local letters = ns.Letters(text)
+    if letters < 2 then return false, "A name needs at least two letters." end
+    if letters > 16 then return false, "That's too long for a name: sixteen letters at most." end
     if not text:find("^[%a\128-\255][%a\128-\255 '%-]*$") then
         return false, "A name is letters, with spaces, hyphens or apostrophes inside."
     end
