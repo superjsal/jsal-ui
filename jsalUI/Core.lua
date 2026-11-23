@@ -105,12 +105,15 @@ end
 
 -- The game keeps a deleted character's own saved file and hands it to the
 -- next character made with the same name on the same realm. So the file
--- keeps the ID of the character it belongs to (`guid`), and one that names
--- another character starts again from the defaults before any part starts.
--- A file saved before the ID was kept is another character's only on plain
--- proof: the Journal saw it at a higher level than this character's, and
--- levels never go down. Otherwise it is this character's and gets the ID.
--- Nothing is decided without the ID and the level. The account's settings
+-- keeps the ID of the character it belongs to (`guid`). Emptying a file
+-- can't be undone, so an ID alone never decides it: the level must agree.
+-- Levels never go down, so a file whose Journal saw a higher level than
+-- this character's is another character's, and starts again from the
+-- defaults before any part starts. A file that names another character also
+-- starts again when it has seen no level above 1, as it holds nothing worth
+-- keeping. Any other file is this character's, and gets its ID: a file
+-- saved before the ID was kept, or one whose character came back with a new
+-- ID. Nothing is decided without the ID and the level. The account's settings
 -- and the welcome stay (it's the same player); the account's lines kept by
 -- this character's name go, so the Characters tab and the crafters' list
 -- don't show the old one.
@@ -129,13 +132,13 @@ function ns.StartFreshIfRemade(char, db)
     local guid = Compat.GUID("player")
     if type(guid) ~= "string" or guid == "" then return false end
     if char.guid == guid then return false end
-    if char.guid == nil then
-        local level, top = UnitLevel("player"), TopLevel(char)
-        if type(level) ~= "number" or level < 1 then return false end
-        if not (top and level < top) then
-            char.guid = guid
-            return false
-        end
+    local level, top = UnitLevel("player"), TopLevel(char)
+    if type(level) ~= "number" or level < 1 then return false end
+    local fresh = top ~= nil and level < top
+    if char.guid ~= nil and (top == nil or top <= 1) then fresh = true end
+    if not fresh then
+        char.guid = guid
+        return false
     end
     -- Emptied in place, so the table every part reads as ns.char is the fresh one.
     local keys = {}
