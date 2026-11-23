@@ -34,17 +34,19 @@ end
 ---------------------------------------------------------------------------
 -- Reading.
 ---------------------------------------------------------------------------
--- Every saved instance the game lists for this character: { name, ends, bosses killed, bosses }.
+-- Every saved instance the game lists for this character: { name, ends, bosses killed, bosses, map }. The name
+-- is the player's language's; the map (the instance's ID, the 14th thing the game says) is the same on any
+-- client, and is what a raid is known by where the game gives it.
 function Lockouts.ReadRaids()
     local c = Me()
     if not c then return end
     local now = Compat.ServerTime()
     local list = {}
     for i = 1, GetNumSavedInstances() or 0 do
-        local name, _, reset, _, locked, extended, _, _, _, _, total, done = GetSavedInstanceInfo(i)
-        name, reset = Compat.Plains(name, reset)
+        local name, _, reset, _, locked, extended, _, _, _, _, total, done, _, map = GetSavedInstanceInfo(i)
+        name, reset, map = Compat.Plains(name, reset, map)
         if type(name) == "string" and (locked or extended) and (tonumber(reset) or 0) > 0 and #list < MAX_RAIDS then
-            list[#list + 1] = { name, now + math.floor(reset), tonumber(done) or 0, tonumber(total) or 0 }
+            list[#list + 1] = { name, now + math.floor(reset), tonumber(done) or 0, tonumber(total) or 0, tonumber(map) }
         end
     end
     c.lockouts = list
@@ -136,14 +138,21 @@ end
 function Lockouts.Raids(characters, now)
     local by, order = {}, {}
     local sixties = {}
+    -- A raid saved with its map is put under DungeonData's name for it, so it lines up with the list below
+    -- whatever the client's language; one saved before maps were kept goes by the name it was saved with.
+    local named = {}
+    for _, d in ipairs(ns.DungeonData or {}) do
+        if d.raid and d.map then named[d.map] = d.name end
+    end
     for _, c in ipairs(characters) do
         if (c.level or 0) >= 60 then sixties[#sixties + 1] = c end
         for _, l in ipairs(type(c.lockouts) == "table" and c.lockouts or {}) do
             if type(l) == "table" and type(l[1]) == "string" and (tonumber(l[2]) or 0) > now then
-                local r = by[l[1]]
+                local key = named[tonumber(l[5])] or l[1]
+                local r = by[key]
                 if not r then
-                    r = { name = l[1], ends = l[2], saved = {}, free = {} }
-                    by[l[1]], order[#order + 1] = r, r
+                    r = { name = key, ends = l[2], saved = {}, free = {} }
+                    by[key], order[#order + 1] = r, r
                 end
                 r.ends = math.min(r.ends, l[2])
                 r.saved[#r.saved + 1] = { c = c, done = tonumber(l[3]) or 0, of = tonumber(l[4]) or 0 }
