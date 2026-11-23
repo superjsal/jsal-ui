@@ -19,3 +19,14 @@ Install it from [CurseForge](https://www.curseforge.com/wow/addons/jsal-ui) or [
 ## Say hello
 
 Bugs, ideas and questions go to [jsal.ui's Discord](https://discord.gg/BfUKeCjNeZ).
+
+## Licence
+
+jsal.ui's code is free to use under the [MIT License](LICENSE): read it, learn from it, fork it.
+
+Its pictures, sounds and name are jsal's and stay with jsal.ui: the pals, the icons, the logo and the name
+"jsal.ui". A fork needs its own.
+
+Some parts are other people's and keep their own terms: Santiago Reyes's dungeon maps (used with his permission),
+the Outfit and Inter fonts, data from WoWSims, pfQuest and EG Link, and the game's own data. Who made what is in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
