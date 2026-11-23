@@ -85,6 +85,16 @@ end
 ---------------------------------------------------------------------------
 local rows, used = {}, 0
 
+-- A spell's name and rank as one key, the rank by its digits, as Training.RankKey makes it: the
+-- trainer words a rank in the client's language ("Rang 3"), the planner's list in English.
+-- Training's own when it's there, the same rule when it isn't.
+local function RankKey(name, rank)
+    local T = ns.Training
+    if T and T.RankKey then return T.RankKey(name, rank) end
+    rank = rank ~= nil and tostring(rank) or ""
+    return (name or "") .. "|" .. (rank:match("%d+") or rank)
+end
+
 -- The rank number of a spell ("Rank 3" -> 3); none for one-rank spells.
 local function RankNumber(rank)
     return rank and tonumber(rank:match("(%d+)")) or nil
@@ -331,7 +341,7 @@ local function TrainAll(skippedIDs, skippedNames)
                     rank = C_Spell.GetSpellSubtext(id)
                     if rank == "" then rank = nil end
                 end
-                if not ((id and skippedIDs[id]) or skippedNames[name .. "|" .. (rank or "")]) then
+                if not ((id and skippedIDs[id]) or skippedNames[RankKey(name, rank)]) then
                     local cost = GetTrainerServiceCost(i) or 0
                     if cost <= budget then
                         BuyTrainerService(i)
@@ -400,7 +410,7 @@ local function TrainOne(spell)
                     rank = C_Spell.GetSpellSubtext(id)
                     if rank == "" then rank = nil end
                 end
-                if (id and id == spell.id) or (name == spell.name and (rank or "") == (spell.rank or "")) then
+                if (id and id == spell.id) or (name == spell.name and RankKey(name, rank) == RankKey(spell.name, spell.rank)) then
                     if (GetTrainerServiceCost(i) or 0) > GetMoney() then
                         result = "short"
                     else
@@ -653,7 +663,7 @@ local function Foot(y, data, count, cost)
         for _, spell in ipairs(list) do
             if spell.skipped then
                 skippedIDs[spell.id] = true
-                skippedNames[spell.name .. "|" .. (spell.rank or "")] = true
+                skippedNames[RankKey(spell.name, spell.rank)] = true
             end
         end
     end

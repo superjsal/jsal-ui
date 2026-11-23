@@ -26,6 +26,33 @@ local function Rank(spellID, shipped)
     return text and text ~= "" and text or nil
 end
 
+-- A spell's name and rank as one key, the rank by its digits alone: "Claw|3"
+-- whether the game words the rank "Rank 3", "Rang 3" or "Уровень 3", and
+-- whether it's text or the number that ships with the spell list. A rank
+-- with no digits in it is kept as it reads; no rank is "Claw|". Every key
+-- of a name and rank is made here: a trainer's row, the spellbook and the
+-- spell list each word a rank their own way on a client in another language.
+local function RankKey(name, rank)
+    rank = rank ~= nil and tostring(rank) or ""
+    return (name or "") .. "|" .. (rank:match("%d+") or rank)
+end
+Training.RankKey = RankKey
+
+-- A saved table keyed by name and rank as the game wrote them ("Claw|Rank 3",
+-- "Klaue|Rang 3"), keyed again with RankKey. What's saved is left as it is,
+-- so an older jsal.ui still reads it, and keys of either kind are found.
+function Training.ByRank(saved)
+    local out = {}
+    for key, value in pairs(type(saved) == "table" and saved or {}) do
+        if type(key) == "string" then
+            local name, rank = key:match("^(.*)|([^|]*)$")
+            local again = name and RankKey(name, rank)
+            if again and out[again] == nil then out[again] = value end
+        end
+    end
+    return out
+end
+
 -- The weapon masters seen to teach a weapon skill, as words: "Woo Ping in
 -- Stormwind City or Ilyenia Moonfire in Darnassus". Nil when none has been.
 function Training.WeaponMasters(seen)
@@ -122,20 +149,20 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
                         -- (Parry, Plate Mail, poisons...).
                         if not classSpells[row.spell] then prices.extra[row.spell] = row.level end
                     end
-                    local key = (row.name or "") .. "|" .. (row.rank or "")
+                    local key = RankKey(row.name, row.rank)
                     prices.byName[key] = Highest(prices.byName[key], row.cost)
                 end
             else
                 for _, row in ipairs(rows) do
                     -- A pet trainer lists the pet's spell; the price is kept
                     -- under the Beast Training spell that teaches it.
-                    local pet = (row.spell and petToBeast[row.spell]) or beastByName[(row.name or "") .. "|" .. (row.rank or "")]
+                    local pet = (row.spell and petToBeast[row.spell]) or beastByName[RankKey(row.name, row.rank)]
                     -- Visits are kept for the whole account, so whether it's
                     -- learned is read from this character's own record later.
                     if pet then
                         local was = prices.pet[pet]
                         prices.pet[pet] = { cost = Highest(was and was.cost, row.cost), level = row.level,
-                                            spell = row.spell, key = (row.name or "") .. "|" .. (row.rank or "") }
+                                            spell = row.spell, key = RankKey(row.name, row.rank) }
                     end
                 end
             end
@@ -216,7 +243,7 @@ local function ReadNow()
     end
     for _, entry in ipairs(source.beast or {}) do
         local name = Compat.SpellInfo(entry[1])
-        if name then beastByName[name .. "|" .. (Rank(entry[1]) or "")] = entry[1] end
+        if name then beastByName[RankKey(name, Rank(entry[1]))] = entry[1] end
     end
     local prices = Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, petToBeast, beastByName)
     Shipped(prices, source)
@@ -236,10 +263,13 @@ local function ReadNow()
     -- spell you know a different ID from the one the trainer sells.
     local book = Compat.PlayerSpellbook()
     local trained = type(ns.char.trainedSpells) == "table" and ns.char.trainedSpells or {}
+    -- And by name and rank, the rank by its digits: the trainer words a rank in the client's
+    -- language, the spell list in English.
+    local trainedBy = Training.ByRank(trained)
     local function Known(id, name, rank)
         if IsPlayerSpell(id) or book.ids[id] or trained[id] then return true end
         if not name then return false end
-        if trained[name .. "|" .. (rank or "")] then return true end
+        if trainedBy[RankKey(name, rank)] then return true end
         local have = book.ranks[name]
         return have ~= nil and have >= (tonumber(rank and rank:match("(%d+)")) or 0)
     end
@@ -271,7 +301,7 @@ local function ReadNow()
             local rank = Rank(id, entry[5])
             data.spells[#data.spells + 1] = {
                 id = id, level = level, school = school, name = name, icon = icon, rank = rank,
-                cost = prices.bySpell[id] or prices.byName[name .. "|" .. (rank or "")],
+                cost = prices.bySpell[id] or prices.byName[RankKey(name, rank)],
                 known = Known(id, name, rank), skipped = skips[id] == true, via = via,
             }
         end
@@ -334,8 +364,8 @@ local function ReadNow()
             data.spells[#data.spells + 1] = {
                 id = id, level = level, name = name, icon = icon, rank = rank,
                 cost = taught.cost,
-                known = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or (taught.key and trained[taught.key])
-                    or trained[name .. "|" .. (rank or "")] or false,
+                known = IsPlayerSpell(id) or (taught.spell and trained[taught.spell]) or (taught.key and trainedBy[taught.key])
+                    or trainedBy[RankKey(name, rank)] or false,
                 skipped = skips[id] == true, source = "pet", group = "Pet trainer",
             }
         end
@@ -408,12 +438,12 @@ local function NotePet(source)
     if not family then return end
     -- The pet's spellbook shows each ability once, at the rank it knows.
     local book = Compat.PetSpellbook()
+    local bookBy = Training.ByRank(book)
     local known = {}
     for _, list in ipairs({ source.families[family] or {}, source.families["*"] or {} }) do
         for _, entry in ipairs(list) do
             local name = Compat.SpellInfo(entry[1])
-            local rank = entry[4] > 0 and ("Rank " .. entry[4]) or ""
-            if IsSpellKnown(entry[1], true) or book[entry[1]] or (name and book[name .. "|" .. rank]) then
+            if IsSpellKnown(entry[1], true) or book[entry[1]] or (name and bookBy[RankKey(name, entry[4] > 0 and entry[4] or nil)]) then
                 known[entry[1]] = true
             end
         end
