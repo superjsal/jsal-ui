@@ -264,6 +264,8 @@ end
 -- Every open page and window drawn again, once, with what's worked out for the old answers let go.
 local function Repaint()
     if ns.Gear and ns.Gear.PlansChanged then ns.Gear.PlansChanged() end
+    -- The Training Planner's reading names your side's weapon masters.
+    if ns.Training and ns.Training.Forget then ns.Training.Forget() end
     local panel = ns.modules and ns.modules.professionpanel
     if panel and panel.Forget then panel.Forget() end
     if panel and panel.Refresh then panel.Refresh() end

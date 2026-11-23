@@ -91,6 +91,25 @@ local function Highest(was, cost)
     return math.max(was, cost)
 end
 
+-- Which of the weapon masters that ship (TrainerData's, each with its side) a saved visit was
+-- to: the one of the visit's name, else the one standing nearest where the visit was saved, on
+-- the same map. The visit's name is the game's, in the player's language, and the list's is
+-- English, so on another client it's the spot that finds him; a visit saved before spots were
+-- kept has only its name. Nil where neither finds one.
+local NEAR = 0.05 ^ 2
+local function MasterOf(visit, masters)
+    local best, near
+    for _, master in ipairs(masters) do
+        if master.name == visit.npc then return master end
+        if visit.map and visit.map == master.map and visit.x and visit.y and master.x and master.y then
+            local d = (visit.x - master.x) ^ 2 + (visit.y - master.y) ^ 2
+            if d <= NEAR and (not near or d < near) then best, near = master, d end
+        end
+    end
+    return best
+end
+Training.MasterOf = MasterOf
+
 local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames, petToBeast, beastByName)
     local prices = { bySpell = {}, byName = {}, listed = {}, extra = {}, haveTrainer = false, weapons = {}, weaponAt = {}, pet = {} }
     local trainers = type(ns.db.trainers) == "table" and ns.db.trainers or {}
@@ -105,14 +124,27 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     for key, trainer in pairs(trainers) do
         if key:find("^%? @ ") then trainers[key] = nil end
     end
+    -- The visits are the account's, every character's, of either side, so a visit names its
+    -- master only where he's of your side: the rule the map pin goes by (Trainers.Friendly),
+    -- which /jsal pretend horde and alliance follow too. One jsal.ui doesn't know the side of
+    -- isn't named, as he's never pinned. A visit's price counts whoever's it was.
+    local T = ns.Trainers
+    local masters = ns.TrainerData and ns.TrainerData.weapons or {}
+    local seenAs = {}   -- a shipped master to the name a visit gave him: the game's own
     for _, trainer in pairs(trainers) do
+        local named
+        if trainer.npc and trainer.npc ~= "?" then
+            local master = T and MasterOf(trainer, masters)
+            named = not T or (master ~= nil and T.Friendly(master) and true or false)
+            if named and master then seenAs[master] = trainer.npc end
+        end
         for _, row in ipairs(ns.TrainerPrices.RowsOf(trainer)) do
             local id = (row.spell and weaponIDs[row.spell] and row.spell) or weaponNames[row.name or ""]
             if id then
                 -- The highest seen, as for a class spell: a weapon master visited at a better
                 -- standing charges less, and that isn't the price for every character.
                 prices.weapons[id] = Highest(prices.weapons[id], row.cost)
-                if trainer.npc and trainer.npc ~= "?" then
+                if named then
                     prices.weaponAt[id] = prices.weaponAt[id] or {}
                     prices.weaponAt[id][trainer.npc] = trainer.zone or ""
                 end
@@ -121,15 +153,16 @@ local function Trainers(classID, classSpells, classNames, weaponIDs, weaponNames
     end
     -- And the weapon masters that ship with the addon, each with what it's been seen to teach:
     -- your own side's, so a character who has opened none still learns who to see. Until these
-    -- shipped, only a weapon master you had opened yourself was named.
-    local T = ns.Trainers
-    for _, master in ipairs(ns.TrainerData and ns.TrainerData.weapons or {}) do
+    -- shipped, only a weapon master you had opened yourself was named. One a visit has named
+    -- goes by the name the game gave him there, so he isn't named twice in two languages.
+    for _, master in ipairs(masters) do
         if not T or T.Friendly(master) then
             local zone = T and T.Zone(master) or ""
+            local name = seenAs[master] or master.name
             for _, id in ipairs(master.teaches or {}) do
                 if weaponIDs[id] then
                     prices.weaponAt[id] = prices.weaponAt[id] or {}
-                    prices.weaponAt[id][master.name] = prices.weaponAt[id][master.name] or zone
+                    prices.weaponAt[id][name] = prices.weaponAt[id][name] or zone
                 end
             end
         end
