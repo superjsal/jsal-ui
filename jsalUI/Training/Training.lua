@@ -522,7 +522,9 @@ function PetNow()
     if not pet then return { none = true } end
     local here = PetFamily(source) == pet.family
     local beast = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
-    local listed = beast and beast.rows or {}
+    -- Beast Training's rows by name and rank, the rank by its digits: the window words it in the
+    -- client's language, the spell list ships it as a number.
+    local listed = Training.ByRank(beast and beast.rows)
     local skips = type(ns.char.trainingSkips) == "table" and ns.char.trainingSkips or {}
     local free
     if here and C_PetInfo and C_PetInfo.GetPetTrainingPoints then
@@ -568,7 +570,7 @@ function PetNow()
         local row = { name = name, icon = a.icon }
         for i = #a.ranks, knownAt + 1, -1 do
             local r = a.ranks[i]
-            local entry = listed[name .. "|" .. (r.rank > 0 and ("Rank " .. r.rank) or "")]
+            local entry = listed[RankKey(name, r.rank > 0 and r.rank or nil)]
             local have = entry or IsPlayerSpell(r.beast)
             if have and (pet.level or 0) >= r.level then
                 row.state, row.spell, row.points = "ready", r, entry and entry.points
@@ -582,7 +584,7 @@ function PetNow()
             if not r then
                 row.state, row.spell = "known", a.ranks[#a.ranks]
             else
-                local entry = listed[name .. "|" .. (r.rank > 0 and ("Rank " .. r.rank) or "")]
+                local entry = listed[RankKey(name, r.rank > 0 and r.rank or nil)]
                 row.spell, row.points = r, entry and entry.points
                 if entry or IsPlayerSpell(r.beast) then
                     row.state = "level"

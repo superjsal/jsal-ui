@@ -51,10 +51,27 @@ local function RankText(rank)
     return rank > 0 and ("Rank " .. rank) or ""
 end
 
+-- Beast Training's rows as saved ("Bite|Rank 3", or "Biss|Rang 3" on a German
+-- client), keyed by name and the rank's digits ("Bite|3"), as Training.ByRank
+-- keys them; Training's own when it's there, the same rule when it isn't.
+local function ByRank(rows)
+    local T = ns.Training
+    if T and T.ByRank then return T.ByRank(rows) end
+    local out = {}
+    for key, value in pairs(rows) do
+        if type(key) == "string" then
+            local name, rank = key:match("^(.*)|([^|]*)$")
+            local again = name and (name .. "|" .. (rank:match("%d+") or rank))
+            if again and out[again] == nil then out[again] = value end
+        end
+    end
+    return out
+end
+
 -- Whether this rank is yours already: the game says you know its Beast
 -- Training spell, or it's in the list saved from your Beast Training.
 local function Have(name, entry, listed)
-    return (IsPlayerSpell and IsPlayerSpell(entry.beast)) or listed[name .. "|" .. RankText(entry.rank)] ~= nil
+    return (IsPlayerSpell and IsPlayerSpell(entry.beast)) or listed[name .. "|" .. (entry.rank > 0 and entry.rank or "")] ~= nil
 end
 
 -- What taming this creature would teach you: a list of { name, rank }, and
@@ -65,7 +82,7 @@ function TameTip.New(npc)
     local carries = ns.TameData and ns.TameData[npc]
     if not carries then return nil end
     local saved = type(ns.char.beastTraining) == "table" and ns.char.beastTraining or nil
-    local listed = saved and type(saved.rows) == "table" and saved.rows or {}
+    local listed = ByRank(saved and type(saved.rows) == "table" and saved.rows or {})
     local all = Index()
     local best = {}
     for _, spell in ipairs(carries) do
