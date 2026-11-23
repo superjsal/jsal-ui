@@ -84,6 +84,9 @@ JOINED = {
     # Menethil Harbor > Ironforge > Stormwind: one flight, Southshore to Booty Bay through all three, read
     # 4.2 s long after Stormwind's; the recorded times put it all at Ironforge, none at Menethil Harbor.
     (7, 6, 2): 126,
+    # Nethergarde Keep > Darkshire > Booty Bay: one flight read 2.3 s (68 yards) long. The rule alone
+    # saves 27 yards there, too few to be kept by itself, so this is the rest.
+    (45, 12, 19): 41,
 }
 
 
