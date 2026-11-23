@@ -1,0 +1,27 @@
+name: Suggest an idea
+description: Something you'd like jsal.ui to do.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What it would help with while you play.
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part of jsal.ui
+      options:
+        - Home
+        - Journal
+        - "Plan: build, training, gear, dungeons or endgame"
+        - "Craft: professions"
+        - "Play: games and pals"
+        - Something new
+        - Not sure

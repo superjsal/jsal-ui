@@ -1,0 +1,50 @@
+name: Report a problem
+description: Something in jsal.ui went wrong or looks broken.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for telling us. You can also report it from inside the game: open the dashboard and pick **Report a problem** at the bottom of its menu, or type `/jsal bug`. It adds your version, class, level and any jsal.ui error for you.
+  - type: input
+    id: version
+    attributes:
+      label: jsal.ui version
+      description: It's at the bottom left of the dashboard, or beside jsal.ui in the game's AddOns list.
+      placeholder: "0.3.62"
+    validations:
+      required: true
+  - type: input
+    id: character
+    attributes:
+      label: Your character's class and level
+      placeholder: Hunter, level 34
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      description: The steps, one a line, if you know them.
+      placeholder: |
+        1. Open the dashboard
+        2. Go to the Gear plan
+        3. ...
+  - type: textarea
+    id: error
+    attributes:
+      label: Lua error
+      description: If the game showed an error, paste the whole thing here, from BugSack or the game's own error window.
+      render: text
