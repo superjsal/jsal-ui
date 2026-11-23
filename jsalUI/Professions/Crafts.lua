@@ -841,10 +841,16 @@ local SLOTS = {
     { "Boots", 8, "boots", { INVTYPE_FEET = true }, "boots" },
     { "Gloves", 10, "gloves", { INVTYPE_HAND = true }, "gloves" },
 }
+-- The slot by the enchant's spell, shipped from its English name, then by the name the game
+-- gives, which says "Enchant Bracer" only on an English client.
 local function SlotFor(spell)
+    local shipped = ns.ProfessionData.enchantSlot
+    local word = type(shipped) == "table" and spell and shipped[spell]
     local name = Compat.SpellInfo(spell) or ""
     for _, slot in ipairs(SLOTS) do
-        if name:find("Enchant " .. slot[1], 1, true) then return slot[2], slot[3], slot[4], slot[5] end
+        if slot[1] == word or (not word and name:find("Enchant " .. slot[1], 1, true)) then
+            return slot[2], slot[3], slot[4], slot[5]
+        end
     end
 end
 

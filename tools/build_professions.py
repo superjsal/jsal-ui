@@ -7,6 +7,7 @@ data/professions):
   SpellEffect        the item each recipe makes (effect 24, "create item")
   ItemSparse         item names (patterns and vendor reagents) and prices
   SpellCooldowns     how long before a recipe can be made again (Mooncloth, the transmutes)
+  SpellName          each recipe's English name, and from an enchant's the slot it goes on
 and from Wowhead Forever (data/professions/wowhead-learned.txt), the skill each recipe is
 learned at and how: the game's files have 1 there for nearly every recipe. And from the same
 lists (data/professions/wowhead-specializations.txt), the specialisation a recipe needs.
@@ -159,6 +160,11 @@ SCARCE = re.compile(r"\bHide$")
 # Leather is skinned as it is, though a recipe also makes each kind from the one
 # below: a road that needs Heavy Leather asks for that, not for the Medium to make it.
 GATHERED = re.compile(r"^(Light|Medium|Heavy|Thick|Rugged) Leather$")
+# The slot an enchant goes on, as the words in its English name that say so; the same words, in
+# the same order, as the addon's own list in Professions/Crafts.lua (SLOTS), so "2H Weapon" is
+# found before "Weapon". Shipped by spell, so a client in another language, whose enchant names
+# are translated, knows the slot too.
+ENCHANT_SLOTS = ["2H Weapon", "Weapon", "Shield", "Bracer", "Chest", "Cloak", "Boots", "Gloves"]
 # Recipes Wowhead names no source for that a trainer teaches: First Aid's last three
 # bandages, from the doctors of the Triage quest (Wowhead's First Aid guide, read
 # 13 Nov 2026, which calls it unconfirmed on a live realm).
@@ -234,6 +240,7 @@ def main():
     report = []
     used_vendor = set()
     used = set()
+    slots = {}
     for line_id, title, key in PROFESSIONS:
         recipes, seen = [], set()
         # A pattern is found by the name of the recipe it teaches, and two recipes can share a
@@ -287,6 +294,10 @@ def main():
                 if reagent in vendor:
                     used_vendor.add(reagent)
             recipes.append(flat)
+            if line_id == 333:
+                word = next((w for w in ENCHANT_SLOTS if "Enchant " + w in name), None)
+                if word:
+                    slots[spell] = word
         recipes.sort(key=lambda x: (x[1], x[0]))
         lines.append(f'    [{line_id}] = {{ name = "{title}", recipes = {{')
         for flat in recipes:
@@ -321,13 +332,16 @@ def main():
     lines.append("    -- Recipes only someone with a specialisation can learn, and the specialisation's")
     lines.append("    -- spell: on the road only once you know the recipe.")
     lines.append("    needs = { " + ", ".join(f"[{i}] = {needs[i]}" for i in sorted(needs)) + " },")
+    lines.append("    -- The slot each enchant goes on, from its English name: the words Guild crafts")
+    lines.append("    -- looks for in it, so the slot is known whatever language the game shows it in.")
+    lines.append("    enchantSlot = { " + ", ".join(f'[{i}] = "{slots[i]}"' for i in sorted(slots)) + " },")
     lines += ["}", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"-> {OUT.relative_to(ROOT)} ({OUT.stat().st_size // 1024} KB)")
     for line in report:
         print("  " + line)
-    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation, "
+    print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation, {len(slots)} enchants with a slot, "
           f"{len(shops)} vendors selling {len(sellers)} of the vendor reagents")
 
 
