@@ -1,16 +1,19 @@
 -- The Endgame page's RAID NIGHT card: WoWSims' consumables for your spec, for the nights you stock
 -- for and a night's length you set. A line for each one still short: its picture and name, how
 -- many to get, and what that costs (the shopping list's own prices: a vendor's, else an auction
--- price), "you make it" where you do, or "no price". Under the pointer a line shows − and + for
--- its count a night, and an x that takes it off (remembered; "N taken off · show" brings it back).
+-- price), "you make it" where you do, or "no price", and at the row's right end an x that takes it
+-- off (remembered; "N taken off · show" brings it back). Under the pointer a line shows − and + for
+-- its count a night.
 -- What you have enough of is small pictures; then the total, and a switch that keeps it all on
 -- the shopping list. What it works out is RaidNight's.
 local _, ns = ...
 local Style, Compat = ns.Style, ns.Compat
 
 -- A row is 26 tall, or 42 for a name that takes two lines; the count's column is 40 wide (its - and + inside
--- it), the price's 72, room for "123g 45s" with its coins.
+-- it), the price's 72, room for "123g 45s" with its coins, and the x 16 at the row's right end, the price
+-- ending 4 short of it (PRICE_AT from the row's right).
 local PAD, ROW, TALL, GET_W, COST_W, X_W = 16, 26, 42, 40, 72, 16
+local PRICE_AT = X_W + 4
 local MAX_ENOUGH = 10
 local MUTED, GOLD = "|cff9a9688", "|cffe3b04b"
 
@@ -66,7 +69,7 @@ function ns.EndgameNight(parent, width, changed)
     card:SetWidth(width)
     Style.Box(card, 6, "well", "cardLine")
     local inner = width - 2 * PAD
-    local nameW = inner - 28 - GET_W - 6 - COST_W
+    local nameW = inner - 28 - GET_W - 6 - COST_W - PRICE_AT
     local function Changed()
         if changed then changed() end
     end
@@ -144,13 +147,13 @@ function ns.EndgameNight(parent, width, changed)
         r.name:SetWordWrap(false)
         r.name:SetJustifyH("LEFT")
         r.get = Style.Text(r, 13, "text", nil, true)
-        r.get:SetPoint("CENTER", r, "RIGHT", -(COST_W + 6 + GET_W / 2), 0)
+        r.get:SetPoint("CENTER", r, "RIGHT", -(PRICE_AT + COST_W + 6 + GET_W / 2), 0)
         r.minus = Sign(r, "-")
-        r.minus:SetPoint("RIGHT", r, "RIGHT", -(COST_W + 6 + GET_W - 14), 0)
+        r.minus:SetPoint("RIGHT", r, "RIGHT", -(PRICE_AT + COST_W + 6 + GET_W - 14), 0)
         r.plus = Sign(r, "+")
-        r.plus:SetPoint("LEFT", r, "RIGHT", -(COST_W + 6 + 14), 0)
+        r.plus:SetPoint("LEFT", r, "RIGHT", -(PRICE_AT + COST_W + 6 + 14), 0)
         r.cost = Style.Text(r, 12, "text")
-        r.cost:SetPoint("RIGHT")
+        r.cost:SetPoint("RIGHT", -PRICE_AT, 0)
         r.cost:SetJustifyH("RIGHT")
         r.cost:SetWidth(COST_W)
         r.cost:SetWordWrap(false)
@@ -166,15 +169,16 @@ function ns.EndgameNight(parent, width, changed)
         r.glow:SetColorTexture(tr, tg, tb, 0.06)
         -- A line's − and + and its x are there, taking the mouse, for as long as the row holds a line, and
         -- only how they look changes as it's lit: nothing is shown or hidden under the pointer from an
-        -- enter or a leave, which would move the pointer's focus while it's being worked out. A line taken
-        -- off has none, so a click anywhere on it puts it back.
+        -- enter or a leave, which would move the pointer's focus while it's being worked out. The x is
+        -- always seen; the − and + only while the row is lit. A line taken off has none, so a click
+        -- anywhere on it puts it back.
         local buttons = { r.minus, r.plus, r.x }
         local function Live(on)
             for _, b in ipairs(buttons) do b:SetShown(on) end
         end
         r.Live = Live
-        -- Lit while the pointer is on the row or one of its buttons: the row's light, the − and + and the
-        -- x (red under the pointer) seen, in the price's place, and the line's tooltip. It is read from
+        -- Lit while the pointer is on the row or one of its buttons: the row's light, the − and + seen, the
+        -- x red under the pointer, and the line's tooltip. It is read from
         -- where the pointer is (over the row, or over a button, which the game may count as off the row
         -- while the button has the pointer), never from which enter or leave came last, so the same state
         -- results whatever order the game sends them in. `may` is false where the row can't be lit: a
@@ -189,8 +193,8 @@ function ns.EndgameNight(parent, width, changed)
             r.lit = on
             local live = on and r.line ~= nil
             r.glow:SetShown(on)
-            for _, b in ipairs(buttons) do b:SetAlpha(live and 1 or 0) end
-            r.cost:SetShown(not live)
+            r.minus:SetAlpha(live and 1 or 0)
+            r.plus:SetAlpha(live and 1 or 0)
             r.x.text:SetTextColor(Style.Color(live and r.x:IsMouseOver() and "red" or "muted"))
             if on and r.item then
                 GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
@@ -211,10 +215,11 @@ function ns.EndgameNight(parent, width, changed)
         end
         r.x:SetScript("OnEnter", Pointer)
         r.x:SetScript("OnLeave", Pointer)
-        -- Unseen on a row that isn't lit, so a click there does nothing.
+        -- − and + are unseen on a row that isn't lit, so a click there does nothing; the x is always seen
+        -- and always takes its line off.
         r.minus:SetScript("OnClick", function() if r.lit and r.line then RN.SetCount(r.line, r.per - 1) Changed() end end)
         r.plus:SetScript("OnClick", function() if r.lit and r.line then RN.SetCount(r.line, r.per + 1) Changed() end end)
-        r.x:SetScript("OnClick", function() if r.lit and r.line and r.item then RN.TakeOff(r.item, true) Changed() end end)
+        r.x:SetScript("OnClick", function() if r.line and r.item then RN.TakeOff(r.item, true) Changed() end end)
         -- A line taken off: a click puts it back.
         r:SetScript("OnClick", function(self) if self.back then RN.TakeOff(self.item, false) Changed() end end)
         Live(false)
@@ -389,9 +394,9 @@ function ns.EndgameNightPaint(card, p, room)
     p.heads[1]:SetText(saved.nights == 1 and "FOR ONE NIGHT" or ("FOR %d NIGHTS"):format(saved.nights))
     At(p.heads[1], 28)
     p.heads[2]:ClearAllPoints()
-    p.heads[2]:SetPoint("TOP", card, "TOPRIGHT", -(PAD + COST_W + 6 + GET_W / 2), -y)
+    p.heads[2]:SetPoint("TOP", card, "TOPRIGHT", -(PAD + PRICE_AT + COST_W + 6 + GET_W / 2), -y)
     p.heads[3]:ClearAllPoints()
-    p.heads[3]:SetPoint("TOPRIGHT", card, "TOPRIGHT", -PAD, -y)
+    p.heads[3]:SetPoint("TOPRIGHT", card, "TOPRIGHT", -(PAD + PRICE_AT), -y)
     y = y + 18
 
     local lines, off = RN.Lines()
