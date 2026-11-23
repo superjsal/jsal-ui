@@ -174,7 +174,9 @@ Window.Page("professions", function(page)
             all[line] = r
         end
         local was = r.next
-        if type(was) == "table" and type(was.to) == "number" and was.to <= skill then
+        -- A step that ends where it starts (a rod that gives no point) is never behind you: it's
+        -- in hand until it's made, and then it's off the road.
+        if type(was) == "table" and type(was.to) == "number" and was.to <= skill and (tonumber(was.from) or 0) < was.to then
             local last = r.passed[#r.passed]
             if not last or last.to < was.to then r.passed[#r.passed + 1] = was end
         end
@@ -580,7 +582,7 @@ Window.Page("professions", function(page)
             last = "That's as far as it goes."
         end
         nowHead.title:SetText(first and "DO THIS NOW" or (skill >= cap and "AT THE CAP" or "NOTHING TO MAKE YET"))
-        nowHead.note:SetText(first and ("%d → %d"):format(first.from, first.to) or (last or ""))
+        nowHead.note:SetText(first and Road.Span(first, " → ") or (last or ""))
         PlaceNow(nowHead, at)
         at = at + 28
         local ranked = false

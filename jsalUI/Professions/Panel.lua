@@ -812,7 +812,7 @@ function Paint()
         local first = road[1]
         panel.roadHead:SetText(first and "DO THIS NOW" or (skill >= cap and "AT THE CAP" or "NOTHING TO MAKE YET"))
         Place(panel.roadHead, y + 2)
-        panel.roadNote:SetText(first and ("%d → %d"):format(first.from, first.to) or "")
+        panel.roadNote:SetText(first and Road.Span(first, " → ") or "")
         PlaceRight(panel.roadNote, y + 2)
         y = y + 24
         if rankAt and skill >= rankAt then y = y + Rank(y) + 4 end

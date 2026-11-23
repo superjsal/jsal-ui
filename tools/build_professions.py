@@ -8,6 +8,8 @@ data/professions):
   ItemSparse         item names (patterns and vendor reagents) and prices
   SpellCooldowns     how long before a recipe can be made again (Mooncloth, the transmutes)
   SpellName          each recipe's English name, and from an enchant's the slot it goes on
+  SpellTotems        the tool a recipe needs: an enchant's rod
+  TotemCategory      each kind of tool, its type and mask
 and from Wowhead Forever (data/professions/wowhead-learned.txt), the skill each recipe is
 learned at and how: the game's files have 1 there for nearly every recipe. And from the same
 lists (data/professions/wowhead-specializations.txt), the specialisation a recipe needs.
@@ -133,7 +135,14 @@ VENDOR_NAMES = {
     "Fused Wiring", "Mild Spices", "Hot Spices", "Soothing Spices", "Refreshing Spring Water",
     "Ice Cold Milk", "Simple Flour", "Holy Spices", "Silver Rod", "Golden Rod", "Truesilver Rod",
     "Arcanite Rod", "Wooden Stock", "Heavy Stock", "Fishing Line",
+    # Forever's: the Runed Copper Rod takes one, and its own recipe needs that rod, so an enchanter's
+    # first comes from the enchanting supply vendors (EG Link's record of what they sell).
+    "Mote of Magic",
 }
+# The professions whose roads make the tools their recipes need: Enchanting's rods. The tools each
+# of its recipes needs are written out; other professions' (an engineer's spanner, a smith's hammer)
+# aren't, as their roads don't make them.
+TOOL_LINES = {333}
 
 
 def worth(item):
@@ -214,6 +223,14 @@ def main():
             if wait > 0:
                 waits[int(r["SpellID"])] = wait
     slow = {}
+    # The kinds of tool each recipe needs (up to two), and each kind's type and mask.
+    totems = {}
+    for r in rows(SPELLS, "SpellTotems"):
+        kinds = [int(r[f"RequiredTotemCategoryID_{i}"] or 0) for i in range(2)]
+        totems[int(r["SpellID"])] = [k for k in kinds if k > 0]
+    kinds = {int(r["ID"]): (int(r["TotemCategoryType"]), int(r["TotemCategoryMask"]))
+             for r in rows(SPELLS, "TotemCategory")}
+    tools = {}
     # The specialisation a recipe needs (Goblin Engineer, Armorsmith, Tribal Leatherworking).
     special, needs = {}, {}
     for line in (PROF / "wowhead-specializations.txt").read_text(encoding="utf-8").splitlines():
@@ -294,6 +311,9 @@ def main():
                 if reagent in vendor:
                     used_vendor.add(reagent)
             recipes.append(flat)
+            if line_id in TOOL_LINES:
+                for kind in totems.get(spell, []):
+                    tools.setdefault(kind, []).append(spell)
             if line_id == 333:
                 word = next((w for w in ENCHANT_SLOTS if "Enchant " + w in name), None)
                 if word:
@@ -335,6 +355,22 @@ def main():
     lines.append("    -- The slot each enchant goes on, from its English name: the words Guild crafts")
     lines.append("    -- looks for in it, so the slot is known whatever language the game shows it in.")
     lines.append("    enchantSlot = { " + ", ".join(f'[{i}] = "{slots[i]}"' for i in sorted(slots)) + " },")
+    # The items that are tools of the types those recipes need, and the kind each is.
+    types = {kinds[k][0] for k in tools}
+    tool_items = {item_id: int(item.get("TotemCategoryID") or 0) for item_id, item in items.items()
+                  if kinds.get(int(item.get("TotemCategoryID") or 0), (None,))[0] in types}
+    used_kinds = set(tools) | set(tool_items.values())
+    lines.append("    -- The tool a recipe needs (an enchant's rod), by the kind of tool: the recipes that need")
+    lines.append("    -- each. From the game's own tables; Enchanting's only.")
+    lines.append("    tools = {")
+    for kind in sorted(tools):
+        lines.append(f"        [{kind}] = {{ " + ", ".join(str(x) for x in sorted(tools[kind])) + " },")
+    lines.append("    },")
+    lines.append("    -- Each kind of tool: its type and its mask. A tool does the work of a kind of the same")
+    lines.append("    -- type whose mask its own holds: a Runed Golden Rod a Copper or Silver one's.")
+    lines.append("    toolKinds = { " + ", ".join(f"[{k}] = {{ {kinds[k][0]}, {kinds[k][1]} }}" for k in sorted(used_kinds)) + " },")
+    lines.append("    -- The items that are those tools, and the kind each is.")
+    lines.append("    toolItems = { " + ", ".join(f"[{i}] = {tool_items[i]}" for i in sorted(tool_items)) + " },")
     lines += ["}", ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
@@ -342,6 +378,7 @@ def main():
     for line in report:
         print("  " + line)
     print(f"  {len(used_vendor)} vendor reagents, {len(valued)} others valued, {len(slow)} recipes with a wait, {len(needs)} for a specialisation, {len(slots)} enchants with a slot, "
+          f"{sum(len(v) for v in tools.values())} recipes that need a tool, "
           f"{len(shops)} vendors selling {len(sellers)} of the vendor reagents")
 
 
