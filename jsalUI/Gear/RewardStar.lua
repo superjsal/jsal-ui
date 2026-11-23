@@ -125,6 +125,10 @@ local function Marks(button)
     star:SetSize(size - 4, size - 4)
     star:SetPoint("CENTER", icon, "TOPRIGHT", -3, -3)
     arrow.mark, star.mark = "arrow", "yours"
+    -- The game shows a texture from the moment it's made: both start hidden, so a reward
+    -- shows only the marks Look gives it: a star only for a piece you starred.
+    arrow:Hide()
+    star:Hide()
     m = { holder = holder, arrow = arrow, star = star }
     marks[button] = m
     return m
