@@ -1,11 +1,11 @@
 // Reads who sells each vendor reagent, from Wowhead Forever, for data/vendors/wowhead-supplies.json:
 // EG Link only has the vendors its players opened (two in Ironforge), so the shopping list could send
-// someone to another city for thread. Run it in the browser pane on a www.wowhead.com/forever page
-// (javascript_tool), after the window.__supplies line tools/wowhead/supplies.py prints. First each
+// someone to another city for thread. Run it in the browser on a www.wowhead.com/forever page
+// (from its console), after the window.__supplies line tools/wowhead/supplies.py prints. First each
 // reagent's page, for its "Sold by" list (each seller's name, side, zones and price); then the page
 // of each seller whose spot isn't known already, for where they stand. One page every 15 seconds,
-// kept in localStorage ("jsalSupplies"), so after a Human Verification stop (John clears it in the
-// pane) running it again carries on. When all is in, it sends the result to tools/wowhead/receive.py
+// kept in localStorage ("jsalSupplies"), so if the site stops it to ask for a
+// confirmation, running it again after carries on. When all is in, it sends the result to tools/wowhead/receive.py
 // (start that first). To start afresh: localStorage.removeItem('jsalSupplies').
 const FETCHED = new Date().toISOString().slice(0, 10);
 window.__supply = { done: false, pages: 0, left: 0, last: '', err: null };

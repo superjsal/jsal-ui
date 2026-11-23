@@ -1,4 +1,4 @@
-"""Takes data out of the browser pane, where downloads are blocked and Wowhead's pages may not
+"""Takes data out of the browser, where a page can't save files and Wowhead's pages may not
 send to other sites: serves a page on 127.0.0.1:8799; a browser tab sent to
 http://127.0.0.1:8799/#<the data, URI-encoded> posts the data back to it, and it's written to
 the file given. It stops after one save (or ten minutes).

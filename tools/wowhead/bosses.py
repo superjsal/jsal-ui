@@ -1,4 +1,4 @@
-"""Prints the line to run in the browser pane before tools/wowhead/dungeons.js: each Wowhead
+"""Prints the line to run in the browser before tools/wowhead/dungeons.js: each Wowhead
 Forever zone with the bosses to read there, by the names data/dungeons/wowhead.json keeps their
 loot under, and the names Wowhead may list them by instead.
 

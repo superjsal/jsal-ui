@@ -1,5 +1,5 @@
 """Builds jsalUI/Training/TameData.lua: which beasts carry which pet ability rank, from Petopia's
-WoW Forever ability lists (data/pets/petopia.json, read in the browser pane with
+WoW Forever ability lists (data/pets/petopia.json, read in the browser with
 tools/petopia.js; see tools/wowhead/README.md).
 
 Petopia names each rank ("Bite 2") and the beasts that have it. Each name and rank is matched

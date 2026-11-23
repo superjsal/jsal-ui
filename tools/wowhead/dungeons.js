@@ -1,10 +1,10 @@
-// Reads Wowhead Forever's dungeon pages for data/dungeons/wowhead.json. Run in the browser pane on
+// Reads Wowhead Forever's dungeon pages for data/dungeons/wowhead.json. Run in the browser on
 // a www.wowhead.com/forever page, after the window.__bosses line that tools/wowhead/bosses.py
 // prints. For each zone: its page (quests, NPCs, and the Drops tab naming bosses), then each
 // boss's NPC page (drops with Wowhead's kill counts; a number among a boss's names is an NPC's
 // ID, for a boss the zone's page doesn't list). One page every 8 seconds, kept in
-// localStorage ("jsalDungeons"), so a Human Verification stop can be cleared and the script run
-// again to carry on. When done, it sends the result to tools/wowhead/receive.py (start it first,
+// localStorage ("jsalDungeons"), so if the site stops it to ask for a confirmation, the
+// script run again carries on. When done, it sends the result to tools/wowhead/receive.py (start it first,
 // writing to a new file), and tools/wowhead/merge_dungeons.py folds that into wowhead.json.
 // To start afresh next month: localStorage.removeItem('jsalDungeons').
 const grab = (t, id) => {

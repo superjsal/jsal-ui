@@ -1,8 +1,8 @@
 // Reads who drops each item that starts a dungeon quest, from Wowhead Forever's item pages, for
-// data/dungeons/quest-items.json. Run in the browser pane on a www.wowhead.com/forever page, after
+// data/dungeons/quest-items.json. Run in the browser on a www.wowhead.com/forever page, after
 // the window.__itemIds line that tools/wowhead/quest_items.py prints. For each item: the NPC that
 // drops it most often (Wowhead's "Dropped by" tab) and its zone, or else the object it's found in.
-// One page every 10 seconds; on a Wowhead check the batch stops and sends what it read to
+// One page every 10 seconds; when the site asks for a confirmation the batch stops and sends what it read to
 // tools/wowhead/receive.py (start it first, writing to a scratch file), and
 // tools/wowhead/merge_quests.py --items folds it in. Then run build_dungeons.py again.
 const wait = ms => new Promise(r => setTimeout(r, ms));

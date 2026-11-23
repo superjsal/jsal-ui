@@ -1,14 +1,14 @@
 // Reads where each placeless drop drops, from Wowhead Forever's item pages, for
 // data/gear/wowhead-places.json (the dungeons the Dungeon guide's Trash card lists an item under).
-// Run in the browser pane on a www.wowhead.com/forever page, after the window.__placeIds line
+// Run in the browser on a www.wowhead.com/forever page, after the window.__placeIds line
 // tools/wowhead/place_items.py prints. For each item: its name, and every creature Wowhead lists
 // under "Dropped by" with its NPC ID, the zones it's found in, its classification, and how many
 // times it dropped the item in how many kills, as the page gives them.
-// One page every 10 seconds; on a Wowhead check the batch stops and sends what it read to
+// One page every 10 seconds; when the site asks for a confirmation the batch stops and sends what it read to
 // tools/wowhead/receive.py (start it first, writing to a scratch file), and
 // tools/wowhead/merge_places.py folds it in. Then run tools/build_gear.py.
 const wait = ms => new Promise(r => setTimeout(r, ms));
-// The page's text, or null when Wowhead has no such item (404); a check stops the batch.
+// The page's text, or null when Wowhead has no such item (404); a confirmation page stops the batch.
 async function page(url) {
   const r = await fetch(url);
   const t = await r.text();
@@ -45,7 +45,7 @@ function readItem(t) {
 const FETCHED = new Date().toLocaleDateString('en-CA');  // the local date, as 2026-11-22
 window.__places = { done: false, read: 0, left: 0, err: null };
 (async () => {
-  // Pages read are held in the pane as they come, so a reload loses only the page in progress;
+  // Pages read are held in the page as they come, so a reload loses only the page in progress;
   // the next batch picks them up, and the hold is emptied once a batch has gone to the receiver.
   const store = JSON.parse(localStorage.getItem('jsalPlacesHeld') || '{}');
   const todo = window.__placeIds.filter(id => !(String(id) in store));

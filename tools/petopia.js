@@ -2,7 +2,7 @@
 // pet level and training points it needs, and the beasts that have it (creature ID, name, and
 // Petopia's "family, level, zone"). One page, no waiting. Start tools/wowhead/receive.py first
 // (python -I tools/wowhead/receive.py data/pets/petopia.json), open
-// https://www.wow-petopia.com/forever/abilities.php in the browser pane, and run this there.
+// https://www.wow-petopia.com/forever/abilities.php in the browser, and run this there.
 (() => {
   const ranks = {};
   for (const li of document.querySelectorAll('li.abilityrank')) {

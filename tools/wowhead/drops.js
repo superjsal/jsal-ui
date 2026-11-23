@@ -1,13 +1,13 @@
 // Reads how often each quest item drops on Forever, from Wowhead Forever's item pages, for
-// data/quests/wowhead-drops.json (the quest tags' drop chances). Run in the browser pane on a
+// data/quests/wowhead-drops.json (the quest tags' drop chances). Run in the browser on a
 // www.wowhead.com/forever page, after the window.__dropIds line tools/wowhead/drop_items.py prints.
 // For each item: its name, and every creature Wowhead lists under "Dropped by" (and every object
 // under "Contained in") with how many times it dropped and in how many kills or openings.
-// One page every 10 seconds; on a Wowhead check the batch stops and sends what it read to
+// One page every 10 seconds; when the site asks for a confirmation the batch stops and sends what it read to
 // tools/wowhead/receive.py (start it first, writing to a scratch file), and
 // tools/wowhead/merge_quests.py --drops folds it in. Then run tools/build_quest_scores.py.
 const wait = ms => new Promise(r => setTimeout(r, ms));
-// The page's text, or null when Wowhead has no such item (404); a check stops the batch.
+// The page's text, or null when Wowhead has no such item (404); a confirmation page stops the batch.
 async function page(url) {
   const r = await fetch(url);
   const t = await r.text();
@@ -42,7 +42,7 @@ function readItem(t) {
 const FETCHED = new Date().toISOString().slice(0, 10);
 window.__drops = { done: false, read: 0, left: 0, err: null };
 (async () => {
-  // Pages read are held in the pane as they come, so a reload loses only the page in progress;
+  // Pages read are held in the page as they come, so a reload loses only the page in progress;
   // the next batch picks them up, and the hold is emptied once a batch has gone to the receiver.
   const store = JSON.parse(localStorage.getItem('jsalDropHeld') || '{}');
   const todo = window.__dropIds.filter(id => !(String(id) in store));

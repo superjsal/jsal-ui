@@ -1,12 +1,12 @@
 // Reads where each dungeon quest starts, and the quest before it in its chain, from Wowhead
-// Forever's quest pages, for data/dungeons/quest-starts.json. Run in the browser pane on a
+// Forever's quest pages, for data/dungeons/quest-starts.json. Run in the browser on a
 // www.wowhead.com/forever page, after the window.__questIds line that tools/wowhead/quest_ids.py
 // prints (with --missing, the quests quest-starts.json doesn't have yet, and a window.__questSeen
 // line with the ones it has, so a batch carries on from there). A quest whose chain has an earlier step that isn't on the list gets that step read
-// too. One page every 10 seconds. Wowhead challenges the reader every 25 pages or so: the batch
+// too. One page every 10 seconds. The site asks for a confirmation every 25 pages or so: the batch
 // then stops and sends what it read to tools/wowhead/receive.py (start it first, writing to a
 // scratch file), and tools/wowhead/merge_quests.py folds that into quest-starts.json, so nothing
-// read is lost; John clears the check in the pane, and the next batch carries on.
+// read is lost; the person at the browser confirms it, and the next batch carries on.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 async function page(url) {
   const r = await fetch(url);

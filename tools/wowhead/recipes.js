@@ -1,10 +1,10 @@
 // Reads where Wowhead Forever says each recipe comes from, for data/professions/wowhead-sources.json.
-// Run it in the browser pane on a www.wowhead.com/forever page (javascript_tool). First the eight
+// Run it in the browser on a www.wowhead.com/forever page (from its console). First the eight
 // recipe lists (each item's quest, single vendor or single mob). Then the vendors: every vendor a
 // list names is read (its page has its side, zone, map spot and everything it sells, with prices);
 // a vendor recipe no vendor read so far sells has its own page read for its "Sold by" list, and
 // those vendors are read in turn. Last, each quest that gives a recipe, for its side. One page every 15 seconds, kept in localStorage ("jsalRecipes"),
-// so after a Human Verification stop (John clears it in the pane) running it again carries on.
+// so if the site stops it to ask for a confirmation, running it again after carries on.
 // When all is in, it sends the result to tools/wowhead/receive.py (start that first). To start
 // afresh: localStorage.removeItem('jsalRecipes').
 const PROFS = ['alchemy', 'blacksmithing', 'cooking', 'enchanting', 'engineering', 'first-aid', 'leatherworking',

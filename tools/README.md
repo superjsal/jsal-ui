@@ -114,8 +114,8 @@ maps (not kept here); the tool's `ART` names each floor. No boss is placed on th
 
 Loot and quests come from Wowhead Forever, in `data\dungeons\wowhead.json`: each dungeon's zone page
 (its Quests tab, and its NPCs to find each boss) and each boss's NPC page (its Drops tab, with how
-many kills Wowhead has seen and how often each item dropped). It's read in a browser, one page every
-few seconds, since Wowhead turns away scripted downloads. A drop is kept when it's uncommon or better
+many kills Wowhead has seen and how often each item dropped). It's read from its public pages in a signed-in
+browser, a page every few seconds, by a script started by hand. A drop is kept when it's uncommon or better
 and has dropped in at least 2% of 10 or more kills, or when the zone's own Drops tab names the boss.
 The same build writes `DungeonLoot.lua` from it. Wowhead's numbers grow as more people play, so the
 higher dungeons' lists fill in over time; read them again now and then (`tools\wowhead\README.md` has the monthly steps).
@@ -123,7 +123,7 @@ higher dungeons' lists fill in over time; read them again now and then (`tools\w
 ## Gear plan
 
 `data\gear\wowhead-items.json` holds every uncommon and better armor piece, jewel, cloak and weapon on
-Wowhead Forever's gear lists, read slot by slot in a browser (Wowhead turns away scripted downloads), with
+Wowhead Forever's gear lists, read slot by slot in a signed-in browser by a script started by hand, with
 where each comes from. `data\gear\zones.json` names the zones (the game's AreaTable).
 The stat weights, what a point of each stat is worth to a spec, are WoWSims': its Forever
 simulator's presets where it has one for a talent tree (`data\gear\wowsims-forever\`, from

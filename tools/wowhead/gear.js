@@ -1,7 +1,7 @@
-// Reads Wowhead Forever's gear lists for data/gear/wowhead-items.json. Run it in the browser pane
-// on a www.wowhead.com/forever page (javascript_tool). It reads one list every 12 seconds and keeps
-// what it has read in localStorage ("jsalGear"), so after a Human Verification stop (John clears
-// it in the pane) running it again carries on where it stopped. When every list is in, it sends
+// Reads Wowhead Forever's gear lists for data/gear/wowhead-items.json. Run it in the browser
+// on a www.wowhead.com/forever page (from its console). It reads one list every 12 seconds and keeps
+// what it has read in localStorage ("jsalGear"), so if the site stops it to ask the person at
+// the browser to confirm something, running it again after carries on where it stopped. When every list is in, it sends
 // the result to tools/wowhead/receive.py (start that first). To start afresh next month:
 // localStorage.removeItem('jsalGear').
 // Each item also keeps the percent crit and hit an "Equip:" line gives it ("Improves your chance
