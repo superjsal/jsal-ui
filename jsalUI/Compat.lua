@@ -493,21 +493,33 @@ function Compat.ItemIcon(item)
     return GetItemIcon and GetItemIcon(item)
 end
 
--- The profession window open now: its name, your skill and its cap. Nil
--- when it shows someone else's linked profession.
+-- A profession window's skill line (197 for Tailoring). The window shows the
+-- profession's tier (Forever's Tailoring tier is skill line 2948), whose
+-- parent is the profession's own line; with no parent, the line is its own.
+local function SkillLineOf(info)
+    local parent = tonumber(info.parentProfessionID)
+    if parent and parent > 0 then return parent end
+    local own = tonumber(info.professionID)
+    return own and own > 0 and own or nil
+end
+
+-- The profession window open now: its name, your skill, its cap and its
+-- skill line, nil where the game gives none. The name is in the client's own
+-- language; the skill line is the same in every one. Nil when the window
+-- shows someone else's linked profession.
 function Compat.OpenProfession()
     local ui = C_TradeSkillUI
     if ui and ui.IsTradeSkillLinked and ui.IsTradeSkillLinked() then return nil end
     if ui and ui.GetChildProfessionInfo then
         local info = ui.GetChildProfessionInfo()
         if info and info.professionName and (info.maxSkillLevel or 0) > 0 then
-            return info.parentProfessionName or info.professionName, info.skillLevel, info.maxSkillLevel
+            return info.parentProfessionName or info.professionName, info.skillLevel, info.maxSkillLevel, SkillLineOf(info)
         end
     end
     if ui and ui.GetBaseProfessionInfo then
         local info = ui.GetBaseProfessionInfo()
         if info and info.professionName and (info.maxSkillLevel or 0) > 0 then
-            return info.professionName, info.skillLevel, info.maxSkillLevel
+            return info.professionName, info.skillLevel, info.maxSkillLevel, SkillLineOf(info)
         end
     end
     if GetTradeSkillLine then
