@@ -1,19 +1,20 @@
 -- Quest reward upgrades: when a quest lets you choose a reward, an upgrade
 -- arrow on each one the gear plan scores better than what you wear, in the
--- addon's green, and in gold on the biggest upgrade, in the quest window, the
--- quest log and the map. The best one's tooltip says so in jsal.ui's own
+-- addon's green, and jsal.ui's gold crown in its place on the biggest upgrade,
+-- in the quest window, the quest log and the map. The best one's tooltip says
+-- so, with the crown, in jsal.ui's own
 -- section, where every item's tooltip says how much better it is
 -- (Gear.TooltipLines asks RewardStar.Best). The gold star stays the Gear plan's
 -- mark for a piece you starred: a reward you starred shows it too, at the
 -- icon's other top corner.
 --
 -- Each reward is scored by Gear.ItemShare, the same reading as that section's
--- "better than equipped", so the arrow and the tooltip's number can't disagree. A
--- reward you can't wear, or one no better than what you wear, gets no arrow.
+-- "better than equipped", so the marks and the tooltip's number can't disagree. A
+-- reward you can't wear, or one no better than what you wear, gets no mark.
 -- The game lays rewards out inside QuestInfo_Display (QuestInfo_ShowRewards
 -- can't be hooked: its templates hold their own reference to it), so the marks
 -- are placed after that runs, on a frame of jsal.ui's own over the reward's
--- icon. The arrow sits at the icon's top left: EllesmereUI's money bag for the
+-- icon. The mark sits at the icon's top left: EllesmereUI's money bag for the
 -- best-selling reward is at the reward's bottom right, so the two never meet.
 -- An item the game hasn't loaded yet is waited for, then the rewards are
 -- looked at once more.
@@ -23,7 +24,7 @@ local Gear = ns.Gear
 
 local RewardStar = ns.NewModule("rewardstar", {
     title = "Quest reward upgrades",
-    note = "When a quest lets you choose a reward, an arrow on each one that's better than what you wear, gold on the best. Point at a reward for how much better.",
+    note = "When a quest lets you choose a reward, an arrow on each one that's better than what you wear, a crown on the best. Point at a reward for how much better.",
 })
 ns.RewardStar = RewardStar
 
@@ -31,6 +32,11 @@ ns.RewardStar = RewardStar
 local ARROW = "bags-greenarrow"
 -- The same arrow inside a line of text.
 RewardStar.ARROW = "|A:" .. ARROW .. ":14:14|a"
+-- jsal.ui's crown, for the best reward: drawn in full colour with the arrow's rim and
+-- shadow baked in (tools\make_reward_crown.py), so it's shown as it is, never tinted.
+local CROWN = "Interface\\AddOns\\jsalUI\\Media\\RewardCrown"
+-- The crown inside a line of text.
+RewardStar.CROWN = "|T" .. CROWN .. ":14:14|t"
 -- The Gear plan's star, for a reward you starred there.
 local STAR = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1"
 -- Looks again as items arrive, up to this many times for one window.
@@ -104,8 +110,9 @@ function RewardStar.Score(buttons)
     return best, waiting, choices
 end
 
--- A reward's two marks on one frame of our own: the arrow, its middle on the icon's top-left
--- corner, and your star at the top right. Smaller on the map's small rewards.
+-- A reward's marks on one frame of our own: the arrow, its middle on the icon's top-left
+-- corner, or the crown in its place on the best, and your star at the top right. Smaller
+-- on the map's small rewards.
 local function Marks(button)
     local m = marks[button]
     if m then return m end
@@ -120,16 +127,23 @@ local function Marks(button)
     if arrow.SetDesaturated then arrow:SetDesaturated(true) end
     arrow:SetSize(size, size)
     arrow:SetPoint("CENTER", icon, "TOPLEFT", 3, -3)
+    -- The crown is wider and lower than the arrow: 2 lower, its points are level with the
+    -- arrows' tips and its band sits inside the icon as the arrow's foot does.
+    local crown = holder:CreateTexture(nil, "OVERLAY")
+    crown:SetTexture(CROWN)
+    crown:SetSize(size, size)
+    crown:SetPoint("CENTER", icon, "TOPLEFT", 3, -5)
     local star = holder:CreateTexture(nil, "OVERLAY")
     star:SetTexture(STAR)
     star:SetSize(size - 4, size - 4)
     star:SetPoint("CENTER", icon, "TOPRIGHT", -3, -3)
-    arrow.mark, star.mark = "arrow", "yours"
-    -- The game shows a texture from the moment it's made: both start hidden, so a reward
+    arrow.mark, crown.mark, star.mark = "arrow", "crown", "yours"
+    -- The game shows a texture from the moment it's made: all start hidden, so a reward
     -- shows only the marks Look gives it: a star only for a piece you starred.
     arrow:Hide()
+    crown:Hide()
     star:Hide()
-    m = { holder = holder, arrow = arrow, star = star }
+    m = { holder = holder, arrow = arrow, crown = crown, star = star }
     marks[button] = m
     return m
 end
@@ -162,6 +176,7 @@ end
 local function HideAll()
     for _, m in pairs(marks) do
         m.arrow:Hide()
+        m.crown:Hide()
         m.star:Hide()
     end
 end
@@ -187,6 +202,17 @@ local function WaitForItems()
     waiter:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 end
 
+-- Whether the crown's picture is there: a new file loads only once the game restarts, so
+-- until then the best shows the green arrow like any upgrade, never a missing picture.
+function RewardStar.HasCrown()
+    return not ns.needsRestart
+end
+
+-- The best reward's mark inside a line of text: the crown, or the arrow until a restart.
+function RewardStar.BestMark()
+    return RewardStar.HasCrown() and RewardStar.CROWN or RewardStar.ARROW
+end
+
 function Look()
     HideAll()
     if not RewardStar.running then return end
@@ -195,6 +221,7 @@ function Look()
     if not (rewards and rewards.RewardButtons) then return end
     local best, waiting, choices = RewardStar.Score(rewards.RewardButtons)
     local starred = Gear.Starred and Gear.Starred() or {}
+    local crown = RewardStar.HasCrown()
     for _, button in ipairs(choices or {}) do
         local f = found[button]
         local better = f and f.verdict == "better"
@@ -202,8 +229,10 @@ function Look()
         if better or yours then
             local m = Marks(button)
             Raise(m, button)
-            if better then
-                Tint(m.arrow, button == best and "gold" or "green")
+            if better and button == best and crown then
+                m.crown:Show()
+            elseif better then
+                Tint(m.arrow, "green")
                 m.arrow.best = button == best
                 m.arrow:Show()
             end
@@ -221,7 +250,7 @@ local function Shown()
 end
 
 -- Whether this tooltip is the best reward's: the game's tooltip, held by the
--- reward button with the gold arrow, showing that reward's item. Read each time
+-- reward button with the crown, showing that reward's item. Read each time
 -- the tooltip is built, from what was worked out when the window opened. The
 -- game builds a reward's tooltip afresh every moment the pointer rests on it,
 -- calling the button's own OnEnter method rather than its script, so a line
