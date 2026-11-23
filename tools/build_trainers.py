@@ -210,9 +210,11 @@ def class_trainers(listed, portal_npcs):
             if not top:
                 left.append(f"{name} ({npc}): its Wowhead page lists nothing it teaches")
                 continue
-            spot_x, spot_y = forever_spot(map_id, float(x), float(y))
+            # An NPC page's map names the uiMap its spot is on, and the spot is that map's as
+            # Forever draws it (Lanka Farshot's Mulgore spot is players' own within a fifth of a
+            # point), so unlike the class lists' spots it isn't moved.
             out.setdefault("class" + kind[1:], []).append(
-                (npc, name, map_id, round(spot_x / 100, 4), round(spot_y / 100, 4),
+                (npc, name, map_id, round(float(x) / 100, 4), round(float(y) / 100, 4),
                  friendly(alliance), friendly(horde), int(top)))
     return out, left
 

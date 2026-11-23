@@ -35,3 +35,13 @@
 3595|Shanda|Priest Trainer|1||c5|1438|59.2|40.4|6
 3600|Laurna Morninglight|Priest Trainer|1||c5|1438|55.4|56.8|60
 3597|Mardant Strongoak|Druid Trainer|1||c11|1438|58.6|40.4|6
+3602|Kal|Druid Trainer|1||c11|1438|56|61.4|60
+3707|Ken'jai|Priest Trainer||1|c5|1411|42.4|68.8|6
+3706|Tai'jin|Priest Trainer||1|c5|1411|54.2|42.8|60
+3169|Tarshaw Jaggedscar|Warrior Trainer||1|c1|1411|54|42.6|60
+3170|Kaplak|Rogue Trainer||1|c4|1411|52|43.4|60
+5880|Un'Thuwa|Mage Trainer||1|c8|1411|56.2|75|60
+3059|Harutt Thunderhorn|Warrior Trainer||1|c1|1412|43.8|76.6|6
+3063|Krang Stonehoof|Warrior Trainer||1|c1|1412|48.4|63.6|60
+3060|Gart Mistrunner|Druid Trainer||1|c11|1412|44.6|76.6|6
+3064|Gennia Runetotem|Druid Trainer||1|c11|1412|47.4|62.8|60
