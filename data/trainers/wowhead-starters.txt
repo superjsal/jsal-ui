@@ -14,3 +14,13 @@
 906|Maximillian Crowe|Warlock Trainer|1||c9|1429|44.4|66|60
 912|Thran Khorman|Warrior Trainer|1||c1|1426|28.8|67.2|6
 1229|Granis Swiftaxe|Warrior Trainer|1||c1|1426|47.2|52.4|60
+926|Bromos Grummner|Paladin Trainer|1||c2|1426|28.8|68.2|6
+1232|Azar Stronghammer|Paladin Trainer|1||c2|1426|47.4|52|60
+895|Thorgas Grimson|Hunter Trainer|1||c3|1426|29|67.4|6
+1231|Grif Wildheart|Hunter Trainer|1||c3|1426|45.8|53|60
+916|Solm Hargrin|Rogue Trainer|1||c4|1426|28.4|67.4|6
+1234|Hogral Bakkan|Rogue Trainer|1||c4|1426|47.4|52.4|60
+837|Branstock Khalder|Priest Trainer|1||c5|1426|28.6|66.4|6
+1226|Maxan Anvol|Priest Trainer|1||c5|1426|47.2|52.2|60
+944|Marryk Nurribit|Mage Trainer|1||c8|1426|28.6|66.4|6
+1228|Magis Sparkmantle|Mage Trainer|1||c8|1426|47.4|52|60
