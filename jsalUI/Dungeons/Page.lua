@@ -6,7 +6,8 @@
 -- and, four at most, for what's better than what you wear, the most first
 -- (Wowhead's list with drop chances, and what you and the guild have seen it
 -- drop); along its foot, small and grey, everything else it drops. A card
--- with something for you has a gold edge.
+-- with something for you has a gold edge. After the last boss, a Trash card
+-- for what the dungeon's ordinary creatures drop, where anything is known.
 -- Quests: the dungeon's quests for your faction, ticked once done, each with
 -- where it starts and the quest to do first; a click pins the start on the map.
 -- Map: the dungeon's own map where there is one. The list marks each
@@ -21,6 +22,8 @@ local PICKER_H = 34
 -- for what isn't for you, with its small pictures. Cards are two across,
 -- GRID_GAP apart, a row of them ROW_GAP under the last.
 local BOSS_H, ITEM_H, STRIP_H, SMALL, GRID_GAP, ROW_GAP = 36, 46, 40, 24, 24, 16
+-- The Trash card's heading: its name with a quiet line under it.
+local TRASH_H = 52
 local METER_W = 52                 -- the bar under a piece's drop chance
 -- A card's lines for pieces better than what you wear, at most: a piece you
 -- starred has its line past them.
@@ -1018,6 +1021,24 @@ Window.Page("dungeons", function(page)
         return b
     end
 
+    -- The Trash card's heading: no number and no tick, its name and a quiet line under it.
+    function B.TrashHead(card)
+        card.boss = nil
+        card.number:SetText("")
+        card.box:Hide()
+        card.kills:SetText("")
+        card.head:SetHeight(TRASH_H)
+        card.name:ClearAllPoints()
+        card.name:SetPoint("TOPLEFT", card.head, "TOPLEFT", 14, -11)
+        card.name:SetText("Trash")
+        if not card.note then
+            card.note = Style.Text(card.head, 12, "muted")
+            card.note:SetPoint("TOPLEFT", 14, -31)
+            card.note:SetText("From the dungeon's ordinary creatures")
+        end
+        card.note:Show()
+    end
+
     -- The quests tab, made to be read at a glance by anyone. A line of what
     -- there is, column headings, a bar for each place quests start in, a
     -- line for a quest that stands alone, and a card of numbered steps for a
@@ -1390,7 +1411,8 @@ Window.Page("dungeons", function(page)
     -- the card's height, how many pieces are for you (on your gear plan, or
     -- better than what you wear), how many it could tell that of, and the
     -- guild's kills.
-    local function PaintLoot(card, boss, encounter, keep)
+    -- The Trash card's loot is `trash` (D.Trash's list): no boss, no drop chance, the creature named where it is.
+    local function PaintLoot(card, boss, encounter, keep, trash)
         for _, it in ipairs(card.items) do it:Hide() end
         for _, s in ipairs(card.smalls) do s:Hide() end
         card.strip:Hide()
@@ -1406,8 +1428,12 @@ Window.Page("dungeons", function(page)
         for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[encounter] or {}) do
             Add(drop[1]).chance = drop[2]
         end
-        for id, item in pairs(D.Loot()[D.Key(boss)] or {}) do Add(id).item = item end
-        local guild = ns.GuildLoot and ns.GuildLoot.On() and ns.GuildLoot.For(encounter)
+        for _, e in ipairs(trash or {}) do
+            local entry = Add(e[1])
+            entry.creature, entry.item.q = e[2], e[3]
+        end
+        for id, item in pairs(boss and D.Loot()[D.Key(boss)] or {}) do Add(id).item = item end
+        local guild = encounter and ns.GuildLoot and ns.GuildLoot.On() and ns.GuildLoot.For(encounter)
         local guildKills = 0
         if guild then
             for id, n in pairs(guild.i or {}) do
@@ -1501,10 +1527,11 @@ Window.Page("dungeons", function(page)
             end
         end
         card.edge:SetShown(forYou > 0)
+        local top = trash and TRASH_H or BOSS_H
         for k, entry in ipairs(lines) do
             local it = Item(card, k)
             it:ClearAllPoints()
-            it:SetPoint("TOPLEFT", 0, -(BOSS_H + (k - 1) * ITEM_H))
+            it:SetPoint("TOPLEFT", 0, -(top + (k - 1) * ITEM_H))
             it.rule:SetShown(k > 1)
             it.item = entry.id
             local name, _, quality, _, req, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
@@ -1537,6 +1564,8 @@ Window.Page("dungeons", function(page)
             -- Recipes and other things you don't wear have a blank slot name.
             if slot and slot ~= "" then parts[#parts + 1] = slot end
             if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
+            -- On the Trash card, the creature it drops from.
+            if entry.creature then parts[#parts + 1] = entry.creature end
             -- Too high for you yet: its level, in red.
             if req and req > (UnitLevel("player") or 1) then parts[#parts + 1] = ("%slevel %d|r"):format(RED, req) end
             it.slot:SetText(table.concat(parts, " · "))
@@ -1557,7 +1586,7 @@ Window.Page("dungeons", function(page)
             it:Show()
         end
         card.none:Hide()
-        local h = BOSS_H + #lines * ITEM_H
+        local h = top + #lines * ITEM_H
         -- The rest, small along the foot: a second row of them when one
         -- won't hold them all.
         if #strip > 0 then
@@ -1584,6 +1613,7 @@ Window.Page("dungeons", function(page)
                     s.more[1] = entry.prof and "A recipe for your profession." or "A recipe for a profession you don't have."
                 end
                 if chance then s.more[#s.more + 1] = ("Drops %d%% of the time."):format(chance) end
+                if entry.creature then s.more[#s.more + 1] = ("Drops from %s."):format(entry.creature) end
                 if seen then s.more[#s.more + 1] = (seen:gsub("^%l", string.upper)) .. "." end
                 s:Show()
             end
@@ -2112,6 +2142,17 @@ Window.Page("dungeons", function(page)
         tabs:Shown("map", hasMap)
         if tab == "map" and not hasMap then tab = "bosses" end
         tabs:Pick(tab)
+        -- What the dungeon's creatures drop: a card after the last boss where anything is known. A piece asked for
+        -- that drops from them, and that the card lists, is landed on there, lit, as on a boss's card.
+        B.trash = tab == "bosses" and D.Trash and D.Trash(d) or {}
+        B.trashK = #B.trash > 0 and #d.bosses + 1 or nil
+        local from = B.whyNext or B.why
+        for _, e in ipairs(B.trashK and from and from.dungeon == d and B.trash or {}) do
+            if e[1] == from.item then
+                B.jump, B.jumpItem, B.whyNext, B.why = B.trashK, from.item, nil, nil
+                break
+            end
+        end
         -- A piece asked for keeps its line on its boss's card while this dungeon's bosses are shown.
         if B.jump and B.jumpItem then B.keep = { d = d, k = B.jump, item = B.jumpItem } end
         if B.keep and (B.keep.d ~= d or tab ~= "bosses") then B.keep = nil end
@@ -2160,10 +2201,19 @@ Window.Page("dungeons", function(page)
         local heights, forYou, sure = {}, 0, 0
         missed = 0
         if ns.Gear then ns.Gear.made = {} end
-        for k, b in ipairs(d.bosses) do
+        for k = 1, B.trashK or #d.bosses do
             t = debugprofilestop()
             local card = BossRow(k)
             t = Spent("bosses: cards made or found", t)
+            local b = d.bosses[k]
+            if not b then
+                B.TrashHead(card)
+                local h, more, known = PaintLoot(card, nil, nil, B.keep and B.keep.k == k and B.keep.item or nil, B.trash)
+                forYou, sure, heights[k] = forYou + more, sure + known, h
+                break
+            end
+            card.head:SetHeight(BOSS_H)
+            if card.note then card.note:Hide() end
             card.boss = b[2]
             local n = D.KillCount(b[2], game, b[3])
             card.number:SetText(k)
@@ -2205,7 +2255,7 @@ Window.Page("dungeons", function(page)
         by = B.Say(asked and asked.dungeon == d and asked or nil)
         -- Two across: each pair starts level, the next pair under the
         -- taller of the two.
-        for k = 1, #d.bosses, 2 do
+        for k = 1, #heights, 2 do
             local tall = math.max(heights[k], heights[k + 1] or 0)
             for side = 0, 1 do
                 local card = bossRows[k + side]
@@ -2219,7 +2269,7 @@ Window.Page("dungeons", function(page)
             end
             by = by + tall + ROW_GAP
         end
-        for k = #d.bosses + 1, #bossRows do bossRows[k]:Hide() end
+        for k = #heights + 1, #bossRows do bossRows[k]:Hide() end
         by = math.max(1, by - ROW_GAP)
         bossList:SetHeight(by)
         local listH = Fit(by)

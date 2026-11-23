@@ -182,6 +182,81 @@ local function OnEvent(_, event, a, b, _, _, e)
 end
 Dungeons.OnEvent = OnEvent
 
+-- What a dungeon's ordinary creatures drop, and not its bosses, from the gear the Gear plan knows (GearData): a drop
+-- placed in the dungeon, either a creature and the dungeon (Crypt Beast, in Stratholme) or the dungeon alone, that no
+-- boss of the guide lists, from a creature that isn't one of the dungeon's bosses (by either of a boss's names, or a name that begins the
+-- other, as the Endgame goal finds a boss), and that your side can get. { { id, creature (nil where none is named),
+-- quality } }, found the first time a dungeon is shown and kept. Wowhead names Sunken Temple by the temple's own name.
+-- No drop chance is known for them.
+local ALSO_CALLED = { ["Sunken Temple"] = "The Temple of Atal'Hakkar" }
+local SEP = " \194\183 "
+local trash, bossDrop = {}, nil
+local function IsBoss(d, name)
+    for _, b in ipairs(d.bosses) do
+        for i = 2, 3 do
+            local n = b[i]
+            if n and (n == name or (#n >= 5 and #name >= 5 and (name:sub(1, #n) == n or n:sub(1, #name) == name))) then return true end
+        end
+    end
+    return false
+end
+function Dungeons.Trash(d)
+    local data = ns.GearData
+    if trash[d] and trash[d].data == data then return trash[d].list end
+    local list = {}
+    trash[d] = { data = data, list = list }
+    if not (data and data.places and data.items) then return list end
+    if not bossDrop then
+        bossDrop = {}
+        for _, drops in pairs(ns.DungeonLoot or {}) do
+            for _, drop in ipairs(drops) do bossDrop[drop[1]] = true end
+        end
+    end
+    -- The places that are this dungeon, by number: the creature named, or true for none.
+    local want, any = {}, false
+    for _, name in ipairs({ d.name, ALSO_CALLED[d.name] }) do
+        local tail = SEP .. name
+        for i, place in ipairs(data.places) do
+            if place == name then
+                want[i], any = true, true
+            elseif #place > #tail and place:sub(-#tail) == tail then
+                local creature = place:sub(1, #place - #tail)
+                if not IsBoss(d, creature) then want[i], any = creature, true end
+            end
+        end
+    end
+    if not any then return list end
+    local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local mine = (faction == "Alliance" and "1") or (faction == "Horde" and "2") or nil
+    local seen = {}
+    -- An item's entry ends in its source kind and place: ",1,<place>" for a drop there, then ";" or the line's end.
+    for _, line in pairs(data.items) do
+        for place, creature in pairs(want) do
+            local key = ",1," .. place
+            local from = 1
+            while true do
+                local at = line:find(key, from, true)
+                if not at then break end
+                local stop = at + #key
+                local after = line:byte(stop)
+                if after == nil or after == 59 then
+                    local start = at
+                    while start > 1 and line:byte(start - 1) ~= 59 do start = start - 1 end
+                    local id, side, q = line:sub(start, at - 1):match("^(%d+),%d+,%d+,%-?%d+,%-?%d+,(%d+),%d+,(%d+)$")
+                    id = tonumber(id)
+                    if id and not seen[id] and not bossDrop[id] and (side == "0" or side == mine) then
+                        seen[id] = true
+                        list[#list + 1] = { id, creature ~= true and creature or nil, tonumber(q) }
+                    end
+                end
+                from = stop
+            end
+        end
+    end
+    table.sort(list, function(a, b) return a[1] < b[1] end)
+    return list
+end
+
 function Dungeons:OnEnable()
     local f = self.frame or CreateFrame("Frame")
     self.frame = f
