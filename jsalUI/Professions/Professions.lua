@@ -455,16 +455,33 @@ function Professions.IsVendor(item)
     return Data.vendor[item]
 end
 
--- Whether a pattern can simply be bought: some vendor sells it for coin
--- alone. One that wants a standing with a faction, or a currency of its
--- own, or that no vendor is known to sell, counts on the road only once
--- you have it, as a dropped pattern does. Without the list of who sells
--- what, every vendor pattern counts.
-function Professions.Buyable(spell)
+-- Whether a pattern can simply be bought on your side: a vendor of your
+-- faction, or one who sells to both, has it for coin alone. One only the
+-- other faction's vendors sell, one that wants a standing with a faction or
+-- a currency of its own, and one no vendor is known to sell count on the
+-- road only once you have it, as a dropped pattern does. Without the list
+-- of who sells what, every vendor pattern counts. `faction` is the game's
+-- token, "Alliance" or "Horde"; left out, it's yours, and while the game
+-- hasn't said which yet a vendor of either side counts. The answer is kept
+-- for each side, since the road asks at every point of the way.
+local buyable = {}
+function Professions.Buyable(spell, faction)
     local data = ns.RecipeSources
     if not (data and data.recipes) then return true end
     local entry = data.recipes[spell]
-    return entry ~= nil and entry.v ~= nil and entry.n == nil
+    if not (entry and entry.v and entry.n == nil) then return false end
+    local sources = ns.RecipeSourceText
+    if not (sources and sources.Vendors) then return true end
+    if faction == nil then faction = UnitFactionGroup and UnitFactionGroup("player") or nil end
+    local side = faction == "Alliance" and "Alliance" or faction == "Horde" and "Horde" or "either"
+    local kept = buyable[side]
+    if not kept then kept = {} buyable[side] = kept end
+    local yes = kept[spell]
+    if yes == nil then
+        yes = sources.Vendors(spell, side ~= "either" and side or nil)[1] ~= nil
+        kept[spell] = yes
+    end
+    return yes
 end
 
 -- How many of a recipe the bags hold enough for.
@@ -561,9 +578,10 @@ function Professions.Plan(line, skill, target, known, breakAt)
         end })
     end
     -- A recipe the road may take at a skill: one you know, or one a trainer teaches or a
-    -- vendor sells for coin, once your skill reaches it.
+    -- vendor of your side sells for coin, once your skill reaches it.
+    local faction = UnitFactionGroup and UnitFactionGroup("player") or nil
     local function Open(recipe, mine, at)
-        return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell))) and recipe.learn <= at)
+        return mine or (not Professions.Needs(recipe) and (recipe.how == 1 or (recipe.how == 2 and Professions.Buyable(recipe.spell, faction))) and recipe.learn <= at)
     end
     -- The road a point at a time from `stock`: its steps, the skill it reached, and whether
     -- anything you have made a recipe cheaper.
