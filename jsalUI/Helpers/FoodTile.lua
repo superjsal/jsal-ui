@@ -47,8 +47,8 @@ function FoodTile.Buffs()
         else
             break
         end
-        if icon == WELL_FED_ICON or name == "Well Fed" or (spell and OTHER_BUFFS[spell]) then fed = true end
-        if name == "Food" or name == "Refreshment" or name == "Food & Drink" then eating = true end
+        if icon == WELL_FED_ICON or name == "Well Fed" or (name and name == Compat.WellFedName()) or (spell and OTHER_BUFFS[spell]) then fed = true end
+        if Compat.EatingBuff(name) and name ~= "Drink" and name ~= Compat.DrinkName() then eating = true end
     end
     return fed, eating
 end
@@ -61,10 +61,14 @@ local function GivesBuff(itemID)
     if not get then return false end
     local ok, data = pcall(get, itemID)
     if not ok or not data or not data.lines or #data.lines < 2 then return false end
-    local found = false
+    -- "... you will become well fed": the English words, or the game's own name for Well Fed.
+    local found, wellFed = false, Compat.WellFedName():lower()
     for _, line in ipairs(data.lines) do
         local text = line.leftText
-        if type(text) == "string" and text:lower():find("well fed", 1, true) then found = true break end
+        if type(text) == "string" and (text:lower():find("well fed", 1, true) or text:lower():find(wellFed, 1, true)) then
+            found = true
+            break
+        end
     end
     buffFood[itemID] = found
     return found
@@ -79,7 +83,7 @@ local function IsFood(itemID)
     local _, _, _, _, _, class, subclass = info(itemID)
     if class ~= FOOD_CLASS or subclass ~= FOOD_SUBCLASS then return false end
     local spell = C_Item.GetItemSpell and C_Item.GetItemSpell(itemID)
-    if spell == "Drink" then return GivesBuff(itemID) end
+    if spell == "Drink" or (spell and spell == Compat.DrinkName()) then return GivesBuff(itemID) end
     return true
 end
 

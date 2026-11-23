@@ -254,6 +254,30 @@ function Compat.OnEmote(fn)
     return true
 end
 
+-- The names the game gives eating, drinking and being well fed, in the player's language: read once by
+-- spell ID (Food 433, Drink 430, Refreshment 167152, Well Fed 19705), with the English ones kept beside them
+-- ("Food & Drink" is only English). A name the game doesn't give yet is asked again next time.
+local function GameSpellName(id)
+    local ok, name = pcall(Compat.SpellInfo, id)
+    return ok and type(name) == "string" and name ~= "" and name or nil
+end
+local eatingNames
+function Compat.EatingBuff(name)
+    if type(name) ~= "string" then return false end
+    if not eatingNames then
+        local names, all = { Food = true, Drink = true, Refreshment = true, ["Food & Drink"] = true }, true
+        for _, id in ipairs({ 433, 430, 167152 }) do
+            local game = GameSpellName(id)
+            if game then names[game] = true else all = false end
+        end
+        if not all then return names[name] == true end
+        eatingNames = names
+    end
+    return eatingNames[name] == true
+end
+function Compat.WellFedName() return GameSpellName(19705) or "Well Fed" end
+function Compat.DrinkName() return GameSpellName(430) or "Drink" end
+
 -- Whether you're sat eating or drinking: one of your buffs is the one food
 -- or drink gives while you take it. A buff the game hides is skipped.
 function Compat.Eating()
@@ -262,8 +286,7 @@ function Compat.Eating()
     for i = 1, 40 do
         local ok, aura = pcall(get, "player", i, "HELPFUL")
         if not ok or not aura then break end
-        local name = Compat.Plain(aura.name)
-        if name == "Food" or name == "Drink" or name == "Refreshment" or name == "Food & Drink" then return true end
+        if Compat.EatingBuff(Compat.Plain(aura.name)) then return true end
     end
     return false
 end
