@@ -139,8 +139,10 @@ function Pet:OnEnable()
             -- A rare: it perks up, but not every time you look away and back.
             if Compat.TargetRare() and Now() - (Pet.rareAt or 0) >= 30 and Pet.React("rare") then Pet.rareAt = Now() end
         elseif event == "CHAT_MSG_LOOT" then
-            -- Yours, and blue or better (by the colour the game gives its name).
-            if type(text) == "string" and text:find("^You ") and (text:find("|cff0070dd", 1, true) or text:find("|cffa335ee", 1, true)
+            -- Yours (by the game's own lines for your loot, in any language; and, as ever, any English line
+            -- of yours, a roll you won too), and blue or better (by the colour the game gives its name).
+            if type(text) == "string" and (Compat.MyLoot(text) or text:find("^You "))
+                and (text:find("|cff0070dd", 1, true) or text:find("|cffa335ee", 1, true)
                 or text:find("|cffff8000", 1, true) or text:find("|cnIQ[345]:")) then
                 Pet.React("loot")
             end

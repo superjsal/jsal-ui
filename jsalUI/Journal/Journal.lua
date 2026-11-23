@@ -308,22 +308,8 @@ local function MoneyChanged()
 end
 
 -- Loot of blue quality or better: the first of each item makes the story.
-local SELF_LOOT = {}
-local function LootPrefixes()
-    for _, key in ipairs({ "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE", "LOOT_ITEM_PUSHED_SELF",
-                           "LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_CREATED_SELF" }) do
-        local s = _G[key]
-        local prefix = type(s) == "string" and s:match("^(.-)%%")
-        if prefix and prefix ~= "" then SELF_LOOT[#SELF_LOOT + 1] = prefix end
-    end
-end
-
 local function Looted(text)
-    local mine = false
-    for _, prefix in ipairs(SELF_LOOT) do
-        if text:sub(1, #prefix) == prefix then mine = true break end
-    end
-    if not mine then return end
+    if not Compat.MyLoot(text) then return end
     local item = tonumber(text:match("|Hitem:(%d+)"))
     local name = text:match("|h%[(.-)%]|h")
     if not item then return end
@@ -521,7 +507,6 @@ function Journal:OnEnable()
     if #j.events == 0 then
         Journal.Note("start", ("This journal begins, at level %d"):format(UnitLevel("player")))
     end
-    LootPrefixes()
     DuelPatterns()
     moneyWas = GetMoney and GetMoney() or 0
     -- This session starts now: what's counted from here is its recap.

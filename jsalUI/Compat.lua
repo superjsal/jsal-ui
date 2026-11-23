@@ -268,6 +268,26 @@ function Compat.Eating()
     return false
 end
 
+-- Whether a loot line in chat is your own: it starts as one of the game's own lines for loot that comes to
+-- you (LOOT_ITEM_SELF and its kin), in the player's language. Read once, the first time it's asked.
+local selfLoot
+function Compat.MyLoot(text)
+    if type(text) ~= "string" then return false end
+    if not selfLoot then
+        selfLoot = {}
+        for _, key in ipairs({ "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE", "LOOT_ITEM_PUSHED_SELF",
+                               "LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_CREATED_SELF" }) do
+            local line = _G[key]
+            local prefix = type(line) == "string" and line:match("^(.-)%%")
+            if prefix and prefix ~= "" then selfLoot[#selfLoot + 1] = prefix end
+        end
+    end
+    for _, prefix in ipairs(selfLoot) do
+        if text:sub(1, #prefix) == prefix then return true end
+    end
+    return false
+end
+
 -- Whether what you have targeted is a rare.
 function Compat.TargetRare()
     if not UnitClassification then return false end
