@@ -41,7 +41,11 @@ local showAllUnlearned = false
 local DETAIL_H = 42
 local SOURCE = { [1] = "Trainer", [2] = "Vendor pattern", [3] = "Drop", [4] = "Quest" }
 
-local function Line(name)
+-- The open profession's skill line: by the line the game gives, which is the same in every
+-- client language, then by its name, which is in the client's own language and matches the
+-- data's English names only on an English client.
+local function Line(name, id)
+    if id and ns.ProfessionData[id] and ns.ProfessionData[id].recipes then return id end
     if not name then return nil end
     local line = Professions.LineByName(name)
     if line then return line end
@@ -678,8 +682,8 @@ end
 -- Painting.
 ---------------------------------------------------------------------------
 function Paint()
-    local name, skill, cap = Compat.OpenProfession()
-    local line = Line(name)
+    local name, skill, cap, id = Compat.OpenProfession()
+    local line = Line(name, id)
     if not (line and skill and cap) then return panel:Hide() end
     panel.title:SetText(Professions.Name(line))
 
