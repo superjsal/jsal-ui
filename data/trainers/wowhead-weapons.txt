@@ -1,0 +1,4 @@
+# Weapon skills a weapon master teaches by Wowhead Forever's word where no player was seen buying them
+# there yet: each NPC page's "Teaches" tab, read 2026-11-23. npc|name|weapon skill spell IDs, joined to what
+# EG Link and the saved visits saw by tools/build_trainers.py.
+11870|Archibald|200,201,202,1180,5011

@@ -303,6 +303,7 @@ ns.TrainerData = {
         { npc = 3026, name = "Aska Mistrunner", tag = "Cooking Trainer", map = 1456, x = 0.508, y = 0.524, a = false, h = true, teaches = { 2539, 2541, 2544, 2546, 3102, 6499, 6500, 21175, 1229737 } },
         { npc = 3067, name = "Pyall Silentstride", tag = "Cook", map = 1412, x = 0.446, y = 0.646, a = false, h = true },
         { npc = 3087, name = "Crystal Boughman", tag = "Cooking Trainer", map = 1433, x = 0.125, y = 0.436, a = true, h = false, teaches = { 2539, 2541, 2544, 2546, 3102, 6499, 6500, 21175, 1229737 } },
+        { npc = 3191, name = "Cook Torka", tag = "", map = 1411, x = 0.512, y = 0.424, a = false, h = true, teaches = { 2539, 2541, 2544, 2546, 3102, 6499, 6500, 21175, 1229737 } },
         { npc = 3399, name = "Zamja", tag = "Cooking Trainer", map = 1454, x = 0.574, y = 0.534, a = false, h = true, teaches = { 2539, 2541, 2544, 2546, 3102, 6499, 6500, 21175, 1229737 } },
         { npc = 4210, name = "Alegorn", tag = "Cooking Trainer", map = 1457, x = 0.484, y = 0.21, a = true, h = false },
         { npc = 4552, name = "Eunice Burch", tag = "Cooking Trainer", map = 1458, x = 0.622, y = 0.444, a = false, h = true, teaches = { 2539, 2541, 2544, 2546, 3102, 6499, 6500, 21175, 1229737 } },
@@ -425,11 +426,12 @@ ns.TrainerData = {
         { npc = 5958, name = "Thuul", tag = "Portal Trainer", map = 1454, x = 0.3861, y = 0.8568, a = false, h = true, teaches = { 3567, 11417 } },
     },
     -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from
-    -- Efficient Games' data (CC BY 4.0) and visits in the game. A weapon master lists only
-    -- what the class in front of it can still learn, so a list here may yet grow.
+    -- Efficient Games' data (CC BY 4.0), visits in the game and Wowhead Forever's NPC pages.
+    -- A weapon master lists only what the class in front of it can still learn, so a list
+    -- here may yet grow.
     weapons = {
         { npc = 11869, name = "Ansekhwa", tag = "Weapon Master", map = 1456, x = 0.409, y = 0.6214, a = false, h = true, teaches = { 198, 199, 227, 266 } },
-        { npc = 11870, name = "Archibald", tag = "Weapon Master", map = 1458, x = 0.5743, y = 0.3248, a = false, h = true, teaches = { 200, 201, 202, 1180 } },
+        { npc = 11870, name = "Archibald", tag = "Weapon Master", map = 1458, x = 0.5743, y = 0.3248, a = false, h = true, teaches = { 200, 201, 202, 1180, 5011 } },
         { npc = 13084, name = "Bixi Wobblebonk", tag = "Weapon Master", map = 1455, x = 0.6188, y = 0.8916, a = true, h = false, teaches = { 1180, 2567, 5011 } },
         { npc = 11865, name = "Buliwyf Stonehand", tag = "Weapon Master", map = 1455, x = 0.6144, y = 0.8895, a = true, h = false, teaches = { 196, 197, 198, 199, 266, 15590 } },
         { npc = 278680, name = "Gabbi Goodwhistle", tag = "Weapon Master", map = 1411, x = 0.428, y = 0.6815, a = false, h = true, teaches = { 201, 227, 1180 } },

@@ -3,7 +3,9 @@
 From Wowhead Forever (data/trainers.txt): each class's and profession's trainers (from its page's
 Trainers tab) and each trainer's first spot on the game's own maps (uiMapID and x, y, from its NPC
 page). The Trainers tabs also list quest givers and innkeepers, so a trainer only counts for a kind
-when the title over its head says so: "Hunter Trainer" for hunters, a tailoring word for tailoring.
+when the title over its head says so: "Hunter Trainer" for hunters, a tailoring word for tailoring;
+one with no title, for a profession players saw it teach (EG Link). The class pages list only the
+capitals' trainers, so the class trainers players opened elsewhere are added from EG Link.
 Wowhead's spots are on Classic's maps; tools/maps.py puts them on Forever's, which draws Stormwind
 and three other zones differently.
 
@@ -28,6 +30,8 @@ SEEN = ROOT / "data" / "trainers-seen.txt"
 # the weapons it can learn and hasn't, so each sighting is part of the list: they're joined.
 EGLINK = ROOT / "data" / "trainers" / "eglink-trainers.json"
 VISITS = ROOT / "data" / "prices" / "trainers.json"
+# And what Wowhead Forever's NPC pages say a weapon master teaches, where no player was seen buying it.
+WOWHEAD_WEAPONS = ROOT / "data" / "trainers" / "wowhead-weapons.txt"
 SPELLS = ROOT / "jsalUI" / "Training" / "SpellData.lua"
 # Whose a city is, for a weapon master with no word of who it trains: its map.
 ALLIANCE_MAPS = {1453, 1455, 1457, 1429, 1426, 1438, 1439, 1432, 1436, 1433}
@@ -89,6 +93,12 @@ def weapon_masters(seen_lines):
             # A weapon master's rows are weapon skills; a class trainer's mostly aren't.
             if teaches and len(teaches) * 2 > len(rows):
                 master(t["npc"])["teaches"] |= teaches
+    if WOWHEAD_WEAPONS.exists():
+        for line in WOWHEAD_WEAPONS.read_text(encoding="utf-8").splitlines():
+            if line and not line.startswith("#"):
+                _, name, spells = line.split("|")
+                if name in masters:
+                    masters[name]["teaches"] |= {int(sp) for sp in spells.split(",")} & weapon_ids
     # Where one stands and who it trains, for the ones seen only in the saved visits.
     for line in seen_lines:
         if not line or line.startswith("#"):
@@ -253,11 +263,13 @@ def main():
     sources = [(line, True) for line in SRC.read_text(encoding="utf-8").splitlines()]
     sources += [(line, False) for line in SEEN.read_text(encoding="utf-8").splitlines()]
     listed = set()
+    seen = taught()
     for line, wowhead in sources:
         if not line or line.startswith("#"):
             continue
         npc, name, tag, alliance, horde, kinds, map_id, x, y = line.split("|")
-        if not tag:
+        # One with no title over its head counts for a profession players saw it teach.
+        if not tag and not any(k.startswith("s") and int(k[1:]) in seen.get(int(npc), {}) for k in kinds.split(",")):
             continue
         a, h = friendly(alliance), friendly(horde)
         if not (a or h):
@@ -278,7 +290,8 @@ def main():
                     continue
             else:
                 skill = int(kind[1:])
-                if not any(word in tag for word in PROFESSION_WORDS.get(skill, ())):
+                if not (any(word in tag for word in PROFESSION_WORDS.get(skill, ()))
+                        or (not tag and skill in seen.get(int(npc), {}))):
                     continue
                 key = "skill" + str(skill)
             spot_x, spot_y = forever_spot(int(map_id), float(x), float(y)) if wowhead else (float(x), float(y))
@@ -298,7 +311,6 @@ def main():
         "ns.TrainerData = {",
     ]
     # A profession trainer players opened has `teaches`: the spells it was seen to teach.
-    seen = taught()
     portals = portal_trainers()
     # The class trainers players opened that Wowhead's lists leave out, each with `top`.
     others, left = class_trainers(listed, {p[0] for p in portals})
@@ -328,8 +340,9 @@ def main():
     # The weapon masters, each with the weapon skills it's been seen to teach.
     masters = weapon_masters(SEEN.read_text(encoding="utf-8").splitlines())
     lines.append("    -- Weapon masters, and the weapon skills each has been seen to teach (spell IDs): from")
-    lines.append("    -- Efficient Games' data (CC BY 4.0) and visits in the game. A weapon master lists only")
-    lines.append("    -- what the class in front of it can still learn, so a list here may yet grow.")
+    lines.append("    -- Efficient Games' data (CC BY 4.0), visits in the game and Wowhead Forever's NPC pages.")
+    lines.append("    -- A weapon master lists only what the class in front of it can still learn, so a list")
+    lines.append("    -- here may yet grow.")
     lines.append("    weapons = {")
     for name, m in masters:
         lines.append(f"        {{ npc = {m['npc']}, name = {lua_string(name)}, tag = \"Weapon Master\", map = {m['map']}, "
