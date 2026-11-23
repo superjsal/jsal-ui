@@ -2,11 +2,11 @@
 -- left in level groups, the ones right for your level in green; the chosen
 -- one fills the rest of the window in three tabs. Bosses and loot: a card
 -- a boss, two across, numbered in the game's order and ticked once you've
--- killed it. A card has a line for each piece you can equip (Wowhead's list
--- with drop chances, and what you and the guild have seen it drop): what's
--- on your gear plan first, then what's better than what you wear, then the
--- rest by how often it drops; and along its foot, small and grey, what
--- isn't for you. A card with something for you has a gold edge.
+-- killed it. A card has a line for each piece you starred in your Gear plan
+-- and, four at most, for what's better than what you wear, the most first
+-- (Wowhead's list with drop chances, and what you and the guild have seen it
+-- drop); along its foot, small and grey, everything else it drops. A card
+-- with something for you has a gold edge.
 -- Quests: the dungeon's quests for your faction, ticked once done, each with
 -- where it starts and the quest to do first; a click pins the start on the map.
 -- Map: the dungeon's own map where there is one. The list marks each
@@ -22,6 +22,9 @@ local PICKER_H = 34
 -- GRID_GAP apart, a row of them ROW_GAP under the last.
 local BOSS_H, ITEM_H, STRIP_H, SMALL, GRID_GAP, ROW_GAP = 36, 46, 40, 24, 24, 16
 local METER_W = 52                 -- the bar under a piece's drop chance
+-- A card's lines for pieces better than what you wear, at most: a piece you
+-- starred has its line past them.
+local LINES = 4
 -- Under the name: a line of words, then the list; and under the list the
 -- link to where the numbers come from. The list is never shorter than LIST_MIN.
 local TOP_H, FOOT_H, LIST_MIN = 34, 26, 140
@@ -48,7 +51,6 @@ local RECIPE = 9
 local TAGS = {
     better = { nil, "green" },
     worse = { nil, "red" },
-    prof = { "your profession" },
 }
 
 -- Wowhead's quest sides: 1 Alliance, 2 Horde, 3 both.
@@ -867,8 +869,8 @@ Window.Page("dungeons", function(page)
 
     -- A boss's card, half the list wide: its number in the order you meet
     -- it, its name (ticked once you've killed it) and its kills over a rule;
-    -- under that a line for each piece you can equip; and along its foot a
-    -- strip of small pictures for what isn't for you.
+    -- under that a line for each piece starred or better than what you wear;
+    -- and along its foot a strip of small pictures for the rest it drops.
     local cardW = math.floor((rightW - GRID_GAP) / 2)
     local B = {}
     B.about = about
@@ -964,7 +966,7 @@ Window.Page("dungeons", function(page)
         Paint()
         bossScroll:SetVerticalScroll(math.max(0, v))
     end)
-    page:HookScript("OnHide", function() B.why, B.whyNext = nil, nil end)
+    page:HookScript("OnHide", function() B.why, B.whyNext, B.keep = nil, nil, nil end)
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
@@ -1003,7 +1005,7 @@ Window.Page("dungeons", function(page)
         b.none:SetPoint("TOPLEFT", 14, -(BOSS_H + 14))
         b.none:SetWidth(cardW - 28)
         b.none:SetJustifyH("LEFT")
-        -- Along the foot, round with the card: what isn't for you.
+        -- Along the foot, round with the card: the rest it drops.
         b.strip = CreateFrame("Frame", nil, b)
         b.strip:SetPoint("BOTTOMLEFT", 1, 1)
         b.strip:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -1273,7 +1275,7 @@ Window.Page("dungeons", function(page)
         return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
     end
 
-    -- A piece you can equip, a line across its boss's card: its picture in
+    -- A piece for you, a line across its boss's card: its picture in
     -- a line of its quality's colour, its name with a tag after it, what it
     -- is under the name, and at the right how often it drops over a bar
     -- that long.
@@ -1304,8 +1306,7 @@ Window.Page("dungeons", function(page)
         it.name:SetPoint("TOPLEFT", it.line, "TOPRIGHT", 12, 0)
         it.name:SetJustifyH("LEFT")
         it.name:SetWordWrap(false)
-        -- Why it's first on the list: on your gear plan, better than what
-        -- you wear, or a recipe for a profession of yours.
+        -- How much better it is than what you wear, or worse.
         it.tag = Style.Tag(it, "", nil, true)
         it.tag:SetPoint("LEFT", it.name, "RIGHT", 8, 0)
         -- A piece you starred in your Gear plan has the plan's own star
@@ -1331,8 +1332,9 @@ Window.Page("dungeons", function(page)
         return it
     end
 
-    -- A piece that isn't for you, on the strip along its boss's card's foot:
-    -- its picture, small and grey. Pointing at it says what it is and why.
+    -- A piece on the strip along its boss's card's foot: its picture, small
+    -- and grey. Pointing at it says what it is, how often it drops, and why
+    -- it isn't for you where that's so.
     local function Small(card, i)
         if card.smalls[i] then return card.smalls[i] end
         local s = CreateFrame("Frame", nil, card.strip)
@@ -1376,14 +1378,19 @@ Window.Page("dungeons", function(page)
     -- A boss's loot on its card: Wowhead's list with each item's drop
     -- chance, then anything you or the guild have seen it drop that the list
     -- doesn't have. Without Wowhead's chance, five or more guild kills give
-    -- one. What's on your gear plan comes first, then what's better than
-    -- what you wear, then the rest, likeliest first, a line each. What you
-    -- can't equip, what's for other classes only, and recipes for
-    -- professions you don't have, are small pictures on the strip along the
-    -- card's foot. Returns the card's height, how many pieces are for you
-    -- (on your gear plan, or better than what you wear), how many it could
-    -- tell that of, and the guild's kills.
-    local function PaintLoot(card, boss, encounter)
+    -- one. A line each for what's on your gear plan, then for what's better
+    -- than what you wear, the most first, LINES of those at most: a starred
+    -- piece always has its line. Everything else is a small picture on the
+    -- strip along the card's foot: what you could use first, then what you
+    -- can't equip, what's for other classes only and recipes for professions
+    -- you don't have, each likeliest first. A piece the game hasn't sent yet
+    -- waits on the strip, so a line comes only once it's known to be better.
+    -- `keep` is a piece asked for from elsewhere: it has a line while it's
+    -- asked for, and is put on the card if the list doesn't have it. Returns
+    -- the card's height, how many pieces are for you (on your gear plan, or
+    -- better than what you wear), how many it could tell that of, and the
+    -- guild's kills.
+    local function PaintLoot(card, boss, encounter, keep)
         for _, it in ipairs(card.items) do it:Hide() end
         for _, s in ipairs(card.smalls) do s:Hide() end
         card.strip:Hide()
@@ -1421,6 +1428,7 @@ Window.Page("dungeons", function(page)
                 end
             end
         end
+        if keep then Add(keep) end
         table.sort(list, function(a, b)
             local ca, cb = a.chance or a.guessed or 0, b.chance or b.guessed or 0
             if ca ~= cb then return ca > cb end
@@ -1435,7 +1443,7 @@ Window.Page("dungeons", function(page)
         local starredSet = ns.Gear and ns.Gear.Starred() or {}
         local trades = {}
         for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine() or {}) do trades[p.name or ""] = true end
-        local mine, others, forYou, sure, cant = {}, {}, 0, 0, 0
+        local mine, others, forYou, sure = {}, {}, 0, 0
         for k, entry in ipairs(list) do
             local _, _, _, _, _, _, subclass, _, equipLoc, _, classID, subclassID = ItemInfo(entry.id)
             entry.at = k
@@ -1461,18 +1469,39 @@ Window.Page("dungeons", function(page)
             end
             entry.away = entry.cant or entry.classes or (entry.recipe and not entry.prof and not entry.starred)
             if entry.starred or entry.better then forYou = forYou + 1 end
-            if entry.away and entry.cant then cant = cant + 1 end
             local to = entry.away and others or mine
             to[#to + 1] = entry
         end
-        local function Rank(e) return e.starred and 1 or (e.better and 2 or 3) end
-        table.sort(mine, function(a, b)
-            if Rank(a) ~= Rank(b) then return Rank(a) < Rank(b) end
+        -- The lines: what you starred, as the list has them, then what's better, the most first, as many as
+        -- there's room for. The rest goes on the strip, what you could use before what you can't.
+        local lines, strip = {}, {}
+        for _, entry in ipairs(mine) do if entry.starred then lines[#lines + 1] = entry end end
+        local better = {}
+        for _, entry in ipairs(mine) do if entry.better and not entry.starred then better[#better + 1] = entry end end
+        table.sort(better, function(a, b)
+            if (a.gain or 0) ~= (b.gain or 0) then return (a.gain or 0) > (b.gain or 0) end
             return a.at < b.at
         end)
+        local room = LINES - #lines
+        for _, entry in ipairs(better) do
+            if room > 0 then
+                lines[#lines + 1], room = entry, room - 1
+                entry.line = true
+            end
+        end
+        for _, entry in ipairs(lines) do entry.line = true end
+        for _, entry in ipairs(mine) do if not entry.line then strip[#strip + 1] = entry end end
+        for _, entry in ipairs(others) do strip[#strip + 1] = entry end
+        -- The piece asked for is seen, on a line of its own.
+        for k, entry in ipairs(strip) do
+            if entry.id == keep then
+                table.remove(strip, k)
+                lines[#lines + 1] = entry
+                break
+            end
+        end
         card.edge:SetShown(forYou > 0)
-        -- A line for each piece you can equip.
-        for k, entry in ipairs(mine) do
+        for k, entry in ipairs(lines) do
             local it = Item(card, k)
             it:ClearAllPoints()
             it:SetPoint("TOPLEFT", 0, -(BOSS_H + (k - 1) * ITEM_H))
@@ -1483,7 +1512,7 @@ Window.Page("dungeons", function(page)
             -- After its name: the star when it's on your gear plan, then how
             -- much better it is than what you wear, or, for a starred piece
             -- that no longer is, how much worse.
-            local kind, words = (entry.better and "better") or (entry.loss and "worse") or (entry.prof and "prof") or nil, "better"
+            local kind, words = (entry.better and "better") or (entry.loss and "worse") or nil, "better"
             if entry.better and entry.gain then
                 local pct = math.floor(entry.gain * 100 + 0.5)
                 words = pct < 1 and "under 1%" or ("+" .. pct .. "%")
@@ -1527,17 +1556,16 @@ Window.Page("dungeons", function(page)
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
-        card.none:SetShown(#mine == 0)
-        if #mine == 0 then card.none:SetText("Nothing here for you.") end
-        local h = BOSS_H + math.max(1, #mine) * ITEM_H
-        -- What isn't for you, small along the foot: a second row of them
-        -- when one won't hold them all.
-        if #others > 0 then
-            local strip = card.strip
-            strip.label:SetText(cant == #others and "CAN'T EQUIP" or "NOT FOR YOU")
-            local x0 = 13 + Style.Wide(strip.label, 70) + 12
+        card.none:Hide()
+        local h = BOSS_H + #lines * ITEM_H
+        -- The rest, small along the foot: a second row of them when one
+        -- won't hold them all.
+        if #strip > 0 then
+            local bar = card.strip
+            bar.label:SetText(("ALSO DROPS %d"):format(#strip))
+            local x0 = 13 + Style.Wide(bar.label, 70) + 12
             local x, y = x0, 0
-            for k, entry in ipairs(others) do
+            for k, entry in ipairs(strip) do
                 local s = Small(card, k)
                 if x + SMALL > cardW - 14 then x, y = x0, y + SMALL + 4 end
                 s:ClearAllPoints()
@@ -1547,13 +1575,20 @@ Window.Page("dungeons", function(page)
                 local _, _, _, _, _, _, _, _, _, texture = ItemInfo(entry.id)
                 s.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
                 local chance, seen = entry.chance or entry.guessed, Seen(entry)
-                s.more = { entry.cant and "Your class can't equip it." or (entry.classes and "For other classes only." or "A recipe for a profession you don't have.") }
+                s.more = {}
+                if entry.cant then
+                    s.more[1] = "Your class can't equip it."
+                elseif entry.classes then
+                    s.more[1] = "For other classes only."
+                elseif entry.recipe then
+                    s.more[1] = entry.prof and "A recipe for your profession." or "A recipe for a profession you don't have."
+                end
                 if chance then s.more[#s.more + 1] = ("Drops %d%% of the time."):format(chance) end
                 if seen then s.more[#s.more + 1] = (seen:gsub("^%l", string.upper)) .. "." end
                 s:Show()
             end
-            strip:SetHeight(STRIP_H + y)
-            strip:Show()
+            bar:SetHeight(STRIP_H + y)
+            bar:Show()
             h = h + STRIP_H + y
         end
         return h, forYou, sure, guildKills
@@ -2077,6 +2112,9 @@ Window.Page("dungeons", function(page)
         tabs:Shown("map", hasMap)
         if tab == "map" and not hasMap then tab = "bosses" end
         tabs:Pick(tab)
+        -- A piece asked for keeps its line on its boss's card while this dungeon's bosses are shown.
+        if B.jump and B.jumpItem then B.keep = { d = d, k = B.jump, item = B.jumpItem } end
+        if B.keep and (B.keep.d ~= d or tab ~= "bosses") then B.keep = nil end
         B.about:Say(tab == "map" and "About this map" or "About these numbers")
         bossScroll:SetShown(tab ~= "map")
         if mapPane then mapPane:SetShown(tab == "map") end
@@ -2139,7 +2177,7 @@ Window.Page("dungeons", function(page)
                 card.name:SetPoint("LEFT", card.head, "LEFT", 36, 0)
             end
             Style.SetBorder(card.boxEdges, "wordGreen")
-            local h, more, known, guildKills = PaintLoot(card, b[2], b[1])
+            local h, more, known, guildKills = PaintLoot(card, b[2], b[1], B.keep and B.keep.k == k and B.keep.item or nil)
             Spent("bosses: loot, all of it", t)
             forYou, sure = forYou + more, sure + known
             -- Your kills, and the guild's: said here once, where it was on
