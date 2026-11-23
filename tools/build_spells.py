@@ -364,9 +364,12 @@ def main():
                     continue
                 key = (names[spell], ranks.get(spell, ""))
                 # Race-only spells (Starshards, Touch of Weakness...) carry a
-                # race mask; 0 or -1 means every race.
+                # race mask; 0 or -1 means every race. The file keeps the mask
+                # as a signed number, so one with its top bit (race 32) set reads
+                # below zero: the Alliance's teleports and portals. That bit is no
+                # race Forever has, so the other 31 are kept.
                 race = int(r["RaceMasks_0"])
-                race = 0 if race <= 0 else race
+                race = 0 if race in (0, -1) else race & 0x7FFFFFFF
                 if key not in chosen or (spell in SOLD, -spell) > (chosen[key][1] in SOLD, -chosen[key][1]):
                     chosen[key] = (levels[spell], spell, index, race)
         spells = list(chosen.values())
