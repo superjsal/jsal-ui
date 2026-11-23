@@ -535,13 +535,16 @@ function Gear.SkillLevel(skill)
     return 35
 end
 
--- Whether you have a profession at a skill.
+-- Whether you have a profession at a skill. The tooltip names the profession in the client's
+-- language: it's matched against the game's own name as well as the data's English one.
 function Gear.HasSkill(need)
     local P = ns.Professions
     if not (need and P and P.Mine) then return false end
     local ok, mine = pcall(P.Mine)
+    local want = need.name:lower()
     for _, p in ipairs(ok and mine or {}) do
-        if p.name and p.name:lower() == need.name:lower() and (p.skill or 0) >= need.skill then return true end
+        local named = (p.name and p.name:lower() == want) or (type(p.game) == "string" and p.game:lower() == want)
+        if named and (p.skill or 0) >= need.skill then return true end
     end
     return false
 end

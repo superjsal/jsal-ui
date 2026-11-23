@@ -92,8 +92,10 @@ function Professions.Remembered(line)
 end
 
 -- Your professions, from the game's own list: each one's skill line, name,
--- icon, skill and cap, for the ones jsal.ui has recipes for. The game's
--- list has a place for each kind (two main ones, then fishing, cooking and
+-- icon, skill and cap, for the ones jsal.ui has recipes for. `name` is the
+-- data's English name; `game` is the game's own, in the client's language,
+-- for matching what the game writes (a tooltip's "Requires Engineering (210)").
+-- The game's list has a place for each kind (two main ones, then fishing, cooking and
 -- so on) and leaves a gap for one you don't have: so every place is looked
 -- at, not only those before the first gap. Stopping at the gap left out
 -- whatever came after it.
@@ -109,7 +111,7 @@ function Professions.Mine()
             local name, icon, skill, cap, _, _, line = GetProfessionInfo(index)
             line = (line and Data[line] and line) or Professions.LineByName(name)
             if line then
-                out[#out + 1] = { line = line, name = Data[line].name, icon = icon, skill = skill or 0, cap = cap or 0 }
+                out[#out + 1] = { line = line, name = Data[line].name, game = name, icon = icon, skill = skill or 0, cap = cap or 0 }
             end
         end
     end
