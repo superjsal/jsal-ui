@@ -1,6 +1,7 @@
 -- Where trainers stand, and the nearest one of a kind for you: your
 -- faction's, on your continent, by straight-line distance in the game's
--- world positions. The spots ship in TrainerData.lua.
+-- world positions, whatever map each stands on; one on another continent
+-- is named only when yours has none. The spots ship in TrainerData.lua.
 local _, ns = ...
 local Compat = ns.Compat
 
@@ -97,12 +98,36 @@ local function Teaches(trainer, spell)
 end
 Trainers.Teaches = Teaches
 
+-- The level of the spells a class trainer is wanted for now: the highest of
+-- those ready for you that a class trainer sells, else the next of them
+-- your levels bring, else your level. One read of the Training Planner's
+-- list, which is kept until a spell or a level changes.
+local function ClassNeed()
+    local level = UnitLevel("player") or 1
+    local data = ns.Training and ns.Training.Read and ns.Training.Read()
+    local ready, soon
+    for _, spell in ipairs(data and data.spells or {}) do
+        if not spell.known and not spell.skipped and not spell.via and not spell.source then
+            if spell.level <= level then
+                ready = math.max(ready or 0, spell.level)
+            elseif not soon or spell.level < soon then
+                soon = spell.level
+            end
+        end
+    end
+    return ready or soon or level
+end
+Trainers.ClassNeed = ClassNeed
+
 -- The nearest trainer for key ("class3" for hunters, "skill197" for
 -- tailoring), teaching at least rank (1 to 4) for a profession, and, given a
 -- skill, one who takes a student at it. Given a spell, a trainer players have
 -- opened must have been seen to teach it, whatever its title says; one never
--- opened goes by its title. Returns the trainer ({ npc, name, tag, map, x, y })
--- or nil.
+-- opened goes by its title. A class trainer with a `top` (a starting area's
+-- teaches only the first few levels' spells) is passed over when its top is
+-- below the level of what you need from it: rank, for a class, is that
+-- level, and is worked out from your spells when not given. Returns the
+-- trainer ({ npc, name, tag, map, x, y }) or nil.
 function Trainers.Nearest(key, rank, skill, spell)
     local list = ns.TrainerData and ns.TrainerData[key]
     if not list then return nil end
@@ -119,10 +144,18 @@ function Trainers.Nearest(key, rank, skill, spell)
         if ladder then titled = true break end
     end
     local plain = titled and 2 or PLAIN[key] or 4
+    local class = key:find("^class") ~= nil
+    local need = class and rank or nil
     local best, bestDistance
     for _, t in ipairs(list) do
         local seen = spell and Teaches(t, spell)
-        local fits = seen or (seen == nil and (not rank or (TeachesRank(t.tag) or plain) >= rank))
+        local fits
+        if class then
+            if t.top and not need then need = ClassNeed() end
+            fits = seen ~= false and (not t.top or t.top >= need)
+        else
+            fits = seen or (seen == nil and (not rank or (TeachesRank(t.tag) or plain) >= rank))
+        end
         if Friendly(t) and fits and Takes(t, skill) then
             local continent, wx, wy = World(t.map, t.x, t.y)
             -- Another continent, or no position (an instance), counts as far.

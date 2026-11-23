@@ -1,0 +1,10 @@
+# Who a trainer trains, for trainers players opened (EG Link) on a map whose side the map doesn't tell:
+# Forever's own shared zone (uiMap 2521), Moonglade and Ashenvale. From each NPC's page on Wowhead Forever,
+# its "React" line, read 2026-11-23. npc|name|alliance|horde, 1 for friendly and -1 for hostile, as in
+# trainers.txt. tools/build_trainers.py leaves out a trainer whose map has no side and who isn't here.
+8308|Alenndaar Lapidaar|1|-1
+12042|Loganaar|1|1
+251373|Xyton Silverwind|1|1
+251374|Windshaper Boro|1|1
+251376|Tai'ree Farsight|1|1
+254081|Naeluna Swiftmend|1|1
