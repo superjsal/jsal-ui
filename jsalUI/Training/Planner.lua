@@ -83,6 +83,37 @@ local function SkipLine(lines, spell)
     return lines
 end
 
+-- What a hunter's pet ability's tooltip says under the number that decides it: how it's got.
+local PET_WORDS = {
+    ready = { "Teach it from your Beast Training" },
+    points = { "In your Beast Training" },
+    level = { "In your Beast Training" },
+    trainer = { "Buy it, then teach it from your Beast Training" },
+    tame = { "Not in your Beast Training yet", "Tame a beast that has it to learn it" },
+    unchecked = { "Open Beast Training once so jsal.ui can see what's in it" },
+}
+
+-- A hunter's pet ability's tooltip, a line a fact, the same on its picture under YOUR PET and on
+-- its row among what to train now. First the number that decides it, at the right as have / need,
+-- the have green when it's enough and red when it's short: the pet's free training points against
+-- what the ability takes, the pet's level against the rank's. With the pet away and its free
+-- points never seen, what it takes stands alone. A pet trainer's ability shows its price there.
+-- Then how it's got, and what a right-click does. `cost`: a pet trainer's price, if one's known.
+local function PetLines(row, pet, cost)
+    if row.state == "known" then return { { "Your pet knows it" } } end
+    local lines, need, level, points = {}, row.spell.level, pet.level or 0, tonumber(row.points)
+    local function Pair(label, have, want)
+        lines[#lines + 1] = { label, Style.Tint(have >= want and "green" or "red") .. have .. "|r / " .. want, "text" }
+    end
+    if points and (row.state == "ready" or row.state == "points") then
+        if pet.free then Pair("Training points", pet.free, points) else lines[#lines + 1] = { "Training points", tostring(points), "text" } end
+    end
+    if row.state == "trainer" then lines[#lines + 1] = { "Pet trainer", cost and Compat.Money(cost) or "|cff9a9688?|r", "text" } end
+    if row.state == "level" or (level < need and (row.state == "trainer" or row.state == "tame")) then Pair("Pet level", level, need) end
+    for _, words in ipairs(PET_WORDS[row.state] or PET_WORDS.unchecked) do lines[#lines + 1] = { words } end
+    return SkipLine(lines, row)
+end
+
 -- Quest and book spells cost no gold, so they stay out of the totals.
 local function Free(spell)
     return spell.via == "quest" or spell.via == "book"
@@ -646,31 +677,13 @@ Window.Page("training", function(page)
         return sum > 0 and Compat.Money(sum) or (missing and "|cff9a9688?|r" or "")
     end
 
-    -- What a pet ability's picture says when pointed at: how it's got, what
-    -- it's waiting on, and that a right-click skips it.
-    local function PetEntry(row, pet)
-        local need = row.spell.level
-        local hint
-        local low = (pet.level or 0) < need
-        if row.state == "known" then
-            hint = "Your pet knows it."
-        elseif row.state == "ready" then
-            hint = (row.points and (row.points .. " training points. ") or "") .. "Teach it from your Beast Training."
-        elseif row.state == "points" then
-            hint = ("Your pet has %d training points free and this takes %d: %d short."):format(pet.free or 0, row.points, row.short)
-        elseif row.state == "level" then
-            hint = "In your Beast Training. Your pet needs level " .. need .. "."
-        elseif row.state == "trainer" then
-            hint = "Buy it from a pet trainer, then teach it from your Beast Training." .. (low and (" Your pet needs level " .. need .. ".") or "")
-        elseif row.state == "tame" then
-            hint = "Not in your Beast Training yet: tame a beast that has it, and you learn it." .. (low and (" Your pet needs level " .. need .. ".") or "")
-        else
-            hint = "Open Beast Training once so jsal.ui can see what's in it."
-        end
+    -- A pet ability's picture: its tooltip's lines (PetLines), dimmed when it waits on the
+    -- pet's level or is known. `costs`: a pet trainer's prices, by the Beast Training spell.
+    local function PetEntry(row, pet, costs)
         local known = row.state == "known"
-        if not known then hint = hint .. (row.skipped and " Skipped: right-click to put it back." or " Right-click to skip it.") end
+        local low = (pet.level or 0) < row.spell.level
         return { id = row.spell.pet, icon = row.icon, number = math.max(1, row.spell.rank or 1), fresh = not known and (row.spell.rank or 0) <= 1,
-                 skipped = row.skipped, hint = hint, fixed = known, dim = known or (row.state ~= "ready" and low) }
+                 skipped = row.skipped, hint = PetLines(row, pet, costs[row.spell.beast]), fixed = known, dim = known or (row.state ~= "ready" and low) }
     end
 
     -- The weapon skills, from y down the right column's list: a picture for
@@ -811,6 +824,11 @@ Window.Page("training", function(page)
             local note = ("%s, a level %d %s"):format(pet.name or "Your pet", pet.level or 0, (pet.family or "pet"):lower())
             if pet.free then note = note .. ("  ·  %d TP free"):format(pet.free) end
             ui.petHead.note:SetText(note)
+            -- A pet trainer's prices, by the Beast Training spell each teaches.
+            local costs = {}
+            for _, spell in ipairs((Training.Read() or {}).spells or {}) do
+                if spell.source == "pet" then costs[spell.id] = spell.cost end
+            end
             local groups = {}
             for _, group in ipairs(PET_GROUPS) do
                 if group[1] == "level" then
@@ -843,7 +861,7 @@ Window.Page("training", function(page)
                 s.count:SetText(#group[2])
                 y = y + SUB_H
                 local list = {}
-                for k, row in ipairs(group[2]) do list[k] = PetEntry(row, pet) end
+                for k, row in ipairs(group[2]) do list[k] = PetEntry(row, pet, costs) end
                 y = y + Glyphs(list, 16, HEAD_H + y, sideW - 32, "tiles") + 8
             end
             y = y + 4
@@ -895,6 +913,7 @@ Window.Page("training", function(page)
                     id = row.spell.pet, name = row.name, icon = row.icon, level = row.spell.level,
                     rank = row.spell.rank > 0 and ("Rank " .. row.spell.rank) or nil,
                     skipped = row.skipped, source = "beast", group = "Your pet", points = row.points,
+                    lines = PetLines(row, pet),
                 }
             end
         end
@@ -1006,7 +1025,7 @@ Window.Page("training", function(page)
             if spell.pin and Style.Wide(c.sub, 0) > room then c:SetDetail(Detail(false)) end
             local hint = {}
             if spell.via then ViaHint(hint, spell) end
-            c.hint = SkipLine(hint, spell)
+            c.hint = spell.lines or SkipLine(hint, spell)
             if spell.source == "beast" then
                 c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
             elseif Free(spell) then
