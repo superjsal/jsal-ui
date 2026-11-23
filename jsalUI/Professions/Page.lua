@@ -657,8 +657,9 @@ Window.Page("professions", function(page)
             ry = ry + 28
         end
 
-        -- The road, under the taller of the two.
-        if #road <= 1 and not ahead then return end
+        -- The road, under the taller of the two. The step in hand is its first sign, so a last
+        -- step still has a road: the steps you've passed behind you, and that step at its end.
+        if #road == 0 and not ahead then return end
         LayRoad(bodyY + math.max(at, ry) + 22, road,
             last or (crafts > 0 and ("about %d %s%s"):format(crafts, unit, crafts == 1 and "" or "s") or ""),
             { line = line, rank = rank, rankIndex = rankIndex, rankAt = rankAt, skill = skill, cap = cap, floor = floor,
