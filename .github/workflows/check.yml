@@ -1,0 +1,94 @@
+# On every push and pull request: checks that the addon loads in the game's Lua, that the toc and the
+# files agree, and that the release zip comes out the right shape. It builds the zip but uploads nothing
+# and publishes nothing; release.yml and nightly.yml do that.
+name: Check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # the packager names the zip from the tags, as it does for a release
+
+      # A version tag must match the toc, or the release would ship under the wrong number.
+      - name: Tag matches the toc's version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(sed -n 's/^## Version: *//p' jsalUI/jsalUI.toc | tr -d '\r' | head -n1)
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::The tag is v$tag but the toc's version is $version."
+            exit 1
+          fi
+          echo "The toc's version is $version, the same as the tag."
+
+      # The game runs Lua 5.1, which refuses some things newer Lua allows. A file that doesn't compile
+      # is dropped whole by the game, so every file is checked with 5.1's own compiler.
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q lua5.1
+          if ! command -v luac5.1 >/dev/null; then
+            echo "::error::luac5.1 isn't installed, so the syntax check can't run."
+            exit 1
+          fi
+          luac5.1 -v
+
+      - name: Every Lua file compiles in Lua 5.1
+        run: |
+          bad=0; count=0
+          while IFS= read -r -d '' f; do
+            count=$((count + 1))
+            if ! luac5.1 -p "$f"; then bad=$((bad + 1)); fi
+          done < <(find jsalUI -name '*.lua' -print0)
+          if [ "$count" -eq 0 ]; then echo "::error::No Lua files found under jsalUI."; exit 1; fi
+          if [ "$bad" -gt 0 ]; then echo "::error::$bad of $count Lua files don't compile."; exit 1; fi
+          echo "All $count Lua files compile."
+
+      # The game loads only what the toc lists. jsal.ui has no .xml files, so a Lua file missing from
+      # the toc never runs, and a listed file that isn't there is an error in the game.
+      - name: The toc and the files agree
+        run: |
+          listed=$(tr -d '\r' < jsalUI/jsalUI.toc | grep -v '^#' | grep -v '^[[:space:]]*$' | sed 's|\\|/|g')
+          bad=0
+          while IFS= read -r f; do
+            if [ ! -f "jsalUI/$f" ]; then echo "::error::The toc lists $f, which isn't there."; bad=1; fi
+          done <<< "$listed"
+          while IFS= read -r f; do
+            if ! grep -qxF "$f" <<< "$listed"; then echo "::error::$f isn't in the toc, so the game never loads it."; bad=1; fi
+          done < <(cd jsalUI && find . -name '*.lua' | sed 's|^\./||')
+          if [ "$bad" -ne 0 ]; then exit 1; fi
+          echo "The toc lists $(wc -l <<< "$listed") files, and they are all the addon's Lua files."
+
+      # The same packager as a release, with -d so nothing is uploaded anywhere.
+      - name: Build the zip
+        uses: BigWigsMods/packager@v2
+        with:
+          args: -d
+
+      # One folder, jsalUI, with the toc at its top, and none of what .pkgmeta leaves out.
+      - name: The zip holds jsalUI and nothing else
+        run: |
+          shopt -s nullglob
+          zips=(.release/*.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected one zip in .release, found ${#zips[@]}."; ls -la .release; exit 1
+          fi
+          echo "Built ${zips[0]}"
+          list=$(unzip -Z1 "${zips[0]}")
+          bad=0
+          outside=$(grep -v '^jsalUI/' <<< "$list" || true)
+          if [ -n "$outside" ]; then echo "::error::Outside the jsalUI folder:"; echo "$outside"; bad=1; fi
+          if ! grep -qx 'jsalUI/jsalUI.toc' <<< "$list"; then echo "::error::No jsalUI/jsalUI.toc in the zip."; bad=1; fi
+          left_in=$(grep -E '^jsalUI/(data|tools|notes)/|(^|/)README\.md$' <<< "$list" || true)
+          if [ -n "$left_in" ]; then echo "::error::Files .pkgmeta leaves out are in the zip:"; echo "$left_in"; bad=1; fi
+          if [ "$bad" -ne 0 ]; then exit 1; fi
+          echo "The zip holds $(wc -l <<< "$list") entries, all in jsalUI, with the toc at its top."
