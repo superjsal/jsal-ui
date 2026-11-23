@@ -29,7 +29,7 @@ local LootLog = ns.NewModule("lootlog", {
         -- Sending something of yours to other players, so it's a choice of its own: on to
         -- start, as the guild's other parts are, once the Drop log itself is turned on.
         { key = "share", title = "Share drop counts with your guild", default = true,
-          note = "Tells guildmates who share theirs how many times each quest item has dropped for you, and adds their counts to yours, so everyone's quest tags learn faster. Only the item's name and two numbers are sent, over the game's hidden addon channel." },
+          note = "Tells guildmates who share theirs how many times each quest item has dropped for you, and adds their counts to yours, so everyone's quest tags learn faster. Only the item's name, its ID and two counts are sent, over the game's hidden addon channel." },
     },
 })
 ns.LootLog = LootLog
@@ -71,23 +71,20 @@ function LootLog.Sharing()
     return LootLog.running and ns.OptionOn("lootlog", "share") and true or false
 end
 
--- The saved guild counts: guild[sender] = { t = when, items = { [lower-case item name] = { finds, tries } } }.
+-- The saved guild counts: guild[sender] = { t = when, items = { [lower-case item name] = { finds, tries } },
+-- ids = { [item ID] = { finds, tries } } }. A guildmate's word comes by name and, from a newer
+-- jsal.ui, by item ID too; the ID is what pools counts between clients in different languages.
 local function Guild()
     local log = Log()
     log.guild = type(log.guild) == "table" and log.guild or {}
     return log.guild
 end
 
--- What a guildmate said of an item. False when it isn't believable.
-function LootLog.Heard(sender, itemName, finds, tries, now)
-    finds, tries = tonumber(finds), tonumber(tries)
-    if type(sender) ~= "string" or sender == "" or type(itemName) ~= "string" then return false end
-    if not finds or not tries or finds < 0 or tries < 1 or finds > tries or tries > MOST then return false end
-    if #itemName < 1 or #itemName > 80 then return false end
+-- A guildmate's saved entry, made when new: past SENDERS, the one longest silent goes.
+local function From(sender, now)
     local guild = Guild()
     local from = guild[sender]
     if type(from) ~= "table" or type(from.items) ~= "table" then
-        -- Room for a new voice: the one longest silent goes.
         local count, oldest, oldestAt = 0, nil, nil
         for name, entry in pairs(guild) do
             count = count + 1
@@ -99,23 +96,54 @@ function LootLog.Heard(sender, itemName, finds, tries, now)
         guild[sender] = from
     end
     from.t = now or 0
-    local key = itemName:lower()
-    if not from.items[key] then
+    return from
+end
+
+-- Keeps two counts under a key, ITEMS keys at most. False when there's no room.
+local function Keep(kept, key, finds, tries)
+    if not kept[key] then
         local count = 0
-        for _ in pairs(from.items) do count = count + 1 end
+        for _ in pairs(kept) do count = count + 1 end
         if count >= ITEMS then return false end
     end
-    from.items[key] = { math.floor(finds), math.floor(tries) }
+    kept[key] = { math.floor(finds), math.floor(tries) }
     return true
 end
 
--- An item's finds and tries among your guildmates, and how many of them have it.
-function LootLog.GuildSeen(itemName)
+local function Believable(sender, finds, tries)
+    return type(sender) == "string" and sender ~= "" and finds and tries and finds >= 0 and tries >= 1
+        and finds <= tries and tries <= MOST
+end
+
+-- What a guildmate said of an item, by its name. False when it isn't believable.
+function LootLog.Heard(sender, itemName, finds, tries, now)
+    finds, tries = tonumber(finds), tonumber(tries)
+    if type(itemName) ~= "string" or not Believable(sender, finds, tries) then return false end
+    if #itemName < 1 or #itemName > 80 then return false end
+    return Keep(From(sender, now).items, itemName:lower(), finds, tries)
+end
+
+-- What a guildmate said of an item, by its ID. False when it isn't believable.
+function LootLog.HeardID(sender, itemID, finds, tries, now)
+    itemID, finds, tries = tonumber(itemID), tonumber(finds), tonumber(tries)
+    if not itemID or itemID < 1 or itemID > 9999999 or not Believable(sender, finds, tries) then return false end
+    local from = From(sender, now)
+    from.ids = type(from.ids) == "table" and from.ids or {}
+    return Keep(from.ids, math.floor(itemID), finds, tries)
+end
+
+-- An item's finds and tries among your guildmates, and how many of them have it. With its ID, a
+-- guildmate's count by ID is taken over their count by name, so nobody is counted twice.
+function LootLog.GuildSeen(itemName, itemID)
     if type(itemName) ~= "string" then return 0, 0, 0 end
     local key = itemName:lower()
+    itemID = tonumber(itemID)
     local finds, tries, people = 0, 0, 0
     for _, from in pairs(Guild()) do
-        local said = type(from) == "table" and type(from.items) == "table" and from.items[key]
+        local said = itemID and type(from) == "table" and type(from.ids) == "table" and from.ids[itemID]
+        if type(said) ~= "table" then
+            said = type(from) == "table" and type(from.items) == "table" and from.items[key]
+        end
         if type(said) == "table" and tonumber(said[2]) then
             finds, tries, people = finds + (tonumber(said[1]) or 0), tries + said[2], people + 1
         end
@@ -148,6 +176,12 @@ function LootLog.Wanted()
         end
     end
     return wanted
+end
+
+-- An item's ID, from your own loot of it, by the name it was wanted under; nil until it has dropped.
+function LootLog.IdOf(itemName)
+    local id = type(itemName) == "string" and Log().ids[itemName]
+    return type(id) == "number" and id or nil
 end
 
 -- One loot of a creature: `wanted` as LootLog.Wanted gives it, `found` the items in the window
@@ -240,13 +274,14 @@ end
 
 -- The same, with your guildmates' counts added to yours while you share: the chance, how many
 -- loots are in it, and how many of those are the guild's (0 when you don't share or they have
--- none). This is the one the quest tag card asks.
-function LootLog.Pooled(itemName, shipped)
+-- none). This is the one the quest tag card asks; with the item's ID, guildmates' counts from
+-- another language are in it too.
+function LootLog.Pooled(itemName, shipped, itemID)
     if not LootLog.running then return nil end
     local finds, tries = LootLog.Seen(itemName)
     local theirs = 0
     if LootLog.Sharing() then
-        local f, t = LootLog.GuildSeen(itemName)
+        local f, t = LootLog.GuildSeen(itemName, itemID)
         finds, tries, theirs = finds + f, tries + t, t
     end
     if tries <= 0 then return nil end
@@ -376,9 +411,13 @@ local function Opened()
 end
 
 ---------------------------------------------------------------------------
--- Telling the guild, and hearing it. "DC" is one item: its name, finds and tries. "DQ" asks
--- everyone who shares to say theirs, for someone just logged in.
+-- Telling the guild, and hearing it. "DC" is one item: its name, finds and tries. "DI" is the
+-- same counts by item ID, several items a message ("5481;16;48,5508;1;1"), for the items whose
+-- ID you have, so guildmates on another language pool them; a jsal.ui that doesn't know DI
+-- leaves it unheard and goes on hearing DC. "DQ" asks everyone who shares to say theirs, for
+-- someone just logged in.
 ---------------------------------------------------------------------------
+local LONGEST = 250                 -- a DI message's length at most; the game carries 255
 local changed, flushing = {}, false
 local lastAnswered
 
@@ -408,12 +447,34 @@ local function Tell(name, finds, tries)
     end
 end
 
+-- The DI messages for a list of { name, finds, tries }: each item whose ID you have, packed
+-- under LONGEST.
+local function TellIDs(list)
+    if not ns.Comms then return end
+    local text = ""
+    for _, item in ipairs(list) do
+        local id = LootLog.IdOf(item.name)
+        if id and item.tries > 0 then
+            local part = ("%d;%d;%d"):format(id, item.finds, item.tries)
+            if text ~= "" and #text + 1 + #part > LONGEST - 3 then
+                ns.Comms.Send("DI", text, "GUILD")
+                text = ""
+            end
+            text = text == "" and part or (text .. "," .. part)
+        end
+    end
+    if text ~= "" then ns.Comms.Send("DI", text, "GUILD") end
+end
+
 function LootLog.TellAll()
     if not (LootLog.Sharing() and IsInGuild()) then return end
+    local told = {}
     for i, item in ipairs(Mine()) do
         if i > SEND then break end
         Tell(item.name, item.finds, item.tries)
+        told[#told + 1] = item
     end
+    TellIDs(told)
 end
 
 -- What changed since the last word, said together a little later, so a run of loots is one
@@ -424,10 +485,13 @@ local function Flush()
         changed = {}
         return
     end
+    local told = {}
     for name in pairs(changed) do
         local finds, tries = LootLog.Seen(name)
         Tell(name, finds, tries)
+        told[#told + 1] = { name = name, finds = finds, tries = tries }
     end
+    TellIDs(told)
     changed = {}
 end
 
@@ -447,6 +511,15 @@ local function HeardCount(payload, sender)
     if not LootLog.Sharing() or sender == Compat.MyName() then return end
     local name, finds, tries = (payload or ""):match("^(.-);(%d+);(%d+)$")
     if name then LootLog.Heard(sender, name, finds, tries, Compat.ServerTime()) end
+end
+
+local function HeardIDs(payload, sender)
+    if not LootLog.Sharing() or sender == Compat.MyName() or type(payload) ~= "string" then return end
+    if #payload > LONGEST or not payload:match("^[%d;,]+$") then return end
+    local now = Compat.ServerTime()
+    for id, finds, tries in payload:gmatch("(%d+);(%d+);(%d+)") do
+        LootLog.HeardID(sender, id, finds, tries, now)
+    end
 end
 
 local function HeardAsk(_, sender)
@@ -470,6 +543,7 @@ function LootLog:OnEnable()
     end
     if ns.Comms then
         ns.Comms.On("DC", HeardCount)
+        ns.Comms.On("DI", HeardIDs)
         ns.Comms.On("DQ", HeardAsk)
         -- A little after logging in: say yours, and ask for theirs.
         Compat.After(20, ns.Safe(self, function()
@@ -485,6 +559,7 @@ function LootLog:OnDisable()
     if self.events then self.events:UnregisterAllEvents() end
     if ns.Comms then
         ns.Comms.On("DC", nil)
+        ns.Comms.On("DI", nil)
         ns.Comms.On("DQ", nil)
     end
     changed = {}

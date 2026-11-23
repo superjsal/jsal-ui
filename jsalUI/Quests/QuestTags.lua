@@ -173,11 +173,14 @@ end
 -- first find ("own" with a base), or, with nothing shipped, used alone once there are enough ("own"
 -- with no base); otherwise the shipped chance.
 local function Chance(info, name, questID)
-    local shipped, mark = Shipped(info, name)
+    local shipped, mark, id = Shipped(info, name)
     local log = ns.LootLog
+    -- The item's ID, from the data or from your own loot of it: guildmates' counts are pooled by it,
+    -- whatever language theirs are in.
+    if not id and log and log.IdOf then id = log.IdOf(name) end
     local blend = log and (log.Pooled or log.Blended)
     if blend then
-        local blended, loots, theirs = blend(name, shipped)
+        local blended, loots, theirs = blend(name, shipped, id)
         if blended then return blended, "own", loots, shipped and (mark or "classic") or nil, theirs or 0 end
     elseif log and log.Chance then
         local mine, loots = log.Chance(questID, name)
