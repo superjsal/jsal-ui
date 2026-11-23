@@ -1,6 +1,6 @@
--- The dungeon guide, in a window of its own: a picker on top opens every
--- dungeon and raid in level groups, the ones right for your level in green;
--- the chosen one fills the window below in two tabs. Bosses and loot: a card
+-- The dungeon guide, in a window of its own: every dungeon and raid down its
+-- left in level groups, the ones right for your level in green; the chosen
+-- one fills the rest of the window in three tabs. Bosses and loot: a card
 -- a boss, two across, numbered in the game's order and ticked once you've
 -- killed it. A card has a line for each piece you can equip (Wowhead's list
 -- with drop chances, and what you and the guild have seen it drop): what's
@@ -9,24 +9,37 @@
 -- isn't for you. A card with something for you has a gold edge.
 -- Quests: the dungeon's quests for your faction, ticked once done, each with
 -- where it starts and the quest to do first; a click pins the start on the map.
--- The picker counts each dungeon's starred loot. The window is as tall as
--- the dungeon needs.
+-- Map: the dungeon's own map where there is one. The list marks each
+-- dungeon's starred loot and the quests in your log for it. The window is as
+-- tall as the dungeon needs, and never shorter than the list.
 local _, ns = ...
 local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 
-local DROP_W, DROP_H, PICKER_H, ROW_H, HEAD_H, QUEST_H = 340, 520, 34, 50, 28, 48
+-- The line over the content: the dungeon's name and the tabs.
+local PICKER_H = 34
 -- A boss's card: its heading, a line a piece, and the strip along its foot
 -- for what isn't for you, with its small pictures. Cards are two across,
 -- GRID_GAP apart, a row of them ROW_GAP under the last.
 local BOSS_H, ITEM_H, STRIP_H, SMALL, GRID_GAP, ROW_GAP = 36, 46, 40, 24, 24, 16
 local METER_W = 52                 -- the bar under a piece's drop chance
--- Under the picker: a line of words, then the list; and under the list the
+-- Under the name: a line of words, then the list; and under the list the
 -- link to where the numbers come from. The list is never shorter than LIST_MIN.
 local TOP_H, FOOT_H, LIST_MIN = 34, 26, 140
 -- Under the line that says why no boss was brought to the top, before the first cards.
 local WHY_GAP = 12
 -- The window: its size when a dungeon needs all of it.
-local OWN_W, OWN_H = 1000, 860
+-- The list of dungeons down the left, as the dashboard's menu is: from the
+-- window's edge to the line at its right, the rows' width inside it, a
+-- heading's height and a row's. The page sits PANEL_PAD in from the window's
+-- edge, SIDE_UP under the title bar and SIDE_DOWN over the window's foot.
+local SIDE_W, SIDE_ROW_W, SIDE_HEAD, SIDE_ROW = 240, 216, 28, 26
+-- Beside the list, the guide as wide as it was on its own, GUIDE_W: its boss
+-- cards and its map keep their sizes. The window is the two together.
+local GUIDE_W = 1000
+local OWN_W, OWN_H = SIDE_W + GUIDE_W, 860
+local PANEL_PAD, SIDE_UP, SIDE_DOWN = 22, 15, 17
+-- The level the raids are for: below it the list starts with them folded.
+local TOP_LEVEL = 60
 -- The game's item class for recipes (patterns, plans, schematics).
 local RECIPE = 9
 -- The tag after an item's name: its words and its tone. A better piece's
@@ -68,6 +81,7 @@ end
 -- same picture without its colour.
 local OFFER_MARK = "Interface\\GossipFrame\\AvailableQuestIcon"
 local ACTIVE_MARK = "Interface\\GossipFrame\\ActiveQuestIcon"
+local QUEST_SIGN = "|T" .. ACTIVE_MARK .. ":0|t"
 local function QuestMark(texture, id, take, mine)
     local held = QuestHeld(id)
     local lit
@@ -260,6 +274,13 @@ local function SideText(d)
     local side = d.faction or d.side
     if not side then return nil end
     return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
+end
+
+-- What a dungeon is: its level, where its entrance is, and the side it's on.
+local function Facts(d)
+    local bits = { (d.raid and "Raid \194\183 level %d+" or "Level %d+"):format(d.level), d.zone }
+    if SideText(d) then bits[#bits + 1] = SideText(d) end
+    return bits
 end
 
 -- Why a gear plan was made in a paint, as /jsal perf says it (see Gear.SlotPlan).
@@ -492,19 +513,19 @@ if ns.Dungeons then ns.Dungeons.BossQuests, ns.Dungeons.BossTip = BossQuests, Bo
 Window.Page("dungeons", function(page)
     local D = ns.Dungeons
     local width, height = page.contentWidth or Window.contentWidth, page.contentHeight or Window.contentHeight
-    local rightW = width
-    local chosen, scrolled
-    local Paint, opened
+    local rightW = width - SIDE_W
+    local chosen
+    local Paint
     -- A dungeon's items come from the game a moment after they're first asked for. Drawn
     -- before that, every drop was "..." and all of them listed, and the page drew itself
     -- again a moment later, shorter and with other words. So a dungeon just picked keeps the
     -- last drawing until its items are in, or HOLD seconds at most; and the dungeons on show
-    -- in the list are asked for as it opens, one a frame, so the wait is mostly none.
+    -- in the list are asked for when pointed at, so the wait is mostly none.
     -- `drawn` is the dungeon whose bosses are on the page, `holding` the one waited for,
     -- `late` those whose wait ran out (not waited for again), `lacking` how many items the
     -- last drawing missed. In one table: the paint has little room left for names of its own.
     local HOLD = 0.5
-    local wait = { late = {}, lacking = 0, asked = {}, queue = {} }
+    local wait = { late = {}, lacking = 0, asked = {} }
     function wait.Count(d)
         local first = not wait.asked[d]
         wait.asked[d] = true
@@ -524,119 +545,284 @@ Window.Page("dungeons", function(page)
     end
 
     -----------------------------------------------------------------
-    -- The picker: the chosen dungeon's name; a click opens the list
-    -- under it, in its level groups, over the page.
+    -- Down the left: every dungeon in its level group, in the look of the
+    -- dashboard's menu. A click on a group's heading folds or opens it; a
+    -- click on a dungeon shows it at the right. Rows are made only for the
+    -- groups that are open, and kept for the next paint. Pointing at a row
+    -- says what it leaves out, and asks the game for that dungeon's items,
+    -- so a click on it is mostly drawn at once: no other dungeon's are asked
+    -- for. `held` is how many quests in your log are for each dungeon, read
+    -- from the log once and kept until the game says the log changed.
     -----------------------------------------------------------------
-    local picker = CreateFrame("Button", nil, page)
-    picker:SetSize(DROP_W, PICKER_H)
-    picker:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", 0, -8)
-    Style.Box(picker, 5, "well", "gold")
-    local pickerName = Style.Text(picker, 14, "text", nil, true)
-    pickerName:SetPoint("LEFT", 12, 0)
-    pickerName:SetWidth(DROP_W - 50)
-    pickerName:SetJustifyH("LEFT")
-    pickerName:SetWordWrap(false)
-    -- A gold "v", drawn from two short strokes.
-    for _, way in ipairs({ -1, 1 }) do
-        local stroke = picker:CreateTexture(nil, "ARTWORK")
-        stroke:SetSize(8, 2)
-        stroke:SetColorTexture(Style.Color("gold"))
-        stroke:SetPoint("RIGHT", -14 - (way == -1 and 5 or 0), 0)
-        stroke:SetRotation(math.rad(45 * way))
-    end
-    local key = Style.Text(page, 12, "muted")
-    key:SetPoint("LEFT", picker, "RIGHT", 14, 0)
+    local List = { heads = {}, rows = {}, reveal = true }
+    local side = CreateFrame("Frame", nil, page)
+    side:SetPoint("TOPLEFT", -(PANEL_PAD - 1), SIDE_UP)
+    side:SetPoint("BOTTOMLEFT", -(PANEL_PAD - 1), -SIDE_DOWN)
+    side:SetWidth(SIDE_W)
+    Style.Cap(side, 6, "titleBar", "BOTTOMLEFT")
+    Style.Rule(side, "RIGHT", "line")
+    -- The list runs from the page's top to its foot, as the page is tall.
+    List.scroll, List.child = Style.Scroller(side, SIDE_ROW_W, 100, SIDE_ROW_W, 6, 52)
+    List.scroll:ClearAllPoints()
+    List.scroll:SetPoint("TOPLEFT", 12, -SIDE_UP)
+    List.scroll:SetPoint("BOTTOMRIGHT", -12, SIDE_DOWN)
 
-    local drop = CreateFrame("Frame", nil, page)
-    drop:SetPoint("TOPLEFT", picker, "BOTTOMLEFT", 0, -4)
-    drop:SetSize(DROP_W, DROP_H)
-    drop:SetFrameStrata("DIALOG")
-    drop:EnableMouse(true)
-    Style.Box(drop, 5, "titleBar", "lineStrong")
-    drop:Hide()
-    local listScroll, list = Style.Scroller(drop, DROP_W - 12, DROP_H - 12, DROP_W - 20)
-    listScroll:SetPoint("TOPLEFT", 6, -6)
-    local rowW = DROP_W - 20
-    local rows = {}
-    picker:SetScript("OnClick", function()
-        drop:SetShown(not drop:IsShown())
-        scrolled = false
-        Paint()
-    end)
-    page:SetScript("OnHide", function() drop:Hide() end)
-    function wait.AskNext(self)
-        local d = table.remove(wait.queue)
-        if d and not wait.asked[d] then wait.Count(d) end
-        if #wait.queue == 0 then self:SetScript("OnUpdate", nil) end
-    end
-
-    -- A group's heading: click it to open or close the group.
-    local groupHeads = {}
-    for g in ipairs(GROUPS) do
-        local h = CreateFrame("Button", nil, list)
-        h:SetSize(rowW, HEAD_H)
-        Style.Box(h, 6, "well", "cardLine")
+    -- A group's heading: + or a dash, its name in gold, and at its right how
+    -- many it holds, after "your level" where one is right for you.
+    function List.Head(g)
+        if List.heads[g] then return List.heads[g] end
+        local h = CreateFrame("Button", nil, List.child)
+        h:SetSize(SIDE_ROW_W, SIDE_HEAD)
         h.sign = Style.Text(h, 14, "gold", nil, true)
-        h.sign:SetPoint("LEFT", 10, 0)
-        h.label = Style.Text(h, 12, "gold", nil, true)
-        h.label:SetPoint("LEFT", 26, 0)
-        h.note = Style.Text(h, 12, "muted")
-        h.note:SetPoint("RIGHT", -10, 0)
+        h.sign:SetPoint("LEFT", 4, 0)
+        h.label = Style.Text(h, 11, "gold", nil, true)
+        h.label:SetPoint("LEFT", 18, 0)
+        h.note = Style.Text(h, 11, "muted")
+        h.note:SetPoint("RIGHT", -4, 0)
         h.note:SetJustifyH("RIGHT")
         h:SetScript("OnClick", function()
-            opened[g] = not opened[g] or nil
-            Paint()
+            List.open[g] = not List.open[g] or nil
+            List.Paint()
+            List.Fit(List.content or 0)
         end)
-        groupHeads[g] = h
+        Style.Hover(h, 0, 5)
+        List.heads[g] = h
+        return h
     end
 
-    local function Row(i)
-        if rows[i] then return rows[i] end
-        local r = CreateFrame("Button", nil, list)
-        r:SetSize(rowW, ROW_H - 4)
-        local box = Style.Box(r, 5, "well", "gold")
-        r.bg, r.edges = box.fill, { box.line }
-        r.name = Style.Text(r, 14, "text", nil, true)
-        r.name:SetPoint("TOPLEFT", 10, -7)
-        r.name:SetWidth(rowW - 56)
+    -- A dungeon's row: its name, and at its right the starred pieces that drop
+    -- there, a ? when a quest in your log is for it, and its level. The chosen
+    -- one is filled, with a gold mark down its left, as the menu's open page.
+    function List.Row(i)
+        if List.rows[i] then return List.rows[i] end
+        local r = CreateFrame("Button", nil, List.child)
+        r:SetSize(SIDE_ROW_W, SIDE_ROW)
+        r.lit = Style.Round(r, 5, "well")
+        r.mark = r:CreateTexture(nil, "ARTWORK")
+        r.mark:SetColorTexture(Style.Color("gold"))
+        r.mark:SetSize(3, 18)
+        r.mark:SetPoint("LEFT", 0, 0)
+        r.level = Style.Text(r, 12, "muted")
+        r.level:SetPoint("RIGHT", -8, 0)
+        r.level:SetJustifyH("RIGHT")
+        r.marks = Style.Text(r, 12, "gold", nil, true)
+        r.marks:SetPoint("RIGHT", -32, 0)
+        r.marks:SetJustifyH("RIGHT")
+        r.name = Style.Text(r, 13, "secondary")
+        r.name:SetPoint("LEFT", 12, 0)
         r.name:SetJustifyH("LEFT")
         r.name:SetWordWrap(false)
-        r.meta = Style.Text(r, 12, "muted")
-        r.meta:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
-        r.meta:SetWidth(rowW - 20)
-        r.meta:SetJustifyH("LEFT")
-        r.meta:SetWordWrap(false)
-        r.count = Style.Text(r, 12, "muted")
-        r.count:SetPoint("TOPRIGHT", -10, -8)
-        r:SetScript("OnClick", function(self)
-            chosen = self.dungeon
-            drop:Hide()
-            Paint()
-        end)
-        rows[i] = r
+        r.size = select(2, r.name:GetFont())
+        r:SetScript("OnClick", List.Click)
+        r:SetScript("OnEnter", List.Enter)
+        r:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        Style.Hover(r, 0, 5)
+        List.rows[i] = r
         return r
     end
 
+    function List.Click(self)
+        if not self.dungeon then return end
+        chosen = self.dungeon
+        Paint()
+    end
+
+    -- Pointed at: the dungeon's name, level and place, its bosses you've
+    -- killed, and what its marks stand for. Beside the list, at the row.
+    function List.Enter(self)
+        local d = self.dungeon
+        if not d then return end
+        if not wait.asked[d] then wait.Count(d) end
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        GameTooltip:ClearAllPoints()
+        GameTooltip:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 2)
+        GameTooltip:SetText(d.name, 1, 1, 1)
+        GameTooltip:AddLine(table.concat(Facts(d), " \194\183 "), 0.6, 0.59, 0.53)
+        local game, killed = D.GameKills(), 0
+        for _, b in ipairs(d.bosses) do
+            if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
+        end
+        GameTooltip:AddLine(("%d of %d bosses killed"):format(killed, #d.bosses), 0.6, 0.59, 0.53)
+        local stars, quests = self.stars or 0, self.quests or 0
+        if stars > 0 then
+            GameTooltip:AddLine(stars == 1 and "1 piece you starred drops here" or ("%d pieces you starred drop here"):format(stars), 0.89, 0.69, 0.29)
+        end
+        if quests > 0 then
+            GameTooltip:AddLine(QUEST_SIGN .. " " .. (quests == 1 and "A quest in your log is for here"
+                or ("%d quests in your log are for here"):format(quests)), 0.89, 0.69, 0.29)
+        end
+        GameTooltip:Show()
+    end
+
+    -- How many quests in your log are for each dungeon: { [dungeon id] = n }.
+    function List.Quests()
+        if List.held then return List.held end
+        local held, log = {}, C_QuestLog
+        if log and log.GetNumQuestLogEntries and log.GetInfo then
+            if not List.questFor then
+                List.questFor = {}
+                for id, quests in pairs(ns.DungeonQuests or {}) do
+                    for _, q in ipairs(quests) do
+                        local list = List.questFor[q[1]] or {}
+                        list[#list + 1] = id
+                        List.questFor[q[1]] = list
+                    end
+                end
+            end
+            local count = log.GetNumQuestLogEntries()
+            for i = 1, count or 0 do
+                local info = log.GetInfo(i)
+                local ids = info and not info.isHeader and info.questID and List.questFor[info.questID]
+                for _, id in ipairs(ids or {}) do held[id] = (held[id] or 0) + 1 end
+            end
+        end
+        List.held = held
+        return held
+    end
+
+    -- The groups that start open: each with a dungeon right for your level
+    -- (or, with none, the one your level is in) and the one after the last of
+    -- them, the raids only at the top level. Folded, a group is its count.
+    function List.Opening(members, level)
+        local open, last = {}, nil
+        for g in ipairs(GROUPS) do
+            for _, d in ipairs(members[g] or {}) do
+                if Fits(d, level) then
+                    open[g], last = true, g
+                    break
+                end
+            end
+        end
+        if not last then
+            last = GroupOf({ level = level })
+            open[last] = true
+        end
+        local after = GROUPS[last + 1]
+        if after and members[last + 1] and not (after.raid and level < TOP_LEVEL) then open[last + 1] = true end
+        return open
+    end
+
+    function List.Paint()
+        local level = UnitLevel("player") or 1
+        local faction = UnitFactionGroup and UnitFactionGroup("player")
+        List.dirty, List.shown = nil, chosen
+        local members = {}
+        for _, d in ipairs(ns.DungeonData or {}) do
+            if not d.faction or d.faction == faction then
+                local g = GroupOf(d)
+                members[g] = members[g] or {}
+                table.insert(members[g], d)
+            end
+        end
+        List.open = List.open or List.Opening(members, level)
+        -- A dungeon shown from elsewhere opens its group, and is brought into view.
+        local reveal = List.reveal and chosen
+        if reveal then List.open[GroupOf(chosen)] = true end
+        List.reveal = nil
+        local held = List.Quests()
+        local y, i, chosenY = 0, 0, nil
+        for g, group in ipairs(GROUPS) do
+            local inGroup = members[g]
+            if inGroup then
+                local h = List.Head(g)
+                local fits = 0
+                for _, d in ipairs(inGroup) do if Fits(d, level) then fits = fits + 1 end end
+                h.label:SetText(group.label)
+                h.note:SetText(fits > 0 and (GREEN .. "your level|r \194\183 " .. #inGroup) or tostring(#inGroup))
+                h.sign:SetText(List.open[g] and "\226\128\147" or "+")
+                h:ClearAllPoints()
+                h:SetPoint("TOPLEFT", 0, -y)
+                h:Show()
+                y = y + SIDE_HEAD
+                for _, d in ipairs(List.open[g] and inGroup or {}) do
+                    i = i + 1
+                    local r = List.Row(i)
+                    r.dungeon = d
+                    r:ClearAllPoints()
+                    r:SetPoint("TOPLEFT", 0, -y)
+                    local on = d == chosen
+                    if on then chosenY = y end
+                    r.lit:SetShown(on)
+                    r.mark:SetShown(on)
+                    r.name:SetText(d.name)
+                    r.name:SetTextColor(Style.Color(on and "text" or "secondary"))
+                    if r.size then r.name:SetFont(on and Style.boldFont or Style.font, r.size, "") end
+                    r.level:SetText((Fits(d, level) and GREEN or "") .. d.level .. (Fits(d, level) and "|r" or ""))
+                    r.stars = ns.Gear and ns.Gear.StarsIn and #ns.Gear.StarsIn(d) or 0
+                    r.quests = held[d.id] or 0
+                    local said = (r.stars > 0 and (ns.Gear.STAR .. " " .. r.stars) or "")
+                        .. (r.stars > 0 and r.quests > 0 and "  " or "") .. (r.quests > 0 and QUEST_SIGN or "")
+                    r.marks:SetText(said)
+                    -- The name gives way to the marks; its tooltip has it whole.
+                    local marks = said ~= "" and r.marks:GetStringWidth()
+                    marks = type(marks) == "number" and marks + 6 or 0
+                    r.name:SetWidth(SIDE_ROW_W - 12 - 32 - marks)
+                    -- Well above your level, dimmed, as in the guide's other lists.
+                    r:SetAlpha(TooHigh(d, level) and not on and 0.5 or 1)
+                    r:Show()
+                    y = y + SIDE_ROW
+                end
+                if List.open[g] then y = y + 6 end
+            elseif List.heads[g] then
+                List.heads[g]:Hide()
+            end
+        end
+        for k = i + 1, #List.rows do List.rows[k]:Hide() end
+        List.need = y
+        List.child:SetHeight(math.max(1, y))
+        if reveal and chosenY then
+            local room = List.scroll:GetHeight()
+            local range = math.max(0, y - ((type(room) == "number" and room > 0) and room or y))
+            List.scroll:SetVerticalScroll(math.max(0, math.min(range, chosenY - 2 * SIDE_ROW)))
+        end
+    end
+
+    -- Over the content, at the list's right: the chosen dungeon's name, how it
+    -- sits with your level beside it, and the tabs at the far right.
+    local top = CreateFrame("Frame", nil, page)
+    top:SetSize(width - SIDE_W, PICKER_H)
+    top:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", SIDE_W, -8)
+    local title = Style.Text(top, 20, "text", nil, true)
+    title:SetPoint("LEFT", 0, 0)
+    title:SetWordWrap(false)
+    local key = Style.Text(top, 12, "muted")
+    key:SetPoint("LEFT", title, "RIGHT", 16, -2)
+    function List.Title(d, level)
+        title:SetText(d.name)
+        if Fits(d, level) then
+            key:SetText(GREEN .. "right for level " .. level .. "|r")
+        else
+            key:SetText(level < d.level and ("from level " .. d.level) or "below your level")
+        end
+    end
+    page:HookScript("OnShow", function() page:RegisterEvent("QUEST_LOG_UPDATE") end)
+    page:HookScript("OnHide", function()
+        page:UnregisterEvent("QUEST_LOG_UPDATE")
+        List.held = nil
+    end)
+
     -----------------------------------------------------------------
-    -- Below: the chosen dungeon, the page's full width.
+    -- Below: the chosen dungeon, the rest of the page's width.
     -----------------------------------------------------------------
     local right = CreateFrame("Frame", nil, page)
-    right:SetPoint("TOPLEFT", picker, "BOTTOMLEFT", 0, -16)
+    right:SetPoint("TOPLEFT", top, "BOTTOMLEFT", 0, -16)
     right:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-    -- The picker above is the dungeon's name; under it, its level, where it
+    -- The line above is the dungeon's name; under it, its level, where it
     -- is, and how many of its bosses you've killed. On the bosses' tab that
     -- follows the line of how much here is for you.
     local meta = Style.Text(right, 13, "muted")
     meta:SetJustifyH("LEFT")
     meta:SetWordWrap(false)
-    -- The tabs, at the right of the picker's line: the bosses with their
+    -- The tabs, at the right of the name's line: the bosses with their
     -- loot, the dungeon's quests, and its map where there is one.
+    -- `tab` is the one shown, and `List.pick` the one you chose: a dungeon with
+    -- no map shows its bosses, and the next with one shows its map again.
     local tab = "bosses"
-    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" }, { "map", "Map" } }, function(key)
-        tab = key
+    local tabs = Style.Tabs(right, { { "bosses", "Bosses and loot" }, { "quests", "Quests" }, { "map", "Map" } }, function(name)
+        tab, List.pick = name, name
         Paint()
     end)
-    tabs:SetPoint("RIGHT", picker, "LEFT", rightW, 0)
+    tabs:SetPoint("RIGHT", top, "RIGHT", 0, 0)
     local hint = Style.Text(right, 12, "muted")
     hint:SetPoint("TOPRIGHT", 0, -4)
     hint:SetJustifyH("RIGHT")
@@ -659,11 +845,13 @@ Window.Page("dungeons", function(page)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
 
     -- The window is as tall as what's in the list, between a least and the
-    -- size it was made at; a longer list scrolls. It keeps its top where it
-    -- is and grows or shrinks downward.
+    -- size it was made at; a longer list scrolls. Nor is it shorter than the
+    -- dungeons down its left, up to that size. It keeps its top where it is
+    -- and grows or shrinks downward.
     local function Fit(need)
         local room = height - PICKER_H - 16 - TOP_H - FOOT_H
-        local listH = math.max(LIST_MIN, math.min(room, need))
+        List.content = need
+        local listH = math.max(LIST_MIN, math.min(room, need), math.min(room, (List.need or 0) - (height - room)))
         bossScroll:SetHeight(listH)
         local window = page.contentHeight and page:GetParent()
         if type(window) ~= "table" or not window.SetHeight then return listH end
@@ -675,6 +863,7 @@ Window.Page("dungeons", function(page)
         end
         return listH
     end
+    List.Fit = Fit
 
     -- A boss's card, half the list wide: its number in the order you meet
     -- it, its name (ticked once you've killed it) and its kills over a rule;
@@ -687,7 +876,7 @@ Window.Page("dungeons", function(page)
     B.sum:SetPoint("TOPLEFT", 0, -2)
     -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
     local mapPane = ns.DungeonMap and ns.DungeonMap.Build(right, rightW, function(k)
-        tab, B.jump, B.jumpItem = "bosses", k, nil
+        tab, List.pick, B.jump, B.jumpItem = "bosses", "bosses", k, nil
         Paint()
     end)
     if mapPane then
@@ -1812,10 +2001,6 @@ Window.Page("dungeons", function(page)
         local faction = UnitFactionGroup and UnitFactionGroup("player")
         local game = D.GameKills()
         local t = Spent("boss kills from the game", started)
-        local shown = {}
-        for _, d in ipairs(ns.DungeonData or {}) do
-            if not d.faction or d.faction == faction then shown[#shown + 1] = d end
-        end
         -- A dungeon asked for from elsewhere (the Gear plan's "Open guide", a piece on Endgame's goal card) is
         -- the one shown, on the tab asked for and with the boss asked for brought to the top, as from the map.
         if D.wantFrom then
@@ -1823,105 +2008,28 @@ Window.Page("dungeons", function(page)
         elseif D.want then
             B.why, B.whyNext = nil, nil
         end
-        if D.want then chosen, D.want = D.want, nil end
-        if D.wantTab then tab, D.wantTab = D.wantTab, nil end
+        if D.want then chosen, D.want, List.reveal = D.want, nil, true end
+        if D.wantTab then tab, List.pick, D.wantTab = D.wantTab, D.wantTab, nil end
         if D.wantBoss then B.jump, B.jumpItem, D.wantBoss, D.wantItem = D.wantBoss, D.wantItem, nil, nil end
         if not chosen then
-            for _, d in ipairs(shown) do
-                if Fits(d, level) then chosen = d break end
+            local first
+            for _, d in ipairs(ns.DungeonData or {}) do
+                if not d.faction or d.faction == faction then
+                    first = first or d
+                    if Fits(d, level) then chosen = d break end
+                end
             end
-            chosen = chosen or shown[1]
+            chosen = chosen or first
         end
-
-        -- The list, in level groups; the one with the dungeon picked for
-        -- you starts open.
-        if not opened then
-            opened = {}
-            opened[GroupOf(chosen)] = true
-        end
-        -- Beside the picker: how the dungeon chosen sits with your level.
-        -- (It read "Green: right for level 30", a key to the list's colours
-        -- that looked like a word on item colours.)
-        if not chosen then
-            key:SetText("")
-        elseif Fits(chosen, level) then
-            key:SetText(GREEN .. "right for level " .. level .. "|r")
-        else
-            key:SetText(level < chosen.level and ("from level " .. chosen.level) or "below your level")
-        end
-        local y, i, chosenY = 0, 0, 0
-        local members = {}
-        for _, d in ipairs(shown) do
-            local g = GroupOf(d)
-            members[g] = members[g] or {}
-            table.insert(members[g], d)
-        end
-        for g, group in ipairs(GROUPS) do
-            local h = groupHeads[g]
-            local inGroup = members[g] or {}
-            h:SetShown(#inGroup > 0)
-            if #inGroup > 0 then
-                h:ClearAllPoints()
-                h:SetPoint("TOPLEFT", 0, -y)
-                local fits = 0
-                for _, d in ipairs(inGroup) do if Fits(d, level) then fits = fits + 1 end end
-                h.label:SetText(group.label)
-                -- How many it holds; "your level" when one is right for you.
-                local noun = group.raid and (#inGroup == 1 and "raid" or "raids") or (#inGroup == 1 and "dungeon" or "dungeons")
-                h.note:SetText(fits > 0 and (GREEN .. "your level|r · %d"):format(#inGroup) or ("%d %s"):format(#inGroup, noun))
-                h.sign:SetText(opened[g] and "-" or "+")
-                y = y + HEAD_H + 4
-            end
-            for _, d in ipairs(opened[g] and inGroup or {}) do
-            i = i + 1
-            local r = Row(i)
-            r.dungeon = d
-            if drop:IsShown() and not wait.asked[d] and not wait.queue[d] then
-                wait.queue[d] = true
-                wait.queue[#wait.queue + 1] = d
-            end
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", 0, -y)
-            local killed = 0
-            for _, b in ipairs(d.bosses) do
-                if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
-            end
-            r.name:SetText(d.name)
-            local levelText = ("Level %d+"):format(d.level)
-            if Fits(d, level) then levelText = GREEN .. levelText .. "|r" end
-            local side = SideText(d)
-            r.meta:SetText(levelText .. " · " .. d.zone .. (side and (" · " .. side) or ""))
-            local starredHere = ns.Gear and ns.Gear.StarsIn and #ns.Gear.StarsIn(d) or 0
-            r.count:SetText((starredHere > 0 and (ns.Gear.STAR .. " |cffe3b04b" .. starredHere .. "|r   ") or "")
-                .. ("%d/%d"):format(killed, #d.bosses))
-            local on = d == chosen
-            if on then chosenY = y end
-            r.bg:SetShown(on)
-            for _, edge in ipairs(r.edges) do edge:SetShown(on) end
-            r:SetAlpha(TooHigh(d, level) and not on and 0.5 or 1)
-            r:Show()
-            y = y + ROW_H
-            end
-            if opened[g] and #inGroup > 0 then y = y + 6 end
-        end
-        for j = i + 1, #rows do rows[j]:Hide() end
-        if #wait.queue > 0 then drop:SetScript("OnUpdate", wait.AskNext) end
-        list:SetHeight(math.max(1, y))
-        -- The list is as tall as it needs, up to a limit, and opens at the
-        -- chosen dungeon.
-        local dropH = math.min(DROP_H, y + 12)
-        drop:SetHeight(dropH)
-        listScroll:SetHeight(dropH - 12)
-        if not scrolled and drop:IsShown() then
-            scrolled = true
-            listScroll:SetVerticalScroll(math.max(0, math.min(listScroll:GetVerticalScrollRange(), chosenY - 2 * ROW_H)))
-        end
+        -- The tab you chose, where this dungeon has it.
+        if List.pick == "map" and chosen then tab = (mapPane and ns.DungeonMap.Has(chosen)) and "map" or "bosses" end
+        if List.dirty or List.shown ~= chosen or List.reveal then List.Paint() end
 
         t = Spent("the dungeon list", t)
         -- The chosen dungeon.
         local d = chosen
         if not d then return end
-        if not wait.drawn then pickerName:SetText(d.name) end
+        if not wait.drawn then List.Title(d, level) end
         local fresh = tab == "bosses" and d ~= wait.drawn and not wait.late[d]
         if (fresh or not wait.asked[d]) and wait.Count(d) > 0 and fresh and Compat.After then
             if wait.holding ~= d then
@@ -1935,13 +2043,12 @@ Window.Page("dungeons", function(page)
             return
         end
         wait.holding = nil
-        pickerName:SetText(d.name)
+        List.Title(d, level)
         local killed = 0
         for _, b in ipairs(d.bosses) do
             if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
         end
-        local bits = { (d.raid and "Raid · level %d+" or "Level %d+"):format(d.level), d.zone }
-        if SideText(d) then bits[#bits + 1] = SideText(d) end
+        local bits = Facts(d)
         bits[#bits + 1] = ("%d of %d bosses killed"):format(killed, #d.bosses)
         meta:SetText(table.concat(bits, " · "))
 
@@ -2096,12 +2203,26 @@ Window.Page("dungeons", function(page)
         NoteParts(started)
     end
 
-    page.Refresh = function() Paint() end
+    page.Refresh = function()
+        List.dirty = true
+        Paint()
+    end
     -- Item names and icons the game hadn't loaded yet arrive a moment later.
     -- They come one by one, so the page repaints once for a batch.
     local waiting
     page:RegisterEvent("GET_ITEM_INFO_RECEIVED")
-    page:SetScript("OnEvent", function()
+    page:SetScript("OnEvent", function(_, event)
+        -- The quest log changed: the list's marks are read again, a moment later for a run of changes.
+        if event == "QUEST_LOG_UPDATE" then
+            List.held = nil
+            if List.soon or not page:IsVisible() then return end
+            List.soon = true
+            Compat.After(0.2, ns.Safe(D, function()
+                List.soon = nil
+                if page:IsVisible() then List.Paint() end
+            end))
+            return
+        end
         -- A dungeon waited for is drawn the moment its last item is in.
         if wait.holding then
             if page:IsVisible() and Unloaded(wait.holding) == 0 then Paint() end
