@@ -34,7 +34,8 @@ local GAP = 26                  -- left of a game tracker block, past its map bu
 ---------------------------------------------------------------------------
 local parsed = {}
 
--- { step, chain, drops = { [item name] = chance 0..1 } }, or nil for a quest it doesn't know.
+-- { step, chain, drops = { [item name] = chance 0..1 }, ids = { [item name] = item ID } }, or nil
+-- for a quest it doesn't know.
 function QuestTags.Info(questID)
     local known = parsed[questID]
     if known ~= nil then return known or nil end
@@ -60,8 +61,13 @@ function QuestTags.Info(questID)
     local chain, rest = line:match("^([^;]*)(.*)$")
     local step, of = chain:match("^(%d+),(%d+)$")
     if step then info.step, info.chain = tonumber(step), tonumber(of) end
-    for name, chance, mark in rest:gmatch(";([^=;]+)=([%d%.]+)([woejp]?)") do
+    for name, chance, mark, id in rest:gmatch(";([^=;]+)=([%d%.]+)([woejp]?):?(%d*)") do
         info.drops[name] = tonumber(chance) / 100
+        -- ":ID" after it: the item's ID, for finding it by the game's own name on another language.
+        if id ~= "" then
+            info.ids = info.ids or {}
+            info.ids[name] = tonumber(id)
+        end
         -- "e": from EG Link's players while they had the quest; "p": those pooled with jsal.ui's own Drop
         -- log counts, baked in; "j": the Drop log's alone; "w": Wowhead Forever's, from a creature
         -- nearly everyone kills for the quest; "o": Wowhead's, from objects opened (chests, crates,
@@ -119,7 +125,31 @@ local function Named(text)
     return text:match("^(.-):%s*%d+%s*/%s*%d+%s*$") or text:match("^%d+%s*/%s*%d+%s+(.+)$") or text
 end
 
--- The shipped chance for an item, and where it's from: "e", "w", "o" (see Info) or false (pfQuest's).
+-- The data names items in English, and a quest's objectives name them in the client's language. So
+-- on another language an objective is matched by the game's own name for each shipped item's ID. An
+-- English client matches by the data's names alone: the few items Forever names otherwise than the
+-- data stay unmatched there, so English reads exactly what the data says.
+local otherLanguage
+local function OtherLanguage()
+    if otherLanguage == nil then otherLanguage = ((GetLocale and GetLocale()) or "enUS") ~= "enUS" end
+    return otherLanguage
+end
+
+-- The game's name for an item, lower case, kept once read: the tags are drawn often. Nil until the
+-- game has the item loaded (asking starts the load), and asked again the next time.
+local gameNames = {}
+local function GameName(id)
+    local name = gameNames[id]
+    if name then return name end
+    name = Compat.ItemName(id)
+    if type(name) ~= "string" or name == "" then return nil end
+    name = name:lower()
+    gameNames[id] = name
+    return name
+end
+
+-- The shipped chance for an item, where it's from: "e", "w", "o" (see Info) or false (pfQuest's),
+-- and its item ID when the data has one.
 local function Shipped(info, name)
     if not info then return nil end
     local found = info.drops[name] and name
@@ -128,8 +158,13 @@ local function Shipped(info, name)
         for item in pairs(info.drops) do
             if item:lower() == lower then found = item end
         end
+        if not found and info.ids and OtherLanguage() then
+            for item, id in pairs(info.ids) do
+                if GameName(id) == lower then found = item end
+            end
+        end
     end
-    if found then return info.drops[found], info.wowhead and info.wowhead[found] or false end
+    if found then return info.drops[found], info.wowhead and info.wowhead[found] or false, info.ids and info.ids[found] end
 end
 
 -- The item's drop chance and where it's from, then how many loots are in it (yours and, while you

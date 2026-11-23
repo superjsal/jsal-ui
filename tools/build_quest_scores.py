@@ -246,6 +246,7 @@ def merged():
             chance = eglink_chance(el.get(str(item)), own.get(str(item))) or wowhead_chance(got)
             if chance is not None and got and got.get("name"):
                 drops[got["name"]] = chance
+                entry.setdefault("items", {})[str(item)] = got["name"]
         if drops:
             entry["drops"] = drops
         quests[qid] = entry
@@ -325,14 +326,23 @@ def build():
     place = chains(quests)
     paid = full_xp()
     goals = objectives()
-    lines = []
+    lines, unnumbered = [], 0
     for qid in sorted(quests, key=int):
         drops = quests[qid].get("drops", {})
         for name in drops:
             assert ";" not in name and "=" not in name, name
+        # Each drop's item ID, from the IDs the quest asks for, so a client in another language can
+        # find the drop by the game's own name for it. A name two of its items share gets none.
+        ids = {}
+        for iid, name in quests[qid].get("items", {}).items():
+            ids.setdefault(name, set()).add(int(iid))
         text = ("%d,%d" % place[qid]) if qid in place else ""
-        text += "".join(";%s=%s" % (name, chance if isinstance(chance, str) else ("%g" % chance))
-                        for name, chance in sorted(drops.items()))
+        for name, chance in sorted(drops.items()):
+            text += ";%s=%s" % (name, chance if isinstance(chance, str) else ("%g" % chance))
+            if len(ids.get(name, ())) == 1:
+                text += ":%d" % next(iter(ids[name]))
+            else:
+                unnumbered += 1
         for kind, amount, name in goals.get(qid, []):
             text += "|%s%d=%s" % (kind, amount, name)
         if qid in paid:
@@ -346,7 +356,8 @@ def build():
         "-- Forever (data from Efficient Games, https://efficient.games, CC BY 4.0); their drop chances from",
         "-- Wowhead Forever. Each quest: \"k,n;Item=chance;...\", its place in its chain (empty when it",
         "-- stands alone) and the best drop chance, in percent, of each item it asks for (\"w\": Wowhead's",
-        "-- from creatures, \"o\": Wowhead's from objects opened, \"p\": EG Link's pooled with jsal.ui's Drop log, \"j\": the Drop log's). Then \"#xp@level\": the full XP it pays and",
+        "-- from creatures, \"o\": Wowhead's from objects opened, \"p\": EG Link's pooled with jsal.ui's Drop log, \"j\": the Drop log's),",
+        "-- then \":ID\", the item's ID, so another language's client finds it by its own name. Then \"#xp@level\": the full XP it pays and",
         "-- its level, from the game's QuestXP table (data/quests/QuestXP.csv) and EG Link's reward tiers.",
         "-- Before it: \"|i10=Item\" or \"|k6=Creature\" for each objective, for a quest not taken yet (EG Link).",
         "local _, ns = ...",
@@ -354,7 +365,7 @@ def build():
     ]
     OUT.write_bytes(("\r\n".join(head + lines + ["}", ""])).encode("utf-8"))
     print(f"wrote {len(lines)} quests ({sum(1 for q in place)} in chains) to {OUT.relative_to(ROOT)}, "
-          f"{OUT.stat().st_size // 1024} KB")
+          f"{OUT.stat().st_size // 1024} KB; {unnumbered} drop chances with no item ID")
 
 
 if __name__ == "__main__":
