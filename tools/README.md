@@ -52,7 +52,12 @@ calculator code: `abcdefghjkmnpqrstvwzxyilou468-~!` for one point and
 Spell (cut to its ID and NameSubtext_lang columns) as CSV for the build in `SpellData.lua`'s header. After a patch, fetch them again and run
 `python -I tools\build_spells.py <version>`. A spell's level is SpellLevel (BaseLevel when that's
 empty). Prices aren't in the files; the addon saves each class trainer's list when it opens, and
-once a class has one, only spells a trainer lists are shown.
+once a class has one, only spells a trainer lists are shown. `python -I tools\bake_prices.py <a copy of
+jsalUI.lua>` bakes those visits into `data\prices\trainers.json` for `build_spells.py` to ship. The saved
+file keeps only each trainer's latest visit, and a revisit at a better standing is saved at a discount, so
+the bake is merged into the trainers.json already there: each price is the higher of the two, a price
+that went up is taken, and trainers and rows are added but never dropped. It prints, by trainer, what it
+kept higher, raised and added, which is what the diff of trainers.json should show.
 
 Prices no visit has, the weapon masters and what each teaches, and one pet trainer come from every
 trainer players opened on Forever, in
