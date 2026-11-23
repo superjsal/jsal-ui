@@ -1,7 +1,80 @@
 {
 "about": "Every vendor players opened on WoW Forever, from EG Link output: World of Warcraft: Forever (https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games (https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); merged across live builds and reduced to name, spots, repairs and what each sells, with prices, by tools/refresh_eglink.py.",
-"revision": "5d76a9e5bbba33b97a98774103ccc607ad2463c1",
+"revision": "423d6c9645cd102406782e7400805a7c738e2d69",
 "vendors": {
+"10361": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "Gruul Darkblade",
+"positions": [
+{
+"mapX": 0.2229,
+"mapY": 0.5116,
+"uiMap": 1447
+}
+],
+"repairs": true,
+"sells": {
+"2528": {
+"costs": {
+"6": 46653
+},
+"name": "Falchion",
+"stack": 1
+},
+"2529": {
+"costs": {
+"6": 58528
+},
+"name": "Zweihander",
+"stack": 1
+},
+"2530": {
+"costs": {
+"6": 46998
+},
+"name": "Francisca",
+"stack": 1
+},
+"2531": {
+"costs": {
+"6": 50553
+},
+"name": "Great Axe",
+"stack": 1
+},
+"2532": {
+"costs": {
+"6": 47348
+},
+"name": "Morning Star",
+"stack": 1
+},
+"2533": {
+"costs": {
+"6": 54997
+},
+"name": "War Maul",
+"stack": 1
+},
+"2534": {
+"costs": {
+"6": 40888
+},
+"name": "Rondel",
+"stack": 1
+},
+"2535": {
+"costs": {
+"6": 55401
+},
+"name": "War Staff",
+"stack": 1
+}
+}
+},
 "10369": {
 "builds": [
 "1.60.1.70840"
@@ -401,6 +474,271 @@
 }
 }
 },
+"11118": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "Innkeeper Vizzie",
+"positions": [
+{
+"mapX": 0.6132,
+"mapY": 0.3883,
+"uiMap": 1452
+}
+],
+"repairs": false,
+"sells": {
+"117": {
+"costs": {
+"5": 25
+},
+"name": "Tough Jerky",
+"stack": 5
+},
+"1179": {
+"costs": {
+"5": 125
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"5": 500
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"5": 25
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"5": 2000
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"5": 1000
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"22324": {
+"costs": {
+"5": 4000
+},
+"name": "Winter Kimchi",
+"stack": 5
+},
+"2287": {
+"costs": {
+"5": 125
+},
+"name": "Haunch of Meat",
+"stack": 5
+},
+"3770": {
+"costs": {
+"5": 500
+},
+"name": "Mutton Chop",
+"stack": 5
+},
+"3771": {
+"costs": {
+"5": 1000
+},
+"name": "Wild Hog Shank",
+"stack": 5
+},
+"4599": {
+"costs": {
+"5": 2000
+},
+"name": "Cured Ham Steak",
+"stack": 5
+},
+"8766": {
+"costs": {
+"5": 4000
+},
+"name": "Morning Glory Dew",
+"stack": 5
+},
+"8952": {
+"costs": {
+"5": 4000
+},
+"name": "Roasted Quail",
+"stack": 5
+}
+}
+},
+"11185": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "Xizzer Fizzbolt",
+"positions": [
+{
+"mapX": 0.6084,
+"mapY": 0.3854,
+"uiMap": 1452
+}
+],
+"repairs": false,
+"sells": {
+"10647": {
+"costs": {
+"5": 2000
+},
+"name": "Engineer's Ink",
+"stack": 1
+},
+"10648": {
+"costs": {
+"5": 500
+},
+"name": "Blank Parchment",
+"stack": 1
+},
+"16046": {
+"costs": {
+"5": 16000
+},
+"name": "Schematic: Masterwork Target Dummy",
+"stack": 1
+},
+"16047": {
+"costs": {
+"5": 16000
+},
+"name": "Schematic: Thorium Tube",
+"stack": 1
+},
+"16050": {
+"costs": {
+"5": 20000
+},
+"name": "Schematic: Delicate Arcanite Converter",
+"stack": 1
+},
+"2880": {
+"costs": {
+"5": 100
+},
+"name": "Weak Flux",
+"stack": 1
+},
+"2901": {
+"costs": {
+"5": 10
+},
+"name": "Mining Pick",
+"stack": 1
+},
+"3466": {
+"costs": {
+"5": 2000
+},
+"name": "Strong Flux",
+"stack": 1
+},
+"4357": {
+"costs": {
+"5": 16
+},
+"limited": true,
+"name": "Rough Blasting Powder",
+"stack": 1,
+"stockMax": 3
+},
+"4364": {
+"costs": {
+"5": 48
+},
+"limited": true,
+"name": "Coarse Blasting Powder",
+"stack": 1,
+"stockMax": 3
+},
+"4399": {
+"costs": {
+"5": 200
+},
+"name": "Wooden Stock",
+"stack": 1
+},
+"4400": {
+"costs": {
+"5": 2000
+},
+"name": "Heavy Stock",
+"stack": 1
+},
+"5956": {
+"costs": {
+"5": 18
+},
+"name": "Blacksmith Hammer",
+"stack": 1
+}
+}
+},
+"11188": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "Evie Whirlbrew",
+"positions": [
+{
+"mapX": 0.6078,
+"mapY": 0.378,
+"uiMap": 1452
+}
+],
+"repairs": false,
+"sells": {
+"18256": {
+"costs": {
+"5": 30000
+},
+"name": "Imbued Vial",
+"stack": 5
+},
+"3371": {
+"costs": {
+"5": 20
+},
+"name": "Empty Vial",
+"stack": 5
+},
+"3372": {
+"costs": {
+"5": 200
+},
+"name": "Leaded Vial",
+"stack": 5
+},
+"8925": {
+"costs": {
+"5": 2500
+},
+"name": "Crystal Vial",
+"stack": 5
+}
+}
+},
 "1146": {
 "builds": [
 "1.60.1.70888",
@@ -408,12 +746,12 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-23",
 "name": "Vharr",
 "positions": [
 {
-"mapX": 0.323,
-"mapY": 0.2795,
+"mapX": 0.3233,
+"mapY": 0.2796,
 "uiMap": 1434
 }
 ],
@@ -3955,7 +4293,7 @@
 "1.60.1.70938",
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-22",
+"lastSeen": "2026-11-23",
 "name": "Carla Granger",
 "positions": [
 {
@@ -5875,12 +6213,12 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-22",
 "name": "Sranda",
 "positions": [
 {
-"mapX": 0.0305,
-"mapY": 0.4742,
+"mapX": 0.0292,
+"mapY": 0.4743,
 "uiMap": 1418
 }
 ],
@@ -10385,19 +10723,15 @@
 "1.60.1.70425",
 "1.60.1.70450",
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-22",
 "name": "Edwin Harly",
 "positions": [
 {
-"mapX": 0.4404,
-"mapY": 0.3998,
-"uiMap": 1421
-},
-{
-"mapX": 0.4396,
-"mapY": 0.3981,
+"mapX": 0.4398,
+"mapY": 0.3996,
 "uiMap": 1421
 }
 ],
@@ -10545,7 +10879,7 @@
 "limited": true,
 "name": "Lesser Healing Potion",
 "stack": 1,
-"stockMax": 1
+"stockMax": 2
 }
 }
 },
@@ -10555,12 +10889,17 @@
 "1.60.1.70938",
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-22",
 "name": "Rix Xizzix",
 "positions": [
 {
-"mapX": 0.2851,
-"mapY": 0.7577,
+"mapX": 0.2847,
+"mapY": 0.7578,
+"uiMap": 1434
+},
+{
+"mapX": 0.2852,
+"mapY": 0.7569,
 "uiMap": 1434
 }
 ],
@@ -11416,8 +11755,8 @@
 "name": "Innkeeper Anderson",
 "positions": [
 {
-"mapX": 0.511,
-"mapY": 0.5893,
+"mapX": 0.5111,
+"mapY": 0.5898,
 "uiMap": 1424
 }
 ],
@@ -11553,14 +11892,15 @@
 },
 "2364": {
 "builds": [
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-22",
 "name": "Neema",
 "positions": [
 {
-"mapX": 0.511,
-"mapY": 0.5917,
+"mapX": 0.5109,
+"mapY": 0.5915,
 "uiMap": 1424
 }
 ],
@@ -11690,6 +12030,124 @@
 "6": 3600
 },
 "name": "Homemade Cherry Pie",
+"stack": 5
+}
+}
+},
+"2365": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-22",
+"name": "Bront Coldcleave",
+"positions": [
+{
+"mapX": 0.4883,
+"mapY": 0.5727,
+"uiMap": 1424
+}
+],
+"repairs": false,
+"sells": {
+"117": {
+"costs": {
+"6": 23
+},
+"name": "Tough Jerky",
+"stack": 5
+},
+"2287": {
+"costs": {
+"6": 113
+},
+"name": "Haunch of Meat",
+"stack": 5
+},
+"3770": {
+"costs": {
+"6": 450
+},
+"name": "Mutton Chop",
+"stack": 5
+},
+"3771": {
+"costs": {
+"6": 900
+},
+"name": "Wild Hog Shank",
+"stack": 5
+},
+"4599": {
+"costs": {
+"6": 1800
+},
+"name": "Cured Ham Steak",
+"stack": 5
+},
+"8952": {
+"costs": {
+"6": 3600
+},
+"name": "Roasted Quail",
+"stack": 5
+}
+}
+},
+"2366": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-22",
+"name": "Barkeep Kelly",
+"positions": [
+{
+"mapX": 0.5155,
+"mapY": 0.5882,
+"uiMap": 1424
+}
+],
+"repairs": false,
+"sells": {
+"1179": {
+"costs": {
+"6": 113
+},
+"name": "Ice Cold Milk",
+"stack": 5
+},
+"1205": {
+"costs": {
+"6": 450
+},
+"name": "Melon Juice",
+"stack": 5
+},
+"159": {
+"costs": {
+"6": 23
+},
+"name": "Refreshing Spring Water",
+"stack": 5
+},
+"1645": {
+"costs": {
+"6": 1800
+},
+"name": "Moonberry Juice",
+"stack": 5
+},
+"1708": {
+"costs": {
+"6": 900
+},
+"name": "Sweet Nectar",
+"stack": 5
+},
+"8766": {
+"costs": {
+"6": 3600
+},
+"name": "Morning Glory Dew",
 "stack": 5
 }
 }
@@ -16426,12 +16884,12 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-22",
 "name": "Jaquilina Dramet",
 "positions": [
 {
-"mapX": 0.3574,
-"mapY": 0.1066,
+"mapX": 0.3573,
+"mapY": 0.1072,
 "uiMap": 1434
 }
 ],
@@ -22458,18 +22916,14 @@
 },
 "261313": {
 "builds": [
-"1.60.1.70938"
+"1.60.1.70938",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-17",
+"lastSeen": "2026-11-22",
 "name": "Naluk",
 "positions": [
 {
-"mapX": 0.5787,
-"mapY": 0.4583,
-"uiMap": 2548
-},
-{
-"mapX": 0.5798,
+"mapX": 0.5792,
 "mapY": 0.4583,
 "uiMap": 2548
 }
@@ -22663,7 +23117,7 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-22",
 "name": "Old Man Heming",
 "positions": [
 {
@@ -23204,14 +23658,16 @@
 "1.60.1.70790",
 "1.60.1.70840",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-13",
+"lastSeen": "2026-11-23",
 "name": "Winklespark",
 "positions": [
 {
-"mapX": 0.6255,
-"mapY": 0.3759,
+"mapX": 0.6253,
+"mapY": 0.3762,
 "uiMap": 1413
 }
 ],
@@ -23219,42 +23675,48 @@
 "sells": {
 "274021": {
 "costs": {
-"4": 20000
+"4": 20000,
+"5": 20000
 },
 "name": "Barrens Headband",
 "stack": 1
 },
 "274740": {
 "costs": {
-"4": 4068
+"4": 4068,
+"5": 4068
 },
 "name": "Quilted Cloak",
 "stack": 1
 },
 "274741": {
 "costs": {
-"4": 5445
+"4": 5445,
+"5": 5445
 },
 "name": "Rumpled Kilt",
 "stack": 1
 },
 "274742": {
 "costs": {
-"4": 3442
+"4": 3442,
+"5": 3442
 },
 "name": "Ratchet Wristwraps",
 "stack": 1
 },
 "274743": {
 "costs": {
-"4": 6581
+"4": 6581,
+"5": 6581
 },
 "name": "Defective Samophlange",
 "stack": 1
 },
 "274744": {
 "costs": {
-"4": 16516
+"4": 16516,
+"5": 16516
 },
 "name": "Barrens Basher",
 "stack": 1
@@ -23265,12 +23727,12 @@
 "builds": [
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-22",
 "name": "Gezzy Gunkgear",
 "positions": [
 {
-"mapX": 0.2833,
-"mapY": 0.7482,
+"mapX": 0.283,
+"mapY": 0.7483,
 "uiMap": 1434
 }
 ],
@@ -23646,12 +24108,12 @@
 "builds": [
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-22",
 "name": "Cowardly Crosby",
 "positions": [
 {
-"mapX": 0.2701,
-"mapY": 0.8254,
+"mapX": 0.2702,
+"mapY": 0.8257,
 "uiMap": 1434
 }
 ],
@@ -24325,6 +24787,135 @@
 "name": "Prairie Wolf Pup Carrier",
 "stack": 1,
 "stockMax": 1
+}
+}
+},
+"2699": {
+"builds": [
+"1.60.1.70959"
+],
+"lastSeen": "2026-11-22",
+"name": "Rikqiz",
+"positions": [
+{
+"mapX": 0.2845,
+"mapY": 0.7598,
+"uiMap": 1434
+}
+],
+"repairs": false,
+"sells": {
+"10290": {
+"costs": {
+"5": 2500
+},
+"name": "Pink Dye",
+"stack": 1
+},
+"14341": {
+"costs": {
+"5": 5000
+},
+"name": "Rune Thread",
+"stack": 1
+},
+"2320": {
+"costs": {
+"5": 10
+},
+"name": "Coarse Thread",
+"stack": 1
+},
+"2321": {
+"costs": {
+"5": 100
+},
+"name": "Fine Thread",
+"stack": 1
+},
+"2325": {
+"costs": {
+"5": 1000
+},
+"name": "Black Dye",
+"stack": 1
+},
+"2604": {
+"costs": {
+"5": 50
+},
+"name": "Red Dye",
+"stack": 1
+},
+"2605": {
+"costs": {
+"5": 100
+},
+"name": "Green Dye",
+"stack": 1
+},
+"4289": {
+"costs": {
+"5": 50
+},
+"name": "Salt",
+"stack": 1
+},
+"4291": {
+"costs": {
+"5": 500
+},
+"name": "Silken Thread",
+"stack": 1
+},
+"4340": {
+"costs": {
+"5": 350
+},
+"name": "Gray Dye",
+"stack": 1
+},
+"4341": {
+"costs": {
+"5": 500
+},
+"name": "Yellow Dye",
+"stack": 1
+},
+"4342": {
+"costs": {
+"5": 2500
+},
+"name": "Purple Dye",
+"stack": 1
+},
+"6260": {
+"costs": {
+"5": 50
+},
+"name": "Blue Dye",
+"stack": 1
+},
+"6261": {
+"costs": {
+"5": 1000
+},
+"name": "Orange Dye",
+"stack": 1
+},
+"7005": {
+"costs": {
+"5": 10
+},
+"name": "Skinning Knife",
+"stack": 1
+},
+"8343": {
+"costs": {
+"5": 2000
+},
+"name": "Heavy Silken Thread",
+"stack": 1
 }
 }
 },
@@ -26223,7 +26814,7 @@
 "1.60.1.70888",
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-22",
 "name": "Jutak",
 "positions": [
 {
@@ -26236,49 +26827,56 @@
 "sells": {
 "12162": {
 "costs": {
-"4": 3000
+"4": 3000,
+"5": 3000
 },
 "name": "Plans: Hardened Iron Shortsword",
 "stack": 1
 },
 "2520": {
 "costs": {
-"4": 24628
+"4": 24628,
+"5": 24628
 },
 "name": "Broadsword",
 "stack": 1
 },
 "2521": {
 "costs": {
-"4": 30896
+"4": 30896,
+"5": 30896
 },
 "name": "Flamberge",
 "stack": 1
 },
 "2526": {
 "costs": {
-"4": 19336
+"4": 19336,
+"5": 19336
 },
 "name": "Main Gauche",
 "stack": 1
 },
 "2528": {
 "costs": {
-"4": 51836
+"4": 51836,
+"5": 51836
 },
 "name": "Falchion",
 "stack": 1
 },
 "2529": {
 "costs": {
-"4": 65031
+"4": 65031,
+"5": 65031
 },
 "name": "Zweihander",
 "stack": 1
 },
 "2534": {
 "costs": {
-"4": 45431
+"4": 45431,
+"5": 45431
 },
 "name": "Rondel",
 "stack": 1
@@ -26426,6 +27024,65 @@
 "4": 2000
 },
 "name": "Heavy Silken Thread",
+"stack": 1
+}
+}
+},
+"2847": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-22",
+"name": "Jansen Underwood",
+"positions": [
+{
+"mapX": 0.2905,
+"mapY": 0.7544,
+"uiMap": 1434
+}
+],
+"repairs": true,
+"sells": {
+"18567": {
+"costs": {
+"5": 150000
+},
+"name": "Elemental Flux",
+"stack": 1
+},
+"2880": {
+"costs": {
+"5": 100
+},
+"name": "Weak Flux",
+"stack": 1
+},
+"2901": {
+"costs": {
+"5": 10
+},
+"name": "Mining Pick",
+"stack": 1
+},
+"3466": {
+"costs": {
+"5": 2000
+},
+"name": "Strong Flux",
+"stack": 1
+},
+"3857": {
+"costs": {
+"5": 500
+},
+"name": "Coal",
+"stack": 1
+},
+"5956": {
+"costs": {
+"5": 18
+},
+"name": "Blacksmith Hammer",
 "stack": 1
 }
 }
@@ -27115,14 +27772,15 @@
 },
 "3000": {
 "builds": [
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-19",
+"lastSeen": "2026-11-22",
 "name": "Gibbert",
 "positions": [
 {
-"mapX": 0.4406,
-"mapY": 0.073,
+"mapX": 0.44,
+"mapY": 0.0732,
 "uiMap": 1449
 }
 ],
@@ -27252,7 +27910,7 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-23",
 "name": "Fyr Mistrunner",
 "positions": [
 {
@@ -27261,8 +27919,8 @@
 "uiMap": 1456
 },
 {
-"mapX": 0.4094,
-"mapY": 0.5335,
+"mapX": 0.4108,
+"mapY": 0.5352,
 "uiMap": 1456
 }
 ],
@@ -32897,12 +33555,12 @@
 "1.60.1.70938",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-22",
 "name": "Gorina",
 "positions": [
 {
-"mapX": 0.7321,
-"mapY": 0.2669,
+"mapX": 0.732,
+"mapY": 0.2677,
 "uiMap": 1454
 }
 ],
@@ -35137,14 +35795,15 @@
 "builds": [
 "1.60.1.70450",
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-22",
 "name": "Zargh",
 "positions": [
 {
-"mapX": 0.5258,
-"mapY": 0.2985,
+"mapX": 0.5257,
+"mapY": 0.2984,
 "uiMap": 1413
 }
 ],
@@ -35535,14 +36194,15 @@
 "builds": [
 "1.60.1.70790",
 "1.60.1.70862",
-"1.60.1.70888"
+"1.60.1.70888",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-11",
+"lastSeen": "2026-11-22",
 "name": "Ironzar",
 "positions": [
 {
-"mapX": 0.6224,
-"mapY": 0.3753,
+"mapX": 0.6223,
+"mapY": 0.3751,
 "uiMap": 1413
 }
 ],
@@ -35550,56 +36210,64 @@
 "sells": {
 "2024": {
 "costs": {
-"4": 6078
+"4": 6078,
+"5": 6078
 },
 "name": "Espadon",
 "stack": 1
 },
 "2025": {
 "costs": {
-"4": 5304
+"4": 5304,
+"5": 5304
 },
 "name": "Bearded Axe",
 "stack": 1
 },
 "2026": {
 "costs": {
-"4": 6286
+"4": 6286,
+"5": 6286
 },
 "name": "Rock Hammer",
 "stack": 1
 },
 "2027": {
 "costs": {
-"4": 3815
+"4": 3815,
+"5": 3815
 },
 "name": "Scimitar",
 "stack": 1
 },
 "2028": {
 "costs": {
-"4": 5065
+"4": 5065,
+"5": 5065
 },
 "name": "Hammer",
 "stack": 1
 },
 "2029": {
 "costs": {
-"4": 4419
+"4": 4419,
+"5": 4419
 },
 "name": "Cleaver",
 "stack": 1
 },
 "2030": {
 "costs": {
-"4": 5544
+"4": 5544,
+"5": 5544
 },
 "name": "Gnarled Staff",
 "stack": 1
 },
 "2208": {
 "costs": {
-"4": 3650
+"4": 3650,
+"5": 3650
 },
 "name": "Poniard",
 "stack": 1
@@ -36671,7 +37339,7 @@
 "builds": [
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-22",
 "name": "Robert Aebischer",
 "positions": [
 {
@@ -36716,6 +37384,15 @@
 },
 "name": "Scalemail Boots",
 "stack": 1
+},
+"4797": {
+"costs": {
+"6": 3836
+},
+"limited": true,
+"name": "Fiery Cloak",
+"stack": 1,
+"stockMax": 1
 },
 "4798": {
 "costs": {
@@ -37380,14 +38057,15 @@
 },
 "3556": {
 "builds": [
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-07",
+"lastSeen": "2026-11-22",
 "name": "Andrew Hilbert",
 "positions": [
 {
-"mapX": 0.4323,
-"mapY": 0.4078,
+"mapX": 0.4317,
+"mapY": 0.4071,
 "uiMap": 1421
 }
 ],
@@ -38177,8 +38855,8 @@
 "name": "Vrang Wildgore",
 "positions": [
 {
-"mapX": 0.4379,
-"mapY": 0.1221,
+"mapX": 0.438,
+"mapY": 0.1223,
 "uiMap": 1413
 }
 ],
@@ -41003,6 +41681,86 @@
 }
 }
 },
+"4185": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-22",
+"name": "\uc0ec\ub518",
+"positions": [
+{
+"mapX": 0.3814,
+"mapY": 0.4047,
+"uiMap": 1439
+}
+],
+"repairs": true,
+"sells": {
+"16059": {
+"costs": {
+"6": 360
+},
+"name": "\ud3c9\ubc94\ud55c \uac08\uc0c9 \uc154\uce20",
+"stack": 1
+},
+"16060": {
+"costs": {
+"6": 360
+},
+"name": "\ud3c9\ubc94\ud55c \ud770\uc0c9 \uc154\uce20",
+"stack": 1
+},
+"3428": {
+"costs": {
+"6": 360
+},
+"name": "\ud3c9\ubc94\ud55c \ud68c\uc0c9 \uc154\uce20",
+"stack": 1
+},
+"3589": {
+"costs": {
+"6": 519
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \ud5c8\ub9ac\ub760",
+"stack": 1
+},
+"3590": {
+"costs": {
+"6": 521
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \ud314\ubcf4\ud638\uad6c",
+"stack": 1
+},
+"837": {
+"costs": {
+"6": 1012
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \uac11\uc637",
+"stack": 1
+},
+"838": {
+"costs": {
+"6": 1016
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \ubc14\uc9c0",
+"stack": 1
+},
+"839": {
+"costs": {
+"6": 510
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \uc7a5\uac11",
+"stack": 1
+},
+"840": {
+"costs": {
+"6": 768
+},
+"name": "\ub450\uaebc\uc6b4 \ud3b8\ubb3c \uc2e0\ubc1c",
+"stack": 1
+}
+}
+},
 "4191": {
 "builds": [
 "1.60.1.71037"
@@ -41652,6 +42410,105 @@
 },
 "name": "Homemade Cherry Pie",
 "stack": 5
+}
+}
+},
+"4307": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "\ud5ec\ub2e8 \uac8c\uc77c\uc1a1",
+"positions": [
+{
+"mapX": 0.3696,
+"mapY": 0.5641,
+"uiMap": 1439
+}
+],
+"repairs": false,
+"sells": {
+"17062": {
+"costs": {
+"6": 1980
+},
+"name": "\uc870\ub9ac\ubc95: \ubbf8\uc2a4\ub9b4\uc1a1\uc5b4 \uad6c\uc774",
+"stack": 1
+},
+"4603": {
+"costs": {
+"6": 72
+},
+"limited": true,
+"name": "\uc810\ubc15\uc774\ub180\ub798\uae30",
+"stack": 1,
+"stockMax": 5
+},
+"5528": {
+"costs": {
+"6": 720
+},
+"name": "\uc870\ub9ac\ubc95: \uc870\uac1c \uc218\ud504",
+"stack": 1
+},
+"6289": {
+"costs": {
+"6": 18
+},
+"limited": true,
+"name": "\uae34\uc8fc\ub465\uc774\uc9c4\ud759\ud241\ub3d4",
+"stack": 1,
+"stockMax": 5
+},
+"6303": {
+"costs": {
+"6": 18
+},
+"limited": true,
+"name": "\uc904\ubb34\ub2ac\uace0\ub4f1\uc5b4",
+"stack": 1,
+"stockMax": 5
+},
+"6308": {
+"costs": {
+"6": 36
+},
+"limited": true,
+"name": "\ud45c\ubc94\uba54\uae30",
+"stack": 1,
+"stockMax": 5
+},
+"6362": {
+"costs": {
+"6": 72
+},
+"limited": true,
+"name": "\ub3cc\ube44\ub298\ub300\uad6c",
+"stack": 1,
+"stockMax": 5
+},
+"6368": {
+"costs": {
+"6": 360
+},
+"name": "\uc870\ub9ac\ubc95: \ubb34\uc9c0\uac1c\ub0a0\uac1c\ub2e4\ub791\uc5b4 \uad6c\uc774",
+"stack": 1
+},
+"6369": {
+"costs": {
+"6": 1980
+},
+"name": "\uc870\ub9ac\ubc95: \ub3cc\ube44\ub298\ub300\uad6c \uad6c\uc774",
+"stack": 1
+},
+"8959": {
+"costs": {
+"6": 2880
+},
+"limited": true,
+"name": "\uac00\uc2dc\uc9c0\ub290\ub7ec\ubbf8\ub119\uce58",
+"stack": 1,
+"stockMax": 5
 }
 }
 },
@@ -50894,14 +51751,15 @@
 "5886": {
 "builds": [
 "1.60.1.70425",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-22",
 "name": "Gwyn Farrow",
 "positions": [
 {
-"mapX": 0.4404,
-"mapY": 0.3985,
+"mapX": 0.4411,
+"mapY": 0.3968,
 "uiMap": 1421
 }
 ],
@@ -53430,19 +54288,15 @@
 "6739": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-09",
+"lastSeen": "2026-11-22",
 "name": "Innkeeper Bates",
 "positions": [
 {
-"mapX": 0.4321,
-"mapY": 0.4133,
-"uiMap": 1421
-},
-{
-"mapX": 0.4312,
-"mapY": 0.4119,
+"mapX": 0.432,
+"mapY": 0.4134,
 "uiMap": 1421
 }
 ],
@@ -54088,7 +54942,7 @@
 "1.60.1.70862",
 "1.60.1.70959"
 ],
-"lastSeen": "2026-11-20",
+"lastSeen": "2026-11-22",
 "name": "Innkeeper Wiley",
 "positions": [
 {
@@ -55317,14 +56171,15 @@
 },
 "7733": {
 "builds": [
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-22",
 "name": "Innkeeper Fizzgrimble",
 "positions": [
 {
-"mapX": 0.5247,
-"mapY": 0.2797,
+"mapX": 0.525,
+"mapY": 0.2796,
 "uiMap": 1446
 }
 ],
@@ -58941,6 +59796,37 @@
 }
 }
 },
+"9087": {
+"builds": [
+"1.60.1.71037"
+],
+"lastSeen": "2026-11-23",
+"name": "Bashana Runetotem",
+"positions": [
+{
+"mapX": 0.7093,
+"mapY": 0.338,
+"uiMap": 1456
+}
+],
+"repairs": false,
+"sells": {
+"11020": {
+"costs": {
+"6": 9000
+},
+"name": "Evergreen Pouch",
+"stack": 1
+},
+"11022": {
+"costs": {
+"6": 900
+},
+"name": "Packet of Tharlendris Seeds",
+"stack": 1
+}
+}
+},
 "9179": {
 "builds": [
 "1.60.1.70959",
@@ -59226,14 +60112,15 @@
 },
 "9553": {
 "builds": [
-"1.60.1.70425"
+"1.60.1.70425",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-10-16",
+"lastSeen": "2026-11-22",
 "name": "Nadia Vernon",
 "positions": [
 {
-"mapX": 0.4498,
-"mapY": 0.3944,
+"mapX": 0.4497,
+"mapY": 0.394,
 "uiMap": 1421
 }
 ],

@@ -1,6 +1,6 @@
 {
 "about": "Every trainer players opened on WoW Forever, from EG Link output: World of Warcraft: Forever (https://github.com/JIVESCORP/eg-link-output-wowf), data from Efficient Games (https://efficient.games), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); merged across live builds and reduced to name, spots, services, levels and costs by tools/refresh_eglink.py.",
-"revision": "5d76a9e5bbba33b97a98774103ccc607ad2463c1",
+"revision": "423d6c9645cd102406782e7400805a7c738e2d69",
 "trainers": {
 "11025": {
 "builds": [
@@ -4191,14 +4191,15 @@
 "12042": {
 "builds": [
 "1.60.1.70790",
-"1.60.1.70862"
+"1.60.1.70862",
+"1.60.1.70959"
 ],
-"lastSeen": "2026-11-08",
+"lastSeen": "2026-11-22",
 "name": "Loganaar",
 "positions": [
 {
-"mapX": 0.5245,
-"mapY": 0.4036,
+"mapX": 0.5255,
+"mapY": 0.4032,
 "uiMap": 1450
 }
 ],
@@ -5082,6 +5083,7 @@
 },
 "level": 0,
 "name": "Swipe",
+"rankText": "Rank 1",
 "skillRank": 0
 },
 "780": {
@@ -5783,6 +5785,7 @@
 },
 "level": 0,
 "name": "Demoralizing Roar",
+"rankText": "Rank 1",
 "skillRank": 0
 },
 "9901": {
@@ -8510,21 +8513,29 @@
 },
 "1385": {
 "builds": [
-"1.60.1.70790"
+"1.60.1.70790",
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-05",
+"lastSeen": "2026-11-22",
 "name": "Brawn",
 "positions": [
 {
-"mapX": 0.3171,
+"mapX": 0.3181,
 "mapY": 0.2885,
+"uiMap": 1434
+},
+{
+"mapX": 0.3171,
+"mapY": 0.2883,
 "uiMap": 1434
 }
 ],
 "services": {
 "1229432": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Camp Tent",
@@ -8534,7 +8545,8 @@
 },
 "1255075": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Mender's Leather Belt",
@@ -8543,7 +8555,8 @@
 },
 "1255076": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skycaller's Leather Belt",
@@ -8552,7 +8565,8 @@
 },
 "1255077": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skirmisher's Leather Belt",
@@ -8561,7 +8575,8 @@
 },
 "1255078": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Warden's Leather Belt",
@@ -8570,7 +8585,8 @@
 },
 "1255079": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Stalker's Leather Belt",
@@ -8579,7 +8595,8 @@
 },
 "1255080": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Skulker's Leather Belt",
@@ -8588,7 +8605,8 @@
 },
 "1255081": {
 "costs": {
-"5": 2000
+"5": 2000,
+"6": 1800
 },
 "level": 0,
 "name": "Prowler's Leather Belt",
@@ -8597,7 +8615,8 @@
 },
 "1255143": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Moonglow Boots",
@@ -8606,7 +8625,8 @@
 },
 "1255144": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Murloc Scale Shoes",
@@ -8615,7 +8635,8 @@
 },
 "1255145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Dark Leather Boots",
@@ -8624,7 +8645,8 @@
 },
 "1255146": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Black Whelp Slippers",
@@ -8633,7 +8655,8 @@
 },
 "20648": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Medium Leather",
@@ -8642,7 +8665,8 @@
 },
 "20649": {
 "costs": {
-"5": 1000
+"5": 1000,
+"6": 900
 },
 "level": 0,
 "name": "Heavy Leather",
@@ -8651,7 +8675,8 @@
 },
 "2108": {
 "costs": {
-"5": 10
+"5": 10,
+"6": 9
 },
 "level": 1,
 "name": "Apprentice Leatherworking",
@@ -8660,7 +8685,8 @@
 },
 "2153": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Handstitched Leather Pants",
@@ -8669,7 +8695,8 @@
 },
 "2159": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Fine Leather Cloak",
@@ -8678,7 +8705,8 @@
 },
 "2160": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Vest",
@@ -8687,7 +8715,8 @@
 },
 "2161": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Boots",
@@ -8696,7 +8725,8 @@
 },
 "2162": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Embossed Leather Cloak",
@@ -8705,7 +8735,8 @@
 },
 "2165": {
 "costs": {
-"5": 250
+"5": 250,
+"6": 225
 },
 "level": 0,
 "name": "Medium Armor Kit",
@@ -8714,7 +8745,8 @@
 },
 "2166": {
 "costs": {
-"5": 450
+"5": 450,
+"6": 405
 },
 "level": 0,
 "name": "Toughened Leather Armor",
@@ -8723,7 +8755,8 @@
 },
 "2167": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Gray Leather Boots",
@@ -8732,7 +8765,8 @@
 },
 "2168": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Dark Leather Cloak",
@@ -8741,7 +8775,8 @@
 },
 "3104": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 10,
 "name": "Journeyman Leatherworking",
@@ -8751,7 +8786,8 @@
 },
 "3753": {
 "costs": {
-"5": 75
+"5": 75,
+"6": 67
 },
 "level": 0,
 "name": "Handstitched Leather Belt",
@@ -8760,7 +8796,8 @@
 },
 "3756": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Embossed Leather Gloves",
@@ -8769,7 +8806,8 @@
 },
 "3759": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Embossed Leather Pants",
@@ -8778,7 +8816,8 @@
 },
 "3760": {
 "costs": {
-"5": 600
+"5": 600,
+"6": 540
 },
 "level": 0,
 "name": "Hillman's Cloak",
@@ -8787,7 +8826,8 @@
 },
 "3761": {
 "costs": {
-"5": 350
+"5": 350,
+"6": 315
 },
 "level": 0,
 "name": "Fine Leather Tunic",
@@ -8796,7 +8836,8 @@
 },
 "3763": {
 "costs": {
-"5": 300
+"5": 300,
+"6": 270
 },
 "level": 0,
 "name": "Fine Leather Belt",
@@ -8805,7 +8846,8 @@
 },
 "3764": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Leather Gloves",
@@ -8814,7 +8856,8 @@
 },
 "3766": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Belt",
@@ -8823,7 +8866,8 @@
 },
 "3768": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Hillman's Shoulders",
@@ -8832,7 +8876,8 @@
 },
 "3770": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Toughened Leather Gloves",
@@ -8841,7 +8886,8 @@
 },
 "3780": {
 "costs": {
-"5": 750
+"5": 750,
+"6": 675
 },
 "level": 0,
 "name": "Heavy Armor Kit",
@@ -8850,7 +8896,8 @@
 },
 "3816": {
 "costs": {
-"5": 50
+"5": 50,
+"6": 45
 },
 "level": 0,
 "name": "Cured Light Hide",
@@ -8859,7 +8906,8 @@
 },
 "3817": {
 "costs": {
-"5": 200
+"5": 200,
+"6": 180
 },
 "level": 0,
 "name": "Cured Medium Hide",
@@ -8868,7 +8916,8 @@
 },
 "3818": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Cured Heavy Hide",
@@ -8877,7 +8926,8 @@
 },
 "7135": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Dark Leather Pants",
@@ -8886,7 +8936,8 @@
 },
 "9060": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Light Leather Quiver",
@@ -8895,7 +8946,8 @@
 },
 "9062": {
 "costs": {
-"5": 100
+"5": 100,
+"6": 90
 },
 "level": 0,
 "name": "Small Leather Ammo Pouch",
@@ -8904,7 +8956,8 @@
 },
 "9065": {
 "costs": {
-"5": 150
+"5": 150,
+"6": 135
 },
 "level": 0,
 "name": "Light Leather Bracers",
@@ -8913,7 +8966,8 @@
 },
 "9068": {
 "costs": {
-"5": 400
+"5": 400,
+"6": 360
 },
 "level": 0,
 "name": "Light Leather Pants",
@@ -8922,7 +8976,8 @@
 },
 "9074": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Nimble Leather Gloves",
@@ -8931,7 +8986,8 @@
 },
 "9145": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Fletcher's Gloves",
@@ -8940,7 +8996,8 @@
 },
 "9193": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Quiver",
@@ -8949,7 +9006,8 @@
 },
 "9194": {
 "costs": {
-"5": 500
+"5": 500,
+"6": 450
 },
 "level": 0,
 "name": "Heavy Leather Ammo Pouch",
@@ -25584,14 +25642,15 @@
 "1.60.1.70790",
 "1.60.1.70888",
 "1.60.1.70938",
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-22",
 "name": "Karrina Mekenda",
 "positions": [
 {
-"mapX": 0.6743,
-"mapY": 0.367,
+"mapX": 0.6754,
+"mapY": 0.3683,
 "uiMap": 1453
 }
 ],
@@ -35148,14 +35207,15 @@
 "1.60.1.70790",
 "1.60.1.70862",
 "1.60.1.70888",
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-23",
 "name": "Archmage Shymm",
 "positions": [
 {
-"mapX": 0.2249,
-"mapY": 0.1516,
+"mapX": 0.2254,
+"mapY": 0.1496,
 "uiMap": 1456
 }
 ],
@@ -75306,14 +75366,15 @@
 "1.60.1.70790",
 "1.60.1.70888",
 "1.60.1.70938",
-"1.60.1.70959"
+"1.60.1.70959",
+"1.60.1.71037"
 ],
-"lastSeen": "2026-11-18",
+"lastSeen": "2026-11-22",
 "name": "Einris Brightspear",
 "positions": [
 {
 "mapX": 0.6747,
-"mapY": 0.3626,
+"mapY": 0.3621,
 "uiMap": 1453
 }
 ],
@@ -79577,7 +79638,7 @@
 "1.60.1.70959",
 "1.60.1.71037"
 ],
-"lastSeen": "2026-11-21",
+"lastSeen": "2026-11-23",
 "name": "Enyo",
 "positions": [
 {

@@ -64,7 +64,7 @@ ns.TrainerData = {
         { npc = 3064, name = "Gennia Runetotem", map = 1412, x = 0.474, y = 0.628, a = false, h = true, top = 60, lacks = {} },
         { npc = 3597, name = "Mardant Strongoak", map = 1438, x = 0.586, y = 0.404, a = true, h = false, top = 6, lacks = {} },
         { npc = 3602, name = "Kal", map = 1438, x = 0.56, y = 0.614, a = true, h = false, top = 60, lacks = {} },
-        { npc = 12042, name = "Loganaar", map = 1450, x = 0.5245, y = 0.4036, a = true, h = true, top = 60, lacks = {} },
+        { npc = 12042, name = "Loganaar", map = 1450, x = 0.5255, y = 0.4032, a = true, h = true, top = 60, lacks = {} },
         { npc = 251373, name = "Xyton Silverwind", map = 2521, x = 0.417, y = 0.2335, a = true, h = true, top = 6, lacks = {} },
         { npc = 254081, name = "Naeluna Swiftmend", map = 2521, x = 0.4517, y = 0.4432, a = true, h = true, top = 60, lacks = {} },
         { npc = 262560, name = "Hana Lighthoof", map = 1412, x = 0.3343, y = 0.2214, a = false, h = true, top = 60, lacks = {} },

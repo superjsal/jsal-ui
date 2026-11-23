@@ -20,6 +20,7 @@
 "1024": "Bluegill Murloc",
 "10323": "Murkdeep",
 "1034": "Dragonmaw Raider",
+"10363": "General Drakkisath",
 "1037": "Dragonmaw Battlemaster",
 "1040": "Fen Creeper",
 "1051": "Dark Iron Dwarf",
@@ -44,12 +45,15 @@
 "1115": "Rockjaw Skullthumper",
 "1117": "Rockjaw Bonesnapper",
 "1123": "Frostmane Headhunter",
+"11261": "Doctor Theolen Krastinov",
 "1127": "Elder Crag Boar",
 "11318": "Ragefire Trogg",
 "11319": "Ragefire Shaman",
 "114": "Harvest Watcher",
 "1142": "Mosh'Ogg Brute",
 "1144": "Mosh'Ogg Witch Doctor",
+"11486": "Prince Tortheldrin",
+"11496": "Immol'thar",
 "11518": "Jergosh the Invoker",
 "11519": "Bazzalan",
 "11559": "Outcast Necromancer",
@@ -489,6 +493,8 @@
 "426": "Redridge Brute",
 "430": "Redridge Mystic",
 "4328": "Firemane Scalebane",
+"4329": "Firemane Scout",
+"4331": "Firemane Ash Tail",
 "435": "Blackrock Champion",
 "4466": "Vilebranch Scalper",
 "4467": "Vilebranch Soothsayer",
@@ -656,7 +662,9 @@
 "822": "Young Forest Bear",
 "8518": "Rynthariel the Keymaster",
 "858": "Sorrow Spinner",
+"8596": "Plaguehound Runt",
 "8597": "Plaguehound",
+"8598": "Frenzied Plaguehound",
 "8601": "Noxious Plaguebat",
 "8612": "Screecher Spirit",
 "8890": "Anvilrage Warden",
@@ -682,6 +690,7 @@
 "9237": "War Master Voone",
 "9318": "Incendosaur",
 "937": "Kurzen Jungle Fighter",
+"9376": "Blazerunner",
 "938": "Kurzen Commando",
 "939": "Kurzen Elite",
 "941": "Kurzen Headshrinker",
@@ -8155,6 +8164,13 @@
 ]
 },
 "1661": {
+"level": 40,
+"xp": [
+0,
+1.0
+]
+},
+"1662": {
 "level": 40,
 "xp": [
 0,
@@ -50894,6 +50910,20 @@
 1.0
 ]
 },
+"81873": {
+"level": 52,
+"obj": [
+[
+"k",
+221398,
+1
+]
+],
+"xp": [
+4,
+1.0
+]
+},
 "81874": {
 "level": 52,
 "obj": [
@@ -55239,6 +55269,30 @@
 [
 "i",
 16706,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+2,
+2.0
+]
+},
+"84197": {
+"items": [
+16686,
+16688
+],
+"level": 60,
+"obj": [
+[
+"i",
+16686,
+1
+],
+[
+"i",
+16688,
 1
 ]
 ],
@@ -61983,6 +62037,37 @@
 2.0
 ]
 },
+"8956": {
+"items": [
+16711,
+16709,
+16708
+],
+"level": 60,
+"next": 8960,
+"obj": [
+[
+"i",
+16711,
+1
+],
+[
+"i",
+16709,
+1
+],
+[
+"i",
+16708,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+7,
+2.0
+]
+},
 "8958": {
 "items": [
 16704,
@@ -62732,6 +62817,30 @@
 1.0
 ]
 },
+"8999": {
+"items": [
+16720,
+16706
+],
+"level": 60,
+"obj": [
+[
+"i",
+16720,
+1
+],
+[
+"i",
+16706,
+1
+]
+],
+"race": 6130900294268439629,
+"xp": [
+2,
+2.0
+]
+},
 "9": {
 "level": 15,
 "obj": [
@@ -62864,6 +62973,37 @@
 [
 "i",
 16679,
+1
+]
+],
+"race": 12261800583900083122,
+"xp": [
+7,
+2.0
+]
+},
+"9018": {
+"items": [
+16682,
+16687,
+16689
+],
+"level": 60,
+"next": 8960,
+"obj": [
+[
+"i",
+16682,
+1
+],
+[
+"i",
+16687,
+1
+],
+[
+"i",
+16689,
 1
 ]
 ],
@@ -79302,6 +79442,14 @@
 1.0
 ]
 },
+"95820": {
+"level": 60,
+"next": 95821,
+"xp": [
+1,
+1.0
+]
+},
 "95821": {
 "items": [
 4234,
@@ -81321,6 +81469,13 @@
 "xp": [
 5,
 2.2
+]
+},
+"96383": {
+"level": 60,
+"xp": [
+0,
+1.0
 ]
 },
 "96390": {
@@ -89402,6 +89557,6 @@
 ]
 }
 },
-"revision": "5d76a9e5bbba33b97a98774103ccc607ad2463c1",
+"revision": "423d6c9645cd102406782e7400805a7c738e2d69",
 "source": "EG Link output: World of Warcraft: Forever (Efficient Games, CC BY 4.0)"
 }
