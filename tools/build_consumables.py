@@ -110,6 +110,9 @@ def ts_objects(path, ids, files):
     objects = {}
     for name, body in re.findall(r"export const (\w+) = ConsumesSpec\.create\(\{(.*?)\}\);", text, re.S):
         fields = {}
+        # A list WoWSims writes across lines (`elixirIds: [` with one item a line) is read as one line,
+        # or its items would be missed.
+        body = re.sub(r"\[[^\]]*\]", lambda m: " ".join(m.group(0).split()), body)
         for line in body.splitlines():
             line = line.strip().rstrip(",")
             spread = re.match(r"^\.\.\.(?:(\w+)\.)?(\w+)$", line)

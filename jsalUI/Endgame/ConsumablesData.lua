@@ -12,7 +12,6 @@ ns.ConsumablesData = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
             { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
             { 250343, "elixir", 1800 },   -- Elixir of Nature Power
-            { 250337, "elixir", 1800 },   -- Elixir of the Owl
             { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
             { 13933, "food", 900 },   -- Lobster Stew
             { 20749, "weapon", 1800 },   -- Brilliant Wizard Oil
@@ -23,6 +22,10 @@ ns.ConsumablesData = {
         },
         ["druid/feralcat"] = {
             { 274274, "flask", 7200 },   -- Flask of Natural Aggression
+            { 250328, "elixir", 1800 },   -- Elixir of Cunning
+            { 250329, "elixir", 1800 },   -- Elixir of the Phalanx
+            { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
+            { 250351, "elixir", 1800 },   -- Elixir of the Grizzly
             { 250072, "food", 900 },   -- Swiftstrike Steak
             { 12643, "weapon", 1800 },   -- Dense Weightstone
             { 13444, "potion", 0 },   -- Major Mana Potion
@@ -41,7 +44,6 @@ ns.ConsumablesData = {
             { 274274, "flask", 7200 },   -- Flask of Natural Aggression
             { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
             { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
-            { 9179, "elixir", 3600 },   -- Elixir of Greater Intellect
             { 250072, "food", 900 },   -- Swiftstrike Steak
             { 18262, "weapon", 1800 },   -- Elemental Sharpening Stone
             { 13444, "potion", 0 },   -- Major Mana Potion
@@ -57,8 +59,6 @@ ns.ConsumablesData = {
         ["mage/dps"] = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
             { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
-            { 13447, "elixir", 3600 },   -- Elixir of the Sages
-            { 250348, "elixir", 1800 },   -- Elixir of the Whale
             { 20007, "elixir", 3600 },   -- Mageblood Elixir
             { 13931, "food", 900 },   -- Nightfin Soup
             { 20749, "weapon", 1800 },   -- Brilliant Wizard Oil
@@ -73,8 +73,6 @@ ns.ConsumablesData = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
             { 21546, "elixir", 1800 },   -- Elixir of Holy Power
             { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
-            { 250337, "elixir", 1800 },   -- Elixir of the Owl
-            { 250338, "elixir", 1800 },   -- Elixir of Sages
             { 250335, "elixir", 1800 },   -- Elixir of Greater Fortitude
             { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
             { 13445, "elixir", 3600 },   -- Elixir of Greater Defense
@@ -87,10 +85,13 @@ ns.ConsumablesData = {
             { 18588, "explosive", 0 },   -- Ez-Thro Dynamite II
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
             { 12460, "extra", 600 },   -- Juju Might
-            { 10307, "extra", 1800 },   -- Scroll of Stamina IV
         },
         ["priest/dps"] = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
+            { 9264, "elixir", 1800 },   -- Elixir of Shadow Power
+            { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
+            { 250328, "elixir", 1800 },   -- Elixir of Cunning
+            { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
             { 13931, "food", 900 },   -- Nightfin Soup
             { 20749, "weapon", 1800 },   -- Brilliant Wizard Oil
             { 13444, "potion", 0 },   -- Major Mana Potion
@@ -98,6 +99,10 @@ ns.ConsumablesData = {
             { 12662, "rune", 0 },   -- Demonic Rune
         },
         ["priest/healer"] = {
+            { 250351, "elixir", 1800 },   -- Elixir of the Grizzly
+            { 250328, "elixir", 1800 },   -- Elixir of Cunning
+            { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
+            { 250333, "elixir", 1800 },   -- Greater Cleric's Elixir
             { 249869, "food", 900 },   -- Sunny Tea
             { 20748, "weapon", 1800 },   -- Brilliant Mana Oil
             { 13444, "potion", 0 },   -- Major Mana Potion
@@ -107,7 +112,6 @@ ns.ConsumablesData = {
             { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
             { 250335, "elixir", 1800 },   -- Elixir of Greater Fortitude
             { 250350, "elixir", 1800 },   -- Elixir of Ferocity
-            { 12460, "elixir", 600 },   -- Juju Might
             { 250072, "food", 900 },   -- Swiftstrike Steak
             { 12643, "weapon", 1800 },   -- Dense Weightstone
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
@@ -115,17 +119,16 @@ ns.ConsumablesData = {
             { 8985, "weapon", 0 },   -- Deadly Poison IV
             { 250943, "potion", 0 },   -- Major Frenzy Potion
             { 7676, "rune", 0 },   -- Thistle Tea
+            { 12460, "extra", 600 },   -- Juju Might
         },
         ["shaman/enhancement"] = {
             { 13512, "flask", 7200 },   -- Flask of Supreme Power
             { 250343, "elixir", 1800 },   -- Elixir of Nature Power
             { 13454, "elixir", 3600 },   -- Greater Arcane Elixir
             { 250351, "elixir", 1800 },   -- Elixir of the Grizzly
-            { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
-            { 250337, "elixir", 1800 },   -- Elixir of the Owl
-            { 250338, "elixir", 1800 },   -- Elixir of Sages
             { 250341, "elixir", 1800 },   -- Greater Mageblood Elixir
             { 12820, "elixir", 1200 },   -- Winterfall Firewater
+            { 9187, "elixir", 3600 },   -- Elixir of Greater Agility
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13444, "potion", 0 },   -- Major Mana Potion
@@ -149,34 +152,46 @@ ns.ConsumablesData = {
             { 18588, "explosive", 0 },   -- Ez-Thro Dynamite II
         },
         ["warrior/dps"] = {
-            { 250350, "elixir", 1800 },   -- Elixir of Ferocity
             { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
-            { 12820, "elixir", 1200 },   -- Winterfall Firewater
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
             { 12643, "weapon", 1800 },   -- Dense Weightstone
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13442, "potion", 0 },   -- Mighty Rage Potion
             { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
+            { 12451, "extra", 1800 },   -- Juju Power
+            { 12460, "extra", 600 },   -- Juju Might
+            { 5206, "extra", 600 },   -- Bogling Root
+            { 8410, "extra", 3600 },   -- R.O.I.D.S.
         },
         ["warrior/dps:arms"] = {
-            { 250350, "elixir", 1800 },   -- Elixir of Ferocity
             { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
-            { 12820, "elixir", 1200 },   -- Winterfall Firewater
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
             { 12404, "weapon", 1800 },   -- Dense Sharpening Stone
             { 13442, "potion", 0 },   -- Mighty Rage Potion
             { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
+            { 12451, "extra", 1800 },   -- Juju Power
+            { 12460, "extra", 600 },   -- Juju Might
+            { 5206, "extra", 600 },   -- Bogling Root
+            { 8410, "extra", 3600 },   -- R.O.I.D.S.
         },
         ["warrior/protection"] = {
+            { 13452, "elixir", 1800 },   -- Elixir of the Mongoose
+            { 9088, "elixir", 1800 },   -- Gift of Arthas
+            { 250335, "elixir", 1800 },   -- Elixir of Greater Fortitude
+            { 13445, "elixir", 3600 },   -- Elixir of Greater Defense
             { 20452, "food", 900 },   -- Smoked Desert Dumplings
-            { 12643, "weapon", 1800 },   -- Dense Weightstone
+            { 3241, "weapon", 1800 },   -- Heavy Weightstone
             { 250943, "potion", 0 },   -- Major Frenzy Potion
             { 9421, "rune", 0 },   -- Major Healthstone
             { 260814, "explosive", 0 },   -- SAF-T Clever Dynamite
             { 10646, "extra", 0 },   -- Goblin Sapper Charge
             { 17048, "extra", 900 },   -- Rumsey Rum
+            { 12451, "extra", 1800 },   -- Juju Power
+            { 12460, "extra", 600 },   -- Juju Might
+            { 5206, "extra", 600 },   -- Bogling Root
+            { 8410, "extra", 3600 },   -- R.O.I.D.S.
         },
     },
     trees = {
