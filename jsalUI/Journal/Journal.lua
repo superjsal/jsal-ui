@@ -157,6 +157,26 @@ local function Characters()
 end
 Journal.Characters = Characters
 
+-- The reputation this character shows as its XP bar, for its card at 60:
+-- the faction's ID, its name as the game gave it, the standing as a number
+-- (1 Hated to 8 Exalted, so the card takes its word from the game, in the
+-- player's language), how far through that standing, and the character's
+-- sex, for the word's form. False: looked, and none is shown. Nil: the
+-- game had no answer, so what was saved stays. Read again only after
+-- UPDATE_FACTION says something changed.
+local repDirty = true
+local function WatchedRep()
+    local get = C_Reputation and C_Reputation.GetWatchedFactionData
+    if not get then return nil end
+    local ok, d = pcall(get)
+    if not ok then return nil end
+    if type(d) ~= "table" or not d.factionID or d.factionID == 0 then return false end
+    local low, at = d.currentReactionThreshold or 0, d.currentStanding or 0
+    local sex = UnitSex and UnitSex("player")
+    return { id = d.factionID, name = d.name, reaction = d.reaction, have = at - low,
+             need = (d.nextReactionThreshold or low) - low, sex = sex }
+end
+
 -- `leaving`: you're logging out, or reloading. The game then answers with
 -- nothing (no gold, an XP bar of 0, no rested XP, no professions), and
 -- saving that wiped the character's line: every character but the one you
@@ -185,6 +205,10 @@ function Journal.SaveCharacter(leaving)
     c.rested = GetXPExhaustion and (GetXPExhaustion() or 0) or c.rested
     c.resting = IsResting and IsResting() or false
     c.professions = profs
+    if repDirty then
+        local rep = WatchedRep()
+        if rep ~= nil then c.rep, repDirty = rep, false end
+    end
     c.guild = Compat.GuildName()
     c.updated = Compat.ServerTime()
     Characters()[name] = c
@@ -533,7 +557,7 @@ function Journal:OnEnable()
                              "MERCHANT_SHOW", "MERCHANT_CLOSED", "MAIL_SHOW", "MAIL_CLOSED",
                              "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED", "TRADE_SHOW", "TRADE_CLOSED",
                              "PLAYER_LOGOUT", "ZONE_CHANGED_NEW_AREA", "PLAYER_UPDATE_RESTING", "PLAYER_XP_UPDATE",
-                             "ENCOUNTER_START", "PLAYER_ENTERING_WORLD", "ENCOUNTER_LOOT_RECEIVED" }) do
+                             "ENCOUNTER_START", "PLAYER_ENTERING_WORLD", "ENCOUNTER_LOOT_RECEIVED", "UPDATE_FACTION" }) do
         pcall(f.RegisterEvent, f, event)
     end
     local windows = { MERCHANT_SHOW = "vendor", MAIL_SHOW = "mail", AUCTION_HOUSE_SHOW = "auction", TRADE_SHOW = "trade" }
@@ -585,6 +609,10 @@ function Journal:OnEnable()
             Journal.Nights.Where()
         elseif event == "SKILL_LINES_CHANGED" then
             CheckRanks()
+        elseif event == "UPDATE_FACTION" then
+            -- It comes in bursts (every reputation gained, a dozen at login): the watched one is read
+            -- again at the next save, once a minute or when the Characters tab opens.
+            repDirty = true
         elseif event == "PLAYER_GUILD_UPDATE" then
             Journal.GuildChanged()
         elseif windows[event] then

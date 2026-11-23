@@ -81,6 +81,7 @@ function Pretend.Characters()
     made[me] = mine
     made.Corwen = { name = "Corwen", class = "Mage", classFile = "MAGE", level = LEVEL, zone = "Undercity", money = 882000,
                     professions = { { name = "Alchemy", skill = 300, cap = 300 }, { name = "Herbalism", skill = 300, cap = 300 } },
+                    rep = { id = 529, name = "Argent Dawn", reaction = 6, have = 4200, need = 12000 },
                     cooldowns = { ["Transmute"] = now + 33 * 3600 }, updated = now - 86400 }
     made.Liesl = { name = "Liesl", class = "Priest", classFile = "PRIEST", level = LEVEL, zone = "Blackrock Mountain", money = 412000,
                    professions = { { name = "Tailoring", skill = 300, cap = 300 }, { name = "Alchemy", skill = 285, cap = 300 } },
