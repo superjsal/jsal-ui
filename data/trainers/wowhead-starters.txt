@@ -1,6 +1,16 @@
 # Class trainers in the starting areas and their first towns that neither Wowhead's class lists
 # (trainers.txt) nor players' openings (eglink-trainers.json) have, each from its own NPC page on
-# Wowhead Forever: npc|name|tag|alliance|horde|c<class>|uiMapID|x|y|top. The title, the "React" line
+# Wowhead Forever, read 2026-11-23: npc|name|tag|alliance|horde|c<class>|uiMapID|x|y|top. The title, the "React" line
 # (1 friendly, -1 hostile, blank none, as in trainers.txt), the first map spot (0 to 100, on the uiMap
 # the page names) and top, the highest level on its Trainer tab. A row with no top (a page listing
 # nothing it teaches) is left out by tools/build_trainers.py, which prints it.
+911|Llane Beshere|Warrior Trainer|1||c1|1429|50.2|42.2|6
+913|Lyria Du Lac|Warrior Trainer|1||c1|1429|41|65.8|60
+915|Jorik Kerridan|Rogue Trainer|1||c4|1429|50.4|39.8|6
+917|Keryn Sylvius|Rogue Trainer|1||c4|1429|43.8|65.8|60
+925|Brother Sammuel|Paladin Trainer|1||c2|1429|50.4|42|6
+927|Brother Wilhelm|Paladin Trainer|1|-1|c2|1429|41|66|60
+459|Drusilla La Salle|Warlock Trainer|1||c9|1429|49.8|42.6|6
+906|Maximillian Crowe|Warlock Trainer|1||c9|1429|44.4|66|60
+912|Thran Khorman|Warrior Trainer|1||c1|1426|28.8|67.2|6
+1229|Granis Swiftaxe|Warrior Trainer|1||c1|1426|47.2|52.4|60
