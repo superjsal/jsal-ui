@@ -25,6 +25,15 @@ local MAX_EVENTS = 400
 -- Repeating attacks aren't "casts" worth counting.
 local NOT_CASTS = { [75] = true, [6603] = true, [5019] = true }
 
+-- A move of your own is one your spellbook holds. The game also "casts"
+-- spells every character knows that no spellbook shows (one at login,
+-- opening a chest or a door), and items' own spells, which you don't know.
+local function OwnMove(spell)
+    local book = C_SpellBook
+    if book and book.IsSpellInSpellBook then return book.IsSpellInSpellBook(spell) == true end
+    return not IsPlayerSpell or IsPlayerSpell(spell)
+end
+
 ---------------------------------------------------------------------------
 -- Saved: this character's journal, and a line per character for the
 -- account.
@@ -548,9 +557,7 @@ function Journal:OnEnable()
         -- In a dungeon a chat line, a boss's name or a spell can be hidden.
         a, b, c, e = Compat.Plains(a, b, c, e)
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            -- Only spells you know: the game also "casts" hidden effects,
-            -- such as one at login, and items' own spells.
-            if a == "player" and c and not NOT_CASTS[c] and (not IsPlayerSpell or IsPlayerSpell(c)) then
+            if a == "player" and c and not NOT_CASTS[c] and OwnMove(c) then
                 local name = Compat.SpellInfo(c)
                 if name then
                     local spells = Book().spells
