@@ -148,6 +148,7 @@ Dungeons\Dungeons.lua
 Dungeons\GuildLoot.lua
 Dungeons\DungeonMaps.lua
 Dungeons\Map.lua
+Dungeons\GuideList.lua
 Dungeons\GuideCards.lua
 Dungeons\GuideQuests.lua
 Dungeons\Page.lua
