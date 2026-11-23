@@ -50,26 +50,37 @@ end
 -- Where a spell no class trainer sells comes from: its words on a line, and
 -- its tooltip line.
 local VIA = {
-    quest = { card = "Class quest", tag = "Quest", hint = "Learned from a class quest, not a trainer." },
-    book = { card = "Book", tag = "Book", hint = "Learned from a book that drops, not a trainer." },
-    portal = { card = "Portal trainer", tag = "Portal", hint = "Taught by a mage portal trainer, in a capital city." },
+    quest = { card = "Class quest", tag = "Quest", hint = "Learned from a class quest, not a trainer" },
+    book = { card = "Book", tag = "Book", hint = "Learned from a book that drops, not a trainer" },
+    portal = { card = "Portal trainer", tag = "Portal", hint = "Taught by a mage portal trainer, in a capital city" },
 }
 
 -- Where a spell from elsewhere is got, on its line and in its tooltip. A portal spell whose
 -- trainer is known (its `pin`) names the city on its line, where `city` asks for it, and the
--- trainer in its tooltip; a picture on the road, which pins them when clicked, says so, as a
--- weapon skill's does. Else the words above.
+-- trainer in its tooltip, a line a fact: who, then what they are and where under it; a picture
+-- on the road, which pins them when clicked, says so, as a weapon skill's does. Else the words
+-- above, as one line.
 local function ViaCard(spell, city)
     local zone = city and spell.pin and ns.Trainers and ns.Trainers.Zone(spell.pin)
     return VIA[spell.via].card .. (zone and (" · " .. zone) or "")
 end
 
-local function ViaHint(spell, click)
+local function ViaHint(lines, spell, click)
     local trainer = spell.pin
-    if not trainer then return VIA[spell.via].hint end
+    if not trainer then
+        lines[#lines + 1] = { VIA[spell.via].hint }
+        return
+    end
     local zone = ns.Trainers and ns.Trainers.Zone(trainer)
-    return ("Taught by %s, the portal trainer%s.%s"):format(trainer.name, zone and (" in " .. zone) or "",
-        click and " Click to show them on your map." or "")
+    lines[#lines + 1] = { "Taught by " .. trainer.name }
+    lines[#lines + 1] = { VIA[spell.via].card .. (zone and (", " .. zone) or "") }
+    if click then lines[#lines + 1] = { "Click to show them on your map" } end
+end
+
+-- A spell's tooltip ends on what a right-click does to it.
+local function SkipLine(lines, spell)
+    lines[#lines + 1] = { spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it" }
+    return lines
 end
 
 -- Quest and book spells cost no gold, so they stay out of the totals.
@@ -134,12 +145,13 @@ local function Tooltip(frame)
     frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
 end
 
--- What a road spell's tooltip adds: whose it is, where it comes from, and
--- that a right-click skips it.
+-- What a road spell's tooltip adds, a line a fact: whose it is, where it comes
+-- from, and that a right-click skips it.
 local function Hint(spell)
-    return (spell.group and (spell.source == "demon" and spell.group .. "'s Grimoire. " or spell.group .. ". ") or "")
-        .. (spell.via and (ViaHint(spell, true) .. " ") or "")
-        .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
+    local lines = {}
+    if spell.group then lines[1] = { spell.source == "demon" and spell.group .. "'s Grimoire" or spell.group } end
+    if spell.via then ViaHint(lines, spell, true) end
+    return SkipLine(lines, spell)
 end
 
 -- A quiet button of words (Skip, Unskip) that light up under the pointer:
@@ -992,7 +1004,9 @@ Window.Page("training", function(page)
             end
             c:SetDetail(Detail(true))
             if spell.pin and Style.Wide(c.sub, 0) > room then c:SetDetail(Detail(false)) end
-            c.hint = (spell.via and (ViaHint(spell) .. " ") or "") .. (spell.skipped and "Skipped: right-click to put it back" or "Right-click to skip it")
+            local hint = {}
+            if spell.via then ViaHint(hint, spell) end
+            c.hint = SkipLine(hint, spell)
             if spell.source == "beast" then
                 c.cost:SetText(spell.points and (spell.points .. " TP") or "|cff9a9688? TP|r")
             elseif Free(spell) then
