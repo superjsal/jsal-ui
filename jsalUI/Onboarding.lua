@@ -170,7 +170,12 @@ function Setup.BuildChoices()
     local Tree, classID = Trees()
     if not Tree then return {}, nil end
     local active = Tree.Active()
-    local ready = Tree.Suggested(classID)[1]
+    -- The first ready-made build for levelling: a build for 60 is never offered here, as the
+    -- Build Planner never picks one for you either.
+    local ready
+    for _, build in ipairs(Tree.Suggested(classID)) do
+        if not build.raid then ready = build break end
+    end
     local kept = Kept(Tree, classID, active)
     local list = {}
     if kept then list[#list + 1] = { key = "keep", title = "Keep my build", sub = kept.name, build = kept } end
