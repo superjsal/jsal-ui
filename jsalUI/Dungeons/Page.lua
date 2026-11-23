@@ -253,6 +253,18 @@ end
 -- Right for your level: from the level it's tuned to, up to five above.
 -- More than three below it, it's dimmed.
 local function Fits(d, level) return level >= d.level and level <= d.level + 5 end
+
+-- The guide's dungeons for your side, in its order: of one level, your side's first
+-- (Dungeons.InOrder). The data's own order where the guide's records aren't loaded.
+local function InOrder(faction)
+    local D = ns.Dungeons
+    if D and D.InOrder then return D.InOrder(faction) end
+    local list = {}
+    for _, d in ipairs(ns.DungeonData or {}) do
+        if not d.faction or d.faction == faction then list[#list + 1] = d end
+    end
+    return list
+end
 local function TooHigh(d, level) return d.level > level + 3 end
 
 -- The list's groups, by the level a dungeon is tuned to; raids on their own.
@@ -719,12 +731,10 @@ Window.Page("dungeons", function(page)
         local faction = UnitFactionGroup and UnitFactionGroup("player")
         List.dirty, List.shown = nil, chosen
         local members = {}
-        for _, d in ipairs(ns.DungeonData or {}) do
-            if not d.faction or d.faction == faction then
-                local g = GroupOf(d)
-                members[g] = members[g] or {}
-                table.insert(members[g], d)
-            end
+        for _, d in ipairs(InOrder(faction)) do
+            local g = GroupOf(d)
+            members[g] = members[g] or {}
+            table.insert(members[g], d)
         end
         List.open = List.open or List.Opening(members, level)
         -- A dungeon shown from elsewhere opens its group, and is brought into view.
@@ -2222,11 +2232,9 @@ Window.Page("dungeons", function(page)
         if D.wantBoss then B.jump, B.jumpItem, D.wantBoss, D.wantItem = D.wantBoss, D.wantItem, nil, nil end
         if not chosen then
             local first
-            for _, d in ipairs(ns.DungeonData or {}) do
-                if not d.faction or d.faction == faction then
-                    first = first or d
-                    if Fits(d, level) then chosen = d break end
-                end
+            for _, d in ipairs(InOrder(faction)) do
+                first = first or d
+                if Fits(d, level) then chosen = d break end
             end
             chosen = chosen or first
         end

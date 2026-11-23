@@ -15,6 +15,45 @@ local Dungeons = ns.NewModule("dungeons", {
 })
 ns.Dungeons = Dungeons
 
+-- How much a dungeon is your side's (`faction`, UnitFactionGroup's token): 2 for an entrance on
+-- your side of the world (DungeonData's `side`), and 1 more with a quest for you (DungeonQuests).
+-- The game's table gives some no faction, so both sides may go in and both are told of them; this
+-- only puts yours first among dungeons of the same level.
+function Dungeons.Yours(d, faction)
+    local mine = faction == "Alliance" and 1 or faction == "Horde" and 2 or 0
+    local score = (d.side and d.side == faction) and 2 or 0
+    for _, q in ipairs(ns.DungeonQuests and ns.DungeonQuests[d.id] or {}) do
+        if q[5] == 3 or q[5] == mine then return score + 1 end
+    end
+    return score
+end
+
+-- The guide's dungeons and raids for your side (all but the other faction's own), in
+-- DungeonData's order, except that dungeons of one level stand together where the first of them
+-- is, yours first (Dungeons.Yours), the rest as they were. Kept until the data or the side change.
+local ordered
+function Dungeons.InOrder(faction)
+    local data = ns.DungeonData or {}
+    if ordered and ordered.data == data and ordered.faction == faction then return ordered.list end
+    local at, first, list = {}, {}, {}
+    for i, d in ipairs(data) do
+        if not d.faction or d.faction == faction then
+            local key = (d.raid and "r" or "d") .. d.level
+            first[key] = first[key] or i
+            at[d] = { first[key], Dungeons.Yours(d, faction), i }
+            list[#list + 1] = d
+        end
+    end
+    table.sort(list, function(a, b)
+        local x, y = at[a], at[b]
+        if x[1] ~= y[1] then return x[1] < y[1] end
+        if x[2] ~= y[2] then return x[2] > y[2] end
+        return x[3] < y[3]
+    end)
+    ordered = { data = data, faction = faction, list = list }
+    return list
+end
+
 local BOSS_KILLS = 14821   -- the Statistics window's Boss Kills list
 -- Rolls this soon after a boss dies are its loot.
 local ROLL_WINDOW = 180

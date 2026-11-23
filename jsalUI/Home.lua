@@ -126,13 +126,16 @@ function Today.Gear()
 end
 
 -- The dungeons right for your level (from the level each is tuned to, up to
--- five above), the one nearest your level first; and the next one coming.
+-- five above), the one nearest your level first; and the next one coming. Of two
+-- at one level, your side's comes first (the guide's own order, Dungeons.InOrder).
 function Today.Dungeons()
     if not (ns.Dungeons and ns.Dungeons.running) then return nil end
     local level = UnitLevel("player") or 1
     local faction = UnitFactionGroup("player")
-    local fits, coming = {}, nil
-    for _, d in ipairs(ns.DungeonData or {}) do
+    local fits, coming, place = {}, nil, {}
+    local list = ns.Dungeons.InOrder and ns.Dungeons.InOrder(faction) or ns.DungeonData or {}
+    for i, d in ipairs(list) do
+        place[d] = i
         if not d.raid and (not d.faction or d.faction == faction) then
             if level >= d.level and level <= d.level + 5 then
                 fits[#fits + 1] = d
@@ -141,7 +144,10 @@ function Today.Dungeons()
             end
         end
     end
-    table.sort(fits, function(a, b) return a.level > b.level end)
+    table.sort(fits, function(a, b)
+        if a.level ~= b.level then return a.level > b.level end
+        return place[a] < place[b]
+    end)
     return fits, coming
 end
 
