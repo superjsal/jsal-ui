@@ -458,7 +458,9 @@ local function Build()
             back.letter:SetText("BACK")
             back:SetPoint("TOPLEFT", x, y)
             back:SetScript("OnClick", function()
-                input:SetText(input:GetText():sub(1, -2))
+                -- The last letter, whole: one typed in another alphabet is more than one byte.
+                local typed = input:GetText()
+                input:SetText(ns.CutLetters(typed, ns.Letters(typed) - 1))
                 input:SetFocus()
             end)
         end

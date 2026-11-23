@@ -115,7 +115,8 @@ function Errors.Summary()
             if (e.count or 1) > 1 then notes[#notes + 1] = "x" .. e.count end
             notes[#notes + 1] = Ago(now - (e.at or now))
             local msg = e.msg
-            if #msg > LONGEST then msg = msg:sub(1, LONGEST - 3) .. "..." end
+            -- Between letters: an error can quote the game's words, in any alphabet.
+            if #msg > LONGEST then msg = ns.Cut(msg, LONGEST - 3) .. "..." end
             parts[#parts + 1] = ("%s (%s)"):format(msg, table.concat(notes, ", "))
         end
     end

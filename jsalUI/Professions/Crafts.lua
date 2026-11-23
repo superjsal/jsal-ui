@@ -815,7 +815,7 @@ function C.Find(text, limit)
     text = strtrim(text or ""):lower()
     local first, rest = {}, {}
     -- Under two letters nothing is looked for: none found, of none.
-    if #text < 2 then return first, 0 end
+    if ns.Letters(text) < 2 then return first, 0 end
     for _, entry in ipairs(Names()) do
         local at = entry.lower:find(text, 1, true)
         if at == 1 then first[#first + 1] = entry elseif at then rest[#rest + 1] = entry end
