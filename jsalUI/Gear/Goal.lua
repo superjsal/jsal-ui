@@ -687,7 +687,7 @@ function Goal.RenameSet(key, name)
     local set = Goal.OwnSet(key)
     name = name and name:match("^%s*(.-)%s*$") or ""
     if set and name ~= "" then
-        set.name = name:sub(1, 24)
+        set.name = ns.CutLetters(name, 24)
         Changed()
     end
 end

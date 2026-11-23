@@ -191,7 +191,8 @@ end
 local function Clean(text, limit)
     text = tostring(text or ""):gsub("[;~|%c]", " "):gsub("%s+", " ")
     text = text:match("^%s*(.-)%s*$")
-    return text:sub(1, limit)
+    -- At most `limit` bytes, as the line to the guild carries, cut between letters so none is sent broken.
+    return ns.Cut(text, limit)
 end
 
 local function Line(o)
