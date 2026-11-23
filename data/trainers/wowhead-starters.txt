@@ -54,3 +54,16 @@
 2130|Marion Call|Rogue Trainer||1|c4|1420|61.6|52|60
 2126|Maximillion|Warlock Trainer||1|c9|1420|30.8|66.2|6
 2127|Rupert Boch|Warlock Trainer||1|c9|1420|61.6|52.4|60
+251964|Blademaster Ren|Warrior Trainer|1|1|c1|2521|43.4|24.2|6
+254088|Corsan Earthrazer|Warrior Trainer|1|1|c1|2521|44.8|45.2|60
+252377|Seena Skybreaker|Warrior Trainer|1|1|c1|2521|59.8|72.8|60
+251389|Akeri Duskblade|Rogue Trainer|1|1|c4|2521|43.6|24.2|6
+252379|Eltheen Nightbreeze|Rogue Trainer|1|1|c4|2521|59.8|72.4|60
+254087|Miriaan Mistblade|Rogue Trainer|1|1|c4|2521|43.2|43.2|60
+251379|Dorii Brightwhisper|Mage Trainer|1|-1|c8|2521|41.4|23.6|6
+252373|Anathamaas Aetherwind|Mage Trainer|1|1|c8|2521|65.8|80.4|60
+254086|Shenaan Spellwind|Mage Trainer|1|1|c8|2521|45|45.8|60
+254084|Elayaa Easewind|Hunter Trainer|1|1|c3|2521|45.2|44.2|60
+252389|Quel'ana Quickgale|Hunter Trainer|1|1|c3|2521|59.6|72.6|60
+254082|Aarnor Galestrike|Shaman Trainer|-1|1|c7|2521|43.4|44.8|60
+252382|Sessaria Skystride|Shaman Trainer|-1|1|c7|2521|58.2|78.4|60
