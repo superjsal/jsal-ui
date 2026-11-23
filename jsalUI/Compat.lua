@@ -288,6 +288,17 @@ function Compat.MyLoot(text)
     return false
 end
 
+-- The name the game gives one of your professions, by its skill line (185 Cooking, 129 First Aid), in the
+-- player's language; nil when you don't have it or the game won't say.
+function Compat.ProfessionName(line)
+    if not (GetProfessions and GetProfessionInfo) then return nil end
+    for _, index in pairs({ GetProfessions() }) do
+        local name, _, _, _, _, _, skillLine = GetProfessionInfo(index)
+        if skillLine == line and type(name) == "string" and name ~= "" then return name end
+    end
+    return nil
+end
+
 -- Whether what you have targeted is a rare.
 function Compat.TargetRare()
     if not UnitClassification then return false end

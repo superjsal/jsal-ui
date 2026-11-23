@@ -100,10 +100,14 @@ function Pet:OnEnable()
                 Pet.Found("fishing")
             end
         elseif event == "CHAT_MSG_SKILL" then
-            -- "Your skill in Cooking has increased to 76."
+            -- "Your skill in Cooking has increased to 76.", in the player's language: Cooking and First Aid
+            -- are known by the names the game gives yours, and by their English ones.
             if type(text) == "string" then
-                if text:find("Cooking", 1, true) then Pet.Extra("cooking")
-                elseif text:find("First Aid", 1, true) then Pet.Extra("firstaid") end
+                local cooking, firstAid = Compat.ProfessionName(185), Compat.ProfessionName(129)
+                if text:find("Cooking", 1, true) or (cooking and text:find(cooking, 1, true)) then Pet.Extra("cooking")
+                elseif text:find("First Aid", 1, true) or (firstAid and text:find(firstAid, 1, true)) then
+                    Pet.Extra("firstaid")
+                end
             end
         elseif event == "ZONE_CHANGED_NEW_AREA" then
             -- The game also says this as you log in; that isn't a trip.
