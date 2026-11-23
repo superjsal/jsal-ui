@@ -1,8 +1,8 @@
-"""Downloads Pal run's ground from PixelLab into this folder: for each country a side-on tileset of
-16 tiles, 16 pixels each (create_sidescroller_tileset, 16 Nov 2026), as <land>.png, with <land>.json
+"""Downloads Pal run's ground, from the pals' source art, into this folder: for each country a
+side-on tileset of 16 tiles, 16 pixels each, as <land>.png, with <land>.json
 saying which corners of each tile are ground. And the finish flag, an object, as flag.png. And for
 each country its scenery, 256 by 100, as back_<land>.png: a side view with a ravine across its
-bottom third, drawn with that country's paddock as its style (create_image_pro_flash).
+bottom third, drawn with that country's paddock as its style.
 python -I fetch.py        (skips what's already here; says what isn't ready)"""
 import json
 import urllib.request

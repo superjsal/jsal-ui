@@ -2,7 +2,7 @@
 
     python -I tools/make_pet_hides.py [preview folder]
 
-Reads data/pals/hides/<scene>.png (PixelLab objects, data/pals/hides/fetch.py) and writes
+Reads data/pals/hides/<scene>.png (the pals' source art, one thing a scene) and writes
 jsalUI/Media/Pet/hides.png, 512 by 64: one 48-pixel cell a scene, in the order of SCENES in
 jsalUI/Pet/Play.lua, each thing cut to its own size and standing on its cell's bottom edge, centred.
 Prints each thing's width and height, for Pet.HIDES.size.

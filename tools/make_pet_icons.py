@@ -3,8 +3,8 @@ the bond, and one picture for each care button.
 
     python -I tools/make_pet_icons.py
 
-The heart, the moon (Lights out), the sun (Wake it) and the medicine bottle were made with
-PixelLab, in the style of the treat, and are kept as they came in
+The heart, the moon (Lights out), the sun (Wake it) and the medicine bottle are drawn in
+the style of the treat, and are kept as they came in
 data/pals/icons. The heart is cut down to the 16 dots it fills, so the
 window draws it dot for dot; the others go in as they are.
 

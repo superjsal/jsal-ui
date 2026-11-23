@@ -2,7 +2,7 @@
 
     python -I tools/make_run_tiles.py [preview folder]
 
-Reads data/pals/run/<land>.png and <land>.json (PixelLab tilesets, data/pals/run/fetch.py) and
+Reads data/pals/run/<land>.png and <land>.json (the pals' source art, a tileset a land) and
 flag.png, and writes jsalUI/Media/Pet/run.png, 256 by 256: a 64-pixel cell a country, four to a row,
 in the order of LANDS in jsalUI/Games/PalRunRules.lua, and the flag in the cell after the last.
 

@@ -5,9 +5,9 @@
 The paddock is where settled pals live, and it has scenery of its own for
 each kind of land the pen has: that land as a wide view from further off, a
 big field with the fence and trees far away and a shelter, a trough and hay
-at the left, so it reads as a bigger place than the pen (drawn by PixelLab
-from the pen's scene, 14 Nov 2026, in two steps: the pen's scene with a
-shelter added, then that redrawn wide). The
+at the left, so it reads as a bigger place than the pen (drawn from the pen's
+scene in two steps: the pen's scene with a shelter added, then that
+redrawn wide). The
 sources are data/pals/paddock/<land>.png, 220 by 100 like a pen scene. Each
 is written as jsalUI/Media/Pet/paddock_<land>.png the way
 tools/make_pet_scene.py writes a scene (in the top left of a 256 by 128

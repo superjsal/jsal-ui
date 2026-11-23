@@ -1,6 +1,6 @@
-"""Downloads the pen's hiding places from PixelLab into this folder: one for each scene, made by
-create_map_object (16 Nov 2026): meadow and volcanic in style-matching mode on a 64-pixel corner of
-that scene, the other seven plain (48 by 48), as style-matching drew those as discs.
+"""Downloads the pen's hiding places, from the pals' source art, into this folder: one for each
+scene, meadow and volcanic drawn to match a 64-pixel corner of that scene, the other seven plain
+(48 by 48), as matching drew those as discs.
 python -I fetch.py        (skips what's already here; says what isn't ready)"""
 import urllib.request
 from pathlib import Path
