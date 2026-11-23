@@ -1,0 +1,494 @@
+ID,Title_lang,Category
+49,Alterac Valley victories,153
+51,Arathi Basin victories,153
+52,Warsong Gulch battles,153
+53,Alterac Valley battles,153
+55,Arathi Basin battles,153
+56,Deaths in Warsong Gulch,124
+57,Deaths in Alterac Valley,124
+58,Deaths from Drek'Thar,124
+59,Deaths in Arathi Basin,124
+60,Total deaths,122
+94,Quests abandoned,133
+95,Average quests completed per day,133
+98,Quests completed,133
+105,Warsong Gulch victories,153
+107,Creatures killed,135
+108,Critters killed,135
+112,Deaths from drowning,126
+113,Deaths from fatigue,126
+114,Deaths from falling,126
+115,Deaths from fire and lava,126
+178,Enchanting formulae learned,173
+181,Items disenchanted,173
+183,Materials produced from disenchanting,173
+189,Largest heal cast,141
+193,Largest hit dealt,141
+197,Total damage done,141
+198,Total healing done,141
+281,First Aid skill,178
+318,Total deaths from opposite faction,21
+319,Duels won,154
+320,Duels lost,154
+321,Total raid and dungeon deaths,125
+326,Gold from quest rewards,140
+328,Total gold acquired,140
+329,Auctions posted,140
+330,Auction purchases,140
+331,Most expensive bid on auction,140
+332,Most expensive auction sold,140
+333,Gold looted,140
+334,Most gold ever owned,140
+336,Legendary items acquired,191
+338,Vanity pets owned,191
+339,Mounts owned,191
+341,Epic items looted,191
+342,Epic items acquired,191
+344,Bandages used,145
+345,Health potions consumed,145
+346,Beverages consumed,145
+347,Food eaten,145
+349,Flight paths taken,134
+350,Mage Portals taken,134
+353,Number of times hearthed,134
+377,Most factions at Exalted,147
+378,Most factions at Revered or higher,147
+381,World Honorable Kills,136
+382,Battleground Honorable Kills,136
+393,Alterac Valley towers defended,153
+394,Alterac Valley towers captured,153
+395,Warsong Gulch flags captured,153
+527,Largest hit received,141
+528,Total damage received,141
+529,Most factions at Honored or higher,147
+586,Warsong Gulch flags returned,153
+588,Total Honorable Kills,136
+593,Deaths from Vanndar Stormpike,124
+594,Deaths from Hogger,126
+627,Explore Dun Morogh,14777
+684,Conqueror of the Lair,15594
+728,Explore Durotar,14778
+736,Explore Mulgore,14778
+750,Explore The Barrens,14778
+753,Average gold earned per day,140
+760,Explore Alterac Mountains,14777
+761,Explore Arathi Highlands,14777
+765,Explore Badlands,14777
+766,Explore Blasted Lands,14777
+768,Explore Tirisfal Glades,14777
+769,Explore Silverpine Forest,14777
+770,Explore Western Plaguelands,14777
+771,Explore Eastern Plaguelands,14777
+772,Explore Hillsbrad Foothills,14777
+773,Explore The Hinterlands,14777
+774,Explore Searing Gorge,14777
+775,Explore Burning Steppes,14777
+776,Explore Elwynn Forest,14777
+777,Explore Deadwind Pass,14777
+778,Explore Duskwood,14777
+779,Explore Loch Modan,14777
+780,Explore Redridge Mountains,14777
+781,Explore Stranglethorn Vale,14777
+782,Explore Swamp of Sorrows,14777
+796,Resurrected by priests,127
+798,Rebirthed by druids,127
+799,Spirit returned to body by shamans,127
+800,Redeemed by paladins,127
+801,Resurrected by soulstones,127
+802,Explore Westfall,14777
+811,Flasks consumed,145
+812,Healthstones used,145
+829,Largest heal received,141
+830,Total healing received,141
+839,Battlegrounds played,153
+840,Battlegrounds won,153
+841,Explore Wetlands,14777
+842,Explore Teldrassil,14778
+844,Explore Darkshore,14778
+845,Explore Ashenvale,14778
+846,Explore Thousand Needles,14778
+847,Explore Stonetalon Mountains,14778
+848,Explore Desolace,14778
+849,Explore Feralas,14778
+850,Explore Dustwallow Marsh,14778
+851,Explore Tanaris,14778
+852,Explore Azshara,14778
+853,Explore Felwood,14778
+854,Explore Un'Goro Crater,14778
+855,Explore Moonglade,14778
+856,Explore Silithus,14778
+857,Explore Winterspring,14778
+917,Total deaths in 10-player raids,125
+918,Total deaths in 5-player dungeons,125
+919,Gold earned from auctions,140
+921,Gold from vendors,140
+922,Mana potions consumed,145
+923,Elixirs consumed,145
+926,Most Horde factions at Exalted,147
+927,Equipped epic items in item slots,191
+928,Extra bank slots purchased,191
+931,Total factions encountered,147
+932,Total 5-player dungeons entered,14807
+933,Total 10-player raids entered,14807
+934,Total 20-player raids entered,14807
+1042,Number of hugs,131
+1045,Total cheers,131
+1047,Total facepalms,131
+1065,Total waves,131
+1066,Total times LOL'd,131
+1067,Total times playing world's smallest violin,131
+1092,Archmage Arugal kills (Shadowfang Keep),14821
+1093,Scarlet Commander Mograine kills (Scarlet Monastery),14821
+1094,Chief Ukorz Sandscalp kills (Zul'Farrak),14821
+1095,Emperor Dagran Thaurissan kills (Blackrock Depths),14821
+1096,General Drakkisath kills (Upper Blackrock Spire),14821
+1097,Baron Rivendare kills (Stratholme),14821
+1098,Onyxia kills (Onyxia's Lair),14821
+1113,Alterac Valley Honorable Kills,136
+1114,Arathi Basin Honorable Kills,136
+1115,Warsong Gulch Honorable Kills,136
+1125,Bandage used most,145
+1146,Gold spent on travel,140
+1147,Gold spent at barber shops,140
+1148,Gold spent on postage,140
+1149,Talent tree respecs,130
+1150,Gold spent on talent tree respecs,140
+1197,Total kills,128
+1198,Total kills that grant experience or honor,128
+1199,Professions learned,132
+1200,Secondary skills at maximum skill,132
+1201,Professions at maximum skill,132
+1202,Weapon skills at maximum skill,132
+1229,Revived by druids,127
+1336,Creature type killed the most,135
+1337,Different creature types killed,135
+1339,Mage portal taken most,134
+1456,Fish and other things caught,178
+1458,Continent with the most Honorable Kills,136
+1466,Most Alliance factions at Exalted,147
+1487,Total Killing Blows,137
+1488,World Killing Blows,137
+1489,Continent with the most Killing Blows,137
+1491,Battleground Killing Blows,137
+1495,Alterac Valley Killing Blows,137
+1496,Arathi Basin Killing Blows,137
+1497,Warsong Gulch Killing Blows,137
+1501,Total deaths from other players,21
+1518,Fish caught,178
+1519,Fishing skill,178
+1524,Cooking skill,178
+1525,Cooking daily quests completed,178
+1526,Fishing daily quests completed,178
+1527,Highest Alchemy skill,173
+1532,Highest Blacksmithing skill,173
+1535,Highest Enchanting skill,173
+1536,Highest Leatherworking skill,173
+1537,Highest Mining skill,173
+1538,Highest Herbalism skill,173
+1539,Highest Inscription skill,173
+1541,Highest Skinning skill,173
+1542,Highest Tailoring skill,173
+1544,Highest Engineering skill,173
+1716,Battleground with the most Killing Blows,137
+1719,Battleground with the most Honorable Kills,136
+1729,Alchemy Recipes learned,173
+1730,Blacksmithing Plans learned,173
+1734,Engineering Schematics learned,173
+1735,Inscriptions learned,173
+1740,Leatherworking Patterns learned,173
+1741,Tailoring Patterns learned,173
+1745,Cooking Recipes known,178
+1748,First Aid Manuals learned,178
+1976,Dalaran Cooking Awards gained,178
+2277,Summons accepted,134
+2396,Battleground played the most,153
+2397,Battleground won the most,153
+3216,Smelting Recipes learned,173
+6137,Aku'mai kills (Blackfathom Deeps),14821
+6139,Charlga Razorflank kills (Razorfen Kraul),14821
+6140,Mekgineer Thermaplugg kills (Gnomeregan),14821
+6141,Amnennar the Coldbringer kills (Razorfen Downs),14821
+6142,Archaedas kills (Uldaman),14821
+6143,Princess Theradras kills (Maraudon),14821
+6144,Shade of Eranikus kills (Sunken Temple),14821
+6145,Overlord Wyrmthalak kills (Lower Blackrock Spire),14821
+6146,King Gordok kills (Dire Maul),14821
+6786,High Inquisitor Whitemane kills (Scarlet Monastery),14821
+15027,Bazzalan kills (Ragefire Chasm),14821
+15028,Mutanus the Devourer kills (Wailing Caverns),14821
+15029,Bazil Thredd kills (Stormwind Stockade),14821
+15030,Darkmaster Gandling kills (Scholomance),14821
+15031,Baron Rivendare kills (Stratholme),14821
+15329,Has Died,14821
+15330,Survivor of the Firelord,14821
+15332,Survivor,14821
+15333,Survivor of the Shadow Flame,14821
+15334,Survivor of the Old God,14821
+15335,Survivor of the Damned,14821
+15578,<Hidden> Adventure Awaits - Hit 60 with Buff Adventure Awaits,14821
+15637,The Immortal,15425
+19563,UNUSED Bael'Gar Defeated (Daily),14821
+20129,[DNT] Discoverer's Delight - Reach Level 25 in Phase 2 (hidden),15425
+20130,[DNT] Discoverer's Delight - Reach Level 40 in Phase 3 (hidden),15425
+20131,[DNT] Discoverer's Delight - Reach Level 60 in Phase 4 (hidden),15425
+20132,[DNT] Discoverer's Delight - Reach Level 60 in Phase 5 (hidden),15425
+20133,[DNT] Self-Found Soul (Level 1),15425
+20134,[DNT] Self-Found Soul (Level 10),15425
+20135,[DNT] Self-Found Soul (Level 20),15425
+20136,[DNT] Self-Found Soul (Level 30),15425
+20137,[DNT] Self-Found Soul (Level 40),15425
+20138,[DNT] Self-Found Soul (Level 50),15425
+20139,[DNT] Self-Found Soul (Level 60),15425
+20193,[DNT] Self-Found Soul (Removed Self-Found),15425
+40131,[DNT] Discoverer's Delight - Reach Level 40 in Phase 3 - Update (hidden),15425
+40132,[DNT] Discoverer's Delight - Reach Level 50 in Phase 3 (hidden),15425
+40133,[DNT] Discoverer's Delight - Reach Level 40 in Phase 3.5 - Update (hidden),15425
+40135,[DNT] Discoverer's Delight - Reach Level 50 in Phase 3.5 (hidden),15425
+40137,[DNT] Discoverer's Delight - Reach Level 50 in Phase 4 - Update (hidden),15425
+41008,Rune Learned - Shared Acquisition - Illari Duskfeather (40),15425
+41009,Rune Learned - Shared Acquisition - Dark Riders (40),15425
+41010,Rune Learned - Shared Acquisition - Leylines (50),15425
+42133,[DNT] Balnazzar Defeated,15425
+42186,[DNT] Balnazzar Defeated (Backup Achievement),15425
+61499,Novice Warrior,15585
+61500,Experienced Warrior,15585
+61501,Master Warrior,15585
+61502,Novice Druid,15577
+61503,Experienced Druid,15577
+61504,Master Druid,15577
+61515,1.60.0 - Lost Ones Tracking Achievement <HIDDEN>,1
+61989,Novice Hunter,15578
+61992,Experienced Hunter,15578
+61993,Master Hunter,15578
+61994,Novice Mage,15579
+61995,Experienced Mage,15579
+61996,Master Mage,15579
+61997,Novice Paladin,15580
+61998,Experienced Paladin,15580
+61999,Master Paladin,15580
+62000,Novice Priest,15581
+62001,Experienced Priest,15581
+62002,Master Priest,15581
+62003,Novice Rogue,15582
+62004,Experienced Rogue,15582
+62005,Master Rogue,15582
+62006,Novice Shaman,15583
+62007,Experienced Shaman,15583
+62008,Master Shaman,15583
+62009,Novice Warlock,15584
+62010,Experienced Warlock,15584
+62011,Master Warlock,15584
+62012,Journeyman Alchemist,15587
+62013,Expert Alchemist,15587
+62014,Artisan Alchemist,15587
+62015,Journeyman Blacksmith,15588
+62016,Expert Blacksmith,15588
+62017,Artisan Blacksmith,15588
+62018,Journeyman Enchanter,15589
+62019,Expert Enchanter,15589
+62020,Artisan Enchanter,15589
+62021,Journeyman Engineer,15590
+62022,Expert Engineer,15590
+62023,Artisan Engineer,15590
+62024,Journeyman Leatherworker,15591
+62025,Expert Leatherworker,15591
+62026,Artisan Leatherworker,15591
+62028,Journeyman Tailor,15592
+62029,Expert Tailor,15592
+62030,Artisan Tailor,15592
+62031,Novice Spelunker,15593
+62032,Experienced Spelunker,15593
+62033,Master Spelunker,15593
+62034,Conqueror of the Wilds,15594
+62035,Conqueror of the Deeps,15594
+62041,Rank 3,15597
+62042,Rank 7,15597
+62043,Rank 10,15597
+62044,Rank 13,15597
+62045,Rank 14,15597
+62046,Master of Alterac Valley,15598
+62047,Master of Arathi Basin,15598
+62048,Master of Warsong Gulch,15598
+62049,Master of Darkspear Islands,15598
+62053,Explore Azeroth,15607
+62054,Lord Valthalak Laid to Rest,15596
+62353,Explore Eastern Kingdoms,15607
+62354,Explore Riverglades,14777
+62355,Explore Kalimdor,15607
+62356,Explore Mount Hyjal,14778
+62382,Explorer,15596
+63340,Field of Honor: Week 4,15620
+63341,Field of Honor: Week 7,15620
+63342,Field of Honor: Week 10,15620
+63570,Edwin VanCleef Kills (Deadmines),14821
+63571,Rath'mael Kills (Ruins of Lordaeron),14821
+63572,Shade of the Archmage Kills (City of Dalaran),14821
+63573,Durgen Dirgehammer Kills (Hall of Thanes),14821
+63574,Nanaya Kills (Shaper's Terrace),14821
+63575,Blazeroar Kills (Alcaz Prison),14821
+63580,The Wild King kills (Hyjal Summit),14821
+63581,Sonya Darkhallow Kills (Barrow Deeps),14821
+63589,Lyn the Ignored Kills (City of Dalaran),14821
+63590,Cinder Kills (Shaper's Terrace),14821
+63592,Bolt Kills (Shaper's Terrace),14821
+63593,Snowtalon Kills (Shaper's Terrace),14821
+63684,Explore Shen'dralas,14778
+63969,Novice Warrior,15585
+63970,Experienced Warrior,15585
+63971,Master Warrior,15585
+63972,Novice Druid,15577
+63973,Experienced Druid,15577
+63974,Master Druid,15577
+63975,Novice Hunter,15578
+63976,Experienced Hunter,15578
+63977,Master Hunter,15578
+63978,Novice Mage,15579
+63979,Experienced Mage,15579
+63980,Master Mage,15579
+63981,Novice Paladin,15580
+63982,Experienced Paladin,15580
+63983,Master Paladin,15580
+63984,Novice Priest,15581
+63985,Experienced Priest,15581
+63986,Master Priest,15581
+63987,Novice Rogue,15582
+63988,Experienced Rogue,15582
+63989,Master Rogue,15582
+63990,Novice Shaman,15583
+63991,Experienced Shaman,15583
+63992,Master Shaman,15583
+63993,Novice Warlock,15584
+63994,Experienced Warlock,15584
+63995,Master Warlock,15584
+63996,Journeyman Alchemist,15587
+63997,Expert Alchemist,15587
+63998,Artisan Alchemist,15587
+63999,Journeyman Blacksmith,15588
+64000,Expert Blacksmith,15588
+64001,Artisan Blacksmith,15588
+64002,Journeyman Enchanter,15589
+64003,Expert Enchanter,15589
+64004,Artisan Enchanter,15589
+64005,Journeyman Engineer,15590
+64006,Expert Engineer,15590
+64007,Artisan Engineer,15590
+64008,Journeyman Leatherworker,15591
+64009,Expert Leatherworker,15591
+64010,Artisan Leatherworker,15591
+64011,Journeyman Tailor,15592
+64012,Expert Tailor,15592
+64013,Artisan Tailor,15592
+64014,Lord Valthalak Laid to Rest,15596
+64015,Explorer,15596
+64016,Novice Spelunker,15593
+64017,Experienced Spelunker,15593
+64018,Master Spelunker,15593
+64019,Conqueror of the Wilds,15594
+64020,Conqueror of the Deeps,15594
+64021,Rank 3,15597
+64022,Rank 7,15597
+64023,Rank 10,15597
+64024,Rank 13,15597
+64025,Rank 14,15597
+64026,Master of Alterac Valley,15598
+64027,Master of Arathi Basin,15598
+64028,Master of Warsong Gulch,15598
+64029,Master of Darkspear Islands,15598
+64030,Conqueror of the Lair,15594
+64031,Field of Honor: Week 4,15620
+64032,Field of Honor: Week 7,15620
+64033,Field of Honor: Week 10,15620
+64048,Hidden: Rank 3,15597
+64051,Hidden: Rank 7,15597
+64052,Hidden: Rank 10,15597
+64053,Hidden: Rank 1,15597
+64054,Hidden: Rank 2,15597
+64055,Hidden: Rank 4,15597
+64056,Hidden: Rank 5,15597
+64057,Hidden: Rank 6,15597
+64058,Hidden: Rank 8,15597
+64059,Hidden: Rank 9,15597
+64060,Hidden: Rank 11,15597
+64061,Hidden: Rank 12,15597
+64062,Hidden: Rank 13,15597
+64063,Hidden: Rank 14,15597
+64120,Hidden: Well Equipped (Tier 1),15626
+64151,Hidden: BETA Survey - Level 30 - Druid,15607
+64152,Hidden: BETA Survey - Level 30 - Warrior,15607
+64153,Hidden: BETA Survey - Level 30 - Mage,15607
+64154,Hidden: BETA Survey - Level 30 - Shaman,15607
+64155,Hidden: BETA Survey - Level 30 - Hunter,15607
+64156,Hidden: BETA Survey - Level 30 - Warlock,15607
+64157,Hidden: BETA Survey - Level 30 - Rogue,15607
+64158,Hidden: BETA Survey - Level 30 - Priest,15607
+64159,Hidden: BETA Survey - Level 30 - Paladin,15607
+64176,Darkspear Islands victories,153
+64179,Darkspear Islands battles,153
+64180,Darkspear Islands Honorable Kills,136
+64181,Darkspear Islands Killing Blows,137
+64182,Deaths in Darkspear Islands,124
+64183,Total deaths in 20-player raids,125
+64184,Total 40-player raids entered,14807
+64185,Total deaths in 40-player raids,125
+64195,Hidden: Flight Path Tracker - EK - Westfall,15607
+64196,Hidden: Flight Path Tracker - EK - Stormwind,15607
+64197,Hidden: Flight Path Tracker - EK - Arathi,15607
+64198,Hidden: Flight Path Tracker - EK - Wetlands,15607
+64199,Hidden: Flight Path Tracker - EK - Badlands,15607
+64200,Hidden: Flight Path Tracker - EK - Riverglades,15607
+64201,Hidden: Flight Path Tracker - EK - Redridge,15607
+64202,Hidden: Flight Path Tracker - EK - Hillsbrad,15607
+64203,Hidden: Flight Path Tracker - EK - Duskwood,15607
+64208,<Hidden> Completed New Player Experience (Account),15425
+64222,Times camped,130
+64236,Hidden: Flight Path Tracker - EK - Blasted Lands,15607
+64237,Hidden: Flight Path Tracker - EK - Burning Steppes,15607
+64238,Hidden: Flight Path Tracker - EK - Eastern Plaguelands,15607
+64239,Hidden: Flight Path Tracker - EK - Ironforge,15607
+64240,Hidden: Flight Path Tracker - EK - Loch Modan,15607
+64241,Hidden: Flight Path Tracker - EK - Searing Gorge,15607
+64242,Hidden: Flight Path Tracker - EK - Silverpine Forest,15607
+64243,Hidden: Flight Path Tracker - EK - Stranglethorn (H),15607
+64244,Hidden: Flight Path Tracker - EK - Swamp of Sorrows,15607
+64245,Hidden: Flight Path Tracker - EK - The Hinterlands,15607
+64246,Hidden: Flight Path Tracker - EK - Undercity,15607
+64247,Hidden: Flight Path Tracker - EK - Western Plaguelands,15607
+64248,Hidden: Flight Path Tracker - K - Ashenvale (A),15607
+64249,Hidden: Flight Path Tracker - K - Azshara,15607
+64250,Hidden: Flight Path Tracker - K - Darkshore,15607
+64251,Hidden: Flight Path Tracker - K - Desolace,15607
+64252,Hidden: Flight Path Tracker - K - Dustwallow Marsh,15607
+64253,Hidden: Flight Path Tracker - K - Felwood,15607
+64254,Hidden: Flight Path Tracker - K - Feralas (A),15607
+64255,Hidden: Flight Path Tracker - K - Moonglade,15607
+64256,Hidden: Flight Path Tracker - K - Mount Hyjal,15607
+64257,Hidden: Flight Path Tracker - K - Orgrimmar,15607
+64258,Hidden: Flight Path Tracker - K - Silithus,15607
+64259,Hidden: Flight Path Tracker - K - Stonetalon Mountains,15607
+64260,Hidden: Flight Path Tracker - K - Tanaris,15607
+64261,Hidden: Flight Path Tracker - K - Teldrassil,15607
+64262,Hidden: Flight Path Tracker - K - The Barrens (A),15607
+64263,Hidden: Flight Path Tracker - K - Thousand Needles,15607
+64264,Hidden: Flight Path Tracker - K - Thunder Bluff,15607
+64265,Hidden: Flight Path Tracker - K - Un'Goro Crater,15607
+64266,Hidden: Flight Path Tracker - K - Winterspring,15607
+64267,"Hidden: Flight Path Tracker - K - Feralas, Feathermoon",15607
+64268,"Hidden: Flight Path Tracker - K - Feralas, Thalanaar",15607
+64269,"Hidden: Flight Path Tracker - K - Mount Hyjal, Tainted Foothills",15607
+64270,"Hidden: Flight Path Tracker - K - Mount Hyjal, Summit of Eternity",15607
+64271,"Hidden: Flight Path Tracker - EK - Stranglethorn, Booty Bay",15607
+64272,"Hidden: Flight Path Tracker - EK - Stranglethorn, Grom'gol",15607
+64273,"Hidden: Flight Path Tracker - K - The Barrens, Crossroads",15607
+64274,"Hidden: Flight Path Tracker - K - The Barrens, Ratchet",15607
+64275,"Hidden: Flight Path Tracker - K - The Barrens, Camp Taurajo",15607
+64276,"Hidden: Flight Path Tracker - K - Ashenvale, Splintertree Post",15607
+64277,"Hidden: Flight Path Tracker - K - Ashenvale, Zoram'gar Outpost",15607
+64278,"Hidden: Flight Path Tracker - EK - Stranglethorn, Booty Bay (A)",15607
+64279,Hidden: Flight Path Tracker - K - Feralas (H),15607
+64280,Hidden: Flight Path Tracker - K - Ashenvale (H),15607
+64281,Hidden: Flight Path Tracker - K - The Barrens (H),15607
+64348,Arathi Basin bases assaulted,153
+64349,Arathi Basin bases defended,153
+64350,Darkspear Islands bases assaulted,153
+64351,Darkspear Islands bases defended,153
+64352,Darkspear Islands flags captured,153

@@ -24,7 +24,7 @@ Dungeons.Key = Key
 
 -- Every boss by name, for the loot window: by its encounter's name and, when
 -- the boss you see is named differently, by that too, each giving the boss
--- as { encounter ID, encounter name (which kills and loot are kept under) }.
+-- as { encounter ID, encounter name (which loot is kept under) }.
 local bosses
 local function Bosses()
     if bosses then return bosses end
@@ -38,6 +38,32 @@ local function Bosses()
     return bosses
 end
 
+-- Kills are kept by encounter ID, which is the same in every client language; they were
+-- kept by the encounter's name, which the game sends in the client's own. A name the guide
+-- knows moves to its boss's ID, added to what's there; one it doesn't know stays as it is.
+-- Once a table has none left this does nothing, so it's safe to run again.
+local function ByEncounter(t, Merge)
+    local names
+    for key in pairs(t) do
+        if type(key) == "string" then
+            names = names or {}
+            names[#names + 1] = key
+        end
+    end
+    for _, key in ipairs(names or {}) do
+        local b = Bosses()[key]
+        if b then
+            t[b[1]] = Merge(t[b[1]], t[key])
+            t[key] = nil
+        end
+    end
+end
+local function AddKills(a, b)
+    return (tonumber(a) or 0) + (tonumber(b) or 0)
+end
+
+-- Kills by boss: { [encounter ID] = kills }.
+local killsMoved
 local function Kills()
     local d = ns.char.dungeons
     if type(d) ~= "table" then
@@ -45,6 +71,10 @@ local function Kills()
         ns.char.dungeons = d
     end
     d.kills = type(d.kills) == "table" and d.kills or {}
+    if killsMoved ~= d.kills then
+        ByEncounter(d.kills, AddKills)
+        killsMoved = d.kills
+    end
     return d.kills
 end
 
@@ -65,7 +95,7 @@ function Dungeons.GameKills()
     for i = 1, (GetCategoryNumAchievements(BOSS_KILLS, true) or 0) do
         local id, name = GetAchievementInfo(BOSS_KILLS, i)
         local n = id and J.GameStat(id)
-        if type(name) == "string" and n then out[#out + 1] = { name:lower(), n } end
+        if type(name) == "string" and n then out[#out + 1] = { name:lower(), n, id } end
     end
     return out
 end
@@ -73,27 +103,55 @@ end
 -- A statistic the game counts for another boss than the one it's named for, by the faction: "Bazzalan kills
 -- (Ragefire Chasm)" counts a kill of Bazzalan or of Hall of Thanes' Durgen Dirgehammer (its criteria take either
 -- creature), and Durgen's own statistic counts nothing. Ragefire Chasm is the Horde's alone, so for the Alliance
--- that statistic is Durgen's.
+-- that statistic is Durgen's. By the statistic's ID, and by its English name for one the guide's data doesn't list.
 local STAT_FOR = { ["bazzalan"] = { Alliance = "durgen dirgehammer" } }
+local STAT_FOR_ID = { [15027] = { Alliance = 3496 } }
 local function StatOwner(name, faction)
     for named, by in pairs(STAT_FOR) do
         if by[faction] and name:find(named, 1, true) then return by[faction] end
     end
 end
 
--- A boss's kills, by its encounter's name; the statistics may use the
--- boss's own name instead.
+-- Which bosses each statistic counts, by its ID (DungeonData's DungeonStats): { [statistic] = { [encounter] = true } }.
+local statOwners
+local function StatOwners()
+    if statOwners and statOwners.data == ns.DungeonStats then return statOwners.by end
+    local by = {}
+    for encounter, ids in pairs(ns.DungeonStats or {}) do
+        for _, id in ipairs(ids) do
+            by[id] = by[id] or {}
+            by[id][encounter] = true
+        end
+    end
+    statOwners = { data = ns.DungeonStats, by = by }
+    return by
+end
+
+-- A boss's kills, by the guide's name for its encounter; the statistics may use the boss's
+-- own name instead. A statistic the data lists is read by its ID, as the game names it in
+-- the client's language; one it doesn't is found by its name.
 function Dungeons.KillCount(boss, game, ownName)
     local key, own = Key(boss), Key(ownName)
-    local n = Kills()[key] or 0
+    local b = key and (Bosses()[key] or (own and Bosses()[own]))
+    local encounter = b and b[1]
+    local kills = Kills()
+    local n = (encounter and kills[encounter]) or kills[key] or 0
     local faction = UnitFactionGroup and UnitFactionGroup("player")
+    local owners = StatOwners()
     for _, stat in ipairs(game or {}) do
-        local owner = StatOwner(stat[1], faction)
+        local byFaction = stat[3] and STAT_FOR_ID[stat[3]]
         local mine
-        if owner then
-            mine = owner == key or owner == own
+        if encounter and byFaction and byFaction[faction] then
+            mine = byFaction[faction] == encounter
+        elseif encounter and stat[3] and owners[stat[3]] then
+            mine = owners[stat[3]][encounter]
         else
-            mine = stat[1]:find(key, 1, true) or (own and stat[1]:find(own, 1, true))
+            local owner = StatOwner(stat[1], faction)
+            if owner then
+                mine = owner == key or owner == own
+            else
+                mine = stat[1]:find(key, 1, true) or (own and stat[1]:find(own, 1, true))
+            end
         end
         if mine then n = math.max(n, stat[2]) end
     end
@@ -152,9 +210,10 @@ local function OnEvent(_, event, a, b, _, _, e)
     a, b, e = ns.Compat.Plains(a, b, e)
     if event == "ENCOUNTER_END" then
         if e == 1 and type(b) == "string" then
-            local kills = Kills()
-            kills[Key(b)] = (kills[Key(b)] or 0) + 1
-            recent, recentId, recentAt = b, tonumber(a), GetTime()
+            local kills, id = Kills(), tonumber(a)
+            local key = id or Key(b)
+            kills[key] = (kills[key] or 0) + 1
+            recent, recentId, recentAt = b, id, GetTime()
             if Guild() and recentId then Guild().Killed(recentId) end
             Changed()
         end
@@ -295,6 +354,8 @@ function Dungeons:OnEnable()
         pcall(f.RegisterEvent, f, event)
     end
     f:SetScript("OnEvent", ns.Safe(self, OnEvent))
+    -- Kills kept by name move to their encounter's ID now, at login.
+    if ns.char then Kills() end
 end
 
 function Dungeons:OnDisable()

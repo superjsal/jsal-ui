@@ -4,7 +4,8 @@ From the game's own files (data/dungeons/, CSV from wago.tools for the build nam
 LFGDungeons is the list of dungeons the game offers, with the level each is tuned to in
 ContentTuning (MinLevelSquish) and its faction (0 Horde, 1 Alliance, -1 both); Map says which
 map each one is and whether it's a raid; DungeonEncounter has each map's bosses, with the ID the
-game's ENCOUNTER_END event reports and their order. Season of Discovery's versions of some
+game's ENCOUNTER_END event reports and their order; Achievement (kept as ID, Title_lang, Category)
+has the Statistics window's Boss Kills list, which each boss's kills are also read from. Season of Discovery's versions of some
 dungeons are in the files too, under their own difficulties (198, 201, 215); Forever uses 0 and 1.
 
 Where each entrance is isn't in the files, so it's below (Forever's new dungeons from Blizzard's
@@ -13,8 +14,8 @@ own announcement; the five the 13 Nov 2026 build added, from Wowhead Forever's d
 each in the files but separate dungeons in the list, so their bosses are split by wing below.
 
 After a patch: fetch the four tables again for the new build
-(https://wago.tools/db2/<Table>/csv?build=<build>; Map is kept as ID, MapName_lang, InstanceType
-and ContentTuning as ID, MinLevelSquish), set BUILD, and run this. It stops and names any
+(https://wago.tools/db2/<Table>/csv?build=<build>; Map is kept as ID, MapName_lang, InstanceType,
+ContentTuning as ID, MinLevelSquish, and Achievement as ID, Title_lang, Category), set BUILD, and run this. It stops and names any
 dungeon the game now offers that isn't in DUNGEONS.
 
 It also builds jsalUI/Dungeons/DungeonLoot.lua from Wowhead Forever (data/dungeons/wowhead.json,
@@ -123,6 +124,9 @@ NOT_BOSSES = {3018}  # "The Molten Core": the raid's own completion
 
 FOREVER_DIFFICULTIES = {"0", "1"}
 
+# The Statistics window's Boss Kills list, in the Achievement table's categories.
+BOSS_KILLS = "14821"
+
 
 def read(name):
     with open(SRC / name, encoding="utf-8", newline="") as f:
@@ -170,6 +174,28 @@ def dungeon_rows():
     return rows
 
 
+def ascii_lower(text):
+    """Lower case as Lua's string.lower does it in the game: A to Z only."""
+    return "".join(chr(ord(c) + 32) if "A" <= c <= "Z" else c for c in text)
+
+
+def boss_stats(rows):
+    """Each boss's Boss Kills statistics, by encounter ID: the IDs of the statistics whose English
+    name holds the boss's encounter name or its own name, as Dungeons.KillCount matches them by
+    name. The game hands the addon each statistic's name in the client's language, so with these
+    IDs a boss's statistic is found on every client, and on an English one it is the same one."""
+    stats = [(int(r["ID"]), ascii_lower(r["Title_lang"])) for r in read("Achievement.csv")
+             if r["Category"] == BOSS_KILLS]
+    out = {}
+    for *_, bosses in rows:
+        for _, encounter, name in bosses:
+            names = [ascii_lower(name)] + ([ascii_lower(NPC_NAME[encounter])] if encounter in NPC_NAME else [])
+            ids = sorted(i for i, title in stats if any(n in title for n in names))
+            if ids:
+                out[encounter] = ids
+    return out
+
+
 def main():
     rows = dungeon_rows()
     lines = [
@@ -193,9 +219,19 @@ def main():
                      f"zone = {lua_string(zone)}{extra},")
         lines.append(f"      bosses = {{ {boss_text} }} }},")
     lines.append("}")
+    stats = boss_stats(rows)
+    lines += [
+        "",
+        "-- The game's Boss Kills statistics each boss's kills are read from, by encounter ID: the",
+        "-- statistics' IDs, which every client language shares where their names don't.",
+        "ns.DungeonStats = {",
+        *(f"    [{e}] = {{ {', '.join(str(i) for i in ids)} }}," for e, ids in sorted(stats.items())),
+        "}",
+    ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{len(rows)} dungeons and raids, {sum(len(r[7]) for r in rows)} bosses -> {OUT.relative_to(ROOT)}")
+    print(f"{len(rows)} dungeons and raids, {sum(len(r[7]) for r in rows)} bosses, "
+          f"{len(stats)} with a Boss Kills statistic -> {OUT.relative_to(ROOT)}")
     build_loot(rows)
 
 
