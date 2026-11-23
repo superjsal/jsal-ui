@@ -903,28 +903,84 @@ Window.Page("dungeons", function(page)
     -- and the game works out how far the list can scroll only once it has laid the list out, after the window
     -- is shown, so a scroll set while painting is cut to the range the list had before. Each paint aims again,
     -- in the range the page has just set; when the game's own range comes, the aim is set once more in it.
-    -- `B.mark` is a piece of that boss's lit as under the pointer, until the pointer leaves it.
+    -- `B.mark` is a piece of that boss's lit as under the pointer, until the pointer leaves it (`B.lit`, its line).
     function B.Aim(range)
-        local card = B.aim and bossRows[B.aim]
-        if not (card and card.at) then return end
-        bossScroll:SetVerticalScroll(math.max(0, math.min(card.at, range or 0)))
+        local m = B.aim and B.models and B.models[B.aim]
+        if not m then return end
+        bossScroll:SetVerticalScroll(math.max(0, math.min(m.at, range or 0)))
     end
     function B.Light()
-        if B.lit then B.lit:Hide() end
+        if B.lit then B.lit.lit = nil end
         B.lit = nil
-        local card = B.mark and B.aim and bossRows[B.aim]
-        for _, it in ipairs(card and card.items or {}) do
-            if it.item == B.mark and it.glow and it:IsShown() then
-                it.glow:Show()
-                B.lit = it.glow
-                return
+        local m = B.mark and B.aim and B.models and B.models[B.aim]
+        for _, card in ipairs(m and bossRows or {}) do
+            if card.drawn == m then
+                for _, it in ipairs(card.items) do
+                    if it.item == B.mark and it:IsShown() then B.lit, it.lit = it, true end
+                end
             end
         end
+        B.Glow()
     end
     function B.Let()
-        if B.lit then B.lit:Hide() end
+        if B.lit then B.lit.lit = nil end
         B.aim, B.mark, B.lit, B.why = nil, nil, nil, nil
+        if B.glow then B.Glow() end
     end
+    -- One light for the whole list, as faint as Style.Hover's, on the line under the pointer (`B.hover`); with
+    -- the pointer on none, on the piece asked for while it's lit. Moved to the line's card, under its picture and words.
+    function B.Glow()
+        local glow = B.glow
+        if not glow then
+            glow = bossList:CreateTexture(nil, "BACKGROUND", nil, 7)
+            local r, g, b = Style.Color("text")
+            glow:SetColorTexture(r, g, b, 0.06)
+            B.glow = glow
+        end
+        local it = B.hover or B.lit
+        glow.on = it
+        if not it then return glow:Hide() end
+        glow:SetParent(it:GetParent())
+        glow:SetDrawLayer("BACKGROUND", 7)
+        glow:ClearAllPoints()
+        glow:SetAllPoints(it)
+        glow:Show()
+    end
+    -- Only the cards in view are made, and the cards made are kept and given other bosses as the list scrolls:
+    -- `B.models` is every card of the dungeon worked out (B.Model) and placed, and a card frame shows one of them
+    -- (`drawn`). A card that stays in view keeps its frame and isn't drawn again. Where the list's height isn't known,
+    -- every card is drawn.
+    function B.Bind()
+        local models = B.models
+        if not (models and tab == "bosses") then return end
+        local v, room = bossScroll:GetVerticalScroll() or 0, bossScroll:GetHeight()
+        local every = not (type(room) == "number" and room > 0)
+        local want, free, moved = {}, {}, false
+        for k, m in ipairs(models) do want[k] = every or (m.at < v + room and m.at + m.h > v) end
+        for _, card in ipairs(bossRows) do
+            local k = card.drawn and card.drawn.k
+            if k and models[k] == card.drawn and want[k] then
+                want[k] = false
+            else
+                if card.drawn then moved = true end
+                card.drawn = nil
+                card:Hide()
+                free[#free + 1] = card
+            end
+        end
+        for k, m in ipairs(models) do
+            if want[k] then
+                local card = table.remove(free) or B.Row(#bossRows + 1)
+                B.Draw(card, m)
+                moved = true
+            end
+        end
+        if not moved then return end
+        -- A line under the pointer, or the piece asked for, may have gone with its card.
+        if B.hover and not (B.hover:IsShown() and B.hover:GetParent().drawn) then B.hover = nil end
+        if B.mark then B.Light() else B.Glow() end
+    end
+    bossScroll:HookScript("OnVerticalScroll", function() B.Bind() end)
     bossScroll:HookScript("OnScrollRangeChanged", function(self)
         if not (B.aim and tab == "bosses") then return end
         B.Aim(self:GetVerticalScrollRange() or 0)
@@ -969,7 +1025,7 @@ Window.Page("dungeons", function(page)
         Paint()
         bossScroll:SetVerticalScroll(math.max(0, v))
     end)
-    page:HookScript("OnHide", function() B.why, B.whyNext, B.keep = nil, nil, nil end)
+    page:HookScript("OnHide", function() B.why, B.whyNext, B.keep, B.hover = nil, nil, nil, nil end)
     local function BossRow(i)
         if bossRows[i] then return bossRows[i] end
         local b = CreateFrame("Frame", nil, bossList)
@@ -1020,6 +1076,7 @@ Window.Page("dungeons", function(page)
         bossRows[i] = b
         return b
     end
+    B.Row = BossRow
 
     -- The Trash card's heading: no number and no tick, its name and a quiet line under it.
     function B.TrashHead(card)
@@ -1342,12 +1399,17 @@ Window.Page("dungeons", function(page)
         it.slot:SetJustifyH("LEFT")
         it.slot:SetWordWrap(false)
         it:EnableMouse(true)
-        it:SetScript("OnEnter", DropTip)
-        it:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        it.glow = Style.Hover(it)
-        -- The piece asked for stays lit until the pointer has been on it and left.
-        it:HookScript("OnLeave", function(self)
-            if B.lit and B.lit == self.glow then B.mark, B.lit = nil, nil end
+        it:SetScript("OnEnter", function(self)
+            DropTip(self)
+            B.hover = self
+            B.Glow()
+        end)
+        it:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+            -- The piece asked for stays lit until the pointer has been on it and left.
+            if B.lit == self then B.mark, B.lit, self.lit = nil, nil, nil end
+            if B.hover == self then B.hover = nil end
+            B.Glow()
         end)
         card.items[i] = it
         return it
@@ -1412,11 +1474,10 @@ Window.Page("dungeons", function(page)
     -- better than what you wear), how many it could tell that of, and the
     -- guild's kills.
     -- The Trash card's loot is `trash` (D.Trash's list): no boss, no drop chance, the creature named where it is.
-    local function PaintLoot(card, boss, encounter, keep, trash)
-        for _, it in ipairs(card.items) do it:Hide() end
-        for _, s in ipairs(card.smalls) do s:Hide() end
-        card.strip:Hide()
-        card.edge:Hide()
+    -- Worked out without a card, so a card's height is known before one is made: { lines, strip (each piece with
+    -- its place on the strip, `x` and `y`), h (the card's height), forYou, sure, guildKills, none (no loot known) }.
+    function B.Model(boss, encounter, keep, trash)
+        local m = { lines = {}, strip = {}, forYou = 0, sure = 0, guildKills = 0, top = trash and TRASH_H or BOSS_H }
         local list, byId = {}, {}
         local function Add(id)
             if not byId[id] then
@@ -1461,10 +1522,10 @@ Window.Page("dungeons", function(page)
             if (a.item.q or 0) ~= (b.item.q or 0) then return (a.item.q or 0) > (b.item.q or 0) end
             return a.id < b.id
         end)
+        m.guildKills = guildKills
         if #list == 0 then
-            card.none:SetText("No loot known yet. It's added when you or a guildmate with jsal.ui loots this boss.")
-            card.none:Show()
-            return BOSS_H + 62, 0, 0, guildKills
+            m.none, m.h = true, BOSS_H + 62
+            return m
         end
         local starredSet = ns.Gear and ns.Gear.Starred() or {}
         local trades = {}
@@ -1500,7 +1561,7 @@ Window.Page("dungeons", function(page)
         end
         -- The lines: what you starred, as the list has them, then what's better, the most first, as many as
         -- there's room for. The rest goes on the strip, what you could use before what you can't.
-        local lines, strip = {}, {}
+        local lines, strip = m.lines, m.strip
         for _, entry in ipairs(mine) do if entry.starred then lines[#lines + 1] = entry end end
         local better = {}
         for _, entry in ipairs(mine) do if entry.better and not entry.starred then better[#better + 1] = entry end end
@@ -1508,12 +1569,8 @@ Window.Page("dungeons", function(page)
             if (a.gain or 0) ~= (b.gain or 0) then return (a.gain or 0) > (b.gain or 0) end
             return a.at < b.at
         end)
-        local room = LINES - #lines
         for _, entry in ipairs(better) do
-            if room > 0 then
-                lines[#lines + 1], room = entry, room - 1
-                entry.line = true
-            end
+            if #lines < LINES then lines[#lines + 1] = entry end
         end
         for _, entry in ipairs(lines) do entry.line = true end
         for _, entry in ipairs(mine) do if not entry.line then strip[#strip + 1] = entry end end
@@ -1526,9 +1583,55 @@ Window.Page("dungeons", function(page)
                 break
             end
         end
-        card.edge:SetShown(forYou > 0)
-        local top = trash and TRASH_H or BOSS_H
-        for k, entry in ipairs(lines) do
+        m.forYou, m.sure = forYou, sure
+        m.h = m.top + #lines * ITEM_H
+        -- The rest, small along the foot after its label: a second row of them when one won't hold them all.
+        if #strip > 0 then
+            m.label = ("ALSO DROPS %d"):format(#strip)
+            local x0 = 13 + B.Wide(m.label) + 12
+            local x, y = x0, 0
+            for _, entry in ipairs(strip) do
+                if x + SMALL > cardW - 14 then x, y = x0, y + SMALL + 4 end
+                entry.x, entry.y = x, y
+                x = x + SMALL + 4
+            end
+            m.stripH = STRIP_H + y
+            m.h = m.h + m.stripH
+        end
+        return m
+    end
+    -- How wide the strip's label is drawn, by one line of text kept for it, measured once a label.
+    B.widths = {}
+    function B.Wide(text)
+        if B.widths[text] then return B.widths[text] end
+        if not B.measure then
+            B.measure = Style.Text(right, 10, "muted", nil, true)
+            B.measure:Hide()
+        end
+        B.measure:SetText(text)
+        local w = B.measure.GetStringWidth and B.measure:GetStringWidth()
+        if type(w) == "number" and w > 0 then
+            B.widths[text] = w
+            return w
+        end
+        return 70
+    end
+
+    -- A card's loot as B.Model worked it out, on its frame.
+    local function PaintLoot(card, m)
+        for _, it in ipairs(card.items) do it:Hide() end
+        for _, s in ipairs(card.smalls) do s:Hide() end
+        card.strip:Hide()
+        card.edge:Hide()
+        if m.none then
+            card.none:SetText("No loot known yet. It's added when you or a guildmate with jsal.ui loots this boss.")
+            card.none:Show()
+            return
+        end
+        card.none:Hide()
+        card.edge:SetShown(m.forYou > 0)
+        local top = m.top
+        for k, entry in ipairs(m.lines) do
             local it = Item(card, k)
             it:ClearAllPoints()
             it:SetPoint("TOPLEFT", 0, -(top + (k - 1) * ITEM_H))
@@ -1585,21 +1688,13 @@ Window.Page("dungeons", function(page)
             it.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
             it:Show()
         end
-        card.none:Hide()
-        local h = top + #lines * ITEM_H
-        -- The rest, small along the foot: a second row of them when one
-        -- won't hold them all.
-        if #strip > 0 then
+        if #m.strip > 0 then
             local bar = card.strip
-            bar.label:SetText(("ALSO DROPS %d"):format(#strip))
-            local x0 = 13 + Style.Wide(bar.label, 70) + 12
-            local x, y = x0, 0
-            for k, entry in ipairs(strip) do
+            bar.label:SetText(m.label)
+            for k, entry in ipairs(m.strip) do
                 local s = Small(card, k)
-                if x + SMALL > cardW - 14 then x, y = x0, y + SMALL + 4 end
                 s:ClearAllPoints()
-                s:SetPoint("TOPLEFT", x, -(8 + y))
-                x = x + SMALL + 4
+                s:SetPoint("TOPLEFT", entry.x, -(8 + entry.y))
                 s.item = entry.id
                 local _, _, _, _, _, _, _, _, _, texture = ItemInfo(entry.id)
                 s.icon:SetTexture(texture or Compat.ItemIcon(entry.id) or "Interface\\Icons\\INV_Misc_QuestionMark")
@@ -1617,11 +1712,39 @@ Window.Page("dungeons", function(page)
                 if seen then s.more[#s.more + 1] = (seen:gsub("^%l", string.upper)) .. "." end
                 s:Show()
             end
-            bar:SetHeight(STRIP_H + y)
+            bar:SetHeight(m.stripH)
             bar:Show()
-            h = h + STRIP_H + y
         end
-        return h, forYou, sure, guildKills
+    end
+
+    -- A card on its frame: its heading, its loot, its place in the list.
+    function B.Draw(card, m)
+        local b = m.b
+        if b then
+            card.head:SetHeight(BOSS_H)
+            if card.note then card.note:Hide() end
+            card.boss = b[2]
+            card.number:SetText(m.k)
+            card.name:SetText(b[3] or b[2])
+            card.box:SetShown(m.n > 0)
+            -- Without a tick the name comes right after the number.
+            card.name:ClearAllPoints()
+            if m.n > 0 then
+                card.name:SetPoint("LEFT", card.box, "RIGHT", 8, 0)
+            else
+                card.name:SetPoint("LEFT", card.head, "LEFT", 36, 0)
+            end
+            Style.SetBorder(card.boxEdges, "wordGreen")
+            card.kills:SetText(m.kills)
+        else
+            B.TrashHead(card)
+        end
+        PaintLoot(card, m)
+        card:SetHeight(m.h)
+        card:ClearAllPoints()
+        card:SetPoint("TOPLEFT", m.left, -m.at)
+        card.at, card.drawn = m.at, m
+        card:Show()
     end
 
     -- Who gives a quest: on a quest's own line the place is its heading, so
@@ -2121,7 +2244,11 @@ Window.Page("dungeons", function(page)
             for _, region in ipairs(pool) do region:Hide() end
         end
         for _, region in ipairs({ Q.sum, Q.more, Q.low, Q.cols }) do region:Hide() end
-        for _, row in ipairs(bossRows) do row:Hide() end
+        for _, row in ipairs(bossRows) do
+            row:Hide()
+            row.drawn = nil
+        end
+        B.models = nil
         B.sum:Hide()
         B.Say(nil)
         meta:ClearAllPoints()
@@ -2198,45 +2325,27 @@ Window.Page("dungeons", function(page)
         -- The bosses as cards, two across, in the game's order, under a
         -- line of how much here is for you.
         hint:SetText("")
-        local heights, forYou, sure = {}, 0, 0
+        local models, forYou, sure = {}, 0, 0
         missed = 0
         if ns.Gear then ns.Gear.made = {} end
         for k = 1, B.trashK or #d.bosses do
             t = debugprofilestop()
-            local card = BossRow(k)
-            t = Spent("bosses: cards made or found", t)
             local b = d.bosses[k]
-            if not b then
-                B.TrashHead(card)
-                local h, more, known = PaintLoot(card, nil, nil, B.keep and B.keep.k == k and B.keep.item or nil, B.trash)
-                forYou, sure, heights[k] = forYou + more, sure + known, h
-                break
-            end
-            card.head:SetHeight(BOSS_H)
-            if card.note then card.note:Hide() end
-            card.boss = b[2]
-            local n = D.KillCount(b[2], game, b[3])
-            card.number:SetText(k)
-            card.name:SetText(b[3] or b[2])
-            card.box:SetShown(n > 0)
-            -- Without a tick the name comes right after the number.
-            card.name:ClearAllPoints()
-            if n > 0 then
-                card.name:SetPoint("LEFT", card.box, "RIGHT", 8, 0)
-            else
-                card.name:SetPoint("LEFT", card.head, "LEFT", 36, 0)
-            end
-            Style.SetBorder(card.boxEdges, "wordGreen")
-            local h, more, known, guildKills = PaintLoot(card, b[2], b[1], B.keep and B.keep.k == k and B.keep.item or nil)
+            local keep = B.keep and B.keep.k == k and B.keep.item or nil
+            local m = b and B.Model(b[2], b[1], keep) or B.Model(nil, nil, keep, B.trash)
             Spent("bosses: loot, all of it", t)
-            forYou, sure = forYou + more, sure + known
-            -- Your kills, and the guild's: said here once, where it was on
-            -- every item ("dropped 1× in 1 guild kill").
-            local words = {}
-            if n > 0 then words[#words + 1] = ("killed %d×"):format(n) end
-            if guildKills > 0 then words[#words + 1] = ("%d guild kill%s"):format(guildKills, guildKills == 1 and "" or "s") end
-            card.kills:SetText(table.concat(words, "  ·  "))
-            heights[k] = h
+            m.k, m.b = k, b
+            if b then
+                m.n = D.KillCount(b[2], game, b[3])
+                -- Your kills, and the guild's: said here once, where it was on
+                -- every item ("dropped 1× in 1 guild kill").
+                local words = {}
+                if m.n > 0 then words[#words + 1] = ("killed %d×"):format(m.n) end
+                if m.guildKills > 0 then words[#words + 1] = ("%d guild kill%s"):format(m.guildKills, m.guildKills == 1 and "" or "s") end
+                m.kills = table.concat(words, "  ·  ")
+            end
+            forYou, sure = forYou + m.forYou, sure + m.sure
+            models[k] = m
         end
         -- Said only when there's something to say: a piece on your gear
         -- plan, or the gear plan could tell what's better (it needs your
@@ -2255,25 +2364,22 @@ Window.Page("dungeons", function(page)
         by = B.Say(asked and asked.dungeon == d and asked or nil)
         -- Two across: each pair starts level, the next pair under the
         -- taller of the two.
-        for k = 1, #heights, 2 do
-            local tall = math.max(heights[k], heights[k + 1] or 0)
+        for k = 1, #models, 2 do
+            local tall = math.max(models[k].h, models[k + 1] and models[k + 1].h or 0)
             for side = 0, 1 do
-                local card = bossRows[k + side]
-                if card and heights[k + side] then
-                    card:SetHeight(heights[k + side])
-                    card:ClearAllPoints()
-                    card:SetPoint("TOPLEFT", side * (cardW + GRID_GAP), -by)
-                    card.at = by
-                    card:Show()
-                end
+                local m = models[k + side]
+                if m then m.at, m.left = by, side * (cardW + GRID_GAP) end
             end
             by = by + tall + ROW_GAP
         end
-        for k = #heights + 1, #bossRows do bossRows[k]:Hide() end
         by = math.max(1, by - ROW_GAP)
         bossList:SetHeight(by)
         local listH = Fit(by)
+        B.models = models
+        t = debugprofilestop()
         B.Scroll(d, tab)
+        B.Bind()
+        Spent("bosses: cards drawn", t)
         if B.whyNext then B.why, B.whyNext = B.whyNext, nil end
         wait.drawn, wait.lacking = d, missed
         for why, ms in pairs(ns.Gear and ns.Gear.made or {}) do
