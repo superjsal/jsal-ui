@@ -103,6 +103,56 @@ local function Fill(target, defaults)
     return target
 end
 
+-- The game keeps a deleted character's own saved file and hands it to the
+-- next character made with the same name on the same realm. So the file
+-- keeps the ID of the character it belongs to (`guid`), and one that names
+-- another character starts again from the defaults before any part starts.
+-- A file saved before the ID was kept is another character's only on plain
+-- proof: the Journal saw it at a higher level than this character's, and
+-- levels never go down. Otherwise it is this character's and gets the ID.
+-- Nothing is decided without the ID and the level. The account's settings
+-- and the welcome stay (it's the same player); the account's lines kept by
+-- this character's name go, so the Characters tab and the crafters' list
+-- don't show the old one.
+local function TopLevel(char)
+    local j = char.journal
+    if type(j) ~= "table" then return nil end
+    local top = type(j.startLevel) == "number" and j.startLevel or nil
+    for level in pairs(type(j.levels) == "table" and j.levels or {}) do
+        if type(level) == "number" and level > (top or 0) then top = level end
+    end
+    return top
+end
+
+function ns.StartFreshIfRemade(char, db)
+    if ns.Pretend and ns.Pretend.on then return false end
+    local guid = Compat.GUID("player")
+    if type(guid) ~= "string" or guid == "" then return false end
+    if char.guid == guid then return false end
+    if char.guid == nil then
+        local level, top = UnitLevel("player"), TopLevel(char)
+        if type(level) ~= "number" or level < 1 then return false end
+        if not (top and level < top) then
+            char.guid = guid
+            return false
+        end
+    end
+    -- Emptied in place, so the table every part reads as ns.char is the fresh one.
+    local keys = {}
+    for key in pairs(char) do keys[#keys + 1] = key end
+    for _, key in ipairs(keys) do char[key] = nil end
+    Fill(char, CHAR_DEFAULTS)
+    char.guid = guid
+    local name = Compat.MyName()
+    if name then
+        if type(db.characters) == "table" then db.characters[name] = nil end
+        local realm = GetRealmName and GetRealmName()
+        local known = realm and type(db.craftKnown) == "table" and db.craftKnown[realm]
+        if type(known) == "table" then known[name] = nil end
+    end
+    return true
+end
+
 -- Work that has to wait until the player leaves combat.
 local waiting = {}
 function ns.AfterCombat(fn)
@@ -336,6 +386,8 @@ events:SetScript("OnEvent", function(self, event, arg1)
     elseif event == "PLAYER_LOGIN" then
         local started = debugprofilestop()
         if mem then mem.login = collectgarbage("count") end
+        -- The character's ID is surely known by now; no part has started yet.
+        xpcall(function() ns.StartFreshIfRemade(ns.char, ns.db) end, Report)
         StartModules()
         RunAll(onLogin)
         ns.timings.login = debugprofilestop() - started
