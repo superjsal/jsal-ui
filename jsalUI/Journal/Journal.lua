@@ -631,10 +631,19 @@ local GAME = { foes = 1197, quests = 98, deaths = 60, earned = 328, duelsWon = 3
 local MONEY_FROM = { loot = 333, quests = 326, vendor = 921, auction = 919 }
 local BOSS_KILLS = 14821   -- the Statistics window's Boss Kills list
 
+-- The game writes thousands with the player's language's own mark ("1,234" in English, "1.234" in German,
+-- "1 234" in Russian, LARGE_NUMBER_SEPERATOR): taken out, with commas and spaces, before a number is read.
+local function Ungrouped(v)
+    local mark = LARGE_NUMBER_SEPERATOR
+    if type(mark) == "string" and mark ~= "" then v = v:gsub(mark:gsub("%p", "%%%0"), "") end
+    return (v:gsub(",", ""):gsub("\194\160", ""):gsub(" ", ""))
+end
+
 -- A statistic as a number: "--" is none, money is read from its coins.
 function Journal.GameStat(id)
     local v = GetStatistic and GetStatistic(id)
     if type(v) ~= "string" or v == "" or v == "--" then return nil end
+    v = Ungrouped(v)
     if v:find("GoldIcon") or v:find("SilverIcon") or v:find("CopperIcon") then
         local g = tonumber(v:match("(%d+)|TInterface\\MoneyFrame\\UI%-GoldIcon")) or 0
         local s = tonumber(v:match("(%d+)|TInterface\\MoneyFrame\\UI%-SilverIcon")) or 0
