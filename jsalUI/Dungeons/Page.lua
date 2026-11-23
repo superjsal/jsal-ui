@@ -377,9 +377,14 @@ local function ForOthers(id)
         classNames[id] = names
     end
     if not names then return false end
-    local mine = UnitClass("player")
+    -- Your class as the game names it, and its two forms where a language has them (Kriegerin, Krieger): a
+    -- tooltip's "Classes:" line names a class in one of them, which needn't be the one your character's is.
+    local mine, file = UnitClass("player")
+    local male = type(LOCALIZED_CLASS_NAMES_MALE) == "table" and LOCALIZED_CLASS_NAMES_MALE[file]
+    local female = type(LOCALIZED_CLASS_NAMES_FEMALE) == "table" and LOCALIZED_CLASS_NAMES_FEMALE[file]
     for name in names:gmatch("[^,]+") do
-        if name:match("^%s*(.-)%s*$") == mine then return false end
+        name = name:match("^%s*(.-)%s*$")
+        if name == mine or name == male or name == female then return false end
     end
     return true
 end
