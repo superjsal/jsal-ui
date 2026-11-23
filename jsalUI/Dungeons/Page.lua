@@ -1652,7 +1652,7 @@ Window.Page("dungeons", function(page)
             it:SetPoint("TOPLEFT", 0, -(top + (k - 1) * ITEM_H))
             it.rule:SetShown(k > 1)
             it.item = entry.id
-            local name, _, quality, _, req, _, subclass, _, equipLoc, texture = ItemInfo(entry.id)
+            local name, _, quality, _, req, _, subclass, _, equipLoc, texture, classID, subclassID = ItemInfo(entry.id)
             local q = quality or entry.item.q or 1
             -- After its name: the star when it's on your gear plan, then how
             -- much better it is than what you wear, or, for a starred piece
@@ -1681,7 +1681,10 @@ Window.Page("dungeons", function(page)
             local parts = {}
             -- Recipes and other things you don't wear have a blank slot name.
             if slot and slot ~= "" then parts[#parts + 1] = slot end
-            if subclass and subclass ~= "" and subclass ~= slot and subclass ~= "Miscellaneous" then parts[#parts + 1] = subclass end
+            -- Armour's Miscellaneous (a ring, a neck, a trinket) says nothing the slot doesn't: by its IDs, which every
+            -- client language shares, and by the English word.
+            local misc = (classID == 4 and subclassID == 0) or subclass == "Miscellaneous"
+            if subclass and subclass ~= "" and subclass ~= slot and not misc then parts[#parts + 1] = subclass end
             -- On the Trash card, the creature it drops from.
             if entry.creature then parts[#parts + 1] = entry.creature end
             -- Too high for you yet: its level, in red.
