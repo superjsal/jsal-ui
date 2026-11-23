@@ -379,9 +379,11 @@ local OTHER_RANKS = {
 -- The skill a rank's next one is learned at, where it isn't the usual. First Aid's Artisan is the
 -- quest Triage, which follows Alliance Trauma or Horde Trauma, and those are given at First Aid
 -- 225, not 200: "She wouldn't give me the quest when I was lvl 36 with First Aid 210, but I
--- received it right after I hit 225". The row said "At 200".
+-- received it right after I hit 225". The row said "At 200". Cooking's Artisan is the same: the
+-- quest Clamlette Surprise follows To Gadgetzan You Go, and that chain starts at Cooking 225.
 local OTHER_AT = {
     [FIRST_AID] = { Expert = 225 },
+    [COOKING] = { Expert = 225 },
 }
 function Professions.At(line, rank)
     local other = line and OTHER_AT[line]
