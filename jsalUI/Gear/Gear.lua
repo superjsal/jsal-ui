@@ -419,6 +419,65 @@ function Gear.Losses(stats, worn, weights, dpsKey)
     return Changes(stats, worn, weights, dpsKey, -1)
 end
 
+-- Stats in a player's words, in the order an item's tooltip lists them, for the line on a piece
+-- that gains only in stats your spec's weights give nothing (Gear.UncountedText). A shield's
+-- block can come as either key, and both read "block". A stat with no words here gets no line.
+Gear.STAT_WORDS = {
+    { "RESISTANCE0_NAME", "armor" }, { "ITEM_MOD_EXTRA_ARMOR_SHORT", "bonus armor" },
+    { "ITEM_MOD_BLOCK_VALUE_SHORT", "block" }, { "ITEM_MOD_BLOCK_RATING_SHORT", "block" },
+    { "ITEM_MOD_DAMAGE_PER_SECOND_SHORT", "weapon damage" },
+    { "ITEM_MOD_STRENGTH_SHORT", "strength" }, { "ITEM_MOD_AGILITY_SHORT", "agility" },
+    { "ITEM_MOD_STAMINA_SHORT", "stamina" }, { "ITEM_MOD_INTELLECT_SHORT", "intellect" },
+    { "ITEM_MOD_SPIRIT_SHORT", "spirit" },
+    { "RESISTANCE1_NAME", "holy resistance" }, { "RESISTANCE2_NAME", "fire resistance" },
+    { "RESISTANCE3_NAME", "nature resistance" }, { "RESISTANCE4_NAME", "frost resistance" },
+    { "RESISTANCE5_NAME", "shadow resistance" }, { "RESISTANCE6_NAME", "arcane resistance" },
+    { "ITEM_MOD_DEFENSE_SKILL_RATING_SHORT", "defense" }, { "ITEM_MOD_DODGE_RATING_SHORT", "dodge" },
+    { "ITEM_MOD_PARRY_RATING_SHORT", "parry" },
+    { "ITEM_MOD_ATTACK_POWER_SHORT", "attack power" }, { "ITEM_MOD_RANGED_ATTACK_POWER_SHORT", "ranged attack power" },
+    { "ITEM_MOD_FERAL_ATTACK_POWER_SHORT", "feral attack power" },
+    { "ITEM_MOD_SPELL_POWER_SHORT", "spell power" }, { "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT", "spell damage" },
+    { "ITEM_MOD_SPELL_HEALING_DONE_SHORT", "healing" },
+    { "ITEM_MOD_ARCANE_DAMAGE_DONE_SHORT", "arcane damage" }, { "ITEM_MOD_FIRE_DAMAGE_DONE_SHORT", "fire damage" },
+    { "ITEM_MOD_FROST_DAMAGE_DONE_SHORT", "frost damage" }, { "ITEM_MOD_HOLY_DAMAGE_DONE_SHORT", "holy damage" },
+    { "ITEM_MOD_NATURE_DAMAGE_DONE_SHORT", "nature damage" }, { "ITEM_MOD_SHADOW_DAMAGE_DONE_SHORT", "shadow damage" },
+    { "ITEM_MOD_HIT_RATING_SHORT", "hit" }, { "ITEM_MOD_HIT_MELEE_RATING_SHORT", "hit" },
+    { "ITEM_MOD_HIT_SPELL_RATING_SHORT", "spell hit" }, { "PCT_HIT_PHYSICAL", "hit" }, { "PCT_HIT_SPELL", "spell hit" },
+    { "ITEM_MOD_CRIT_RATING_SHORT", "crit" }, { "ITEM_MOD_CRIT_MELEE_RATING_SHORT", "crit" },
+    { "ITEM_MOD_CRIT_SPELL_RATING_SHORT", "spell crit" }, { "PCT_CRIT_PHYSICAL", "crit" },
+    { "PCT_CRIT_SPELL", "spell crit" },
+    { "ITEM_MOD_HASTE_RATING_SHORT", "haste" }, { "ITEM_MOD_EXPERTISE_RATING_SHORT", "expertise" },
+    { "ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT", "armor penetration" },
+    { "ITEM_MOD_SPELL_PENETRATION_SHORT", "spell penetration" },
+    { "ITEM_MOD_POWER_REGEN0_SHORT", "mana regen" }, { "ITEM_MOD_MANA_REGENERATION_SHORT", "mana regen" },
+    { "ITEM_MOD_MANA_SHORT", "mana" }, { "ITEM_MOD_HEALTH_SHORT", "health" },
+}
+
+-- The line for a piece whose only gains are stats your spec's weights give nothing (keys, from
+-- Gear.Uncounted): "Armor only: your spec's weights don't count it", "Armor and block only: ...
+-- them". Nil when one of them has no words to say it in.
+function Gear.UncountedText(keys)
+    if not (keys and keys[1]) then return nil end
+    local order, said, words = {}, {}, {}
+    for i, e in ipairs(Gear.STAT_WORDS) do order[e[1]] = { i, e[2] } end
+    local list = {}
+    for _, key in ipairs(keys) do
+        if not order[key] then return nil end
+        list[#list + 1] = order[key]
+    end
+    table.sort(list, function(a, b) return a[1] < b[1] end)
+    for _, e in ipairs(list) do
+        if not said[e[2]] then
+            said[e[2]] = true
+            words[#words + 1] = e[2]
+        end
+    end
+    local named = words[1]
+    if #words > 1 then named = table.concat(words, ", ", 1, #words - 1) .. " and " .. words[#words] end
+    named = named:sub(1, 1):upper() .. named:sub(2)
+    return named .. " only: your spec's weights don't count " .. (#words > 1 and "them" or "it")
+end
+
 -- A plan's option says its gains and losses (`gains`, `losses`, as above) when first asked: a slot
 -- can have hundreds of options, and a page shows a few of them. Worked out from `changesFrom`, the
 -- plan's { worn stats, weights, weapon place }, then kept on the option. A piece that's better has
@@ -1008,7 +1067,11 @@ function Gear.WornTotal(weights)
     return total
 end
 
-function Gear.Better(id, equipLoc, classID, subclassID, quiet)
+-- Where a piece would go and its stats, for weighing it against what you wear there: false when
+-- it isn't for you there (your class can't wear it, the off hand under a two-hander, or it's what
+-- you wear), nil when that can't be told or it isn't loaded. Gear.Better and Gear.Uncounted both
+-- start here, so they weigh the same pieces.
+local function Placed(id, equipLoc, classID, subclassID, quiet)
     local invType = Gear.INVTYPE[equipLoc or ""]
     local slot = invType and Gear.SlotOf(invType)
     if not slot then return nil end
@@ -1024,9 +1087,26 @@ function Gear.Better(id, equipLoc, classID, subclassID, quiet)
         local link = GetInventoryItemLink and GetInventoryItemLink("player", equip)
         if link and tonumber(link:match("item:(%d+)")) == id then return false end
     end
+    return slot, stats
+end
+
+function Gear.Better(id, equipLoc, classID, subclassID, quiet)
+    local slot, stats = Placed(id, equipLoc, classID, subclassID, quiet)
+    if not slot then return slot end
     local plan = Gear.SlotPlan(slot, true)
     if not plan.Would then return false end
     return plan.Would(stats)
+end
+
+-- The stats a piece gains over what you wear, as keys, when every one of them is a stat your
+-- spec's weights give nothing and it loses none: a shield with more armor for an Arms warrior.
+-- Weighed against the same piece you wear as Gear.Better weighs it, so it can never be a piece
+-- the marks call better or worse. Nil for any other piece, and while one isn't loaded.
+function Gear.Uncounted(id, equipLoc, classID, subclassID, quiet)
+    local slot, stats = Placed(id, equipLoc, classID, subclassID, quiet)
+    if not slot then return nil end
+    local plan = Gear.SlotPlan(slot, true)
+    return plan.Uncounted and plan.Uncounted(stats) or nil
 end
 
 -- Whether a piece is better than what you wear, and its share, as its Gear plan row says it: the
@@ -1246,6 +1326,27 @@ function Gear.Plan(slot, spec, only)
         local total = Gear.WornTotal(weights)
         return true, total > 0 and gain / total or nil
     end
+    -- What a piece with these stats gains over what you wear in stats your spec's weights give
+    -- nothing, as their keys, when that's all that changes: it loses nothing and gains no stat the
+    -- weights count at all, however little. Such a piece scores the same as what you wear, so
+    -- Would says it isn't better, and it isn't worse either. Nil for any other piece.
+    local function Uncounted(stats)
+        if not (weights and stats) then return nil end
+        local keys, gained = {}, {}
+        for key in pairs(stats) do keys[key] = true end
+        for key in pairs(worn.stats) do keys[key] = true end
+        for key in pairs(keys) do
+            local diff = (stats[key] or 0) - (worn.stats[key] or 0)
+            if diff < 0 then return nil end
+            if diff > 0 then
+                if Weight(key, weights, slot.dps) ~= 0 then return nil end
+                gained[#gained + 1] = key
+            end
+        end
+        if not gained[1] then return nil end
+        table.sort(gained)
+        return gained
+    end
     local kept = {}
     for _, o in ipairs(options) do
         if o.starred or o.held or o.added or Main(o.stats) or not anyMain then kept[#kept + 1] = o end
@@ -1265,7 +1366,7 @@ function Gear.Plan(slot, spec, only)
         return a.id < b.id
     end)
     Spent("sources and sorting", t)
-    return { worn = worn, options = options, waiting = waiting, Would = Would }
+    return { worn = worn, options = options, waiting = waiting, Would = Would, Uncounted = Uncounted }
 end
 
 ---------------------------------------------------------------------------

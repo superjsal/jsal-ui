@@ -177,8 +177,20 @@ function Gear.TooltipShare(id)
     return better == true and Gear.ShareText(share) or nil
 end
 
+-- The muted line on a piece that's no better for you only because all it gains is stats your
+-- spec's weights don't count ("Armor only: your spec's weights don't count it"): it gets no
+-- mark and no share, and this says why. Nil for any other piece. From what's already known.
+function Gear.TooltipUncounted(id)
+    local instant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    if not (id and instant) then return nil end
+    local _, _, _, equipLoc, _, classID, subclassID = instant(id)
+    if not equipLoc or equipLoc == "" then return nil end
+    return Gear.UncountedText(Gear.Uncounted(id, equipLoc, classID, subclassID, true))
+end
+
 -- The Gear plan's lines in jsal.ui's section of an item's tooltip: how much
--- better it is than what you wear, then the gold lines of a starred one. On
+-- better it is than what you wear (or, muted, that all it gains is stats
+-- your spec doesn't count), then the gold lines of a starred one. On
 -- the quest reward with the crown, the same line in gold with the crown (the
 -- arrow until a restart brings the crown's picture), as the best of the
 -- rewards: the section says it once, with nothing added below.
@@ -194,6 +206,12 @@ function Gear.TooltipLines(lines, id, tooltip)
         else
             local r, g, b = ns.Style.Color("green")
             lines:AddLine(share .. " better than equipped", r, g, b)
+        end
+    else
+        local uncounted = Gear.TooltipUncounted(id)
+        if uncounted then
+            local r, g, b = ns.Style.Color("muted")
+            lines:AddLine(uncounted, r, g, b)
         end
     end
     if Gear.Starred()[id] then
