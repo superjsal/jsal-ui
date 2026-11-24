@@ -65,7 +65,7 @@ Quick buttons, a flight bar that times your flights, a waypoint label, a vendor 
 
 ## Good to know
 
-- **Almost everything is on to start.** The talent helper and the gear goal for 60 are the two you switch on yourself. Every part has its own switch in Settings.
+- **Almost everything is on to start.** Only the talent helper starts off, since it speaks up about your talents unasked: switch it on in the welcome or in Settings. Every part has its own switch in Settings.
 - **It stays out of the way in a fight.** Nothing heavy runs in combat, and jsal.ui never reads the combat log.
 - **What guildmates share stays between guildmates.** Scores, recipes, orders and boss loot go over hidden addon messages, never in chat.
 - **It works alongside** [EllesmereUI](https://www.curseforge.com/wow/addons/ellesmereui) and RestedXP Guides, and uses Auctionator's prices for Crafting profit when you have it. None of them is needed.
