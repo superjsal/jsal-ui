@@ -810,6 +810,21 @@ local function RunCard(parent, width)
     card.open = Words(card, "Open guide", function(self)
         if not (ns.Dungeons and self.dungeon) then return end
         ns.Dungeons.want = self.dungeon
+        -- The card's first piece, when it drops from a creature of the dungeon that isn't a boss: the guide says
+        -- so above its cards, as from Endgame's goal card.
+        local piece = self.piece
+        local e = piece and piece.row.goal.e
+        if e and ns.EndgameGoalWhy then
+            local at
+            for _, r in ipairs(Goal.From(e).runs or {}) do
+                if r.dungeon == self.dungeon and (not at or (r.boss == piece.boss and at.boss ~= piece.boss)) then at = r end
+            end
+            local why = at and ns.EndgameGoalWhy({ id = piece.row.goal.id, e = e }, self.dungeon, at.boss, at.encounter)
+            if why then
+                ns.Dungeons.wantTab = "bosses"
+                ns.Dungeons.wantFrom = why
+            end
+        end
         Window.Open("dungeons")
     end)
     card.open:SetPoint("TOPRIGHT", -14, -10)
@@ -824,7 +839,7 @@ local function RunCard(parent, width)
         self.zone:SetPoint("LEFT", first and self.tag or self.name, "RIGHT", 10, 0)
         self.zone:SetText(run.raid and "Raid" or (run.dungeon and run.dungeon.zone or ""))
         local guide = run.dungeon and ns.Dungeons and ns.Dungeons.running and true or false
-        self.open.dungeon = run.dungeon
+        self.open.dungeon, self.open.piece = run.dungeon, run.pieces[1]
         self.open:SetShown(guide)
         self.share:ClearAllPoints()
         if guide then self.share:SetPoint("RIGHT", self.open, "LEFT", -18, 0) else self.share:SetPoint("TOPRIGHT", -14, -13) end
