@@ -379,12 +379,18 @@ local function Hero(view, width, onStage, onCost, onSets, onDraft)
             t:SetShown(i <= s.slots)
             t:SetColorTexture(Style.Color(i <= s.done and "gold" or "lineStrong"))
         end
+        -- A stage not worked out has no count: the raids' stage is worked out once Raids is shown, as
+        -- it asks the game for every piece a 60 of your class could wear.
         for _, key in ipairs({ Goal.BEFORE, Goal.RAIDS }) do
-            self.stages:Set(key, nil, ("%d of %d"):format(read[key].done, read[key].slots))
+            self.stages:Set(key, nil, read[key] and ("%d of %d"):format(read[key].done, read[key].slots) or nil)
         end
         self.stages:Pick(stage)
-        if read.waiting > 0 then
-            self.note:SetText(("Checking %d piece%s the game hasn't sent yet..."):format(read.waiting, read.waiting == 1 and "" or "s"))
+        -- What the stage shown is owed by the game: before raids, the set's own pieces (or each slot's,
+        -- with no set), not the raids' stage's.
+        local owed = read.waiting or 0
+        if stage == Goal.BEFORE and read.waitingBefore then owed = read.waitingBefore end
+        if owed > 0 then
+            self.note:SetText(("Checking %d piece%s the game hasn't sent yet..."):format(owed, owed == 1 and "" or "s"))
         elseif set and set.own then
             self.note:SetText("Your set \226\128\156" .. set.name .. "\226\128\157" .. (set.from and (", started from WoWSims' " .. set.from) or ""))
         elseif set then
@@ -600,8 +606,13 @@ local function SlotList(view, rowH, onPick, bare)
         for i, r in ipairs(self.rows) do
             local row = rows[i]
             r:SetShown(row ~= nil)
-            local others = row and stage == Goal.BEFORE and (row.pick or row.goal or row.open) and Goal.Others(read, row, PICKS) or {}
-            r.pickable = #others > 0
+            -- Whether the line has other choices, asked without scoring the slot's pieces (Goal.HasOthers);
+            -- a goal with no such answer is asked for the choices themselves.
+            local pickable = false
+            if row and stage == Goal.BEFORE and (row.pick or row.goal or row.open) then
+                if Goal.HasOthers then pickable = Goal.HasOthers(read, row) else pickable = #Goal.Others(read, row, PICKS) > 0 end
+            end
+            r.pickable = pickable
             r:EnableMouse(r.pickable)
             local on = r.pickable and chosen == i
             r.lit:SetShown(on)
@@ -1232,8 +1243,10 @@ function Gear.GoalView(page, width, height)
         if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
         -- No set chosen (an older save, or one whose set was deleted), or WoWSims' build kept under another
         -- spec that doesn't go with this one: the spec's own build (Goal.Read).
-        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready)
+        -- The raids' stage only while Raids is shown: Before raids asks the game for its own pieces alone.
+        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready, stage == Goal.RAIDS)
         ns.Timed("Gear goal, working out", started)
+        if read and stage == Goal.RAIDS and not read.noWeights and not read[Goal.RAIDS] then read = nil end
         if not read then
             waitPlace = wantPlace
             hero:Hide()
