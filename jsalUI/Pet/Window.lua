@@ -91,10 +91,12 @@ function Pet.Layout()
 end
 
 -- The fold button: the whole window, or just the pen. Out with you, it
--- brings the window back.
+-- brings the window back, and its sky is day or night at once, as Open and
+-- Out bring it: Refresh sets a shade it finds unset to where it should be.
 function Pet.Fold()
     if ns.db.petOut then
         ns.db.petOut = nil
+        if ui.pen then ui.pen.shade = nil end
     else
         ns.db.petCompact = ns.db.petCompact ~= true and true or nil
     end
