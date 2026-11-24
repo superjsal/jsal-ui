@@ -173,7 +173,13 @@ function ns.EndgameNight(parent, width, changed)
         -- always seen; the − and + only while the row is lit. A line taken off has none, so a click
         -- anywhere on it puts it back.
         local buttons = { r.minus, r.plus, r.x }
+        local under = {}
+        r.under = under
         local function Live(on)
+            -- A row left with no buttons forgets that one had the pointer, leave or no leave.
+            if not on then
+                for _, b in ipairs(buttons) do under[b] = nil end
+            end
             for _, b in ipairs(buttons) do b:SetShown(on) end
         end
         r.Live = Live
@@ -187,8 +193,6 @@ function ns.EndgameNight(parent, width, changed)
         -- state results whatever order the game sends one frame's leave and the next one's enter in. A
         -- redraw lights a row from the same record: a line that moves up under a resting pointer is lit for
         -- what it now holds, and a row under another window, which never had the pointer, stays dark.
-        local under = {}
-        r.under = under
         local function Light()
             local over = under[r] or false
             if r.line ~= nil then
@@ -211,11 +215,20 @@ function ns.EndgameNight(parent, width, changed)
             end
         end
         r.Light = Light
-        -- Each frame's mark: set by its enter, cleared by its leave or its hiding (hidden, it can't have the pointer).
+        -- Each frame's mark: set by its enter, cleared by its leave or its hiding (hidden, it can't have the
+        -- pointer). The row hidden clears every mark on it, so a button that missed its own leave can't light
+        -- the row when it's shown again.
         local function Hold(f)
             f:HookScript("OnEnter", function() under[f] = true Light() end)
             f:HookScript("OnLeave", function() under[f] = nil Light() end)
-            f:HookScript("OnHide", function() under[f] = nil Light() end)
+            f:HookScript("OnHide", function()
+                if f == r then
+                    for k in pairs(under) do under[k] = nil end
+                else
+                    under[f] = nil
+                end
+                Light()
+            end)
         end
         for _, f in ipairs({ r, r.minus, r.plus, r.x }) do Hold(f) end
         -- − and + are unseen on a row that isn't lit, so a click there does nothing; the x is always seen
