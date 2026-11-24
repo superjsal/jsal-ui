@@ -660,7 +660,15 @@ Window.Page("build", function(page)
                     row.state:SetText("taken")
                     row.state:SetTextColor(Style.Color("muted"))
                 elseif isNext then
-                    row.state:SetText(waiting > 0 and "next: learn it now" or "next")
+                    -- The longest words that fit between the rank dots and the row's right edge: a long
+                    -- name with five dots leaves no room for all of them.
+                    local dotsEnd = 76 + 22 + 8 + Style.Wide(row.name, #node.name * 7) + 10 + (row.pips:IsShown() and row.pips.wide or 0)
+                    local room = row:GetWidth() - dotsEnd - 10 - 8
+                    local says = waiting > 0 and { "next: learn it now", "learn it now", "next" } or { "next" }
+                    for i, words in ipairs(says) do
+                        row.state:SetText(words)
+                        if i == #says or Style.Wide(row.state, #words * 6.5) <= room then break end
+                    end
                     row.state:SetTextColor(Style.Color("gold"))
                 else
                     row.state:SetText("")
