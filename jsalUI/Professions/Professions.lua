@@ -347,7 +347,7 @@ Professions.Makes = Makes
 -- to the Alliance in Ashenvale and Wulan to the Horde in Desolace, a gold
 -- each; Dirge Quikcleave in Gadgetzan gives and takes the quest, for both
 -- sides, from level 35.
-local FIRST_AID, COOKING, ENCHANTING = 129, 185, 333
+local FIRST_AID, COOKING, ENCHANTING, FISHING = 129, 185, 333, 356
 local OTHER_RANKS = {
     -- Enchanting's Artisan is a trainer's, but one inside a dungeon: Annora, Master Enchanter,
     -- in Uldaman, for both sides. No trainer outside teaches it, and the row said jsal.ui
@@ -375,15 +375,29 @@ local OTHER_RANKS = {
                     a = { npc = 12939, name = "Doctor Gustaf VanHowzen", map = 1445, x = 0.676, y = 0.488 },
                     h = { npc = 12920, name = "Doctor Gregory Victor", map = 1417, x = 0.734, y = 0.364 } },
     },
+    -- Fishing's, for both sides: the book "Expert Fishing - The Bass and You" (item 16083, Fishing 125,
+    -- level 20), which Old Man Heming sells in Booty Bay for a gold (where players saw him, EG Link); and
+    -- Nat Pagle's quest "Nat Pagle, Angler Extreme" (6607), from level 35 (EG Link), whose reward teaches
+    -- Artisan. Nat Pagle stands on the island south of Theramore: his spot is the written guides', as no
+    -- player's data has him yet.
+    [FISHING] = {
+        Expert = { "learn Expert from a book", "The Bass and You, sold by",
+                   a = { npc = 2626, name = "Old Man Heming", map = 1434, x = 0.274, y = 0.772 } },
+        Artisan = { "learn Artisan from Nat Pagle's quest", "from level 35, given by",
+                    a = { npc = 12919, name = "Nat Pagle", map = 1445, x = 0.586, y = 0.6 } },
+    },
 }
 -- The skill a rank's next one is learned at, where it isn't the usual. First Aid's Artisan is the
 -- quest Triage, which follows Alliance Trauma or Horde Trauma, and those are given at First Aid
 -- 225, not 200: "She wouldn't give me the quest when I was lvl 36 with First Aid 210, but I
 -- received it right after I hit 225". The row said "At 200". Cooking's Artisan is the same: the
 -- quest Clamlette Surprise follows To Gadgetzan You Go, and that chain starts at Cooking 225.
+-- Fishing's Artisan is Nat Pagle's quest, given at Fishing 225: the written guides for Forever say so,
+-- as Forever's own data gives only its level (35).
 local OTHER_AT = {
     [FIRST_AID] = { Expert = 225 },
     [COOKING] = { Expert = 225 },
+    [FISHING] = { Expert = 225 },
 }
 function Professions.At(line, rank)
     local other = line and OTHER_AT[line]

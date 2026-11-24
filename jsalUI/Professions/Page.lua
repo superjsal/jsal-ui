@@ -6,7 +6,9 @@
 -- the one in hand with a round sign at the skill it reaches, a gold stop
 -- where the next rank is learned, and the cap at its end. Six stops show at
 -- a time; the mouse wheel moves along the rest. The recipes you know are the
--- ones seen the last time its profession window was open.
+-- ones seen the last time its profession window was open. Fishing, which has
+-- no crafts, has a tile in the row too, and its own cards and road
+-- (FishingPage.lua).
 local _, ns = ...
 local Style, Compat, Window, Professions, Road = ns.Style, ns.Compat, ns.Window, ns.Professions, ns.Road
 
@@ -441,8 +443,11 @@ Window.Page("professions", function(page)
     guildSub:SetPoint("TOPLEFT", guildName, "BOTTOMLEFT", 0, -2)
     guildSub:SetText("who makes what")
 
+    -- Fishing's own cards and road, made the first time it's chosen.
+    local fishView
     -- Everything of the road, out of sight, before each painting of it.
     local function HideRoad(bar)
+        if fishView then fishView:Hide() end
         for _, s in ipairs(steps) do s:Hide() end
         for _, r in ipairs(needs) do r:Hide() end
         for _, m in ipairs(card.mats) do m:Hide() end
@@ -469,12 +474,20 @@ Window.Page("professions", function(page)
 
     function Paint()
         local mine = Professions.Mine()
+        -- Fishing after the crafts, when you have it: a tile like theirs.
+        local fish = ns.Fishing and ns.Fishing.Mine()
+        if fish then
+            local all = {}
+            for i, p in ipairs(mine) do all[i] = p end
+            all[#all + 1] = fish
+            mine = all
+        end
         none:SetShown(#mine == 0)
         none:SetText("No crafting professions yet. Learn one at a trainer, and its road shows here.")
         local guildOn = ns.Crafters ~= nil and ns.Crafters.running == true and ns.GuildCrafts ~= nil
         local listed = false
         for _, p in ipairs(mine) do if p.line == selected then listed = true end end
-        if not selected or not Professions.Name(selected) or not listed then
+        if not selected or not listed or not (Professions.Name(selected) or (fish and selected == fish.line)) then
             selected = mine[1] and mine[1].line or nil
         end
         -- The row of professions, with the guild's crafters last in it.
@@ -511,6 +524,15 @@ Window.Page("professions", function(page)
         if not current then
             title:SetText("Professions")
             sub:SetText("What to craft, and how many, to reach each profession's next rank")
+            return
+        end
+        if fish and current == fish then
+            title:SetText(fish.name)
+            sub:SetText(Professions.Rank(fish.cap).name)
+            points:SetText(fish.skill)
+            points:Show()
+            fishView = fishView or ns.FishingPage.Build(page, { width = width, bodyY = bodyY, cardW = CARD_W, rightX = rightX, points = points })
+            fishView:Paint(fish)
             return
         end
 

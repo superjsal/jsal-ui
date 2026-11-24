@@ -90,6 +90,11 @@ Professions\Sources.lua
 Professions\Crafters.lua
 Professions\Orders.lua
 Professions\Road.lua
+# Fishing: the zones' skills (the original game's), what players catch where, and what helps;
+# where to fish, and its page.
+Professions\FishingData.lua
+Professions\Fishing.lua
+Professions\FishingPage.lua
 Professions\Panel.lua
 Professions\Page.lua
 Professions\Window.lua
