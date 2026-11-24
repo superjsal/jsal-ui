@@ -866,7 +866,7 @@ function Paint()
             if not ranked and rankAt and step.from >= rankAt then y = y + RankAt(y) end
             shown = i - 1
             local s = Step(shown)
-            Road.PaintStop(s, step, Road.TrainerFor(line, step))
+            Road.PaintStop(s, step, Road.TrainerFor(line, step), skill)
             -- Its + puts this step alone on the shopping list.
             local shop = ns.Shopping and ns.Shopping.running and not step.recipe.vein
             s.add:SetShown(shop and true or false)

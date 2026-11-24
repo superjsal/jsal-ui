@@ -567,12 +567,14 @@ function Road.StepAdd(parent)
     return b
 end
 
-function Road.PaintStop(s, step, trainer)
+-- `skill` is yours: a tool that gives no point, made where you stand, has "now" in its sign, as its
+-- number would only say again the skill your mark shows. Further down the road it keeps its number.
+function Road.PaintStop(s, step, trainer, skill)
     local recipe = step.recipe
     s.pin, s.hint = Way(step, trainer)
     s.item, s.spell = recipe.item, recipe.spell
     s.needs, s.crafts = not recipe.vein and recipe.reagents or nil, step.crafts
-    s.level:SetText(step.to)
+    s.level:SetText((NoPoint(step) and skill and step.from <= skill) and "now" or step.to)
     s.icon:SetTexture(Road.RecipeIcon(recipe))
     s.count:SetText(("×%d"):format(step.crafts))
     local word = select(2, Todo(step))

@@ -285,7 +285,7 @@ Window.Page("professions", function(page)
                 if item.kind == "step" or item.kind == "passed" then
                     used = used + 1
                     stop = Step(used)
-                    Road.PaintStop(stop, item.step, Road.TrainerFor(o.line, item.step))
+                    Road.PaintStop(stop, item.step, Road.TrainerFor(o.line, item.step), o.skill)
                     -- Behind you, the sign stays solid over the gold (faded, the gold showed through
                     -- it); its line and number are quieter, its picture and words faded.
                     local behind = item.kind == "passed"
