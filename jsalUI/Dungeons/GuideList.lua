@@ -9,6 +9,10 @@ local SIDE_ROW_W, SIDE_HEAD, SIDE_ROW = 216, 28, 26
 local PANEL_PAD, SIDE_UP, SIDE_DOWN = 22, 15, 17
 -- The level the raids are for: below it the list starts with them folded.
 local TOP_LEVEL = 60
+-- From a row's right edge to its marks' right: on a row whose level is "60+", the widest, 4 more, clear of it.
+local MARKS_R, MARKS_R_WIDE = 32, 36
+-- Between the window's left edge and a row's tooltip hung outside it.
+local TIP_GAP = 6
 
 local function TooHigh(d, level) return d.level > level + 3 end
 
@@ -100,7 +104,7 @@ function ns.DungeonGuide.List(guide, Kit)
         r.level:SetPoint("RIGHT", -8, 0)
         r.level:SetJustifyH("RIGHT")
         r.marks = Style.Text(r, 12, "gold", nil, true)
-        r.marks:SetPoint("RIGHT", -32, 0)
+        r.marks:SetPoint("RIGHT", -MARKS_R, 0)
         r.marks:SetJustifyH("RIGHT")
         r.name = Style.Text(r, 13, "secondary")
         r.name:SetPoint("LEFT", 12, 0)
@@ -121,8 +125,9 @@ function ns.DungeonGuide.List(guide, Kit)
         guide.Paint()
     end
 
-    -- Pointed at: the dungeon's name, level and place, its bosses you've
-    -- killed, and what its marks stand for. Beside the list, at the row.
+    -- Pointed at: the dungeon's name, levels and place, its bosses you've
+    -- killed, and what its marks stand for. Level with the row, outside the
+    -- window's left edge, so it covers nothing of the guide (List.Place).
     function List.Enter(self)
         local d = self.dungeon
         if not d then return end
@@ -146,6 +151,27 @@ function ns.DungeonGuide.List(guide, Kit)
                 or ("%d quests in your log are for here"):format(quests)), 0.89, 0.69, 0.29)
         end
         GameTooltip:Show()
+        List.Place(self)
+    end
+
+    -- A row's tooltip, once shown and so its width known: its top right TIP_GAP left of the window's left
+    -- edge, level with the row, as the game's ANCHOR_LEFT hangs one by its owner. Where the screen has no room
+    -- for it there (the window pushed to the screen's left edge), it stays at the row's right, where List.Enter
+    -- put it: the game would push it back onto the screen, over the list. Worked in the screen's own units, as
+    -- the window may be shrunk to fit a small screen.
+    function List.Place(row)
+        local window, tip = page:GetParent(), GameTooltip
+        if type(window) ~= "table" or not window.GetLeft then return end
+        local left, at, wide = window:GetLeft(), row:GetLeft(), tip:GetWidth()
+        local scale, own, rowScale = window:GetEffectiveScale(), tip:GetEffectiveScale(), row:GetEffectiveScale()
+        local known = 0
+        for _, n in pairs({ left, at, wide, scale, own, rowScale }) do
+            if type(n) == "number" then known = known + 1 end
+        end
+        if known < 6 then return end
+        if own <= 0 or left * scale < (wide + TIP_GAP) * own then return end
+        tip:ClearAllPoints()
+        tip:SetPoint("TOPRIGHT", row, "TOPLEFT", -((at * rowScale - left * scale) / own) - TIP_GAP, 2)
     end
 
     -- How many quests in your log are for each dungeon: { [dungeon id] = n }.
@@ -240,7 +266,9 @@ function ns.DungeonGuide.List(guide, Kit)
                     r.name:SetText(d.name)
                     r.name:SetTextColor(Style.Color(on and "text" or "secondary"))
                     if r.size then r.name:SetFont(on and Style.boldFont or Style.font, r.size, "") end
-                    r.level:SetText((Fits(d, level) and GREEN or "") .. d.level .. (Fits(d, level) and "|r" or ""))
+                    r.level:SetText((Fits(d, level) and GREEN or "") .. d.level .. "+" .. (Fits(d, level) and "|r" or ""))
+                    local clear = d.level >= TOP_LEVEL and MARKS_R_WIDE or MARKS_R
+                    r.marks:SetPoint("RIGHT", -clear, 0)
                     r.stars = ns.Gear and ns.Gear.StarsIn and #ns.Gear.StarsIn(d) or 0
                     r.quests = held[d.id] or 0
                     local said = (r.stars > 0 and (ns.Gear.STAR .. " " .. r.stars) or "")
@@ -249,7 +277,7 @@ function ns.DungeonGuide.List(guide, Kit)
                     -- The name gives way to the marks; its tooltip has it whole.
                     local marks = said ~= "" and r.marks:GetStringWidth()
                     marks = type(marks) == "number" and marks + 6 or 0
-                    r.name:SetWidth(SIDE_ROW_W - 12 - 32 - marks)
+                    r.name:SetWidth(SIDE_ROW_W - 12 - clear - marks)
                     -- Well above your level, dimmed, as in the guide's other lists.
                     r:SetAlpha(TooHigh(d, level) and not on and 0.5 or 1)
                     r:Show()

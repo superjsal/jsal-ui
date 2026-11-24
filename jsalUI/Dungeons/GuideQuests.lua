@@ -14,23 +14,19 @@ function ns.DungeonGuide.Quests(guide, Kit)
     local Starts, QuestHeld, QuestMark, GREEN, RED = Kit.Starts, Kit.QuestHeld, Kit.QuestMark, Kit.GREEN, Kit.RED
     local bossList, rightW, hint = guide.bossList, guide.rightW, guide.hint
 
-    -- The quests tab, made to be read at a glance by anyone. A line of what
-    -- there is, column headings, a bar for each place quests start in, a
-    -- line for a quest that stands alone, and a card of numbered steps for a
-    -- chain, with the step to start at marked.
+    -- The quests tab, made to be read at a glance by anyone. Column headings,
+    -- a bar for each place quests start in, a line for a quest that stands
+    -- alone, and a card of numbered steps for a chain, with the step to start
+    -- at marked. What there is in all is said in the page's heading, on every
+    -- tab (Q.Heading).
     local Q = { lines = {}, heads = {}, priors = {}, cards = {}, steps = {} }
     -- Where the "who gives it" column starts, across the list.
     local WHO_X = math.floor(rightW * 0.42)
 
-    -- The top of the list: what's here, a word when you're under level, and
-    -- the column headings.
+    -- The top of the list: the column headings. The level column is the
+    -- quest's own level; what you need to take it is said in red beside it.
     function Q.Top()
-        if Q.sum then return end
-        Q.sum = Style.Text(bossList, 13, "text", nil, true)
-        Q.more = Style.Text(bossList, 12, "muted")
-        Q.more:SetPoint("LEFT", Q.sum, "RIGHT", 10, 0)
-        Q.low = Style.Text(bossList, 12, "muted")
-        Q.low:SetJustifyH("RIGHT")
+        if Q.cols then return end
         Q.cols = CreateFrame("Frame", nil, bossList)
         Q.cols:SetSize(rightW, 20)
         local quest = Style.Text(Q.cols, 10, "muted", nil, true)
@@ -41,7 +37,7 @@ function ns.DungeonGuide.Quests(guide, Kit)
         who:SetText("WHO GIVES IT, AND WHERE")
         local level = Style.Text(Q.cols, 10, "muted", nil, true)
         level:SetPoint("RIGHT", -10, 0)
-        level:SetText("LEVEL")
+        level:SetText("QUEST LEVEL")
         Style.Rule(Q.cols, "BOTTOM", "lineStrong")
     end
 
@@ -292,38 +288,47 @@ function ns.DungeonGuide.Quests(guide, Kit)
         for k = steps + 1, #Q.steps do Q.steps[k]:Hide() end
     end
 
-    -- Paints the quests tab from `by` down the list, and returns where it
-    -- ended.
-    function Q.Paint(quests, by)
-        Q.Top()
+    -- A dungeon's quests for you, sorted and counted once: the heading on every tab and the Quests tab read
+    -- this one count. Kept until your level changes, the page is drawn afresh, the quest log changes or the
+    -- guide closes (Q.Forget), so a repaint for items arriving doesn't ask the game again. `todo` and
+    -- `finished` split the quests. A later part (its first part is on the list and still to do) goes `under`
+    -- that one; the rest are `tops`, what there is to pick up, of which `tooLow` need more than your level,
+    -- the lowest of those `least`.
+    function Q.Count(d, quests)
         local mine = UnitLevel("player") or 1
-        local byId, todo, finished = {}, {}, {}
-        for _, q in ipairs(quests) do byId[q[1]] = q end
+        local c = Q.counted
+        if c and c.d == d and c.mine == mine and c.n == #quests then return c end
+        c = { d = d, mine = mine, n = #quests, byId = {}, todo = {}, finished = {}, entries = {}, opens = {},
+              under = {}, tops = {}, later = 0, tooLow = 0 }
+        for _, q in ipairs(quests) do c.byId[q[1]] = q end
         for _, q in ipairs(quests) do
-            local to = QuestDone(q[1]) and finished or todo
+            local to = QuestDone(q[1]) and c.finished or c.todo
             to[#to + 1] = q
         end
         -- Each quest still to do, with its place and the one before it.
-        local entries, opens = {}, {}
-        for _, q in ipairs(todo) do
+        for _, q in ipairs(c.todo) do
             local s = Starts.Get(q[1])
             local e = { q = q, s = s, before = s and s[8] or nil }
             e.place, e.kind = Starts.Place(s)
-            if e.before and QuestDone(e.before) then opens[e.before] = true end
-            entries[q[1]] = e
+            if e.before and QuestDone(e.before) then c.opens[e.before] = true end
+            c.entries[q[1]] = e
         end
-        -- A later part: its first part is on the list and still to do. It
-        -- goes with that one; the rest are what there is to pick up, and
-        -- are placed further down, once their chains are known.
-        local under, tops, later = {}, {}, 0
-        for _, q in ipairs(todo) do
-            local e = entries[q[1]]
-            if e.before and entries[e.before] and e.before ~= q[1] then
+        -- A later part goes with its first part; the rest are placed further
+        -- down, once their chains are known.
+        local under = c.under
+        for _, q in ipairs(c.todo) do
+            local e = c.entries[q[1]]
+            if e.before and c.entries[e.before] and e.before ~= q[1] then
                 under[e.before] = under[e.before] or {}
                 table.insert(under[e.before], e)
-                later = later + 1
+                c.later = c.later + 1
             else
-                tops[#tops + 1] = e
+                c.tops[#c.tops + 1] = e
+                local needs = q[4] or q[3]
+                if needs > mine then
+                    c.tooLow = c.tooLow + 1
+                    c.least = c.least and math.min(c.least, needs) or needs
+                end
             end
         end
         local function ByLevel(x, y)
@@ -331,40 +336,75 @@ function ns.DungeonGuide.Quests(guide, Kit)
             return x.q[1] < y.q[1]
         end
         for _, list in pairs(under) do table.sort(list, ByLevel) end
-        table.sort(tops, ByLevel)
+        table.sort(c.tops, ByLevel)
+        Q.counted = c
+        return c
+    end
+    function Q.Forget() Q.counted = nil end
 
-        -- The line at the top: what's here in plain words, and one word
-        -- about your level in place of "needs level N" down every row.
-        local now = #todo - later
-        local tooLow, least = 0, nil
-        for _, q in ipairs(todo) do
-            local needs = q[4] or q[3]
-            if needs > mine then
-                tooLow = tooLow + 1
-                least = least and math.min(least, needs) or needs
-            end
+    -- The heading's quest line in plain words, as two parts: the count, then the rest after it. What's
+    -- later in a chain and what's done follow the count; then what you can pick up now, and in red how many
+    -- need a higher level and the lowest they need. `drop` leaves parts out for room: 1 how many are done,
+    -- 2 that and how many later parts follow.
+    function Q.Words(c, drop)
+        drop = drop or 0
+        if #c.todo == 0 then return "", ("All %d done"):format(#c.finished) end
+        local now, low = #c.tops, c.tooLow
+        local parts = {}
+        if c.later > 0 and drop < 2 then parts[#parts + 1] = ("%d more follow%s those"):format(c.later, c.later == 1 and "s" or "") end
+        if #c.finished > 0 and drop < 1 then parts[#parts + 1] = ("%d done"):format(#c.finished) end
+        if low == 0 then
+            parts[#parts + 1] = now == 1 and "you can pick it up now" or ("you can pick up all %d now"):format(now)
+        elseif low == now then
+            parts[#parts + 1] = RED .. (now == 1 and "it needs level %d or more" or "all need level %d or more"):format(c.least) .. "|r"
+        else
+            parts[#parts + 1] = ("%d you can pick up now"):format(now - low)
+            parts[#parts + 1] = RED .. ("%d need%s level %d or more"):format(low, low == 1 and "s" or "", c.least) .. "|r"
         end
-        -- "you can pick up" only when you can: under level for some, it's
-        -- "to pick up", and the line at the right says how many are above you.
-        Q.sum:SetText(#quests == 0 and "" or ("%d quest%s %s"):format(now, now == 1 and "" or "s", tooLow > 0 and "to pick up" or "you can pick up"))
-        Q.sum:ClearAllPoints()
-        Q.sum:SetPoint("TOPLEFT", 0, -(by + 4))
-        local more = {}
-        if later > 0 then more[#more + 1] = ("%d more follow%s those"):format(later, later == 1 and "s" or "") end
-        if #finished > 0 then more[#more + 1] = ("%d done"):format(#finished) end
-        Q.more:SetText(#more > 0 and ("· " .. table.concat(more, " · ")) or "")
-        local many = tooLow == #todo and tooLow > 1 and "all of these need" or ("%d of these need%s"):format(tooLow, tooLow == 1 and "s" or "")
-        Q.low:SetText(tooLow > 0 and ("%sYou're level %d: %s level %d or more|r"):format(RED, mine, many, least) or "")
-        Q.low:ClearAllPoints()
-        Q.low:SetPoint("TOPRIGHT", bossList, "TOPLEFT", rightW, -(by + 5))
-        -- That line shows only when it has more to say than the count the
-        -- tab already gives: some above your level, later parts, some done.
-        local said = #quests > 0 and (tooLow > 0 or #more > 0)
-        for _, region in ipairs({ Q.sum, Q.more, Q.low }) do region:SetShown(said) end
+        return ("%d quest%s"):format(now, now == 1 and "" or "s"), " \194\183 " .. table.concat(parts, " \194\183 ")
+    end
+
+    -- The heading's second line, at its right under the tabs, on every tab: the dungeon's quests in plain
+    -- words, and a click opens the Quests tab. None for a dungeon with no quests. Kept beside the facts at its
+    -- left (`meta`): too long for the room, the parts Q.Words can leave out go.
+    function Q.Heading(d, quests, meta)
+        local line = Q.line
+        if not line then
+            line = CreateFrame("Button", nil, guide.right)
+            line:SetHeight(20)
+            line:SetPoint("TOPRIGHT", 0, -1)
+            line.rest = Style.Text(line, 13, "muted")
+            line.rest:SetPoint("RIGHT", 0, 0)
+            line.count = Style.Text(line, 13, "text", nil, true)
+            line.count:SetPoint("RIGHT", line.rest, "LEFT", 0, 0)
+            line:SetScript("OnClick", function() guide.OpenQuests() end)
+            Style.Hover(line, 6)
+            Q.line = line
+        end
+        if #quests == 0 then return line:Hide() end
+        local c = Q.Count(d, quests)
+        local room, wide = rightW - Q.Wide(meta, 0) - 24, 0
+        for drop = 0, 2 do
+            local count, rest = Q.Words(c, drop)
+            line.count:SetText(count)
+            line.rest:SetText(rest)
+            wide = Q.Wide(line.count, 0) + Q.Wide(line.rest, 0)
+            if wide <= room then break end
+        end
+        line:SetWidth(math.max(1, wide))
+        line:Show()
+    end
+
+    -- Paints the quests tab from `by` down the list, and returns where it
+    -- ended.
+    function Q.Paint(quests, by, d)
+        Q.Top()
+        local mine = UnitLevel("player") or 1
+        local c = Q.Count(d, quests)
+        local byId, finished, entries, opens, under, tops = c.byId, c.finished, c.entries, c.opens, c.under, c.tops
         Q.cols:SetShown(#quests > 0)
         hint:SetText((#quests > 0 and ns.DungeonQuestStarts) and "click a quest, a step or a place for a map pin" or "")
         if #quests > 0 then
-            if said then by = by + 28 end
             Q.cols:ClearAllPoints()
             Q.cols:SetPoint("TOPLEFT", 0, -by)
             by = by + 28

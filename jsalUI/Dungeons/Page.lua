@@ -248,9 +248,21 @@ local function SideText(d)
     return SIDE_COLOR[side] .. side .. (d.faction and " only" or " side") .. "|r"
 end
 
--- What a dungeon is: its level, where its entrance is, and the side it's on.
-local function Facts(d)
-    local bits = { (d.raid and "Raid \194\183 level %d+" or "Level %d+"):format(d.level), d.zone }
+-- The levels a dungeon is right for, as Fits has them: from the level it's tuned to, up to five above, and
+-- never past the top level (a level 60 dungeon is "Level 60"). A raid says so first.
+local TOP_LEVEL = 60
+local function LevelRange(d)
+    local top = math.min(d.level + 5, TOP_LEVEL)
+    local span = top > d.level and ("%d-%d"):format(d.level, top) or tostring(d.level)
+    return (d.raid and "Raid \194\183 level " or "Level ") .. span
+end
+
+-- What a dungeon is: its levels, where its entrance is, and the side it's on. The page's line under the name
+-- leaves the levels out (`placeOnly`): they're beside the name.
+local function Facts(d, placeOnly)
+    local bits = {}
+    if not placeOnly then bits[1] = LevelRange(d) end
+    bits[#bits + 1] = d.zone
     if SideText(d) then bits[#bits + 1] = SideText(d) end
     return bits
 end
@@ -560,8 +572,8 @@ Window.Page("dungeons", function(page)
     -- Down the left: the list of dungeons (GuideList.lua).
     local List = ns.DungeonGuide.List(guide, Kit)
 
-    -- Over the content, at the list's right: the chosen dungeon's name, how it
-    -- sits with your level beside it, and the tabs at the far right.
+    -- Over the content, at the list's right: the chosen dungeon's name, the
+    -- levels it's right for beside it, and the tabs at the far right.
     local top = CreateFrame("Frame", nil, page)
     top:SetSize(width - SIDE_W, PICKER_H)
     top:SetPoint("TOPLEFT", page.heading, "BOTTOMLEFT", SIDE_W, -8)
@@ -570,13 +582,11 @@ Window.Page("dungeons", function(page)
     title:SetWordWrap(false)
     local key = Style.Text(top, 12, "muted")
     key:SetPoint("LEFT", title, "RIGHT", 16, -2)
+    -- In green when your level is one of them, as the list's level is.
     function List.Title(d, level)
         title:SetText(d.name)
-        if Fits(d, level) then
-            key:SetText(GREEN .. "right for level " .. level .. "|r")
-        else
-            key:SetText(level < d.level and ("from level " .. d.level) or "below your level")
-        end
+        local range = LevelRange(d)
+        key:SetText(Fits(d, level) and (GREEN .. range .. "|r") or range)
     end
     page:HookScript("OnShow", function() page:RegisterEvent("QUEST_LOG_UPDATE") end)
     page:HookScript("OnHide", function()
@@ -590,9 +600,10 @@ Window.Page("dungeons", function(page)
     local right = CreateFrame("Frame", nil, page)
     right:SetPoint("TOPLEFT", top, "BOTTOMLEFT", 0, -16)
     right:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", 0, 0)
-    -- The line above is the dungeon's name; under it, its level, where it
-    -- is, and how many of its bosses you've killed. On the bosses' tab that
-    -- follows the line of how much here is for you.
+    -- The line above is the dungeon's name; under it, where it is, its side
+    -- and how many of its bosses you've killed, and at the right, under the
+    -- tabs, its quests in a line (GuideQuests.lua, Q.Heading). The same on
+    -- every tab.
     local meta = Style.Text(right, 13, "muted")
     meta:SetJustifyH("LEFT")
     meta:SetWordWrap(false)
@@ -607,7 +618,6 @@ Window.Page("dungeons", function(page)
     end)
     tabs:SetPoint("RIGHT", top, "RIGHT", 0, 0)
     local hint = Style.Text(right, 12, "muted")
-    hint:SetPoint("TOPRIGHT", 0, -4)
     hint:SetJustifyH("RIGHT")
     local bossScroll, bossList = Style.Scroller(right, rightW + 8, height - PICKER_H - 16 - TOP_H - FOOT_H, rightW)
     bossScroll:SetPoint("TOPLEFT", 0, -TOP_H)
@@ -626,6 +636,8 @@ Window.Page("dungeons", function(page)
     local about
     about = Style.About(right, function() return tab == "map" and about.mapNote or NOTE[tab] end)
     about:SetPoint("BOTTOMRIGHT", 0, 0)
+    -- The Quests tab's hint is at the foot beside it: the line under the name is the quests' own.
+    hint:SetPoint("RIGHT", about, "LEFT", -20, 0)
 
     -- The window is as tall as what's in the list, between a least and the
     -- size it was made at; a longer list scrolls. Nor is it shorter than the
@@ -655,8 +667,6 @@ Window.Page("dungeons", function(page)
     local cardW = math.floor((rightW - GRID_GAP) / 2)
     local B = {}
     B.about = about
-    B.sum = Style.Text(right, 15, "text", nil, true)
-    B.sum:SetPoint("TOPLEFT", 0, -2)
     -- The map, in the list's place. A boss clicked there opens the bosses' tab at its card.
     local mapPane = ns.DungeonMap and ns.DungeonMap.Build(right, rightW, function(k)
         tab, List.pick, B.jump, B.jumpItem = "bosses", "bosses", k, nil
@@ -810,7 +820,14 @@ Window.Page("dungeons", function(page)
 
     -- The quests tab (GuideQuests.lua), drawn in the same scrolled list as the boss cards.
     guide.rightW, guide.hint = rightW, hint
+    -- A click on the heading's quest line opens the Quests tab, as the tab itself does.
+    function guide.OpenQuests()
+        tab, List.pick = "quests", "quests"
+        Paint()
+    end
     local Q = ns.DungeonGuide.Quests(guide, Kit)
+    -- The quests' count is read again once the guide has been closed.
+    page:HookScript("OnHide", function() Q.Forget() end)
 
     Paint = function()
         local started = debugprofilestop()
@@ -864,20 +881,19 @@ Window.Page("dungeons", function(page)
         for _, b in ipairs(d.bosses) do
             if D.KillCount(b[2], game, b[3]) > 0 then killed = killed + 1 end
         end
-        local bits = Facts(d)
+        local bits = Facts(d, true)
         bits[#bits + 1] = ("%d of %d bosses killed"):format(killed, #d.bosses)
         meta:SetText(table.concat(bits, " · "))
 
         for _, pool in ipairs({ Q.lines, Q.heads, Q.priors, Q.cards, Q.steps }) do
             for _, region in ipairs(pool) do region:Hide() end
         end
-        for _, region in ipairs({ Q.sum, Q.more, Q.low, Q.cols }) do region:Hide() end
+        if Q.cols then Q.cols:Hide() end
         for _, row in ipairs(bossRows) do
             row:Hide()
             row.drawn = nil
         end
         B.models = nil
-        B.sum:Hide()
         B.Say(nil)
         meta:ClearAllPoints()
         meta:SetPoint("TOPLEFT", 0, -3)
@@ -893,6 +909,7 @@ Window.Page("dungeons", function(page)
             end
         end
         tabs:Set("quests", nil, #quests > 0 and #quests or nil)
+        Q.Heading(d, quests, meta)
         local hasMap = mapPane ~= nil and ns.DungeonMap.Has(d)
         tabs:Shown("map", hasMap)
         if tab == "map" and not hasMap then tab = "bosses" end
@@ -934,7 +951,7 @@ Window.Page("dungeons", function(page)
         local by = 0
         t = Spent("the dungeon's quests, found", t)
         if tab == "quests" then
-            by = Q.Paint(quests, by)
+            by = Q.Paint(quests, by, d)
             Spent("the quests tab", t)
             if #quests == 0 then
                 none:ClearAllPoints()
@@ -950,10 +967,9 @@ Window.Page("dungeons", function(page)
             NoteParts(started)
             return
         end
-        -- The bosses as cards, two across, in the game's order, under a
-        -- line of how much here is for you.
+        -- The bosses as cards, two across, in the game's order.
         hint:SetText("")
-        local models, forYou, sure = {}, 0, 0
+        local models = {}
         missed = 0
         if ns.Gear then ns.Gear.made = {} end
         for k = 1, B.trashK or #d.bosses do
@@ -972,20 +988,7 @@ Window.Page("dungeons", function(page)
                 if m.guildKills > 0 then words[#words + 1] = ("%d guild kill%s"):format(m.guildKills, m.guildKills == 1 and "" or "s") end
                 m.kills = table.concat(words, "  ·  ")
             end
-            forYou, sure = forYou + m.forYou, sure + m.sure
             models[k] = m
-        end
-        -- Said only when there's something to say: a piece on your gear
-        -- plan, or the gear plan could tell what's better (it needs your
-        -- spec's weights, and the game to have loaded the items). The
-        -- dungeon's level and place follow it on the line.
-        local said = sure > 0 or forYou > 0
-        B.sum:SetShown(said)
-        if said then
-            B.sum:SetText(forYou == 0 and "Nothing here is better than what you wear"
-                or (forYou == 1 and "1 piece here is for you" or ("%d pieces here are for you"):format(forYou)))
-            meta:ClearAllPoints()
-            meta:SetPoint("LEFT", B.sum, "RIGHT", 14, 0)
         end
         -- Why no boss was brought to the top, when that's so: a line above the cards.
         local asked = B.whyNext or B.why
@@ -1028,6 +1031,7 @@ Window.Page("dungeons", function(page)
 
     page.Refresh = function()
         List.dirty = true
+        Q.Forget()
         Paint()
     end
     -- Item names and icons the game hadn't loaded yet arrive a moment later.
@@ -1038,6 +1042,7 @@ Window.Page("dungeons", function(page)
         -- The quest log changed: the list's marks are read again, a moment later for a run of changes.
         if event == "QUEST_LOG_UPDATE" then
             List.held = nil
+            Q.Forget()
             if List.soon or not page:IsVisible() then return end
             List.soon = true
             Compat.After(0.2, ns.Safe(D, function()
