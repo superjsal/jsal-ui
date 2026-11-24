@@ -346,14 +346,16 @@ function ns.EndgameNightPaint(card, p, room)
     local whose = setName and ("WoWSims' " .. setName) or (spec and ("WoWSims' " .. RN.ListWords(spec))) or ""
     p.whose:SetText(list and (whose .. " · " .. (saved.max and "max DPS" or "simple")) or whose)
     -- The heading: RAID NIGHT, then whose list at the right; below 60 "Hide ‹" takes the right and
-    -- whose list sits left of it, or on a line of its own under the heading where both wouldn't fit whole.
+    -- whose list sits left of it; at 60 it is at the right. Where the heading and the name wouldn't fit whole on
+    -- one line, the name is on a line of its own under the heading.
     p.hide:SetShown(below)
     p.whose:ClearAllPoints()
     local head = 0
-    if not below then
+    local gap = Style.Wide(p.title, 72) + 12 + Style.Wide(p.whose, 150)
+    if not below and gap <= p.inner then
         p.whose:SetPoint("TOPRIGHT", card, "TOPRIGHT", -PAD, -14)
         p.whose:SetJustifyH("RIGHT")
-    elseif Style.Wide(p.title, 72) + 12 + Style.Wide(p.whose, 150) + 12 + p.hide:GetWidth() <= p.inner then
+    elseif below and gap + 12 + p.hide:GetWidth() <= p.inner then
         p.whose:SetPoint("RIGHT", p.hide, "LEFT", -12, 0)
         p.whose:SetJustifyH("RIGHT")
     else
