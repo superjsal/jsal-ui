@@ -8,6 +8,8 @@ one with no title, for a profession players saw it teach (EG Link). The class pa
 capitals' trainers, so the class trainers players opened elsewhere are added from EG Link, and
 the starting areas' and towns' that nobody opened from each one's own Wowhead NPC page
 (data/trainers/wowhead-starters.txt).
+Fishing's trainers are Wowhead Forever's Fishing page's (data/trainers/wowhead-fishing.txt), each at the spot
+players stood on where they opened it (EG Link), else at its Wowhead NPC page's.
 Wowhead's spots are on Classic's maps; tools/maps.py puts them on Forever's, which draws Stormwind
 and three other zones differently.
 
@@ -134,6 +136,31 @@ CLASS_SHARE = 0.5
 # What each class trainer's own Wowhead Forever page lists on its Trainer tab, by spell ID and level.
 WOWHEAD_TEACHES = ROOT / "data" / "trainers" / "wowhead-teaches.txt"
 SPELL_TABLES = ROOT / "data" / "spells"
+# Fishing's trainers: Wowhead Forever's Fishing page lists them, and players opened eight (EG Link).
+FISHING = ROOT / "data" / "trainers" / "wowhead-fishing.txt"
+
+
+def fishing_lines():
+    """Fishing's trainers in trainers.txt's columns, and the NPCs whose spot is Forever's own already.
+    A trainer players opened stands where they stood (EG Link's first spot); the rest keep the spot
+    from their Wowhead Forever page, which the build moves to Forever's map as it does trainers.txt's."""
+    lines, own = [], set()
+    if not FISHING.exists():
+        return lines, own
+    opened = json.loads(EGLINK.read_text(encoding="utf-8"))["trainers"] if EGLINK.exists() else {}
+    for line in FISHING.read_text(encoding="utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        npc, name, tag, alliance, horde, kinds, map_id, x, y = line.split("|")
+        if not map_id:
+            spot = ((opened.get(npc) or {}).get("positions") or [{}])[0]
+            if not spot.get("uiMap"):
+                print(f"  fishing trainer left out: {name} ({npc}) has no spot")
+                continue
+            map_id, x, y = str(spot["uiMap"]), str(round(spot["mapX"] * 100, 2)), str(round(spot["mapY"] * 100, 2))
+            own.add(int(npc))
+        lines.append("|".join((npc, name, tag, alliance, horde, kinds, map_id, x, y)))
+    return lines, own
 
 
 def class_book():
@@ -321,13 +348,14 @@ PROFESSION_WORDS = {
     171: ("Alchem",), 164: ("Blacksmith", "Armor Crafter", "Weaponsmith"), 333: ("Enchant",),
     202: ("Engineer",), 165: ("Leather",), 197: ("Tailor",), 186: ("Mining", "Miner"),
     185: ("Cook", "Butcher"), 129: ("First Aid", "Physician", "Medic"),
+    356: ("Fish", "Angler"),
 }
 
 
 # A profession's name as EG Link gives a trainer's services.
 PROFESSION_NAMES = {
     171: "Alchemy", 164: "Blacksmithing", 333: "Enchanting", 202: "Engineering", 165: "Leatherworking",
-    197: "Tailoring", 186: "Mining", 185: "Cooking", 129: "First Aid",
+    197: "Tailoring", 186: "Mining", 185: "Cooking", 129: "First Aid", 356: "Fishing",
 }
 
 
@@ -402,6 +430,8 @@ def main():
     by_key = {}
     sources = [(line, True) for line in SRC.read_text(encoding="utf-8").splitlines()]
     sources += [(line, False) for line in SEEN.read_text(encoding="utf-8").splitlines()]
+    fishing, own_spot = fishing_lines()
+    sources += [(line, True) for line in fishing]
     listed = set()
     seen = taught()
     for line, wowhead in sources:
@@ -434,7 +464,8 @@ def main():
                         or (not tag and skill in seen.get(int(npc), {}))):
                     continue
                 key = "skill" + str(skill)
-            spot_x, spot_y = forever_spot(int(map_id), float(x), float(y)) if wowhead else (float(x), float(y))
+            moved = wowhead and int(npc) not in own_spot
+            spot_x, spot_y = forever_spot(int(map_id), float(x), float(y)) if moved else (float(x), float(y))
             by_key.setdefault(key, []).append(
                 (int(npc), name, tag, int(map_id), round(spot_x / 100, 4), round(spot_y / 100, 4), a, h))
     lines = [
