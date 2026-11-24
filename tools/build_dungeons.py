@@ -352,7 +352,7 @@ def build_loot(rows):
                     listed.append(q["row"])
     loot_lines, quest_lines = [], []
     items = quests = 0
-    unmatched, unread = [], []
+    unmatched, unread, empty = [], [], []
     for raid, level, name, lfg_id, map_id, zone, faction, bosses in rows:
         z = zones.get(str(WOWHEAD_ZONE[lfg_id]))
         if z is None:
@@ -364,7 +364,10 @@ def build_loot(rows):
                 unmatched.append(f"{name}: {boss}")
                 continue
             if not drops:
+                empty.append(f"{name}: {boss}")
                 continue
+            if len({i for i, _ in drops}) != len(drops):
+                sys.exit(f"{name}: {boss} lists an item twice in wowhead.json")
             drops = sorted(drops, key=lambda d: (-(d[1] or 0), d[0]))
             text = ", ".join(f"{{ {i} }}" if pct is None else f"{{ {i}, {pct} }}" for i, pct in drops)
             loot_lines.append(f"    [{encounter}] = {{ {text} }}, -- {boss}")
@@ -411,6 +414,8 @@ def build_loot(rows):
     print(f"{items} drops and {quests} quests -> {LOOT_OUT.relative_to(ROOT)}")
     if unmatched:
         print("Bosses Wowhead has no page for: " + "; ".join(unmatched))
+    if empty:
+        print("Bosses whose pages list no loot to keep: " + "; ".join(empty))
     if unread:
         print("Not read from Wowhead yet: " + ", ".join(unread))
 

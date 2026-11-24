@@ -62,6 +62,11 @@ NPC_ID = {
     "Snowtalon": [262297], "Bolt": [262081], "Vitrix": [272561], "Nanaya": [261809],
     # Onyxia's Lair's zone page (2159) lists no NPCs, quests or drops on Wowhead Forever.
     "Onyxia": [10184],
+    # City of Dalaran's zone page (16544) lists only its quests, no NPCs or drops: its bosses' NPC
+    # pages, found by name on /forever/npcs/name:<name> (each the one in Alterac Mountains).
+    "Arcane Anomaly": [245999], "Fel Ancient": [246003], "Mana Devourer": [246008],
+    "Mana Elemental": [246016], "Unstable Sentinel": [246017], "Lyn the Ignored": [247032],
+    "Atrexis the Grave Knight": [247126], "Mana Wraith": [246931], "Shade of the Archmage": [246020],
 }
 
 data = json.loads((ROOT / "data" / "dungeons" / "wowhead.json").read_text(encoding="utf-8"))

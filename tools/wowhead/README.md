@@ -142,9 +142,11 @@ keeps what it has read; they confirm it, and running the same script again carri
 - `supplies.py`, `supplies.js`: each vendor reagent's "Sold by" list (seller, side, zones, price),
   then the page of each seller whose spot EG Link and the recipe read don't have.
 - `bosses.py`, `dungeons.js`, `merge_dungeons.py`: each dungeon's zone page (quests, NPCs, and the
-  Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). A drop is
-  kept when it's uncommon or better and dropped in at least 2% of 10 or more kills, or when the
-  zone's Drops tab names the boss.
+  Drops tab naming bosses) and each boss's NPC page (drops with Wowhead's kill counts). The read
+  keeps every uncommon-or-better drop with its counts as Wowhead has them; `merge_dungeons.py`
+  decides which a boss's card shows: a rare or better item dropped in at least 2% of 10 or more
+  kills, an uncommon one from 5%, one the zone's Drops tab names the boss for, and, without a
+  drop chance, what Wowhead lists for the boss with no counts yet or from fewer than 10 kills.
 - `place_items.py`, `places.js`, `merge_places.py`: each placeless drop's item page, the creatures
   under "Dropped by" with their NPC IDs, zones and Wowhead's counts (`count` drops in `outof`
   kills, kept as read). `build_gear.py` gives such an item a place in each dungeon the rule above
