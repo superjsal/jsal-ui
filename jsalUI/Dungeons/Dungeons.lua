@@ -341,7 +341,7 @@ local function IsBoss(d, name)
     end
     return false
 end
-local moreAt
+local moreAt, wideAt
 function Dungeons.Trash(d)
     local data = ns.GearData
     if trash[d] and trash[d].data == data then return trash[d].list end
@@ -423,26 +423,32 @@ function Dungeons.Trash(d)
             end
         end
     end
-    -- The dungeon-wide pieces: each one's side and quality are the first entry GearData has for it, and one it has
-    -- no entry for is kept without them.
+    -- The dungeon-wide pieces: each one's side and quality are the first entry GearData has for it (read once for every
+    -- dungeon's, and kept), and one it has no entry for is kept without them.
     local wide, listed = {}, {}
     for _, b in ipairs(d.bosses) do
         for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do listed[drop[1]] = true end
     end
     for _, id in ipairs(ns.DungeonTrash and ns.DungeonTrash[d.id] or {}) do
-        if not (seen[id] or listed[id]) then wide[id] = true end
+        if not (seen[id] or listed[id]) then wide[#wide + 1] = id end
     end
-    if next(wide) then
-        local found = {}
-        for _, line in pairs(data.items) do
-            for entry in line:gmatch("[^;]+") do
-                local id, side, q = entry:match("^(%d+),%d+,%d+,%-?%d+,%-?%d+,(%d+),%d+,(%d+)")
-                id = tonumber(id)
-                if id and wide[id] and not found[id] then found[id] = { side, tonumber(q) } end
+    if #wide > 0 then
+        if not (wideAt and wideAt.data == data and wideAt.from == ns.DungeonTrash) then
+            wideAt = { data = data, from = ns.DungeonTrash, at = {} }
+            local every = {}
+            for _, ids in pairs(ns.DungeonTrash) do
+                for _, id in ipairs(ids) do every[id] = true end
+            end
+            for _, line in pairs(data.items) do
+                for entry in line:gmatch("[^;]+") do
+                    local id, side, q = entry:match("^(%d+),%d+,%d+,%-?%d+,%-?%d+,(%d+),%d+,(%d+)")
+                    id = tonumber(id)
+                    if id and every[id] and not wideAt.at[id] then wideAt.at[id] = { side, tonumber(q) } end
+                end
             end
         end
-        for id in pairs(wide) do
-            local at = found[id]
+        for _, id in ipairs(wide) do
+            local at = wideAt.at[id]
             if not at or at[1] == "0" or at[1] == mine then
                 seen[id] = true
                 list[#list + 1] = { id, nil, at and at[2] or nil }
