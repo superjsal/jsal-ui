@@ -297,6 +297,22 @@ function Gear.Unique(id)
     return id ~= nil and uniqueOf[id] == true
 end
 
+-- A shield's own block ("3 Block" on its tooltip), which the game's item stats leave out: from
+-- GearData's `block` (every shield the game has, read from Wowhead), read once. Added to the
+-- stats as Block Value, the key the weights give it, on top of any Block Value the shield's stats
+-- already have (an extra "+25 Block Value" is the game's own and comes with them).
+local blockOf
+local function Block(id)
+    if not blockOf then
+        blockOf = {}
+        for item, value in ((ns.GearData and ns.GearData.block) or ""):gmatch("(%d+):(%d+)") do
+            blockOf[tonumber(item)] = tonumber(value)
+        end
+    end
+    return id and blockOf[id] or nil
+end
+Gear.Block = Block
+
 -- `quiet`: never ask the game to load the item (for a tooltip, which shows
 -- only what's loaded).
 local function Stats(item, quiet)
@@ -315,6 +331,8 @@ local function Stats(item, quiet)
             out[key] = PER_PERCENT[key] and value / PER_PERCENT[key] or value
         end
         for key, value in pairs(extra or {}) do out[key] = value end
+        local block = Block(id)
+        if block then out.ITEM_MOD_BLOCK_VALUE_SHORT = (out.ITEM_MOD_BLOCK_VALUE_SHORT or 0) + block end
         if type(item) == "number" then statsOf[item] = out end
         return out
     end

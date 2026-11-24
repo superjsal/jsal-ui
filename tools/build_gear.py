@@ -41,6 +41,11 @@ DUNGEON_SHARE below), so a world drop that a few dungeon creatures also drop sta
 others, where there are any, go in GearData's `more`, read only by the Dungeon guide's Trash card.
 Outdoors, or nowhere read, it keeps no place.
 
+A shield's own block ("3 Block" on its tooltip) is left out of the game's item stats and its tables,
+so it comes from Wowhead too: data/gear/wowhead-shields.json, read by tools/wowhead/shields.py for
+every shield in the game's Item table, white ones as well. GearData's `block` keeps the ones with
+block, and Gear.lua adds it to a shield's stats as Block Value.
+
 Run: python -I tools/build_gear.py [--places <file>] [--out <file>]
 """
 
@@ -55,6 +60,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "data" / "gear"
 OUT = ROOT / "jsalUI" / "Gear" / "GearData.lua"
 PLACES = SRC / "wowhead-places.json"
+SHIELDS = SRC / "wowhead-shields.json"
 
 STAMINA_SHARE = 0.1
 MAIN_STATS = ("ITEM_MOD_STRENGTH_SHORT", "ITEM_MOD_AGILITY_SHORT", "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT",
@@ -691,6 +697,9 @@ def main():
     kinds = {"": 0, "Drop": 1, "Quest": 2, "Vendor": 3, "Crafted": 4, "PvP": 5}
     reagents, raid = craft_reagents(), []
     pct, unique = {}, []
+    block = {}
+    if SHIELDS.exists():
+        block = {int(i): v for i, v in json.loads(SHIELDS.read_text(encoding="utf-8"))["block"].items() if v}
     for item in sorted(data["items"], key=lambda i: i[0]):
         item_id, _name, quality, req, ilvl, slot, cls, sub, side, reqclass = item[:10]
         side = side or quartermaster_side(item)
@@ -781,6 +790,9 @@ def main():
         "    -- Rings and trinkets that can be worn only once (Unique, or Unique-Equipped), by item ID,",
         "    -- separated by \";\": one is the upgrade of only one place of the pair.",
         "    unique = " + lua_string(";".join(str(i) for i in unique)) + ",",
+        "    -- Each shield's own block (\"3 Block\" on its tooltip), which the game's item stats leave out,",
+        "    -- \"item ID:block\" separated by \";\": every shield the game has, white ones too, from Wowhead.",
+        "    block = " + lua_string(";".join(f"{i}:{v}" for i, v in sorted(block.items()))) + ",",
         *([
             "    -- A drop's other dungeons, past the one place in its line (the dungeon where it drops most):",
             "    -- \"item ID:\" then places by number, separated by \",\"; items by \";\". For the Dungeon guide's Trash card.",
@@ -794,7 +806,7 @@ def main():
     ]
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent, {len(unique)} unique ->{OUT.name} ({OUT.stat().st_size // 1024} KB)")
+    print(f"{sum(len(v) for v in by_slot.values())} items in {len(rows)} slots, {len(places)} places, {len(quests)} quest rewards, {len(pct)} with a percent, {len(unique)} unique, {len(block)} shields' block ->{OUT.name} ({OUT.stat().st_size // 1024} KB)")
     if dungeons_of:
         print(f"{placed} drops placed in a dungeon from {places_file.name} ({to_boss} on a boss), {len(more)} in more than one")
 

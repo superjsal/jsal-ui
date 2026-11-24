@@ -21,6 +21,11 @@ keeps what it has read; they confirm it, and running the same script again carri
    - When every list is in, the tab goes to the receiver and the file is written.
    - Then: `python -I tools/build_gear.py` (writes `jsalUI/Gear/GearData.lua`; compare its item
      count with the last commit's).
+   - **Shields' block (about 490 tooltips, about 13 minutes, no browser):** the game's item stats
+     leave a shield's own block out, so `python -I tools/wowhead/shields.py` reads it from each
+     shield's Wowhead tooltip, every shield in the game's Item table (white ones too), into
+     `data/gear/wowhead-shields.json`. It keeps what it read as it goes and carries on if run again;
+     `--all` reads them all afresh. Then `build_gear.py` again (it says how many shields' block it wrote).
 2. **Where the placeless set pieces drop (91 item pages at level 50, about 15 minutes):**
    - A drop Wowhead names no one place for (the dungeon set bracers and belts drop from ordinary
      creatures in several dungeons) takes its dungeons from its own page's "Dropped by" list, for
@@ -129,6 +134,8 @@ keeps what it has read; they confirm it, and running the same script again carri
   the address of a page on 127.0.0.1:8799, which posts it back to the receiver.
 - `gear.js`: every uncommon-or-better armor list (by type and slot), jewelry, cloaks, off-hand
   items, shields and each weapon type. Robes come with the chest lists.
+- `shields.py`: each shield's block, from its tooltip on nether.wowhead.com (one every 1.5 seconds):
+  the number on its "N Block" line, apart from any "+N Block Value" the game's stats already give.
 - `recipes.js`: each profession's recipe list (a recipe's quest, single vendor or single mob), then
   every vendor's page: their side, zone, map spot and each recipe they sell with its price and
   stock. A vendor recipe no vendor read so far sells has its own page read for its "Sold by" list.
