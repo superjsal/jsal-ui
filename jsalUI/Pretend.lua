@@ -35,11 +35,12 @@ local LEVEL = 60
 -- What's in the bags while pretending: a night's flasks and Greater Mageblood, four of a night's
 -- steaks, a stack of Major Mana Potions.
 local HELD = { [274274] = 2, [250341] = 6, [250072] = 4, [13444] = 5 }
--- Three pre-raid pieces for the made-up next run when your set gives none: a back, a neck and a ring.
-local FALLBACK = { { 13340, "Back" }, { 15411, "Neck" }, { 18500, "Finger 1" } }
--- The slots of a set, in its order, for the made-up next run's pieces.
-local SLOTS = { "Head", "Neck", "Shoulder", "Back", "Chest", "Wrist", "Hands", "Waist", "Legs", "Feet", "Finger 1", "Finger 2",
-                "Trinket 1", "Trinket 2", "Main hand", "Off hand", "Ranged" }
+-- The made-up next run when your set has nothing left to get: Stratholme, with three pre-raid pieces that drop
+-- there (Cape of the Black Baron and Seal of Rivendare from Baron Rivendare, 12% and 16%; Plaguehound Leggings from
+-- a Crypt Beast, no count), so a piece pictured beside a run's name always drops in it.
+local MADE_RUN = { name = "Stratholme", chance = { 12, 16 },
+                   pieces = { { 13340, "Back", "Baron Rivendare", 12 }, { 13345, "Finger 1", "Baron Rivendare", 16 },
+                              { 18736, "Legs", "Crypt Beast" } } }
 
 -- This character's level.
 function Pretend.Level()
@@ -99,36 +100,39 @@ function Pretend.Characters()
     return made
 end
 
--- Where your pre-raid set stands (GearGoal.Summary's shape), nil without one. On: 9 of 16 slots
--- of your own set, the next run with three of its pieces, one in 12% of runs.
+-- The made-up next run, in Goal.Runs' shape: its pieces, and the share of runs that bring at least one.
+local function MadeRun()
+    local pieces, miss = {}, 1
+    for _, p in ipairs(MADE_RUN.pieces) do
+        pieces[#pieces + 1] = { row = { label = p[2], goal = { id = p[1] } }, boss = p[3], chance = p[4] }
+    end
+    for _, chance in ipairs(MADE_RUN.chance) do miss = miss * (1 - chance / 100) end
+    return { name = MADE_RUN.name, any = 1 - miss, pieces = pieces }
+end
+
+-- Where your pre-raid set stands (GearGoal.Summary's shape), nil without one. On: your own set at 60, about nine
+-- of its sixteen slots worn. What's next is your set's own, as the Gear plan's WHERE TO GO has it: the runs with
+-- the pieces that drop in each, the pieces got another way, those with no known source. Only where that has
+-- nothing left to get (no set, or every piece worn) is the next run made up.
 function Pretend.GoalSummary()
     local Goal = ns.GearGoal
     if not Pretend.on then
         return Goal and Goal.running and Goal.Summary and Goal.Summary() or nil
     end
-    -- Your own set as it is (its name, whether it's one of yours, the pieces you don't wear yet), at 60 with
-    -- about nine in sixteen worn, and the next run made of three of the pieces still to get.
     local real
     if Goal and Goal.Summary then
         local ok, s = pcall(Goal.Summary)
         if ok then real = s end
     end
-    local pieces = {}
-    for _, row in ipairs(real and real.rows or {}) do
-        if #pieces < 3 and row.goal and tonumber(row.goal.id) then pieces[#pieces + 1] = { row = { label = row.label, goal = { id = row.goal.id } } } end
-    end
-    if #pieces == 0 and Goal and Goal.ChosenSet then
-        local ids = Goal.ChosenSet()
-        for i, id in ipairs(ids or {}) do
-            id = tonumber(id)
-            if id and id > 0 and #pieces < 3 then pieces[#pieces + 1] = { row = { label = SLOTS[i], goal = { id = id } } } end
-        end
-    end
-    for i, id in ipairs(#pieces == 0 and FALLBACK or {}) do pieces[i] = { row = { label = id[2], goal = { id = id[1] } } } end
+    local runs, other, unknown = real and real.runs or {}, real and real.other or {}, real and real.unknown or 0
+    local made = #runs == 0 and #other == 0 and unknown == 0
+    if made then runs, other, unknown = { MadeRun() }, {}, 0 end
     local of = real and (real.of or 0) > 0 and real.of or 16
-    return { at = math.max(0, math.min(of - #pieces, math.floor(of * 9 / 16 + 0.5))), of = of,
-             name = real and real.name or "Pre-raid", own = real and real.own or nil, rows = {}, other = {}, unknown = 0,
-             runs = { { name = "Stratholme", any = 0.12, pieces = pieces } } }
+    -- Short of done: what's next always has a piece to get.
+    local left = made and #runs[1].pieces or 1
+    return { at = math.max(0, math.min(of - left, math.floor(of * 9 / 16 + 0.5))), of = of,
+             name = real and real.name or "Pre-raid", own = real and real.own or nil, rows = real and real.rows or {},
+             runs = runs, other = other, unknown = unknown }
 end
 
 -- The Journal's nights and bosses (Journal\Nights.lua's shape): the saved ones; while pretending,
