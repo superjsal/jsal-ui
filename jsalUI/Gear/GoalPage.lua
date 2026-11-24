@@ -1277,6 +1277,11 @@ function Gear.GoalView(page, width, height)
             -- A slot with picks stays chosen: a piece's, or an empty place of a set of yours.
             if not (row and (row.pick or row.goal or row.open)) then chosen, row = nil, nil end
             list:Paint(read[stage].rows, stage, chosen, read)
+            -- Nothing owed before raids: the other specs' sets are asked of the game ahead, so another
+            -- spec picked on the Gear plan's top shows its pieces' names at once (each set once).
+            if stage == Goal.BEFORE and (read.waitingBefore or read.waiting or 0) == 0 and Goal.AskAhead then
+                Goal.AskAhead(spec, kept.cheap)
+            end
             runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, PICKS), own = read.set and read.set.own, set = read.set ~= nil, draft = read.set and read.set.draft } or nil)
             -- Still waiting on items: look again by itself, once at a time.
             if read.waiting > 0 and not retrying then

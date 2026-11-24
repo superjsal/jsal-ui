@@ -1037,7 +1037,9 @@ function Goal.Summary()
     return out
 end
 
-local kept
+-- The goals kept, one a spec: picking another spec on the Gear plan's top and coming back finds the
+-- first one's goal as it was, with nothing worked out or asked of the game again.
+local keptBy = {}
 local KEEP = 600
 -- The rest of a goal: the set's rows or the weights' before raids, then, where `raids` asks for it, the
 -- raids'. Each slot's pieces are scored as they're needed (ListOf).
@@ -1141,8 +1143,8 @@ end
 local function Job(spec, build, cheap, draft, key, now, raids)
     local weights = Gear.Weights(spec)
     local _, classFile, classID = UnitClass("player")
-    local out = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = key.drafted, at = now, waiting = 0,
-                  arrived = Gear.arrived }
+    local out = { stamp = Gear.planStamp, goalStamp = key.goalStamp, spec = spec, build = build, cheap = cheap, drafted = key.drafted,
+                  at = now, waiting = 0, arrived = Gear.arrived }
     local job = { key = key, out = out, i = 1, raids = raids }
     if not (weights and ns.GearData) then
         out.noWeights = true
@@ -1185,10 +1187,30 @@ local function Run(job, ms)
     return job.i > #steps
 end
 
--- Whether a goal (or a job's key) is for what `key` asks: the same plans, spec, set and change.
+-- Whether a goal (or a job's key) is for what `key` asks: the same plans (as Stamp counts them), spec,
+-- set and change.
 local function Same(read, key)
-    return read and read.stamp == key.stamp and read.spec == key.spec and read.build == key.build and read.cheap == key.cheap
+    return read and read.goalStamp == key.goalStamp and read.spec == key.spec and read.build == key.build and read.cheap == key.cheap
         and read.drafted == key.drafted
+end
+
+-- What a kept goal is checked against: Gear.planStamp, which moves with anything the plans are worked
+-- out from. Picking another spec moves it too, as the plans near your level are weighed by the spec,
+-- but a goal is for one spec and kept for it apart, and a spec picked changes nothing a spec's goal is
+-- worked out from (the set it's put on is the one Goal.Read is asked for): so a move made by picking a
+-- spec alone leaves every spec's kept goal good, and any other move makes them all out of date.
+local goalStamp, seenStamp = 0, nil
+local function Stamp()
+    if Gear.planStamp ~= seenStamp then goalStamp, seenStamp = goalStamp + 1, Gear.planStamp end
+    return goalStamp
+end
+local setSpec = Gear.SetSpec
+if setSpec then
+    function Gear.SetSpec(...)
+        Stamp()
+        setSpec(...)
+        seenStamp = Gear.planStamp
+    end
 end
 
 -- The goal being worked out a few steps a frame, and those to tell when it's done.
@@ -1215,8 +1237,9 @@ local SPREAD_MS = 6
 function Goal.Read(spec, build, cheap, draft, later, raids)
     spec = spec or Gear.Spec()
     cheap = cheap and true or false
-    local key = { stamp = Gear.planStamp, spec = spec, build = build, cheap = cheap, drafted = draft and table.concat(draft, ",") or "" }
+    local key = { goalStamp = Stamp(), spec = spec, build = build, cheap = cheap, drafted = draft and table.concat(draft, ",") or "" }
     local now = GetTime and GetTime()
+    local kept = keptBy[spec]
     -- A goal kept with its raids' stage keeps it when it's worked out again.
     raids = raids ~= false or (Same(kept, key) and kept[Goal.RAIDS] ~= nil)
     local function Has(read) return Same(read, key) and (not raids or read.noWeights or read[Goal.RAIDS] ~= nil) end
@@ -1231,6 +1254,7 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
     if not (later and Compat and Compat.After) then
         Run(job)
         kept, job = job.out, nil
+        keptBy[spec] = kept
         return kept
     end
     told[#told + 1] = later
@@ -1243,7 +1267,7 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
             local done = Run(mine, SPREAD_MS)
             if ns.Timed then ns.Timed("Gear goal, working out", started) end
             if not done then return Compat.After(0, Step) end
-            kept, job = mine.out, nil
+            keptBy[mine.key.spec], job = mine.out, nil
             local list = told
             told = {}
             -- Each asker once, however often it asked meanwhile.
@@ -1257,6 +1281,46 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
         end
         Compat.After(0, Step)
     end
+    kept = keptBy[spec]
     if Has(kept) then return kept end
     return nil
+end
+
+-- The other specs' sets before raids, asked of the game ahead while At 60 has what it shows (the
+-- page calls this once nothing before raids is owed): picking a spec on the Gear plan's top puts At 60
+-- on that spec's own WoWSims build, and its pieces' names and stats are then in already, rather than
+-- asked for at the pick and shown as "..." until the game sends them. Each spec's own set alone, full
+-- or cheap as you have it (16 or 17 items); a place only the other side can get is left out, as the
+-- piece standing in for it is the weights' best there, worked out only when the spec is shown. A spec a
+-- frame, and each spec's set once: an item the game never sends isn't asked for again.
+local askedAhead = {}
+local function NoEstimate() return nil end
+function Goal.AskAhead(spec, cheap)
+    local load = C_Item and C_Item.RequestLoadItemDataByID
+    if not load then return end
+    cheap = cheap and true or false
+    local _, classFile = UnitClass("player")
+    local side = Side()
+    local todo = {}
+    for other = 1, 3 do
+        local key = table.concat({ classFile or "", other, side, cheap and 1 or 0 }, ":")
+        if other ~= spec and not askedAhead[key] then
+            askedAhead[key] = true
+            local builds, start = Goal.SpecBuilds(classFile, other)
+            for _, b in ipairs(builds or {}) do
+                if b.key == start then todo[#todo + 1] = b end
+            end
+        end
+    end
+    local cached = C_Item.IsItemDataCachedByID
+    local get = C_Item.GetItemInfo or GetItemInfo
+    local function Ask(n)
+        for _, id in ipairs((IdsOf(todo[n], cheap, side, NoEstimate))) do
+            local have = (cached and cached(id)) or (not cached and get and get(id))
+            if id > 0 and not have then load(id) end
+        end
+        local function Next() Ask(n + 1) end
+        if todo[n + 1] then ns.Compat.After(0, ns.Safe and ns.Safe(Goal, Next) or Next) end
+    end
+    if todo[1] then Ask(1) end
 end
