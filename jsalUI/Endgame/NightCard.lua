@@ -178,24 +178,29 @@ function ns.EndgameNight(parent, width, changed)
         end
         r.Live = Live
         -- Lit while the pointer is on the row or one of its buttons: the row's light, the − and + seen, the
-        -- x red under the pointer, and the line's tooltip. It is read from
-        -- where the pointer is (over the row, or over a button, which the game may count as off the row
-        -- while the button has the pointer), never from which enter or leave came last, so the same state
-        -- results whatever order the game sends them in. `may` is false where the row can't be lit: a
-        -- redraw passes whether it was lit, so a line that moves up under the pointer is lit for what it
-        -- now holds, and a row under another window, which the game sends nothing, stays dark.
-        local function Light(may)
-            local over = r:IsMouseOver()
+        -- x red under the pointer, and the line's tooltip. Which of them has the pointer is kept from each
+        -- one's own enter and leave (`under`), as the game sends them: the game's own enter is the truth of
+        -- where its focus went. Asking each frame IsMouseOver from inside those enters and leaves could
+        -- disagree with them (a pointer coming in over the x at the row's right end, the edge the two share,
+        -- read as over neither), and nothing asked again while the pointer then rested on the x, so the line
+        -- stayed dark, or lit with a grey x. A frame's enter always comes before its own leave, so the same
+        -- state results whatever order the game sends one frame's leave and the next one's enter in. A
+        -- redraw lights a row from the same record: a line that moves up under a resting pointer is lit for
+        -- what it now holds, and a row under another window, which never had the pointer, stays dark.
+        local under = {}
+        r.under = under
+        local function Light()
+            local over = under[r] or false
             if r.line ~= nil then
-                for _, b in ipairs(buttons) do over = over or b:IsMouseOver() end
+                for _, b in ipairs(buttons) do over = over or under[b] or false end
             end
-            local on = may and r:IsVisible() and over or false
+            local on = r:IsVisible() and over or false
             r.lit = on
             local live = on and r.line ~= nil
             r.glow:SetShown(on)
             r.minus:SetAlpha(live and 1 or 0)
             r.plus:SetAlpha(live and 1 or 0)
-            r.x.text:SetTextColor(Style.Color(live and r.x:IsMouseOver() and "red" or "muted"))
+            r.x.text:SetTextColor(Style.Color(live and under[r.x] and "red" or "muted"))
             if on and r.item then
                 GameTooltip:SetOwner(r, "ANCHOR_RIGHT")
                 GameTooltip:SetItemByID(r.item)
@@ -206,15 +211,13 @@ function ns.EndgameNight(parent, width, changed)
             end
         end
         r.Light = Light
-        local function Pointer() Light(true) end
-        r:SetScript("OnEnter", Pointer)
-        r:SetScript("OnLeave", Pointer)
-        for _, b in ipairs({ r.minus, r.plus }) do
-            b:HookScript("OnEnter", Pointer)
-            b:HookScript("OnLeave", Pointer)
+        -- Each frame's mark: set by its enter, cleared by its leave or its hiding (hidden, it can't have the pointer).
+        local function Hold(f)
+            f:HookScript("OnEnter", function() under[f] = true Light() end)
+            f:HookScript("OnLeave", function() under[f] = nil Light() end)
+            f:HookScript("OnHide", function() under[f] = nil Light() end)
         end
-        r.x:SetScript("OnEnter", Pointer)
-        r.x:SetScript("OnLeave", Pointer)
+        for _, f in ipairs({ r, r.minus, r.plus, r.x }) do Hold(f) end
         -- − and + are unseen on a row that isn't lit, so a click there does nothing; the x is always seen
         -- and always takes its line off.
         r.minus:SetScript("OnClick", function() if r.lit and r.line then RN.SetCount(r.line, r.per - 1) Changed() end end)
@@ -223,7 +226,7 @@ function ns.EndgameNight(parent, width, changed)
         -- A line taken off: a click puts it back.
         r:SetScript("OnClick", function(self) if self.back then RN.TakeOff(self.item, false) Changed() end end)
         Live(false)
-        Light(false)
+        Light()
         rows[i] = r
         return r
     end
@@ -435,7 +438,7 @@ function ns.EndgameNightPaint(card, p, room)
             At(r)
             r:Show()
             r.Live(r.line ~= nil)
-            r.Light(r.lit)
+            r.Light()
             y = y + h
         end
     end
@@ -453,7 +456,7 @@ function ns.EndgameNightPaint(card, p, room)
             At(r)
             r:Show()
             r.Live(r.line ~= nil)
-            r.Light(r.lit)
+            r.Light()
             y = y + h
         end
     end
