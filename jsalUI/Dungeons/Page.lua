@@ -272,22 +272,36 @@ local function ItemInfo(id)
     return name, link, quality, ilvl, req, class, subclass, stack, equipLoc, texture, classID, subclassID
 end
 
--- How many of a dungeon's listed drops the game hasn't loaded, asking for each when `ask`.
--- Nothing where the game can't be asked: there's then nothing to wait for. Only the items'
--- numbers are looked at, no tooltip.
+-- How many of the drops a dungeon's cards list the game hasn't loaded, asking for each when `ask`:
+-- its bosses' (Wowhead's, what you've looted, what the guild has seen) and its creatures' (the Trash
+-- card). All of them, as the line over the cards counts the pieces for you on every card: a dungeon
+-- drawn with one still to come would draw that line again with another number when it came. Nothing
+-- where the game can't be asked: there's then nothing to wait for. Only the items' numbers are looked
+-- at, no tooltip.
 local function Unloaded(d, ask)
     local request = C_Item and C_Item.RequestLoadItemDataByID
     if not request then return 0 end
     local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local D, GL = ns.Dungeons, ns.GuildLoot
     local n = 0
-    for _, b in ipairs(d.bosses) do
-        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do
-            if not get(drop[1]) then
-                n = n + 1
-                if ask then request(drop[1]) end
-            end
+    local function Look(id)
+        if not get(id) then
+            n = n + 1
+            if ask then request(id) end
         end
     end
+    local looted = D and D.Loot and D.Loot() or {}
+    local guild = GL and GL.On and GL.On() and GL.For
+    for _, b in ipairs(d.bosses) do
+        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do Look(drop[1]) end
+        for id in pairs(looted[b[1]] or {}) do Look(id) end
+        -- As the card does, not one the game says is below uncommon.
+        for id in pairs(guild and (guild(b[1]) or {}).i or {}) do
+            local quality = C_Item.GetItemQualityByID and C_Item.GetItemQualityByID(id)
+            if type(quality) ~= "number" or quality >= 2 then Look(id) end
+        end
+    end
+    for _, e in ipairs(D and D.Trash and D.Trash(d) or {}) do Look(e[1]) end
     return n
 end
 

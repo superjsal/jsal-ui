@@ -204,15 +204,36 @@ function Pet.BedSpot(size)
     return N.x + 64 - size / 2, PEN_H - N.y - 42 - size
 end
 
--- Already asleep as it's drawn: lying in its nest's hollow if that's its bed, else where it stands, with
--- no walk there. ToBed's walk and lying down are for falling asleep while you watch.
+-- Already asleep as it's drawn: lying in its nest's hollow if that's its bed, else where it lay down
+-- (Pet.Laid), with no walk there. ToBed's walk and lying down are for falling asleep while you watch.
 function Pet.Abed(walk)
     if ui.nestBack and ui.nestBack:IsShown() and Rules.Bed(Pet.State()) then
         walk.x, walk.y = Pet.BedSpot(walk.size)
         walk.facing = "left"
+    else
+        Pet.Laid(walk)
     end
     walk.tx, walk.ty, walk.act, walk.errand, walk.doting = walk.x, walk.y, nil, nil, nil
     walk.frame, walk.wait = "sleep", math.max(walk.wait or 0, 0.5)
+end
+
+-- Where it lay down to sleep in its pen is kept with it (`laidAt`, saved, so a /reload keeps it too) until
+-- it wakes; Rules.Advance and Rules.Lights let it go as it wakes or falls asleep. A pen drawn anew while it
+-- sleeps (back from out with you, or after a /reload) would otherwise be a new walk on a new spot each time:
+-- with one kept, it's put back there, facing the same way. With none yet, the spot it's on now is kept.
+-- Out with you, its strip has spots of its own, and a look at another form isn't it: both are left be.
+function Pet.Laid(walk)
+    if walk.strip or ui.looking then return end
+    local s = Pet.State()
+    local at = s.laidAt
+    local x, y = type(at) == "table" and tonumber(at.x), type(at) == "table" and tonumber(at.y)
+    if x and y then
+        walk.x = math.max(0, math.min(PEN_W - walk.size, x))
+        walk.y = math.max(0, math.min(PEN_H - walk.size, y))
+        if at.facing == "left" or at.facing == "right" then walk.facing = at.facing end
+    else
+        s.laidAt = { x = math.floor(walk.x + 0.5), y = math.floor(walk.y + 0.5), facing = walk.facing }
+    end
 end
 
 -- Bedtime, each frame it's asleep or napping: with a nest for a bed, it
