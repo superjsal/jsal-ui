@@ -295,7 +295,11 @@ local function BuildPen()
             ui.walk.errand, ui.pen.held, ui.pen.toss = nil, nil, nil
             if not Pet.ToBed(dt) then
                 if ui.walk.act then Pet.Step(ui.walk, dt, math.random) end
-                if not ui.walk.act then ui.walk.frame = "sleep" end
+                if not ui.walk.act then
+                    ui.walk.frame = "sleep"
+                    -- Lain down: the spot is kept, for the next time its pen is drawn anew (Pet.Laid).
+                    if Pet.State().laidAt == nil then Pet.Laid(ui.walk) end
+                end
                 ui.walk.wait = math.max(ui.walk.wait, 0.5)
             end
         else
