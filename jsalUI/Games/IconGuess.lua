@@ -265,7 +265,10 @@ local function Start(newMode)
     if not IconGuess.running then
         return ns.Print("Icon Guess is turned off. /jsal settings turns it on.")
     end
+    -- It takes only clicks, so it can open by itself once the fight is over. (Core keeps
+    -- that promise; this file read without Core only has the line.)
     if Compat.InCombat() then
+        if ns.OpenAfterCombat then return ns.OpenAfterCombat("icons", "Icon Guess", function() Start(newMode) end) end
         return ns.Print("Icon Guess opens once combat ends.")
     end
     if #Pool() < CHOICES * 3 then

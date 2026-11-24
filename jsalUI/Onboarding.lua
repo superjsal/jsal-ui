@@ -1049,8 +1049,13 @@ local function Build()
     stepName:SetPoint("LEFT", foot, "CENTER", -66 + #STEPS * 15, 0)
 end
 
+-- In a fight it opens once the fight is over: its Reload button is the game's secure one.
+-- (Core keeps that promise; this file read without Core only has the line.)
 function Setup.Open()
-    if Compat.InCombat() then return ns.Print("The welcome opens once combat ends.") end
+    if Compat.InCombat() then
+        if ns.OpenAfterCombat then return ns.OpenAfterCombat("welcome", "The welcome", Setup.Open) end
+        return ns.Print("The welcome opens once combat ends.")
+    end
     if not frame then Build() end
     opens = "home"
     frame:Show()

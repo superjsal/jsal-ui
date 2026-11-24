@@ -719,8 +719,10 @@ local function Start(newMode)
     if not PalRun.running then
         return ns.Print("Pal run is turned off. /jsal settings turns it on.")
     end
+    -- Not opened by itself after the fight: it takes the keys a player moves with (A, D, W,
+    -- Space), and would take them as the fight ends.
     if Compat.InCombat() then
-        return ns.Print("Pal run opens once combat ends.")
+        return ns.Print("Pal run can't open in combat. Try again once combat ends.")
     end
     if not ui.frame then Build() end
     Begin(newMode, math.random(1, 2000000000))

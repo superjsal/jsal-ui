@@ -599,8 +599,13 @@ Paint = function()
     end
 end
 
+-- In a fight it opens once the fight is over: the game won't let some pieces be moved in
+-- combat. (Core keeps that promise; this file read without Core only has the line.)
 function Unlock.Open()
-    if Compat.InCombat() then return ns.Print("Unlock Mode opens once combat ends.") end
+    if Compat.InCombat() then
+        if ns.OpenAfterCombat then return ns.OpenAfterCombat("unlock", "Unlock Mode", Unlock.Open) end
+        return ns.Print("Unlock Mode opens once combat ends.")
+    end
     if not next(pieces) then return ns.Print("There's nothing of jsal.ui's to move: switch on the quick buttons, the bag button, the food reminder or the range check in Settings.") end
     if not overlay then Build() end
     picked = nil

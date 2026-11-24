@@ -530,8 +530,10 @@ local function Show(word)
     if not DailyWord.running then
         return ns.Print("Daily Word is turned off. /jsal settings turns it on.")
     end
+    -- Not opened by itself after the fight: its box takes the keyboard as it opens, and would
+    -- take the keys a player moves with as the fight ends.
     if Compat.InCombat() then
-        return ns.Print("Daily Word opens once combat ends.")
+        return ns.Print("Daily Word can't open in combat. Try again once combat ends.")
     end
     if not frame then Build() end
     guildWord = word

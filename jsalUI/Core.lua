@@ -434,6 +434,45 @@ events:SetScript("OnEvent", function(self, event, arg1)
     end
 end)
 
+-- A window asked for in a fight opens once the fight is over, as the line in chat says. One ask
+-- waits at a time, the latest; asking to close it, or opening something else, forgets it. The
+-- fight's end is listened for only while an ask waits, and nothing opens while still in combat.
+-- `asked` is { key = what was asked for, what = its name in chat, open = what opens it }.
+local afterFight = { key = "afterfight", title = "Opening after a fight", frame = CreateFrame("Frame") }
+function afterFight.Forget()
+    afterFight.asked = nil
+    afterFight.frame:UnregisterEvent("PLAYER_REGEN_ENABLED")
+end
+afterFight.frame:SetScript("OnEvent", ns.Safe(afterFight, function()
+    if Compat.InCombat() then return end
+    local open = afterFight.asked and afterFight.asked.open
+    afterFight.Forget()
+    -- An error in the window it opens is that window's, and the next ask still keeps its word.
+    if open then xpcall(open, Report) end
+end))
+
+-- In a fight: says "<what> opens once combat ends." and opens it with open() when the fight is
+-- over, in place of anything asked for before.
+function ns.OpenAfterCombat(key, what, open)
+    if afterFight.failed then return ns.Print(what .. " can't open in combat. Try again once combat ends.") end
+    afterFight.asked = { key = key, what = what, open = open }
+    afterFight.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    ns.Print(what .. " opens once combat ends.")
+end
+
+-- Forgets what's waiting to open after the fight: anything, or only `key`. `say` tells the
+-- player it won't open, for a second press on what asked for it. True when something was waiting.
+function ns.ForgetOpen(key, say)
+    local asked = afterFight.asked
+    if not asked or (key and asked.key ~= key) then return false end
+    afterFight.Forget()
+    if say then ns.Print(asked.what .. " won't open after combat.") end
+    return true
+end
+
+-- What's waiting to open once the fight is over, by its key, if anything.
+function ns.WaitingOpen() return afterFight.asked and afterFight.asked.key end
+
 -- /jsal opens the dashboard; a word after it goes to a page or a game.
 local commands = {}
 function ns.Command(word, fn) commands[word] = fn end

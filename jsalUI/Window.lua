@@ -480,23 +480,35 @@ function Window.Watch(label)
 end
 
 -- `direct` opens a page's own window even when the entry has an `open` of its own (Guild
--- Crafts' picks between its two sizes, and comes back here for the full one).
-function Window.Open(key, direct)
+-- Crafts' picks between its two sizes, and comes back here for the full one). `named`: the
+-- page was asked for by name, so a fight's line says its name rather than the dashboard's.
+local function OpenPage(key, direct, named)
+    -- Opening anything forgets what was waiting to open after a fight: the latest ask counts.
+    if ns.ForgetOpen then ns.ForgetOpen() end
     local page = byKey[key] or byKey.home
     if page.open and not direct then return page.open() end
     -- A page that isn't in the menu just now (/jsal install with no look to
     -- install) opens the dashboard's home instead.
     if page.when and not page.when() then page = byKey.home end
-    local spent = Window.Watch(page.label) or {}
-    local started = debugprofilestop()
     if page.own and page.build then
+        local spent = Window.Watch(page.label) or {}
+        local started = debugprofilestop()
         OpenOwn(page, spent)
         spent.code = debugprofilestop() - started
         return
     end
+    -- The dashboard holds secure buttons, so it can't open in a fight: it opens on this page
+    -- once the fight is over. (Core keeps that promise; this file read without Core only
+    -- has the line.)
     if Compat.InCombat() then
-        return ns.Print("The dashboard opens once combat ends.")
+        local what, pageKey = named and page.label or "The dashboard", page.key
+        if ns.OpenAfterCombat then
+            return ns.OpenAfterCombat(pageKey, what, function() OpenPage(pageKey, direct, named) end)
+        end
+        return ns.Print(what .. " opens once combat ends.")
     end
+    local spent = Window.Watch(page.label) or {}
+    local started = debugprofilestop()
     if not frame then Build() end
     if not page.frame then BuildPage(page) end
     for _, other in ipairs(PAGES) do
@@ -516,11 +528,17 @@ function Window.Open(key, direct)
     spent.code = debugprofilestop() - started
 end
 
+function Window.Open(key, direct) return OpenPage(key, direct, key ~= nil) end
+
+-- The dashboard on its own (the minimap button, /jsal): it opens on the page it was last on,
+-- and closes when open. In a fight, a second press forgets the dashboard waiting to open.
 function Window.Toggle()
     if frame and frame:IsShown() then
         frame:Hide()
+    elseif ns.WaitingOpen and byKey[ns.WaitingOpen() or ""] then
+        ns.ForgetOpen(nil, true)
     else
-        Window.Open(current or "home")
+        OpenPage(current or "home", nil, false)
     end
 end
 
@@ -541,8 +559,10 @@ function Window.IsOpen(key)
     return frame ~= nil and frame:IsShown() and current == key
 end
 
--- Closes a page: its own window, or the dashboard it's showing in.
+-- Closes a page: its own window, or the dashboard it's showing in. A page waiting to open
+-- after a fight is forgotten.
 function Window.Close(key)
+    if ns.ForgetOpen then ns.ForgetOpen(key, true) end
     local page = byKey[key]
     if page and page.own then
         if page.own.frame then page.own.frame:Hide() end

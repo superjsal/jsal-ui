@@ -34,16 +34,18 @@ end
 
 -- Every button opens its place, and closes it when it's already open: the
 -- dashboard page, or the page's own window (the gear plan, the dungeons).
+-- Pressed again while its place waits to open after a fight, it forgets that.
+local function Forgot(key) return ns.ForgetOpen ~= nil and ns.ForgetOpen(key, true) end
 local function Page(key)
     return function()
-        if ns.Window.IsOpen(key) then ns.Window.Close(key) else ns.Window.Open(key) end
+        if ns.Window.IsOpen(key) then ns.Window.Close(key) elseif not Forgot(key) then ns.Window.Open(key) end
     end
 end
 
-local function Game(window, open)
+local function Game(window, open, key)
     return function()
         local f = window()
-        if f and f:IsShown() then f:Hide() else open() end
+        if f and f:IsShown() then f:Hide() elseif not (key and Forgot(key)) then open() end
     end
 end
 
@@ -119,7 +121,7 @@ PLACES = {
       waiting = function() return not ns.DailyWord.DailyDone() and "Today's word is waiting" or nil end },
     { key = "icons", inGames = true, label = "Icon Guess", icon = OWN .. "icons",
       ready = function() return ns.IconGuess and ns.IconGuess.running end,
-      open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end),
+      open = Game(function() return jsalUIIconGuess end, function() ns.IconGuess.Open() end, "icons"),
       waiting = function() return not ns.IconGuess.DailyDone() and "Today's round is waiting" or nil end },
     -- Pal run, while its part is on: today's course waits until it has a
     -- time or its runs are used up.
