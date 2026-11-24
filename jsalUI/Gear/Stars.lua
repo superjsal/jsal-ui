@@ -275,7 +275,13 @@ function Gear.Dropped(link)
     local now = GetTime and GetTime() or 0
     if alerted[id] and now - alerted[id] < 60 then return false end
     alerted[id] = now
-    local said = starred and Gear.StarLine(id) or ("for your " .. wanted .. ", in your set for 60")
+    -- A starred item's line may be nil (stats not loaded, no weights); only an unstarred piece has a slot name.
+    local said
+    if starred then
+        said = Gear.StarLine(id)
+    elseif type(wanted) == "string" then
+        said = "for your " .. wanted .. ", in your set for 60"
+    end
     local line = link .. (said and ("  |cff9a9688· " .. said .. "|r") or "")
     if ns.Style and ns.Style.Banner then
         ns.Style.Banner(Gear.STAR .. (starred and " Starred item dropped" or " Pre-BiS item dropped"), line)
