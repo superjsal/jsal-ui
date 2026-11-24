@@ -37,35 +37,48 @@ end
 local GOES = { guide = "Click for the Dungeon guide", quests = "Click for its quests in the Dungeon guide",
                crafts = "Click for Guild crafts", gear = "Click for the Gear plan" }
 
+-- The boss of the dungeon's guide a piece drops from: by its encounter, else by either of its names (an
+-- encounter's and the boss's own can differ), else by a name that begins the other (Wowhead's "Kirtonos the
+-- Herald" is the guide's "Kirtonos"). Its place in the dungeon's list, or nil.
+local function BossOf(d, boss, encounter)
+    local function Named(b, whole)
+        for i = 2, 3 do
+            local n = b[i]
+            if n and (n == boss or (not whole and #n >= 5 and #boss >= 5
+                and (boss:sub(1, #n) == n or n:sub(1, #boss) == boss))) then return true end
+        end
+    end
+    local found
+    for _, whole in ipairs({ true, false }) do
+        for k, b in ipairs((boss or encounter) and d.bosses or {}) do
+            if not found and ((encounter and b[1] == encounter) or (boss and Named(b, whole))) then found = k end
+        end
+    end
+    return found
+end
+
+-- What the guide is asked to say for a piece dropped by a creature of the dungeon that isn't one of its bosses
+-- (`boss` is the creature's name, nil when any creature there drops it): the bosses' tab says so above its
+-- cards. Nil for a boss's piece, which the guide shows on the boss's card. `p` has the item's `id` and its
+-- quality, as `quality` or in its entry `e`.
+local function Why(p, d, boss, encounter)
+    if encounter or BossOf(d, boss, encounter) then return nil end
+    return { dungeon = d, item = p.id, quality = p.quality or (p.e and tonumber(p.e.quality)), creature = boss }
+end
+ns.EndgameGoalWhy = Why
+
 local function Go(p)
     local kind, d, boss, encounter = Target(p)
     if (kind == "guide" or kind == "quests") and ns.Dungeons then
         ns.Dungeons.want = d
         if kind == "quests" then ns.Dungeons.wantTab = "quests" end
-        -- The boss by its encounter, else by either of its names (an encounter's and the boss's own can differ),
-        -- else by a name that begins the other (Wowhead's "Kirtonos the Herald" is the guide's "Kirtonos"); and
-        -- the piece, to be lit on its card.
-        local function Named(b, whole)
-            for i = 2, 3 do
-                local n = b[i]
-                if n and (n == boss or (not whole and #n >= 5 and #boss >= 5
-                    and (boss:sub(1, #n) == n or n:sub(1, #boss) == boss))) then return true end
-            end
-        end
-        local found
-        for _, whole in ipairs({ true, false }) do
-            for k, b in ipairs((boss or encounter) and d.bosses or {}) do
-                if not found and ((encounter and b[1] == encounter) or (boss and Named(b, whole))) then found = k end
-            end
-        end
+        -- The boss asked for, and the piece, to be lit on its card.
+        local found = BossOf(d, boss, encounter)
         if found then
             ns.Dungeons.wantBoss, ns.Dungeons.wantItem = found, p.id
-        elseif kind == "guide" and not encounter then
-            -- Dropped by a creature of the dungeon that isn't one of its bosses (`boss` is the creature's
-            -- name, nil when any creature there drops it): the bosses' tab says so above its cards.
+        elseif kind == "guide" and Why(p, d, boss, encounter) then
             ns.Dungeons.wantTab = "bosses"
-            ns.Dungeons.wantFrom = { dungeon = d, item = p.id, quality = p.quality or (p.e and tonumber(p.e.quality)),
-                                     creature = boss }
+            ns.Dungeons.wantFrom = Why(p, d, boss, encounter)
         end
         Window.Open("dungeons")
     elseif kind == "crafts" then
