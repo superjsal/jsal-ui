@@ -20,6 +20,8 @@ local MAIN_HAND = 16
 -- game's), icon, skill, cap, bonus (from your pole, lure and what you wear) }, or nil without it.
 local function Places(...) return select("#", ...), { ... } end
 function Fishing.Mine()
+    local pretend = ns.Pretend and ns.Pretend.Fishing and ns.Pretend.Fishing()
+    if pretend then return pretend end
     if not (GetProfessions and GetProfessionInfo) then return nil end
     local count, places = Places(GetProfessions())
     for i = 1, count do

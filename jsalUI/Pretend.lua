@@ -215,11 +215,15 @@ function Pretend.ShoppingList()
     return kept.shopping
 end
 
+-- Fishing has no crafting data: its own page reads the pretended skill through Pretend.Fishing.
+local FISHING = 356
+
 -- The skill line a profession's name or number is ("cooking", "first aid", "185"), else nil.
 local function LineOf(word)
     local data = ns.ProfessionData or {}
     local n = tonumber(word)
     if n and type(data[n]) == "table" then return n end
+    if word == "fishing" or n == FISHING then return FISHING end
     for line, p in pairs(data) do
         if type(p) == "table" and type(p.name) == "string" and p.name:lower() == word then return line end
     end
@@ -232,6 +236,7 @@ local function Names()
         if type(p) == "table" and type(p.name) == "string" then out[#out + 1] = p.name:lower() end
     end
     table.sort(out)
+    out[#out + 1] = "fishing"
     return out
 end
 
@@ -243,6 +248,8 @@ local PICTURE = { [171] = 2259, [164] = 2018, [333] = 7411, [202] = 4036, [165] 
 function Pretend.Professions()
     local s = Pretend.skill
     if not s then return nil end
+    -- Fishing is shown as its own tile (Pretend.Fishing), so the crafts are none.
+    if s.line == FISHING then return {} end
     local data = ns.ProfessionData and ns.ProfessionData[s.line]
     local icon
     for _, p in ipairs(ns.Professions and ns.Professions.Mine and ns.Professions.Mine(true) or {}) do
@@ -256,6 +263,18 @@ function Pretend.Professions()
     return { { line = s.line, name = name, game = name, icon = icon, skill = s.skill, cap = s.cap, pretend = true } }
 end
 
+-- Fishing as the Professions page reads it (Fishing.Mine's shape) while Fishing is pretended, else nil.
+function Pretend.Fishing()
+    local s = Pretend.skill
+    if not (s and s.line == FISHING) then return nil end
+    local icon
+    if Compat.SpellInfo then
+        local _, picture = Compat.SpellInfo(7620)
+        icon = picture
+    end
+    return { line = FISHING, name = "Fishing", icon = icon, skill = s.skill, cap = s.cap, bonus = 0, pretend = true }
+end
+
 -- The title bar's words while pretending, else nil: "pretend 60", "pretend Horde", "pretend 60, Horde",
 -- "pretend Cooking 190".
 function Pretend.Words()
@@ -264,7 +283,8 @@ function Pretend.Words()
     if Pretend.faction then parts[#parts + 1] = Pretend.faction end
     if Pretend.skill then
         local data = ns.ProfessionData and ns.ProfessionData[Pretend.skill.line]
-        parts[#parts + 1] = (data and data.name or tostring(Pretend.skill.line)) .. " " .. Pretend.skill.skill
+        local name = Pretend.skill.line == FISHING and "Fishing" or data and data.name or tostring(Pretend.skill.line)
+        parts[#parts + 1] = name .. " " .. Pretend.skill.skill
     end
     if #parts == 0 then return nil end
     return "pretend " .. table.concat(parts, ", ")
@@ -305,7 +325,8 @@ function Pretend.SetSkill(line, skill)
         return true
     end
     skill = tonumber(skill)
-    if not (ns.ProfessionData and type(ns.ProfessionData[line]) == "table") or not skill or skill < 1 or skill > 300
+    local known = line == FISHING or ns.ProfessionData and type(ns.ProfessionData[line]) == "table"
+    if not known or not skill or skill < 1 or skill > 300
         or skill ~= math.floor(skill) then
         return false
     end
@@ -351,7 +372,7 @@ if ns.IsBeta(ns.version) then
         if not line or not Pretend.SetSkill(line, tonumber(skill)) then return SkillHelp() end
         local s = Pretend.skill
         ns.Print(("Pretending to have %s at %d of %d until /jsal pretend off or a /reload, knowing what its trainers teach up to there. Nothing is saved meanwhile.")
-            :format(ns.ProfessionData[line].name, s.skill, s.cap))
+            :format(line == FISHING and "Fishing" or ns.ProfessionData[line].name, s.skill, s.cap))
     end)
     ns.Command("pretend off", function()
         Pretend.Off()
