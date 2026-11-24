@@ -162,12 +162,12 @@ function Gear.GoalSources(from, stage)
 end
 
 ---------------------------------------------------------------------------
--- Your sets, in a menu under their pill: each set, then a new one, and for
--- the one you're on Copy, Rename and Delete. `act(what, key, words)` does
--- them; Delete asks once ("Sure?") for three seconds; Rename edits the name in
--- place.
+-- The sets menu under its pill: WoWSims' builds for your spec, its own
+-- marked "default", then a rule and your sets: each set, then a new one, and
+-- for the one you're on Rename and Delete. `act(what, key, words)` does them;
+-- Delete asks once ("Sure?") for three seconds; Rename edits the name in place.
 ---------------------------------------------------------------------------
-local MENU_W, MENU_ROW = 220, 24
+local MENU_W, MENU_ROW, MENU_GAP = 220, 24, 8
 local LIT = { gold = "goldHover", red = "red" }
 local function SetsMenu(parent, act)
     local menu = CreateFrame("Frame", nil, parent)
@@ -183,6 +183,14 @@ local function SetsMenu(parent, act)
         b:SetSize(MENU_W - 16, MENU_ROW)
         b.text = Style.Text(b, 13, "secondary")
         b.text:SetPoint("LEFT", 6, 0)
+        -- "default" at the right of your spec's own build.
+        b.note = Style.Text(b, 12, "muted")
+        b.note:SetPoint("RIGHT", -6, 0)
+        -- The rule between two groups, in the gap above the line that starts the second.
+        b.rule = Style.Rule(b, "TOP", "line")
+        b.rule:ClearAllPoints()
+        b.rule:SetPoint("BOTTOMLEFT", b, "TOPLEFT", 6, MENU_GAP / 2)
+        b.rule:SetPoint("BOTTOMRIGHT", b, "TOPRIGHT", -6, MENU_GAP / 2)
         -- Under the pointer a line lights; the set you're on stays gold, a shade lighter, and Delete
         -- stays red. (The menu opens under the pill, where the pointer already is.)
         b:SetScript("OnEnter", function(self)
@@ -224,15 +232,21 @@ local function SetsMenu(parent, act)
         field:HighlightText()
         self:SetHeight(48)
     end
-    -- `current` is the set you're on when it's one of yours.
-    -- `base` names WoWSims' build that is your default set, nil where there's none.
-    function menu:Open(anchor, current, from, base)
+    -- `current` is the set you're on when it's one of yours. `builds` are WoWSims' builds for your
+    -- spec (Goal.SpecBuilds), `on` the one you're on (nil on a set of yours) and `start` your spec's
+    -- own, marked "default". A build picked here is kept; the spec on the Gear plan's top stays.
+    function menu:Open(anchor, current, from, builds, on, start)
         if self:IsShown() then return self:Hide() end
         field.well:Hide()
-        local list = { { words = "YOUR SETS", tone = "muted" } }
-        if base then
-            list[#list + 1] = { words = "Default: WoWSims' " .. base, what = "default", tone = not current and "gold" or nil }
+        local list = {}
+        if builds and #builds > 0 then
+            list[1] = { words = "WOWSIMS' BUILDS", tone = "muted" }
+            for _, b in ipairs(builds) do
+                list[#list + 1] = { words = b.name, what = "build", key = b.key, tone = b.key == on and "gold" or nil,
+                                    note = b.key == start and "default" or nil }
+            end
         end
+        list[#list + 1] = { words = "YOUR SETS", tone = "muted", rule = #list > 0 }
         for _, set in ipairs(Goal.OwnSets()) do
             list[#list + 1] = { words = set.name, what = "choose", key = set.key, tone = set.key == current and "gold" or nil }
         end
@@ -243,18 +257,23 @@ local function SetsMenu(parent, act)
             list[#list + 1] = { words = "Rename \226\128\156" .. mine.name .. "\226\128\157", what = "rename", key = current }
             list[#list + 1] = { words = "Delete \226\128\156" .. mine.name .. "\226\128\157", what = "delete", key = current, tone = "red" }
         end
+        local y = 6
         for i, item in ipairs(list) do
             local b = Line(i)
             b.what, b.key, b.words, b.tone, b.sure = item.what, item.key, item.words, item.tone, nil
             b.text:SetText(item.words)
             b.text:SetFontObject(b.text:GetFontObject())
             b.text:SetTextColor(Style.Color(item.tone or "secondary"))
+            b.note:SetText(item.note or "")
+            if item.rule then y = y + MENU_GAP end
+            b.rule:SetShown(item.rule and true or false)
             b:ClearAllPoints()
-            b:SetPoint("TOPLEFT", 8, -(6 + (i - 1) * MENU_ROW))
+            b:SetPoint("TOPLEFT", 8, -y)
             b:Show()
+            y = y + MENU_ROW
         end
         for i = #list + 1, #lines do lines[i]:Hide() end
-        self:SetHeight(12 + #list * MENU_ROW)
+        self:SetHeight(y + 6)
         self:ClearAllPoints()
         self:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4)
         self:Show()
@@ -265,7 +284,7 @@ end
 ---------------------------------------------------------------------------
 -- The card at the top: how many slots are at your goal, and the stage.
 ---------------------------------------------------------------------------
-local function Hero(view, width, onStage, onSet, onSets, onDraft)
+local function Hero(view, width, onStage, onCost, onSets, onDraft)
     local card = CreateFrame("Frame", nil, view)
     card:SetSize(width, HERO_H)
     card:SetPoint("TOPLEFT")
@@ -305,10 +324,12 @@ local function Hero(view, width, onStage, onSet, onSets, onDraft)
     card.saveFirst:SetPoint("RIGHT", card.undo, "LEFT", -6, 0)
     card.save = Act("Save", "primary", 64, "save")
     card.save:SetPoint("RIGHT", card.saveNew, "LEFT", -6, 0)
-    -- WoWSims' set, where your class has one: its builds, and the full set or the cheap one,
-    -- left of the stages. Made the first time a set is shown: the builds are your class's.
-    -- Your sets' pill, before raids: named for the one of yours you're on, "Default set" on
-    -- WoWSims' (your default set), "My sets" where WoWSims has none for the spec.
+    -- WoWSims' set, where your class has one: the full set or the cheap one, left of the stages.
+    -- Made the first time a set is shown. Which build is the spec's on the Gear plan's top; the
+    -- others are in the sets menu.
+    -- The sets pill, before raids: named for the one of yours you're on, "Default set" on your
+    -- spec's own WoWSims build, another of WoWSims' builds by its name ("Weave"), "My sets" where
+    -- WoWSims has none for the spec.
     -- Its words leave room at the end for a gold "v" drawn from two strokes, as the dungeon guide's
     -- picker has: the font has no arrow of its own.
     card.mine = Style.Tabs(card, { { "own", "My sets    " } }, function() onSets(card.mine) end)
@@ -323,23 +344,21 @@ local function Hero(view, width, onStage, onSet, onSets, onDraft)
     function card:Choosers(set, before)
         self.mine:SetShown(before)
         if before then
-            self.mine:Set("own", (set and (set.own and set.name or "Default set") or "My sets") .. "    ")
+            local words = "My sets"
+            if set then words = (set.own or (set.start ~= nil and set.key ~= set.start)) and set.name or "Default set" end
+            self.mine:Set("own", words .. "    ")
             self.mine:Pick(set and set.own and "own" or nil)
         end
-        if not (set and before) then
-            if self.builds then self.builds:Hide() self.costs:Hide() end
-        elseif not self.builds and #set.builds > 0 then
-            local items = {}
-            for _, b in ipairs(set.builds) do items[#items + 1] = { b.key, b.name } end
-            self.builds = Style.Tabs(self, items, function(key) onSet(key, nil) end)
-            self.costs = Style.Tabs(self, { { "full", "Full" }, { "cheap", "Cheap" } }, function(key) onSet(nil, key == "cheap") end)
+        if set and before and not self.costs then
+            self.costs = Style.Tabs(self, { { "full", "Full" }, { "cheap", "Cheap" } }, function(key) onCost(key == "cheap") end)
         end
-        -- From the right: the stages, Full or Cheap (a WoWSims set's), your sets, WoWSims' builds.
+        -- From the right: the stages, Full or Cheap (a WoWSims set's with a cheap one), your sets.
         local right = self.stages
-        if self.builds and set and before then
-            self.costs:SetShown(set.hasCheap and not set.own)
-            self.costs:Pick(set.cheap and "cheap" or "full")
-            if set.hasCheap and not set.own then
+        if self.costs then
+            local cheapToo = (set and before and set.hasCheap and not set.own) and true or false
+            self.costs:SetShown(cheapToo)
+            if cheapToo then
+                self.costs:Pick(set.cheap and "cheap" or "full")
                 self.costs:ClearAllPoints()
                 self.costs:SetPoint("RIGHT", right, "LEFT", -8, 0)
                 right = self.costs
@@ -348,14 +367,6 @@ local function Hero(view, width, onStage, onSet, onSets, onDraft)
         if before then
             self.mine:ClearAllPoints()
             self.mine:SetPoint("RIGHT", right, "LEFT", -8, 0)
-            right = self.mine
-        end
-        if self.builds and set and before then
-            -- Hidden on a set of yours: they'd take you off it, and the menu's Default line does that.
-            self.builds:SetShown(#set.builds > 1 and not set.own)
-            self.builds:Pick(not set.own and set.key or nil)
-            self.builds:ClearAllPoints()
-            self.builds:SetPoint("RIGHT", right, "LEFT", -8, 0)
         end
     end
     function card:Paint(read, stage)
@@ -1126,8 +1137,10 @@ function Gear.GoalView(page, width, height)
     local function Sets(what, key, words)
         if what == "choose" then
             Keep().build = key
-        elseif what == "default" then
-            Keep().build = Keep().base
+        elseif what == "build" then
+            -- One of WoWSims' builds for your spec, kept for the character; deleting a set of yours
+            -- comes back to it.
+            Keep().build, Keep().base = key, key
         elseif what == "empty" then
             Keep().build = Goal.NewSet(nil, nil)
         elseif what == "new" then
@@ -1159,21 +1172,15 @@ function Gear.GoalView(page, width, height)
         hero = Hero(view, width, function(key)
             stage = key
             if page.Refresh then page.Refresh() end
-        end, function(build, cheap)
-            -- Which of WoWSims' sets is your goal, kept for the character.
-            -- A WoWSims build chosen is your default set from then on.
-            if build then Keep().build, Keep().base = build, build end
-            if cheap ~= nil then Keep().cheap = cheap end
+        end, function(cheap)
+            -- WoWSims' full set or its cheap one, kept for the character.
+            Keep().cheap = cheap
             SetChanged()
         end, function(bar)
             menu = menu or SetsMenu(view, Sets)
             local set = last and last.set
-            local base
-            for _, b in ipairs(set and set.builds or {}) do
-                if b.key == (Keep().base or (not (set and set.own) and set.key)) then base = b.name end
-            end
-            base = base or (set and not set.own and set.name) or nil
-            menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, base)
+            menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, set and set.builds or nil,
+                set and not set.own and set.key or nil, set and set.start or nil)
         end, Draft)
         list = SlotList(view, math.max(24, math.min(38, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
@@ -1223,7 +1230,8 @@ function Gear.GoalView(page, width, height)
         shownFor = spec
         -- A change waits only on the set, spec and cheap or full it was made on.
         if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
-        -- No set chosen (an older save, or one whose set was deleted): your default.
+        -- No set chosen (an older save, or one whose set was deleted), or WoWSims' build kept under another
+        -- spec that doesn't go with this one: the spec's own build (Goal.Read).
         local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready)
         ns.Timed("Gear goal, working out", started)
         if not read then

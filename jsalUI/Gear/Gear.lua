@@ -184,7 +184,13 @@ function Gear.Spec()
     return best
 end
 
+-- The spec picked on the Gear plan's top is the one spec there, for the weights and At 60's set
+-- alike: another spec puts At 60 on that spec's own WoWSims build, so a build or a set of yours
+-- kept under the last one isn't carried over (they stay in the sets menu, a click away).
 function Gear.SetSpec(i)
+    if ns.char and i and i ~= Gear.Spec() and type(ns.char.prebis) == "table" then
+        ns.char.prebis.build, ns.char.prebis.base = nil, nil
+    end
     if ns.char then ns.char.gearSpec = i end
     Gear.PlansChanged()
 end
