@@ -406,11 +406,23 @@ end
 -- built inside it the first time it opens. It holds no secure button, so
 -- unlike the dashboard it may stay open in a fight.
 local PANEL_PAD, BAR_H = 22, 32
+
+-- While a beta pretends (/jsal pretend 60), a muted word after an own window's name says so, as
+-- on the dashboard's title bar. The panel's title reaches across the bar to the cross, so the
+-- word goes the name's own width along it.
+local function MarkOwn(own)
+    local title, mark = own.frame and own.frame.title, own.mark
+    if not (title and mark) then return end
+    mark:SetText(ns.Pretend and ns.Pretend.Words() or "")
+    mark:SetPoint("LEFT", title, "LEFT", (title:GetStringWidth() or 0) + 12, 0)
+end
+
 local function OpenOwn(page, spent)
     local own = page.own
     if not own.frame then
         local name = "jsalUI" .. page.key:gsub("^%l", string.upper) .. "Window"
         local f = Style.Panel(name, own.width, own.height, page.label)
+        if f.title and f.bar then own.mark = Style.Text(f.bar, 12, "muted") end
         f.jsalRoomy = true
         -- As the hub does: its own size, shrunk evenly only on a screen too small to hold it.
         -- Scaled before anything is drawn on it, so its 1px lines start crisp.
@@ -443,6 +455,7 @@ local function OpenOwn(page, spent)
         end
     end
     Refresh(page)
+    MarkOwn(own)
     local t = debugprofilestop()
     own.frame:Show()
     own.frame:Raise()
@@ -599,7 +612,10 @@ function Window.Refresh()
         Refresh(byKey[current])
     end
     for _, page in ipairs(PAGES) do
-        if page.own and page.own.frame and page.own.frame:IsShown() then Refresh(page) end
+        if page.own and page.own.frame and page.own.frame:IsShown() then
+            Refresh(page)
+            MarkOwn(page.own)
+        end
     end
 end
 
