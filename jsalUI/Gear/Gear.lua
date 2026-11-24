@@ -36,6 +36,9 @@ Gear.CLASS_GEAR = {
     WARLOCK = { weapons = { 7, 10, 15, 19 }, armor = 1 },
 }
 local WEAPON, ARMOR, SHIELD, CLOAK = 2, 4, 6, 16
+-- Relics are armor too, each for one class only, by the game's armor subclass
+-- (7 libram, 8 idol, 9 totem).
+Gear.RELIC_CLASS = { [7] = "PALADIN", [8] = "DRUID", [9] = "SHAMAN" }
 local OFF_HAND_WEAPON = 22
 local DUAL_WIELD = 674
 
@@ -50,7 +53,8 @@ end
 
 -- Whether an item is for a class at a level: a weapon it wields (in the off
 -- hand only once it dual wields), armor of the type it wears, or anything
--- anyone wears (cloaks, rings, necklaces, trinkets, off-hand items). Nil
+-- anyone wears (cloaks, rings, necklaces, trinkets, off-hand items); a relic
+-- is for its own class only. Nil
 -- when not known.
 function Gear.ForClass(classFile, level, itemClass, subclass, slot)
     if not itemClass then return nil end
@@ -63,6 +67,7 @@ function Gear.ForClass(classFile, level, itemClass, subclass, slot)
     end
     if itemClass == ARMOR then
         if subclass == SHIELD then return gear.shield == true end
+        if Gear.RELIC_CLASS[subclass or 0] then return Gear.RELIC_CLASS[subclass] == classFile end
         if slot == CLOAK or slot == "INVTYPE_CLOAK" or not subclass or subclass < 1 or subclass > 4 then return true end
         local wears = (gear.at40 and (level or 1) >= 40) and gear.at40 or gear.armor
         return subclass == wears
