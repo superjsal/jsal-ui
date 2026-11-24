@@ -533,6 +533,43 @@ function Goal.Builds(classFile, spec)
     return all, start or nil
 end
 
+-- The builds that go with a talent tree (each build's `specs`; one without them goes with every
+-- tree), the tree's own first, then in the data's order; and the tree's own build's key. A hunter's
+-- builds are ways to play, so each of his trees has all three; a mage's tree has its own alone.
+-- nil for a class WoWSims has no sets for.
+function Goal.SpecBuilds(classFile, spec)
+    local all, start = Goal.Builds(classFile, spec)
+    if not all then return nil end
+    local out = {}
+    for _, b in ipairs(all) do
+        if b.key == start then out[1] = b end
+    end
+    for _, b in ipairs(all) do
+        local fits = b.specs == nil
+        for _, s in ipairs(b.specs or {}) do
+            if s == (spec or 1) then fits = true end
+        end
+        if fits and b.key ~= start then out[#out + 1] = b end
+    end
+    return out, start
+end
+
+-- The set kept for the character (ns.char.prebis) as a talent tree shows it: a set of yours
+-- whatever the tree; WoWSims' build kept, where it goes with the tree; else nil, the tree's own
+-- build. A build kept under another tree that doesn't go with this one isn't carried over.
+-- Nothing saved changes: the build stays kept, and shows again under a tree it goes with.
+function Goal.KeptBuild(spec)
+    local kept = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
+    local want = kept.build or kept.base
+    if want == nil then return nil end
+    if Goal.OwnSet(want) then return want end
+    local _, classFile = UnitClass("player")
+    for _, b in ipairs(Goal.SpecBuilds(classFile, spec or Gear.Spec()) or {}) do
+        if b.key == want then return want end
+    end
+    return nil
+end
+
 -- A set's piece for a slot: the slot's scored one where it's there, else one made for it.
 local function SetPiece(id, list, slot, ctx)
     for _, c in ipairs(list) do
@@ -817,12 +854,12 @@ end
 
 function Goal.ChosenSet()
     local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
-    local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
+    local want = Goal.KeptBuild()
+    local own = want and Goal.OwnSet(want)
     if own then return own.ids, own.name end
     local _, classFile = UnitClass("player")
-    local builds, start = Goal.Builds(classFile, Gear.Spec())
+    local builds, start = Goal.SpecBuilds(classFile, Gear.Spec())
     local chosen
-    local want = keptChoice.build or keptChoice.base
     for _, b in ipairs(builds or {}) do
         if b.key == want then chosen = b end
     end
@@ -837,11 +874,12 @@ end
 -- The WoWSims build your At 60 set is (or a set of yours started from), and its name: for the
 -- Build Planner's YOUR SET. nil for a set of yours started empty, or a tree with no set.
 function Goal.SetKey()
-    local keptChoice = ns.char and type(ns.char.prebis) == "table" and ns.char.prebis or {}
-    local own = keptChoice.build and Goal.OwnSet(keptChoice.build)
+    local want = Goal.KeptBuild()
+    local own = want and Goal.OwnSet(want)
     local _, classFile = UnitClass("player")
+    -- A set of yours names the build it was started from, any of your class's.
     local builds, start = Goal.Builds(classFile, Gear.Spec())
-    local key = own and own.from or keptChoice.build or keptChoice.base
+    local key = own and own.from or want
     for _, b in ipairs(builds or {}) do
         if b.key == key then return b.key, b.name end
     end
@@ -934,13 +972,17 @@ local KEEP = 600
 -- The rest of a goal once each slot's pieces are scored: the set's rows or the weights', the raids'.
 local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
     out.lists = lists
+    -- Your class's builds (a set of yours names the one it was started from), and the tree's, for the
+    -- sets menu.
     local builds, start = Goal.Builds(classFile, spec)
-    -- The build asked for, or the tree's own when it's none of WoWSims' (a set of yours, or one deleted).
+    local specBuilds = Goal.SpecBuilds(classFile, spec) or {}
+    -- The build asked for where it goes with the tree, else the tree's own: none of WoWSims' (a set of
+    -- yours, or one deleted), or one kept under another tree (as Goal.KeptBuild).
     local chosen
-    for _, b in ipairs(builds or {}) do
+    for _, b in ipairs(specBuilds) do
         if b.key == build then chosen = b end
     end
-    for _, b in ipairs(chosen and {} or builds or {}) do
+    for _, b in ipairs(chosen and {} or specBuilds) do
         if b.key == start then chosen = b end
     end
     local own = build and Goal.OwnSet(build)
@@ -953,7 +995,7 @@ local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
         for _, b in ipairs(builds or {}) do
             if b.key == own.from then fromName = b.name end
         end
-        out.set = { builds = builds or {}, key = own.key, name = own.name, own = true, from = fromName, ids = own.ids, hasCheap = false }
+        out.set = { builds = specBuilds, start = start, key = own.key, name = own.name, own = true, from = fromName, ids = own.ids, hasCheap = false }
         -- WoWSims' set it was started from (else the tree's), for the way back to its pieces.
         local from
         for _, b in ipairs(builds or {}) do
@@ -970,8 +1012,8 @@ local function Finish(out, ctx, lists, spec, build, cheap, draft, classFile)
         local ids, estimated = IdsOf(chosen, cheap, ctx.side, Estimate)
         local count = 0
         for _ in pairs(estimated) do count = count + 1 end
-        out.set = { builds = builds, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil, ids = ids,
-                    estimated = count }
+        out.set = { builds = specBuilds, start = start, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil,
+                    ids = ids, estimated = count }
         out[Goal.BEFORE] = SetRows(ctx, draft or ids, lists, nil, ids, not draft and estimated or nil, estimated)
     else
         out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE, lists)

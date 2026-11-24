@@ -223,20 +223,23 @@ RAID_VENDORS = {"Rin'wosho the Trader"}
 
 
 # WoWSims Forever's pre-raid sets, from its batch sims (data/gear/wowsims-forever/sets, its COMMIT beside them;
-# MIT, as its weights are): by class, each build's set and its cheap one where there is one, and the build each
-# talent tree starts on (None: WoWSims has no pre-raid set for it, and the goal is the weights' own).
+# MIT, as its weights are): by class, each build's set and its cheap one where there is one, the talent trees it
+# goes with (the Gear plan's sets menu offers a tree only its own), and the build each talent tree starts on (None:
+# WoWSims has no pre-raid set for it, and the goal is the weights' own). A hunter's builds are ways to play, not
+# trees, so each goes with all three; a warrior's two Protection builds go with Protection.
 PREBIS = {
-    "HUNTER": ([("weave", "Weave", "hunter_dps_prebis_weave"), ("turret", "Turret", "hunter_dps_prebis_turret"),
-                ("melee", "Melee", "hunter_dps_prebis_melee")], ["turret", "turret", "weave"]),
-    "MAGE": ([("arcane", "Arcane", "mage_dps_preraid"), ("fire", "Fire", "mage_dps_preraidFire"),
-              ("frost", "Frost", "mage_dps_preraidFrost")], ["arcane", "fire", "frost"]),
-    "WARLOCK": ([("preraid", "Pre-raid", "warlock_dps_preraid")], ["preraid", "preraid", "preraid"]),
-    "WARRIOR": ([("arms", "Arms", "warrior_dps_prebis_arms"), ("fury", "Fury", "warrior_dps_prebis_fury"),
-                 ("offensive", "Prot offensive", "warrior_protection_prebis_offensive"),
-                 ("balanced", "Prot balanced", "warrior_protection_prebis_balanced")], ["arms", "fury", "balanced"]),
-    "DRUID": ([("balance", "Balance", "druid_balance_prebis"), ("feral", "Feral", "druid_feralcat_pre_raid")],
+    "HUNTER": ([("weave", "Weave", "hunter_dps_prebis_weave", (1, 2, 3)),
+                ("turret", "Turret", "hunter_dps_prebis_turret", (1, 2, 3)),
+                ("melee", "Melee", "hunter_dps_prebis_melee", (1, 2, 3))], ["turret", "turret", "weave"]),
+    "MAGE": ([("arcane", "Arcane", "mage_dps_preraid", (1,)), ("fire", "Fire", "mage_dps_preraidFire", (2,)),
+              ("frost", "Frost", "mage_dps_preraidFrost", (3,))], ["arcane", "fire", "frost"]),
+    "WARLOCK": ([("preraid", "Pre-raid", "warlock_dps_preraid", (1, 2, 3))], ["preraid", "preraid", "preraid"]),
+    "WARRIOR": ([("arms", "Arms", "warrior_dps_prebis_arms", (1,)), ("fury", "Fury", "warrior_dps_prebis_fury", (2,)),
+                 ("offensive", "Prot offensive", "warrior_protection_prebis_offensive", (3,)),
+                 ("balanced", "Prot balanced", "warrior_protection_prebis_balanced", (3,))], ["arms", "fury", "balanced"]),
+    "DRUID": ([("balance", "Balance", "druid_balance_prebis", (1,)), ("feral", "Feral", "druid_feralcat_pre_raid", (2,))],
               ["balance", "feral", None]),
-    "PRIEST": ([("healer", "Healer", "priest_healer_preraid")], ["healer", "healer", None]),
+    "PRIEST": ([("healer", "Healer", "priest_healer_preraid", (1, 2))], ["healer", "healer", None]),
 }
 SET_SLOTS = ["head", "neck", "shoulder", "back", "chest", "wrist", "hands", "waist", "legs", "feet",
              "finger1", "finger2", "trinket1", "trinket2", "main_hand", "off_hand", "ranged"]
@@ -279,11 +282,15 @@ def read_set(name, items):
 def prebis_lines(items):
     out = []
     for class_file, (builds, default) in PREBIS.items():
+        # Each tree's own build goes with it: a list that left one out would offer a tree a set it can't pick.
+        for tree, start in enumerate(default, 1):
+            if start and not any(key == start and tree in trees for key, _, _, trees in builds):
+                raise SystemExit("%s: tree %d starts on %s, which isn't listed for it" % (class_file, tree, start))
         parts = ["        default = { %s }," % ", ".join(lua_string(d) if d else "false" for d in default)]
-        for key, label, name in builds:
+        for key, label, name, trees in builds:
             full, cheap = read_set(name, items), read_set(name + "_cheap", items)
-            parts.append("        { key = %s, name = %s, full = %s%s }," % (
-                lua_string(key), lua_string(label), lua_string(",".join(map(str, full))),
+            parts.append("        { key = %s, name = %s, specs = { %s }, full = %s%s }," % (
+                lua_string(key), lua_string(label), ", ".join(map(str, trees)), lua_string(",".join(map(str, full))),
                 (", cheap = " + lua_string(",".join(map(str, cheap)))) if cheap else ""))
         out.append("    %s = {\n%s\n    }," % (class_file, "\n".join(parts)))
     return out
@@ -762,9 +769,9 @@ def main():
         "    -- \";\": a set's piece from the other side's is its twin from yours.",
         "    twins = " + lua_string(twins(data["items"])) + ",",
         "    -- WoWSims Forever's pre-raid sets (its batch sims, MIT): by class, the build each talent tree",
-        "    -- starts on (false: none), and each build's set, and its cheap one, as 17 item IDs in the order",
-        "    -- head, neck, shoulder, back, chest, wrist, hands, waist, legs, feet, two fingers, two",
-        "    -- trinkets, main hand, off hand, ranged (0 for an empty place).",
+        "    -- starts on (false: none), and each build: the trees it goes with (specs), its set, and its cheap",
+        "    -- one, as 17 item IDs in the order head, neck, shoulder, back, chest, wrist, hands, waist, legs,",
+        "    -- feet, two fingers, two trinkets, main hand, off hand, ranged (0 for an empty place).",
         "    prebis = {",
         *prebis_lines(data["items"]),
         "    },",
