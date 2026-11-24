@@ -2,7 +2,7 @@
 ## Title: |cffe3b04bjsal|r.ui
 ## Notes: From level 1 to raid night, planned: training, talents, gear, dungeons and professions in one dashboard, with a journal and daily games. Free, from jsal.io.
 ## Author: jsal
-## Version: 0.3.63-beta.3
+## Version: 0.3.63-beta.4
 ## Category: User Interface
 ## X-Website: https://jsal.io
 ## X-Curse-Project-ID: 1788011
