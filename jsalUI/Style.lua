@@ -590,29 +590,49 @@ end
 -- card's: the light is then the shape of the card's fill, a pixel inside
 -- its line, and follows its corners; on a pill it's "pill". Call it after
 -- the row's own OnEnter and OnLeave are set: it adds to them.
+local HOVER_LIGHT = 0.06
 function Style.Hover(frame, pad, radius)
     pad = pad or 0
-    local glow
+    local glow, flat
     if radius == "pill" then
         glow = Style.Pill(frame, nil, "text", "BACKGROUND", 7, Compat.OnePixel(frame))
-        glow:SetAlpha(0.06)
+        glow:SetAlpha(HOVER_LIGHT)
     elseif radius then
         local px = Compat.OnePixel(frame)
         glow = Style.Round(frame, radius - 1, "text", "BACKGROUND", 7)
         glow:ClearAllPoints()
         glow:SetPoint("TOPLEFT", px, -px)
         glow:SetPoint("BOTTOMRIGHT", -px, px)
-        glow:SetAlpha(0.06)
+        glow:SetAlpha(HOVER_LIGHT)
     else
         glow = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
         glow:SetPoint("TOPLEFT", -pad, 0)
         glow:SetPoint("BOTTOMRIGHT", pad, 0)
-        local r, g, b = Style.Color("text")
-        glow:SetColorTexture(r, g, b, 0.06)
+        flat = { Style.Color("text") }
+        glow:SetColorTexture(flat[1], flat[2], flat[3], HOVER_LIGHT)
     end
     glow:Hide()
-    frame:HookScript("OnEnter", function() glow:Show() end)
+    -- A row drawn dimmer as a whole (a dungeon well above you, a step already
+    -- taken, a skipped spell) takes its light down with it: at half the row's
+    -- alpha its light is half as strong, and on a dark list there's nothing
+    -- left to see. So the light is made stronger by as much as the row is
+    -- dimmed, and is as strong on it as on any other row.
+    local function Light()
+        local own = frame.GetAlpha and frame:GetAlpha()
+        own = (type(own) == "number" and own > 0) and math.min(1, own) or 1
+        local strength = math.min(1, HOVER_LIGHT / own)
+        if flat then glow:SetColorTexture(flat[1], flat[2], flat[3], strength) else glow:SetAlpha(strength) end
+    end
+    frame:HookScript("OnEnter", function()
+        Light()
+        glow:Show()
+    end)
     frame:HookScript("OnLeave", function() glow:Hide() end)
+    -- Its alpha changed while it's lit (a dimmed row clicked is drawn whole):
+    -- the light keeps its strength.
+    if hooksecurefunc and type(frame.SetAlpha) == "function" then
+        hooksecurefunc(frame, "SetAlpha", function() if glow:IsShown() then xpcall(Light, ns.Report) end end)
+    end
     return glow
 end
 
