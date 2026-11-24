@@ -1213,11 +1213,15 @@ function Gear.GoalView(page, width, height)
         about:SetPoint("BOTTOMRIGHT", view, "BOTTOMRIGHT", 0, 0)
     end
     -- The goal is worked out a few steps a frame when it isn't kept (Goal.Read's `later`): until it's
-    -- in, the view's body waits, and a slot asked for (`waitPlace`) is chosen once it is.
+    -- in, what the page showed stays (below), and a slot asked for (`waitPlace`) is chosen once it is.
+    -- Near your level can be what stays, with this view hidden: the page is drawn again once the goal
+    -- is in while At 60 is still the tab picked.
     local waitPlace
     local function Ready()
-        if view:IsVisible() and page.Refresh then page.Refresh() end
+        if showing and page:IsVisible() and page.Refresh then page.Refresh() end
     end
+    -- The spec, set and cheap or full whose set was last asked of the game ahead (Goal.AskOwn).
+    local aheadFor
     page.Goal = function(spec)
         if not Goal.running then
             tabs:Hide()
@@ -1228,17 +1232,27 @@ function Gear.GoalView(page, width, height)
         -- Opened from Home's card at 60: on At 60, before raids; from a piece on Endgame's goal card (its slot's
         -- place, a number), with that slot chosen.
         local wantPlace = waitPlace
+        local wasShown, fromCard = view:IsShown(), false
         if Gear.openAt60 then
             wantPlace = type(Gear.openAt60) == "number" and Gear.openAt60 or nil
-            Gear.openAt60, showing, stage = nil, true, Goal.BEFORE
+            Gear.openAt60, showing, stage, fromCard = nil, true, Goal.BEFORE, true
         end
         tabs:Pick(showing and "goal" or "near")
         view:SetShown(showing)
-        if not showing then return tabs:GetWidth() + 18, false end
+        local kept = type(ns.char.prebis) == "table" and ns.char.prebis or {}
+        if not showing then
+            -- While Near your level shows, the set At 60 shows first (the spec on the top's, before
+            -- raids) is asked of the game ahead, so At 60 is drawn with its pieces' names when it's
+            -- picked. Once for each spec and set; nothing is worked out for it here.
+            local want = table.concat({ spec or 0, tostring(kept.build or kept.base), tostring(kept.cheap or false) }, ":")
+            if want ~= aheadFor and Goal.AskOwn then
+                aheadFor = want
+                Goal.AskOwn(spec, kept.build or kept.base, kept.cheap)
+            end
+            return tabs:GetWidth() + 18, false
+        end
         if not hero then Build() end
         local started = debugprofilestop()
-        local kept = type(ns.char.prebis) == "table" and ns.char.prebis or {}
-        shownFor = spec
         -- A change waits only on the set, spec and cheap or full it was made on.
         if draft and (draft.spec ~= spec or draft.build ~= (kept.build or "") or draft.cheap ~= (kept.cheap or false)) then draft = nil end
         -- No set chosen (an older save, or one whose set was deleted), or WoWSims' build kept under another
@@ -1249,6 +1263,15 @@ function Gear.GoalView(page, width, height)
         if read and stage == Goal.RAIDS and not read.noWeights and not read[Goal.RAIDS] then read = nil end
         if not read then
             waitPlace = wantPlace
+            -- At 60 picked from Near your level: Near your level stays on screen until the goal is in
+            -- (Ready), rather than an empty view in its place.
+            if not wasShown and not fromCard then
+                view:Hide()
+                return tabs:GetWidth() + 18, false
+            end
+            -- Already showing (another spec or stage picked, or something the goal is worked out from
+            -- changed): what it shows stays until the new goal is in.
+            if wasShown and (hero:IsShown() or none:IsShown()) then return tabs:GetWidth() + 18, true end
             hero:Hide()
             list:Hide()
             runs:Hide()
@@ -1257,6 +1280,7 @@ function Gear.GoalView(page, width, height)
             return tabs:GetWidth() + 18, true
         end
         waitPlace = nil
+        shownFor = spec
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
         for i, row in ipairs(wantPlace and read[Goal.BEFORE] and read[Goal.BEFORE].rows or {}) do

@@ -1048,6 +1048,18 @@ end
 -- first one's goal as it was, with nothing worked out or asked of the game again.
 local keptBy = {}
 local KEEP = 600
+-- The build a tree's goal is on: the one asked for where it goes with the tree, else the tree's own.
+-- nil where WoWSims has no set for the tree.
+local function SpecBuild(specBuilds, start, build)
+    local chosen
+    for _, b in ipairs(specBuilds or {}) do
+        if b.key == build then chosen = b end
+    end
+    for _, b in ipairs(chosen and {} or specBuilds or {}) do
+        if b.key == start then chosen = b end
+    end
+    return chosen
+end
 -- The rest of a goal: the set's rows or the weights' before raids, then, where `raids` asks for it, the
 -- raids'. Each slot's pieces are scored as they're needed (ListOf).
 local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
@@ -1058,13 +1070,7 @@ local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
     local specBuilds = Goal.SpecBuilds(classFile, spec) or {}
     -- The build asked for where it goes with the tree, else the tree's own: none of WoWSims' (a set of
     -- yours, or one deleted), or one kept under another tree (as Goal.KeptBuild).
-    local chosen
-    for _, b in ipairs(specBuilds) do
-        if b.key == build then chosen = b end
-    end
-    for _, b in ipairs(chosen and {} or specBuilds) do
-        if b.key == start then chosen = b end
-    end
+    local chosen = SpecBuild(specBuilds, start, build)
     local own = build and Goal.OwnSet(build)
     local function Estimate(i, ids)
         return BestFor(ListOf(ctx, SlotOfPlace(i), Goal.BEFORE).list, i, ids)
@@ -1293,41 +1299,76 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
     return nil
 end
 
--- The other specs' sets before raids, asked of the game ahead while At 60 has what it shows (the
--- page calls this once nothing before raids is owed): picking a spec on the Gear plan's top puts At 60
--- on that spec's own WoWSims build, and its pieces' names and stats are then in already, rather than
--- asked for at the pick and shown as "..." until the game sends them. Each spec's own set alone, full
--- or cheap as you have it (16 or 17 items); a place only the other side can get is left out, as the
--- piece standing in for it is the weights' best there, worked out only when the spec is shown. A spec a
--- frame, and each spec's set once: an item the game never sends isn't asked for again.
+-- Sets before raids asked of the game ahead, so At 60 has their pieces' names and stats in when it's
+-- shown, rather than asking for them as it's drawn and showing "..." until the game sends them.
+-- Each set once a session, full or cheap as you have it; a place only the other side can get is left
+-- out, as the piece standing in for it is the weights' best there, worked out only when the set is
+-- shown. An item already in is not asked for, nothing is scored, and the sets are asked a set a frame.
 local askedAhead = {}
 local function NoEstimate() return nil end
-function Goal.AskAhead(spec, cheap)
-    local load = C_Item and C_Item.RequestLoadItemDataByID
-    if not load then return end
-    cheap = cheap and true or false
-    local _, classFile = UnitClass("player")
-    local side = Side()
-    local todo = {}
-    for other = 1, 3 do
-        local key = table.concat({ classFile or "", other, side, cheap and 1 or 0 }, ":")
-        if other ~= spec and not askedAhead[key] then
-            askedAhead[key] = true
-            local builds, start = Goal.SpecBuilds(classFile, other)
-            for _, b in ipairs(builds or {}) do
-                if b.key == start then todo[#todo + 1] = b end
-            end
-        end
-    end
+-- A set's IDs to ask for, the first time it's asked: one of WoWSims' builds from your side.
+local function AheadIds(classFile, b, cheap, side)
+    local key = table.concat({ classFile or "", b.key, side, (cheap and b.cheap) and 1 or 0 }, ":")
+    if askedAhead[key] then return nil end
+    askedAhead[key] = true
+    return (IdsOf(b, cheap, side, NoEstimate))
+end
+-- Asks for each list of IDs in `sets`, one list a frame.
+local function AskSets(sets)
+    local load = C_Item.RequestLoadItemDataByID
     local cached = C_Item.IsItemDataCachedByID
     local get = C_Item.GetItemInfo or GetItemInfo
     local function Ask(n)
-        for _, id in ipairs((IdsOf(todo[n], cheap, side, NoEstimate))) do
+        for _, id in ipairs(sets[n]) do
             local have = (cached and cached(id)) or (not cached and get and get(id))
             if id > 0 and not have then load(id) end
         end
         local function Next() Ask(n + 1) end
-        if todo[n + 1] then ns.Compat.After(0, ns.Safe and ns.Safe(Goal, Next) or Next) end
+        if sets[n + 1] then ns.Compat.After(0, ns.Safe and ns.Safe(Goal, Next) or Next) end
     end
-    if todo[1] then Ask(1) end
+    if sets[1] then Ask(1) end
+end
+
+-- The set At 60 will show first, asked for while the Gear plan shows Near your level (the page calls
+-- this as it paints it, for the spec on the Gear plan's top): the set as the goal chooses it, one of
+-- yours or WoWSims' build for the tree, the same 16 or 17 IDs. Picking At 60 then finds its names in.
+function Goal.AskOwn(spec, build, cheap)
+    if not (C_Item and C_Item.RequestLoadItemDataByID) then return end
+    cheap = cheap and true or false
+    local own = build and Goal.OwnSet(build)
+    local ids
+    if own then
+        local key = "own:" .. table.concat(own.ids or {}, ",")
+        if not askedAhead[key] then
+            askedAhead[key] = true
+            ids = own.ids or {}
+        end
+    else
+        local _, classFile = UnitClass("player")
+        local specBuilds, start = Goal.SpecBuilds(classFile, spec)
+        local chosen = SpecBuild(specBuilds, start, build)
+        ids = chosen and AheadIds(classFile, chosen, cheap, Side())
+    end
+    if ids then AskSets({ ids }) end
+end
+
+-- The other specs' sets, asked for while At 60 has what it shows (the page calls this once nothing
+-- before raids is owed): picking a spec on the Gear plan's top puts At 60 on that spec's own WoWSims
+-- build, and its pieces are then in already. Each spec's own set alone (16 or 17 items).
+function Goal.AskAhead(spec, cheap)
+    if not (C_Item and C_Item.RequestLoadItemDataByID) then return end
+    cheap = cheap and true or false
+    local _, classFile = UnitClass("player")
+    local side = Side()
+    local sets = {}
+    for other = 1, 3 do
+        if other ~= spec then
+            local builds, start = Goal.SpecBuilds(classFile, other)
+            for _, b in ipairs(builds or {}) do
+                local ids = b.key == start and AheadIds(classFile, b, cheap, side)
+                if ids then sets[#sets + 1] = ids end
+            end
+        end
+    end
+    AskSets(sets)
 end
