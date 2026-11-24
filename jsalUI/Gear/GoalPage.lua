@@ -169,6 +169,14 @@ end
 ---------------------------------------------------------------------------
 local MENU_W, MENU_ROW, MENU_GAP = 220, 24, 8
 local LIT = { gold = "goldHover", red = "red" }
+-- What the menu lists, in a line, from what it's opened with and your sets: the page closes an open
+-- menu that a paint would fill with something else.
+local function MenuHolds(current, from, builds, on, start)
+    local words = { tostring(current), tostring(from), tostring(on), tostring(start) }
+    for _, b in ipairs(builds or {}) do words[#words + 1] = tostring(b.key) .. "=" .. tostring(b.name) end
+    for _, set in ipairs(Goal.OwnSets and Goal.OwnSets() or {}) do words[#words + 1] = tostring(set.key) .. "=" .. tostring(set.name) end
+    return table.concat(words, "|")
+end
 local function SetsMenu(parent, act)
     local menu = CreateFrame("Frame", nil, parent)
     menu:SetWidth(MENU_W)
@@ -273,6 +281,7 @@ local function SetsMenu(parent, act)
             y = y + MENU_ROW
         end
         for i = #list + 1, #lines do lines[i]:Hide() end
+        self.holds = MenuHolds(current, from, builds, on, start)
         self:SetHeight(y + 6)
         self:ClearAllPoints()
         self:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -4)
@@ -700,6 +709,8 @@ end
 ---------------------------------------------------------------------------
 -- Where to go next: a card a dungeon, then what isn't from a run.
 ---------------------------------------------------------------------------
+-- Between the words beside a piece's line's name and what's at its right.
+local RIGHT_GAP = 10
 -- A piece's line in a card: its picture and name, its slot and who drops it (or how it's
 -- got), and at the right its chance over a small gold bar, or what to do about it.
 local function PieceRow(parent, width)
@@ -711,6 +722,7 @@ local function PieceRow(parent, width)
     r.box:SetPoint("LEFT", 14, 0)
     r.name = Style.Text(r, 14, "text")
     r.name:SetPoint("LEFT", 46, 0)
+    r.name:SetWordWrap(false)
     r.sub = Style.Text(r, 12, "muted")
     r.sub:SetPoint("LEFT", r.name, "RIGHT", 10, 0)
     r.sub:SetJustifyH("LEFT")
@@ -745,13 +757,30 @@ local function PieceRow(parent, width)
         else
             self.chance:SetText(chance == false and (MUTED .. "no count yet|r") or "")
         end
-        self:Room(act and (Style.Wide(self.act.text, 130) + 24) or (chance and 110 or (chance == false and 100 or 14)))
+        -- What's at the right, as wide as it's written: the action, or the chance (a count, or "no count
+        -- yet") left of the bar's place; nothing, and the words may run to the edge's margin.
+        local right = 14
+        if act then
+            right = 14 + Style.Wide(self.act.text, 130) + RIGHT_GAP
+        elseif chance ~= nil then
+            right = 14 + 44 + 8 + Style.Wide(self.chance, chance and 30 or 80) + RIGHT_GAP
+        end
+        self:Room(right)
     end
     -- The line beside the name stops `right` short of the row's right edge, clear of what's
     -- there. Where it doesn't fit, it gives way whole from its end, a part at a time ("Hands ·
     -- Crafted, Leatherworking", then "Hands · Crafted", then "Hands"), never cut mid-word.
+    -- The name is as wide as it's written; only one too long to leave `right` clear is held short of
+    -- it, cut by the game ("..."). The line beside it is held to its room the same way.
     function r:Room(right)
-        local room = math.max(0, width - 46 - Style.Wide(self.name, 150) - 10 - right)
+        local avail = math.max(1, width - 46 - right)
+        self.name:SetWidth(0)
+        local named = Style.Wide(self.name, 150)
+        if named > avail then
+            self.name:SetWidth(avail)
+            named = avail
+        end
+        local room = math.max(0, avail - named - 10)
         local text = self.full or ""
         self.sub:SetWidth(0)
         while true do
@@ -1167,6 +1196,22 @@ function Gear.GoalView(page, width, height)
         if what ~= "rename" then draft = nil end
         SetChanged()
     end
+    -- What the sets menu is opened with, from the set the card is on.
+    local function MenuArgs()
+        local set = last and last.set
+        return set and set.own and set.key or nil, set and set.name or nil, set and set.builds or nil,
+            set and not set.own and set.key or nil, set and set.start or nil
+    end
+    -- An open sets menu lists the spec's sets as they were when it opened: another spec, Raids, Near your
+    -- level, or a paint with other sets to list (one made, renamed or deleted) closes it, and opened again it
+    -- lists them as they are. A paint with nothing changed leaves it open.
+    local function MenuStale(spec, painted)
+        if not (menu and menu:IsShown()) then return end
+        if not showing or spec ~= menu.spec or stage ~= Goal.BEFORE or not Goal.running
+            or (painted and (last.noWeights or menu.holds ~= MenuHolds(MenuArgs()))) then
+            menu:Hide()
+        end
+    end
     local hero, list, runs, none, waiting
     local tabs = Style.Tabs(page, { { "near", "Near your level" }, { "goal", "At " .. Goal.LEVEL } }, function(key)
         showing = key == "goal"
@@ -1189,9 +1234,8 @@ function Gear.GoalView(page, width, height)
             SetChanged()
         end, function(bar)
             menu = menu or SetsMenu(view, Sets)
-            local set = last and last.set
-            menu:Open(bar, set and set.own and set.key or nil, set and set.name or nil, set and set.builds or nil,
-                set and not set.own and set.key or nil, set and set.start or nil)
+            menu.spec = shownFor
+            menu:Open(bar, MenuArgs())
         end, Draft)
         list = SlotList(view, math.max(24, math.min(38, math.floor((body - #GROUPS * HEAD_H) / PLACES))), function(i)
             chosen = chosen ~= i and i or nil
@@ -1224,6 +1268,7 @@ function Gear.GoalView(page, width, height)
     local aheadFor
     page.Goal = function(spec)
         if not Goal.running then
+            MenuStale(spec)
             tabs:Hide()
             view:Hide()
             return 0, false
@@ -1239,6 +1284,7 @@ function Gear.GoalView(page, width, height)
         end
         tabs:Pick(showing and "goal" or "near")
         view:SetShown(showing)
+        MenuStale(spec)
         local kept = type(ns.char.prebis) == "table" and ns.char.prebis or {}
         if not showing then
             -- While Near your level shows, the set At 60 shows first (the spec on the top's, before
@@ -1283,6 +1329,7 @@ function Gear.GoalView(page, width, height)
         shownFor = spec
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
+        MenuStale(spec, true)
         for i, row in ipairs(wantPlace and read[Goal.BEFORE] and read[Goal.BEFORE].rows or {}) do
             if row.equip == wantPlace then chosen = i end
         end
