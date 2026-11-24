@@ -708,6 +708,10 @@ local function OtherSources()
                 if not droppedBy[drop[1]] then droppedBy[drop[1]] = (b[3] or b[2]) .. " · " .. d.name end
             end
         end
+        -- A piece that drops all over a dungeon, from no one boss, names the dungeon alone, as a creature's drop does.
+        for _, id in ipairs(ns.DungeonTrash and ns.DungeonTrash[d.id] or {}) do
+            if not droppedBy[id] then droppedBy[id] = d.name end
+        end
     end
 end
 

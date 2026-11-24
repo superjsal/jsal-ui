@@ -250,6 +250,13 @@ function Gear.StarsIn(dungeon)
         for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do Add(drop[1]) end
         for id in pairs(learned[b[1]] or {}) do Add(id) end
     end
+    -- A piece that drops all over the dungeon is on its Trash card.
+    for _, id in ipairs(ns.DungeonTrash and ns.DungeonTrash[dungeon.id] or {}) do
+        if stars[id] and not seen[id] then
+            seen[id] = true
+            out[#out + 1] = { id = id, boss = "Trash" }
+        end
+    end
     return out
 end
 

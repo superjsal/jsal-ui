@@ -326,7 +326,9 @@ Dungeons.OnEvent = OnEvent
 -- other, as the Endgame goal finds a boss), and that your side can get. { { id, creature (nil where none is named),
 -- quality } }, found the first time a dungeon is shown and kept. Wowhead names Sunken Temple by the temple's own name.
 -- No drop chance is known for them. A drop in several dungeons has its other dungeons in GearData's `more`, read the
--- first time a Trash card is built and kept.
+-- first time a Trash card is built and kept. The pieces that drop all over the dungeon rather than from one boss
+-- (ns.DungeonTrash, from Wowhead's boss lists) join them, once each, with no creature; one of this dungeon's bosses
+-- that still lists a piece keeps it.
 local ALSO_CALLED = { ["Sunken Temple"] = "The Temple of Atal'Hakkar" }
 local SEP = " \194\183 "
 local trash, bossDrop = {}, nil
@@ -365,11 +367,10 @@ function Dungeons.Trash(d)
             end
         end
     end
-    if not any then return list end
     local faction = ns.Compat.Faction()
     local mine = (faction == "Alliance" and "1") or (faction == "Horde" and "2") or nil
     local seen = {}
-    if not (moreAt and moreAt.data == data) then
+    if any and not (moreAt and moreAt.data == data) then
         moreAt = { data = data, at = {} }
         for id, nums in (data.more or ""):gmatch("(%d+):([%d,]+)") do
             for n in nums:gmatch("%d+") do
@@ -419,6 +420,32 @@ function Dungeons.Trash(d)
                     end
                     from = at + 1
                 end
+            end
+        end
+    end
+    -- The dungeon-wide pieces: each one's side and quality are the first entry GearData has for it, and one it has
+    -- no entry for is kept without them.
+    local wide, listed = {}, {}
+    for _, b in ipairs(d.bosses) do
+        for _, drop in ipairs(ns.DungeonLoot and ns.DungeonLoot[b[1]] or {}) do listed[drop[1]] = true end
+    end
+    for _, id in ipairs(ns.DungeonTrash and ns.DungeonTrash[d.id] or {}) do
+        if not (seen[id] or listed[id]) then wide[id] = true end
+    end
+    if next(wide) then
+        local found = {}
+        for _, line in pairs(data.items) do
+            for entry in line:gmatch("[^;]+") do
+                local id, side, q = entry:match("^(%d+),%d+,%d+,%-?%d+,%-?%d+,(%d+),%d+,(%d+)")
+                id = tonumber(id)
+                if id and wide[id] and not found[id] then found[id] = { side, tonumber(q) } end
+            end
+        end
+        for id in pairs(wide) do
+            local at = found[id]
+            if not at or at[1] == "0" or at[1] == mine then
+                seen[id] = true
+                list[#list + 1] = { id, nil, at and at[2] or nil }
             end
         end
     end

@@ -36,7 +36,8 @@ local function Guide()
     return by
 end
 
--- Every boss in the guide that drops an item: { boss, name (the dungeon's), dungeon, chance, raid, encounter }.
+-- Every boss in the guide that drops an item: { boss, name (the dungeon's), dungeon, chance, raid, encounter }, and
+-- each dungeon a piece drops all over, as { name, dungeon, raid } with no boss.
 local drops
 local function Drops()
     if drops and drops.loot == ns.DungeonLoot and drops.data == ns.DungeonData then return drops.by end
@@ -50,6 +51,12 @@ local function Drops()
                 list[#list + 1] = { boss = b[3] or b[2], name = d.name, dungeon = d, chance = drop[2], raid = d.raid and true or false,
                                     encounter = b[1] }
             end
+        end
+        -- A piece that drops all over the dungeon: the dungeon, with no boss and no chance.
+        for _, id in ipairs(ns.DungeonTrash and ns.DungeonTrash[d.id] or {}) do
+            local list = by[id] or {}
+            by[id] = list
+            list[#list + 1] = { name = d.name, dungeon = d, raid = d.raid and true or false }
         end
     end
     return by

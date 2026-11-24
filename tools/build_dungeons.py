@@ -20,7 +20,8 @@ dungeon the game now offers that isn't in DUNGEONS.
 
 It also builds jsalUI/Dungeons/DungeonLoot.lua from Wowhead Forever (data/dungeons/wowhead.json,
 read from each dungeon's zone page and each boss's NPC page; see the README): each boss's loot,
-uncommon and better, with the drop chance Wowhead has seen, and each dungeon's quests. Wowhead's
+uncommon and better, with the drop chance Wowhead has seen, the pieces that drop all over a dungeon
+(for its Trash card), and each dungeon's quests. Wowhead's
 lists are by zone and NPC name; a boss here is matched by name (an encounter of several NPCs, like
 The Lost Dwarves, by theirs), and Blackrock Spire's and Dire Maul's quests go to each of its wings.
 
@@ -350,8 +351,8 @@ def build_loot(rows):
                 listed = zones.get(str(zone), {}).get("quests")
                 if listed is not None and not any(row[0] == q["row"][0] for row in listed):
                     listed.append(q["row"])
-    loot_lines, quest_lines = [], []
-    items = quests = 0
+    loot_lines, quest_lines, trash_lines = [], [], []
+    items = quests = trashed = 0
     unmatched, unread, empty = [], [], []
     for raid, level, name, lfg_id, map_id, zone, faction, bosses in rows:
         z = zones.get(str(WOWHEAD_ZONE[lfg_id]))
@@ -372,6 +373,13 @@ def build_loot(rows):
             text = ", ".join(f"{{ {i} }}" if pct is None else f"{{ {i}, {pct} }}" for i, pct in drops)
             loot_lines.append(f"    [{encounter}] = {{ {text} }}, -- {boss}")
             items += len(drops)
+        # The pieces that drop all over the dungeon, for its Trash card (merge_dungeons.py's `wide`).
+        wide = z.get("trash", {}).get(str(lfg_id), [])
+        if len(set(wide)) != len(wide):
+            sys.exit(f"{name} lists a dungeon-wide piece twice in wowhead.json")
+        if wide:
+            trash_lines.append(f"    [{lfg_id}] = {{ {', '.join(str(i) for i in sorted(wide))} }}, -- {name}")
+            trashed += len(wide)
         # Quests: not Wowhead's unused placeholders, one of each name per side (some
         # are listed once per starting point), and not ones far above the dungeon
         # that only share its category (the Darkmoon Faire's level 60 fortune card).
@@ -404,6 +412,11 @@ def build_loot(rows):
         *loot_lines,
         "}",
         "",
+        "-- By dungeon: the item IDs that drop all over it, not from one boss; its Trash card lists them.",
+        "ns.DungeonTrash = {",
+        *trash_lines,
+        "}",
+        "",
         "-- By dungeon: { quest ID, name, level, the level it's offered from, side (1 Alliance, 2 Horde, 3 both) }.",
         "ns.DungeonQuests = {",
         *quest_lines,
@@ -411,7 +424,7 @@ def build_loot(rows):
         *build_starts(),
     ]
     LOOT_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"{items} drops and {quests} quests -> {LOOT_OUT.relative_to(ROOT)}")
+    print(f"{items} drops, {trashed} dungeon-wide pieces and {quests} quests -> {LOOT_OUT.relative_to(ROOT)}")
     if unmatched:
         print("Bosses Wowhead has no page for: " + "; ".join(unmatched))
     if empty:
