@@ -247,10 +247,11 @@ local function Step(s, t, dt)
     end
     -- Worn out, it sleeps by itself, before tiredness can sour its mood;
     -- rested, it wakes.
+    -- Where it lay down (`laidAt`, kept by its pen) is for this one sleep.
     if not s.asleep and s.energy <= WORN then
-        s.asleep = true
+        s.asleep, s.laidAt = true, nil
     elseif s.asleep and s.energy >= 100 then
-        s.asleep = false
+        s.asleep, s.laidAt = false, nil
         Rules.Breakfast(s, t)
     end
     -- A filthy pen makes it poorly; it passes with time if not with medicine.
@@ -580,7 +581,7 @@ function Rules.Lights(s, now)
     Rules.Advance(s, now)
     if s.asleep then
         if s.energy <= WORN then return false, "It's too tired to wake yet." end
-        s.asleep = false
+        s.asleep, s.laidAt = false, nil
         Rules.Breakfast(s, now)
         if s.energy < 40 then
             s.fun = Clamp(s.fun - 5)
@@ -589,7 +590,7 @@ function Rules.Lights(s, now)
         return true, "It wakes up."
     end
     if s.energy >= 90 then return false, "It isn't sleepy." end
-    s.asleep = true
+    s.asleep, s.laidAt = true, nil
     return true, "Lights out."
 end
 
