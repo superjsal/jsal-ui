@@ -799,7 +799,25 @@ function Style.HotArea(owner, tip)
     return hot
 end
 
+-- The game builds an item's or a spell's tooltip again once something it shows has come in (a
+-- reagent's or a tool's name the game hadn't loaded yet, the first time a recipe is pointed at). It
+-- clears every line and draws its own, and the lines a row adds under them would go with them
+-- until the row is pointed at again. A tooltip that belongs to a row made here is built whole
+-- again right after, with the row's lines under the game's, as at the first look.
+local tipRows, rebuildHooked = setmetatable({}, { __mode = "k" }), false
+local function AfterRebuild(tooltip)
+    if tooltip ~= GameTooltip or not tooltip:IsShown() then return end
+    local owner = tooltip:GetOwner()
+    local enter = owner and tipRows[owner] and owner:GetScript("OnEnter")
+    if enter then enter(owner) end
+end
+
 function Style.ItemTip(frame, more, radius, pad)
+    tipRows[frame] = true
+    if not rebuildHooked and hooksecurefunc and GameTooltip and type(GameTooltip.RebuildFromTooltipInfo) == "function" then
+        rebuildHooked = true
+        hooksecurefunc(GameTooltip, "RebuildFromTooltipInfo", function(tooltip) xpcall(AfterRebuild, ns.Report, tooltip) end)
+    end
     frame:EnableMouse(true)
     frame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
