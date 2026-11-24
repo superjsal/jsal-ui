@@ -28,8 +28,7 @@ those bosses' cards (`wide`). A boss keeps it when the zone's Drops tab names it
 the boss drops it at 4% or more. Only a rare-or-better piece counts, or an uncommon one that belongs to
 a set or is one of Forever's own dungeon-wide pieces (items 251000 to 254999): the rest are random
 greens. A piece listed under bosses of three or more different zones is a world drop and is left out
-altogether, except Forever's own pieces, which it makes for several dungeons at a time. Raids are
-left as they are.
+altogether, Forever's own pieces included. Raids are left as they are.
 
 Run: python -I tools/wowhead/merge_dungeons.py <fresh.json>
 """
@@ -133,15 +132,14 @@ def wide(reads, named, world):
     """The dungeon-wide pieces of one dungeon: { item: the bosses that keep it on their card }, from
     its bosses' reads ({ boss: read }) and what the zone's Drops tab names each for ({ boss: [item] }).
     An item is dungeon-wide when WIDE_BOSSES or more bosses list it, it isn't a world drop, and it is
-    rare or better, a piece of a set, or one of Forever's own. Forever's own pieces are listed by
-    bosses of four or five dungeons at once, each at a share no world drop reaches, so the world test
-    leaves them be. A boss keeps one it is named for or drops at OWN_PCT or more."""
+    rare or better, a piece of a set, or one of Forever's own. Forever's own pieces are no
+    exception: one listed under bosses of three or more zones is out. A boss keeps one it is named for or drops at OWN_PCT or more."""
     lists = {boss: listed(read) for boss, read in reads.items()}
     out = {}
     for item in {i for items in lists.values() for i in items}:
         where = [boss for boss, items in lists.items() if item in items]
         quality = lists[where[0]][item][1]
-        if len(where) < WIDE_BOSSES or (item in world and item not in FOREVER_WIDE):
+        if len(where) < WIDE_BOSSES or item in world:
             continue
         if quality > 2 or item in SET_PIECES or item in FOREVER_WIDE:
             out[item] = {boss for boss in reads
