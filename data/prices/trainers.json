@@ -2646,6 +2646,35 @@
    ]
   },
   {
+   "class": 1,
+   "npc": "Bixi Wobblebonk",
+   "zone": "Ironforge",
+   "seen": 1795489217,
+   "rows": [
+    {
+     "spell": 1180,
+     "name": "Daggers",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 5011,
+     "name": "Crossbows",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 2567,
+     "name": "Thrown",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
    "class": 3,
    "npc": "Bolyun",
    "zone": "Ashenvale",
@@ -4176,6 +4205,56 @@
     {
      "spell": 15590,
      "name": "Fist Weapons",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 196,
+     "name": "One-Handed Axes",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 197,
+     "name": "Two-Handed Axes",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 199,
+     "name": "Two-Handed Maces",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    }
+   ]
+  },
+  {
+   "class": 1,
+   "npc": "Buliwyf Stonehand",
+   "zone": "Ironforge",
+   "seen": 1795489223,
+   "rows": [
+    {
+     "spell": 198,
+     "name": "One-Handed Maces",
+     "cost": 1000,
+     "level": 0,
+     "kind": "used"
+    },
+    {
+     "spell": 15590,
+     "name": "Fist Weapons",
+     "cost": 1000,
+     "level": 0,
+     "kind": "available"
+    },
+    {
+     "spell": 266,
+     "name": "Guns",
      "cost": 1000,
      "level": 0,
      "kind": "available"
