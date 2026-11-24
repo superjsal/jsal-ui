@@ -163,8 +163,10 @@ Journal.Characters = Characters
 -- player's language), how far through that standing, and the character's
 -- sex, for the word's form. False: looked, and none is shown. Nil: the
 -- game had no answer, so what was saved stays. Read again only after
--- UPDATE_FACTION says something changed.
-local repDirty = true
+-- UPDATE_FACTION says something changed. Saved at every level: the card
+-- shows it only at 60, but a character pretending to be 60, or reaching it,
+-- has it already.
+local repDirty, repNow, repSoon = true, nil, false
 local function WatchedRep()
     local get = C_Reputation and C_Reputation.GetWatchedFactionData
     if not get then return nil end
@@ -175,6 +177,33 @@ local function WatchedRep()
     local sex = UnitSex and UnitSex("player")
     return { id = d.factionID, name = d.name, reaction = d.reaction, have = at - low,
              need = (d.nextReactionThreshold or low) - low, sex = sex }
+end
+
+-- The watched reputation as the game has it now: read again only when
+-- UPDATE_FACTION has said something changed, else what was read last. Nil:
+-- the game hasn't answered yet. The saved line and the pretended one both
+-- take it from here, so neither can fall behind the other.
+function Journal.MyRep()
+    if repDirty then
+        local rep = WatchedRep()
+        if rep ~= nil then repNow, repDirty = rep, false end
+    end
+    return repNow
+end
+
+-- Two readings of the watched reputation that would draw the same card.
+local function SameRep(a, b)
+    if type(a) ~= "table" or type(b) ~= "table" then return a == b end
+    return a.id == b.id and a.name == b.name and a.reaction == b.reaction and a.have == b.have and a.need == b.need
+end
+
+-- A second after a burst of reputation changes, with the Journal open: the
+-- watched one read again, and the page drawn again only if it differs, so
+-- one picked in the game's Reputation window shows on your card at once.
+local function RepSettled()
+    repSoon = false
+    local was = repNow
+    if not SameRep(was, Journal.MyRep()) and ns.Window and ns.Window.IsOpen("journal") then ns.Window.Refresh() end
 end
 
 -- `leaving`: you're logging out, or reloading. The game then answers with
@@ -205,10 +234,8 @@ function Journal.SaveCharacter(leaving)
     c.rested = GetXPExhaustion and (GetXPExhaustion() or 0) or c.rested
     c.resting = IsResting and IsResting() or false
     c.professions = profs
-    if repDirty then
-        local rep = WatchedRep()
-        if rep ~= nil then c.rep, repDirty = rep, false end
-    end
+    local rep = Journal.MyRep()
+    if rep ~= nil then c.rep = rep end
     c.guild = Compat.GuildName()
     c.updated = Compat.ServerTime()
     Characters()[name] = c
@@ -611,8 +638,14 @@ function Journal:OnEnable()
             CheckRanks()
         elseif event == "UPDATE_FACTION" then
             -- It comes in bursts (every reputation gained, a dozen at login): the watched one is read
-            -- again at the next save, once a minute or when the Characters tab opens.
+            -- again at the next save, once a minute or when the Characters tab opens. With the Journal
+            -- open, once more a second after the burst begins, so the page can show it at once; with it
+            -- closed, no timer at all.
             repDirty = true
+            if not repSoon and ns.Window and ns.Window.IsOpen and ns.Window.IsOpen("journal") then
+                repSoon = true
+                Compat.After(1, ns.Safe(self, RepSettled))
+            end
         elseif event == "PLAYER_GUILD_UPDATE" then
             Journal.GuildChanged()
         elseif windows[event] then

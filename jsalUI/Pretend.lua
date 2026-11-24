@@ -53,17 +53,10 @@ function Pretend.ItemCount(item, bank)
     return Compat.ItemCount(item, bank)
 end
 
--- Every character the Journal has seen, to show. Off: this character's line saved afresh first,
--- as the Characters tab always has. On: copies, this one at 60 with a cooldown running, and two
--- made-up 60s with a raid each and cooldowns; nothing saved is read into or written.
 local made
-function Pretend.Characters()
-    local J = ns.Journal
-    if not Pretend.on then
-        if J and J.SaveCharacter then J.SaveCharacter() end
-        return J and J.Characters() or {}
-    end
-    if made then return made end
+
+-- The pretended characters, made once until pretend is turned off.
+local function MakeCharacters(J, me)
     local now = Compat.ServerTime()
     made = {}
     for name, c in pairs(J and J.Characters() or {}) do
@@ -72,7 +65,6 @@ function Pretend.Characters()
         copy.lockouts, copy.cooldowns = nil, nil
         made[name] = copy
     end
-    local me = Compat.MyName() or "Tamsin"
     local _, classFile = UnitClass("player")
     local mine = made[me] or { name = me, class = UnitClass("player"), classFile = classFile, updated = now }
     mine.level = LEVEL
@@ -87,6 +79,23 @@ function Pretend.Characters()
                    professions = { { name = "Tailoring", skill = 300, cap = 300 }, { name = "Alchemy", skill = 285, cap = 300 } },
                    lockouts = { { "Blackwing Lair", now + 2 * 86400 + 15 * 3600, 3, 8 }, { "Onyxia's Lair", now + 86400 + 15 * 3600, 1, 1 } },
                    cooldowns = { ["Transmute"] = 0, ["Mooncloth"] = 0 }, updated = now - 3 * 86400 }
+end
+
+-- Every character the Journal has seen, to show. Off: this character's line saved afresh first,
+-- as the Characters tab always has. On: copies, this one at 60 with a cooldown running, and two
+-- made-up 60s with a raid each and cooldowns; nothing saved is read into or written. The copies
+-- are made once, but this character's reputation is the game's own each time it's asked, so one
+-- picked in the Reputation window shows on its card while pretending.
+function Pretend.Characters()
+    local J = ns.Journal
+    if not Pretend.on then
+        if J and J.SaveCharacter then J.SaveCharacter() end
+        return J and J.Characters() or {}
+    end
+    local me = Compat.MyName() or "Tamsin"
+    if not made then MakeCharacters(J, me) end
+    local rep = J and J.MyRep and J.MyRep()
+    if rep ~= nil then made[me].rep = rep end
     return made
 end
 
