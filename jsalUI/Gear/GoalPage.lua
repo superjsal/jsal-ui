@@ -169,12 +169,39 @@ end
 ---------------------------------------------------------------------------
 local MENU_W, MENU_ROW, MENU_GAP = 220, 24, 8
 local LIT = { gold = "goldHover", red = "red" }
--- What the menu lists, in a line, from what it's opened with and your sets: the page closes an open
--- menu that a paint would fill with something else.
+-- The menu's lines, from what it's opened with and your sets. `current` is the set you're on when it's
+-- one of yours. `builds` are WoWSims' builds for your spec (Goal.SpecBuilds), `on` the one you're on
+-- (nil on a set of yours) and `start` your spec's own, marked "default".
+local function MenuList(current, from, builds, on, start)
+    local list = {}
+    if builds and #builds > 0 then
+        list[1] = { words = "WOWSIMS' BUILDS", tone = "muted" }
+        for _, b in ipairs(builds) do
+            list[#list + 1] = { words = b.name, what = "build", key = b.key, tone = b.key == on and "gold" or nil,
+                                note = b.key == start and "default" or nil }
+        end
+    end
+    list[#list + 1] = { words = "YOUR SETS", tone = "muted", rule = #list > 0 }
+    for _, set in ipairs(Goal.OwnSets and Goal.OwnSets() or {}) do
+        list[#list + 1] = { words = set.name, what = "choose", key = set.key, tone = set.key == current and "gold" or nil }
+    end
+    list[#list + 1] = { words = "+ New empty set", what = "empty" }
+    list[#list + 1] = { words = "+ New set from \226\128\156" .. (from or "your goal") .. "\226\128\157", what = "new" }
+    local mine = current and Goal.OwnSet and Goal.OwnSet(current)
+    if mine then
+        list[#list + 1] = { words = "Rename \226\128\156" .. mine.name .. "\226\128\157", what = "rename", key = current }
+        list[#list + 1] = { words = "Delete \226\128\156" .. mine.name .. "\226\128\157", what = "delete", key = current, tone = "red" }
+    end
+    return list
+end
+-- What the menu shows, in a line: each line's words, its "default", its colour and what it does. A
+-- paint that would show anything else (another set's name, another default, another "+ New set from")
+-- closes an open menu.
 local function MenuHolds(current, from, builds, on, start)
-    local words = { tostring(current), tostring(from), tostring(on), tostring(start) }
-    for _, b in ipairs(builds or {}) do words[#words + 1] = tostring(b.key) .. "=" .. tostring(b.name) end
-    for _, set in ipairs(Goal.OwnSets and Goal.OwnSets() or {}) do words[#words + 1] = tostring(set.key) .. "=" .. tostring(set.name) end
+    local words = {}
+    for _, item in ipairs(MenuList(current, from, builds, on, start)) do
+        words[#words + 1] = table.concat({ item.words, item.note or "", item.tone or "", tostring(item.what), tostring(item.key), item.rule and "rule" or "" }, ";")
+    end
     return table.concat(words, "|")
 end
 local function SetsMenu(parent, act)
@@ -184,6 +211,9 @@ local function SetsMenu(parent, act)
     menu:EnableMouse(true)
     Style.Box(menu, 6, "titleBar", "lineStrong")
     menu:Hide()
+    -- Put away with the page under it (Near your level picked, the window closed): it doesn't come back
+    -- with the page, holding what it held then.
+    menu:SetScript("OnHide", function(self) if self:IsShown() then self:Hide() end end)
     local lines = {}
     local function Line(i)
         if lines[i] then return lines[i] end
@@ -228,6 +258,8 @@ local function SetsMenu(parent, act)
         menu:Hide()
     end)
     field:SetScript("OnEscapePressed", function() menu:Hide() end)
+    -- Whether a set's new name is being typed in it.
+    function menu:Typing() return field.well:IsShown() and true or false end
     function menu:Rename(key)
         self.renaming = key
         for _, b in ipairs(lines) do b:Hide() end
@@ -240,31 +272,11 @@ local function SetsMenu(parent, act)
         field:HighlightText()
         self:SetHeight(48)
     end
-    -- `current` is the set you're on when it's one of yours. `builds` are WoWSims' builds for your
-    -- spec (Goal.SpecBuilds), `on` the one you're on (nil on a set of yours) and `start` your spec's
-    -- own, marked "default". A build picked here is kept; the spec on the Gear plan's top stays.
+    -- Opened with what MenuList lists. A build picked here is kept; the spec on the Gear plan's top stays.
     function menu:Open(anchor, current, from, builds, on, start)
         if self:IsShown() then return self:Hide() end
         field.well:Hide()
-        local list = {}
-        if builds and #builds > 0 then
-            list[1] = { words = "WOWSIMS' BUILDS", tone = "muted" }
-            for _, b in ipairs(builds) do
-                list[#list + 1] = { words = b.name, what = "build", key = b.key, tone = b.key == on and "gold" or nil,
-                                    note = b.key == start and "default" or nil }
-            end
-        end
-        list[#list + 1] = { words = "YOUR SETS", tone = "muted", rule = #list > 0 }
-        for _, set in ipairs(Goal.OwnSets()) do
-            list[#list + 1] = { words = set.name, what = "choose", key = set.key, tone = set.key == current and "gold" or nil }
-        end
-        list[#list + 1] = { words = "+ New empty set", what = "empty" }
-        list[#list + 1] = { words = "+ New set from \226\128\156" .. (from or "your goal") .. "\226\128\157", what = "new" }
-        local mine = current and Goal.OwnSet(current)
-        if mine then
-            list[#list + 1] = { words = "Rename \226\128\156" .. mine.name .. "\226\128\157", what = "rename", key = current }
-            list[#list + 1] = { words = "Delete \226\128\156" .. mine.name .. "\226\128\157", what = "delete", key = current, tone = "red" }
-        end
+        local list = MenuList(current, from, builds, on, start)
         local y = 6
         for i, item in ipairs(list) do
             local b = Line(i)
@@ -1217,18 +1229,26 @@ function Gear.GoalView(page, width, height)
         return set and set.own and set.key or nil, set and set.name or nil, set and set.builds or nil,
             set and not set.own and set.key or nil, set and set.start or nil
     end
-    -- An open sets menu lists the spec's sets as they were when it opened: another spec, Raids, Near your
-    -- level, or a paint with other sets to list (one made, renamed or deleted) closes it, and opened again it
-    -- lists them as they are. A paint with nothing changed leaves it open.
+    -- The sets menu shut: a click on a spec, on Raids or Before raids, or on Near your level or At 60
+    -- closes it there and then, whatever the sets are (a hunter's three specs list the same three).
+    local function CloseSets()
+        if menu and menu:IsShown() then menu:Hide() end
+    end
+    page.CloseSets = CloseSets
+    -- And as the page is drawn, for what didn't come from a click: another spec, stage or tab than the one
+    -- it opened on closes it, and so does a paint that would show anything else in it (another set's name,
+    -- another default, another "+ New set from"), except while a set's new name is being typed in it.
+    -- Opened again it lists them as they are. A paint with nothing changed leaves it open.
     local function MenuStale(spec, painted)
         if not (menu and menu:IsShown()) then return end
         if not showing or spec ~= menu.spec or stage ~= Goal.BEFORE or not Goal.running
-            or (painted and (last.noWeights or menu.holds ~= MenuHolds(MenuArgs()))) then
+            or (painted and (last.noWeights or (not menu:Typing() and menu.holds ~= MenuHolds(MenuArgs())))) then
             menu:Hide()
         end
     end
     local hero, list, runs, none, waiting
     local tabs = Style.Tabs(page, { { "near", "Near your level" }, { "goal", "At " .. Goal.LEVEL } }, function(key)
+        CloseSets()
         showing = key == "goal"
         if page.Refresh then page.Refresh() end
     end)
@@ -1241,6 +1261,7 @@ function Gear.GoalView(page, width, height)
     local function Build()
         local body = height - TOP - HERO_H - HERO_GAP - FOOT
         hero = Hero(view, width, function(key)
+            CloseSets()
             stage = key
             if page.Refresh then page.Refresh() end
         end, function(cheap)

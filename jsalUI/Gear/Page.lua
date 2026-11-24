@@ -426,6 +426,8 @@ Window.Page("gear", function(page)
         b:SetPoint("TOPRIGHT", page.heading, "BOTTOMLEFT", width - (3 - i) * 128, -8)
         b:SetScript("OnClick", function()
             Settle()
+            -- At 60's sets menu, if it's open, shuts at the click: it holds the last spec's sets.
+            if page.CloseSets then page.CloseSets() end
             G.SetSpec(i)
             -- The spec picks the set at 60 too: the dashboard's page, if it's open, follows.
             if Window.Refresh then Window.Refresh() else Paint() end
