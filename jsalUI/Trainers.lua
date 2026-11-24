@@ -39,9 +39,10 @@ end
 Trainers.TeachesRank = TeachesRank
 
 -- What a trainer with no such word in its title teaches, where it isn't
--- everything: Cooking's teach Apprentice and Journeyman and no more, so
--- nobody is named for Expert or Artisan Cooking.
-local PLAIN = { skill185 = 2 }
+-- everything: Cooking's and Fishing's teach Apprentice and Journeyman and no
+-- more (Expert is a book, Artisan a quest), so nobody is named for Expert or
+-- Artisan in either.
+local PLAIN = { skill185 = 2, skill356 = 2 }
 
 local function Friendly(trainer)
     local faction = Compat.Faction()

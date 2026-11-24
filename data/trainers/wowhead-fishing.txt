@@ -1,0 +1,32 @@
+# Fishing trainers (skill line 356): Wowhead Forever's Fishing page, its Trainers tab, read 2026-11-23: each
+# trainer's NPC ID, name, title and "React" (alliance, horde: 1 friendly, 0 neutral, -1 hostile, blank none).
+# The spot is from each NPC's own Wowhead Forever page (its map's first spot, on Classic's map, moved to
+# Forever's by the build as trainers.txt's are), read the same day. The eight with no spot here were opened
+# by players in the game (data/trainers/eglink-trainers.json, Efficient Games, CC BY 4.0): their spot is the
+# one players stood on, on Forever's own map already.
+# npc|name|tag|alliance|horde|kinds|uiMapID|x|y
+1651|Lee Brown|Fisherman|1||s356|1429|47.4|62.2
+1680|Matthew Hooper|Fishing Trainer|1||s356|1433|21.2|50.4
+1683|Warg Deepwater|Fisherman|1|-1|s356|1432|40.4|39.4
+1700|Paxton Ganter|Fisherman|1||s356|1426|35.4|40.2
+2367|Donald Rabonne|Fisherman|1|-1|s356|1424|50.4|61
+2834|Myizz Luckycatch|Superior Fisherman|1|1|s356|||
+3028|Kah Mistrunner|Fishing Trainer||1|s356|||
+3179|Harold Riggs|Fishing Trainer|1|-1|s356|1437|8|58.4
+3332|Lumak|Fishing Trainer||1|s356|1454|69.4|28.4
+3607|Androl Oakhand|Fisherman|1|-1|s356|1438|55.8|93.4
+4156|Astaia|Fishing Trainer|1||s356|1457|47.4|56.4
+4573|Armand Cromwell|Fishing Trainer||1|s356|||
+5161|Grimnur Stonebrand|Fishing Trainer|1||s356|1455|48.2|6.6
+5493|Arnold Leland|Fishing Trainer|1|-1|s356|1453|55|69.4
+5690|Clyde Kellen|Fisherman|-1|1|s356|1420|67.2|51
+5938|Uthan Stillwater|Fisherman||1|s356|1412|44.2|63.8
+5941|Lau'Tiki|Fisherman||1|s356|||
+7946|Brannock|Fisherman|1|-1|s356|1444|32.2|41.4
+12032|Lui'Mala|Fisherman|-1|1|s356|||
+12961|Kil'Hiwana|Fisherman|-1|1|s356|1440|10.8|33.4
+14740|Katoom the Angler|Fishing Trainer & Supplies||1|s356|1425|80.2|81.4
+251992|Fenn Fairweather|Fisherman|1|1|s356|||
+255877|Hunter Moore|Fisherman|1|-1|s356|1424|54|80.2
+257008|Baelann Swiftcurrent|Fisher|1|1|s356|||
+260558|Krix|Superior Fisherman|0|0|s356|||
