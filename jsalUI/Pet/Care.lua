@@ -165,7 +165,15 @@ local function Refresh()
     if anew then
         local was = ui.walk
         ui.walk = Pet.NewWalk(math.random, size, strip)
-        if strip then Pet.KeepOnScreen() end
+        if strip then
+            -- Back out from its pen: on the spot along its strip it left (Pet.KeepOutSpot), facing the same way.
+            local at = ui.outAt
+            ui.outAt = nil
+            if at and at.size == size and at.strip == strip then
+                ui.walk.x, ui.walk.tx, ui.walk.facing = at.x, at.x, at.facing
+            end
+            Pet.KeepOnScreen()
+        end
         -- Changing under the light it grows in: it stays where it stands, its
         -- feet where they were, and goes on with what it was about.
         if was and was.act and was.act.name == "grow" and was.strip == strip then
@@ -512,6 +520,16 @@ function Pet.KeepOnScreen()
     walk.lo = math.max(0, math.ceil(-left))
     walk.hi = math.max(walk.lo, math.floor(math.min(walk.strip, wide - left) - size))
     walk.tx = math.max(walk.lo, math.min(walk.hi, walk.tx))
+end
+
+-- Going into its pen from out with you (the + or Out), where it is along its strip is kept, so it comes out on
+-- that spot again, asleep or awake: a new walk on the strip starts anywhere along it. Kept until then, for the
+-- size it's drawn at; dragged meanwhile, it's on the same place along its strip, where the strip now is.
+function Pet.KeepOutSpot()
+    local walk = ui.walk
+    if ui.window and ui.window.out and walk and walk.strip then
+        ui.outAt = { x = walk.x, facing = walk.facing, size = walk.size, strip = walk.strip }
+    end
 end
 
 -- Where you dragged it to is kept.

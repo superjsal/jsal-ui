@@ -126,6 +126,7 @@ function Pet.Out()
         return Refresh()
     end
     ns.db.petOut = ns.db.petOut ~= true and true or nil
+    Pet.KeepOutSpot()
     ui.yard, ui.albumOpen, ui.looking, ui.walk = false, false, nil, nil
     ui.pen.shade = nil
     Pet.Layout()

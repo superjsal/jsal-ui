@@ -97,6 +97,7 @@ function Pet.Fold()
     if ns.db.petOut then
         ns.db.petOut = nil
         if ui.pen then ui.pen.shade = nil end
+        Pet.KeepOutSpot()
     else
         ns.db.petCompact = ns.db.petCompact ~= true and true or nil
     end
