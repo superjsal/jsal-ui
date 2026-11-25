@@ -935,8 +935,8 @@ Window.Page("gear", function(page)
     local retrying
     -- The items the page last painted (each place's upgrades and what you wear), and how many items
     -- asked for had come then (Gear.arrived): an item that's neither, arriving, changes nothing here.
-    -- None while At 60 is showing, which paints items of its own.
-    local seen, seenArrived
+    -- None while At 60 is showing (`atGoal`), which says which items it paints for (page.GoalWants).
+    local seen, seenArrived, atGoal
     -- A place whose plan isn't made yet (the first open after logging in, or after something it's
     -- worked out from changed) shows what you wear and "Checking..." at once, and the places are
     -- worked out a few a frame after: the picked slot first, then down the lines, at most FILL_MOST
@@ -986,6 +986,7 @@ Window.Page("gear", function(page)
         -- painted in place of this one.
         local goal = false
         if page.Goal then goal = select(2, page.Goal(spec)) end
+        atGoal = goal
         page.near:SetShown(not goal)
         if goal then
             seen = nil
@@ -1060,9 +1061,14 @@ Window.Page("gear", function(page)
         if waiting then return end
         waiting = true
         Compat.After(0.3, ns.Safe(G, function()
-            local due = other or not seen or G.arrived ~= seenArrived
-            for _, item in ipairs(came) do
-                if seen and seen[item] then due = true end
+            local due
+            if atGoal and page.GoalWants then
+                due = other or page.GoalWants(came)
+            else
+                due = other or not seen or G.arrived ~= seenArrived
+                for _, item in ipairs(came) do
+                    if seen and seen[item] then due = true end
+                end
             end
             waiting, came, other = nil, {}, false
             if due and page:IsVisible() then Paint() end

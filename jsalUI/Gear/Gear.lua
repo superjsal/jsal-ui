@@ -244,12 +244,21 @@ local RETRY = 2
 local TRIES = 5
 local tries = {}
 -- Gear.arrived counts the items that came after being asked for here: a plan waiting on items
--- is worth making again once it has moved on.
+-- is worth making again once it has moved on. `cameAt` is where that count stood as each came,
+-- so one waiting on a few items can tell whether one of its own has (Gear.CameAfter).
 Gear.arrived = 0
+local cameAt = {}
 function Gear.Arrived(id)
     if not id then return end
-    if loading[id] then Gear.arrived = Gear.arrived + 1 end
+    if loading[id] then
+        Gear.arrived = Gear.arrived + 1
+        cameAt[id] = Gear.arrived
+    end
     loading[id], tries[id] = nil, nil
+end
+-- Whether an item asked for here came after the count of arrivals stood at `mark`.
+function Gear.CameAfter(id, mark)
+    return (cameAt[id] or 0) > (mark or 0)
 end
 function Gear.GivenUp(id)
     return (tries[id] or 0) >= TRIES

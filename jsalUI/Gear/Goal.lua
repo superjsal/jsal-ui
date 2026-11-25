@@ -262,22 +262,30 @@ local function Have(name)
     return false
 end
 
+-- An item a goal waits on the game for: counted in ctx.waiting, and kept by its ID with its stage in
+-- the table being filled (ctx.owing), so what the stage before raids waits on is told apart from what
+-- only the raids' stage does.
+local function Owe(ctx, id, stage)
+    ctx.waiting = ctx.waiting + 1
+    if ctx.owing then ctx.owing[id] = stage or Goal.BEFORE end
+end
+
 -- One of a slot's pieces with its worth for your spec: { e, id, stats, score, stage, unknown }. nil
--- for one that's no goal up to stage `upTo`, and for one the game hasn't sent yet, which is counted
--- in ctx.waiting. A piece the game never sent is given up on, as the slots' own are, and left out.
+-- for one that's no goal up to stage `upTo`, and for one the game hasn't sent yet, which is owed (Owe).
+-- A piece the game never sent is given up on, as the slots' own are, and left out.
 local function Piece(e, slot, ctx, upTo)
     local stage = Goal.Stage(e, ctx.ceiling)
     if not stage or stage > upTo then return nil end
     local need = false
     if e.skilled then need = Gear.SkillNeed(e.id) end
     if need == nil then
-        if not Gear.GivenUp(e.id) then ctx.waiting = ctx.waiting + 1 end
+        if not Gear.GivenUp(e.id) then Owe(ctx, e.id, stage) end
         return nil
     end
     if (need and not Have(need.name)) or (e.kind == "Quest" and Gear.RewardTaken(e.id)) then return nil end
     local stats = Gear.Stats(e.id)
     if not stats then
-        if not Gear.GivenUp(e.id) then ctx.waiting = ctx.waiting + 1 end
+        if not Gear.GivenUp(e.id) then Owe(ctx, e.id, stage) end
         return nil
     end
     return { e = e, id = e.id, stats = stats, score = Gear.Score(stats, ctx.weights, slot.dps) or 0,
@@ -304,13 +312,16 @@ end
 -- A slot's scored pieces up to a stage ({ slot, list, upTo, owed }), scored the first time they're
 -- asked for and kept on the context (ctx.lists): a goal asks the game only for the slots it shows.
 -- One still owed items by the game is kept while the goal is worked out (ctx.done not yet set), and
--- scored again when asked after, as the items come.
+-- scored again when asked after, as the items come. `owing` is what it waits on (ID: stage).
 local function ListOf(ctx, slot, upTo)
     local have = ctx.lists[slot.key]
     if have and have.upTo >= upTo and not (have.owed and ctx.done) then return have end
-    local before = ctx.waiting
+    local before, outer = ctx.waiting, ctx.owing
     upTo = math.max(upTo, have and have.upTo or upTo)
-    local made = { slot = slot, list = Scored(slot, ctx, upTo), upTo = upTo }
+    ctx.owing = {}
+    local made = { slot = slot, upTo = upTo }
+    made.list = Scored(slot, ctx, upTo)
+    made.owing, ctx.owing = ctx.owing, outer
     made.owed = ctx.waiting > before
     ctx.lists[slot.key] = made
     return made
@@ -632,7 +643,7 @@ local function SetPiece(id, slot, ctx)
     local stats = Gear.Stats(id)
     -- Waited on while it's coming (once: a piece already counted as owed above isn't again); one the
     -- game never sends is given up on, as the slots' own are.
-    if not stats and not owed and not Gear.GivenUp(id) then ctx.waiting = ctx.waiting + 1 end
+    if not stats and not owed and not Gear.GivenUp(id) then Owe(ctx, id, Goal.BEFORE) end
     stats = stats or {}
     return { e = e, id = id, stats = stats, score = Gear.Score(stats, ctx.weights, slot.dps) or 0, stage = Goal.BEFORE }
 end
@@ -1003,6 +1014,9 @@ function Goal.Summary()
     summaryKey, summary = key, nil
     local ids, name = Goal.ChosenSet()
     if not ids then return nil end
+    -- The cards drawn from this open At 60 on this set: its pieces are asked of the game ahead, as Near
+    -- your level asks them (Goal.AskOwn, once a set), so At 60 opened from a card has its names in.
+    if Goal.AskOwn then Goal.AskOwn(Gear.Spec(), keptChoice.build or keptChoice.base, keptChoice.cheap) end
     local own = keptChoice.build and Goal.OwnSet(keptChoice.build) ~= nil
     local slotOf = {}
     for _, slot in ipairs(Gear.SLOTS) do
@@ -1064,6 +1078,12 @@ end
 -- raids'. Each slot's pieces are scored as they're needed (ListOf).
 local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
     out.lists, out.ctx = ctx.lists, ctx
+    -- What the stage before raids waits on the game for, by ID: what working it out owes (a set's own
+    -- pieces), and the pieces owed for before raids in the slots it reads whole (where the weights
+    -- estimate a set's place, or with no set every slot). With the raids' stage the slots are scored up to
+    -- the raids, and the rest they owe is the raids' alone.
+    local owedBefore, reads = {}, {}
+    ctx.owing = owedBefore
     -- Your class's builds (a set of yours names the one it was started from), and the tree's, for the
     -- sets menu.
     local builds, start = Goal.Builds(classFile, spec)
@@ -1092,6 +1112,7 @@ local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
         local baseIds, baseEstimated
         if from then baseIds, baseEstimated = IdsOf(from, false, ctx.side, Estimate) end
         out[Goal.BEFORE] = SetRows(ctx, draft or own.ids, true, baseIds, nil, baseEstimated)
+        for i in pairs(baseEstimated or {}) do reads[SlotOfPlace(i).key] = true end
         chosen = own
     elseif chosen then
         local ids, estimated = IdsOf(chosen, cheap, ctx.side, Estimate)
@@ -1100,11 +1121,21 @@ local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
         out.set = { builds = specBuilds, start = start, key = chosen.key, name = chosen.name, cheap = cheap and chosen.cheap ~= nil, hasCheap = chosen.cheap ~= nil,
                     ids = ids, estimated = count }
         out[Goal.BEFORE] = SetRows(ctx, draft or ids, nil, ids, not draft and estimated or nil, estimated)
+        for i in pairs(estimated) do reads[SlotOfPlace(i).key] = true end
     else
         out[Goal.BEFORE] = StageRows(ctx, Goal.BEFORE)
+        for key in pairs(ctx.lists) do reads[key] = true end
+    end
+    ctx.owing = nil
+    for key in pairs(reads) do
+        for id, stage in pairs(ctx.lists[key] and ctx.lists[key].owing or {}) do
+            if stage <= Goal.BEFORE then owedBefore[id] = true end
+        end
     end
     -- What the stage before raids owes: the card's line waits on these alone.
-    out.waitingBefore = ctx.waiting
+    local owed = 0
+    for _ in pairs(owedBefore) do owed = owed + 1 end
+    out.waitingBefore, out.owedBefore = owed, owedBefore
     if not raids then
         out.waiting, out.ceiling, ctx.done = ctx.waiting, ctx.ceiling, true
         return
@@ -1230,6 +1261,25 @@ end
 local job, told
 local SPREAD_MS = 6
 
+-- Whether a kept goal still holds while the game owes it items: nothing owed for what's shown (the stage
+-- before raids alone where `beforeOnly`, else the whole goal), or worked out this very frame, or under
+-- Gear.RETRY seconds old with nothing it waits on come since. Before raids that's one of that stage's own
+-- pieces: the raids' stage asks for about 2,000, and the stage before raids isn't worked out for each.
+-- A goal's moment (`at`) is when it was done, so the page drawn as it's told the goal is in has it kept.
+local function Fresh(read, now, beforeOnly)
+    local owed = read.waiting
+    if beforeOnly and read.waitingBefore then owed = read.waitingBefore end
+    if owed == 0 or read.at == now then return true end
+    if now - read.at >= (Gear.RETRY or 0) then return false end
+    if beforeOnly and read.owedBefore and Gear.CameAfter then
+        for id in pairs(read.owedBefore) do
+            if Gear.CameAfter(id, read.arrived) then return false end
+        end
+        return true
+    end
+    return read.arrived == Gear.arrived
+end
+
 -- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, waitingBefore, ceiling, set, lists }, or
 -- { noWeights = true } for a spec with no weights. `waiting` counts the items still owed by the game,
 -- `waitingBefore` those the stage before raids owes. A stage: { rows, done, slots, runs, other,
@@ -1246,18 +1296,26 @@ local SPREAD_MS = 6
 --
 -- `raids` false leaves the raids' stage out (no [Goal.RAIDS]) where it isn't kept already: it scores
 -- every piece a 60 of your class could wear, about 2,000 items to ask the game for, where the set
--- before raids asks for its own 17. nil works out both.
-function Goal.Read(spec, build, cheap, draft, later, raids)
+-- before raids asks for its own 17. nil works out both. Asked for the stage before raids alone, a kept
+-- goal holds while only its raids' stage owes items (Fresh).
+--
+-- `asKept`: the page switched to this goal (another stage or spec picked), so one kept for the same plans,
+-- spec, set and change is given as it is, though the game still owes it items; the page's own look again
+-- brings it up to date. A switch works nothing out where a goal is kept.
+--
+-- The second value is true where what's given is the kept goal while a newer one is worked out (`later`
+-- is then called once it's in).
+function Goal.Read(spec, build, cheap, draft, later, raids, asKept)
     spec = spec or Gear.Spec()
     cheap = cheap and true or false
     local key = { goalStamp = Stamp(), spec = spec, build = build, cheap = cheap, drafted = draft and table.concat(draft, ",") or "" }
     local now = GetTime and GetTime()
     local kept = keptBy[spec]
+    local beforeOnly = raids == false
     -- A goal kept with its raids' stage keeps it when it's worked out again.
     raids = raids ~= false or (Same(kept, key) and kept[Goal.RAIDS] ~= nil)
     local function Has(read) return Same(read, key) and (not raids or read.noWeights or read[Goal.RAIDS] ~= nil) end
-    if Has(kept) and now and kept.at and now - kept.at < KEEP
-        and (kept.waiting == 0 or kept.at == now or (kept.arrived == Gear.arrived and now - kept.at < (Gear.RETRY or 0))) then
+    if Has(kept) and now and kept.at and now - kept.at < KEEP and (asKept or Fresh(kept, now, beforeOnly)) then
         return kept
     end
     if not (job and Same(job.key, key) and (job.raids or not raids)) then
@@ -1280,6 +1338,7 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
             local done = Run(mine, SPREAD_MS)
             if ns.Timed then ns.Timed("Gear goal, working out", started) end
             if not done then return Compat.After(0, Step) end
+            if GetTime then mine.out.at = GetTime() end
             keptBy[mine.key.spec], job = mine.out, nil
             local list = told
             told = {}
@@ -1295,7 +1354,7 @@ function Goal.Read(spec, build, cheap, draft, later, raids)
         Compat.After(0, Step)
     end
     kept = keptBy[spec]
-    if Has(kept) then return kept end
+    if Has(kept) then return kept, true end
     return nil
 end
 

@@ -1297,8 +1297,31 @@ function Gear.GoalView(page, width, height)
     -- Near your level can be what stays, with this view hidden: the page is drawn again once the goal
     -- is in while At 60 is still the tab picked.
     local waitPlace
+    -- What the last paint drew: the spec and stage (another is a switch, which takes the goal kept for it as
+    -- it is), whether it drew a goal kept while a newer one is worked out (or none yet), and the items it
+    -- shows (their names and pictures).
+    local paintedSpec, paintedStage, behind, shownIds = nil, nil, false, {}
+    -- What a goal still owes the game for the stage shown: before raids, that stage's own pieces.
+    local function Owed(read)
+        if not read then return 0 end
+        if stage == Goal.BEFORE and read.waitingBefore then return read.waitingBefore end
+        return read.waiting or 0
+    end
+    -- Told the goal is in: drawn again where the last paint was waiting for it, once.
     local function Ready()
-        if showing and page:IsVisible() and page.Refresh then page.Refresh() end
+        if behind and showing and page:IsVisible() and page.Refresh then page.Refresh() end
+    end
+    -- Whether items the game has just sent change what At 60 shows before raids: a piece it shows, or one
+    -- that stage waits on. Raids waits on about 2,000 as they come, under its cover: it's looked at again by
+    -- itself every few seconds (below), not for each.
+    page.GoalWants = function(came)
+        if not (showing and last) or stage ~= Goal.BEFORE then return false end
+        local owed = last.owedBefore
+        if not owed and (last.waitingBefore or last.waiting or 0) > 0 then return true end
+        for _, id in ipairs(came or {}) do
+            if shownIds[id] or (owed and owed[id]) then return true end
+        end
+        return false
     end
     -- The spec, set and cheap or full whose set was last asked of the game ahead (Goal.AskOwn).
     local aheadFor
@@ -1340,10 +1363,13 @@ function Gear.GoalView(page, width, height)
         -- No set chosen (an older save, or one whose set was deleted), or WoWSims' build kept under another
         -- spec that doesn't go with this one: the spec's own build (Goal.Read).
         -- The raids' stage only while Raids is shown: Before raids asks the game for its own pieces alone.
-        local read = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready, stage == Goal.RAIDS)
+        -- Another stage or spec than the last paint's is a switch: the goal kept for it is drawn as it is.
+        local switched = not wasShown or spec ~= paintedSpec or stage ~= paintedStage
+        local read, coming = Goal.Read(spec, kept.build or kept.base, kept.cheap, draft and draft.ids, Ready, stage == Goal.RAIDS, switched)
         ns.Timed("Gear goal, working out", started)
         if read and stage == Goal.RAIDS and not read.noWeights and not read[Goal.RAIDS] then read = nil end
         if not read then
+            behind = true
             waitPlace = wantPlace
             -- At 60 picked from Near your level: Near your level stays on screen until the goal is in
             -- (Ready), rather than an empty view in its place.
@@ -1363,6 +1389,7 @@ function Gear.GoalView(page, width, height)
         end
         waitPlace = nil
         shownFor = spec
+        behind, paintedSpec, paintedStage = coming and true or false, spec, stage
         if read.set then read.set.draft, read.set.changed = draft and true or nil, draft and draft.labels or nil end
         last = read
         MenuStale(spec, true)
@@ -1389,13 +1416,23 @@ function Gear.GoalView(page, width, height)
             if stage == Goal.BEFORE and (read.waitingBefore or read.waiting or 0) == 0 and Goal.AskAhead then
                 Goal.AskAhead(spec, kept.cheap)
             end
-            runs:Paint(read[stage], stage, row and { row = row, others = Goal.Others(read, row, PICKS), own = read.set and read.set.own, set = read.set ~= nil, draft = read.set and read.set.draft } or nil)
-            -- Still waiting on items: look again by itself, once at a time.
-            if read.waiting > 0 and not retrying then
+            local choice = row and { row = row, others = Goal.Others(read, row, PICKS), own = read.set and read.set.own, set = read.set ~= nil, draft = read.set and read.set.draft } or nil
+            runs:Paint(read[stage], stage, choice)
+            shownIds = {}
+            for _, r in ipairs(read[stage].rows or {}) do
+                for _, piece in ipairs({ r.goal or false, r.pick or false, r.base or false, r.worn or false }) do
+                    if piece and piece.id then shownIds[piece.id] = true end
+                end
+            end
+            for _, o in ipairs(choice and choice.others or {}) do shownIds[o.piece.id] = true end
+            -- Still waiting on items for the stage shown: look again by itself, once at a time, while that
+            -- stage is still shown (or another that owes).
+            if Owed(read) > 0 and not retrying then
                 retrying = true
+                local owing = stage
                 Compat.After(2.5, ns.Safe(Goal, function()
                     retrying = false
-                    if view:IsVisible() and page.Refresh then page.Refresh() end
+                    if view:IsVisible() and (stage == owing or Owed(last) > 0) and page.Refresh then page.Refresh() end
                 end))
             end
         end
