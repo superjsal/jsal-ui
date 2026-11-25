@@ -10,9 +10,9 @@ local Style, Compat, Window = ns.Style, ns.Compat, ns.Window
 -- release: a few words on it, what a click on it does, and where that goes
 -- (a page's key, or "welcome"). They show once per version, until put away.
 local NEWS = {
-    { "A page for level 60", "Open Endgame", "endgame" },
-    { "Every dungeon, one list", "Open Dungeons", "dungeons" },
-    { "Arrows on quest upgrades", "Open Gear plan", "gear" },
+    { "Fishing, and where to fish", "Open Professions", "professions" },
+    { "More loot on Trash cards", "Open Dungeons", "dungeons" },
+    { "Your side's nearest trainers", "Open Training", "training" },
 }
 
 local function NewsWanted()
