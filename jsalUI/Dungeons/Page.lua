@@ -715,8 +715,12 @@ Window.Page("dungeons", function(page)
         B.aim, B.mark, B.lit, B.why = nil, nil, nil, nil
         if B.glow then B.Glow() end
     end
-    -- One light for the whole list, as faint as Style.Hover's, on the line under the pointer (`B.hover`); with
-    -- the pointer on none, on the piece asked for while it's lit. Moved to the line's card, under its picture and words.
+    -- Two things are drawn on the list's lines, each made once and moved, under the line's picture and words.
+    -- The hover light: one for the whole list, as faint as Style.Hover's, on the line under the pointer (`B.hover`).
+    -- The mark of the piece asked for (`B.lit`): a gold tint across its line and a gold bar down its left edge,
+    -- apart from the hover light, so the pointer on any line leaves it as it is; the hover light is drawn over the
+    -- tint where the pointer is on that piece. The mark follows the piece, not the card frame that shows it: it
+    -- is on the piece's line while that line is drawn, and hidden when the card is given another boss.
     function B.Glow()
         local glow = B.glow
         if not glow then
@@ -724,15 +728,41 @@ Window.Page("dungeons", function(page)
             local r, g, b = Style.Color("text")
             glow:SetColorTexture(r, g, b, 0.06)
             B.glow = glow
+            B.tint = bossList:CreateTexture(nil, "BACKGROUND", nil, 5)
+            B.bar = bossList:CreateTexture(nil, "ARTWORK")
+            r, g, b = Style.Color("gold")
+            B.tint:SetColorTexture(r, g, b, 0.12)
+            B.bar:SetColorTexture(r, g, b, 1)
+            B.bar:SetWidth(3)
         end
         local it = B.hover or B.lit
         glow.on = it
-        if not it then return glow:Hide() end
-        glow:SetParent(it:GetParent())
-        glow:SetDrawLayer("BACKGROUND", 7)
-        glow:ClearAllPoints()
-        glow:SetAllPoints(it)
-        glow:Show()
+        if not it then
+            glow:Hide()
+        else
+            glow:SetParent(it:GetParent())
+            glow:SetDrawLayer("BACKGROUND", 7)
+            glow:ClearAllPoints()
+            glow:SetAllPoints(it)
+            glow:Show()
+        end
+        local at = B.lit
+        if not at then
+            B.tint:Hide()
+            return B.bar:Hide()
+        end
+        local card = at:GetParent()
+        B.tint:SetParent(card)
+        B.tint:SetDrawLayer("BACKGROUND", 5)
+        B.tint:ClearAllPoints()
+        B.tint:SetAllPoints(at)
+        B.tint:Show()
+        B.bar:SetParent(card)
+        B.bar:SetDrawLayer("ARTWORK")
+        B.bar:ClearAllPoints()
+        B.bar:SetPoint("TOPLEFT", at, "TOPLEFT", 0, 0)
+        B.bar:SetPoint("BOTTOMLEFT", at, "BOTTOMLEFT", 0, 0)
+        B.bar:Show()
     end
     -- Only the cards in view are made, and the cards made are kept and given other bosses as the list scrolls:
     -- `B.models` is every card of the dungeon worked out (B.Model) and placed, and a card frame shows one of them
