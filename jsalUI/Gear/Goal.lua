@@ -1074,6 +1074,24 @@ local function SpecBuild(specBuilds, start, build)
     end
     return chosen
 end
+-- Whether the game has an item loaded.
+local function Cached(id)
+    local cached = C_Item and C_Item.IsItemDataCachedByID
+    if cached then return cached(id) and true or false end
+    local get = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    return (get and get(id)) ~= nil
+end
+
+-- Of the items a goal owes (ID: anything), those still on their way from the game: not loaded as it was
+-- worked out. One loaded and still owed (a tooltip that hasn't a skill line yet) isn't waited on.
+local function Coming(ids)
+    local out = {}
+    for id in pairs(ids) do
+        if not Cached(id) then out[id] = true end
+    end
+    return out
+end
+
 -- The rest of a goal: the set's rows or the weights' before raids, then, where `raids` asks for it, the
 -- raids'. Each slot's pieces are scored as they're needed (ListOf).
 local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
@@ -1136,10 +1154,18 @@ local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
     local owed = 0
     for _ in pairs(owedBefore) do owed = owed + 1 end
     out.waitingBefore, out.owedBefore = owed, owedBefore
-    if not raids then
+    -- Done: what it owes in all, and what of that and of the stage before raids' is still on its way
+    -- (Goal.Settled).
+    local function Done()
+        local all = {}
+        for id in pairs(owedBefore) do all[id] = true end
+        for _, list in pairs(ctx.lists) do
+            for id in pairs(list.owing or {}) do all[id] = true end
+        end
+        out.coming, out.comingBefore = Coming(all), Coming(owedBefore)
         out.waiting, out.ceiling, ctx.done = ctx.waiting, ctx.ceiling, true
-        return
     end
+    if not raids then return Done() end
     out[Goal.RAIDS] = StageRows(ctx, Goal.RAIDS)
     -- With raids, nothing of the set is given up for a raid's piece the weights think less of.
     if chosen then
@@ -1154,7 +1180,7 @@ local function Finish(out, ctx, spec, build, cheap, draft, classFile, raids)
         end
         if changed then raids.runs, raids.other, raids.unknown = Goal.Runs(raids.rows, Goal.RAIDS) end
     end
-    out.waiting, out.ceiling, ctx.done = ctx.waiting, ctx.ceiling, true
+    Done()
 end
 
 -- What a goal is worked out with: the gear data, your weights, class and side, and whether a 60
@@ -1280,6 +1306,27 @@ local function Fresh(read, now, beforeOnly)
     return read.arrived == Gear.arrived
 end
 
+-- Whether everything a kept goal waits on from the game has come since it was worked out (or been given
+-- up on, or is loaded now): it's then out of date, and worked out again once, before it's shown. The stage
+-- before raids alone where `beforeOnly`. False for a goal that waits on nothing on its way.
+function Goal.Settled(read, beforeOnly)
+    local ids = read and (beforeOnly and read.comingBefore or read.coming)
+    if not ids or next(ids) == nil then return false end
+    for id in pairs(ids) do
+        if not (Gear.CameAfter(id, read.arrived) or Gear.GivenUp(id) or Cached(id)) then return false end
+    end
+    return true
+end
+
+-- What a kept goal waits on and hasn't come asked of the game again (once its last ask has had its two
+-- seconds), so a piece the game never sends is given up on in the end, and the goal can settle.
+function Goal.AskAgain(read, beforeOnly)
+    local ids = read and (beforeOnly and read.comingBefore or read.coming)
+    for id in pairs(ids or {}) do
+        if not (Gear.CameAfter(id, read.arrived) or Gear.GivenUp(id) or Cached(id)) then Gear.Stats(id) end
+    end
+end
+
 -- { [Goal.BEFORE] = stage, [Goal.RAIDS] = stage, waiting, waitingBefore, ceiling, set, lists }, or
 -- { noWeights = true } for a spec with no weights. `waiting` counts the items still owed by the game,
 -- `waitingBefore` those the stage before raids owes. A stage: { rows, done, slots, runs, other,
@@ -1299,9 +1346,10 @@ end
 -- before raids asks for its own 17. nil works out both. Asked for the stage before raids alone, a kept
 -- goal holds while only its raids' stage owes items (Fresh).
 --
--- `asKept`: the page switched to this goal (another stage or spec picked), so one kept for the same plans,
--- spec, set and change is given as it is, though the game still owes it items; the page's own look again
--- brings it up to date. A switch works nothing out where a goal is kept.
+-- `asKept` (the page): one kept for the same plans, spec, set and change is given as it is while the game
+-- is still sending what it waits on, and worked out again once everything has come (Goal.Settled): never
+-- for each item, and the goal given is then the new one, nil until it's in. A switch to another stage or
+-- spec works nothing out where its goal is kept.
 --
 -- The second value is true where what's given is the kept goal while a newer one is worked out (`later`
 -- is then called once it's in).
@@ -1315,8 +1363,14 @@ function Goal.Read(spec, build, cheap, draft, later, raids, asKept)
     -- A goal kept with its raids' stage keeps it when it's worked out again.
     raids = raids ~= false or (Same(kept, key) and kept[Goal.RAIDS] ~= nil)
     local function Has(read) return Same(read, key) and (not raids or read.noWeights or read[Goal.RAIDS] ~= nil) end
-    if Has(kept) and now and kept.at and now - kept.at < KEEP and (asKept or Fresh(kept, now, beforeOnly)) then
-        return kept
+    local settled = false
+    if Has(kept) and now and kept.at and now - kept.at < KEEP then
+        if asKept then
+            settled = Goal.Settled(kept, beforeOnly)
+            if not settled then return kept end
+        elseif Fresh(kept, now, beforeOnly) then
+            return kept
+        end
     end
     if not (job and Same(job.key, key) and (job.raids or not raids)) then
         job, told = Job(spec, build, cheap, draft, key, now, raids), {}
@@ -1354,7 +1408,7 @@ function Goal.Read(spec, build, cheap, draft, later, raids, asKept)
         Compat.After(0, Step)
     end
     kept = keptBy[spec]
-    if Has(kept) then return kept, true end
+    if Has(kept) and not settled then return kept, true end
     return nil
 end
 
